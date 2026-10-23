@@ -12,6 +12,7 @@ if(alarm[0] > 0)
 		case CHARACTER_SALLY:
 		case CHARACTER_KNUX:
 		case CHARACTER_AMY:
+		case CHARACTER_AMY_V100:
 		{
 			_offset = 25;
 			break;

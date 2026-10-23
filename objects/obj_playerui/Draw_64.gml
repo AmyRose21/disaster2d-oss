@@ -132,6 +132,17 @@ if(instance_exists(global.player) && !global.player.isDead)
 			draw_sprite_ext(spr_gui_amyattack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);	
 			break;
 		}
+
+		case CHARACTER_AMY_V100:
+		{
+			var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_BIGJUMP_RECHARGE);
+			draw_sprite_ext(spr_gui_amyhjump_v100, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+			
+			var val = global.player.revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
+			var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
+			draw_sprite_ext(spr_gui_amyattack_v100, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);	
+			break;
+		}
 		
 		case CHARACTER_CREAM:
 		{

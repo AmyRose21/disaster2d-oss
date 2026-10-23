@@ -108,14 +108,15 @@ else if(state == 2 || state == 3)
 		sprInd = selected - 1;
 		
 		if(obj_netclient.exeId == obj_netclient.nid)
-			sprInd += CHARACTER_SALLY;
+			sprInd += CHARACTER_AMY_V100;
 	}
 	
 	if(obj_netclient.exeId == obj_netclient.nid || obj_netclient.avCharacters[sprInd+1])
 		draw_sprite(chars[sprInd], charIndex, 132, 230);
 	
 	draw_sprite(spr_char_bars, obj_netclient.exeId == obj_netclient.nid, 0, 0);
-	draw_sprite(spr_char_info, sprInd, 1, 232-5);
+	// Amy v100 (sprInd==6): reusa el panel de Amy (arte identico v100/v110)
+		draw_sprite(spr_char_info, sprInd == 6 ? 3 : sprInd, 1, 232-5);
 	
 	if(countScale > 1)
 		countScale -= 0.02;

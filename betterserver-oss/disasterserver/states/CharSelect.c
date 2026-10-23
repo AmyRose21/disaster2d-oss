@@ -143,7 +143,7 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 		id--; // id - 1
 
 		AssertOrDisconnect(v->server, id >= 0);
-		AssertOrDisconnect(v->server, id <= CH_SALLY);
+		AssertOrDisconnect(v->server, id <= CH_AMY_V100);
 
 		uint8_t avail = v->server->lobby.avail[id];
 		if (avail)
@@ -170,7 +170,8 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 			"Eggman",
 			"Amy",
 			"Cream",
-			"Sally"};
+			"Sally",
+			"Amy (v100)"};
 
 		Info("%s " LOG_RST "(id %d) choses [" LOG_GRN "%s" LOG_RST "]!", v->nickname.value, v->id, survs[id]);
 		return charselect_check_state(v->server) || lobby_init(v->server);
@@ -246,7 +247,7 @@ bool charselect_init(int8_t map, Server *server)
 	server->state = ST_CHARSELECT;
 	server->lobby.countdown_sec = 30;
 	server->lobby.countdown = TICKSPERSEC;
-	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_SALLY + 1));
+	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_AMY_V100 + 1));
 
 	Packet pack;
 	PacketCreate(&pack, SERVER_LOBBY_EXE);
@@ -305,7 +306,7 @@ bool charselect_init_survpractice(Server *server)
 	server->state = ST_CHARSELECT;
 	server->lobby.countdown_sec = 60;
 	server->lobby.countdown = TICKSPERSEC;
-	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_SALLY + 1));
+	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_AMY_V100 + 1));
 
 	Packet pack;
 

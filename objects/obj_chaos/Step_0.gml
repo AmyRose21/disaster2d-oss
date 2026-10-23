@@ -65,7 +65,7 @@ if(invisTimer <= 0 && bounceTimer <= 0 && slimeTimer <= 0)
 		var jumping = (inst.state == JUMP || inst.state == SPIN);
 		if(jumping && (isJumping || isSpinning))
 		{
-			if(inst.character == CHARACTER_EGGMAN || inst.character == CHARACTER_AMY || inst.character == CHARACTER_SALLY)
+			if(inst.character == CHARACTER_EGGMAN || (inst.character == CHARACTER_AMY || inst.character == CHARACTER_AMY_V100) || inst.character == CHARACTER_SALLY)
 				continue;
 				
 			var dirX = sign(inst.x - x);

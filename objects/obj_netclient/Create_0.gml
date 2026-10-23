@@ -37,6 +37,7 @@ avCharacters =
 	true,
 	true,
 	true,
+	true,
 	true
 ];
 

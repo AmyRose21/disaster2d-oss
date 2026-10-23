@@ -70,14 +70,15 @@ function net_state_results(rbuff, nps, isPasstrough)
 				case 1:
 				{
 					_inst.icon = spr_playerhealth_demon;
-					_inst.frame = _char;
+					/* Amy v100 (_char 6): reusa el grupo de Amy */
+					_inst.frame = _char == 6 ? 3 : _char;
 					break;
 				}
 				
 				case 2:
 				{
 					_inst.icon = spr_playerhealth;
-					_inst.frame = 6 + _char * 7;
+					_inst.frame = 6 + (_char == 6 ? 3 : _char) * 7;
 					break;
 				}
 				

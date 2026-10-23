@@ -101,6 +101,8 @@ function scr_collision_objects_after()
 					break;
 					
 				case CHARACTER_AMY:
+					
+				case CHARACTER_AMY_V100:
 					if(isAttacking)
 					{
 						attackTimer = revivalTimes >= 2 ? AMY_EXEATTACK_RECHARGE : AMY_ATTACK_RECHARGE;
@@ -222,6 +224,8 @@ function scr_collision_objects_after()
 					break;
 					
 				case CHARACTER_AMY:
+					
+				case CHARACTER_AMY_V100:
 					if(isAttacking)
 					{
 						attackTimer = revivalTimes >= 2 ? AMY_EXEATTACK_RECHARGE : AMY_ATTACK_RECHARGE;
@@ -287,13 +291,13 @@ function scr_collision_objects_after()
 		var _isAttacking = false;
 		var ch = global.character;
 	
-		if(global.player.isAttacking && (ch == CHARACTER_EXE || ch == CHARACTER_AMY || ch == CHARACTER_KNUX || ch == CHARACTER_EGGMAN || ch == CHARACTER_SALLY))
+		if(global.player.isAttacking && (ch == CHARACTER_EXE || (ch == CHARACTER_AMY || ch == CHARACTER_AMY_V100) || ch == CHARACTER_KNUX || ch == CHARACTER_EGGMAN || ch == CHARACTER_SALLY))
 			_isAttacking = true;
 				
-		if(ch == CHARACTER_AMY && global.player.state == AMY_HJUMP)
+		if((ch == CHARACTER_AMY || ch == CHARACTER_AMY_V100) && global.player.state == AMY_HJUMP)
 			_isAttacking = true;
 		
-		if(global.player.isJumping || global.player.state == FALL && ch == CHARACTER_AMY)
+		if(global.player.isJumping || global.player.state == FALL && (ch == CHARACTER_AMY || ch == CHARACTER_AMY_V100))
 			 _isAttacking = true;
 		
 		if(global.player.isSpinning)

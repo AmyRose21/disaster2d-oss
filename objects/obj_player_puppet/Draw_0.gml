@@ -93,6 +93,8 @@ switch(character)
 		break;
 		
 	case CHARACTER_AMY:
+		
+	case CHARACTER_AMY_V100:
 		if(state == AMY_ZIPLINE)
 			draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 21 - 19);
 		break;

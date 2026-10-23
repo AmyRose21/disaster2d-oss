@@ -64,6 +64,13 @@ if(obj_netclient.nid == pid)
 				global.player.sprite_index = spr_amy_hurt;
 			break;
 			
+		case CHARACTER_AMY_V100:
+			if(global.player.revivalTimes >= 2)
+				global.player.sprite_index = spr_eamy_hurt_v100;
+			else
+				global.player.sprite_index = spr_amy_hurt_v100;
+			break;
+			
 		case CHARACTER_CREAM:
 			if(global.player.revivalTimes >= 2)
 				global.player.sprite_index = spr_ecream_hurt;

@@ -170,6 +170,7 @@ function net_tcpprocess(rbuff)
 					true,
 					true,
 					true,
+					true,
 					true
 				];
 				

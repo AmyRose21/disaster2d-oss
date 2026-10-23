@@ -60,7 +60,10 @@ typedef struct PeerData
 		CH_EGGMAN,
 		CH_AMY,
 		CH_CREAM,
-		CH_SALLY
+		CH_SALLY,
+
+		/* Copia clasica de Amy (sprites v100) */
+		CH_AMY_V100
 	} surv_char;
 
 	enum
@@ -99,7 +102,7 @@ typedef struct
 	/* Character Select */
 	int8_t map;
 	uint16_t exe;
-	bool avail[CH_SALLY + 1];
+	bool avail[CH_AMY_V100 + 1];
 } Lobby;
 
 typedef enum

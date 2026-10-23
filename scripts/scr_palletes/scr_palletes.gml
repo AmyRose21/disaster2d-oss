@@ -121,6 +121,35 @@ palette_list_push
 
 palette_list_push
 (
+	CHARACTER_AMY_V100, 
+	[ #f19dbb, #e65b8c, #a93559, #bb7655, #fcb037, #dc7605, #ff7575, #e0e0e0, #c0c0e0, #a0a0c0, #606080, #202020 ], 
+	[ #e1a1cc, #d45a99, #802e42, #aa6644, #e08e00, #a06040, #e74200, #e0e0e0, #a5a5a5, #848484, #424242, #000000 ] 
+);
+
+palette_list_push
+(
+	CHARACTER_AMY_V100, 
+	[ #f19dbb, #e65b8c, #a93559, #bb7655, #800000, #e0e0e0, #c0c0e0, #a0a0c0, #606080 ], 
+	[ #ff9cbe, #ff3b65, #a61738, #ba5726, #800020, #fcfcfc, #d8d8fc, #b4b4d8, #6c6c90 ] 
+);
+
+palette_list_push
+(
+	CHARACTER_AMY_V100 + PALETTE_DEMON,
+	[ #884440, #582c28, #301818, #d6d6d6, #b3b3b3, #828282, #424242, #9e4127, #d58f6e ], 
+	[ #c97f7b, #8c4b48, #4d2626, #e0e0e0, #c0c0e0, #a0a0c0, #606080, #7f6948, #dab273 ] 
+);
+
+palette_list_push
+(
+	CHARACTER_AMY_V100 + PALETTE_DEMON,
+	[ #884440, #582c28, #301818, #431a20, #260a0f, #632d33, #d6d6d6, #b3b3b3, #828282, #424242 ], 
+	[ #b35658, #882a3b, #4c101b, #97091c, #5b070a, #bf364a, #ddd0d0, #c1abaa, #83766d, #53524a ] 
+);
+
+
+palette_list_push
+(
 	CHARACTER_CREAM,
 	[ #eecba8, #e39c79, #c16b53, #fc8c04, #d5560b, #e00000, #800000, #e4e0e4, #c0c0e0, #a0a0c0, #606080, #202020, ],
 	[ #f8e0b8, #e8c080, #987840, #f89000, #e05800, #f85800, #980000, #e4e0e4, #a5a5a5, #848484, #424242, #000000, ]

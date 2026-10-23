@@ -46,6 +46,10 @@ if(!exe)
 			spr = demon ? spr_eamy_idle : spr_amy_idle;
 			break;
 			
+		case CHARACTER_AMY_V100:
+			spr = demon ? spr_eamy_idle_v100 : spr_amy_idle_v100;
+			break;
+			
 		case CHARACTER_SALLY:
 			spr = demon ? spr_esally_idle : spr_sally_idle;
 			offY += 4;

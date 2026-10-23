@@ -53,7 +53,7 @@ if(instance_exists(global.player) && global.player.hp > 0)
 		if(global.character == CHARACTER_EGGMAN && global.player.state == EGG_ZIPLINE)
 			return;
 			
-		if(global.character == CHARACTER_AMY && global.player.state == AMY_ZIPLINE)
+		if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_V100) && global.player.state == AMY_ZIPLINE)
 			return;
 			
 		if(global.character == CHARACTER_CREAM && global.player.state == CREAM_ZIPLINE)
@@ -114,6 +114,8 @@ if(hasPlayer && progress < 1)
 			break;
 			
 		case CHARACTER_AMY:
+			
+		case CHARACTER_AMY_V100:
 			global.player.y = y + 21;
 			global.player.isHJ = false;
 			break;
