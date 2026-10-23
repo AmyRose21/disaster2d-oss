@@ -163,6 +163,16 @@ bool game_init(int exe, int8_t map, Server* server)
 	PacketCreate(&pack, SERVER_LOBBY_GAME_START);
 	server_broadcast(server, &pack, true);
 
+	/* Survivor practice: no real EXE is playing, so drop the fake
+	 * "EXE" (id 0xFFFF) from the clients player lists before the map
+	 * loads (it would spawn a ghost puppet / scoreboard row). */
+	if (exe == 0xFFFF)
+	{
+		PacketCreate(&pack, SERVER_PLAYER_LEFT);
+		PacketWrite(&pack, packet_write16, 0xFFFF);
+		server_broadcast(server, &pack, true);
+	}
+
 	for (size_t i = 0; i < server->peers.capacity; i++)
 	{
 		PeerData* v = (PeerData*)server->peers.ptr[i];

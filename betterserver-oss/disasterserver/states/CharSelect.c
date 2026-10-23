@@ -284,6 +284,20 @@ bool charselect_init_survpractice(Server *server)
 	Debug("Attepting to enter ST_CHARSELECT (survivor practice)...");
 	RAssert(server);
 
+	/* charselect_choose_exe() normally resets these for us. */
+	for (size_t i = 0; i < server->peers.capacity; i++)
+	{
+		PeerData *peer = (PeerData *)server->peers.ptr[i];
+		if (!peer)
+			continue;
+
+		if (!peer->in_game)
+			continue;
+
+		peer->exe_char = EX_NONE;
+		peer->surv_char = CH_NONE;
+	}
+
 	/* Practice with no EXE: use an id that matches no peer,
 	 * so every player gets the SURVIVOR select screen. */
 	server->lobby.exe = 0xFFFF;
@@ -294,6 +308,18 @@ bool charselect_init_survpractice(Server *server)
 	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_SALLY + 1));
 
 	Packet pack;
+
+	/* Fake "EXE" player: survivors read players[? exeId].exeCharacter
+	 * on SERVER_LOBBY_GAME_START and crash if the id is not in their
+	 * players map. Removed again in game_init() right after the game
+	 * starts. */
+	PacketCreate(&pack, SERVER_PLAYER_JOINED);
+	PacketWrite(&pack, packet_write16, 0xFFFF);
+	PacketWrite(&pack, packet_writestr, __Str("EXE"));
+	PacketWrite(&pack, packet_write8, 24); /* SonicExe lobby icon */
+	PacketWrite(&pack, packet_write8, -1); /* no pet */
+	server_broadcast(server, &pack, true);
+
 	PacketCreate(&pack, SERVER_LOBBY_EXE);
 	PacketWrite(&pack, packet_write16, server->lobby.exe);
 	PacketWrite(&pack, packet_write16, 20);

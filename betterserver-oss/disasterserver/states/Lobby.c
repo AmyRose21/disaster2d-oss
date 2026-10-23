@@ -658,6 +658,15 @@ bool lobby_init(Server* server)
 	memset(&server->lobby.vote, 0, sizeof(Vote));
 
 	Packet pack;
+
+	/* Coming back from a cancelled survivor practice: drop the fake
+	 * "EXE" (id 0xFFFF). Sent BEFORE the back-to-lobby packet so clients
+	 * still in charselect also destroy its lobby icon. Harmless no-op
+	 * when the fake player does not exist. */
+	PacketCreate(&pack, SERVER_PLAYER_LEFT);
+	PacketWrite(&pack, packet_write16, 0xFFFF);
+	server_broadcast(server, &pack, true);
+
 	PacketCreate(&pack, SERVER_GAME_BACK_TO_LOBBY);
 	server_broadcast(server, &pack, true);
 
