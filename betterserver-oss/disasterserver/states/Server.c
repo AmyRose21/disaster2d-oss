@@ -814,6 +814,8 @@ bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *
 			snprintf(lobby_msg, 128, CLRCODE_GRA CLRCODE_GRA ".map" CLRCODE_RST " choose map (1-%d)", MAP_COUNT + 1);
 			RAssert(server_send_msg(v->server, v->peer, lobby_msg));
 
+			RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".sp" CLRCODE_RST " survivor practice (no exe)"));
+
 			RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".kick" CLRCODE_RST " kick someone ig"));
 			RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".ban" CLRCODE_RST " ban someone ig"));
 			RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".op" CLRCODE_RST " op someone ig"));

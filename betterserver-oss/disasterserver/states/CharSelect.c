@@ -279,6 +279,49 @@ bool charselect_init(int8_t map, Server *server)
 	return true;
 }
 
+bool charselect_init_survpractice(Server *server)
+{
+	Debug("Attepting to enter ST_CHARSELECT (survivor practice)...");
+	RAssert(server);
+
+	/* Practice with no EXE: use an id that matches no peer,
+	 * so every player gets the SURVIVOR select screen. */
+	server->lobby.exe = 0xFFFF;
+
+	server->state = ST_CHARSELECT;
+	server->lobby.countdown_sec = 60;
+	server->lobby.countdown = TICKSPERSEC;
+	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_SALLY + 1));
+
+	Packet pack;
+	PacketCreate(&pack, SERVER_LOBBY_EXE);
+	PacketWrite(&pack, packet_write16, server->lobby.exe);
+	PacketWrite(&pack, packet_write16, 20);
+	server_broadcast(server, &pack, true);
+
+	PacketCreate(&pack, SERVER_CHAR_TIME_SYNC);
+	PacketWrite(&pack, packet_write8, server->lobby.countdown_sec);
+	server_broadcast(server, &pack, true);
+
+	Info(LOG_YLW "Server is now in " LOG_PUR "Character Select " LOG_YLW "(survivor practice)");
+	server->lobby.map = 20;
+
+	for (size_t i = 0; i < server->peers.capacity; i++)
+	{
+		PeerData *data = (PeerData *)server->peers.ptr[i];
+
+		if (!data)
+			continue;
+
+		if (data->in_game)
+			continue;
+
+		server_send_msg(server, data->peer, CLRCODE_GRN "survivor practice:~ pick your character!");
+	}
+
+	return true;
+}
+
 bool charselect_state_join(PeerData *v)
 {
 	return true;

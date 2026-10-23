@@ -365,9 +365,21 @@ bool practice_mode(Component* component)
 	{
 		if(server->state == ST_LOBBY && server_ingame(server) > 0)
 		{
-			if(!charselect_init(20, server))
+			if (SDL_GetModState() & KMOD_SHIFT)
 			{
-				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error (Report to dev)", "Failed to set practice mode: charselect_init() returned FALSE", NULL);
+				/* Shift+Click: original EXE practice */
+				if(!charselect_init(20, server))
+				{
+					SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error (Report to dev)", "Failed to set practice mode: charselect_init() returned FALSE", NULL);
+				}
+			}
+			else
+			{
+				/* Click: SURVIVOR practice (no exe, pick any survivor) */
+				if(!charselect_init_survpractice(server))
+				{
+					SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error (Report to dev)", "Failed to set survivor practice: charselect_init_survpractice() returned FALSE", NULL);
+				}
 			}
 		}
 	}

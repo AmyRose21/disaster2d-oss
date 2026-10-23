@@ -26,6 +26,7 @@ typedef struct Entity
 #define CMD_STINK 1426706039
 #define CMD_VK 47971
 #define CMD_VP 47976
+#define CMD_SP 47883
 #define CMD_BAN 1467681
 #define CMD_KICK 45773684
 #define CMD_OP 47759
@@ -51,6 +52,7 @@ bool mapvote_state_handle	(PeerData* v, Packet* packet);
 bool mapvote_state_tick		(Server* server);
 
 bool charselect_init			(int8_t map, Server* server);
+bool charselect_init_survpractice	(Server* server);
 bool charselect_state_join		(PeerData* v);
 bool charselect_state_left		(PeerData* v);
 bool charselect_state_handle	(PeerData* v, Packet * packet);

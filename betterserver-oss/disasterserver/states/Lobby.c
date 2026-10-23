@@ -245,6 +245,24 @@ bool lobby_state_handle(PeerData* v, Packet* packet)
 					return charselect_init(ind, v->server) || lobby_init(v->server);
 				}
 
+				/* Survivor practice (no EXE) */
+				case CMD_SP:
+				{
+					if (!v->op)
+					{
+						RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "you aren't an operator"));
+						break;
+					}
+
+					if (server_ingame(v->server) <= 0)
+					{
+						RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "nobody is in the lobby."));
+						break;
+					}
+
+					return charselect_init_survpractice(v->server) || lobby_init(v->server);
+				}
+
 				/* YES on votes */
 				case CMD_YES:
 				case CMD_Y:
