@@ -17,21 +17,27 @@ instance_create_depth(0, 0, 0, obj_playerui);
 
 drawPing = function(char, exeCharacter, ping, revival, name, index)
 {	
+	var hchar = char - 1;
+	
 	if(char == CHARACTER_EXE)
 	{
+		hchar = -1;
 		char += CHARACTER_SALLY;
 		char += exeCharacter;
 	}
-	else char--;
+	else if(char == CHARACTER_AMY_CANON)
+		char = 10; // Amy Canon: frame 10 de spr_tab_entry
+	else
+		char--;
 	
 	draw_sprite(spr_tab_entry, char, 480/2, 44 + index * 30);
 	
-	if(char <= CHARACTER_SALLY)
+	if(hchar > -1)
 	{
 		if(revival >= 2)
-			draw_sprite(spr_playerhealth_demon, char, 480/2-113 + 1, 43 + index * 30 + 28);
+			draw_sprite(spr_playerhealth_demon, hchar, 480/2-113 + 1, 43 + index * 30 + 28);
 		else if(revival >= 1)
-			draw_sprite(spr_playerhealth_hit, char, 480/2-113 + 1, 43 + index * 30 + 28);
+			draw_sprite(spr_playerhealth_hit, hchar, 480/2-113 + 1, 43 + index * 30 + 28);
 	}
 	
 	var clr = #0fff39;

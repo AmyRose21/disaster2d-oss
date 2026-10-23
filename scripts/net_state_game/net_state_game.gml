@@ -1910,6 +1910,10 @@ function net_state_game(rbuff, nps, isPasstrough)
 			
 			if(_redRing)
 			{
+				// PASIVA 1 (Amy Canon): el anillo rojo no puede silenciar sus habilidades
+				if(global.character == CHARACTER_AMY_CANON)
+					break;
+				
 				if(global.player.redRingTimer > 0)
 					break;
 					
@@ -2045,6 +2049,10 @@ function net_state_game(rbuff, nps, isPasstrough)
 				
 			if(_isRed && global.player.redRingTimer <= 0)
 			{
+				// PASIVA 1 (Amy Canon): el anillo rojo no puede silenciar sus habilidades
+				if(global.character == CHARACTER_AMY_CANON)
+					break;
+				
 				audio_play_sound(mus_mindfuck, 0, false);
 				audio_play_sound(snd_redring, 0, false);
 				net_sound_emit(snd_redring);
