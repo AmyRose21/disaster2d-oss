@@ -1,8 +1,8 @@
 var ch = char;
 
-if(char > CHARACTER_SALLY)
+if(char > CHARACTER_AMY_CANON)
 {
-	ch -= CHARACTER_SALLY + 1;
+	ch -= CHARACTER_AMY_CANON + 1;
 	ch += PALETTE_EXE;
 }
 else if(demon)
@@ -27,28 +27,30 @@ switch(char)
 		break;
 		
 	case CHARACTER_AMY:
-		
-	case CHARACTER_AMY_CANON:
 		sprite_index = demon ? spr_eamy_idle : spr_amy_idle;
+		break;
+
+	case CHARACTER_AMY_CANON:
+		sprite_index = spr_amy_idle_canon;
 		break;
 		
 	case CHARACTER_SALLY:
 		sprite_index = demon ? spr_esally_idle : spr_sally_idle;
 		break;
 		
-	case CHARACTER_SALLY+1:
+	case CHARACTER_AMY_CANON+1:
 		sprite_index = spr_exe_idle;
 		break;
 		
-	case CHARACTER_SALLY+2:
+	case CHARACTER_AMY_CANON+2:
 		sprite_index = spr_chaos_attack1;
 		break;
 		
-	case CHARACTER_SALLY+3:
+	case CHARACTER_AMY_CANON+3:
 		sprite_index = spr_exetior_idle;
 		break;
 		
-	case CHARACTER_SALLY+4:
+	case CHARACTER_AMY_CANON+4:
 		sprite_index = spr_exeller_idle;
 		break;
 }
@@ -68,7 +70,7 @@ shader_reset();
 
 var text = "none";
 
-if(ch <= CHARACTER_SALLY)
+if(ch <= CHARACTER_AMY_CANON)
 {
 	if(!demon && ind > -1)
 	{

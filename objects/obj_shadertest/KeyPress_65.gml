@@ -1,8 +1,8 @@
 var ch = char;
 
-if(char > CHARACTER_SALLY)
+if(char > CHARACTER_AMY_CANON)
 {
-	ch -= CHARACTER_SALLY + 1;
+	ch -= CHARACTER_AMY_CANON + 1;
 	ch += PALETTE_EXE;
 }
 else if(demon)
