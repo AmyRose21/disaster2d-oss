@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_egg_special",
   "isCompatibility":false,
   "isDnD":false,

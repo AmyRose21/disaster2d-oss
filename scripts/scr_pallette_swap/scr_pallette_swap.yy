@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_pallette_swap",
   "isCompatibility":false,
   "isDnD":false,

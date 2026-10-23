@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_controls_keycode_to_key",
   "isCompatibility":false,
   "isDnD":false,

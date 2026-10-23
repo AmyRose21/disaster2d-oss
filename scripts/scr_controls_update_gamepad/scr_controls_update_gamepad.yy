@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_controls_update_gamepad",
   "isCompatibility":false,
   "isDnD":false,

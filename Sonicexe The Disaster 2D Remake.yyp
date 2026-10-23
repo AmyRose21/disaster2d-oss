@@ -1,8 +1,8 @@
 {
-  "$GMProject":"",
+  "$GMProject":"v1",
   "%Name":"Sonicexe The Disaster 2D Remake",
   "AudioGroups":[
-    {"$GMAudioGroup":"","%Name":"audiogroup_default","name":"audiogroup_default","resourceType":"GMAudioGroup","resourceVersion":"2.0","targets":-1,},
+    {"$GMAudioGroup":"v1","%Name":"audiogroup_default","exportDir":"","name":"audiogroup_default","resourceType":"GMAudioGroup","resourceVersion":"2.0","targets":-1,},
   ],
   "configs":{
     "children":[],
@@ -173,11 +173,17 @@
     {"$GMFolder":"","%Name":"Tile Sets","folderPath":"folders/Tile Sets.yy","name":"Tile Sets","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Timelines","folderPath":"folders/Timelines.yy","name":"Timelines","resourceType":"GMFolder","resourceVersion":"2.0",},
   ],
+  "ForcedPrefabProjectReferences":[
+    {"link":"io.gamemaker.gm_filter_greyscale-1.0.0","name":"io.gamemaker.gm_filter_greyscale-1.0.0","path":"io.gamemaker.gm_filter_greyscale-1.0.0.yyp",},
+    {"link":"io.gamemaker.gm_filter_tintfilter-1.0.0","name":"io.gamemaker.gm_filter_tintfilter-1.0.0","path":"io.gamemaker.gm_filter_tintfilter-1.0.0.yyp",},
+    {"link":"io.gamemaker.gm_filter_heathaze-1.0.0","name":"io.gamemaker.gm_filter_heathaze-1.0.0","path":"io.gamemaker.gm_filter_heathaze-1.0.0.yyp",},
+    {"link":"io.gamemaker.gm_filter_underwater-1.0.0","name":"io.gamemaker.gm_filter_underwater-1.0.0","path":"io.gamemaker.gm_filter_underwater-1.0.0.yyp",},
+  ],
   "IncludedFiles":[],
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2024.2.0.132",
+    "IDEVersion":"2026.0.0.16",
   },
   "name":"Sonicexe The Disaster 2D Remake",
   "resources":[
@@ -1447,6 +1453,7 @@
     {"id":{"name":"spr_pet_philnux","path":"sprites/spr_pet_philnux/spr_pet_philnux.yy",},},
     {"id":{"name":"spr_pet_selfinj","path":"sprites/spr_pet_selfinj/spr_pet_selfinj.yy",},},
     {"id":{"name":"spr_pet_sewers","path":"sprites/spr_pet_sewers/spr_pet_sewers.yy",},},
+    {"id":{"name":"spr_pet_skull","path":"sprites/spr_pet_skull/spr_pet_skull.yy",},},
     {"id":{"name":"spr_pet_snic","path":"sprites/spr_pet_snic/spr_pet_snic.yy",},},
     {"id":{"name":"spr_pet_stor","path":"sprites/spr_pet_stor/spr_pet_stor.yy",},},
     {"id":{"name":"spr_pet_tits","path":"sprites/spr_pet_tits/spr_pet_tits.yy",},},
@@ -1686,7 +1693,6 @@
     {"id":{"name":"spr_ycr_tiles2","path":"sprites/spr_ycr_tiles2/spr_ycr_tiles2.yy",},},
     {"id":{"name":"spr_youkilledeveryone","path":"sprites/spr_youkilledeveryone/spr_youkilledeveryone.yy",},},
     {"id":{"name":"spr_yspring_up","path":"sprites/spr_yspring_up/spr_yspring_up.yy",},},
-    {"id":{"name":"spr_pet_skull","path":"sprites/spr_pet_skull/spr_pet_skull.yy",},},
   ],
   "resourceType":"GMProject",
   "resourceVersion":"2.0",

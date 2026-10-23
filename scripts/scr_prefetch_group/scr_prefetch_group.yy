@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_prefetch_group",
   "isCompatibility":false,
   "isDnD":false,

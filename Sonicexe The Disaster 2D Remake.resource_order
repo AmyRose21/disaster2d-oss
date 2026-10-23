@@ -1305,6 +1305,7 @@
     {"name":"spr_pet_philnux","order":20,"path":"sprites/spr_pet_philnux/spr_pet_philnux.yy",},
     {"name":"spr_pet_selfinj","order":16,"path":"sprites/spr_pet_selfinj/spr_pet_selfinj.yy",},
     {"name":"spr_pet_sewers","order":24,"path":"sprites/spr_pet_sewers/spr_pet_sewers.yy",},
+    {"name":"spr_pet_skull","order":30,"path":"sprites/spr_pet_skull/spr_pet_skull.yy",},
     {"name":"spr_pet_snic","order":23,"path":"sprites/spr_pet_snic/spr_pet_snic.yy",},
     {"name":"spr_pet_stor","order":15,"path":"sprites/spr_pet_stor/spr_pet_stor.yy",},
     {"name":"spr_pet_tits","order":10,"path":"sprites/spr_pet_tits/spr_pet_tits.yy",},
@@ -1530,6 +1531,5 @@
     {"name":"spr_ycr_tiles2","order":7,"path":"sprites/spr_ycr_tiles2/spr_ycr_tiles2.yy",},
     {"name":"spr_youkilledeveryone","order":7,"path":"sprites/spr_youkilledeveryone/spr_youkilledeveryone.yy",},
     {"name":"spr_yspring_up","order":6,"path":"sprites/spr_yspring_up/spr_yspring_up.yy",},
-    {"name":"spr_pet_skull","order":30,"path":"sprites/spr_pet_skull/spr_pet_skull.yy",},
   ],
 }

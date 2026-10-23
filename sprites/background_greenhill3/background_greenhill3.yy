@@ -1,5 +1,5 @@
 {
-  "$GMSprite":"",
+  "$GMSprite":"v2",
   "%Name":"background_greenhill3",
   "bboxMode":0,
   "bbox_bottom":255,
@@ -12,14 +12,14 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"","%Name":"e257ad23-9849-48b7-a29b-6705ff71ee5b","name":"e257ad23-9849-48b7-a29b-6705ff71ee5b","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"","%Name":"23fd5f6c-2625-4e5e-a873-83fa2d226c3a","name":"23fd5f6c-2625-4e5e-a873-83fa2d226c3a","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"","%Name":"db3b0d01-e2f4-428c-a483-a6dc86887eaa","name":"db3b0d01-e2f4-428c-a483-a6dc86887eaa","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"","%Name":"461611eb-50e3-4a9e-bc85-9bc735fb4970","name":"461611eb-50e3-4a9e-bc85-9bc735fb4970","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"","%Name":"fdc81135-f0dd-4903-8d80-1ae596258448","name":"fdc81135-f0dd-4903-8d80-1ae596258448","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"","%Name":"2ce4d748-a67b-4908-a0f2-33143fa5b17c","name":"2ce4d748-a67b-4908-a0f2-33143fa5b17c","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"","%Name":"c0c5a9e7-c773-487a-9e88-0e405e7c7c43","name":"c0c5a9e7-c773-487a-9e88-0e405e7c7c43","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"","%Name":"8cbe7d70-901f-4551-811a-71aed812fa70","name":"8cbe7d70-901f-4551-811a-71aed812fa70","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"e257ad23-9849-48b7-a29b-6705ff71ee5b","name":"e257ad23-9849-48b7-a29b-6705ff71ee5b","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"23fd5f6c-2625-4e5e-a873-83fa2d226c3a","name":"23fd5f6c-2625-4e5e-a873-83fa2d226c3a","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"db3b0d01-e2f4-428c-a483-a6dc86887eaa","name":"db3b0d01-e2f4-428c-a483-a6dc86887eaa","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"461611eb-50e3-4a9e-bc85-9bc735fb4970","name":"461611eb-50e3-4a9e-bc85-9bc735fb4970","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"fdc81135-f0dd-4903-8d80-1ae596258448","name":"fdc81135-f0dd-4903-8d80-1ae596258448","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"2ce4d748-a67b-4908-a0f2-33143fa5b17c","name":"2ce4d748-a67b-4908-a0f2-33143fa5b17c","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"c0c5a9e7-c773-487a-9e88-0e405e7c7c43","name":"c0c5a9e7-c773-487a-9e88-0e405e7c7c43","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"8cbe7d70-901f-4551-811a-71aed812fa70","name":"8cbe7d70-901f-4551-811a-71aed812fa70","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
@@ -39,7 +39,7 @@
   "resourceType":"GMSprite",
   "resourceVersion":"2.0",
   "sequence":{
-    "$GMSequence":"",
+    "$GMSequence":"v1",
     "%Name":"background_greenhill3",
     "autoRecord":true,
     "backdropHeight":768,
@@ -75,30 +75,14 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"e257ad23-9849-48b7-a29b-6705ff71ee5b","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"72b1eeda-ec07-4421-9b5f-c57e98f518de","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"23fd5f6c-2625-4e5e-a873-83fa2d226c3a","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"8d28cf2a-5c82-4859-bbb0-7677238a9960","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"db3b0d01-e2f4-428c-a483-a6dc86887eaa","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"ebec6e58-7d52-4ff8-8cf5-a3e7774b6652","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"461611eb-50e3-4a9e-bc85-9bc735fb4970","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"2bf03096-cdbc-4965-a9bb-b69017a2ec12","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"fdc81135-f0dd-4903-8d80-1ae596258448","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"bfbc10e6-54a3-45f6-b78f-ddb8d3bf5ace","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"2ce4d748-a67b-4908-a0f2-33143fa5b17c","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"3d3511a4-db43-47d1-b5b6-1acb7dd505f0","IsCreationKey":false,"Key":5.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"c0c5a9e7-c773-487a-9e88-0e405e7c7c43","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"0bea9543-cb70-431b-ae75-4b86e4669db9","IsCreationKey":false,"Key":6.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8cbe7d70-901f-4551-811a-71aed812fa70","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"ec2b19bc-6e18-422f-9e82-c295756c6c00","IsCreationKey":false,"Key":7.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"e257ad23-9849-48b7-a29b-6705ff71ee5b","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"72b1eeda-ec07-4421-9b5f-c57e98f518de","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"23fd5f6c-2625-4e5e-a873-83fa2d226c3a","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"8d28cf2a-5c82-4859-bbb0-7677238a9960","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"db3b0d01-e2f4-428c-a483-a6dc86887eaa","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"ebec6e58-7d52-4ff8-8cf5-a3e7774b6652","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"461611eb-50e3-4a9e-bc85-9bc735fb4970","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"2bf03096-cdbc-4965-a9bb-b69017a2ec12","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"fdc81135-f0dd-4903-8d80-1ae596258448","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"bfbc10e6-54a3-45f6-b78f-ddb8d3bf5ace","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"2ce4d748-a67b-4908-a0f2-33143fa5b17c","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"3d3511a4-db43-47d1-b5b6-1acb7dd505f0","IsCreationKey":false,"Key":5.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"c0c5a9e7-c773-487a-9e88-0e405e7c7c43","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"0bea9543-cb70-431b-ae75-4b86e4669db9","IsCreationKey":false,"Key":6.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"8cbe7d70-901f-4551-811a-71aed812fa70","path":"sprites/background_greenhill3/background_greenhill3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"ec2b19bc-6e18-422f-9e82-c295756c6c00","IsCreationKey":false,"Key":7.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

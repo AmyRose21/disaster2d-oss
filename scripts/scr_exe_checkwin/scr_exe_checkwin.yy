@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_exe_checkwin",
   "isCompatibility":false,
   "isDnD":false,

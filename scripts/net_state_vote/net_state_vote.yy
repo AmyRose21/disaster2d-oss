@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"net_state_vote",
   "isCompatibility":false,
   "isDnD":false,

@@ -25,13 +25,9 @@
   "exportToGame":true,
   "extensionVersion":"1.0.0",
   "files":[
-    {"$GMExtensionFile":"","%Name":"disasterserver.ext","ConfigValues":{
-        "Mobile":{
-          "copyToTargets":"8",
-        },
-      },"constants":[],"copyToTargets":8,"filename":"disasterserver.ext","final":"","functions":[
+    {"$GMExtensionFile":"v1","%Name":"disasterserver.ext","ConfigValues":{"Mobile":{"copyToTargets":"8",},},"constants":[],"copyToTargets":8,"filename":"disasterserver.ext","final":"","functions":[
         {"$GMExtensionFunction":"","%Name":"ServerStart","argCount":0,"args":[],"documentation":"","externalName":"","help":"","hidden":false,"kind":4,"name":"ServerStart","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":2,},
-      ],"init":"","kind":4,"name":"disasterserver.ext","order":[],"origname":"","ProxyFiles":[],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
+      ],"init":"","kind":4,"name":"disasterserver.ext","origname":"","ProxyFiles":[],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
   ],
   "gradleinject":"",
   "hasConvertedCodeInjection":true,

@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_collision_basic",
   "isCompatibility":false,
   "isDnD":false,

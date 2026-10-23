@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"net_udpprocess",
   "isCompatibility":false,
   "isDnD":false,

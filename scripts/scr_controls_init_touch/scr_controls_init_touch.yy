@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_controls_init_touch",
   "isCompatibility":false,
   "isDnD":false,

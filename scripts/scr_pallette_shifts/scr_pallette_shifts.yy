@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_pallette_shifts",
   "isCompatibility":false,
   "isDnD":false,

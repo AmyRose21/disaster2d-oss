@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_nickname_validate",
   "isCompatibility":false,
   "isDnD":false,

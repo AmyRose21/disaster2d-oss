@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_survivor_heal",
   "isCompatibility":false,
   "isDnD":false,

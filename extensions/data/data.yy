@@ -16,9 +16,9 @@
   "exportToGame":true,
   "extensionVersion":"1.0.0",
   "files":[
-    {"$GMExtensionFile":"","%Name":"data.dll","constants":[],"copyToTargets":64,"filename":"data.dll","final":"","functions":[
+    {"$GMExtensionFile":"v1","%Name":"data.dll","constants":[],"copyToTargets":64,"filename":"data.dll","final":"","functions":[
         {"$GMExtensionFunction":"","%Name":"init_multiplayer","argCount":0,"args":[],"documentation":"","externalName":"init_multiplayer","help":"","hidden":false,"kind":1,"name":"init_multiplayer","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":2,},
-      ],"init":"","kind":1,"name":"data.dll","order":[],"origname":"","ProxyFiles":[],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
+      ],"init":"","kind":1,"name":"data.dll","origname":"","ProxyFiles":[],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
   ],
   "gradleinject":"",
   "hasConvertedCodeInjection":true,

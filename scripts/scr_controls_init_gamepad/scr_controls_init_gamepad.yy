@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_controls_init_gamepad",
   "isCompatibility":false,
   "isDnD":false,

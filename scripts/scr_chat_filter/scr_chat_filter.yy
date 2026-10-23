@@ -1,5 +1,5 @@
 {
-  "$GMScript":"",
+  "$GMScript":"v1",
   "%Name":"scr_chat_filter",
   "isCompatibility":false,
   "isDnD":false,
