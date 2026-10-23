@@ -1,7 +1,7 @@
-#macro AMY_ATTACK BALANCING+1
-#macro AMY_HJUMP BALANCING+2
-#macro AMY_SEX BALANCING+3
-#macro AMY_ZIPLINE BALANCING+4
+#macro AMY_CANON_ATTACK BALANCING+1
+#macro AMY_CANON_HJUMP BALANCING+2
+#macro AMY_CANON_SEX BALANCING+3
+#macro AMY_CANON_ZIPLINE BALANCING+4
 
 if(!emotion)
 	state = IDLE;
@@ -20,13 +20,13 @@ if(shockedTimer > 0)
 
 if(isHJ)
 {
-	state = AMY_HJUMP;
+	state = AMY_CANON_HJUMP;
 	return;
 }
 
 if(isAttacking)
 {
-	state = AMY_ATTACK;		
+	state = AMY_CANON_ATTACK;		
 	return;
 }
 
@@ -36,7 +36,7 @@ if(isZipline)
 		isZipline = false;
 	else
 	{
-		state = AMY_ZIPLINE;
+		state = AMY_CANON_ZIPLINE;
 		return;
 	}
 }

@@ -38,7 +38,7 @@ avCharacters =
 	true,
 	true,
 	true,
-	true
+	true  //7 (amy canon)
 ];
 
 depth = -9999999;

@@ -91,12 +91,12 @@ save = function()
 			_buffer[? "petPaletteTo"][| i] = petPallettes[? i].to;
 		}
 	
-		for(var i = 0; i <= CHARACTER_SALLY; i++)
+		for(var i = 0; i < CHARACTER_AMY_CANON; i++)
 		{
 			_buffer[? "palettes"][? i + 1] = palettes[? i + 1];
 		}
 	
-		for(var i = 0; i <= CHARACTER_SALLY; i++)
+		for(var i = 0; i < CHARACTER_AMY_CANON; i++)
 		{
 			_buffer[? "palettes"][? i + PALETTE_DEMON + 1] = palettes[? i + PALETTE_DEMON + 1];
 		}
@@ -142,7 +142,7 @@ if(!file_exists($"{game_save_id}/2.bson"))
 			_buffer[? "petPaletteTo"][i] = global.petPallettes[i];
 		}
 	
-		for(var i = 0; i <= CHARACTER_SALLY; i++)
+		for(var i = 0; i < CHARACTER_AMY_CANON; i++)
 		{
 			_buffer[? "palettes"][? i + 1] = {
 				name: "default",
@@ -155,7 +155,7 @@ if(!file_exists($"{game_save_id}/2.bson"))
 		}
 	
 	
-		for(var i = 0; i <= CHARACTER_SALLY; i++)
+		for(var i = 0; i < CHARACTER_AMY_CANON; i++)
 		{
 			_buffer[? "palettes"][? i + PALETTE_DEMON + 1] = {
 				name: "default",
@@ -227,25 +227,9 @@ else
 		}
 	}
 }
-
-/* --- Amy v100: migracion para saves antiguos (2.bson sin la clave 7) --- */
+// Amy Canon — asegura paletas por defecto (compatibilidad con saves antiguas)
 if(!ds_map_exists(palettes, CHARACTER_AMY_CANON))
-{
-	palettes[? CHARACTER_AMY_CANON] = {
-		name: "default",
-		custom: false,
-		character: CHARACTER_AMY_CANON,
-	
-		from: [ 0, 0, 0, 0 ],
-		to: [ 0, 0, 0, 0 ]
-	};
-	
-	palettes[? CHARACTER_AMY_CANON + PALETTE_DEMON] = {
-		name: "default",
-		custom: false,
-		character: CHARACTER_AMY_CANON + PALETTE_DEMON,
-	
-		from: [ 0, 0, 0, 0 ],
-		to: [ 0, 0, 0, 0 ]
-	};
-}
+        palettes[? CHARACTER_AMY_CANON] = { name: "default", custom: false, character: CHARACTER_AMY_CANON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
+
+if(!ds_map_exists(palettes, CHARACTER_AMY_CANON + PALETTE_DEMON))
+        palettes[? CHARACTER_AMY_CANON + PALETTE_DEMON] = { name: "default", custom: false, character: CHARACTER_AMY_CANON + PALETTE_DEMON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };

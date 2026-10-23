@@ -171,7 +171,7 @@ function net_tcpprocess(rbuff)
 					true,
 					true,
 					true,
-					true
+					true  //7 (amy canon)
 				];
 				
 				gameEnds = false;

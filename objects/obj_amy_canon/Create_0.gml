@@ -1,10 +1,10 @@
 // Default player values
 
-#macro AMY_ATTACK_RECHARGE (60 * 20)
-#macro AMY_EXEATTACK_RECHARGE (60 * 5)
-#macro AMY_BIGJUMP_RECHARGE (60 * 9)
-#macro AMY_MAXSPEED 11
-#macro AMY_ACC 0.046875
+#macro AMY_CANON_ATTACK_RECHARGE (60 * 20)
+#macro AMY_CANON_EXEATTACK_RECHARGE (60 * 5)
+#macro AMY_CANON_BIGJUMP_RECHARGE (60 * 9)
+#macro AMY_CANON_MAXSPEED 11
+#macro AMY_CANON_ACC 0.046875
 
 //Variables
 gspd = 0;
@@ -60,11 +60,11 @@ canLookDown = true;
 canLookUp = true;
 canSpinDash = true;
 canSpin = false;
-specialFunc = scr_amy_special; /* Function with abilities */
+specialFunc = scr_amy_canon_special; /* Function with abilities */
 
 //constants
-acc = AMY_ACC;
-maxHSpeed = AMY_MAXSPEED;
+acc = AMY_CANON_ACC;
+maxHSpeed = AMY_CANON_MAXSPEED;
 maxYSpeed = 12;
 yAccel = 0.21875; //gravity
 jumpForce = 7;

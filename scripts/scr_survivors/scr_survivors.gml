@@ -113,6 +113,29 @@ global.player_anims[? CHARACTER_AMY] =
 	spr_amy_zipline //17
 ];
 
+//Amy Canon
+global.player_anims[? CHARACTER_AMY_CANON] = 
+[
+        spr_amy_idle_canon, //0
+        spr_amy_walk_canon, //1
+        spr_amy_run_canon, //2
+        spr_amy_jump_canon, //3
+        spr_amy_fall_canon, //4
+        spr_amy_hurt_canon, //5
+        spr_amy_dead_canon, //6
+        spr_amy_lookup_canon, //7
+        spr_amy_lookdown_canon, //8
+        spr_amy_emotion1_canon, //9
+        spr_amy_emotion2_canon, //10
+        spr_amy_emotion3_canon, //11
+        spr_amy_jump_canon, //12
+        spr_amy_balancing, //13
+        spr_amy_attack1_canon, //14
+        spr_amy_attack2_canon, //15
+        spr_none, //16
+        spr_amy_zipline_canon //17
+];
+
 //Cream
 global.player_anims[? CHARACTER_CREAM] = 
 [
@@ -156,29 +179,6 @@ global.player_anims[? CHARACTER_SALLY] =
 	spr_sally_slide, //15
 	spr_none, // 16
 	spr_sally_zipline // 17
-];
-
-//Amy v100 (copia clasica de la 100v)
-global.player_anims[? CHARACTER_AMY_CANON] = 
-[
-	spr_amy_idle_canon, //0
-	spr_amy_walk_canon, //1
-	spr_amy_run_canon, //2
-	spr_amy_jump_canon, //3
-	spr_amy_fall_canon, //4
-	spr_amy_hurt_canon, //5
-	spr_amy_dead_canon, //6
-	spr_amy_lookup_canon, //7
-	spr_amy_lookdown_canon, //8
-	spr_amy_emotion1_canon, //9
-	spr_amy_emotion2_canon, //10
-	spr_amy_emotion3_canon, //11
-	spr_amy_jump_canon, //12
-	spr_amy_idle_canon, //13 (la v100 no tiene balancing)
-	spr_amy_attack1_canon, //14
-	spr_amy_attack2_canon, //15
-	spr_none, //16
-	spr_amy_zipline_canon //17
 ];
 
 global.player_eanims = ds_map_create();
@@ -273,6 +273,29 @@ global.player_eanims[? CHARACTER_AMY] =
 	spr_eamy_zipline //17
 ];
 
+//Amy Canon
+global.player_eanims[? CHARACTER_AMY_CANON] = 
+[
+        spr_eamy_idle_canon, //0
+        spr_eamy_walk_canon, //1
+        spr_eamy_run_canon, //2
+        spr_eamy_jump_canon, //3
+        spr_eamy_fall_canon, //4
+        spr_eamy_hurt_canon, //5
+        spr_eamy_stun_canon, //6
+        spr_eamy_lookup_canon, //7
+        spr_eamy_lookdown_canon, //8
+        spr_eamy_emotion1_canon, //9
+        spr_eamy_emotion2_canon, //10
+        spr_eamy_emotion3_canon, //11
+        spr_eamy_jump_canon, //12
+        spr_eamy_balancing, //13
+        spr_eamy_attack1_canon, //14
+        spr_eamy_attack2_canon, //15
+        spr_none, // 16
+        spr_eamy_zipline_canon //17
+];
+
 //Cream
 global.player_eanims[? CHARACTER_CREAM] = 
 [
@@ -318,30 +341,6 @@ global.player_eanims[? CHARACTER_SALLY] =
 	spr_esally_zipline // 17
 ];
 
-
-//Amy v100 demonizada
-global.player_eanims[? CHARACTER_AMY_CANON] = 
-[
-	spr_eamy_idle_canon, //0
-	spr_eamy_walk_canon, //1
-	spr_eamy_run_canon, //2
-	spr_eamy_jump_canon, //3
-	spr_eamy_fall_canon, //4
-	spr_eamy_hurt_canon, //5
-	spr_eamy_stun_canon, //6
-	spr_eamy_lookup_canon, //7
-	spr_eamy_lookdown_canon, //8
-	spr_eamy_emotion1_canon, //9
-	spr_eamy_emotion2_canon, //10
-	spr_eamy_emotion3_canon, //11
-	spr_eamy_jump_canon, //12
-	spr_eamy_idle_canon, //13 (la v100 no tiene balancing)
-	spr_eamy_attack1_canon, //14
-	spr_eamy_attack2_canon, //15
-	spr_none, // 16
-	spr_eamy_zipline_canon //17
-];
-
 function player_get(ind)
 {
 	switch(ind)
@@ -360,7 +359,7 @@ function player_get(ind)
 			
 		case CHARACTER_AMY:
 			return obj_amy;
-			
+
 		case CHARACTER_AMY_CANON:
 			return obj_amy_canon;
 			

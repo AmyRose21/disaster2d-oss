@@ -45,7 +45,6 @@ if(!exe)
 		case CHARACTER_AMY:
 			spr = demon ? spr_eamy_idle : spr_amy_idle;
 			break;
-			
 		case CHARACTER_AMY_CANON:
 			spr = demon ? spr_eamy_idle_canon : spr_amy_idle_canon;
 			break;

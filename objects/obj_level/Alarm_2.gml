@@ -19,7 +19,7 @@ with(obj_netclient)
 		true,
 		true,
 		true,
-		true
+		true  //7 (amy canon)
 	];
 	
 	state = STATE_LOBBY;

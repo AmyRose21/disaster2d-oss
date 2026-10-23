@@ -2574,7 +2574,7 @@ function net_state_game(rbuff, nps, isPasstrough)
 					true,
 					true,
 					true,
-					true
+					true  //7 (amy canon)
 				];
 				
 				gameEnds = false;
@@ -2735,7 +2735,7 @@ function net_state_game(rbuff, nps, isPasstrough)
 					true,
 					true,
 					true,
-					true
+					true  //7 (amy canon)
 				];
 				
 				gameEnds = false;
@@ -2989,7 +2989,6 @@ function net_state_game(rbuff, nps, isPasstrough)
 						case CHARACTER_KNUX: obj_achivements.knux = true; break;
 						case CHARACTER_EGGMAN: obj_achivements.eggman = true; break;
 						case CHARACTER_AMY: obj_achivements.amy = true; break;
-						case CHARACTER_AMY_CANON: obj_achivements.amy = true; break;
 						case CHARACTER_CREAM: obj_achivements.cream = true; break;
 						case CHARACTER_SALLY: obj_achivements.sally = true; break;
 					}
@@ -3295,7 +3294,7 @@ function net_state_game(rbuff, nps, isPasstrough)
 					true,
 					true,
 					true,
-					true
+					true  //7 (amy canon)
 				];
 				
 				gameEnds = false;

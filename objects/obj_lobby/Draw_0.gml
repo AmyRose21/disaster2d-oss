@@ -115,8 +115,7 @@ else if(state == 2 || state == 3)
 		draw_sprite(chars[sprInd], charIndex, 132, 230);
 	
 	draw_sprite(spr_char_bars, obj_netclient.exeId == obj_netclient.nid, 0, 0);
-	// Amy v100 (sprInd==6): reusa el panel de Amy (arte identico v100/v110)
-		draw_sprite(spr_char_info, sprInd == 6 ? 3 : sprInd, 1, 232-5);
+	draw_sprite(spr_char_info, sprInd, 1, 232-5);
 	
 	if(countScale > 1)
 		countScale -= 0.02;

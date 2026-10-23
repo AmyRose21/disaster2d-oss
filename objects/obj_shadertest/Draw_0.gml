@@ -27,6 +27,8 @@ switch(char)
 		break;
 		
 	case CHARACTER_AMY:
+		
+	case CHARACTER_AMY_CANON:
 		sprite_index = demon ? spr_eamy_idle : spr_amy_idle;
 		break;
 		

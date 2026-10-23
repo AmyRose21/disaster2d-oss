@@ -66,14 +66,14 @@ switch(state)
 		image_speed = abs(xspd) / 5;
 		break;
 		
-	case AMY_ATTACK:
+	case AMY_CANON_ATTACK:
 		image_speed = 0.3;
 
 		if(image_index >= image_number - 1)
 			isAttacking = false;
 		break;
 		
-	case AMY_HJUMP:
+	case AMY_CANON_HJUMP:
 		image_speed = 0.3;
 		
 		if(image_index >= image_number - 1)

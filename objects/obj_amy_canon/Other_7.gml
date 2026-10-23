@@ -1,7 +1,7 @@
 switch(state)
 {
 	case IDLE:
-		image_index = max(image_number - 4, 0);
+		image_index = image_number - 4;
 		break;
 		
 	case EMOTION1:
@@ -28,7 +28,7 @@ switch(state)
 		
 	case EMOTION3:
 		if(keyboard_check(global.KeyEm3))
-			image_index = max(image_number - 10, 0);
+			image_index = image_number - 10;
 		else
 		{
 			image_index = 0;

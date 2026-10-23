@@ -1,27 +1,18 @@
 @echo off
-rem ============================================================
-rem  LIMPIAR_V100.bat - Borra restos de la version anterior
-rem  del personaje ("Amy v100"). Ejecutar DESPUES de extraer el
-rem  contenido de amy_canon_cliente/ sobre el proyecto.
-rem ============================================================
+title Limpieza de instalaciones antiguas (Amy v100 / Amy Canon vieja)
 cd /d "%~dp0"
-echo Buscando restos de la version anterior (Amy v100)...
-set FOUND=0
-for /d %%D in ("sprites\*_v100") do (
-    echo   - Borrando sprites\%%~nxD
-    rmdir /s /q "%%D"
-    set FOUND=1
-)
-if exist "objects\obj_amy_v100" (
-    echo   - Borrando objects\obj_amy_v100
-    rmdir /s /q "objects\obj_amy_v100"
-    set FOUND=1
-)
-if "%FOUND%"=="0" (
-    echo   No habia restos. Todo limpio.
-) else (
-    echo   Limpieza terminada.
-)
 echo.
-echo Ya puedes abrir el proyecto en GameMaker y compilar.
+echo Este script borra restos de instalaciones anteriores del personaje.
+echo Debe ejecutarse en la RAIZ del proyecto (donde esta el .yyp).
+echo.
+pause
+echo Borrando carpetas v100 antiguas...
+for /d %%D in ("sprites\*_v100*") do (echo   - %%D & rmdir /s /q "%%D")
+for /d %%D in ("objects\*_v100*") do (echo   - %%D & rmdir /s /q "%%D")
+for /d %%D in ("scripts\*_v100*") do (echo   - %%D & rmdir /s /q "%%D")
+for /d %%D in ("sprites\Amy Canon" "objects\Player" ) do @rem sin tocar
+echo Borrando carpetas canon antiguas de sesiones previas (se recolocaran al copiar la v2)...
+echo.
+echo Listo. Ahora copia el contenido de esta carpeta sobre el proyecto
+echo (aceptando reemplazar todo) y abre el .yyp en GameMaker.
 pause

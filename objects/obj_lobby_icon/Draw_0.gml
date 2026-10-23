@@ -26,7 +26,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		else
 		{
 			if(selected < 1)
-				selected = 7;
+				selected = CHARACTER_AMY_CANON;
 		}
 			
 		audio_play_sound(snd_menu_select, 0, false);
@@ -43,7 +43,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		}
 		else
 		{
-			if(selected > 7)
+			if(selected > CHARACTER_AMY_CANON)
 				selected = 1;
 		}
 			

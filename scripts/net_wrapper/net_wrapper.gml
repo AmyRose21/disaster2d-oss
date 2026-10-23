@@ -59,7 +59,7 @@ function net_poll()
 					true,
 					true,
 					true,
-					true
+					true  //7 (amy canon)
 				];
 		
 				isConnected = true;
