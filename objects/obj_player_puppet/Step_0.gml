@@ -49,7 +49,7 @@ if(!instance_exists(global.player))
 var globalExe = (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2);
 
 //hack
-if((character == CHARACTER_AMY || character == CHARACTER_AMY_V100) && state == AMY_HJUMP && image_index < 3)
+if((character == CHARACTER_AMY || character == CHARACTER_AMY_CANON) && state == AMY_HJUMP && image_index < 3)
 	isAttacking = true;
 
 if(place_meeting(x, y, global.player))
@@ -61,7 +61,7 @@ if(place_meeting(x, y, global.player))
 			if(global.character == CHARACTER_EXE)
 				return;
 			
-			if((character != CHARACTER_AMY && character != CHARACTER_AMY_V100) && character != CHARACTER_EGGMAN)
+			if((character != CHARACTER_AMY && character != CHARACTER_AMY_CANON) && character != CHARACTER_EGGMAN)
 			{
 				if((global.character == CHARACTER_KNUX || global.character == CHARACTER_SALLY) && global.player.isAttacking && global.player.revivalTimes < 2)
 				{
@@ -82,13 +82,13 @@ if(place_meeting(x, y, global.player))
 				if(global.player.revivalTimes >= 2)
 					return;
 				
-				if((character != CHARACTER_AMY && character != CHARACTER_AMY_V100))
+				if((character != CHARACTER_AMY && character != CHARACTER_AMY_CANON))
 				{
 					if(global.character == CHARACTER_EGGMAN && global.player.isAttacking)
 						return;
 				}
 				
-				if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_V100) && global.player.isAttacking)
+				if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) && global.player.isAttacking)
 					return;
 					
 				if(global.character == CHARACTER_SALLY && global.player.shieldTimer > 0)
@@ -138,7 +138,7 @@ if(place_meeting(x, y, global.player))
 				if(character == CHARACTER_EGGMAN && global.player.hurttime <= 0)
 					scr_player_slow(3);
 					
-				if((character == CHARACTER_AMY || character == CHARACTER_AMY_V100))
+				if((character == CHARACTER_AMY || character == CHARACTER_AMY_CANON))
 				{
 					var pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
 					buffer_write(pak, buffer_u16, master_id);
@@ -203,7 +203,7 @@ if(place_meeting(x, y, global.player))
 			if(global.character == CHARACTER_EXE && global.player.invisTimer > 0)
 				return;
 			
-			if((global.character != CHARACTER_AMY && global.character != CHARACTER_AMY_V100) && global.character != CHARACTER_EGGMAN)
+			if((global.character != CHARACTER_AMY && global.character != CHARACTER_AMY_CANON) && global.character != CHARACTER_EGGMAN)
 			{
 				if(global.player.isAttacking && (character == CHARACTER_KNUX || character == CHARACTER_SALLY))
 				{
@@ -236,7 +236,7 @@ if(place_meeting(x, y, global.player))
 					return;
 				}
 				
-				if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_V100) && global.player.isAttacking)
+				if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) && global.player.isAttacking)
 					return;
 				
 				var stunTime = 3;
@@ -283,7 +283,7 @@ if(place_meeting(x, y, global.player))
 				buffer_write(pak, buffer_u8, stunTime);
 				send_server_tcp(pak);
 				
-				if((character == CHARACTER_AMY || character == CHARACTER_AMY_V100))
+				if((character == CHARACTER_AMY || character == CHARACTER_AMY_CANON))
 				{
 					var pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
 					buffer_write(pak, buffer_u16, master_id);

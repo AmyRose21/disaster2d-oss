@@ -74,7 +74,7 @@ for(var i = 0; i < ds_list_size(list); i++)
 	{
 		if((inst.state == JUMP || inst.state == SPIN))
 		{
-			if(inst.character == CHARACTER_EGGMAN || (inst.character == CHARACTER_AMY || inst.character == CHARACTER_AMY_V100) || inst.character == CHARACTER_SALLY)
+			if(inst.character == CHARACTER_EGGMAN || (inst.character == CHARACTER_AMY || inst.character == CHARACTER_AMY_CANON) || inst.character == CHARACTER_SALLY)
 				continue;
 			
 			if(revivalTimes >= 2)

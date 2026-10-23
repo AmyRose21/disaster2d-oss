@@ -11,8 +11,8 @@ global.paletteShifts[? CHARACTER_EGGMAN + PALETTE_DEMON] = scr_palette([ #64372b
 
 global.paletteShifts[? CHARACTER_AMY] = scr_palette([ #800000, #e00000, #ff7575 ]);
 global.paletteShifts[? CHARACTER_AMY + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20, #632d33 ]);
-global.paletteShifts[? CHARACTER_AMY_V100] = scr_palette([ #800000, #e00000, #ff7575 ]);
-global.paletteShifts[? CHARACTER_AMY_V100 + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20, #632d33 ]);
+global.paletteShifts[? CHARACTER_AMY_CANON] = scr_palette([ #800000, #e00000, #ff7575 ]);
+global.paletteShifts[? CHARACTER_AMY_CANON + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20, #632d33 ]);
 
 global.paletteShifts[? CHARACTER_CREAM] = scr_palette([ #800000, #e00000 ]);
 global.paletteShifts[? CHARACTER_CREAM + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20 ]);

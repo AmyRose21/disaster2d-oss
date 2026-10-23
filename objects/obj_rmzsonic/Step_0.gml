@@ -77,18 +77,18 @@ if(global.player.hp > 0 && !dead  && place_meeting(x, y, global.player))
 	var ch = global.character;
 	var isAttacking = false;
 	
-	if(global.player.isAttacking && (ch == CHARACTER_EXE || (ch == CHARACTER_AMY || ch == CHARACTER_AMY_V100) || ch == CHARACTER_KNUX || ch == CHARACTER_EGGMAN || ch == CHARACTER_SALLY))
+	if(global.player.isAttacking && (ch == CHARACTER_EXE || (ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON) || ch == CHARACTER_KNUX || ch == CHARACTER_EGGMAN || ch == CHARACTER_SALLY))
 	{
 		scr_camera_shake(25, 1, 0.2);
 		isAttacking = true;
 	}
 			
-	if((ch == CHARACTER_AMY || ch == CHARACTER_AMY_V100) && global.player.state == AMY_HJUMP)
+	if((ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON) && global.player.state == AMY_HJUMP)
 		isAttacking = true;
 	
 	if(global.player.revivalTimes < 2)
 	{
-		if(global.player.isJumping && ch != CHARACTER_EXE || global.player.state == FALL && (ch == CHARACTER_AMY || ch == CHARACTER_AMY_V100))
+		if(global.player.isJumping && ch != CHARACTER_EXE || global.player.state == FALL && (ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON))
 		{
 			 scr_player_hurt(0, 0, -5, snd_none, spr_blood2);
 			 isAttacking = true;

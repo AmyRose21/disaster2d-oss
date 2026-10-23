@@ -35,7 +35,7 @@ if(!global.player.isSlow)
 		
 		case CHARACTER_AMY:
 		
-		case CHARACTER_AMY_V100:
+		case CHARACTER_AMY_CANON:
 		{
 			global.player.maxHSpeed = AMY_MAXSPEED;
 			global.player.acc = AMY_ACC;

@@ -56,12 +56,12 @@ if(place_meeting(x, y, global.player))
 	var push = 0;
 	var isAttacking = global.player.isAttacking;
 	
-	if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_V100) && global.player.state == AMY_HJUMP && global.player.image_index < 3)
+	if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) && global.player.state == AMY_HJUMP && global.player.image_index < 3)
 		isAttacking = true;
 	
 	if((global.character == CHARACTER_EXE || global.player.revivalTimes >= 2) && (global.player.state == JUMP || global.player.state == FALL || global.player.state == SPIN))
 	{
-		if(global.character != CHARACTER_EGGMAN && (global.character != CHARACTER_AMY && global.character != CHARACTER_AMY_V100) && global.character != CHARACTER_SALLY)
+		if(global.character != CHARACTER_EGGMAN && (global.character != CHARACTER_AMY && global.character != CHARACTER_AMY_CANON) && global.character != CHARACTER_SALLY)
 		{
 			var pak = cpacket_tcp(PacketType.CLIENT_FART_PUSH, false);
 			buffer_write(pak, buffer_s8, global.player.image_xscale * 3);
@@ -114,7 +114,7 @@ if(place_meeting(x, y, global.player))
 			
 			case CHARACTER_AMY:
 			
-			case CHARACTER_AMY_V100:
+			case CHARACTER_AMY_CANON:
 			{
 				dmg = "+3s";
 				push = global.player.image_xscale * 1.5;
@@ -136,7 +136,7 @@ if(place_meeting(x, y, global.player))
 			case CHARACTER_KNUX:
 			case CHARACTER_EGGMAN:
 			case CHARACTER_AMY:
-			case CHARACTER_AMY_V100:
+			case CHARACTER_AMY_CANON:
 			case CHARACTER_SALLY:
 			{
 				dmg = "-1";

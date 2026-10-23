@@ -288,12 +288,12 @@ function scr_move_basic()
 		isOnEdge = false;
 	
 	// Emotions
-	if((state != IDLE && state != EMOTION1 && state != EMOTION2 && state != EMOTION3 && (((global.character != CHARACTER_AMY && global.character != CHARACTER_AMY_V100) && global.character != CHARACTER_SALLY) || state != 15)) && emotion)
+	if((state != IDLE && state != EMOTION1 && state != EMOTION2 && state != EMOTION3 && (((global.character != CHARACTER_AMY && global.character != CHARACTER_AMY_CANON) && global.character != CHARACTER_SALLY) || state != 15)) && emotion)
 		emotion = false;
 		
 	if(state == IDLE && keyboard_check_pressed(global.KeyIdle))
 	{
-		if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_V100))
+		if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON))
 			image_index = 53;
 		else
 			image_index = 48;
@@ -601,7 +601,7 @@ function scr_move_basic()
 		// Jump
 		if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isJumping)
 		{
-			if(global.character == CHARACTER_EXE || global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_V100))
+			if(global.character == CHARACTER_EXE || global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON))
 			{
 				if(isAttacking)
 					return;

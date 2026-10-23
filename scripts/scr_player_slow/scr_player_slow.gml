@@ -41,7 +41,7 @@ function scr_player_slow(time)
 			
 		case CHARACTER_AMY:
 			
-		case CHARACTER_AMY_V100:
+		case CHARACTER_AMY_CANON:
 			global.player.isSlow = true;
 			global.player.acc = (AMY_ACC * (100-40)) / 100;
 			global.player.maxHSpeed = (AMY_MAXSPEED * (100-40)) / 100;

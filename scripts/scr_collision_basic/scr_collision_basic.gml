@@ -514,7 +514,7 @@ function scr_collision_check_bottom(_near)
 			y = winner;
 			scr_collision_check_angle(_near);
 			
-			if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_V100))
+			if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON))
 				isHJ = false;
 		}
 		else

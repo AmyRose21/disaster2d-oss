@@ -229,21 +229,21 @@ else
 }
 
 /* --- Amy v100: migracion para saves antiguos (2.bson sin la clave 7) --- */
-if(!ds_map_exists(palettes, CHARACTER_AMY_V100))
+if(!ds_map_exists(palettes, CHARACTER_AMY_CANON))
 {
-	palettes[? CHARACTER_AMY_V100] = {
+	palettes[? CHARACTER_AMY_CANON] = {
 		name: "default",
 		custom: false,
-		character: CHARACTER_AMY_V100,
+		character: CHARACTER_AMY_CANON,
 	
 		from: [ 0, 0, 0, 0 ],
 		to: [ 0, 0, 0, 0 ]
 	};
 	
-	palettes[? CHARACTER_AMY_V100 + PALETTE_DEMON] = {
+	palettes[? CHARACTER_AMY_CANON + PALETTE_DEMON] = {
 		name: "default",
 		custom: false,
-		character: CHARACTER_AMY_V100 + PALETTE_DEMON,
+		character: CHARACTER_AMY_CANON + PALETTE_DEMON,
 	
 		from: [ 0, 0, 0, 0 ],
 		to: [ 0, 0, 0, 0 ]

@@ -19,7 +19,7 @@
 #macro CHARACTER_AMY (CHARACTER_TAILS+3)
 #macro CHARACTER_CREAM (CHARACTER_TAILS+4)
 #macro CHARACTER_SALLY (CHARACTER_TAILS+5)
-#macro CHARACTER_AMY_V100 (CHARACTER_TAILS+6)
+#macro CHARACTER_AMY_CANON (CHARACTER_TAILS+6)
 
 global.player_anims = ds_map_create();
 
@@ -159,26 +159,26 @@ global.player_anims[? CHARACTER_SALLY] =
 ];
 
 //Amy v100 (copia clasica de la 100v)
-global.player_anims[? CHARACTER_AMY_V100] = 
+global.player_anims[? CHARACTER_AMY_CANON] = 
 [
-	spr_amy_idle_v100, //0
-	spr_amy_walk_v100, //1
-	spr_amy_run_v100, //2
-	spr_amy_jump_v100, //3
-	spr_amy_fall_v100, //4
-	spr_amy_hurt_v100, //5
-	spr_amy_dead_v100, //6
-	spr_amy_lookup_v100, //7
-	spr_amy_lookdown_v100, //8
-	spr_amy_emotion1_v100, //9
-	spr_amy_emotion2_v100, //10
-	spr_amy_emotion3_v100, //11
-	spr_amy_jump_v100, //12
-	spr_amy_idle_v100, //13 (la v100 no tiene balancing)
-	spr_amy_attack1_v100, //14
-	spr_amy_attack2_v100, //15
+	spr_amy_idle_canon, //0
+	spr_amy_walk_canon, //1
+	spr_amy_run_canon, //2
+	spr_amy_jump_canon, //3
+	spr_amy_fall_canon, //4
+	spr_amy_hurt_canon, //5
+	spr_amy_dead_canon, //6
+	spr_amy_lookup_canon, //7
+	spr_amy_lookdown_canon, //8
+	spr_amy_emotion1_canon, //9
+	spr_amy_emotion2_canon, //10
+	spr_amy_emotion3_canon, //11
+	spr_amy_jump_canon, //12
+	spr_amy_idle_canon, //13 (la v100 no tiene balancing)
+	spr_amy_attack1_canon, //14
+	spr_amy_attack2_canon, //15
 	spr_none, //16
-	spr_amy_zipline_v100 //17
+	spr_amy_zipline_canon //17
 ];
 
 global.player_eanims = ds_map_create();
@@ -320,26 +320,26 @@ global.player_eanims[? CHARACTER_SALLY] =
 
 
 //Amy v100 demonizada
-global.player_eanims[? CHARACTER_AMY_V100] = 
+global.player_eanims[? CHARACTER_AMY_CANON] = 
 [
-	spr_eamy_idle_v100, //0
-	spr_eamy_walk_v100, //1
-	spr_eamy_run_v100, //2
-	spr_eamy_jump_v100, //3
-	spr_eamy_fall_v100, //4
-	spr_eamy_hurt_v100, //5
-	spr_eamy_stun_v100, //6
-	spr_eamy_lookup_v100, //7
-	spr_eamy_lookdown_v100, //8
-	spr_eamy_emotion1_v100, //9
-	spr_eamy_emotion2_v100, //10
-	spr_eamy_emotion3_v100, //11
-	spr_eamy_jump_v100, //12
-	spr_eamy_idle_v100, //13 (la v100 no tiene balancing)
-	spr_eamy_attack1_v100, //14
-	spr_eamy_attack2_v100, //15
+	spr_eamy_idle_canon, //0
+	spr_eamy_walk_canon, //1
+	spr_eamy_run_canon, //2
+	spr_eamy_jump_canon, //3
+	spr_eamy_fall_canon, //4
+	spr_eamy_hurt_canon, //5
+	spr_eamy_stun_canon, //6
+	spr_eamy_lookup_canon, //7
+	spr_eamy_lookdown_canon, //8
+	spr_eamy_emotion1_canon, //9
+	spr_eamy_emotion2_canon, //10
+	spr_eamy_emotion3_canon, //11
+	spr_eamy_jump_canon, //12
+	spr_eamy_idle_canon, //13 (la v100 no tiene balancing)
+	spr_eamy_attack1_canon, //14
+	spr_eamy_attack2_canon, //15
 	spr_none, // 16
-	spr_eamy_zipline_v100 //17
+	spr_eamy_zipline_canon //17
 ];
 
 function player_get(ind)
@@ -361,8 +361,8 @@ function player_get(ind)
 		case CHARACTER_AMY:
 			return obj_amy;
 			
-		case CHARACTER_AMY_V100:
-			return obj_amy_v100;
+		case CHARACTER_AMY_CANON:
+			return obj_amy_canon;
 			
 		case CHARACTER_CREAM:
 			return obj_cream;

@@ -2322,7 +2322,7 @@ function net_state_game(rbuff, nps, isPasstrough)
 					
 				case CHARACTER_AMY:
 					
-				case CHARACTER_AMY_V100:
+				case CHARACTER_AMY_CANON:
 					global.player.attackTimer = 0;
 					global.player.hjumpTimer = 0;
 					break;
@@ -2989,7 +2989,7 @@ function net_state_game(rbuff, nps, isPasstrough)
 						case CHARACTER_KNUX: obj_achivements.knux = true; break;
 						case CHARACTER_EGGMAN: obj_achivements.eggman = true; break;
 						case CHARACTER_AMY: obj_achivements.amy = true; break;
-						case CHARACTER_AMY_V100: obj_achivements.amy = true; break;
+						case CHARACTER_AMY_CANON: obj_achivements.amy = true; break;
 						case CHARACTER_CREAM: obj_achivements.cream = true; break;
 						case CHARACTER_SALLY: obj_achivements.sally = true; break;
 					}
@@ -3014,7 +3014,7 @@ function net_state_game(rbuff, nps, isPasstrough)
 						obj_achivements.show();
 					}
 				
-					if(room != room_fartzone && !obj_achivements.achivements[28] && (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_V100) && obj_achivements.rAmyStuns == 0)
+					if(room != room_fartzone && !obj_achivements.achivements[28] && (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) && obj_achivements.rAmyStuns == 0)
 					{
 						obj_achivements.mercoins += 75;
 						obj_achivements.save();
@@ -3083,7 +3083,7 @@ function net_state_game(rbuff, nps, isPasstrough)
 								break;
 							
 							case room_notperfect:
-								if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_V100))
+								if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON))
 								{
 									if(!achivements[41])
 									{
