@@ -144,13 +144,13 @@ if(instance_exists(global.player) && !global.player.isDead)
 			var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
 			draw_sprite_ext(spr_gui_amyattack_canon, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
 			
-			// Icono 3: ACOMETIDA DE MARTILLO (tecla C). El relleno del
-			// icono muestra el CD que queda; se pone blanco cuando esta
-			// lista Y estas en el suelo (solo se usa en el suelo).
+			// Icono 3: ACOMETIDA DE MARTILLO (tecla C). Muestra la letra C
+			// (como los demas iconos de tecla C del juego). El relleno
+			// muestra el CD; blanco = lista y en el suelo.
 			var val = global.player.revivalTimes >= 2 ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
 			var prog = 1.0 - (max(global.player.dashTimer, 0) / val);
 			var b = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
-			draw_sprite_ext(spr_gui_amyattack_canon, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);	
+			draw_sprite_ext(spr_gui_amydash_canon, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);	
 			break;
 		}
 		case CHARACTER_CREAM:

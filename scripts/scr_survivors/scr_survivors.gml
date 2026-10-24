@@ -127,7 +127,7 @@ global.player_anims[? CHARACTER_AMY_CANON] =
         spr_amy_lookdown_canon, //8
         spr_amy_emotion1_canon, //9
         spr_amy_emotion2_canon, //10
-        spr_amy_emotion3, //11
+        spr_amy_emotion3_canon, //11
         spr_amy_jump_canon, //12
         spr_amy_balancing, //13
         spr_amy_attack1_canon, //14
