@@ -2083,3 +2083,50 @@ sliderChanged = function(_value)
 }
 
 alarm[0] = 1;
+
+// ============================================================================
+// AMY CANON - respaldo de la pagina About (creada por codigo)
+// ----------------------------------------------------------------------------
+// Si GameMaker compilo una version vieja de room_menu.yy (pasa cuando el IDE
+// tenia la room abierta al extraer archivos externamente), la capa
+// "AboutAmyCanon" no existe en el juego y la pagina queda en blanco tras
+// Sally. Este bloque la reconstruye por codigo con las mismas 8 instancias
+// que defini en la room. Si la room cargo bien, la capa ya existe y esto
+// no hace nada (no crea duplicados).
+// ============================================================================
+if (!layer_exists("AboutAmyCanon"))
+{
+	var _l = layer_create(-3350, "AboutAmyCanon");
+	layer_set_visible(_l, false);
+
+	// El frame 66 ("amy canon") solo existe si spr_menu_buttons cargo
+	// actualizado; si el sprite quedo viejo se usa el 46 ("amy rose")
+	var _frameNombre = sprite_get_number(spr_menu_buttons) > 66 ? 66 : 46;
+
+	// Pestañas inferiores: mecanicas / skins / creditos / salir
+	var _b = instance_create_layer(126, 253, _l, obj_menu_button);
+	_b.bid = 2; _b.bcolumn = 0; _b.submenu = 48; _b.image_index = 29;
+
+	_b = instance_create_layer(272, 253, _l, obj_menu_button);
+	_b.bid = 1; _b.bcolumn = 0; _b.submenu = 48; _b.image_index = 30;
+
+	_b = instance_create_layer(414, 253, _l, obj_menu_button);
+	_b.bid = 3; _b.bcolumn = 0; _b.submenu = 48; _b.image_index = 31;
+
+	_b = instance_create_layer(502, 253, _l, obj_menu_button);
+	_b.bid = 4; _b.bcolumn = 0; _b.submenu = 48; _b.image_index = 4;
+
+	// Nombre central + flechas laterales del ciclo de personajes
+	_b = instance_create_layer(308, 18, _l, obj_menu_button);
+	_b.bid = 0; _b.bcolumn = 0; _b.submenu = 48; _b.image_index = _frameNombre;
+
+	_b = instance_create_layer(496, 18, _l, obj_menu_button);
+	_b.bid = 1; _b.bcolumn = 1; _b.submenu = 48; _b.image_index = 49;
+
+	_b = instance_create_layer(100, 18, _l, obj_menu_button);
+	_b.bid = 0; _b.bcolumn = 1; _b.submenu = 48; _b.image_index = 48;
+
+	// Descripcion (identica a la pagina definida en la room)
+	var _t = instance_create_layer(23, 60, _l, obj_menu_abouttext);
+	_t.text = "amy canon's specials give     \nher great defence and         \nmobility,and even uncharged   \nshe stays dangerous.her       \nattacks can't be parried,and \nshe's pretty fast by herself, \nbut she also has the /hammer  \njump~ which lets her access   \nshortcuts and hit enemies on \njump's start,plus a /hammer  \nrush~ that charges through exe\nfaster than her own run,     \nstunning everything it       \ntouches.she's been walking   \nout of prisons since the     \nstarfall islands. it's not   \nfanon, it's №canon~";
+}
