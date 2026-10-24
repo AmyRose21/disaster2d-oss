@@ -911,6 +911,7 @@
     {"id":{"name":"spr_amy_attack1","path":"sprites/spr_amy_attack1/spr_amy_attack1.yy",},},
     {"id":{"name":"spr_amy_attack2_canon","path":"sprites/spr_amy_attack2_canon/spr_amy_attack2_canon.yy",},},
     {"id":{"name":"spr_amy_attack2","path":"sprites/spr_amy_attack2/spr_amy_attack2.yy",},},
+    {"id":{"name":"spr_amy_attack3_canon_","path":"sprites/spr_amy_attack3_canon_/spr_amy_attack3_canon_.yy",},},
     {"id":{"name":"spr_amy_balancing","path":"sprites/spr_amy_balancing/spr_amy_balancing.yy",},},
     {"id":{"name":"spr_amy_dead_canon","path":"sprites/spr_amy_dead_canon/spr_amy_dead_canon.yy",},},
     {"id":{"name":"spr_amy_dead","path":"sprites/spr_amy_dead/spr_amy_dead.yy",},},

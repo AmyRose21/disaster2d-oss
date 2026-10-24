@@ -12,25 +12,27 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"b5130304-71d7-401f-b929-9544ebc8a7d4","name":"b5130304-71d7-401f-b929-9544ebc8a7d4","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"d7c9d3a8-db23-4b42-8d70-a3c2a2396ece","name":"d7c9d3a8-db23-4b42-8d70-a3c2a2396ece","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"34fede4e-f97e-4d7a-8d05-e07fc4b270c1","name":"34fede4e-f97e-4d7a-8d05-e07fc4b270c1","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"019fb2d8-b181-445c-9851-b97056695b2c","name":"019fb2d8-b181-445c-9851-b97056695b2c","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"881268d1-c046-4249-8a24-a01210528d69","name":"881268d1-c046-4249-8a24-a01210528d69","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"66c6f156-4062-4006-9973-b195e7d1fc7c","name":"66c6f156-4062-4006-9973-b195e7d1fc7c","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"3e42eee7-eef6-469a-854c-8e17b99c1242","name":"3e42eee7-eef6-469a-854c-8e17b99c1242","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"1bdf74bb-d824-4b54-9c7b-3576736bb729","name":"1bdf74bb-d824-4b54-9c7b-3576736bb729","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"a10bebe4-95d7-461c-9468-c2c87629cd1f","name":"a10bebe4-95d7-461c-9468-c2c87629cd1f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"0c360e58-e056-41b4-bca2-37e8c0f269cf","name":"0c360e58-e056-41b4-bca2-37e8c0f269cf","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"cb82c7d1-a359-4bbf-bdc1-3e3e2f435f75","name":"cb82c7d1-a359-4bbf-bdc1-3e3e2f435f75","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"8a5d560e-db61-4324-8682-bb8cecb4819d","name":"8a5d560e-db61-4324-8682-bb8cecb4819d","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"15d450e6-7229-5c67-937c-534afafea031","name":"15d450e6-7229-5c67-937c-534afafea031","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"d6a85149-b02a-5c78-b39d-75e4ec15d91c","name":"d6a85149-b02a-5c78-b39d-75e4ec15d91c","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"8260b6b8-0451-5c31-a74d-97ebc5d20441","name":"8260b6b8-0451-5c31-a74d-97ebc5d20441","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"201ef706-5d65-5afc-a772-d26f75cbea46","name":"201ef706-5d65-5afc-a772-d26f75cbea46","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"9b19d8a8-eda0-5f18-921d-ff05566209cf","name":"9b19d8a8-eda0-5f18-921d-ff05566209cf","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"8eb46f57-7a46-5cd9-892c-b7d04599f860","name":"8eb46f57-7a46-5cd9-892c-b7d04599f860","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"82b052ff-7436-5f81-a9ae-407769938513","name":"82b052ff-7436-5f81-a9ae-407769938513","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"1d4afd44-52c2-50c1-81a7-835b4b6cca07","name":"1d4afd44-52c2-50c1-81a7-835b4b6cca07","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"f1e1885e-465a-59b5-88a6-cf6fb96a3e7f","name":"f1e1885e-465a-59b5-88a6-cf6fb96a3e7f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"bc2ad349-d8d8-53be-9b5c-907c2af2fd84","name":"bc2ad349-d8d8-53be-9b5c-907c2af2fd84","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"a53d69fa-8ee0-5d41-b339-1a7e6bd220bc","name":"a53d69fa-8ee0-5d41-b339-1a7e6bd220bc","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"9577b247-3cb5-5503-9580-e1e1357cad7c","name":"9577b247-3cb5-5503-9580-e1e1357cad7c","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"a03b258c-b8b7-52e5-b537-e8e2f2d96096","name":"a03b258c-b8b7-52e5-b537-e8e2f2d96096","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"18230e9c-33ef-53ff-abd8-ef3ecb4a261f","name":"18230e9c-33ef-53ff-abd8-ef3ecb4a261f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":40,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"d76ccea4-dd30-4897-96a3-b1ca02e2609d","blendMode":0,"displayName":"default","isLocked":false,"name":"d76ccea4-dd30-4897-96a3-b1ca02e2609d","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"ce2820c8-7382-554b-8bfb-86c483072c4a","blendMode":0,"displayName":"default","isLocked":false,"name":"ce2820c8-7382-554b-8bfb-86c483072c4a","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_amy_emotion3",
   "nineSlice":null,
@@ -60,7 +62,7 @@
     },
     "eventStubScript":null,
     "eventToFunction":{},
-    "length":12.0,
+    "length":14.0,
     "lockOrigin":false,
     "moments":{
       "$KeyframeStore<MomentsEventKeyframe>":"",
@@ -79,18 +81,48 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"b5130304-71d7-401f-b929-9544ebc8a7d4","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"9e8f1eef-6041-4b4c-b09a-465d20100958","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"d7c9d3a8-db23-4b42-8d70-a3c2a2396ece","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"44b90a23-6cfb-44e7-a66c-77c4403c3170","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"34fede4e-f97e-4d7a-8d05-e07fc4b270c1","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"39c1bbfb-8b67-465a-a7e1-9edc9cccc711","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"019fb2d8-b181-445c-9851-b97056695b2c","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"9afb6b07-4ebb-4b0b-8adc-cd755b083bd0","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"881268d1-c046-4249-8a24-a01210528d69","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"5be29ef1-f18e-4ce1-9bc1-e9eb7471bb2d","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"66c6f156-4062-4006-9973-b195e7d1fc7c","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"ad426299-1754-4342-9870-2dc6deafa97e","IsCreationKey":false,"Key":5.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"3e42eee7-eef6-469a-854c-8e17b99c1242","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"44a15afa-0c02-4951-a347-4f1d3ce674e9","IsCreationKey":false,"Key":6.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"1bdf74bb-d824-4b54-9c7b-3576736bb729","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"c6500498-942c-46aa-9aa8-10f13740b41c","IsCreationKey":false,"Key":7.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"a10bebe4-95d7-461c-9468-c2c87629cd1f","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"3989c5a5-0b43-42d3-9450-90c3d7f414f1","IsCreationKey":false,"Key":8.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"0c360e58-e056-41b4-bca2-37e8c0f269cf","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"58a2363b-fd2b-4e18-8aee-2b5a8aabfee4","IsCreationKey":false,"Key":9.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"cb82c7d1-a359-4bbf-bdc1-3e3e2f435f75","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"d8be2e8e-6b56-4135-b702-327abcca996c","IsCreationKey":false,"Key":10.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"8a5d560e-db61-4324-8682-bb8cecb4819d","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"27dbbe2a-2901-403d-8249-9059308c55f8","IsCreationKey":false,"Key":11.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"15d450e6-7229-5c67-937c-534afafea031","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"cc7fc496-6338-58cb-8fed-8328888896ca","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"d6a85149-b02a-5c78-b39d-75e4ec15d91c","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"bb682402-cca2-56e8-89c1-65649d1081d2","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8260b6b8-0451-5c31-a74d-97ebc5d20441","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"f0da9834-f2d0-5852-88b9-039f187abb50","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"201ef706-5d65-5afc-a772-d26f75cbea46","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"3ccf0efc-7643-56a9-9392-3db00ce9ba33","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"9b19d8a8-eda0-5f18-921d-ff05566209cf","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"aedbdbe6-cb9d-54ec-94eb-a5976b455c2d","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8eb46f57-7a46-5cd9-892c-b7d04599f860","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"be36e25f-6008-5403-b877-af2818a8933f","IsCreationKey":false,"Key":5.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"82b052ff-7436-5f81-a9ae-407769938513","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"eb9df1e5-887a-596d-b499-a7f6346b5cd6","IsCreationKey":false,"Key":6.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"1d4afd44-52c2-50c1-81a7-835b4b6cca07","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"5f214fd9-9bae-5b97-b468-36a7a896ad01","IsCreationKey":false,"Key":7.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"f1e1885e-465a-59b5-88a6-cf6fb96a3e7f","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"5484a92a-95dd-594d-bc29-8dda5fc0e13e","IsCreationKey":false,"Key":8.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"bc2ad349-d8d8-53be-9b5c-907c2af2fd84","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"c8de54e7-753c-5fef-99a2-bd15081d9acc","IsCreationKey":false,"Key":9.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"a53d69fa-8ee0-5d41-b339-1a7e6bd220bc","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"4bdc1807-0f3d-5bb6-b5e7-ebb3cf2cfb45","IsCreationKey":false,"Key":10.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"9577b247-3cb5-5503-9580-e1e1357cad7c","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"5563cfc1-d01d-5857-ab91-b414df70b794","IsCreationKey":false,"Key":11.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"a03b258c-b8b7-52e5-b537-e8e2f2d96096","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"e3c46c90-fdf2-5d8b-bd38-acf288ccb758","IsCreationKey":false,"Key":12.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"18230e9c-33ef-53ff-abd8-ef3ecb4a261f","path":"sprites/spr_amy_emotion3/spr_amy_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"9f657e24-1de6-50ee-8ae9-3cce5844b308","IsCreationKey":false,"Key":13.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
