@@ -32,6 +32,8 @@
 #macro SUBMENU_CHAR_CHAOS 27
 #macro SUBMENU_CHAR_EXETIOR 28
 #macro SUBMENU_CHAR_EXELLER 29
+// Página de información de Amy Canon en el menú (id 48: el 47 ya lo usa JOIN_MOBILE)
+#macro SUBMENU_CHAR_AMY_CANON 48
 
 #macro SUBMENU_EXTRA_ACHIVEMENTS 30
 #macro SUBMENU_EXTRA_TAILS 31
@@ -237,6 +239,7 @@ buttonListed = function(_bid, _bcolumn, _dir)
 		case SUBMENU_CHAR_EGG:
 		case SUBMENU_CHAR_AMY:
 		case SUBMENU_CHAR_SALLY:
+		case SUBMENU_CHAR_AMY_CANON:
 		case SUBMENU_CHAR_CREAM:
 		case SUBMENU_CHAR_EXE:
 		case SUBMENU_CHAR_CHAOS:
@@ -246,7 +249,12 @@ buttonListed = function(_bid, _bcolumn, _dir)
 			{
 				if(_dir)
 				{
-					if(submenu + 1 > SUBMENU_CHAR_EXELLER)
+					// Amy Canon: salto extra en el ciclo (su id 48 no es contiguo)
+					if(submenu == SUBMENU_CHAR_SALLY)
+						changeSubmenu(SUBMENU_CHAR_AMY_CANON);
+					else if(submenu == SUBMENU_CHAR_AMY_CANON)
+						changeSubmenu(SUBMENU_CHAR_EXE);
+					else if(submenu + 1 > SUBMENU_CHAR_EXELLER)
 					{
 						changeSubmenu(SUBMENU_CHAR_TAILS);
 						break;
@@ -256,7 +264,12 @@ buttonListed = function(_bid, _bcolumn, _dir)
 				}
 				else
 				{
-					if(submenu - 1 < SUBMENU_CHAR_TAILS)
+					// Amy Canon: vuelta atrás por Canon (Exe ya no vuelve directo a Sally)
+					if(submenu == SUBMENU_CHAR_EXE)
+						changeSubmenu(SUBMENU_CHAR_AMY_CANON);
+					else if(submenu == SUBMENU_CHAR_AMY_CANON)
+						changeSubmenu(SUBMENU_CHAR_SALLY);
+					else if(submenu - 1 < SUBMENU_CHAR_TAILS)
 					{
 						changeSubmenu(SUBMENU_CHAR_EXELLER);
 						break;
@@ -1046,6 +1059,7 @@ buttonPressed = function(_bid, _bcolumn)
 		case SUBMENU_CHAR_EGG:
 		case SUBMENU_CHAR_AMY:
 		case SUBMENU_CHAR_SALLY:
+		case SUBMENU_CHAR_AMY_CANON:
 		case SUBMENU_CHAR_CREAM:
 		case SUBMENU_CHAR_EXE:
 		case SUBMENU_CHAR_CHAOS:
@@ -1066,7 +1080,12 @@ buttonPressed = function(_bid, _bcolumn)
 		
 			if(_bid == 1)
 			{
-				if(submenu + 1 > SUBMENU_CHAR_EXELLER)
+				// Amy Canon: salto extra en el ciclo (su id 48 no es contiguo)
+				if(submenu == SUBMENU_CHAR_SALLY)
+					changeSubmenu(SUBMENU_CHAR_AMY_CANON);
+				else if(submenu == SUBMENU_CHAR_AMY_CANON)
+					changeSubmenu(SUBMENU_CHAR_EXE);
+				else if(submenu + 1 > SUBMENU_CHAR_EXELLER)
 				{
 					changeSubmenu(SUBMENU_CHAR_TAILS);
 					break;
@@ -1076,7 +1095,12 @@ buttonPressed = function(_bid, _bcolumn)
 			}
 			else
 			{
-				if(submenu - 1 < SUBMENU_CHAR_TAILS)
+				// Amy Canon: vuelta atrás por Canon (Exe ya no vuelve directo a Sally)
+				if(submenu == SUBMENU_CHAR_EXE)
+					changeSubmenu(SUBMENU_CHAR_AMY_CANON);
+				else if(submenu == SUBMENU_CHAR_AMY_CANON)
+					changeSubmenu(SUBMENU_CHAR_SALLY);
+				else if(submenu - 1 < SUBMENU_CHAR_TAILS)
 				{
 					changeSubmenu(SUBMENU_CHAR_EXELLER);
 					break;
@@ -1445,6 +1469,7 @@ changeSubmenu = function(_menu)
 	layer_set_visible(layer_get_id("AboutKnux"), false);
 	layer_set_visible(layer_get_id("AboutEgg"), false);
 	layer_set_visible(layer_get_id("AboutAmy"), false);
+	layer_set_visible(layer_get_id("AboutAmyCanon"), false);
 	layer_set_visible(layer_get_id("AboutCream"), false);
 	layer_set_visible(layer_get_id("AboutSally"), false);
 	layer_set_visible(layer_get_id("AboutExe"), false);
@@ -1704,6 +1729,18 @@ changeSubmenu = function(_menu)
 			layer_set_visible(layer_get_id("AboutSally"), true);
 			layer_set_visible(layer_get_id("AboutCharacter"), true);
 			obj_menu_character.sprite_index = spr_menu_sally;
+			break;
+
+		// Página de Amy Canon: preview con spr_menu_amy_canon (sprite ya existente)
+		case SUBMENU_CHAR_AMY_CANON:
+			layer_background_sprite(bars, spr_menu_bars);
+			layer_background_index(bars, 4);
+			bCount = 2;
+			bColumnCount = 0;
+			scheme = true;
+			layer_set_visible(layer_get_id("AboutAmyCanon"), true);
+			layer_set_visible(layer_get_id("AboutCharacter"), true);
+			obj_menu_character.sprite_index = spr_menu_amy_canon;
 			break;
 			
 		case SUBMENU_CHAR_EXE:
