@@ -112,7 +112,7 @@ bars = layer_background_get_id(layer_get_id("Bars"));
 buttonListed = function(_bid, _bcolumn, _dir)
 {
 	switch(submenu)
-	{		
+	{               
 		case SUBMENU_OPTIONSGENERAL:
 			if(_bid == 1)
 			{
@@ -214,7 +214,7 @@ buttonListed = function(_bid, _bcolumn, _dir)
 					{
 						changeSubmenu(SUBMENU_MECH_DIFF);
 						break;
-					}	
+					}       
 					
 					changeSubmenu(submenu - 1);
 				}
@@ -247,36 +247,39 @@ buttonListed = function(_bid, _bcolumn, _dir)
 		case SUBMENU_CHAR_EXELLER:
 			if(_bid == 0)
 			{
+				// FIX PAGINA OSCURA: antes se llamaba changeSubmenu() dos veces
+				// (el salto especial de Amy Canon y luego submenu+/-1), y la
+				// segunda llamada leia el submenu YA actualizado: Sally -> 48 ->
+				// 49 (id invalido = pagina en negro). Ahora se calcula el destino
+				// y se llama UNA sola vez.
+				var _dstMenu;
+				
 				if(_dir)
 				{
 					// Amy Canon: salto extra en el ciclo (su id 48 no es contiguo)
-					if(submenu == SUBMENU_CHAR_SALLY)
-						changeSubmenu(SUBMENU_CHAR_AMY_CANON);
-					else if(submenu == SUBMENU_CHAR_AMY_CANON)
-						changeSubmenu(SUBMENU_CHAR_EXE);
-					else if(submenu + 1 > SUBMENU_CHAR_EXELLER)
-					{
-						changeSubmenu(SUBMENU_CHAR_TAILS);
-						break;
-					}
+					_dstMenu = submenu + 1;
 					
-					changeSubmenu(submenu + 1);
+					if(submenu == SUBMENU_CHAR_SALLY)
+						_dstMenu = SUBMENU_CHAR_AMY_CANON;
+					else if(submenu == SUBMENU_CHAR_AMY_CANON)
+						_dstMenu = SUBMENU_CHAR_EXE;
+					else if(_dstMenu > SUBMENU_CHAR_EXELLER)
+						_dstMenu = SUBMENU_CHAR_TAILS;
 				}
 				else
 				{
 					// Amy Canon: vuelta atrás por Canon (Exe ya no vuelve directo a Sally)
-					if(submenu == SUBMENU_CHAR_EXE)
-						changeSubmenu(SUBMENU_CHAR_AMY_CANON);
-					else if(submenu == SUBMENU_CHAR_AMY_CANON)
-						changeSubmenu(SUBMENU_CHAR_SALLY);
-					else if(submenu - 1 < SUBMENU_CHAR_TAILS)
-					{
-						changeSubmenu(SUBMENU_CHAR_EXELLER);
-						break;
-					}	
+					_dstMenu = submenu - 1;
 					
-					changeSubmenu(submenu - 1);
+					if(submenu == SUBMENU_CHAR_EXE)
+						_dstMenu = SUBMENU_CHAR_AMY_CANON;
+					else if(submenu == SUBMENU_CHAR_AMY_CANON)
+						_dstMenu = SUBMENU_CHAR_SALLY;
+					else if(_dstMenu < SUBMENU_CHAR_TAILS)
+						_dstMenu = SUBMENU_CHAR_EXELLER;
 				}
+				
+				changeSubmenu(_dstMenu);
 				
 				with(obj_menu_gif)
 					image_index = 0;
@@ -365,7 +368,7 @@ buttonListed = function(_bid, _bcolumn, _dir)
 					{
 						changeSubmenu(SUBMENU_EXTRA_EXELLER);
 						break;
-					}	
+					}       
 					
 					changeSubmenu(submenu - 1);
 				}
@@ -408,7 +411,7 @@ buttonListed = function(_bid, _bcolumn, _dir)
 					{
 						changeSubmenu(SUBMENU_EXTRA_EXELLER);
 						break;
-					}	
+					}       
 					
 					changeSubmenu(submenu - 1);
 				}
@@ -558,7 +561,7 @@ buttonListed = function(_bid, _bcolumn, _dir)
 }
 
 buttonSelected = function(_bid, _bcolumn, _dir, _anim)
-{	
+{       
 	if(bind)
 		return;
 		
@@ -599,7 +602,7 @@ buttonSelected = function(_bid, _bcolumn, _dir, _anim)
 		
 	var _found = false;
 	with(obj_menu_button)
-	{		
+	{               
 		if(submenu != obj_menu.submenu)
 		{
 			image_blend = c_white;
@@ -826,7 +829,7 @@ buttonPressed = function(_bid, _bcolumn)
 				
 				if(_bid == 5)
 					changeSubmenu(SUBMENU_NONE);
-			}	
+			}       
 			break;
 			
 		case SUBMENU_OPTIONSCONTROLS:
@@ -1044,7 +1047,7 @@ buttonPressed = function(_bid, _bcolumn)
 				{
 					changeSubmenu(SUBMENU_MECH_DIFF);
 					break;
-				}	
+				}       
 				
 				changeSubmenu(submenu - 1);
 			}
@@ -1078,36 +1081,37 @@ buttonPressed = function(_bid, _bcolumn)
 			if(_bcolumn != 1)
 				break;
 		
+			// FIX PAGINA OSCURA: mismo error que en buttonListed, el doble
+			// changeSubmenu() caia en ids invalidos (Sally -> 48 -> 49 = negro).
+			// Se calcula el destino y se llama UNA sola vez.
+			var _dstMenu;
+			
 			if(_bid == 1)
 			{
 				// Amy Canon: salto extra en el ciclo (su id 48 no es contiguo)
-				if(submenu == SUBMENU_CHAR_SALLY)
-					changeSubmenu(SUBMENU_CHAR_AMY_CANON);
-				else if(submenu == SUBMENU_CHAR_AMY_CANON)
-					changeSubmenu(SUBMENU_CHAR_EXE);
-				else if(submenu + 1 > SUBMENU_CHAR_EXELLER)
-				{
-					changeSubmenu(SUBMENU_CHAR_TAILS);
-					break;
-				}
+				_dstMenu = submenu + 1;
 				
-				changeSubmenu(submenu + 1);
+				if(submenu == SUBMENU_CHAR_SALLY)
+					_dstMenu = SUBMENU_CHAR_AMY_CANON;
+				else if(submenu == SUBMENU_CHAR_AMY_CANON)
+					_dstMenu = SUBMENU_CHAR_EXE;
+				else if(_dstMenu > SUBMENU_CHAR_EXELLER)
+					_dstMenu = SUBMENU_CHAR_TAILS;
 			}
 			else
 			{
 				// Amy Canon: vuelta atrás por Canon (Exe ya no vuelve directo a Sally)
-				if(submenu == SUBMENU_CHAR_EXE)
-					changeSubmenu(SUBMENU_CHAR_AMY_CANON);
-				else if(submenu == SUBMENU_CHAR_AMY_CANON)
-					changeSubmenu(SUBMENU_CHAR_SALLY);
-				else if(submenu - 1 < SUBMENU_CHAR_TAILS)
-				{
-					changeSubmenu(SUBMENU_CHAR_EXELLER);
-					break;
-				}	
+				_dstMenu = submenu - 1;
 				
-				changeSubmenu(submenu - 1);
+				if(submenu == SUBMENU_CHAR_EXE)
+					_dstMenu = SUBMENU_CHAR_AMY_CANON;
+				else if(submenu == SUBMENU_CHAR_AMY_CANON)
+					_dstMenu = SUBMENU_CHAR_SALLY;
+				else if(_dstMenu < SUBMENU_CHAR_TAILS)
+					_dstMenu = SUBMENU_CHAR_EXELLER;
 			}
+			
+			changeSubmenu(_dstMenu);
 			
 			break;
 			
@@ -1234,7 +1238,7 @@ buttonPressed = function(_bid, _bcolumn)
 				{
 					changeSubmenu(SUBMENU_EXTRA_EXELLER);
 					break;
-				}	
+				}       
 				
 				changeSubmenu(submenu - 1);
 			}
@@ -1741,6 +1745,20 @@ changeSubmenu = function(_menu)
 			layer_set_visible(layer_get_id("AboutAmyCanon"), true);
 			layer_set_visible(layer_get_id("AboutCharacter"), true);
 			obj_menu_character.sprite_index = spr_menu_amy_canon;
+			
+			// Respaldo anti-cache: si la room cargo nueva pero el sprite
+			// quedo viejo (sin el frame 66 "AMY CANON"), la placa central
+			// apuntaria a un frame inexistente; se usa la de amy rose (46)
+			var _fMaxBotones = sprite_get_number(spr_menu_buttons);
+			
+			if(_fMaxBotones <= 66)
+			{
+				with(obj_menu_button)
+				{
+					if(submenu == 48 && bcolumn == 0 && bid == 0 && image_index > _fMaxBotones - 1)
+						image_index = 46;
+				}
+			}
 			break;
 			
 		case SUBMENU_CHAR_EXE:
@@ -2116,7 +2134,7 @@ if (!layer_exists("AboutAmyCanon"))
 	_b = instance_create_layer(502, 253, _l, obj_menu_button);
 	_b.bid = 4; _b.bcolumn = 0; _b.submenu = 48; _b.image_index = 4;
 
-	// Nombre central + flechas laterales del ciclo de personajes
+	// Placas superiores: SALLY (anterior) | AMY CANON (actual) | SONIC.EXE (siguiente)
 	_b = instance_create_layer(308, 18, _l, obj_menu_button);
 	_b.bid = 0; _b.bcolumn = 0; _b.submenu = 48; _b.image_index = _frameNombre;
 
