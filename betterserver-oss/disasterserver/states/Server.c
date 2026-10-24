@@ -176,6 +176,7 @@ bool peer_identity(PeerData *v, Packet *packet)
 	v->should_timeout = true;
 	v->disconnecting = false;
 	v->mod_tool = false;
+	v->amy_authed = false; /* Amy Canon: exigir token en cada reconexion */
 	v->is_mobile = false;
 	v->nickname = nickname;
 	v->udid = udid;
@@ -392,6 +393,25 @@ bool server_worker(Server *server)
 					}
 					break;
 				}
+				case CLIENT_AMY_AUTH:
+				{
+					// Amy Canon: token de desbloqueo del personaje
+					// reservado. Solo el cliente con la frase correcta
+					// (la de "amy_canon_token" en Config.json) podra
+					// elegirla en la seleccion de personaje.
+					PacketRead(passtrough, &packet, packet_read8, uint8_t);
+					PacketRead(type, &packet, packet_read8, uint8_t);
+					PacketRead(token, &packet, packet_readstr, String);
+
+					v->amy_authed =
+						g_config.amy_canon_token[0] != '\0' &&
+						token.len > 0 &&
+						strcmp(token.value, g_config.amy_canon_token) == 0;
+
+					Info("%s (id %d) amy canon unlock: %s", v->nickname.value, v->id, BoolStringify(v->amy_authed));
+					break;
+				}
+
 				default:
 				{
 					if (!peer_msg(v, &packet))

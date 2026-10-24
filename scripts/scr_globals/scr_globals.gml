@@ -90,3 +90,40 @@ global.levelDescriptions =
 	"be careful on conveyor belts and get to ignited lanterns to banish spirit that \nhaunts the forest, before things get even darker |-25 sec",
 	"you better not touch the crystals releasing the phantom energy, otherwise it \nwill be difficult for you to move and avoid traps of the ancient temple \n|+25 sec"
 ];
+
+// Amy Canon: token local del PERSONAJE RESERVADO.
+// Si existe el archivo amy_canon.token (junto al juego o en tu carpeta
+// de usuario), su contenido (una frase secreta de 1 linea) se envia al
+// server al conectarte. El server lo compara con "amy_canon_token" de
+// su Config.json: si coincide, ESTE cliente puede elegir a Amy Canon.
+// Sin archivo o sin coincidencia, Amy Canon no aparece en la seleccion
+// (y aunque alguien edite su cliente para mostrarla, el server rechaza
+// la eleccion igual que si estuviera ocupada).
+global.amyCanonToken = "";
+
+var _amyPath = "amy_canon.token";
+if(!file_exists(_amyPath))
+	_amyPath = environment_get_variable("USERPROFILE") + "\\amy_canon.token";
+
+if(file_exists(_amyPath))
+{
+	var _amyFile = file_text_open_read(_amyPath);
+	if(_amyFile != -1)
+	{
+		var _amyLine = file_text_read_string(_amyFile);
+		file_text_close(_amyFile);
+		
+		// quita espacios/saltos sobrantes del final de la linea
+		while(string_length(_amyLine) > 0)
+		{
+			var _amyCh = string_copy(_amyLine, string_length(_amyLine), 1);
+			if(_amyCh == " " || _amyCh == "\t" || _amyCh == "\r" || _amyCh == "\n")
+				_amyLine = string_copy(_amyLine, 1, string_length(_amyLine) - 1);
+			else
+				break;
+		}
+		
+		if(_amyLine != "")
+			global.amyCanonToken = _amyLine;
+	}
+}

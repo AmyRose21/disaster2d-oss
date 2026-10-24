@@ -35,6 +35,7 @@ typedef struct
 	char 	motd[256];
 	bool	random_mode;
 	bool	chatfix;
+	char	amy_canon_token[65];	/* Amy Canon: frase secreta (max 64); vacia = bloqueada para todos */
 } Config;
 
 SERVER_API extern Config g_config;

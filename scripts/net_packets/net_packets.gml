@@ -157,7 +157,12 @@ enum PacketType
 	SERVER_PREIDENTITY,
 	SERVER_FELLA,
 
-	CLIENT_PLAYER_POTATER
+	CLIENT_PLAYER_POTATER,
+
+	/* Amy Canon: token de desbloqueo del personaje reservado
+	   (se envia justo despues de IDENTITY; el server lo compara con
+	   "amy_canon_token" de su Config.json) */
+	CLIENT_AMY_AUTH
 }
 
 #macro STATE_PENDING -1

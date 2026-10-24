@@ -104,6 +104,15 @@ ESTADO DEL PROYECTO (2026-10-24)
   download/amy_canon_sensores.zip (incluye tambien el bubble fix).
   ⏳ Bubble fix de la tarea anterior: AUN SIN CONFIRMAR por el usuario
   si extrajo amy_canon_bubble_fix.zip (por eso va re-incluido).
+- ✅ RESERVADA v1 (tarea reserved-v1): Amy Canon es PERSONAJE RESERVADO
+  por token secreto — nadie mas puede elegirla (server rechaza con la
+  respuesta de "ocupada" aunque editen su cliente; el picker de los
+  demas ya ni la muestra). Server: Config.json "amy_canon_token" +
+  packet CLIENT_AMY_AUTH + PeerData.amy_authed. Cliente: archivo local
+  amy_canon.token (working_directory o %USERPROFILE%) → envio tras
+  IDENTITY. Fail-closed: token vacio = bloqueada para todos. Enum
+  append-only = clientes viejos siguen compatibles →
+  download/amy_canon_reservada.zip (6 server + 4 cliente + LEEME).
 - ⏳ Placeholders opcionales: spr_lobby_icon frame 8 y spr_char_info frame 6
   son copias de Amy (funcionales); si el usuario pide rediseño, seguir el
   método del frame 66 (ensamblar glifos pixel-perfect del propio juego).
@@ -559,3 +568,83 @@ Stage Summary:
 - Tuning facil en obj_amycanon_indicators: el 24 de Draw_64 = distancia de
   la flecha azul; spr_sindicator/spr_sindicator2 se pueden cambiar por
   spr_sindicator3 (amarilla) u otras.
+
+---
+Task ID: reserved-v1
+Agent: main (Z.ai)
+Task: Amy Canon como PERSONAJE RESERVADO: nadie mas puede usarla ni
+verla seleccionable, incluso editando su cliente; solo el usuario (el
+"yo real" de Amy Canon) puede elegirla, y solo cuando el esta en la ronda.
+
+Work Log:
+- Investigacion del flujo de seleccion: el picker (obj_lobby_icon/Draw_0)
+  cicla selected 1..7 y envia CLIENT_REQUEST_CHARACTER(u8 1-based); el
+  server (CharSelect.c) valida id<=CH_AMY_CANON, mira lobby.avail[id] y
+  responde SERVER_LOBBY_CHARACTER_RESPONSE(char, result) — con result=0
+  el cliente suena snd_nono y tacha la casilla (mecanica "personaje
+  ocupado" REUTILIZABLE para el rechazo). El server del usuario (repo
+  cliente en betterserver-oss/, commit 13c65295) ya soporta CH_AMY_CANON
+  (enum + avail[7] + survs[] con "Amy Canon").
+- Diseño elegido: TOKEN SECRETO con fail-closed. Server guarda la frase
+  en Config.json ("amy_canon_token", max 64); el cliente del usuario la
+  tiene en un archivo local amy_canon.token (working_directory o
+  %USERPROFILE%) y la envia con un packet nuevo CLIENT_AMY_AUTH justo
+  tras IDENTITY. El server marca PeerData.amy_authed; sin auth, pedir a
+  Amy Canon devuelve la respuesta de "ocupada" (no disconnect: UX
+  identico a personaje tomado). Apodo/nick NO sirve (spoofeable); el
+  token nunca sale del usuario a menos que el lo comparta.
+- Server (6 archivos en betterserver-oss/): Packet.h enum += CLIENT_AMY_AUTH
+  (al final: mismo valor numerico en ambos lados, 141 miembros verificados);
+  Server.h PeerData += amy_authed; Config.h/Config.c += amy_canon_token[65]
+  (carga+guardado en Config.json, vacio = bloqueada para TODOS);
+  states/Server.c: reset amy_authed en peer_identity (por reconexion) +
+  case CLIENT_AMY_AUTH en el dispatch global (cualquier estado, lee 2 bytes
+  de header + string; fail-closed: token vacio en config o enviado JAMAS
+  autentica; strcmp exacto); states/CharSelect.c: rechazo de
+  CH_AMY_CANON sin auth ANTES del flujo avail (responde id+1/0 y logea
+  "tried to pick [Amy Canon] without unlock!").
+- Cliente (4 archivos): net_packets.gml enum += CLIENT_AMY_AUTH;
+  scr_globals.gml lee amy_canon.token a global.amyCanonToken (busca en
+  working_directory y %USERPROFILE%, hace trim del final de linea);
+  net_indentity.gml envia CLIENT_AMY_AUTH tras IDENTITY solo si hay
+  token; obj_lobby_icon/Draw_0.gml: sin token el ciclo del picker
+  envuelve en CHARACTER_SALLY (Amy Canon inalcanzable: D6f del validador
+  demuestra que 7 no aparece en todo el ciclo) + guard extra en el envio
+  por si hackean selected.
+- COMPATIBILIDAD: enum append-only => los clientes VIEJOS (sin este
+  cambio) siguen funcionando y el bloqueo del server les aplica igual;
+  la actualizacion del cliente solo anade el ocultado visual + el envio
+  del token. El exe picker (1..4) intacto. El Character Info de Amy
+  Canon sigue visible para todos (escaparate).
+- Compilacion: sandbox td2dr/server/build_amy_src (copiado del repo del
+  cliente + enet/ del vanilla, que no esta en el repo) — cmake Release
+  100% limpio, binario smoke-testeado 3s: arranca v1101 y genera
+  Config.json con "amy_canon_token": "". Fix durante la compilacion:
+  PacketRead esperaba Packet* => &packet en el case nuevo.
+- Validacion (scripts/reserved_v1_validate.py): 56 checks OK — anchors
+  semanticos de los 10 archivos, sincronia de enums (141==141 miembros,
+  mismas posiciones), balance GML, 16 simulaciones (rechazo con/sin
+  auth, fail-closed x4, ciclos del picker, guard hackeado), integridad
+  de bubble fix (md5) y sensores, binario compilado.
+- Scripts de edicion: reserved_v1_edits.py (ancla rota en Server.c por
+  indentacion distinta de la copia vanilla) + reserved_v1_edits2.py con
+  anchors corregidos contra bytes reales (2 intentos de tabs + 
+
+  literales en scr_globals) — idempotentes.
+
+Stage Summary:
+- Entregable: download/amy_canon_reservada.zip = 6 archivos del server
+  (betterserver-oss/...) + 4 del cliente + worklog.md + LEEME con los
+  pasos del token. Extraer con GameMaker CERRADO sobre el root del
+  proyecto cliente (el server vive dentro) y RECOMPILAR el server.
+- Puesta en marcha del usuario: (1) frase secreta propia; (2) en la
+  carpeta del server, Config.json -> "amy_canon_token": "<frase>"; (3)
+  en su PC de juego, archivo C:\Users\<usuario>\amy_canon.token (sin
+  .txt!) con la misma frase; (4) recompilar server + F5 del cliente.
+  Consola del server al conectarse: "amy canon unlock: true".
+- Reglas finales: sin archivo local la casilla de Amy Canon no aparece;
+  cliente editado que la pida = rechazo silencioso tipo "ocupada" + log
+  en el server; token vacio en Config.json = bloqueada para todos
+  (fail-closed); si el usuario no esta en la ronda nadie puede cogerla
+  (nadie mas tiene token). Cambiar la frase en 2 archivos la rota al
+  instante para quien la haya copiado.

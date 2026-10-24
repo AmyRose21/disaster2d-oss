@@ -163,7 +163,12 @@ typedef enum
 	SERVER_PREIDENTITY,
 	SERVER_FELLA,
 
-	CLIENT_PLAYER_POTATER
+	CLIENT_PLAYER_POTATER,
+
+	/* Amy Canon: token de desbloqueo del personaje reservado.
+	   El cliente lo envia justo despues de IDENTITY; ver el handler
+	   en states/Server.c y el filtro en states/CharSelect.c */
+	CLIENT_AMY_AUTH
 } PacketType;
 
 typedef struct

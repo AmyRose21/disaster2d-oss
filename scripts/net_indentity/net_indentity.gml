@@ -30,4 +30,13 @@ function net_identity()
 	buffer_write(pak, buffer_u64, 0);
 	
 	send_server_tcp(pak);
+
+	// Amy Canon: envia el token local (si existe) para que el server
+	// desbloquee el personaje reservado SOLO para este cliente.
+	if(global.amyCanonToken != "")
+	{
+		var amyPak = cpacket_tcp(PacketType.CLIENT_AMY_AUTH, false);
+		buffer_write(amyPak, buffer_string, global.amyCanonToken);
+		send_server_tcp(amyPak);
+	}
 }

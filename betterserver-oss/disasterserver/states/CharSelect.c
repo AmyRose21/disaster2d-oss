@@ -145,6 +145,21 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 		AssertOrDisconnect(v->server, id >= 0);
 		AssertOrDisconnect(v->server, id <= CH_AMY_CANON);
 
+		/* Amy Canon: personaje RESERVADO. Solo el jugador con el
+		   token valido (CLIENT_AMY_AUTH, ver states/Server.c)
+		   puede usarla; a los demas se les responde igual que si
+		   estuviera ocupada (el cliente la tacha y suena nono). */
+		if (id == CH_AMY_CANON && !v->amy_authed)
+		{
+			PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+			PacketWrite(&pack, packet_write8, id + 1);
+			PacketWrite(&pack, packet_write8, 0);
+			RAssert(packet_send(v->peer, &pack, true));
+
+			Info("%s (id %d) tried to pick [Amy Canon] without unlock!", v->nickname.value, v->id);
+			return true;
+		}
+
 		uint8_t avail = v->server->lobby.avail[id];
 		if (avail)
 			v->server->lobby.avail[id] = 0;

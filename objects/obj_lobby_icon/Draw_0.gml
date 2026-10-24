@@ -26,7 +26,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		else
 		{
 			if(selected < 1)
-				selected = CHARACTER_AMY_CANON;
+				selected = global.amyCanonToken != "" ? CHARACTER_AMY_CANON : CHARACTER_SALLY;
 		}
 			
 		audio_play_sound(snd_menu_select, 0, false);
@@ -43,7 +43,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		}
 		else
 		{
-			if(selected > CHARACTER_AMY_CANON)
+			if(selected > (global.amyCanonToken != "" ? CHARACTER_AMY_CANON : CHARACTER_SALLY))
 				selected = 1;
 		}
 			
@@ -58,7 +58,8 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		else
 			packet = cpacket_tcp(PacketType.CLIENT_REQUEST_CHARACTER);
 				
-		if(obj_netclient.exeId == master_id || obj_netclient.avCharacters[selected])
+		// Amy Canon reservada: sin token local ni siquiera se puede pedir
+		if(obj_netclient.exeId == master_id || (obj_netclient.avCharacters[selected] && (selected != CHARACTER_AMY_CANON || global.amyCanonToken != "")))
 		{
 			buffer_write(packet, buffer_u8, selected);
 			send_server_tcp(packet);

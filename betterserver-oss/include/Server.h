@@ -47,6 +47,7 @@ typedef struct PeerData
 	bool can_vote;
 	bool voted;
 	bool disconnecting;
+	bool amy_authed; /* Amy Canon: envio el token correcto (CLIENT_AMY_AUTH) */
 
 	auth_peer_data auth;
 
