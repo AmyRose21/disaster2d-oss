@@ -35,14 +35,17 @@ scr_collision_basic();
 if(isTarotFloat)
 {
         // Salidas: soltar Z, tocar el suelo, o cualquier cosa que la pare.
-        if(!global.playerControls || !keyboard_check(global.KeyA) || isGrounded || isHurt || isDead || shockedTimer > 0 || isZipline || isDashing || isTarotDashing || isHJ || isAttacking || bubbleState != AMY_BUBBLE_NONE)
+        if(!global.playerControls || !keyboard_check(global.KeyA) || isGrounded || isHurt || isDead || shockedTimer > 0 || isZipline || isDashing || isTarotDashing || isHJ || isAttacking || bubbleState == AMY_BUBBLE_ACTIVE)
                 isTarotFloat = false;
 }
 
 // Entrada: en el aire, ya cayendo (yspd > 0: engancha en el mismo
 // apex del salto), con Z presionado. La pasiva no tiene cooldown:
-// se puede usar cada vez que empiece a caer.
-if(!isTarotFloat && global.playerControls && bubbleState == AMY_BUBBLE_NONE && shockedTimer <= 0
+// se puede usar cada vez que empiece a caer. BUGFIX burbuja: antes
+// se exibia el estado NONE de la burbuja y tras salir (OVER) la
+// pasiva quedaba muerta; ahora solo se bloquea DENTRO (!= ACTIVE)
+// y la salida de arriba solo corta DENTRO (== ACTIVE).
+if(!isTarotFloat && global.playerControls && bubbleState != AMY_BUBBLE_ACTIVE && shockedTimer <= 0
 && !isHurt && !isDead && !isZipline && !isDashing && !isTarotDashing && !isHJ && !isAttacking
 && !isGrounded && yspd > 0 && keyboard_check(global.KeyA))
 {

@@ -53,7 +53,10 @@ function scr_amy_canon_special()
 	// grande (pad en obj_player_puppet). En el aire la Z no dispara
 	// nada: la pasiva del tarot se activa manteniendola al caer (Step_0)
 	// y el impulso aereo esta en la tecla X (habilidad 2).
-	if(global.playerControls && bubbleState == AMY_BUBBLE_NONE && isGrounded
+	// BUGFIX burbuja: antes se exibia el estado NONE de la burbuja y al
+	// salir (estado OVER) quedaba bloqueada PARA SIEMPRE; ahora solo se
+	// bloquea DENTRO de la burbuja (!= AMY_BUBBLE_ACTIVE).
+	if(global.playerControls && bubbleState != AMY_BUBBLE_ACTIVE && isGrounded
 	&& keyboard_check_pressed(global.KeyA) && hjumpTimer <= 0)
 	{
 		// Direccion: si aprietas izquierda/derecha, mira hacia ese lado;
@@ -104,7 +107,9 @@ function scr_amy_canon_special()
 	// 2 segundos (ver obj_player_puppet). Sonidos: DSTAROT1 suena 1 vez
 	// al arrancar (sin loop) y Loop_Card va en loop mientras dura (lo
 	// gestiona el bloque de audio del Step_0).
-	if(global.playerControls && bubbleState == AMY_BUBBLE_NONE && !isGrounded
+	// BUGFIX burbuja: mismo caso que el salto de martillo — disponible
+	// tambien DESPUES de salir de la burbuja, solo se bloquea DENTRO.
+	if(global.playerControls && bubbleState != AMY_BUBBLE_ACTIVE && !isGrounded
 	&& !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isDashing
 	&& !isAttacking && !isHJ && !isTarotDashing && keyboard_check_pressed(global.KeyB)
 	&& attackTimer <= 0)

@@ -70,6 +70,11 @@ function scr_amy_canon_capture()
 		gspd = 0;
 		xspd = 0;
 		yspd = -AMY_CANON_BUBBLE_UP;
+		isGrounded = false; // BUGFIX: si la capturan parada en el
+		                    // suelo quedaba pegada al piso (el snap
+		                    // de scr_collision_check_bottom le pisaba
+		                    // la levitacion y no subia nunca)
+		angle = 0;          // dentro de la burbuja no hay pendiente
 		image_xscale = 1;   // mira al frente por defecto
 
 		// Sonido del secuestro (lo oyen todos los que esten cerca)
