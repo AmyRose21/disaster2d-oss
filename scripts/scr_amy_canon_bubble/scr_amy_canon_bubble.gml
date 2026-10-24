@@ -57,6 +57,8 @@ function scr_amy_canon_capture()
 		isAttacking = false;
 		isHJ = false;
 		isDashing = false;   // la captura cancela la acometida (ataque 3)
+		isTarotDashing = false; // ... y el impulso aereo (tarot)
+		isTarotFloat = false;   // ... y la pasiva del tarot
 		isSpinning = false;
 		isJumping = false;
 		isBoosting = false;
@@ -107,6 +109,8 @@ function scr_amy_canon_bubble()
 	isAttacking = false;
 	isHJ = false;
 	isDashing = false;
+	isTarotDashing = false;
+	isTarotFloat = false;
 	isSpinning = false;
 	isJumping = false;
 	isLookingDown = false;

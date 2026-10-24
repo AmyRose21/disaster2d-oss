@@ -137,7 +137,9 @@ global.player_anims[? CHARACTER_AMY_CANON] =
         spr_amy_attack3_canon_, //18 = ATAQUE 3: acometida de martillo (estado AMY_CANON_DASH)
         spr_amy_capture_canon, //19 = SECUESTRO: mira al frente (sin teclas de movimiento)
         spr_amy_capture_canon_left, //20 = SECUESTRO: moviendose a la izquierda
-        spr_amy_capture_canon_right //21 = SECUESTRO: moviendose a la derecha
+        spr_amy_capture_canon_right, //21 = SECUESTRO: moviendose a la derecha
+        spr_amy_tarot_float, //22 = PASIVA TAROT: flotacion lenta al caer
+        spr_amy_attack3_canon_ //23 = HABILIDAD 1 en el aire: impulso de tarot (reusa el sprite de la acometida)
 ];
 
 //Cream
@@ -298,7 +300,12 @@ global.player_eanims[? CHARACTER_AMY_CANON] =
         spr_eamy_attack2_canon, //15
         spr_none, // 16
         spr_eamy_zipline_canon, //17
-        spr_amy_attack3_canon_ //18 = ATAQUE 3: acometida (variante demonizada). Cuando crees spr_eamy_attack3_canon, cambialo aqui
+        spr_amy_attack3_canon_, //18 = ATAQUE 3: acometida (variante demonizada). Cuando crees spr_eamy_attack3_canon, cambialo aqui
+        spr_amy_capture_canon, //19 = SECUESTRO (frente) — antes faltaban los 19-21 en eanims: hueco arreglado
+        spr_amy_capture_canon_left, //20 = SECUESTRO: izquierda
+        spr_amy_capture_canon_right, //21 = SECUESTRO: derecha
+        spr_amy_tarot_float, //22 = PASIVA TAROT (demonizada flota igual)
+        spr_amy_attack3_canon_ //23 = HABILIDAD 1 en el aire (reusa el sprite de la acometida)
 ];
 
 //Cream

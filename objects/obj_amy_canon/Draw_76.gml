@@ -84,6 +84,18 @@ switch(state)
                         isAttacking = false;
                 break;
                 
+        // PASIVA TAROT: flotacion (sprite de 9 frames en loop).
+        case AMY_CANON_TAROT:
+                image_speed = 0.5;
+                break;
+                
+        // HABILIDAD 1 en el aire: impulso de tarot (mismo sprite y
+        // velocidad de anim que la acometida; el fin lo controla
+        // tarotDashTimeLeft en scr_amy_canon_special).
+        case AMY_CANON_TAROTDASH:
+                image_speed = AMY_CANON_DASH_ANIMSPD;
+                break;
+                
         // ESTADO BURBUJA (secuestro): sprites de 1 frame; la variante
         // (frente/izquierda/derecha) la elige Step_2 segun bubbleDir.
         case AMY_CANON_CAPTURE:

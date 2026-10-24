@@ -35,6 +35,30 @@
 #macro AMY_CANON_DASH_HITFRAME 3           // FRAME de la animacion donde cae el golpe de martillo
 #macro AMY_CANON_DASH_ANIMSPD 0.5          // VELOCIDAD de animacion (~3.7 golpes por segundo)
 
+// =====================================================================
+//  PASIVA + HABILIDAD 1 (version tarot)
+// ---------------------------------------------------------------------
+//  PASIVA TAROT FLOAT: si Amy esta en el aire CAYENDO y dejas presionado
+//  el boton de saltar (Z), entra en estado tarot (spr_amy_tarot_float)
+//  y cae mucho mas lento. Se activa en cuanto empieza a caer.
+//  DSTAROT1 + DSTAROT2 + Loop_Card suenan en loop mientras flota y se
+//  detienen al soltar el boton, tocar el suelo o cualquier cosa que la
+//  pare (dano, stun, burbuja, etc.).
+#macro AMY_CANON_TAROT_FALLSPD 1.5   // VELOCIDAD MAX de caida flotando (12 = caida normal)
+// ---------------------------------------------------------------------
+//  HABILIDAD 1 (tecla Z, su CD sigue siendo AMY_CANON_BIGJUMP_RECHARGE):
+//   * EN SUELO (parada O corriendo): salto de martillo hacia arriba.
+//     Ya NO hace falta mirar hacia abajo. La hitbox del golpe es un
+//     20% mas grande (AMY_CANON_HJUMP_HITBOX_PAD).
+//   * EN EL AIRE: impulso de tarot hacia adelante (como la acometida de
+//     la tecla C pero aereo). Daña al killer: si la toca durante el
+//     impulso, queda aturdido 2 segundos. Los mismos 3 sonidos del
+//     tarot suenan durante el impulso y se detienen al acabar.
+#macro AMY_CANON_TAROTDASH_TIME 26        // DURACION del impulso aereo en frames (~0.43s)
+#macro AMY_CANON_TAROTDASH_SPEED 13      // VELOCIDAD horizontal del impulso (la acometida va a 14)
+#macro AMY_CANON_TAROTDASH_FALLSPD 2     // caida max durante el impulso (casi horizontal)
+#macro AMY_CANON_HJUMP_HITBOX_PAD 5      // px extra de hitbox del salto de martillo (~20% del sprite)
+
 //Variables
 gspd = 0;
 xspd = 0;
@@ -68,6 +92,15 @@ dashTimeLeft = 0;       // frames que le quedan a la acometida
 dashDir = 1;            // direccion de la acometida (1 = derecha, -1 = izquierda)
 dashTimer = 0;          // cooldown (CD) de la acometida en frames
 dashSwingLatch = false; // evita que 1 mismo golpe suene 2 veces seguidas
+
+// --- Variables del TAROT (pasiva float + impulso aereo de la habilidad 1) ---
+isTarotFloat = false;    // true mientras flota cayendo lento (pasiva)
+isTarotDashing = false;  // true durante el impulso aereo (habilidad 1 en el aire)
+tarotDashTimeLeft = 0;   // frames que le quedan al impulso aereo
+tarotDashDir = 1;        // direccion del impulso aereo (1 = der, -1 = izq)
+tarotSnd1 = -1;          // canal de audio DSTAROT1 (-1 = parado)
+tarotSnd2 = -1;          // canal de audio DSTAROT2
+tarotSnd3 = -1;          // canal de audio Loop_Card
 
 // --- Variables del ESTADO BURBUJA (secuestro, reglas canonicas) ---
 // Ver scr_amy_canon_bubble.gml para el significado y los valores

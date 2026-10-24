@@ -83,6 +83,15 @@ ESTADO DEL PROYECTO (2026-10-24)
   re-entregar.
 - ✅ Descripción nueva (tarea desc-amy-canon-v2, esta sesión): lore del
   cyber space + P.D. amarillo → download/amy_canon_desc_v2.zip.
+- ✅ Mejoras TAROT (tarea tarot-v1, esta sesión): pasiva float + habilidad 1
+  rediseñada (salto corriendo / impulso aéreo) + hitbox +20% + stun 2s →
+  download/amy_canon_tarot.zip. Assets del usuario ya en repo:
+  spr_amy_tarot_float (9 frames), DSTAROT1/2/3, Loop_Card (yy creado por mí).
+  Macros clave: AMY_CANON_TAROT_FALLSPD 1.5, TAROTDASH_TIME 26, SPEED 13,
+  FALLSPD 2, HJUMP_HITBOX_PAD 5. Estados: AMY_CANON_TAROT=22, TAROTDASH=23
+  (anims/eanims 24 entradas; hueco 19-21 de eanims arreglado).
+  BUG que la simulación detectó y corregí: la salida del float NO chequeaba
+  soltar Z (falta !keyboard_check(global.KeyA)) — ya está.
 - ⏳ Placeholders opcionales: spr_lobby_icon frame 8 y spr_char_info frame 6
   son copias de Amy (funcionales); si el usuario pide rediseño, seguir el
   método del frame 66 (ensamblar glifos pixel-perfect del propio juego).
@@ -375,3 +384,24 @@ Stage Summary:
 - Entregables: download/amy_canon_desc_v2.zip (contiene rooms/room_menu/InstanceCreationCode_inst_C17D88C5.gml, 433 bytes) + download/amy_canon_desc_preview.png (render 3x con glifos reales del juego)
 - Worklog reestructurado: seccion CONTEXTO MAESTRO al inicio (autonomo: proyecto, rutas, identidad tecnica de Amy Canon, sistema de texto/colores, flujo de entrega, estado, lecciones) + este historial append-only; copia para git en download/worklog.md
 - Recordatorio para el usuario: extraer el ZIP con GameMaker CERRADO (es un .gml de instance creation code: se hot-recarga, pero mejor no arriesgar)
+
+---
+Task ID: tarot-v1
+Agent: Super Z (main agent)
+Task: Mejoras de Amy Canon: (1) pasiva tarot float manteniendo el boton de saltar; (2) salto de martillo usable corriendo con hitbox +20%; (3) habilidad 1 en el aire = impulso de taroto hacia adelante que daña y stunea al killer 2s; sonidos DSTAROT1/DSTAROT2/Loop_Card en loop durante float y dash, detenidos al soltar boton/tocar suelo/ser parada
+
+Work Log:
+- Fetch: commits del usuario 0d235faf+50d97ede (fixes aplicados desde el IDE) y 08399ac0 "Nuevo" (assets: spr_amy_tarot_float 9 frames 48x48 bbox_mode 2, DSTAROT1.ogg 2.59s, DSTAROT2.ogg 1.26s, DSTAROT3.ogg 2.57s, Loop_Card.mp3 13.71s SIN .yy)
+- Recon de sistemas: specialFunc se llama desde scr_move_basic;state se sincroniza solo via netclient (u8) asi que los estados nuevos llegan a los puppets; el "parry" (stun del killer) vive en obj_player_puppet/Step_0 (2 ramas: isDemonized y globalExe); el hack AMY_HJUMP=state con image_index<3 hace isAttacking
+- Paso 1 (scripts/tarot_p1_assets.py): creado sounds/Loop_Card/Loop_Card.yy (misma estructura que DSTAROT1, parent folders/Sounds/Player/AmyCanon) + entrada en el .yyp tras DSTAROT3; validado JSON relajado GM, 1555 resources sin duplicados
+- Paso 2 (scripts/tarot_p2_edits.py): 18 ediciones en 9 archivos, todas con verificacion de balance {} (): Create_0 (5 macros nuevas + 8 variables), special (bloqueos redring/hiding + hjump sin isLookingDown con split suelo/aire + bloque DURANTE del dash aereo), Step_0 (shocked apaga tarot; bloque FLOAT post scr_collision_basic; bloque AUDIO compartido; parry local), Step_2 (macros AMY_CANON_TAROT=BALANCING+9/TAROTDASH=BALANCING+10 + state machine), Draw_76 (2 cases), scr_survivors (anims +22/+23 con spr_amy_tarot_float y eanims +19..23 ARREGLANDO el hueco 19-21 que faltaban), puppet (_acHJumpPad: distance_to_object<=5 mientras state==HJUMP para la hitbox 20%; stunTime=2 si state==TAROTDASH), move_basic (muerte) y bubble (captura) apagan flags
+- Paso 3 (scripts/tarot_p3_validate.py): 33 checks + 8 simulaciones de flujo. FALLO 1 (regex del validador, corregido). FALLO 2 REAL: la salida del float no chequeaba soltar Z -> FIX en Step_0: agregado !keyboard_check(global.KeyA) a la condicion de salida (el comentario ya lo decia pero el codigo no lo hacia)
+- Simulacion final 8/8: sin Z no hay float; Z cayendo entra + audio; yspd capeada a 1.5; SOLTAR Z detiene float+audio; en suelo no re-entra; durante dash aereo audio sigue; dash->float transicion sin cortar audio; stun apaga todo
+
+Stage Summary:
+- Entregable: download/amy_canon_tarot.zip (11 archivos: 9 .gml + Loop_Card.yy + .yyp). El .yyp y el .yy de sonido son los unicos no-.gml: extraer con GameMaker CERRADO como siempre
+- Valores ajustables en Create_0.gml de obj_amy_canon: AMY_CANON_TAROT_FALLSPD 1.5 (caida flotando), AMY_CANON_TAROTDASH_TIME 26 (duracion impulso), SPEED 13, FALLSPD 2 (caida durante impulso), HJUMP_HITBOX_PAD 5 (hitbox +20%)
+- Diseno de audio: los 3 sonidos arrancan al entrar en float O dash y se detienen al salir de AMBOS (canales tarotSnd1/2/3); el dash no exige mantener Z (duracion fija), el float si
+- El stun de 2s usa el sistema existente del juego (shockedTimer + CLIENT_PLAYER_HURT + stats report): llega al servidor y a los demas clientes sin packets nuevos
+- DSTAROT3 queda sin uso (el usuario lo trajo; reservado para futuro, p.ej. sonido de aterrizar el dash)
+- Pendiente si el usuario quiere: spr dedicado para el dash aereo (hoy reusa spr_amy_attack3_canon_), UI con icono propio, y DSTAROT3

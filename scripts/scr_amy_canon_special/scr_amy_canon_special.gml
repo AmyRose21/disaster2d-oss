@@ -24,6 +24,8 @@ function scr_amy_canon_special()
 			
 		isAttacking = false;
 		isDashing = false;
+		isTarotDashing = false; // el anillo rojo tambien corta el impulso aereo
+		isTarotFloat = false;   // ... y la pasiva del tarot
 	}
 	
 	// Escondida (agachada en un escondite): no puede usar la
@@ -41,22 +43,77 @@ function scr_amy_canon_special()
 			
 		isAttacking = false;
 		isDashing = false;
+		isTarotDashing = false; // escondida: nada de impulsos aereos
+		isTarotFloat = false;
 	}
 	
-	// --- Habilidad 1: SALTO ALTO (tecla Z mirando hacia abajo) ---
-	if(global.playerControls && isLookingDown && keyboard_check_pressed(global.KeyA) && hjumpTimer <= 0)
-	{					
-		isGrounded = false;
-		isSpinning = false;
-		isJumping = true;
-		justJumped = true;
-		xspd -= 10 * sin(angle);
-		yspd = -10 * cos(angle);
-				
-		isHJ = true;
-		hjumpTimer = AMY_CANON_BIGJUMP_RECHARGE;
-		audio_play_sound(snd_jump, 0, false);
-		net_sound_emit(snd_jump);
+	// --- Habilidad 1: SALTO DE MARTILLO / IMPULSO AEREO (tecla Z) ---
+	// EN SUELO (parada o corriendo): salto de martillo alto. Ya NO hace
+	// falta mirar hacia abajo; se puede usar en plena carrera. El golpe
+	// tiene la hitbox un 20% mas grande (pad en obj_player_puppet).
+	// EN EL AIRE: impulso de tarot hacia adelante (movilidad); daña al
+	// killer y lo stunea 2s si la toca durante el impulso.
+	if(global.playerControls && bubbleState == AMY_BUBBLE_NONE && keyboard_check_pressed(global.KeyA) && hjumpTimer <= 0)
+	{
+		// Direccion: si aprietas izquierda/derecha, mira hacia ese lado;
+		// si no, hacia donde ya miraba (vale para las dos modalidades).
+		if(keyboard_check(global.KeyLeft))
+			image_xscale = -1;
+		else if(keyboard_check(global.KeyRight))
+			image_xscale = 1;
+		
+		if(isGrounded)
+		{
+			// --- modalidad SUELO: salto de martillo (como siempre) ---
+			isGrounded = false;
+			isSpinning = false;
+			isJumping = true;
+			justJumped = true;
+			xspd -= 10 * sin(angle);
+			yspd = -10 * cos(angle);
+			
+			isHJ = true;
+			hjumpTimer = AMY_CANON_BIGJUMP_RECHARGE;
+			audio_play_sound(snd_jump, 0, false);
+			net_sound_emit(snd_jump);
+		}
+		else if(!isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isDashing && !isAttacking && !isHJ)
+		{
+			// --- modalidad AIRE: impulso de tarot hacia adelante ---
+			isTarotDashing = true;
+			isAttacking = true;     // el killer que la toque queda aturdido 2s (ver obj_player_puppet)
+			isTarotFloat = false;
+			tarotDashDir = image_xscale;
+			tarotDashTimeLeft = AMY_CANON_TAROTDASH_TIME;
+			image_index = 0;
+			
+			// Mismo CD que el salto de martillo: es la misma habilidad 1,
+			// la que toque primero se lo gasta.
+			hjumpTimer = AMY_CANON_BIGJUMP_RECHARGE;
+			
+			// Los 3 sonidos del tarot arrancan solos: el bloque de audio
+			// del Step_0 los mantiene en loop y los detiene al acabar.
+		}
+	}
+	
+	// --- HABILIDAD 1 (aire): DURANTE el impulso ---
+	if(isTarotDashing)
+	{
+		tarotDashTimeLeft--;
+		
+		// Cancelaciones: aterrizar, dano, stun, muerte, tirolina, la
+		// acometida del suelo, quedarse sin tiempo o salir del mapa.
+		if(isGrounded || isHurt || isDead || shockedTimer > 0 || isZipline || isDashing || tarotDashTimeLeft <= 0 || x <= 1 || x >= room_width - 1)
+		{
+			isTarotDashing = false;
+			isAttacking = false;
+		}
+		else
+		{
+			// Movimiento: la impulsa hacia adelante con caida casi nula.
+			xspd = AMY_CANON_TAROTDASH_SPEED * tarotDashDir;
+			yspd = min(yspd, AMY_CANON_TAROTDASH_FALLSPD);
+		}
 	}
 	
 	// --- Habilidad 2: ATAQUE DE CORAZONES (tecla X) ---

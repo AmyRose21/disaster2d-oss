@@ -11,6 +11,10 @@
 #macro AMY_CANON_CAPTURE BALANCING+6     // secuestro: mira al FRENTE (sin teclas)
 #macro AMY_CANON_CAPTURE_L BALANCING+7   // secuestro: moviendose a la IZQUIERDA
 #macro AMY_CANON_CAPTURE_R BALANCING+8   // secuestro: moviendose a la DERECHA
+// PASIVA TAROT: flotacion cayendo lento con Z presionado (spr_amy_tarot_float)
+#macro AMY_CANON_TAROT BALANCING+9
+// HABILIDAD 1 en el aire: impulso de tarot hacia adelante (spr_amy_attack3_canon_)
+#macro AMY_CANON_TAROTDASH BALANCING+10
 
 if(!emotion)
         state = IDLE;
@@ -56,6 +60,18 @@ if(isHJ)
 if(isDashing)
 {
         state = AMY_CANON_DASH;
+        return;
+}
+
+if(isTarotDashing)
+{
+        state = AMY_CANON_TAROTDASH;
+        return;
+}
+
+if(isTarotFloat)
+{
+        state = AMY_CANON_TAROT;
         return;
 }
 

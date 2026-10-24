@@ -61,6 +61,8 @@ function scr_move_basic()
 		if(global.character == CHARACTER_AMY_CANON)
 		{
 			isDashing = false; // ATAQUE 3: la muerte cancela la acometida
+			isTarotDashing = false; // la muerte cancela el impulso aereo
+			isTarotFloat = false;   // ... y la pasiva del tarot
 		}
 		
 		gspd -= min(abs(gspd), acc) * sign(gspd); 

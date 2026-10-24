@@ -52,7 +52,12 @@ var globalExe = (global.character == CHARACTER_EXE || global.player.revivalTimes
 if((character == CHARACTER_AMY || character == CHARACTER_AMY_CANON) && state == AMY_HJUMP && image_index < 3)
 	isAttacking = true;
 
-if(place_meeting(x, y, global.player))
+// SALTO DE MARTILLO DE AMY CANON: hitbox un 20% mas grande. Ademas del
+// contacto fisico, el golpe alcanza a ~5px de distancia (distance_to_object
+// mide entre bounding boxes), asi el stuneo entra aunque el rozar sea minimo.
+var _acHJumpPad = (character == CHARACTER_AMY_CANON && state == AMY_CANON_HJUMP && image_index < 3 && distance_to_object(global.player) <= AMY_CANON_HJUMP_HITBOX_PAD);
+
+if(place_meeting(x, y, global.player) || _acHJumpPad)
 {
 	if(isAttacking)
 	{
@@ -240,6 +245,10 @@ if(place_meeting(x, y, global.player))
 					return;
 				
 				var stunTime = 3;
+				// IMPULSO AEREO DE AMY CANON (tarot): el stuneo dura 2s en
+				// vez de 3 mientras ella este en ese estado.
+				if(character == CHARACTER_AMY_CANON && state == AMY_CANON_TAROTDASH)
+					stunTime = 2;
 				var snd = snd_exe_stun;
 				var xxspd = -sign(x - global.player.x) * 4;
 								
