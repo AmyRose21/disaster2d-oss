@@ -133,7 +133,8 @@ global.player_anims[? CHARACTER_AMY_CANON] =
         spr_amy_attack1_canon, //14
         spr_amy_attack2_canon, //15
         spr_none, //16
-        spr_amy_zipline_canon //17
+        spr_amy_zipline_canon, //17
+        spr_amy_attack3_canon_ //18 = ATAQUE 3: acometida de martillo (estado AMY_CANON_DASH)
 ];
 
 //Cream
@@ -293,7 +294,8 @@ global.player_eanims[? CHARACTER_AMY_CANON] =
         spr_eamy_attack1_canon, //14
         spr_eamy_attack2_canon, //15
         spr_none, // 16
-        spr_eamy_zipline_canon //17
+        spr_eamy_zipline_canon, //17
+        spr_amy_attack3_canon_ //18 = ATAQUE 3: acometida (variante demonizada). Cuando crees spr_eamy_attack3_canon, cambialo aqui
 ];
 
 //Cream

@@ -58,6 +58,11 @@ function scr_move_basic()
 			ringsSpawn = 0;
 		}
 		
+		if(global.character == CHARACTER_AMY_CANON)
+		{
+			isDashing = false; // ATAQUE 3: la muerte cancela la acometida
+		}
+		
 		gspd -= min(abs(gspd), acc) * sign(gspd); 
 		xspd -= min(abs(xspd), acc) * sign(xspd);
 		xspd -= 0.225 * sin(angle);
@@ -136,6 +141,10 @@ function scr_move_basic()
 				isAttacking = false;
 				isSliding = false;
 				break;
+			
+			case CHARACTER_AMY_CANON:
+				isDashing = false; // ATAQUE 3: recibir dano cancela la acometida
+				break;
 		}
 		
 		gspd = 0;
@@ -180,6 +189,10 @@ function scr_move_basic()
 				shieldRechrage = -(60 * 1.5);
 				
 			isAttacking = false;
+		}
+		else if(global.character == CHARACTER_AMY_CANON)
+		{
+			isDashing = false; // ATAQUE 3: un booster cancela la acometida
 		}
 		
 		if(global.character == CHARACTER_EXE && global.exeCharacter == EXE_CHAOS)

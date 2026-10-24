@@ -2333,6 +2333,7 @@ function net_state_game(rbuff, nps, isPasstrough)
 				case CHARACTER_AMY_CANON:
 					global.player.attackTimer = 0;
 					global.player.hjumpTimer = 0;
+					global.player.dashTimer = 0; // ATAQUE 3: acometida lista al empezar la partida
 					break;
 					
 				case CHARACTER_CREAM:

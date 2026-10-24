@@ -73,6 +73,17 @@ switch(state)
 			isAttacking = false;
 		break;
 		
+	// ATAQUE 3: acometida de martillo. La animacion corre en LOOP
+	// a la velocidad AMY_CANON_DASH_ANIMSPD (ajustable en Create_0.gml).
+	// El fin de la acometida lo controla dashTimeLeft en
+	// scr_amy_canon_special.gml, no la animacion.
+	case AMY_CANON_DASH:
+		image_speed = AMY_CANON_DASH_ANIMSPD;
+		
+		if(!isDashing)
+			isAttacking = false;
+		break;
+		
 	case AMY_CANON_HJUMP:
 		image_speed = 0.3;
 		

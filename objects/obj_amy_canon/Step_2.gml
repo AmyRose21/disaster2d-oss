@@ -2,6 +2,8 @@
 #macro AMY_CANON_HJUMP BALANCING+2
 #macro AMY_CANON_SEX BALANCING+3
 #macro AMY_CANON_ZIPLINE BALANCING+4
+// ATAQUE 3: estado de la acometida de martillo (sprite spr_amy_attack3_canon_)
+#macro AMY_CANON_DASH BALANCING+5
 
 if(!emotion)
 	state = IDLE;
@@ -21,6 +23,15 @@ if(shockedTimer > 0)
 if(isHJ)
 {
 	state = AMY_CANON_HJUMP;
+	return;
+}
+
+// La acometida (ataque 3) se revisa ANTES que el ataque normal,
+// porque durante la acometida isAttacking tambien esta en true
+// y si no, se mostraria el sprite del ataque 1 en vez del ataque 3.
+if(isDashing)
+{
+	state = AMY_CANON_DASH;
 	return;
 }
 

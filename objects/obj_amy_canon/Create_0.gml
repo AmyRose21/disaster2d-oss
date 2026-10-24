@@ -6,6 +6,35 @@
 #macro AMY_CANON_MAXSPEED 11
 #macro AMY_CANON_ACC 0.046875
 
+// =====================================================================
+//  ATAQUE 3: ACOMETIDA DE MARTILLO  (se activa con la tecla C)
+// ---------------------------------------------------------------------
+//  Guia rapida de los valores que puedes ajustar:
+//  * DURACION  = cuanto tiempo (en frames) dura la acometida.
+//                60 frames = 1 segundo. Prueba entre 48 (corta) y 96 (larga).
+//  * VELOCIDAD = pixeles por frame que avanza Amy durante la acometida.
+//                Su carrera normal maxima es 11; con 14 va mas rapido que
+//                corriendo. Mas de 16 puede atravesar paredes al chocar.
+//  * CD (cooldown) = frames que debes esperar para volver a usarla.
+//                60*15 = 15 segundos (version superviviente).
+//                AMY_CANON_EDASH_RECHARGE es el CD cuando Amy esta
+//                demonizada (revivalTimes >= 2), suele ser mas corto.
+//  * FRAME_GOLPE = frame de la animacion donde el martillo impacta
+//                (frame 3 del sprite spr_amy_attack3_canon_). Cada vez que
+//                la animacion pasa por ese frame suena un golpe.
+//  * VEL_ANIM   = velocidad de la animacion (frames de sprite por step).
+//                0.5 = la animacion de 8 frames tarda 16 steps en dar una
+//                vuelta completa (1 golpe). Con duracion 64 son 4 golpes.
+// =====================================================================
+// CONSEJO: usa la DURACION en multiplos de 16 para que la animacion
+// termine justo al acabar un golpe: 48 = 3 golpes, 64 = 4, 80 = 5.
+#macro AMY_CANON_DASH_TIME 64               // DURACION en frames (64 = 1 seg aprox = 4 golpes completos)
+#macro AMY_CANON_DASH_SPEED 14             // VELOCIDAD (mayor que 11 = mas rapida que correr)
+#macro AMY_CANON_DASH_RECHARGE (60 * 15)   // CD en modo superviviente (15 segundos)
+#macro AMY_CANON_EDASH_RECHARGE (60 * 5)   // CD en modo demonizada (5 segundos)
+#macro AMY_CANON_DASH_HITFRAME 3           // FRAME de la animacion donde cae el golpe de martillo
+#macro AMY_CANON_DASH_ANIMSPD 0.5          // VELOCIDAD de animacion (~3.7 golpes por segundo)
+
 //Variables
 gspd = 0;
 xspd = 0;
@@ -32,6 +61,13 @@ chunkTimer = 0;
 attackTimer = 0;
 hjumpTimer = 0;
 isHJ = false;
+
+// --- Variables del ATAQUE 3 (acometida de martillo) ---
+isDashing = false;      // true mientras dura la acometida
+dashTimeLeft = 0;       // frames que le quedan a la acometida
+dashDir = 1;            // direccion de la acometida (1 = derecha, -1 = izquierda)
+dashTimer = 0;          // cooldown (CD) de la acometida en frames
+dashSwingLatch = false; // evita que 1 mismo golpe suene 2 veces seguidas
 
 //General
 hp = 100;

@@ -17,7 +17,11 @@
   "exportToGame":true,
   "extensionVersion":"1.0.0",
   "files":[
-    {"$GMExtensionFile":"v1","%Name":"","ConfigValues":{"Mobile":{"copyToTargets":"200",},},"constants":[],"copyToTargets":200,"filename":"disnet.dll","final":"disnet_uninit","functions":[
+    {"$GMExtensionFile":"v1","%Name":"","ConfigValues":{
+        "Mobile":{
+          "copyToTargets":"200",
+        },
+      },"constants":[],"copyToTargets":200,"filename":"disnet.dll","final":"disnet_uninit","functions":[
         {"$GMExtensionFunction":"","%Name":"disnet_init","argCount":0,"args":[],"documentation":"","externalName":"disnet_init","help":"","hidden":false,"kind":1,"name":"disnet_init","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":2,},
         {"$GMExtensionFunction":"","%Name":"disnet_reset","argCount":0,"args":[],"documentation":"","externalName":"disnet_reset","help":"","hidden":false,"kind":1,"name":"disnet_reset","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":2,},
         {"$GMExtensionFunction":"","%Name":"disnet_connect","argCount":0,"args":[1,2,],"documentation":"","externalName":"disnet_connect","help":"","hidden":false,"kind":1,"name":"disnet_connect","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":2,},
@@ -25,7 +29,11 @@
         {"$GMExtensionFunction":"","%Name":"disnet_send","argCount":0,"args":[1,2,2,],"documentation":"","externalName":"","help":"","hidden":false,"kind":1,"name":"disnet_send","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":2,},
         {"$GMExtensionFunction":"","%Name":"disnet_uninit","argCount":0,"args":[],"documentation":"","externalName":"","help":"","hidden":false,"kind":1,"name":"disnet_uninit","resourceType":"GMExtensionFunction","resourceVersion":"2.0","returnType":2,},
       ],"init":"disnet_init","kind":1,"name":"","origname":"","ProxyFiles":[
-        {"$GMProxyFile":"","%Name":"libdisnet.so","ConfigValues":{"Mobile":{"TargetMask":"7",},},"name":"libdisnet.so","resourceType":"GMProxyFile","resourceVersion":"2.0","TargetMask":7,},
+        {"$GMProxyFile":"","%Name":"libdisnet.so","ConfigValues":{
+            "Mobile":{
+              "TargetMask":"7",
+            },
+          },"name":"libdisnet.so","resourceType":"GMProxyFile","resourceVersion":"2.0","TargetMask":7,},
       ],"resourceType":"GMExtensionFile","resourceVersion":"2.0","uncompress":false,"usesRunnerInterface":false,},
   ],
   "gradleinject":"",

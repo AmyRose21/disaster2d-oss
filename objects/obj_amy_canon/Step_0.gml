@@ -10,6 +10,7 @@ else
 	isLookingUp = false;
 	isAttacking = false;
 	isJumping = false;
+	isDashing = false; // ATAQUE 3: el electro-shock cancela la acometida
 	gspd -= min(abs(gspd), acc) * sign(gspd); 
 	xspd -= min(abs(xspd), acc) * sign(xspd); 
 	shockedTimer--;
