@@ -4,26 +4,50 @@
 #macro AMY_CANON_ZIPLINE BALANCING+4
 // ATAQUE 3: estado de la acometida de martillo (sprite spr_amy_attack3_canon_)
 #macro AMY_CANON_DASH BALANCING+5
+// ESTADO BURBUJA (secuestro): 3 variantes segun la mirada.
+// El sprite de cada una es spr_amy_capture_canon / _left / _right
+// y estan registrados al final del array de CHARACTER_AMY_CANON en
+// scr_survivors.gml (indices 19/20/21).
+#macro AMY_CANON_CAPTURE BALANCING+6     // secuestro: mira al FRENTE (sin teclas)
+#macro AMY_CANON_CAPTURE_L BALANCING+7   // secuestro: moviendose a la IZQUIERDA
+#macro AMY_CANON_CAPTURE_R BALANCING+8   // secuestro: moviendose a la DERECHA
 
 if(!emotion)
-	state = IDLE;
+        state = IDLE;
+
+// ESTADO BURBUJA: tiene prioridad sobre todo lo demas (misma
+// prioridad que isDead). La variante del sprite depende de las
+// teclas de movimiento: sin teclas = al frente (base), con
+// izquierda/derecha = esa variante. (bubbleDir lo fija
+// scr_amy_canon_bubble.gml segun el input).
+if(bubbleState == AMY_BUBBLE_ACTIVE)
+{
+        if(bubbleDir < 0)
+                state = AMY_CANON_CAPTURE_L;
+        else if(bubbleDir > 0)
+                state = AMY_CANON_CAPTURE_R;
+        else
+                state = AMY_CANON_CAPTURE;
+                
+        return;
+}
 
 if(isDead)
 {
-	state = DEAD;
-	return;
+        state = DEAD;
+        return;
 }
 
 if(shockedTimer > 0)
 {
-	state = DEAD;
-	return;
+        state = DEAD;
+        return;
 }
 
 if(isHJ)
 {
-	state = AMY_CANON_HJUMP;
-	return;
+        state = AMY_CANON_HJUMP;
+        return;
 }
 
 // La acometida (ataque 3) se revisa ANTES que el ataque normal,
@@ -31,69 +55,69 @@ if(isHJ)
 // y si no, se mostraria el sprite del ataque 1 en vez del ataque 3.
 if(isDashing)
 {
-	state = AMY_CANON_DASH;
-	return;
+        state = AMY_CANON_DASH;
+        return;
 }
 
 if(isAttacking)
 {
-	state = AMY_CANON_ATTACK;		
-	return;
+        state = AMY_CANON_ATTACK;               
+        return;
 }
 
 if(isZipline)
 {
-	if(isGrounded)
-		isZipline = false;
-	else
-	{
-		state = AMY_CANON_ZIPLINE;
-		return;
-	}
+        if(isGrounded)
+                isZipline = false;
+        else
+        {
+                state = AMY_CANON_ZIPLINE;
+                return;
+        }
 }
 
 if(isHurt)
 {
-	state = HURT;
-	return;
+        state = HURT;
+        return;
 }
 
 if(isLookingUp)
 {
-	state = LOOKUP;
-	return;
+        state = LOOKUP;
+        return;
 }
 
 if(isLookingDown)
 {
-	state = LOOKDOWN;
-	return;
+        state = LOOKDOWN;
+        return;
 }
 
 if(isSpinning)
 {
-	state = SPIN;
-	return;
+        state = SPIN;
+        return;
 }
 
 if(abs(xspd) > 0 && isGrounded)
 {
-	if(abs(xspd) < 8)
-		state = WALK;
-	else
-		state = RUN;
+        if(abs(xspd) < 8)
+                state = WALK;
+        else
+                state = RUN;
 }
 
 if(isOnEdge)
 {
-	state = BALANCING;
-	return;
+        state = BALANCING;
+        return;
 }
 
 if (!isGrounded) //in air
 {
-	if(isJumping)
-		state = JUMP;
-	else
-		state = FALL;
+        if(isJumping)
+                state = JUMP;
+        else
+                state = FALL;
 }

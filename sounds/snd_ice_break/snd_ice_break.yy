@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":0.798662,
+  "duration":0.7986621,
   "exportDir":"",
   "name":"snd_ice_break",
   "parent":{

@@ -69,6 +69,14 @@ dashDir = 1;            // direccion de la acometida (1 = derecha, -1 = izquierd
 dashTimer = 0;          // cooldown (CD) de la acometida en frames
 dashSwingLatch = false; // evita que 1 mismo golpe suene 2 veces seguidas
 
+// --- Variables del ESTADO BURBUJA (secuestro, reglas canonicas) ---
+// Ver scr_amy_canon_bubble.gml para el significado y los valores
+// ajustables (tiempo dentro, levitacion, vida al salir, etc.).
+bubbleState = AMY_BUBBLE_NONE; // 0 = normal; 1 = dentro de la burbuja; 2 = ya salio
+bubbleTimer = 0;               // frames que le quedan a la burbuja
+bubbleDir = 0;                 // mirada: -1 = izq, +1 = der, 0 = al frente
+bubbleFree = false;            // se pone true cuando toca liberarla
+
 //General
 hp = 100;
 isGrounded = false;

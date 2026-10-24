@@ -544,6 +544,7 @@
     {"name":"snd_boom","order":11,"path":"sounds/snd_boom/snd_boom.yy",},
     {"name":"snd_bos","order":19,"path":"sounds/snd_bos/snd_bos.yy",},
     {"name":"snd_break","order":10,"path":"sounds/snd_break/snd_break.yy",},
+    {"name":"snd_bubble","order":19,"path":"sounds/snd_bubble/snd_bubble.yy",},
     {"name":"snd_buble","order":5,"path":"sounds/snd_buble/snd_buble.yy",},
     {"name":"snd_cash","order":12,"path":"sounds/snd_cash/snd_cash.yy",},
     {"name":"snd_chaos_attack","order":4,"path":"sounds/snd_chaos_attack/snd_chaos_attack.yy",},
