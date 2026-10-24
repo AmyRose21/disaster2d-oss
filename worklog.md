@@ -83,15 +83,20 @@ ESTADO DEL PROYECTO (2026-10-24)
   re-entregar.
 - ✅ Descripción nueva (tarea desc-amy-canon-v2, esta sesión): lore del
   cyber space + P.D. amarillo → download/amy_canon_desc_v2.zip.
-- ✅ Mejoras TAROT (tarea tarot-v1, esta sesión): pasiva float + habilidad 1
-  rediseñada (salto corriendo / impulso aéreo) + hitbox +20% + stun 2s →
-  download/amy_canon_tarot.zip. Assets del usuario ya en repo:
-  spr_amy_tarot_float (9 frames), DSTAROT1/2/3, Loop_Card (yy creado por mí).
-  Macros clave: AMY_CANON_TAROT_FALLSPD 1.5, TAROTDASH_TIME 26, SPEED 13,
-  FALLSPD 2, HJUMP_HITBOX_PAD 5. Estados: AMY_CANON_TAROT=22, TAROTDASH=23
-  (anims/eanims 24 entradas; hueco 19-21 de eanims arreglado).
-  BUG que la simulación detectó y corregí: la salida del float NO chequeaba
-  soltar Z (falta !keyboard_check(global.KeyA)) — ya está.
+- ✅ Mejoras TAROT v2 (tareas tarot-v1 + tarot-v2, esta sesión): pasiva
+  float (mantener Z al caer; caida EXACTA 0.5 px/frame; loop = SOLO
+  DSTAROT2 + Loop_Card) + habilidad 1 = IMPULSO AEREO de tarot (dash como
+  la acometida de la C pero UNICAMENTE en el aire; Z en suelo = salto
+  normal — el salto de martillo se quito de la tecla y su estado quedo
+  dormido; DSTAROT1 suena 1 vez al arrancar SIN loop + Loop_Card en loop;
+  stunea al killer 2s con alcance +5px / hitbox ~+20%) →
+  download/amy_canon_tarot_v2.zip (AUTOCONTENIDO: 13 archivos, sirve
+  aunque no se haya extraido el v1; incluye yyp + Loop_Card.yy + mp3).
+  Macros clave: AMY_CANON_TAROT_FALLSPD 0.5, TAROTDASH_TIME 26, SPEED 13,
+  FALLSPD 2, TAROTDASH_HITBOX_PAD 5; CD = AMY_CANON_BIGJUMP_RECHARGE y
+  baja SIEMPRE (tambien en el aire, que es donde se usa). Estados:
+  AMY_CANON_TAROT=22, TAROTDASH=23 (anims/eanims 24 entradas). Icono 1 de
+  la UI: blanco = CD listo Y en el aire (antes era el salto de martillo).
 - ⏳ Placeholders opcionales: spr_lobby_icon frame 8 y spr_char_info frame 6
   son copias de Amy (funcionales); si el usuario pide rediseño, seguir el
   método del frame 66 (ensamblar glifos pixel-perfect del propio juego).
@@ -109,6 +114,11 @@ ERRORES DEL PASADO QUE NO REPETIR (lecciones pagadas)
    laterales de las páginas vecinas (Sally.der y Exe.izq → apuntan a 66).
 5. Preview/render de textos GML: decodificar \n literal (2 chars) a salto
    real antes de renderizar (bug de esta sesión, corregido en script).
+6. Tecla compartida con el salto (KeyA=Z): si una habilidad tiene variante
+   de suelo y aire en la misma tecla, NUNCA compartirles el CD (el uso de
+   suelo bloquea el aereo tras cada salto: asi nacio la falla 1 de tarot).
+   Y si el usuario dice "unicamente en el aire", la modalidad de suelo NO
+   existe: no inventar hibridos.
 
 PROTOCOLO AL RETOMAR
 1. git fetch en td2dr/disaster2d-oss + git log — ver qué commiteó el usuario.
@@ -405,3 +415,28 @@ Stage Summary:
 - El stun de 2s usa el sistema existente del juego (shockedTimer + CLIENT_PLAYER_HURT + stats report): llega al servidor y a los demas clientes sin packets nuevos
 - DSTAROT3 queda sin uso (el usuario lo trajo; reservado para futuro, p.ej. sonido de aterrizar el dash)
 - Pendiente si el usuario quiere: spr dedicado para el dash aereo (hoy reusa spr_amy_attack3_canon_), UI con icono propio, y DSTAROT3
+
+---
+Task ID: tarot-v2
+Agent: Super Z (main agent)
+Task: Corregir las 2 fallas reportadas del jugador tras tarot-v1: (1) la habilidad 1 debia ser un dash como la habilidad 3 PERO UNICAMENTE usable en el aire, con sonidos DSTAROT1 y Loop_Card; (2) con la pasiva Amy debe caer MUCHISIMO mas lento, y fix de audio: DSTAROT1 NO va en loop — solo DSTAROT2 y Loop_Card son el loop de la pasiva.
+
+Work Log:
+- Diagnostico de la falla 1 (raiz doble): (a) el diseno hibrido de tarot-v1 ponia el salto de martillo en Z-suelo, robando la tecla; (b) ambas modalidades compartian hjumpTimer como CD, y como el CD solo bajaba en el suelo, CADA salto con Z dejaba el dash aereo bloqueado 9s → en la practica el dash nunca estaba disponible. Verificado contra el flujo real: specialFunc (scr_move_basic:584) corre ANTES del salto normal (:617).
+- Verificado el cableado de red del stun antes de tocar: el flag PLAYER_ATTACKING SI se sincroniza para CHARACTER_AMY_CANON (emisor obj_netclient/Step_2.gml:69-72, receptor net_udpprocess.gml:121-122 via bitflags) → el stun 2s del puppet (stunTime=2 si state==AMY_CANON_TAROTDASH) funciona sin packets nuevos.
+- Fix habilidad 1 (scr_amy_canon_special.gml): Z-suelo YA NO dispara nada (salto de martillo eliminado de la tecla; su estado AMY_CANON_HJUMP queda DORMIDO con comentario, reactivable mirando abajo si el usuario lo pide). El bloque Z exige !isGrounded + guards completos (!isHurt/!isDead/!shocked/!isZipline/!isDashing/!isAttacking/!isHJ/!isTarotDashing + CD listo) → dash aereo puro. DSTAROT1 se dispera 1 VEZ al arrancar (loop=false). El ataque de corazones (X) ahora tambien se bloquea durante el dash (!isTarotDashing). El CD (hjumpTimer/AMY_CANON_BIGJUMP_RECHARGE) baja SIEMPRE, tambien en el aire.
+- Fix pasiva (obj_amy_canon/Step_0.gml): AMY_CANON_TAROT_FALLSPD 1.5 → 0.5 (24x mas lento que la caida normal de 12). El tope se compensa con "- yAccel" porque scr_collision_basic suma la gravedad DESPUES del cap (mismo truco que scr_amy_canon_bubble) → caida real EXACTA = valor de la macro, verificado en simulacion frame a frame. Entrada de la pasiva: umbral yspd > 0.5 → yspd > 0 (engancha en el apex mismo).
+- Fix audio por estado (Step_0): dash → SOLO Loop_Card en loop (DSTAROT1 ya sono one-shot); float → DSTAROT2 + Loop_Card en loop; ninguno → todo parado. Loop_Card compartido: en las transiciones directas dash→float sigue sonando sin cortarse; DSTAROT2/DSTAROT1 se apagan mutuamente al cambiar de estado.
+- Pad +20% movido del salto de martillo al dash: _acTarotPad en obj_player_puppet (state==AMY_CANON_TAROTDASH, TODO el dash activo, sin condicion de frame) con macro renombrada AMY_CANON_TAROTDASH_HITBOX_PAD 5.
+- UI (obj_playerui/Draw_64.gml): icono 1 ahora es el impulso aereo — blanco = CD listo Y en el aire (espejo del icono 3). NOTA: el ARTE del icono sigue siendo spr_gui_amyhjump_canon (martillo); si el usuario quiere arte de tarot, cambiar ese sprite.
+- Scripts: tarot_v2_edits.py + tarot_v2_edit5_icon.py (tabs exactos por archivo: special/puppet/ui=TABS, Step_0=4 espacios) + tarot_v2_validate.py (26 checks estructurales + 14 simulaciones, TODAS OK) + tarot_v2_zip.py.
+- Simulacion clave (macros reales del archivo): Z en suelo = salto normal puro (CD intacto, sin DSTAROT1) → apex → float en <=35 frames → caida estable EXACTA 0.5/frame → soltar Z apaga todo; tap de Z en aire = dash (xspd 13, DSTAROT1 x1 + Loop_Card, CD corre EN EL AIRE); dash→float con Z mantenida cambia DSTAROT1→DSTAROT2 sin cortar Loop_Card; tap flotando = dash directo.
+- DESCUBRIMIENTO: el commit "Nuevo" (08399ac0) del usuario NO incluye el codigo tarot-v1 (solo assets: sprite, DSTAROT1/2/3, Loop_Card.mp3) → el ZIP v2 se hizo AUTOCONTENIDO (13 archivos: los 9 .gml del feature + Step_2 + Draw_76 + Loop_Card.yy + mp3 de refuerzo + .yyp) para que funcione tanto si extrajo el v1 como si no. El mp3 de Loop_Card faltaba en el zip v1 (el .yy lo referenciaba pero el audio no viajaba).
+
+Stage Summary:
+- Entregable: download/amy_canon_tarot_v2.zip (13 archivos, 256 KB). Extraer con GameMaker CERRADO (incluye .yyp y .yy de sonido, que no se hot-recargan).
+- Comportamiento final: Z en suelo = salto de SIEMPRE (nada especial). Z en el aire (CD listo) = dash de tarot adelante (26 frames a velocidad 13, stunea 2s al killer que la toque, con ~5px de margen extra). Mantener Z cayendo = flotacion tarot a 0.5 px/frame. Soltar Z / aterrizar / dano / stun / burbuja cortan TODO el audio.
+- Sonidos: pasiva = DSTAROT2 + Loop_Card en loop; dash = DSTAROT1 una vez + Loop_Card en loop; DSTAROT1 jamas loopea.
+- Tuning rapido en Create_0.gml de obj_amy_canon: FALLSPD 0.5 (caida pasiva), TAROTDASH_TIME 26 (duracion), TAROTDASH_SPEED 13, TAROTDASH_FALLSPD 2, TAROTDASH_HITBOX_PAD 5, CD 9s en AMY_CANON_BIGJUMP_RECHARGE.
+- DSTAROT3 sigue sin uso (reservado; p.ej. sonido de aterrizar el dash). El arte del icono 1 sigue siendo el del martillo (spr_gui_amyhjump_canon).
+- Pendiente de commit por el usuario: TODO el feature tarot (v1+v2) sigue sin commitear en su repo.

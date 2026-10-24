@@ -135,9 +135,11 @@ if(instance_exists(global.player) && !global.player.isDead)
 		
 		case CHARACTER_AMY_CANON:
 		{
-			// Icono 1: salto alto (tecla Z mirando abajo)
+			// Icono 1: IMPULSO AEREO DE TAROT (tecla Z, unicamente en el aire).
+			// Blanco = listo Y en el aire (espejo del icono 3, que pide suelo).
 			var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_CANON_BIGJUMP_RECHARGE);
-			draw_sprite_ext(spr_gui_amyhjump_canon, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+			var b = (prog == 1.0 && !global.player.isGrounded) ? c_white : c_red;
+			draw_sprite_ext(spr_gui_amyhjump_canon, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);
 			
 			// Icono 2: ataque de corazones (tecla X)
 			var val = global.player.revivalTimes >= 2 ? AMY_CANON_EXEATTACK_RECHARGE : AMY_CANON_ATTACK_RECHARGE;

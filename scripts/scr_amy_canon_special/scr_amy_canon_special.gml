@@ -47,55 +47,40 @@ function scr_amy_canon_special()
 		isTarotFloat = false;
 	}
 	
-	// --- Habilidad 1: SALTO DE MARTILLO / IMPULSO AEREO (tecla Z) ---
-	// EN SUELO (parada o corriendo): salto de martillo alto. Ya NO hace
-	// falta mirar hacia abajo; se puede usar en plena carrera. El golpe
-	// tiene la hitbox un 20% mas grande (pad en obj_player_puppet).
-	// EN EL AIRE: impulso de tarot hacia adelante (movilidad); daña al
-	// killer y lo stunea 2s si la toca durante el impulso.
-	if(global.playerControls && bubbleState == AMY_BUBBLE_NONE && keyboard_check_pressed(global.KeyA) && hjumpTimer <= 0)
+	// --- Habilidad 1: IMPULSO AEREO DE TAROT (tecla Z, SOLO EN EL AIRE) ---
+	// Es un dash hacia adelante como la acometida de la tecla C, pero que
+	// UNICAMENTE se usa en el aire: en el suelo Z es un salto normal (el
+	// salto de martillo se quito de la tecla; su estado queda dormido).
+	// Sonidos del impulso: DSTAROT1 suena 1 vez al arrancar y Loop_Card
+	// va en loop mientras dura (los gestiona el bloque de audio del
+	// Step_0; se detienen al acabar el impulso).
+	if(global.playerControls && bubbleState == AMY_BUBBLE_NONE && !isGrounded
+	&& !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isDashing
+	&& !isAttacking && !isHJ && !isTarotDashing && keyboard_check_pressed(global.KeyA) && hjumpTimer <= 0)
 	{
 		// Direccion: si aprietas izquierda/derecha, mira hacia ese lado;
-		// si no, hacia donde ya miraba (vale para las dos modalidades).
+		// si no, hacia donde ya miraba.
 		if(keyboard_check(global.KeyLeft))
 			image_xscale = -1;
 		else if(keyboard_check(global.KeyRight))
 			image_xscale = 1;
 		
-		if(isGrounded)
-		{
-			// --- modalidad SUELO: salto de martillo (como siempre) ---
-			isGrounded = false;
-			isSpinning = false;
-			isJumping = true;
-			justJumped = true;
-			xspd -= 10 * sin(angle);
-			yspd = -10 * cos(angle);
-			
-			isHJ = true;
-			hjumpTimer = AMY_CANON_BIGJUMP_RECHARGE;
-			audio_play_sound(snd_jump, 0, false);
-			net_sound_emit(snd_jump);
-		}
-		else if(!isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isDashing && !isAttacking && !isHJ)
-		{
-			// --- modalidad AIRE: impulso de tarot hacia adelante ---
-			isTarotDashing = true;
-			isAttacking = true;     // el killer que la toque queda aturdido 2s (ver obj_player_puppet)
-			isTarotFloat = false;
-			tarotDashDir = image_xscale;
-			tarotDashTimeLeft = AMY_CANON_TAROTDASH_TIME;
-			image_index = 0;
-			
-			// Mismo CD que el salto de martillo: es la misma habilidad 1,
-			// la que toque primero se lo gasta.
-			hjumpTimer = AMY_CANON_BIGJUMP_RECHARGE;
-			
-			// Los 3 sonidos del tarot arrancan solos: el bloque de audio
-			// del Step_0 los mantiene en loop y los detiene al acabar.
-		}
+		// --- impulso de tarot hacia adelante ---
+		isTarotDashing = true;
+		isAttacking = true;     // el killer que la toque queda aturdido 2s (ver obj_player_puppet)
+		isTarotFloat = false;
+		tarotDashDir = image_xscale;
+		tarotDashTimeLeft = AMY_CANON_TAROTDASH_TIME;
+		image_index = 0;
+		
+		// DSTAROT1 suena UNA sola vez al arrancar (loop = false, nunca va
+		// en loop). Loop_Card lo pone el bloque de audio del Step_0.
+		tarotSnd1 = audio_play_sound(DSTAROT1, 0, false);
+		
+		// CD de la habilidad 1 (el que muestra el icono 1 de la UI).
+		hjumpTimer = AMY_CANON_BIGJUMP_RECHARGE;
 	}
-	
+
 	// --- HABILIDAD 1 (aire): DURANTE el impulso ---
 	if(isTarotDashing)
 	{
@@ -117,8 +102,9 @@ function scr_amy_canon_special()
 	}
 	
 	// --- Habilidad 2: ATAQUE DE CORAZONES (tecla X) ---
-	// (!isDashing evita activarlo en medio de la acometida)
-	if(global.playerControls && !isDashing && keyboard_check_pressed(global.KeyB) && attackTimer <= 0)
+	// (!isDashing evita activarlo en medio de la acometida; !isTarotDashing
+	// evita activarlo en medio del impulso aereo de la habilidad 1)
+	if(global.playerControls && !isDashing && !isTarotDashing && keyboard_check_pressed(global.KeyB) && attackTimer <= 0)
 	{
 		if(keyboard_check(global.KeyLeft))
 			image_xscale = -1;
@@ -209,13 +195,19 @@ function scr_amy_canon_special()
 	if(isAttacking && !isDashing)
 		gspd = 0;
 		
+	// DORMIDO: el salto de martillo ya NO se activa con Z (la habilidad 1
+	// es solo el impulso aereo). Se deja el estado por si algun dia se
+	// quiere devolver el salto (por ejemplo, mirando hacia abajo).
 	if(state == AMY_CANON_HJUMP && isGrounded)
 	{
 		state = IDLE;
 		isAttacking = false;
 	}
 	
-	if(hjumpTimer > 0 && isGrounded)
+	// El CD de la habilidad 1 (impulso aereo) baja SIEMPRE, tambien en el
+	// aire: la habilidad es unicamente aerea y el CD tiene que correr ahi
+	// para que este lista la proxima vez que la necesite en el aire.
+	if(hjumpTimer > 0)
 		hjumpTimer--;
 	
 	if(attackTimer > 0)

@@ -39,39 +39,72 @@ if(isTarotFloat)
                 isTarotFloat = false;
 }
 
-// Entrada: en el aire, ya cayendo, con Z presionado. La pasiva no
-// tiene cooldown: se puede usar cada vez que empiece a caer.
+// Entrada: en el aire, ya cayendo (yspd > 0), con Z presionado. La
+// pasiva no tiene cooldown: se puede usar cada vez que empiece a caer.
 if(!isTarotFloat && global.playerControls && bubbleState == AMY_BUBBLE_NONE && shockedTimer <= 0
 && !isHurt && !isDead && !isZipline && !isDashing && !isTarotDashing && !isHJ && !isAttacking
-&& !isGrounded && yspd > 0.5 && keyboard_check(global.KeyA))
+&& !isGrounded && yspd > 0 && keyboard_check(global.KeyA))
 {
         isTarotFloat = true;
         image_index = 0;
 }
 
-// La caida lenta: mientras flota, su velocidad de caida queda limitada
-// a AMY_CANON_TAROT_FALLSPD (1.5 px/frame: unas 8 veces mas lento).
+// La caida lentisima: mientras flota, su velocidad de caida queda
+// limitada a AMY_CANON_TAROT_FALLSPD (0.5 px/frame: 24 veces mas lento
+// que la caida normal de 12). OJO: scr_collision_basic suma la gravedad
+// (yAccel) a la yspd DESPUES de este tope, al moverse en el frame
+// siguiente, asi que aqui se le resta para que la caida real sea
+// EXACTAMENTE el valor de la macro (mismo truco que scr_amy_canon_bubble).
 if(isTarotFloat)
-        yspd = min(yspd, AMY_CANON_TAROT_FALLSPD);
+        yspd = min(yspd, AMY_CANON_TAROT_FALLSPD - yAccel);
 
-// --- AUDIO DEL TAROT (compartido por la pasiva y el impulso aereo) ---
-// DSTAROT1 + DSTAROT2 + Loop_Card en loop; arranca al entrar en
-// cualquiera de los dos estados y se detiene al salir de ambos.
+// --- AUDIO DEL TAROT (cada estado con SUS sonidos) ---
+// PASIVA float: DSTAROT2 + Loop_Card en loop (DSTAROT1 NO suena aqui).
+// IMPULSO aereo (hab. 1): DSTAROT1 ya sono 1 vez al arrancar (lo
+// dispara scr_amy_canon_special) y aqui solo va Loop_Card en loop.
+// Loop_Card es compartido: en las transiciones directas (impulso que
+// acaba -> sigues con Z presionado -> pasiva) suena sin cortarse.
 // Va antes de los return de abajo para que corra SIEMPRE.
-if((isTarotFloat || isTarotDashing) && tarotSnd1 == -1)
+if(isTarotDashing)
 {
-        tarotSnd1 = audio_play_sound(DSTAROT1, 0, true);
-        tarotSnd2 = audio_play_sound(DSTAROT2, 0, true);
-        tarotSnd3 = audio_play_sound(Loop_Card, 0, true);
+        if(tarotSnd3 == -1)
+                tarotSnd3 = audio_play_sound(Loop_Card, 0, true);
+        if(tarotSnd2 != -1) // venia de la pasiva: DSTAROT2 fuera
+        {
+                audio_stop_sound(tarotSnd2);
+                tarotSnd2 = -1;
+        }
 }
-else if(!(isTarotFloat || isTarotDashing) && tarotSnd1 != -1)
+else if(isTarotFloat)
 {
-        audio_stop_sound(tarotSnd1);
-        audio_stop_sound(tarotSnd2);
-        audio_stop_sound(tarotSnd3);
-        tarotSnd1 = -1;
-        tarotSnd2 = -1;
-        tarotSnd3 = -1;
+        if(tarotSnd2 == -1)
+                tarotSnd2 = audio_play_sound(DSTAROT2, 0, true);
+        if(tarotSnd3 == -1)
+                tarotSnd3 = audio_play_sound(Loop_Card, 0, true);
+        if(tarotSnd1 != -1) // venia del impulso: DSTAROT1 fuera
+        {
+                audio_stop_sound(tarotSnd1);
+                tarotSnd1 = -1;
+        }
+}
+else
+{
+        // Ni pasiva ni impulso: todo parado.
+        if(tarotSnd1 != -1)
+        {
+                audio_stop_sound(tarotSnd1);
+                tarotSnd1 = -1;
+        }
+        if(tarotSnd2 != -1)
+        {
+                audio_stop_sound(tarotSnd2);
+                tarotSnd2 = -1;
+        }
+        if(tarotSnd3 != -1)
+        {
+                audio_stop_sound(tarotSnd3);
+                tarotSnd3 = -1;
+        }
 }
 
 if(reviveObj != noone)

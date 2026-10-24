@@ -36,28 +36,29 @@
 #macro AMY_CANON_DASH_ANIMSPD 0.5          // VELOCIDAD de animacion (~3.7 golpes por segundo)
 
 // =====================================================================
-//  PASIVA + HABILIDAD 1 (version tarot)
+//  PASIVA + HABILIDAD 1 (version tarot v2)
 // ---------------------------------------------------------------------
 //  PASIVA TAROT FLOAT: si Amy esta en el aire CAYENDO y dejas presionado
 //  el boton de saltar (Z), entra en estado tarot (spr_amy_tarot_float)
-//  y cae mucho mas lento. Se activa en cuanto empieza a caer.
-//  DSTAROT1 + DSTAROT2 + Loop_Card suenan en loop mientras flota y se
-//  detienen al soltar el boton, tocar el suelo o cualquier cosa que la
-//  pare (dano, stun, burbuja, etc.).
-#macro AMY_CANON_TAROT_FALLSPD 1.5   // VELOCIDAD MAX de caida flotando (12 = caida normal)
+//  y cae MUCHISIMO mas lento, en cuanto empieza a caer.
+//  SONIDO de la pasiva: SOLO DSTAROT2 + Loop_Card en loop; DSTAROT1 no
+//  suena en la pasiva. Se detienen al soltar el boton, tocar el suelo
+//  o cualquier cosa que la pare (dano, stun, burbuja, etc.).
+#macro AMY_CANON_TAROT_FALLSPD 0.5   // VELOCIDAD de caida flotando (12 = caida normal; 0.5 = 24 veces mas lento)
 // ---------------------------------------------------------------------
-//  HABILIDAD 1 (tecla Z, su CD sigue siendo AMY_CANON_BIGJUMP_RECHARGE):
-//   * EN SUELO (parada O corriendo): salto de martillo hacia arriba.
-//     Ya NO hace falta mirar hacia abajo. La hitbox del golpe es un
-//     20% mas grande (AMY_CANON_HJUMP_HITBOX_PAD).
-//   * EN EL AIRE: impulso de tarot hacia adelante (como la acometida de
-//     la tecla C pero aereo). Daña al killer: si la toca durante el
-//     impulso, queda aturdido 2 segundos. Los mismos 3 sonidos del
-//     tarot suenan durante el impulso y se detienen al acabar.
+//  HABILIDAD 1 (tecla Z): IMPULSO AEREO DE TAROT. Un dash hacia
+//  adelante como la acometida de la tecla C, pero que UNICAMENTE se
+//  usa EN EL AIRE: en el suelo Z es un salto normal (el salto de
+//  martillo se quito de la tecla). Si el killer la toca durante el
+//  impulso queda aturdido 2 segundos, y el stuneo le entra hasta ~5px
+//  de distancia (hitbox ~20% mas grande: AMY_CANON_TAROTDASH_HITBOX_PAD).
+//  SONIDO del impulso: DSTAROT1 suena 1 vez al arrancar (sin loop) y
+//  Loop_Card va en loop mientras dura; se detienen al acabar.
+//  CD: AMY_CANON_BIGJUMP_RECHARGE (el del icono 1 de la UI).
 #macro AMY_CANON_TAROTDASH_TIME 26        // DURACION del impulso aereo en frames (~0.43s)
 #macro AMY_CANON_TAROTDASH_SPEED 13      // VELOCIDAD horizontal del impulso (la acometida va a 14)
 #macro AMY_CANON_TAROTDASH_FALLSPD 2     // caida max durante el impulso (casi horizontal)
-#macro AMY_CANON_HJUMP_HITBOX_PAD 5      // px extra de hitbox del salto de martillo (~20% del sprite)
+#macro AMY_CANON_TAROTDASH_HITBOX_PAD 5  // px extra de alcance del stuneo del impulso (~20% del sprite)
 
 //Variables
 gspd = 0;
