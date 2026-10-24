@@ -47,16 +47,14 @@ function scr_amy_canon_special()
 		isTarotFloat = false;
 	}
 	
-	// --- Habilidad 1: IMPULSO AEREO DE TAROT (tecla Z, SOLO EN EL AIRE) ---
-	// Es un dash hacia adelante como la acometida de la tecla C, pero que
-	// UNICAMENTE se usa en el aire: en el suelo Z es un salto normal (el
-	// salto de martillo se quito de la tecla; su estado queda dormido).
-	// Sonidos del impulso: DSTAROT1 suena 1 vez al arrancar y Loop_Card
-	// va en loop mientras dura (los gestiona el bloque de audio del
-	// Step_0; se detienen al acabar el impulso).
-	if(global.playerControls && bubbleState == AMY_BUBBLE_NONE && !isGrounded
-	&& !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isDashing
-	&& !isAttacking && !isHJ && !isTarotDashing && keyboard_check_pressed(global.KeyA) && hjumpTimer <= 0)
+	// --- Habilidad 1: SALTO DE MARTILLO (tecla Z, SOLO en el suelo) ---
+	// Salto de martillo alto, en parada O en plena carrera (ya NO hace
+	// falta mirar hacia abajo). El golpe tiene la hitbox un 20% mas
+	// grande (pad en obj_player_puppet). En el aire la Z no dispara
+	// nada: la pasiva del tarot se activa manteniendola al caer (Step_0)
+	// y el impulso aereo esta en la tecla X (habilidad 2).
+	if(global.playerControls && bubbleState == AMY_BUBBLE_NONE && isGrounded
+	&& keyboard_check_pressed(global.KeyA) && hjumpTimer <= 0)
 	{
 		// Direccion: si aprietas izquierda/derecha, mira hacia ese lado;
 		// si no, hacia donde ya miraba.
@@ -65,23 +63,21 @@ function scr_amy_canon_special()
 		else if(keyboard_check(global.KeyRight))
 			image_xscale = 1;
 		
-		// --- impulso de tarot hacia adelante ---
-		isTarotDashing = true;
-		isAttacking = true;     // el killer que la toque queda aturdido 2s (ver obj_player_puppet)
-		isTarotFloat = false;
-		tarotDashDir = image_xscale;
-		tarotDashTimeLeft = AMY_CANON_TAROTDASH_TIME;
-		image_index = 0;
+		// --- salto de martillo (como siempre) ---
+		isGrounded = false;
+		isSpinning = false;
+		isJumping = true;
+		justJumped = true;
+		xspd -= 10 * sin(angle);
+		yspd = -10 * cos(angle);
 		
-		// DSTAROT1 suena UNA sola vez al arrancar (loop = false, nunca va
-		// en loop). Loop_Card lo pone el bloque de audio del Step_0.
-		tarotSnd1 = audio_play_sound(DSTAROT1, 0, false);
-		
-		// CD de la habilidad 1 (el que muestra el icono 1 de la UI).
+		isHJ = true;
 		hjumpTimer = AMY_CANON_BIGJUMP_RECHARGE;
+		audio_play_sound(snd_jump, 0, false);
+		net_sound_emit(snd_jump);
 	}
-
-	// --- HABILIDAD 1 (aire): DURANTE el impulso ---
+	
+	// --- HABILIDAD 2 (aire): DURANTE el impulso ---
 	if(isTarotDashing)
 	{
 		tarotDashTimeLeft--;
@@ -101,24 +97,39 @@ function scr_amy_canon_special()
 		}
 	}
 	
-	// --- Habilidad 2: ATAQUE DE CORAZONES (tecla X) ---
-	// (!isDashing evita activarlo en medio de la acometida; !isTarotDashing
-	// evita activarlo en medio del impulso aereo de la habilidad 1)
-	if(global.playerControls && !isDashing && !isTarotDashing && keyboard_check_pressed(global.KeyB) && attackTimer <= 0)
+	// --- Habilidad 2: IMPULSO AEREO DE TAROT (tecla X, SOLO EN EL AIRE) ---
+	// Dash hacia adelante como la acometida de la tecla C, pero que
+	// UNICAMENTE se usa en el aire (aqui estaba antes el ataque de
+	// corazones). Si el killer la toca durante el impulso queda aturdido
+	// 2 segundos (ver obj_player_puppet). Sonidos: DSTAROT1 suena 1 vez
+	// al arrancar (sin loop) y Loop_Card va en loop mientras dura (lo
+	// gestiona el bloque de audio del Step_0).
+	if(global.playerControls && bubbleState == AMY_BUBBLE_NONE && !isGrounded
+	&& !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isDashing
+	&& !isAttacking && !isHJ && !isTarotDashing && keyboard_check_pressed(global.KeyB)
+	&& attackTimer <= 0)
 	{
+		// Direccion: si aprietas izquierda/derecha, mira hacia ese lado;
+		// si no, hacia donde ya miraba.
 		if(keyboard_check(global.KeyLeft))
 			image_xscale = -1;
 		else if(keyboard_check(global.KeyRight))
 			image_xscale = 1;
-			
-		for(var i = 0; i < 4; i++)
-			net_quick_effect(global.player.x + 2 + (i * 10) * image_xscale, global.player.y - 4 + irandom_range(-3, 3), global.player.revivalTimes >= 2 ? spr_eroseheart : spr_roseheart, false, 1, 0, -1);
 		
+		// --- impulso de tarot hacia adelante ---
+		isTarotDashing = true;
+		isAttacking = true;     // el killer que la toque queda aturdido 2s (ver obj_player_puppet)
+		isTarotFloat = false;
+		tarotDashDir = image_xscale;
+		tarotDashTimeLeft = AMY_CANON_TAROTDASH_TIME;
 		image_index = 0;
-		attackTimer = revivalTimes >= 2 ? AMY_CANON_EXEATTACK_RECHARGE : AMY_CANON_ATTACK_RECHARGE;
-		isAttacking = true;
-		audio_play_sound(snd_dash, 0, false);
-		net_sound_emit(snd_dash);
+		
+		// DSTAROT1 suena UNA sola vez al arrancar (loop = false: nunca va
+		// en loop y se apaga solo). Loop_Card lo pone el Step_0 en loop.
+		tarotSnd1 = audio_play_sound(DSTAROT1, 0, false);
+		
+		// CD de la habilidad 2 (el que muestra el icono 2 de la UI).
+		attackTimer = revivalTimes >= 2 ? AMY_CANON_ETAROTDASH_RECHARGE : AMY_CANON_TAROTDASH_RECHARGE;
 	}
 	
 	// --- ATAQUE 3: INICIO de la acometida ---
@@ -190,24 +201,18 @@ function scr_amy_canon_special()
 		}
 	}
 	
-	// El ataque normal (tecla X) la frena en el sitio,
-	// pero durante la ACOMETIDA no hay que frenarla.
+	// El impulso aereo (tecla X) deja isAttacking en true para el stuneo;
+	// en el aire gspd no se usa y durante la ACOMETIDA no hay que frenar.
 	if(isAttacking && !isDashing)
 		gspd = 0;
 		
-	// DORMIDO: el salto de martillo ya NO se activa con Z (la habilidad 1
-	// es solo el impulso aereo). Se deja el estado por si algun dia se
-	// quiere devolver el salto (por ejemplo, mirando hacia abajo).
 	if(state == AMY_CANON_HJUMP && isGrounded)
 	{
 		state = IDLE;
 		isAttacking = false;
 	}
 	
-	// El CD de la habilidad 1 (impulso aereo) baja SIEMPRE, tambien en el
-	// aire: la habilidad es unicamente aerea y el CD tiene que correr ahi
-	// para que este lista la proxima vez que la necesite en el aire.
-	if(hjumpTimer > 0)
+	if(hjumpTimer > 0 && isGrounded)
 		hjumpTimer--;
 	
 	if(attackTimer > 0)

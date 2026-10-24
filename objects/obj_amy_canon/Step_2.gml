@@ -13,7 +13,7 @@
 #macro AMY_CANON_CAPTURE_R BALANCING+8   // secuestro: moviendose a la DERECHA
 // PASIVA TAROT: flotacion cayendo lento con Z presionado (spr_amy_tarot_float)
 #macro AMY_CANON_TAROT BALANCING+9
-// HABILIDAD 1 en el aire: impulso de tarot hacia adelante (spr_amy_attack3_canon_)
+// HABILIDAD 2 (tecla X) SOLO en el aire: impulso de tarot (spr_amy_attack1_canon)
 #macro AMY_CANON_TAROTDASH BALANCING+10
 
 if(!emotion)

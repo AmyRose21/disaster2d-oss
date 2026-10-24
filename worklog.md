@@ -83,20 +83,20 @@ ESTADO DEL PROYECTO (2026-10-24)
   re-entregar.
 - ✅ Descripción nueva (tarea desc-amy-canon-v2, esta sesión): lore del
   cyber space + P.D. amarillo → download/amy_canon_desc_v2.zip.
-- ✅ Mejoras TAROT v2 (tareas tarot-v1 + tarot-v2, esta sesión): pasiva
-  float (mantener Z al caer; caida EXACTA 0.5 px/frame; loop = SOLO
-  DSTAROT2 + Loop_Card) + habilidad 1 = IMPULSO AEREO de tarot (dash como
-  la acometida de la C pero UNICAMENTE en el aire; Z en suelo = salto
-  normal — el salto de martillo se quito de la tecla y su estado quedo
-  dormido; DSTAROT1 suena 1 vez al arrancar SIN loop + Loop_Card en loop;
-  stunea al killer 2s con alcance +5px / hitbox ~+20%) →
-  download/amy_canon_tarot_v2.zip (AUTOCONTENIDO: 13 archivos, sirve
-  aunque no se haya extraido el v1; incluye yyp + Loop_Card.yy + mp3).
-  Macros clave: AMY_CANON_TAROT_FALLSPD 0.5, TAROTDASH_TIME 26, SPEED 13,
-  FALLSPD 2, TAROTDASH_HITBOX_PAD 5; CD = AMY_CANON_BIGJUMP_RECHARGE y
-  baja SIEMPRE (tambien en el aire, que es donde se usa). Estados:
-  AMY_CANON_TAROT=22, TAROTDASH=23 (anims/eanims 24 entradas). Icono 1 de
-  la UI: blanco = CD listo Y en el aire (antes era el salto de martillo).
+- ✅ Mejoras TAROT v3 (tareas tarot-v1/v2/v3): Z = SALTO DE MARTILLO
+  restaurado tal cual v1 (suelo, corriendo, hitbox +20%) + pasiva float
+  (mantener Z al caer; caida EXACTA 0.5 px/frame; loop = SOLO DSTAROT2 +
+  Loop_Card). X = IMPULSO AEREO de tarot (antes ataque de corazones):
+  dash como la acometida de la C pero SOLO en el aire, con el sprite
+  nuevo spr_amy_attack1_canon (2 frames) que dibujo el usuario; DSTAROT1
+  1 vez al arrancar (nunca loop) + Loop_Card en loop; stun 2s al killer
+  → download/amy_canon_tarot_v3.zip (7 .gml + worklog.md; los assets ya
+  estaban commiteados por el usuario en 4a0f2e61/e325daf0).
+  Macros clave (Create_0 de obj_amy_canon): TAROT_FALLSPD 0.5,
+  TAROTDASH_TIME 48, SPEED 14, FALLSPD 2, ANIMSPD 0.25, CD 9s/4s
+  (TAROTDASH_RECHARGE/ETAROTDASH_RECHARGE). Estados: TAROT=22,
+  TAROTDASH=23. Icono 1 UI = martillo (blanco = CD+suelo); icono 2 =
+  impulso (blanco = CD+aire; el ARTE sigue siendo spr_gui_amyattack_canon).
 - ⏳ Placeholders opcionales: spr_lobby_icon frame 8 y spr_char_info frame 6
   son copias de Amy (funcionales); si el usuario pide rediseño, seguir el
   método del frame 66 (ensamblar glifos pixel-perfect del propio juego).
@@ -440,3 +440,30 @@ Stage Summary:
 - Tuning rapido en Create_0.gml de obj_amy_canon: FALLSPD 0.5 (caida pasiva), TAROTDASH_TIME 26 (duracion), TAROTDASH_SPEED 13, TAROTDASH_FALLSPD 2, TAROTDASH_HITBOX_PAD 5, CD 9s en AMY_CANON_BIGJUMP_RECHARGE.
 - DSTAROT3 sigue sin uso (reservado; p.ej. sonido de aterrizar el dash). El arte del icono 1 sigue siendo el del martillo (spr_gui_amyhjump_canon).
 - Pendiente de commit por el usuario: TODO el feature tarot (v1+v2) sigue sin commitear en su repo.
+
+---
+Task ID: tarot-v3
+Agent: main (Z.ai)
+Task: Corregir el error Z/X reportado por el usuario ("el de la Z estaba bn la X era la que debia cambiar... RESTAURA EL SALTO DE MARTILLO"): restaurar el salto de martillo en Z y mover el impulso aereo de tarot a la tecla X (reemplazando al ataque de corazones), usando el sprite nuevo del usuario spr_amy_attack1_canon.
+
+Work Log:
+- Fetch: commits nuevos del usuario 4a0f2e61 (assets: spr_amy_attack1_canon origen 28,21→26,28; DSTAROT1 volume 0.65; DSTAROT3 volume 0.97; Loop_Card.yy) y e325daf0 (codigo tarot-V1 + worklog). DESCUBRIMIENTO: el usuario NUNCA extrajo el ZIP v2 — su repo tiene codigo v1 (Z-suelo = salto de martillo, Z-aire = impulso hibrido).
+- Diagnostico con analisis de sprites: el commit 08399ac0 ya habia REEMPLAZADO spr_amy_attack1_canon: 4 frames 46x40 (corazones) → 2 frames 46x46 (arte nuevo morado/naranja = animacion de dash de tarot que el usuario dibujo PARA la tecla X). Eso era el "LE CAMBIE LOS SPRITES Y TODO".
+- Stash del WIP v2 de mi working tree + fast-forward a e325daf0; edits v3 sobre base v1 (scripts/tarot_v3_edits.py: rangos de lineas exactos + markers de inicio/fin, tabs preservados — special/Draw_64=TABS, resto=4 espacios; balance {} () verificado por archivo):
+  * scr_amy_canon_special.gml: (S1) bloque Z = SOLO salto de martillo, isGrounded en el guard (cuerpo v1 intacto: yspd -10, isHJ, snd_jump, CD hjumpTimer 9s); rama aerea de Z ELIMINADA (Z en el aire no dispara nada). (S3) bloque X (KeyB) = IMPULSO AEREO: guard !isGrounded + !isHurt/!isDead/!shocked/!isZipline/!isDashing/!isAttacking/!isHJ/!isTarotDashing + attackTimer<=0; DSTAROT1 one-shot al arrancar; CD = AMY_CANON_TAROTDASH_RECHARGE (9s) / ETAROTDASH (4s demonizada); corazones (net_quick_effect + snd_dash en X) eliminados. (S2/S4) comentarios actualizados.
+  * obj_amy_canon/Step_0.gml: fixes v2 portados — entrada del float en el apex (yspd > 0), tope de caida 0.5 - yAccel (verificado contra el orden REAL del engine: scr_collision_basic:577-596 aplica gravedad ANTES de mover → caida efectiva EXACTA 0.5), y bloque de audio por estado: dash = solo Loop_Card en loop; float = DSTAROT2 + Loop_Card; nada = loops fuera; DSTAROT1 es one-shot y JAMAS se detiene a mano (se apaga solo).
+  * obj_amy_canon/Create_0.gml: macros v3 — TAROT_FALLSPD 0.5, TAROTDASH_TIME 26→48 (~0.8s; acometida = 64), TAROTDASH_SPEED 13→14 (= acometida), TAROTDASH_FALLSPD 2, TAROTDASH_ANIMSPD 0.25 (nuevo, sprite de 2 frames), TAROTDASH_RECHARGE 60*9 + ETAROTDASH_RECHARGE 60*4 (CDs dedicados; ATTACK_RECHARGE viejo queda sin uso); comentarios de variables actualizados.
+  * scr_survivors.gml: anims[23] y eanims[23] = spr_amy_attack1_canon (la jugadora Y los puppets remotos ven el sprite nuevo del dash).
+  * obj_amy_canon/Draw_76.gml: caso TAROTDASH con image_speed = AMY_CANON_TAROTDASH_ANIMSPD (antes reusaba el del ataque 3).
+  * obj_amy_canon/Step_2.gml: comentario de la macro actualizado (tecla X).
+  * obj_playerui/Draw_64.gml: icono 1 (Z) = salto de martillo, blanco = CD listo Y en suelo; icono 2 (X) = impulso aereo, blanco = CD listo Y en el aire (espejo del icono 3), con el CD nuevo.
+  * obj_player_puppet/Step_0.gml: INTACTO (0 cambios): el stun 2s vive en state==AMY_CANON_TAROTDASH (independiente de la tecla, llega por el flag PLAYER_ATTACKING ya sincronizado) y el pad +20% del salto de martillo (v1) se conserva solo.
+- Validacion (scripts/tarot_v3_validate.py): 25 checks estructurales + 13 simulaciones de flujo con motor espejo del orden real del frame (specialFunc → gravedad → mover → bloque float): TODAS OK. Verificado: caida del float = 0.5 EXACTO; dash ~47-48 frames a xspd 14 con caida ≤2.22; suelo+X y aire+Z(tap) no disparan nada; dash→float con Z mantenida no corta Loop_Card; float+X = dash directo; CDs correctos (hjump solo baja en suelo, attackTimer siempre); iconos con las condiciones correctas.
+- Bug de mi validador encontrado y corregido: mi primer motor simulaba la gravedad DESPUES de mover (daba 0.28125); el engine real suma yAccel ANTES de y+=yspd — con el orden correcto el truco 0.5-yAccel da exactamente 0.5.
+
+Stage Summary:
+- Entregable: download/amy_canon_tarot_v3.zip (7 .gml + worklog.md). NO incluye .yyp/.yy: los assets (sprite, sonidos, Loop_Card.yy, .yyp) ya estan commiteados por el usuario. Extraer con GameMaker CERRADO como siempre.
+- Controles finales: Z suelo = salto de martillo (corriendo OK, hitbox +20%, CD 9s); Z aire = nada (solo pasiva float manteniendolo al caer); X aire = impulso de tarot (48f a velocidad 14, sprite nuevo, stun 2s, CD 9s/4s); C suelo = acometida (intacta); pasiva float = caida 0.5 (24x mas lenta).
+- Sonidos finales: pasiva = DSTAROT2 + Loop_Card en loop; impulso = DSTAROT1 1 vez (one-shot, se apaga solo) + Loop_Card en loop; DSTAROT1 jamas loopea; DSTAROT3 sigue sin uso.
+- PENDIENTE DECIRLE AL USUARIO: el ARTE del icono 2 de la UI sigue siendo spr_gui_amyattack_canon (corazones); si quiere arte de tarot ahi, hay que cambiar ese sprite. Tuning rapido en Create_0: TAROTDASH_TIME 48 / SPEED 14 / CD 9s-4s / ANIMSPD 0.25.
+- El worklog de su repo estaba 1 entrada atras (hasta tarot-v1); el ZIP lleva el log completo actualizado (hasta esta entrada v3).

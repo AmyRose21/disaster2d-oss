@@ -89,11 +89,11 @@ switch(state)
                 image_speed = 0.5;
                 break;
                 
-        // HABILIDAD 1 en el aire: impulso de tarot (mismo sprite y
-        // velocidad de anim que la acometida; el fin lo controla
+        // HABILIDAD 2 (tecla X) en el aire: impulso de tarot con el sprite
+        // nuevo spr_amy_attack1_canon (2 frames en loop; el fin lo controla
         // tarotDashTimeLeft en scr_amy_canon_special).
         case AMY_CANON_TAROTDASH:
-                image_speed = AMY_CANON_DASH_ANIMSPD;
+                image_speed = AMY_CANON_TAROTDASH_ANIMSPD;
                 break;
                 
         // ESTADO BURBUJA (secuestro): sprites de 1 frame; la variante

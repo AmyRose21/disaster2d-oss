@@ -135,16 +135,19 @@ if(instance_exists(global.player) && !global.player.isDead)
 		
 		case CHARACTER_AMY_CANON:
 		{
-			// Icono 1: IMPULSO AEREO DE TAROT (tecla Z, unicamente en el aire).
-			// Blanco = listo Y en el aire (espejo del icono 3, que pide suelo).
-			var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_CANON_BIGJUMP_RECHARGE);
-			var b = (prog == 1.0 && !global.player.isGrounded) ? c_white : c_red;
-			draw_sprite_ext(spr_gui_amyhjump_canon, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);
+				// Icono 1: SALTO DE MARTILLO (tecla Z, en el suelo). El relleno
+				// muestra el CD; blanco = listo Y en el suelo (espejo del icono 3).
+				var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_CANON_BIGJUMP_RECHARGE);
+				var b1 = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
+				draw_sprite_ext(spr_gui_amyhjump_canon, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, b1, prog);
 			
-			// Icono 2: ataque de corazones (tecla X)
-			var val = global.player.revivalTimes >= 2 ? AMY_CANON_EXEATTACK_RECHARGE : AMY_CANON_ATTACK_RECHARGE;
-			var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
-			draw_sprite_ext(spr_gui_amyattack_canon, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+				// Icono 2: IMPULSO AEREO DE TAROT (tecla X, SOLO en el aire).
+				// El relleno muestra el CD; blanco = lista Y en el aire
+				// (espejo del icono 3, que exige estar en el suelo).
+				var val = global.player.revivalTimes >= 2 ? AMY_CANON_ETAROTDASH_RECHARGE : AMY_CANON_TAROTDASH_RECHARGE;
+				var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
+				var b2 = (prog == 1.0 && !global.player.isGrounded) ? c_white : c_red;
+				draw_sprite_ext(spr_gui_amyattack_canon, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, b2, prog);
 			
 			// Icono 3: ACOMETIDA DE MARTILLO (tecla C). Muestra la letra C
 			// (como los demas iconos de tecla C del juego). El relleno
