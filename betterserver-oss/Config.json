@@ -7,6 +7,7 @@
 	"anticheat":	true,
 	"pride":	true,
 	"motd":	"",
-	"random_mode":	false
-	"amy_canon_token": "SweetPassion"
+	"random_mode":	false,
+	"amy_canon_token": "SweetPassion",
+	"allow_duplicate_ip": true
 }
