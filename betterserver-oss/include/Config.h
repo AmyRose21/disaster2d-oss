@@ -36,6 +36,7 @@ typedef struct
 	bool	random_mode;
 	bool	chatfix;
 	char	amy_canon_token[65];	/* Amy Canon: frase secreta (max 64); vacia = bloqueada para todos */
+	bool	allow_duplicate_ip;	/* Amy Canon: true = permite conectar 2 juegos desde la misma PC/IP (test local) */
 } Config;
 
 SERVER_API extern Config g_config;

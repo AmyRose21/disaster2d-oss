@@ -47,17 +47,23 @@ function scr_amy_canon_special()
 		isTarotFloat = false;
 	}
 	
-	// --- Habilidad 1: SALTO DE MARTILLO (tecla Z, SOLO en el suelo) ---
-	// Salto de martillo alto, en parada O en plena carrera (ya NO hace
-	// falta mirar hacia abajo). El golpe tiene la hitbox un 20% mas
-	// grande (pad en obj_player_puppet). En el aire la Z no dispara
-	// nada: la pasiva del tarot se activa manteniendola al caer (Step_0)
-	// y el impulso aereo esta en la tecla X (habilidad 2).
+	// --- Habilidad 1: SALTO DE MARTILLO (ABAJO + Z, SOLO en el suelo) ---
+	// Entrada estilo Amy original: mantener ABAJO y pulsar Z. PERO a
+	// diferencia de la original, Amy Canon tambien puede hacerlo EN
+	// PLENA CARRERA (la original solo agachada/parada): el salto de
+	// martillo conserva el impulso de la carrera. Z SIN Abajo = salto
+	// normal del juego (el martillo NUNCA se dispara con el salto
+	// normal). Tampoco salta el martillo en plena acometida (C).
+	// El golpe tiene la hitbox un 20% mas grande (pad en
+	// obj_player_puppet). En el aire la Z no dispara nada: la pasiva
+	// del tarot se activa manteniendola al caer (Step_0) y el impulso
+	// aereo esta en la tecla X (habilidad 2).
 	// BUGFIX burbuja: antes se exibia el estado NONE de la burbuja y al
 	// salir (estado OVER) quedaba bloqueada PARA SIEMPRE; ahora solo se
 	// bloquea DENTRO de la burbuja (!= AMY_BUBBLE_ACTIVE).
 	if(global.playerControls && bubbleState != AMY_BUBBLE_ACTIVE && isGrounded
-	&& keyboard_check_pressed(global.KeyA) && hjumpTimer <= 0)
+	&& !isDashing
+	&& keyboard_check(global.KeyDown) && keyboard_check_pressed(global.KeyA) && hjumpTimer <= 0)
 	{
 		// Direccion: si aprietas izquierda/derecha, mira hacia ese lado;
 		// si no, hacia donde ya miraba.
@@ -71,6 +77,11 @@ function scr_amy_canon_special()
 		isSpinning = false;
 		isJumping = true;
 		justJumped = true;
+		// Al dispararse desde la CARRERA, el image_index viene a mitad de
+		// la animacion de correr y se saltaria los frames del golpe (la
+		// hitbox vive en los frames 0-3): reiniciar para que el swing
+		// arranque siempre del frame 0.
+		image_index = 0;
 		xspd -= 10 * sin(angle);
 		yspd = -10 * cos(angle);
 		

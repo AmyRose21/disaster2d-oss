@@ -26,7 +26,11 @@ bool peer_identity_process(PeerData *v, const char *addr, bool is_banned, uint64
 {
 	MutexLock(ip_addr_mut);
 	{
-		if (!v->op && (cJSON_HasObjectItem(ip_addr_list, addr) || cJSON_HasObjectItem(ip_addr_list, v->udid.value)))
+		/* Amy Canon: con "allow_duplicate_ip": true en Config.json el
+		   server admite varias conexiones desde la misma IP/UDID (para
+		   probar con 2 juegos en la misma PC). Por defecto (false) el
+		   comportamiento es el de siempre. */
+		if (!g_config.allow_duplicate_ip && !v->op && (cJSON_HasObjectItem(ip_addr_list, addr) || cJSON_HasObjectItem(ip_addr_list, v->udid.value)))
 		{
 			server_disconnect(v->server, v->peer, DR_IPINUSE, NULL);
 			MutexUnlock(ip_addr_mut);

@@ -38,9 +38,10 @@
 // =====================================================================
 //  PASIVA TAROT + HABILIDADES (version tarot v3)
 // ---------------------------------------------------------------------
-//  HABILIDAD 1 = SALTO DE MARTILLO (tecla Z, en el suelo): salto alto
-//  en parada O corriendo, sin mirar abajo. Hitbox del golpe un 20%
-//  mas grande (AMY_CANON_HJUMP_HITBOX_PAD). CD: hjumpTimer
+//  HABILIDAD 1 = SALTO DE MARTILLO (ABAJO + Z, en el suelo): salto alto
+//  como la Amy original, PERO tambien en plena carrera (conserva el
+//  impulso). Z sola = salto normal. Hitbox del golpe un 20% mas grande
+//  (AMY_CANON_HJUMP_HITBOX_PAD). CD: hjumpTimer
 //  (AMY_CANON_BIGJUMP_RECHARGE). En el aire la Z no hace nada.
 //
 //  PASIVA TAROT FLOAT: si Amy esta en el aire CAYENDO y dejas presionado

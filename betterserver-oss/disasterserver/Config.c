@@ -165,6 +165,10 @@ bool config_init(void)
 	const char* amy_tok = cJSON_GetStringValue(cJSON_GetObjectItemCaseSensitive(json, "amy_canon_token"));
 	snprintf(g_config.amy_canon_token, sizeof(g_config.amy_canon_token), "%s", amy_tok ? amy_tok : "");
 
+	/* Amy Canon: permitir 2 juegos desde la misma PC (test local).
+	   Clave "allow_duplicate_ip" en Config.json; si falta => false. */
+	g_config.allow_duplicate_ip = cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "allow_duplicate_ip"));
+
 	cJSON_Delete(json);
 
 init_balls:
@@ -199,6 +203,7 @@ SERVER_API bool config_save(void)
 	cJSON_AddItemToObject(json, "motd", cJSON_CreateString(g_config.motd));
 	cJSON_AddItemToObject(json, "random_mode", cJSON_CreateBool(g_config.random_mode));
 	cJSON_AddItemToObject(json, "amy_canon_token", cJSON_CreateString(g_config.amy_canon_token));
+	cJSON_AddItemToObject(json, "allow_duplicate_ip", cJSON_CreateBool(g_config.allow_duplicate_ip));
 
 	RAssert(collection_save(CONFIG_FILE, json));
 	cJSON_Delete(json);
