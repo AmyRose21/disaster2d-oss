@@ -485,6 +485,7 @@
     {"name":"shd_inverse","order":3,"path":"shaders/shd_inverse/shd_inverse.yy",},
     {"name":"DSTAROT2","order":1,"path":"sounds/DSTAROT2/DSTAROT2.yy",},
     {"name":"DSTAROT3","order":2,"path":"sounds/DSTAROT3/DSTAROT3.yy",},
+    {"name":"Loop_Card","order":3,"path":"sounds/Loop_Card/Loop_Card.yy",},
     {"name":"mus_act9_chase","order":23,"path":"sounds/mus_act9_chase/mus_act9_chase.yy",},
     {"name":"mus_act9","order":24,"path":"sounds/mus_act9/mus_act9.yy",},
     {"name":"mus_angelisland_chase","order":37,"path":"sounds/mus_angelisland_chase/mus_angelisland_chase.yy",},

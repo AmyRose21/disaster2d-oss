@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"Loop_Card",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":13.683628,
+  "exportDir":"",
+  "name":"Loop_Card",
+  "parent":{
+    "name":"AmyCanon",
+    "path":"folders/Sounds/Player/AmyCanon.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"Loop_Card.mp3",
+  "volume":1.0,
+}
