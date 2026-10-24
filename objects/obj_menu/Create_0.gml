@@ -2148,3 +2148,13 @@ if (!layer_exists("AboutAmyCanon"))
 	var _t = instance_create_layer(23, 60, _l, obj_menu_abouttext);
 	_t.text = "amy canon's specials give     \nher great defence and         \nmobility,and even uncharged   \nshe stays dangerous.her       \nattacks can't be parried,and \nshe's pretty fast by herself, \nbut she also has the /hammer  \njump~ which lets her access   \nshortcuts and hit enemies on \njump's start,plus a /hammer  \nrush~ that charges through exe\nfaster than her own run,     \nstunning everything it       \ntouches.she's been walking   \nout of prisons since the     \nstarfall islands. it's not   \nfanon, it's №canon~";
 }
+
+// ============================================================================
+// FIX PANTALLA BUGEADA AL INICIAR (letras amontonadas + personajes sueltos):
+// si GameMaker compilo una version vieja de la room (cache del IDE), el juego
+// arrancaba con varias capas de submenu visibles a la vez. Llamar aqui a
+// changeSubmenu(NONE) fuerza el estado inicial correcto (oculta TODAS las
+// capas de submenus y muestra el menu principal) antes de dibujar el primer
+// frame, asi esa pantalla bugeada no puede volver a aparecer.
+// ============================================================================
+changeSubmenu(SUBMENU_NONE);
