@@ -212,6 +212,7 @@
     {"id":{"name":"obj_am_controller","path":"objects/obj_am_controller/obj_am_controller.yy",},},
     {"id":{"name":"obj_am_hideobject","path":"objects/obj_am_hideobject/obj_am_hideobject.yy",},},
     {"id":{"name":"obj_amy_canon","path":"objects/obj_amy_canon/obj_amy_canon.yy",},},
+    {"id":{"name":"obj_amycanon_indicators","path":"objects/obj_amycanon_indicators/obj_amycanon_indicators.yy",},},
     {"id":{"name":"obj_amy","path":"objects/obj_amy/obj_amy.yy",},},
     {"id":{"name":"obj_angleallower","path":"objects/obj_angleallower/obj_angleallower.yy",},},
     {"id":{"name":"obj_angleanuller_eggsafe","path":"objects/obj_angleanuller_eggsafe/obj_angleanuller_eggsafe.yy",},},

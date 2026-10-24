@@ -97,6 +97,13 @@ ESTADO DEL PROYECTO (2026-10-24)
   (TAROTDASH_RECHARGE/ETAROTDASH_RECHARGE). Estados: TAROT=22,
   TAROTDASH=23. Icono 1 UI = martillo (blanco = CD+suelo); icono 2 =
   impulso (blanco = CD+aire; el ARTE sigue siendo spr_gui_amyattack_canon).
+- ✅ SENSORES v1 (tarea sensors-v1): pasivas de vision de Amy Canon —
+  flecha VERDE siempre hacia la salida (obj_bigring, todos los mapas) +
+  flecha AZUL siempre hacia el exe (estilo sensor eggman, solo su
+  cliente). Objeto nuevo obj_amycanon_indicators + .yyp registrado →
+  download/amy_canon_sensores.zip (incluye tambien el bubble fix).
+  ⏳ Bubble fix de la tarea anterior: AUN SIN CONFIRMAR por el usuario
+  si extrajo amy_canon_bubble_fix.zip (por eso va re-incluido).
 - ⏳ Placeholders opcionales: spr_lobby_icon frame 8 y spr_char_info frame 6
   son copias de Amy (funcionales); si el usuario pide rediseño, seguir el
   método del frame 66 (ensamblar glifos pixel-perfect del propio juego).
@@ -486,3 +493,69 @@ Stage Summary:
 - Entregable: download/amy_canon_bubble_fix.zip (3 .gml + worklog.md): scripts/scr_amy_canon_bubble/scr_amy_canon_bubble.gml, scripts/scr_amy_canon_special/scr_amy_canon_special.gml, objects/obj_amy_canon/Step_0.gml. Extraer con GameMaker CERRADO como siempre.
 - Comportamiento final: capturada en el suelo = se despega y levita desde el frame 1 (0.35 px/frame); dentro de la burbuja todo bloqueado como siempre; al salir (OVER) recupera Z, X, pasiva y C completos; la 2da caida sigue siendo muerte directa; el EXE y los minions siguen sin poder liberarla.
 - REGLA PARA EL FUTURO: los guards de Amy Canon deben usar "bloqueado DENTRO de la burbuja" (!= AMY_BUBBLE_ACTIVE), NUNCA "solo antes de la burbuja" (== AMY_BUBBLE_NONE) — OVER es un estado PERMANENTE de la ronda (vive hasta el final para la regla de la 2da caida).
+
+---
+Task ID: sensors-v1
+Agent: main (Z.ai)
+Task: Anadir 2 pasivas nuevas de "sensores" a Amy Canon (pedido del usuario):
+(1) ver siempre donde esta la SALIDA (el anillo verde de escape, igual que
+dice que el exe sabe donde aparece); (2) ver siempre la ubicacion del EXE
+(como si tuviera el sensor de eggman activo sobre el, pero solo ella lo ve).
+
+Work Log:
+- Investigacion de los sistemas vanilla: obj_surv_ringindicator (flecha al
+  anillo, SOLO mapa ravinemist y exige 6 shards, sprite spr_sindicator2
+  verde), obj_surv_indicator (flecha del rastreador de eggman: 3 segundos
+  por alarma, sprite spr_sindicator azul), obj_demon_indicator (flecha al
+  exe para demonizados: recorre puppets con character==CHARACTER_EXE),
+  obj_eggtrack (es la TRAMPA fisica del tracker, no la flecha). El exe NO
+  tiene flecha nativa al anillo en este repo; la unica referencia de
+  "ver la salida" del juego es la de ravinemist.
+- Confirmaciones clave: los puppets remotos SIEMPRE sincronizan posicion
+  (exe invisible incluido: solo cambia a sprites spr_exe_invis_*), asi que
+  la flecha al exe funciona hasta con el exe invisible; obj_amy_canon solo
+  existe en el cliente local (los remotos son obj_player_puppet via
+  player_get); la burbuja fuerza revivalTimes=0 -> Amy jamas se demoniza
+  (el guard de demonizada es pura red de seguridad).
+- Nuevo objeto objects/obj_amycanon_indicators/ (clon estructural del
+  obj_demon_indicator: carpeta Amy Canon, spriteId null, visible false,
+  TABS, 3 eventos Create/Step/Draw64):
+  * Create_0: depth -200 + ringVisible/ringAngle/exeVisible/exeAngle.
+  * Step_0: guarda revivalTimes>=2; SENSOR 1 (SALIDA) = flecha siempre
+    que exista obj_bigring, sin condiciones de shards/mapa; SENSOR 2 (EXE)
+    = patron del demon_indicator (puppet CHARACTER_EXE) permanente.
+  * Draw_64: flecha VERDE spr_sindicator2 pegada a Amy (identico al
+    indicador de ravinemist); flecha AZUL spr_sindicator desplazada 24px
+    radiales (cos/-sin, patron de obj_exe_sprindicator) para que las dos
+    nunca se tapen.
+- Edits: obj_amy_canon/Create_0.gml (crea el objeto tras los 8 sensores
+  fisicos, indentacion de 4 espacios como el archivo) y .yyp (recurso
+  registrado justo despues de obj_amy_canon).
+- TODO client-side: CERO cambios de servidor (las posiciones ya estan
+  sincronizadas para todos los clientes).
+- Validacion (scripts/sensors_v1_validate.py): 65 checks OK. Cubre .yyp
+  (JSON5 + registro unico + carpeta), .yy (3 eventos), GML (TABS puros,
+  balance, ascii), cross-refs (sprites/objetos/macro), 8 simulaciones de
+  logica (sin player, demonizada, solo exe, angulos GM exactos 315/90/0,
+  exe invisible, dentro y tras la burbuja) e integridad del bubble fix
+  (md5 identicos a amy_canon_bubble_fix.zip). Se corrigieron 2 bugs del
+  propio validador: conteo de menciones vs llamadas reales y la convencion
+  de angulos GM (abajo-derecha = 315, no 45).
+- Preview con los sprites reales del juego:
+  download/amy_canon_sensores_preview.png.
+
+Stage Summary:
+- Entregable: download/amy_canon_sensores.zip = 4 archivos nuevos del
+  objeto + Create_0 de Amy editado + .yyp + los 3 archivos del bubble fix
+  (re-incluidos identicos, por si aun no se habian extraido) + worklog.md.
+  Extraer con GameMaker CERRADO (el .yyp y el objeto nuevo requieren reload
+  completo del IDE).
+- Comportamiento final: Amy Canon ve SIEMPRE una flecha VERDE hacia la
+  salida desde el momento en que el anillo aparece (cualquier mapa, sin
+  shards) y una flecha AZUL permanente hacia el exe (funciona incluso con
+  el exe invisible). Nadie mas ve sus flechas: el objeto solo existe en su
+  cliente. Se apagarian solo si ella se demonizara (imposible por la
+  regla canonica de la burbuja).
+- Tuning facil en obj_amycanon_indicators: el 24 de Draw_64 = distancia de
+  la flecha azul; spr_sindicator/spr_sindicator2 se pueden cambiar por
+  spr_sindicator3 (amarilla) u otras.

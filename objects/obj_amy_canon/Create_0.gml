@@ -163,3 +163,7 @@ instance_create_depth(x, y, 0, obj_player_sensorBL);
 instance_create_depth(x, y, 0, obj_player_sensorBR);
 instance_create_depth(x, y, 0, obj_player_sensorAL);
 instance_create_depth(x, y, 0, obj_player_sensorAR);
+
+// Sensores pasivos de Amy Canon (solo en SU cliente): flecha verde hacia
+// la salida + flecha azul hacia el exe. Ver obj_amycanon_indicators.
+instance_create_depth(x, y, 0, obj_amycanon_indicators);
