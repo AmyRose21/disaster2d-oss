@@ -509,3 +509,106 @@ Stage Summary:
   azul/roja sobre sus clones, roja del anillo rojo) son del juego base
   y NO se tocan.
 - No hay que recompilar el server (solo cliente).
+
+---
+Task ID: analisis-oss-1
+Agent: main (Z.ai)
+Task: Analisis completo del repo github.com/AmyRose21/disaster2d-oss para
+recuperar contexto (el usuario pidio analisis antes de reportar "un
+problema importante" a arreglar).
+
+Work Log:
+- Clonado el repo (21,793 archivos). Un solo commit ("Initial commit"),
+  sin historial previo.
+- Leidos worklog.md (12 tareas previas) y CACHE.md completos: contexto
+  Amy Canon, reserved-v1/v3, sensors, hammer-v1, bugfix-tarot-v1,
+  flecha-roja-v1/pegada-v2.
+- HALLAZGO: el repo contiene una feature NUEVA no documentada en
+  worklog/CACHE: "ENDINGS MUSIC v2" (LEEME_ENDINGS_V2.txt): musica de
+  ending por cantidad de escapados (Best/Solo/Duo/Standard + Alt),
+  sincronizada cliente-server. Piezas verificadas presentes:
+  7 sonidos nuevos en sounds/ + registrados en .yyp (7 entradas OK),
+  objects/obj_results/Alarm_0.gml (variante sincronizada),
+  net_state_results.gml cuenta escapedCnt/survTotal, server
+  states/Results.c (results_music_countdown con ENDINGLEN_*),
+  include/Server.h (Results.music_synced). Logica cliente-server
+  revisada: paridad (time_sec+escaped)%2 coincide en ambos lados (60 es
+  par), mismo orden de categorias (2-de-2 = Best), misma clasificacion
+  PLRSTATE.
+- Server compilado en Linux (se clono enet a mano, ver hallazgo 2):
+  100% limpio, Built target DisasterServer. Smoke test 3s OK:
+  BetterServer v1101, puerto 8606, Lobby. FUENTE VALIDA tal cual esta.
+- Estado Amy Canon verificado: macros TAROTDASH/HJUMP_HITBOX_PAD=5 en
+  obj_amy_canon/Create_0.gml, flecha ROJA (spr_indicator) + VERDE
+  (spr_sindicator2) en obj_amycanon_indicators, martillo ABAJO+Z
+  (KeyDown + KeyA pressed) intactos. compilar_server.bat (menu 7
+  opciones, SDL2 GUI, backup/restore de configs) correcto.
+- Config.json del repo: puerto 8606, amy_canon_token "SweetPassion",
+  allow_duplicate_ip true, anticheat true. Anticheat=true solo valida
+  ticket/paletas/zonas (Auth.c: mod_tool si checksum==0, no
+  desconecta) => compatible con cliente modificado.
+- HALLAZGO 1 (repo-higiene): .gitmodules apunta a enet (lsalzman/enet)
+  pero el submodulo NO esta en el repo; un clone fresco no compila
+  hasta clonar enet a mano. compilar_server.bat tampoco lo resuelve.
+- HALLAZGO 2 (doc drift): endings v2 no esta en worklog.md ni CACHE.md
+  (solo LEEME_ENDINGS_V2.txt).
+- build_test/ y run_test/ creados dentro de betterserver-oss para la
+  validacion (NO commitear: borrar antes de subir o ignorar).
+
+Stage Summary:
+- Contexto TOTAL recuperado. Fuente cliente+server CONSISTENTE y
+  COMPILA. Todo el historial de mods de Amy Canon esta aplicado.
+- Esperando que el usuario describa el "problema importante" a
+  arreglar. Pendientes detectados de analisis: enet submodule (clone
+  fresco no compila) y doc drift de endings v2.
+
+---
+Task ID: docs-sync-v1
+Agent: main (Z.ai)
+Task: Sincronizar CACHE.md y worklog.md con el estado REAL del repo
+(peticion del usuario tras el analisis: "actualiza el worklog y el cache
+para tenerlas guardadas para estar al dia de lo que actualmente hay").
+
+Work Log:
+- Verificaciones previas: enum Ending (ED_EXEWIN=0, ED_SURVWIN=1,
+  ED_TIMEOVER=2) y Results.music_synced confirmados en Server.h;
+  aplicar_yyp_endings.ps1 YA NO esta en el repo (los 7 sonidos nuevos ya
+  estan registrados en el .yyp: lineas 608-609, 613, 831-834);
+  extensions/MultiClient = extension v1.1.6 que lanza N instancias del
+  juego (post_run_step + opciones Number_Of_Clients/proxy) — asi se
+  prueban 2 ventanas en la misma PC junto con allow_duplicate_ip.
+- CACHE.md actualizado (v2, 244 -> 337 lineas):
+  (1) INDICE += 7.1; (2) seccion 1 WORKSPACE re-mapeada al layout real:
+  la RAIZ del repo = proyecto GameMaker, scripts/ del workspace ya no
+  existe (rollback), recon original fuera del sandbox; (3) seccion 3
+  retitulada (raiz del repo) + NUEVA 3.6 Extensiones (MultiClient,
+  disnet, disasterserver, data); (4) seccion 6 reescrita: ruta correcta,
+  submodulo enet (clone fresco NO compila), detalle de compilar_server.bat
+  (menu 7 opciones, SDL2, backup/restore configs), Config.json actual
+  (anticheat:true compatible con cliente modificado: checksum 0 =>
+  mod_tool, no desconecta), validacion 26/10 (compila + smoke test OK),
+  artefactos build_test/run_test NO commitear; (5) tabla mods +=
+  endings-v2 y analisis-oss-1; (6) NUEVA seccion 7.1 = documentacion
+  completa de ENDINGS MUSIC v2 (pistas + duraciones, archivos
+  cliente/server, logica de categorias + variante (time_sec+escapados)%2,
+  mantenimiento ENDINGLEN_*); (7) seccion 9 PENDIENTES actualizada
+  (problema importante SIN describir, enet, endings v2 y flecha-pegada-v2
+  por probar); (8) seccion 10 nota de herramientas historicas (ya no
+  existen; convencion apply_/validate documentada); (9) changelog
+  2026-10-26.
+- Incidente menor: 1er MultiEdit fallo en la seccion 6 (el texto real
+  dice "Libs.c" y el match decia "Lib.c"); re-aplicado con el texto
+  exacto. Verificacion final: estructura 11 secciones + 7.1 en orden,
+  337 lineas, sin duplicados.
+- Este worklog ya contenia analisis-oss-1 (analisis completo); esta
+  entrada cierra la sincronizacion de documentacion.
+
+Stage Summary:
+- CACHE.md y worklog.md AL DIA con el estado real del repo (26/10):
+  todo lo instalado (incluido endings v2, que estaba sin documentar)
+  ya esta inventariado. El protocolo del CACHE (leer al inicio de cada
+  sesion) vuelve a ser suficiente para recuperar contexto.
+- Entregable: download/cache_worklog_sync.zip (CACHE.md + worklog.md
+  actualizados, para extraer en la RAIZ del repo y commitear/push).
+- Siguiente: esperar la descripcion del "problema importante" del
+  usuario (pendiente en seccion 9 del CACHE).

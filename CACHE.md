@@ -17,25 +17,34 @@
 #      cronologica (QUE HICIMOS). No duplicar el worklog aqui.
 #
 # INDICE: 1 workspace | 2 juego | 3 cliente | 4 personajes | 5 flechas
-#         6 server | 7 mods | 8 convenciones | 9 pendientes | 10 herramientas
-#         11 changelog
+#         6 server | 7 mods (7.1 = endings v2) | 8 convenciones | 9 pendientes
+#         10 herramientas | 11 changelog
 # ============================================================================
 
 ## 1. WORKSPACE /home/z/my-project
-- client/ ................ EL juego. Proyecto GameMaker (.yyp "Sonicexe The
-                          Disaster 2D Remake", 1.1.0 FINAL 110v). 302 objetos,
-                          67 scripts, 947 sprites, 30 rooms. DENTRO vive
+- disaster2d-oss/ ........ EL REPO DEL USUARIO (github.com/AmyRose21/
+                          disaster2d-oss), clonado en la raiz del workspace.
+                          La RAIZ del repo ES el proyecto GameMaker (.yyp
+                          "Sonicexe The Disaster 2D Remake", 1.1.0 FINAL
+                          110v): objects/, scripts/, sounds/, sprites/,
+                          rooms/, extensions/... 302 objetos, 67 scripts,
+                          947 sprites, 30 rooms. DENTRO vive
                           betterserver-oss/ (el server C, ver seccion 6).
-- MODDING_PLAN.md ........ recon completo del juego + ruta de modding + info
-                          de la comunidad (leer si hace falta contexto).
+                          En la raiz viven tambien worklog.md (bitacora),
+                          CACHE.md (este archivo) y LEEME_ENDINGS_V2.txt.
 - worklog.md ............. bitacora de TODAS las operaciones (por Task ID).
-- CACHE.md ............... este archivo.
-- scripts/ ............... herramientas Python propias (aplicadores de
-                          parches, validadores, extractores).
+- CACHE.md ............... este archivo (mapa estatico del proyecto).
+- scripts/ ............... (workspace) herramientas Python propias: NO
+                          EXISTEN en este sandbox (rollback); si una tarea
+                          futura necesita un aplicador/validador, hay que
+                          recrearlo (el diseno exacto de cada uno esta
+                          descrito en su entrada del worklog).
 - download/ .............. entregables (zips) para el usuario.
 - upload/ ................ archivos que sube el usuario (capturas, etc).
-- td2dr/ ................. material de recon (100v, servers TTB, texturas).
 - skills/, tool-results/ . infraestructura del sandbox. NO tocar.
+- (El material de recon original —MODDING_PLAN.md, td2dr/ con 100v y
+  servers TTB— ya no existe en este sandbox; lo importante vive resumido
+  en worklog Tasks 5-7.)
 
 ## 2. EL JUEGO
 - Fangame "Sonic.exe: The Disaster 2D Remake" (TD2DR), dev: hander, motor
@@ -50,7 +59,7 @@
 - Estados de red (scripts net_state_*): pending, charselect, lobby, game,
   results, vote.
 
-## 3. CLIENTE GAMEMAKER (client/)
+## 3. CLIENTE GAMEMAKER (raiz del repo: objects/, scripts/, sounds/...)
 ### 3.1 Nucleo del jugador
 - global.player ......... el objeto del personaje LOCAL de este cliente.
 - obj_player_puppet ..... como ven LOS DEMAS a tu personaje (replica por red).
@@ -91,6 +100,15 @@
   obj_player_puppet => mi flecha roja los ignora por diseno), obj_exetior
   (+ stompballs), obj_chaos, obj_granny, obj_rmzsonic, obj_abyss,
   obj_darktower_tailsdoll, obj_eggstatue/obj_eggtrack (rastreador del exe).
+### 3.6 Extensiones (extensions/)
+- MultiClient (v1.1.6) ... post_run_step.bat/.sh: al compilar desde
+                          GameMaker lanza N instancias del juego (opciones
+                          de extension: Number_Of_Clients, proxy). Asi se
+                          prueban 2 ventanas en la misma PC (junto con
+                          allow_duplicate_ip:true del server, seccion 6).
+- disnet ................. DLL/SO de red del juego (disnet.dll +
+                          libdisnet.so + fuente Android).
+- disasterserver/, data/ . (auxiliares del proyecto).
 
 ## 4. PERSONAJES
 ### Survivors (macros en scripts/scr_survivors/scr_survivors.gml, base TAILS=1)
@@ -163,15 +181,31 @@
   con if(!visible) return; hay Draw_0 vacio; .yy con 4 eventos.
 - Se apaga sola si revivalTimes>=2 (red de seguridad; la burbuja lo evita).
 
-## 6. SERVER C (client/betterserver-oss, alias "hammer")
+## 6. SERVER C (disaster2d-oss/betterserver-oss, alias "hammer")
 - C + CMake (compilar_server.bat, build_android.sh, shell.nix). Logica
   server-authoritative: Server.c, Lobby.c, Player.c, Packet.c, CharSelect.c,
-  Maps.c, Palette.c, Config.c, Log.c, DyList.c, Libs.c + entities/ (~40).
-- Config.json: puerto 8606, protocolo 1101, amy_canon_token "SweetPassion",
-  allow_duplicate_ip (false=vanilla; true=2 instancias misma IP = multijuego
-  local). Operators.json = IPs op (127.0.0.1 pasa por op en local).
+  Maps.c, Palette.c, Config.c, Log.c, DyList.c, Libs.c, Results.c (endings,
+  ver 7.1) + states/ + entities/ (~40).
+- SUBMODULO ENet: .gitmodules apunta a github.com/lsalzman/enet pero NO
+  esta incluido en el repo GitHub => un clone fresco NO compila hasta
+  traerlo (git submodule update --init, o clonarlo a mano en
+  betterserver-oss/enet/). PENDIENTE decidir si se commitea (ver 9).
+- compilar_server.bat (menu de 7 opciones): 1 compilar cambios / 2 limpiar
+  y recompilar TODO (BUILD_UI=ON con SDL2 en C:\SDL\SDL2-2.32.10 y
+  SDL2_image-2.8.12) / 3 copiar DLLs de SDL / 4 ejecutar GUI / 5 ejecutar
+  --nogui / 6 abrir carpeta del exe. Respalda y restaura Config/
+  Operators/Bans/Timeouts.json en config_backup/. CMake de VS BuildTools 18.
+- Config.json (actual en el repo): puerto 8606, protocolo 1101,
+  amy_canon_token "SweetPassion", allow_duplicate_ip true (2 instancias
+  misma IP = multijuego local), anticheat true (SOLO valida ticket/paleta
+  /zonas: checksum 0 => mod_tool=true, NO desconecta => compatible con
+  cliente modificado). Operators.json = IPs op (127.0.0.1 = op local).
 - CONFIGURAR_AMY.bat + configurar_amy.ps1 = configurador automatico de la
   frase secreta para el usuario.
+- VALIDADO 26/10 (analisis-oss-1): fuente compila 100% limpia (Linux, enet
+  clonado) y smoke test OK ("BetterServer v1101", puerto 8606, Lobby).
+  OJO: betterserver-oss/build_test/ y run_test/ son artefactos de esa
+  validacion en el sandbox — NO commitear.
 - REGLA: cambios de stats/habilidades/validacion tocan cliente Y server
   (recompilar); cambios solo visuales (draw/indicadores) no tocan server.
 
@@ -190,6 +224,43 @@
 | hammer-v1          | Salto de martillo ABAJO+Z + allow_duplicate_ip                 | amy_canon_martillo_y_multijuego.zip |
 | bugfix-tarot-v1    | Macro TAROTDASH_HITBOX_PAD=5 + sensores visibles + pad martillo | amy_canon_bugfix_tarot_sensores(_v2).zip |
 | flecha-pegada-v2   | Flecha roja pegada a Amy (antes flotaba +24px hacia el exe)    | amy_canon_flecha_pegada_v2.zip |
+| endings-v2         | Musica de ending por escapados + espera sincronizada (ver 7.1)| (instalado directo en el repo) |
+| analisis-oss-1     | Analisis completo del repo GitHub + validacion server (26/10) | (solo analisis) |
+
+### 7.1 ENDINGS MUSIC v2 (instalado en el repo; detalle: LEEME_ENDINGS_V2.txt)
+Musica de ending SEGUN CUANTOS ESCAPARON (estilo TD original) + el server
+espera a que TERMINA la cancion antes de volver al lobby (antes: 15s fijos
+y las pistas nuevas de 20-28s se cortaban).
+- PISTAS (sounds/, 7 nuevas ya registradas en .yyp; duraciones ffprobe):
+  Best_ending 24.17s | Best_ending_Alt 20.41s  (escaparon TODOS)
+  Solo_ending 27.49s | Solo_ending_Alt 21.95s  (escapa exactamente 1)
+  Duo_ending 22.73s                             (escapan exactamente 2)
+  Standard_Ending 24.25s | _Alt 23.23s         (mas de 2, no todos)
+  vanilla: mus_exewin 15.34 | mus_survwin 14.58 (red de seguridad) |
+  mus_timeover 14.58
+- ARCHIVOS cliente: objects/obj_results/Create_0.gml (escapedCnt=0,
+  survTotal=0, manda CLIENT_RESULTS_REQUEST, audio_stop_all);
+  scripts/net_state_results/net_state_results.gml (por cada fila: type 4
+  => escapedCnt++, type >= 1 => survTotal++); objects/obj_results/
+  Alarm_0.gml (elige pista: result 0 = mus_exewin, 1 = por escapados,
+  2 = mus_timeover; alarm[0]=4 frames tras la ultima fila).
+- ARCHIVOS server: disasterserver/states/Results.c
+  (results_music_countdown + #define ENDINGLEN_* + ENDING_MARGIN 1.0;
+  re-sync en el primer CLIENT_RESULTS_REQUEST con flag music_synced usando
+  las MISMAS filas peers + game.left y la misma clasificacion PLRSTATE);
+  include/Server.h (Results.music_synced; enum Ending ED_EXEWIN=0,
+  ED_SURVWIN=1, ED_TIMEOVER=2; game.time_sec u16).
+- LOGICA (IDENTICA en ambos lados): categorias en este orden: escaped >=
+  survTotal => Best | escaped == 1 => Solo | escaped == 2 => Duo | resto =>
+  Standard (2-de-2 = Best; para hacerlo Duo mover el bloque ==2 ARRIBA en
+  AMBOS archivos). Variante base/Alt = (time_sec + escapados) % 2; el
+  cliente usa timeSec = _time % 60 (60 par => misma paridad) => todos
+  oyen LA MISMA pista y el server sabe exactamente cuanto esperar. La
+  espera nunca baja de 15s (vanilla); countdown = (len + 1.0) * 60 solo si
+  supera 15s.
+- MANTENIMIENTO: reemplazar un mp3 => medir con ffprobe, actualizar su
+  ENDINGLEN_* en Results.c y recompilar el server. No bajar
+  ENDING_MARGIN de 0.5 (con ping alto se cortaria).
 
 ## 8. CONVENCIONES Y TRAMPAS DEL CODIGO (lecciones pagadas — leer ANTES de editar)
 1. SANGRIA MIXTA: la mayoria de .gml usan TABs, pero ALGUNOS usan 8 espacios
@@ -222,22 +293,44 @@
    pantalla Y crece hacia abajo => los draws usan _y - sin(a)*d.
 
 ## 9. PENDIENTES / esperando al usuario
+- El usuario anuncio (26/10) un "PROBLEMA IMPORTANTE" del proyecto que
+  quiere arreglar, pero AUN NO lo ha descrito. Preguntar: que pasa, en
+  que pantalla/situacion ocurre, y si hay mensaje de error o captura.
+- enet: submodulo sin incluir en el repo GitHub => un clone fresco no
+  compila (ver seccion 6). Decidir: commitear enet/ o dejar instrucciones
+  de clonado en el LEEME.
+- endings-v2: pendiente CONFIRMAR en partida real (prueba rapida en
+  LEEME_ENDINGS_V2.txt: ronda con escapados => musica completa y salto
+  al lobby ~1s despues de que termine la cancion).
 - flecha-pegada-v2: pendiente PROBAR en partida (calibracion 14px / 20 grados
   ajustable en un minuto si no convence).
-- (nada mas abierto. Los 2 bugs originales del tarot y los sensores ya estan
-  cerrados por bugfix-tarot-v1.)
+- (Los 2 bugs originales del tarot y los sensores ya estan cerrados por
+  bugfix-tarot-v1. Worklog y CACHE sincronizados con el repo 26/10.)
 
 ## 10. HERRAMIENTAS PROPIAS (scripts/)
-- Aplicadores de parches: apply_bugfix.py, apply_arrowfix.py.
-- Validadores: bugfix_v1_validate.py, flecha_roja_v1_validate.py,
+- IMPORTANTE (26/10): la carpeta scripts/ del workspace NO existe en este
+  sandbox (rollback). La lista de abajo es el inventario HISTORICO; si se
+  necesita una herramienta, recrearla segun la descripcion de su entrada
+  en worklog.md. Convencion del proyecto: scripts/apply_<task>.py =
+  aplicador de ediciones quirurgicas (match exacto == 1 vez, TABs
+  literales); scripts/<task>_validate.py = validador post-edicion.
+- Aplicadores de parches (historico): apply_bugfix.py, apply_arrowfix.py.
+- Validadores (historico): bugfix_v1_validate.py, flecha_roja_v1_validate.py,
   hammer_v1_validate.py, td2dr_validate.py.
-- Recon/extraccion del juego: td2dr_parse.py, td2dr_qoi_*.py,
+- Recon/extraccion del juego (historico): td2dr_parse.py, td2dr_qoi_*.py,
   td2dr_extract.py, td2dr_amy_final.py, td2dr_server_*.py.
-- Fraymakers: fra_extract.py, analyze_fra.py, analyze_fra2.py, sally/.
-- Misc: check_arrow_colors.py (colores de sprites de flecha).
+- Fraymakers (historico): fra_extract.py, analyze_fra.py, analyze_fra2.py.
+- Misc (historico): check_arrow_colors.py (colores de sprites de flecha).
 
 ## 11. CHANGELOG DEL CACHE
 - 2026-10-24: v1 creada con barrido completo del proyecto: workspace, juego,
   cliente (302 objetos clasificados), personajes, mapa de flechas con
   colores verificados por pixels (roja=exe->survivor, azul=survivor->exe,
   verde=salida, amarilla=lampara), server, historial de mods, convenciones.
+- 2026-10-26: sync con el repo GitHub real del usuario (analisis-oss-1 +
+  docs-sync-v1): workspace re-mapeado (la raiz del repo = proyecto GM),
+  documentado ENDINGS MUSIC v2 completo (NUEVA seccion 7.1: estaba
+  instalado pero sin documentar), anotada la extension MultiClient (3.6),
+  server VALIDADO (compila limpio + smoke test v1101 OK), pendiente del
+  submodulo enet anotado (secciones 6 y 9), estado Amy Canon verificado
+  intacto (macros, flechas, martillo, token, allow_duplicate_ip).
