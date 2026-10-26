@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"Best_ending",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":1,
+  "compression":3,
+  "compressionQuality":9,
+  "conversionMode":0,
+  "duration":24.163265,
+  "exportDir":"",
+  "name":"Best_ending",
+  "parent":{
+    "name":"Music",
+    "path":"folders/Sounds/Music.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"Best_ending.mp3",
+  "volume":1.0,
+}

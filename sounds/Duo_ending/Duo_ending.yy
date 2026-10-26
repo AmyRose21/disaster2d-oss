@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"Duo_ending",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":1,
+  "compression":3,
+  "compressionQuality":9,
+  "conversionMode":0,
+  "duration":22.72653,
+  "exportDir":"",
+  "name":"Duo_ending",
+  "parent":{
+    "name":"Music",
+    "path":"folders/Sounds/Music.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"Duo_ending.mp3",
+  "volume":1.0,
+}

@@ -1,0 +1,107 @@
+============================================================================
+ TD2DR - ENDINGS MUSIC v2  (actualizacion de la v1)
+ Transicion resultados -> lobby sincronizada con la musica
+============================================================================
+
+QUE ARREGLA ESTA VERSION
+------------------------
+En la v1 la musica de ending se cortaba: el servidor esperaba SIEMPRE 15
+segundos fijos en la pantalla de resultados y luego mandaba a todos al
+lobby, pero las pistas nuevas duran entre 20 y 28 segundos. Ahora el
+servidor espera exactamente lo que dura la cancion que esta sonando
+(+1 segundo de margen por la latencia) y recien ahi vuelve al lobby.
+
+DURACIONES REALES (medidas con ffprobe):
+  Best_ending 24.2s / Best_ending_Alt 20.4s   (escapan TODOS)
+  Solo_ending 27.5s / Solo_ending_Alt 21.9s   (escapa 1)
+  Duo_ending 22.7s                            (escapan 2)
+  Standard_Ending 24.2s / _Alt 23.2s          (mas de 2, no todos)
+  mus_exewin 15.3s / mus_survwin 14.6s / mus_timeover 14.6s (vanilla)
+
+COMO FUNCIONA
+-------------
+* El servidor cuenta cuantos escaparon y cuantos supervivientes habia
+  (las mismas filas que ves en la pantalla de resultados) y deduce la
+  misma categoria que el cliente: Best / Solo / Duo / Standard.
+* La eleccion entre pista base y Alt ya NO es aleatoria por jugador:
+  ahora se deriva de (segundos de ronda + escapados) % 2, un dato que
+  todos comparten. Asi TODOS los clientes oyen LA MISMA pista y el
+  servidor sabe exactamente cuanto esperar. Sigue variando entre
+  partidas (el tiempo de ronda cambia), solo que ya no habra dos
+  jugadores escuchando endings distintos a la vez.
+* El bad ending (mus_exewin) y el timeover se escuchan IGUAL que siempre,
+  solo que ya tampoco se cortan al final (antes el exewin se cortaba
+  ~0.3s porque duraba 15.3s y la espera era de 15s).
+
+QUE ARCHIVOS CAMBIARON RESPECTO A LA v1
+---------------------------------------
+  objects/obj_results/Alarm_0.gml   -> REEMPLAZAR (variante sincronizada)
+  servidor/disasterserver/states/Results.c  -> NUEVO en el servidor
+  servidor/include/Server.h                 -> NUEVO en el servidor
+  (el resto de archivos es identico a la v1, van de todas formas por
+   si aun no la aplicaste)
+
+INSTALACION
+===========
+SI YA APLICASTE LA v1:
+  1. Cliente: reemplaza objects/obj_results/Alarm_0.gml en tu proyecto
+     de GameMaker (cierra el proyecto antes de copiar, o deja que el IDE
+     recargue el archivo al enfocarlo).
+  2. Servidor: copia los 2 archivos de la carpeta servidor/ respetando
+     las rutas dentro de tu betterserver-oss:
+       disasterserver/states/Results.c
+       include/Server.h
+  3. Recompila el servidor en Visual Studio (igual que hiciste con la
+     guia de la Task 7: Abrir carpeta -> x64-Release -> Compilar todo,
+     o cmake --build build --config Release).
+  4. Listo. Los clientes viejos que no tengan la v1 seguiran funcionando
+     (solo que su eleccion base/Alt puede no coincidir con la del
+     servidor y oiran un poquito de silencio extra; nunca se corta).
+
+SI NO APLICASTE LA v1 TODAVIA:
+  1. Copia las 7 carpetas de sounds/ a la carpeta sounds/ del proyecto
+     (mp3 + .yy juntos).
+  2. Copia los 5 .gml respetando las rutas objects/ y scripts/.
+  3. Ejecuta aplicar_yyp_endings.ps1 en la raiz del proyecto (PowerShell)
+     para registrar los 7 sonidos en el .yyp. Hace respaldo .bak y se
+     puede ejecutar 2 veces sin romper nada.
+  4. Copia los 2 archivos del servidor y recompila (paso 2-3 de arriba).
+
+COMO CAMBIAR LAS DURACIONES SI REEMPLAZAS UNA PISTA
+---------------------------------------------------
+Las duraciones viven en el servidor, arriba de
+disasterserver/states/Results.c:
+
+  #define ENDINGLEN_BEST      24.17
+  #define ENDINGLEN_SOLO      27.49
+  ...
+
+Si algun dia reemplazas un mp3 por una version mas larga/corta en
+GameMaker, mide la nueva duracion y actualiza su ENDINGLEN_* (puedes
+usar ffprobe "archivo.mp3" o cualquier reproductor). Luego recompila el
+servidor. El margen ENDING_MARGIN (1.0s) cubre la latencia de arranque
+de la musica; no lo bajes de 0.5 o con ping alto se volveria a cortar.
+
+NOTAS
+-----
+* El caso "2 survivors y ambos escapan" suena Best (escaparon todos).
+  Si lo quieres como Duo, hay que mover el bloque "escapedCnt == 2"
+  ANTES del "escapedCnt >= survTotal" en Alarm_0.gml Y a la vez mover
+  "escapedCnt == 2" antes de "escaped >= surv" en Results.c del
+  servidor (los dos lados deben evaluar en el mismo orden).
+* La espera nunca baja de 15s (comportamiento vanilla original), solo
+  se alarga hasta cubrir la pista.
+* El servidor re-ajusta la espera con las filas EXACTAS de resultados
+  cuando llega el primer CLIENT_RESULTS_REQUEST, asi que aunque alguien
+  se haya desconectado en el ultimo segundo, el conteo coincide con lo
+  que tu cliente ve en pantalla.
+
+PRUEBA RAPIDA
+-------------
+1. Arranca el servidor recompilado y conecta 2 clientes.
+2. Juega una ronda; haz que al menos 1 escape.
+3. En la pantalla de resultados deberia verse la barra y la musica
+   sonar COMPLETA; el salto al lobby ocurre ~1s despues de que la
+   cancion termina, ya no a los 15s.
+4. Casos faciles de probar: 1v1 donde ambos escapan -> Best; ronda
+   donde muere todo el mundo -> bad ending vanilla completo.

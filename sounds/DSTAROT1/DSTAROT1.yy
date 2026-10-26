@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"DSTAROT1",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":2.5853288,
+  "exportDir":"",
+  "name":"DSTAROT1",
+  "parent":{
+    "name":"AmyCanon",
+    "path":"folders/Sounds/Player/AmyCanon.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"DSTAROT1.ogg",
+  "volume":0.65,
+}

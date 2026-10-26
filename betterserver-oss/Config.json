@@ -1,0 +1,13 @@
+{
+	"port":	8606,
+	"server_count":	1,
+	"ping_limit":	250,
+	"log_file":	false,
+	"log_debug":	false,
+	"anticheat":	true,
+	"pride":	true,
+	"motd":	"",
+	"random_mode":	false,
+	"amy_canon_token": "SweetPassion",
+	"allow_duplicate_ip": true
+}

@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"Solo_ending_Alt",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":1,
+  "compression":3,
+  "compressionQuality":9,
+  "conversionMode":0,
+  "duration":21.942858,
+  "exportDir":"",
+  "name":"Solo_ending_Alt",
+  "parent":{
+    "name":"Music",
+    "path":"folders/Sounds/Music.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"Solo_ending_Alt.mp3",
+  "volume":1.0,
+}
