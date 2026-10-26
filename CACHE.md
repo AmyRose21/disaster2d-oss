@@ -209,6 +209,151 @@
 - REGLA: cambios de stats/habilidades/validacion tocan cliente Y server
   (recompilar); cambios solo visuales (draw/indicadores) no tocan server.
 
+### 6.1 RELAY / PUERTOS (analisis relay-v1, 26/10)
+- PREGUNTA: el server v1101 ¿soporta relay o lo bloquea? RESPUESTA: NI LO
+  SOPORTA NI LO BLOQUEA — la funcion NO EXISTE en esta version del codigo
+  (0 menciones a "relay" en betterserver-oss/). No hay filtro de origen:
+  Lib.c allocate_server() escucha en ENET_HOST_ANY => acepta conexiones de
+  cualquier IP/puerto de origen (un proxy/relay externo delante funciona).
+- El relay de penguinehis es de SU stack: betterserver-v1.6 (file.dr2.site,
+  2026-10-01, fuente CERRADA) trae Relay.c (config: relay_enabled,
+  relay_directory_host, relay_directory_port, relay_username,
+  relay_password) que se conecta SALIENTE al directorio central
+  relaysc.dr2.site:9000 (cuentas/regiones/suspensiones), publica cada
+  lobby en un puerto publico del relay (relay_public_port(server->id),
+  "players can join at %s ports %u-%u"), sin abrir puertos (NAT
+  traversal), IPs de jugadores reemplazadas por sinteticas estables.
+  v1.6 trae ademas WebGate (WebSocket navegador), 10 gamemodes y reports.
+  v1.6 SI habla 1101 (cmp $0x44d; ver relay-recon-v1): el cliente 110v
+  CONECTARIA (paquetes desconocidos se ignoran), pero NO conoce a Amy
+  Canon (7) ni Sonic (8) => personajes del mod rechazados ahi.
+- ESQUEMA DE PUERTOS DEL V1101 (verificado): Lib.c linea 47
+  addr.port = base_port + n => lobby id 0 = g_config.port (8606), id 1 =
+  8607, etc. Config actual: server_count 1 => SOLO el 8606 abierto. El
+  CHANGELOBBY (.lobby N, redirect por lleno) manda el puerto absoluto
+  (g_config.port + id) y el cliente reconecta ahi.
+- CLIENTE 110v — APLICADO portfix-gml-v1 (26/10): net_join() en
+  scripts/net_wrapper/net_wrapper.gml ahora PARSEA "IP:PUERTO" (puerto
+  del net_join de TD2DR-Updated, verbatim adaptado a TABs): guarda ip
+  LIMPIA + base_port (nueva var en obj_netclient/Create_0.gml = 8606),
+  port = selected_lobby == -1 ? base_port : selected_lobby. Validado
+  con scripts/portfix_gml_validate.py (8 casos OK: IP:PUERTO,
+  hostname:PUERTO, IP sola, tail vacio/letras/0/>=65536 sin parseo =
+  mismo comportamiento que upstream). El textbox del join (obj_menu_
+  textbox/Draw_0.gml) solo filtra \r\t\n => el ":" ya se podia escribir.
+  Con esto el CHANGELOBBY multi-lobby tambien queda correcto (ip limpia
+  + puerto absoluto del server). FALTA recompilar el juego en GMS.
+- PARCHE PortFIX de penguinehis (file.dr2.site .../Patchs-Original-game/
+  Sonic-PortFIX.zip, 38 KB): disnet_portfix.dll x64 PROXY (mismas 6
+  exportaciones + disnet_portfix_marker, marker DISNET_PORTFIX_V1);
+  patch.bat/ps1 renombra disnet.dll -> disnet_orig.dll y se pone en su
+  lugar; disnet_connect lee "IP:PUERTO" del Join screen y pasa el puerto
+  a la original. APLICA DIRECTO a nuestro juego: extensions/disnet/
+  disnet.dll es x64 con las MISMAS 6 funciones (patch.ps1 valida
+  disnet_connect presente). No toca exe ni data.win. Reversible (-Unpatch).
+- MATIZ multi-lobby: RESUELTO por portfix-gml-v1 (ip queda limpia + base
+  port guardado => CHANGELOBBY/reconnect van al server correcto). Sin
+  ese fix, el proxy DLL reconectaria al puerto del string.
+- RE v1.6 (dimensionado, 26/10): exe NO stripped (4837 simbolos);
+  superficie relay ~20 funciones: relay_open/start/worker (hilo),
+  tunnel_connect/tunnel_pump (g_tunnel), relay_resolve, relay_seal,
+  relay_keystream_xor + relay_derive_keys (CIFRADO propio del tunel),
+  relay_send_player_data, relay_invalidate_player_data,
+  relay_public_port, relay_lookup_ip, relay_tiers +
+  relay_mark_priority_near (QoS), g_relay_echoes (ping via relay),
+  server_relay_fill/tick. => conectar nuestro server al relay de
+  penguinehis = RE completa con cifrado + cuenta en su directorio +
+  riesgo de suspension ("suspended by the host of the relay"). NO
+  recomendado; relay propio (codigo nuestro + VPS) es la via limpia.
+- OPCIONES (detalladas en worklog relay-v1): A) puerto custom directo
+  (cambiar "port" en Config.json + clientes con fix IP:PUERTO ya
+  aplicado); B) relay casero VPS reenviando UDP 8606 -> IP:8606
+  (jugadores SIN parche si el VPS usa 8606; esconde IP del host;
+  frp/rathole/socat/playit.gg); C) relay PROPIO completo (yo escribo
+  relay-node para VPS + integracion synthetic-IP en betterserver-oss
+  para que bans/ops funcionen por jugador — equivalente a lo que hizo
+  penguinehis pero a medida, sin depender de relaysc.dr2.site).
+
+### 6.2 RELAY PORTADO E INTEGRADO (relay-port-v1, 26/10)
+- ¡EL RELAY DE relaysc.dr2.site YA ESTA EN NUESTRO SERVER! Port completo
+  del sistema de penguinehis (betterserver-v1.6) a betterserver-oss,
+  recreado 100% por RE estatica (RELAY_SPEC.md v2, mapeo completo).
+- ARCHIVOS: include/Relay.h + disasterserver/Relay.c (nuevos, ~1000
+  lineas: SHA-256+HMAC propios validados contra RFC 4231/FIPS 180-4,
+  tunnel_connect 3 fases, tunnel_pump, frames sellados, sesiones);
+  Config.h/.c (seccion "relay" anidada: enabled/directory_host/
+  directory_port/username/password, defaults relaysc.dr2.site:9000,
+  roundtrip config_save OK); Lib.c (relay_init al final de
+  disaster_init); states/Server.c (AMBOS CHANGELOBBY usan
+  relay_public_port: base_port+id si online, g_config.port+id si no);
+  CMakeLists (+Relay.c, sin libs nuevas); compilar_server.bat (estado
+  relay en el menu, anti-exe-bloqueado antes de compilar, opcion 7
+  = configurar relay); configurar_relay.ps1 (asistente de cuenta,
+  respalda, pone allow_duplicate_ip=true solo).
+- PROTOCOLO (detalle en RELAY_SPEC.md v2): directorio
+  relaysc.dr2.site (challenge-response HMAC con password, ticket 88B,
+  relay_ip en reply[112..116] puerto en [116..118], relay_key XOR
+  session_key), handshake relay (HELLO/CHALLENGE/TICKET/ACCEPT con
+  base_port+port_count), 4 llaves HMAC (labels h2r-enc/h2r-mac/
+  r2h-enc/r2h-mac), frames sellados [BE 01 tipo lobby sid_le ||
+  seq_be || payload-XOR-keystream || MAC16], anti-replay ventana 64
+  bits, tipos 06=abrir sesion (IP real en payload)/07=reset/08=datos
+  (auto-crea si falta)/09=ping-eco-15s. Muerte a los 45s sin eco ->
+  reconexion automatica; reintento connect cada 10s.
+- REGLAS DEL PORT: (1) la cuenta NO se registra ni se pide por
+  pantalla: vive en Config.json como el original; (2) sin password
+  el relay queda apagado con 1 solo Warn (sin spam de reintentos,
+  sin llamadas de red) — probado; (3) allow_duplicate_ip debe ser
+  true (releados llegan de 127.0.0.1) — ya lo esta y el .ps1 lo
+  garantiza; (4) mensajes en el MISMO canal de log que Amy Canon
+  (Info/Warn -> consola y GUI): "Relay: online - players can join at
+  %s ports %u-%u" al conectar, "Relay: session %u -> local port %u
+  as %s" por jugador nuevo, errores de cuenta en ingles (identicos
+  al v1.6). El chat del JUEGO no muestra nada del relay.
+- VALIDADO (sandbox, sin tocar la cuenta): compila limpio (gcc),
+  cripto 9/9 vectores OK, 3 smoke tests (sin seccion relay / enabled
+  sin password / config real del usuario). PENDIENTE: prueba en vivo
+  del usuario (poner password y ver "Relay: online").
+- v1.2 FIX "WRONG RELAY PASSWORD" (26/10, reporte del usuario con
+  GUI ya recuperada): el server fallaba con "wrong relay password"
+  aunque la clave fuera correcta. Causa raiz: el CHALLENGE del
+  directorio trae el salt en reply[8..24] (paquete real capturado:
+  be 01 11 00 00 00 00 00 <salt16>; disasm v1.6: movdqu xmm2,[buf+8])
+  y Relay.c lo leia en reply+4 -> proof mal calculado. Fix: 1 linea
+  (salt = reply+8). Validacion A/B end-to-end: directorio falso en
+  Python con el formato REAL capturado + Relay.c real compilado:
+  codigo viejo reproduce EXACTAMENTE el error del usuario; codigo
+  nuevo completa handshake directorio+relay y queda ONLINE en 0.2s.
+  Probe anonimo (SIN credenciales) confirmo ademas: DNS OK
+  (177.74.185.42), puerto 9001 OK (9000/443/80 no responden), el
+  directorio esta VIVO y contesta CHALLENGE en <6s. El error 2
+  (wrong password) y no "does not recognise" prueba que la cuenta
+  del usuario EXISTE y su region esta bien. Layout del ACCEPT
+  re-verificado en disasm (ticket@8, region@96, relay_ip@112 via
+  inet_ntoa, relay_port@116, relay_key XOR session@118..150): sin
+  cambios. Tiempos re-verificados en disasm: poll dir 4s (0xfa0),
+  reintento 10s (Sleep 10000), ping 15s, muerte tunel 45s (0x2d) -
+  identicos a mi port. RELAY_SPEC.md -> v3. Scripts de validacion:
+  scripts/relay_dir_probe.py, scripts/fake_directory.py,
+  scripts/relay_e2e_test.c (+relay_e2e_test binario).
+- v1.1 FIX GUI (26/10, reporte del usuario): al recompilar tras
+  aplicar la v1.0 el exe salio en MODO CONSOLA (sin ventana SDL de
+  ~770 KB). Causa raiz: los "unset(BUILD_UI CACHE)" al final del
+  CMakeLists ORIGINAL borraban el flag del cache; al editar ese
+  archivo (para +Relay.c) CMake se auto-reconfiguraba y option()
+  recreaba BUILD_UI=OFF -> exe consola. Fix doble: (1) CMakeLists
+  sin los unset (flag persiste); (2) compilar_server.bat opcion 1
+  re-aplica -DBUILD_UI=ON antes de cada build y al terminar verifica
+  el subsistema PE del exe (GUI=2/consola=3, via PowerShell) avisando
+  si salio consola. Exe GUI original del usuario verificado: PE32+
+  subsystem 2, SDL2+SDL2_image, "DisasterServer v1101 (Modified)".
+  Relay.c no usa printf directo (17 llamadas Log/Info/Err) -> todos
+  los avisos del relay SI salen en el chat de la ventana GUI.
+- LIMITACIONES conocidas vs v1.6: ping_send_record/QoS tiers no
+  portados (cosmetico); bans/ops de jugadores releados caen en
+  127.0.0.1 (el UDID sigue funcionando); con server_count=1 y
+  port_count=1 todo cuadra (1 puerto publico).
+
 ## 7. MODS APLICADOS (historial; el detalle exacto esta en worklog.md)
 | Task ID            | Que hace                                                       | Entregable (download/) |
 |--------------------|----------------------------------------------------------------|------------------------|
@@ -226,6 +371,9 @@
 | flecha-pegada-v2   | Flecha roja pegada a Amy (antes flotaba +24px hacia el exe)    | amy_canon_flecha_pegada_v2.zip |
 | endings-v2         | Musica de ending por escapados + espera sincronizada (ver 7.1)| (instalado directo en el repo) |
 | analisis-oss-1     | Analisis completo del repo GitHub + validacion server (26/10) | (solo analisis) |
+| relay-port-v1      | Relay relaysc.dr2.site INTEGRADO al server (ver 6.2)          | relay_port_v1.zip |
+| relay-gui-v1.1     | Fix exe consola -> vuelve GUI SDL (unset BUILD_UI) (ver 6.2)  | relay_port_v1.1.zip |
+| relay-fix-v1.2     | Fix salt CHALLENGE (offset 8): adiós "wrong password" (ver 6.2)| relay_port_v1.2.zip |
 
 ### 7.1 ENDINGS MUSIC v2 (instalado en el repo; detalle: LEEME_ENDINGS_V2.txt)
 Musica de ending SEGUN CUANTOS ESCAPARON (estilo TD original) + el server
@@ -302,6 +450,13 @@ y las pistas nuevas de 20-28s se cortaban).
 - endings-v2: pendiente CONFIRMAR en partida real (prueba rapida en
   LEEME_ENDINGS_V2.txt: ronda con escapados => musica completa y salto
   al lobby ~1s despues de que termine la cancion).
+- relay-port-v1: pendiente PRUEBA EN VIVO — el usuario pone la
+  password de su cuenta en Config.json (o opcion 7 del .bat),
+  arranca el server y debe ver "Relay: online - players can join at
+  ... ports X-Y". Despues: entrar desde el cliente con fix IP:PUERTO
+  a relaysc.dr2.site:puerto_publico. OJO: el exe debe recompilarse
+  con las opciones 1 o 2 del .bat (no hace falta borrarlo, el .bat
+  ya detecta si esta corriendo y lo cierra).
 - flecha-pegada-v2: pendiente PROBAR en partida (calibracion 14px / 20 grados
   ajustable en un minuto si no convence).
 - (Los 2 bugs originales del tarot y los sensores ya estan cerrados por
@@ -334,3 +489,35 @@ y las pistas nuevas de 20-28s se cortaban).
   server VALIDADO (compila limpio + smoke test v1101 OK), pendiente del
   submodulo enet anotado (secciones 6 y 9), estado Amy Canon verificado
   intacto (macros, flechas, martillo, token, allow_duplicate_ip).
+- 2026-10-26 (relay-v1): NUEVA seccion 6.1 RELAY/PUERTOS: analisis del
+  sistema relay de penguinehis (betterserver v1.6 + relaysc.dr2.site),
+  veredicto (v1101 ni soporta ni bloquea relay; no existe en el codigo),
+  esquema de puertos verificado (base_port+id), parche PortFIX analizado
+  (DLL proxy x64 compatible con nuestro juego), matiz CHANGELOBBY y las
+  3 opciones para tener relay. Repo td2dr-updated clonado en workspace.
+- 2026-10-26 (portfix-gml-v1): APLICADO el soporte IP:PUERTO del cliente
+  en la fuente del juego (net_join parsea ":", ip limpia + base_port en
+  obj_netclient/Create_0.gml; validador 8/8 OK; ver seccion 6.1).
+  Dimensionada la RE del relay v1.6 (~20 funciones con cifrado propio,
+  no stripped) => via recomendada = relay propio o proxy, no RE.
+- 2026-10-26 (relay-re-v1): RE estatica COMPLETA del protocolo relay del
+  v1.6 (cero conexiones, cuenta del usuario intacta). Especificacion
+  guardada en td2dr/relay_server/RELAY_SPEC.md: 3 fases (directorio
+  relaysc.dr2.site:9000/9001 con challenge-response HMAC-SHA256; handshake
+  relay con ticket; tunel cifrado con 4 llaves h2r/r2h-enc/mac derivadas
+  por HMAC con labels de 7B, keystream HMAC-SHA256(seq_be||bloque_le),
+  frames sellados BE 01 <tipo> <lobby> <session_id> || seq_be || payload
+  || MAC16, tipos 09/07/06/08, sesiones=sockets UDP locales que mandan a
+  127.0.0.1:(port+lobby) = IPs sinteticas). Mapeo ~90%; pendiente
+  handlers 0x06/TX/session_open y escribir Relay.c (ver spec seccion 11).
+  El usuario confirmo: usara su cuenta relay real (port 9001) y pidio NO
+  probarla en vivo — porteo con enabled=false y credenciales vacias.
+- 2026-10-26 (relay-port-v1): RELAY PORTADO E INTEGRADO (NUEVA seccion
+  6.2). RE completada al 100% (correcciones v2: AUTH = magic||proof||
+  username, relay_ip en reply[112..116], 0x06=abrir/0x07=reset, sid u32
+  LE, ventana anti-replay 64b, ping 15s/muerte 45s). Relay.c+Relay.h
+  nuevos (SHA-256/HMAC propios 9/9 vectores OK), Config relay anidada,
+  CHANGELOBBY x2 con relay_public_port, .bat con estado relay + opcion
+  7 + anti-exe-bloqueado, configurar_relay.ps1. Config.json del repo ya
+  trae la cuenta del usuario (password vacia a proposito). Validado
+  compilando + 3 smoke tests SIN usar la cuenta.

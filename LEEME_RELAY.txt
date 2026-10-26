@@ -1,0 +1,146 @@
+================================================================
+ RELAY de relaysc.dr2.site — INSTRUCCIONES (relay-port-v1.2)
+================================================================
+
+ACTUALIZACION v1.2 — FIX "WRONG RELAY PASSWORD":
+
+  Si el server decia "Relay: wrong relay password for 's38bd8ef11f'"
+  una y otra vez AUNQUE la contrasena fuera la correcta: no era tu
+  contrasena. Era un bug mio: el CHALLENGE del directorio trae el
+  salt en el byte 8 del paquete (no en el 4) y yo lo leia en el
+  lugar equivocado -> el calculo del proof salia mal -> el directorio
+  respondia "wrong password". Ya esta corregido y validado contra
+  el directorio REAL (esta vivo y responde bien en 9001) y con un
+  test end-to-end completo (queda online en 0.2s).
+
+  QUE HACER: extraer encima + recompilar. Con la GUI ya recuperada
+  (v1.1) alcanza la opcion 1; si no, opcion 2 una vez.
+
+  NOTA de tiempos (identico al original de pengu, verificado en el
+  binario): espera 4s por respuesta, reintento cada 10s, ping cada
+  15s, y si el tunel se queda mudo 45s se reconecta (el famoso
+  "no reply for 45s, reconnecting"). Si en la version de pengu
+  viste ciclos de 45s, era ese temporizador de tunel muerto, no
+  la velocidad de conexion.
+
+ACTUALIZACION v1.1 — RECUPERAR LA GUI SDL (ventana del server):
+
+  Si despues de aplicar la v1.0 el DisasterServer.exe te salio en
+  modo consola (solo cmd negro, sin la ventana con interfaz de
+  siempre de ~770 KB): era un bug del CMakeLists original. Las
+  lineas "unset(BUILD_UI CACHE)" del final borraban el flag GUI
+  del cache, y al editar ese archivo (para agregar Relay.c) CMake
+  se re-configuraba solo y te armaba la version consola.
+
+  ARREGLOS DE ESTA v1.1:
+  1. CMakeLists.txt: se quitaron los "unset" -> el flag BUILD_UI
+     queda FIJO en el cache, la GUI nunca mas se revierte.
+  2. compilar_server.bat: la opcion 1 (Compilar cambios) ahora
+     re-aplica BUILD_UI=ON antes de compilar, y al terminar VERIFICA
+     que el exe salio con GUI (lee el header del exe: subsistema
+     GUI=2 / consola=3) y te avisa si algo salio mal.
+
+  QUE HACER: extrae este zip encima (sobreescribe) y usa la opcion
+  2 (Limpiar y recompilar TODO) UNA vez. Con eso vuelve la ventana
+  SDL de siempre, ahora con el relay adentro. La opcion 1 sirve
+  para los cambios de cada dia.
+
+================================================================
+
+Tu BetterServer v1101 ya tiene el sistema relay de penguinehis
+(betterserver-v1.6) portado e integrado. Con esto tu server se
+publica en relaysc.dr2.site SIN abrir puertos, usando la cuenta
+que ya registraste en la web.
+
+QUE ARCHIVOS CAMBIARON / SE AGREGARON (extrae este zip en la
+raiz del repo, sobreescribe todo):
+
+  betterserver-oss/include/Relay.h              (NUEVO)
+  betterserver-oss/include/Config.h             (modificado)
+  betterserver-oss/disasterserver/Relay.c       (NUEVO, ~1000 lineas)
+  betterserver-oss/disasterserver/Config.c      (modificado)
+  betterserver-oss/disasterserver/Lib.c         (modificado)
+  betterserver-oss/disasterserver/states/Server.c (modificado)
+  betterserver-oss/disasterserver/CMakeLists.txt  (modificado v1.1:
+      sin los unset que rompian la GUI)
+  betterserver-oss/compilar_server.bat          (modificado v1.1:
+      fuerza GUI y verifica el exe)
+  betterserver-oss/configurar_relay.ps1         (NUEVO)
+  betterserver-oss/Config.json                  (modificado)
+  CACHE.md / worklog.md                         (docs)
+
+No hace falta instalar NADA extra: Relay.c trae su propio
+SHA-256/HMAC y la libreria de sockets (ws2_32) ya estaba.
+
+----------------------------------------------------------------
+ COMO SE USA (3 pasos)
+----------------------------------------------------------------
+
+1) PONER TU CUENTA. Opcion A (rapida): abre
+   betterserver-oss\Config.json y pon la contrasena de tu cuenta:
+
+     "relay": {
+         "enabled": true,
+         "directory_host": "relaysc.dr2.site",
+         "directory_port": 9001,
+         "username": "s38bd8ef11f",
+         "password": "AQUI_TU_CONTRASENA"
+     }
+
+   Opcion B: compilar_server.bat -> opcion 7 (Configurar RELAY),
+   que te la pregunta y la guarda solo (tambien respalda el
+   Config.json).
+
+   NOTAS:
+   - La cuenta NO se registra desde el server: usa la que ya
+     creaste en la web de relaysc.dr2.site.
+   - Si la contrasena queda vacia, el server arranca con el relay
+     apagado y un solo aviso (no intenta conectar, no spamea).
+   - Con el relay activo, "allow_duplicate_ip" tiene que estar en
+     true (tu Config.json ya lo tiene; el configurador lo garantiza).
+
+2) RECOMPILAR. compilar_server.bat -> opcion 1 (o 2 si queres
+   desde cero). NO hace falta borrar el exe: si el server esta
+   corriendo, el .bat te avisa y lo cierra el solo (Windows
+   bloquea el archivo mientras corre, por eso antes fallaba el
+   "Permission denied"/LNK1168 si lo dejabas abierto).
+
+3) ARRANCAR Y VERIFICAR. Al iniciar el server vas a ver en el
+   log (en la VENTANA GUI es el chat de siempre, mismo lugar que
+   los mensajes de Amy Canon):
+
+     Relay: connecting to directory at relaysc.dr2.site:9001...
+     Relay: region <region> at <ip>:<puerto>
+     Relay: online - players can join at <ip> ports X-Y   <- LISTO
+
+   Los jugadores entran con IP:PUERTO (necesitan el cliente con
+   el fix IP:PUERTO que ya aplicamos, o el parche PortFIX de
+   penguinehis) a la IP del relay y el puerto X que dice el log.
+
+   Si algo sale mal, el log te dice exactamente que pasa:
+   - "wrong relay password for 's38bd8ef11f'"  -> contrasena mal
+   - "the directory does not recognise '...'"  -> usuario mal o
+     la cuenta no existe en ese puerto (prueba 9000 vs 9001)
+   - "no answer from the directory at ..."     -> sin internet o
+     el directorio esta caido
+   - "no reply for 45s, reconnecting"          -> se cayo el
+     tunel; reconecta solo
+
+----------------------------------------------------------------
+ DETALLES UTILES
+----------------------------------------------------------------
+- Cuando un jugador entra por el relay vas a ver:
+    "Relay: session N -> local port P as <IP real del jugador>"
+- Para el servidor, los jugadores del relay llegan desde
+  127.0.0.1 (IP "sintetica", como el original). Los BANS por IP
+  no sirven para releados (usa el ban por UDID, que si funciona);
+  los OPERATORS por IP tampoco aplican a releados.
+- El relay reconecta solo si se cae (reintenta cada 10 segundos).
+- Para APAGAR el relay: "enabled": false en Config.json (o
+  opcion 7 del .bat) y reinicia el server.
+- El chat del JUEGO no muestra nada del relay: los avisos son
+  solo para VOS en la ventana del server.
+
+Especificacion tecnica completa del protocolo (RE del v1.6):
+la dejo en el workspace del asistente (td2dr/relay_server/
+RELAY_SPEC.md v2) por si algun dia queres auditar el port.

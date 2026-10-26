@@ -1,13 +1,20 @@
 {
-	"port":	8606,
-	"server_count":	1,
-	"ping_limit":	250,
-	"log_file":	false,
-	"log_debug":	false,
-	"anticheat":	true,
-	"pride":	true,
-	"motd":	"",
-	"random_mode":	false,
-	"amy_canon_token": "SweetPassion",
-	"allow_duplicate_ip": true
+        "port": 8606,
+        "server_count": 1,
+        "ping_limit":   250,
+        "log_file":     false,
+        "log_debug":    false,
+        "anticheat":    true,
+        "pride":        true,
+        "motd": "",
+        "random_mode":  false,
+        "amy_canon_token": "SweetPassion",
+        "allow_duplicate_ip": true,
+        "relay": {
+                "enabled": true,
+                "directory_host": "relaysc.dr2.site",
+                "directory_port": 9001,
+                "username": "s38bd8ef11f",
+                "password": ""
+        }
 }
