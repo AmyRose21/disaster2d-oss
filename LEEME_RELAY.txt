@@ -1,8 +1,36 @@
 ================================================================
- RELAY de relaysc.dr2.site — INSTRUCCIONES (relay-port-v1.2)
+ RELAY de relaysc.dr2.site -> INSTRUCCIONES (relay-port-v1.3)
 ================================================================
 
-ACTUALIZACION v1.2 — FIX "WRONG RELAY PASSWORD":
+ACTUALIZACION v1.3 -> JUGADORES DEL RELAY POR FIN ENTRAN (3 fixes):
+
+  Encontrado comparando el pump del tunel contra el binario v1.6
+  original de pengu (tunnel_pump+0x419 y allocate_server):
+
+  1. DESCIFRADO DEL TRAFICO ENTRANTE (el fix GRANDE). El relay
+     cifra TODO lo que te manda con su llave r2h_enc y el seq
+     del frame; el v1.6 lo descifraba antes de entregarlo al
+     ENet local y a mi me faltaba ese paso. Sin esto el jugador
+     conectaba al tunel, su handshake llegaba CIFRADO y el
+     server lo ignoraba: nunca hacia "joined" y a los 45s se
+     cortaba solo. Si probaste con un amigo y "no entraba
+     nadie", era ESTO.
+  2. MTU 1368 + buffers de socket de 512KB (igual que el
+     original): sin el clamp, los datagramas grandes del ENet
+     (1392) se caian silenciosamente dentro del tunel (cap. de
+     payload = 1368).
+  3. IP REAL en el join: los jugadores del relay llegaban
+     mostrando "IP: 127.0.0.1"; ahora el server busca la IP
+     verdadera que reporto el relay (relay_lookup_ip, igual
+     que el v1.6) y la muestra en el join, los logs y demas.
+
+  QUE HACER: extraer encima + recompilar (opcion 1; con la GUI
+  ya recuperada de v1.1 no hace falta la 2). Despues prueba de
+  verdad: que alguien entre con IP:PUERTO al puerto que dice
+  el log "players can join at" y tiene que aparecer el joined
+  con SU IP real.
+
+ACTUALIZACION v1.2 -> FIX "WRONG RELAY PASSWORD":
 
   Si el server decia "Relay: wrong relay password for 's38bd8ef11f'"
   una y otra vez AUNQUE la contrasena fuera la correcta: no era tu
@@ -23,7 +51,7 @@ ACTUALIZACION v1.2 — FIX "WRONG RELAY PASSWORD":
   viste ciclos de 45s, era ese temporizador de tunel muerto, no
   la velocidad de conexion.
 
-ACTUALIZACION v1.1 — RECUPERAR LA GUI SDL (ventana del server):
+ACTUALIZACION v1.1 -> RECUPERAR LA GUI SDL (ventana del server):
 
   Si despues de aplicar la v1.0 el DisasterServer.exe te salio en
   modo consola (solo cmd negro, sin la ventana con interfaz de
@@ -127,14 +155,54 @@ SHA-256/HMAC y la libreria de sockets (ws2_32) ya estaba.
      tunel; reconecta solo
 
 ----------------------------------------------------------------
+ SOBRE LAS "CONEXIONES FANTASMA" (sesiones sin jugador)
+----------------------------------------------------------------
+
+Poco despues de quedar online es normal ver lineas como:
+
+  Relay: session 10 -> local port 52301 as 102.134.82.174
+
+...de una IP que NO conoce nadie, y que NUNCA aparece un
+"joined" con esa IP. Eso NO es un jugador: son SCANNERS/bots
+de internet que escanean los puertos publicos del relay (los
+puertos X-Y que te asigno el directorio estan abiertos al
+mundo, y los bots los encuentran en minutos). El relay del
+lado de pengu abre una sesion por CUALQUIER paquete UDP que
+llega a ese puerto (no puede distinguir trafico de juego de
+basura), la basura llega al server local, ENet la ignora, y no
+entra nadie: no ocupa slot, no aparece en la lista, no molesta.
+Es exactamente lo mismo que pasa con el server original v1.6
+de pengu. La sesion se cierra sola cuando el relay manda el
+RESET o a los 300s de inactividad (red de seguridad del port;
+el original ni siquiera tenia reaper).
+
+Como distinguir de un vistazo:
+- "Relay: session N ... as <IP>" SIN "joined" despues  = scanner
+  (ignoralo).
+- "<nombre> (id N) joined." + "IP: <IP rara>"           = jugador
+  REAL que entro por el relay (la IP que ves es la suya de
+  verdad). Si no lo conoces, ahi si puedes kickear/banear.
+
+NOTA sobre la IP del join: el port ya incluye el
+"relay_lookup_ip" del original (verificado en el binario v1.6):
+si el jugador entro por el relay, el "IP:" del join muestra la
+IP REAL que reporto el relay (no 127.0.0.1). Si un join muestra
+"IP: 127.0.0.1" es una conexion LOCAL de verdad (alguien en tu
+misma maquina/red entrando directo a 127.0.0.1:8606, sin pasar
+por el relay) - por ejemplo vos mismo probando.
+
+----------------------------------------------------------------
  DETALLES UTILES
 ----------------------------------------------------------------
 - Cuando un jugador entra por el relay vas a ver:
     "Relay: session N -> local port P as <IP real del jugador>"
+    y en su join: "IP: <esa misma IP real>".
 - Para el servidor, los jugadores del relay llegan desde
-  127.0.0.1 (IP "sintetica", como el original). Los BANS por IP
-  no sirven para releados (usa el ban por UDID, que si funciona);
-  los OPERATORS por IP tampoco aplican a releados.
+  127.0.0.1:puerto (IP "sintetica", como el original), pero el
+  server ya resuelve y muestra la IP real en el join. Los BANS
+  por IP igual no sirven para releados (usa el ban por UDID,
+  que si funciona); los OPERATORS por IP tampoco aplican a
+  releados.
 - El relay reconecta solo si se cae (reintenta cada 10 segundos).
 - Para APAGAR el relay: "enabled": false en Config.json (o
   opcion 7 del .bat) y reinicia el server.

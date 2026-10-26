@@ -342,6 +342,19 @@ bool server_worker(Server *server)
                                 v->id = ev.peer->incomingPeerID + 1;
                                 enet_address_get_host_ip(&ev.peer->address, v->ip.value, 250);
 
+                                /* Relay: los jugadores relayeados llegan como
+                                 * 127.0.0.1:puerto_local. Buscar la sesion con
+                                 * ese puerto y usar la IP REAL que reporto el
+                                 * relay (igual que el v1.6) para que logs,
+                                 * bans y timeouts vean la IP verdadera. */
+                                if (strcmp(v->ip.value, "127.0.0.1") == 0)
+                                {
+                                        char real_ip[32];
+
+                                        if (relay_lookup_ip(ev.peer->address.port, real_ip, sizeof(real_ip)))
+                                                snprintf(v->ip.value, 250, "%s", real_ip);
+                                }
+
                                 Packet packet;
                                 PacketCreate(&packet, SERVER_PREIDENTITY);
                                 RAssert(auth_create_ticket(v, &packet));

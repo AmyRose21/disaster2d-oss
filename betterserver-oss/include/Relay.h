@@ -4,6 +4,7 @@
 #include <Api.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 /* =====================================================================
  *  Relay (port del sistema de penguinehis / betterserver-v1.6)
@@ -34,5 +35,12 @@ SERVER_API bool relay_online(void);
  * server_id: si el relay esta online devuelve el puerto PUBLICO del
  * relay (base_port + id); si no, el local (g_config.port + id). */
 SERVER_API uint32_t relay_public_port(uint16_t server_id);
+
+/* IP real del jugador relayeado cuya sesion local usa el puerto dado
+ * (el puerto UDP fuente con el que el ENet lo ve como 127.0.0.1).
+ * Devuelve true y copia la IP a out si hay sesion con ese puerto;
+ * false si no (jugador local o sesion inexistente). Igual que el
+ * lookup del v1.6 en server_worker. */
+SERVER_API bool relay_lookup_ip(uint16_t local_port, char* out, size_t outlen);
 
 #endif

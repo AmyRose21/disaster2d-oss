@@ -50,6 +50,19 @@ bool allocate_server(uint16_t base_port, uint16_t n)
 
         Info("Listening on port %d.", base_port + n);
         RAssert(server->host != NULL);
+
+        /* Relay: el payload maximo del tunel es 1368 bytes; con el MTU
+         * por defecto de ENet (1392) los datagramas grandes se caen
+         * silenciosamente en el pump. El v1.6 hace exactamente este
+         * clamp en allocate_server cuando la seccion "relay" esta
+         * activa (host->mtu = min(host->mtu, 1368)). */
+        if (g_config.relay.enabled && server->host->mtu > 1368)
+                server->host->mtu = 1368;
+
+        /* Buffers de socket mas grandes (512KB), igual que el v1.6 */
+        enet_socket_set_option(server->host->socket, ENET_SOCKOPT_RCVBUF, 512 * 1024);
+        enet_socket_set_option(server->host->socket, ENET_SOCKOPT_SNDBUF, 512 * 1024);
+
         RAssert(lobby_init(server));
         RAssert(dylist_push(&servers, server));
 

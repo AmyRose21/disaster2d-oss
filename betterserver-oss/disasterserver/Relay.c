@@ -843,6 +843,31 @@ static bool tunnel_pump(void)
 
                         g_last_rx = (int64_t)time(NULL);
 
+                        /* ---------- desencriptar el payload (r2h-enc) ----------
+                         * El relay cifra TODO payload que manda (0x06/0x08)
+                         * con el mismo keystream que nosotros usamos para TX
+                         * pero con la llave r2h_enc y el seq DEL FRAME:
+                         *   bloque N = HMAC(r2h_enc, seq_be(8) || N_le(4))
+                         * Sin esto el ENet local recibe ciphertext y el
+                         * handshake del jugador nunca se completa (ver
+                         * tunnel_pump+0x419 del v1.6: hace exactamente
+                         * este XOR antes del dispatch). */
+                        if (plen > 0)
+                        {
+                                uint8_t ks_in[12];
+                                uint8_t ks[32];
+                                memcpy(ks_in, buf + 8, 8);   /* seq tal como vino (BE) */
+
+                                for (int off = 0, n = 0; off < plen; off += 32, n++)
+                                {
+                                        put_le32(ks_in + 8, (uint32_t)n);
+                                        hmac_sha256(g_crypto.r2h_enc, 32, ks_in, 12, ks);
+
+                                        for (int j = 0; j < 32 && (off + j) < plen; j++)
+                                                buf[16 + off + j] ^= ks[j];
+                                }
+                        }
+
                         uint8_t type = buf[2];
 
                         if (type == RS_TUN_PING)
@@ -1067,4 +1092,30 @@ uint32_t relay_public_port(uint16_t server_id)
                 return g_base_port + (uint32_t)server_id;
 
         return (uint32_t)g_config.port + (uint32_t)server_id;
+}
+
+bool relay_lookup_ip(uint16_t local_port, char* out, size_t outlen)
+{
+        bool found = false;
+
+        if (!out || outlen == 0)
+                return false;
+
+        out[0] = '\0';
+
+        MutexLock(g_sessions_lock);
+        {
+                for (int i = 0; i < RELAY_MAX_SESSIONS; i++)
+                {
+                        if (!g_sessions[i].active || g_sessions[i].local_port != local_port)
+                                continue;
+
+                        snprintf(out, outlen, "%s", g_sessions[i].ip);
+                        found = true;
+                        break;
+                }
+        }
+        MutexUnlock(g_sessions_lock);
+
+        return found;
 }

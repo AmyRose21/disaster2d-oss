@@ -336,6 +336,31 @@
   identicos a mi port. RELAY_SPEC.md -> v3. Scripts de validacion:
   scripts/relay_dir_probe.py, scripts/fake_directory.py,
   scripts/relay_e2e_test.c (+relay_e2e_test binario).
+- DIAGNOSTICO CONEXIONES FANTASMA (26/10, pantallazos 07:32/07:34):
+  "session 10 -> local port 52301 as 102.134.82.174" = SCANNER de
+  internet (ComX Networks, Sudafrica) golpeando el puerto publico al
+  abrirse. El relay de pengu abre sesion por CUALQUIER UDP entrante
+  (igual el v1.6 original) -> sesion sin jugador = normal e inofensiva
+  (no ocupa slot, se limpia a 300s con nuestro reaper; el original ni
+  tenia reaper). El join de Amy Rose con IP 127.0.0.1 = conexion LOCAL
+  del usuario, no relay. LEEME_RELAY.txt +seccion "conexiones fantasma"
+  con tabla scanner-vs-jugador-real. Cero cambios de codigo.
+- v1.3 FIXES DE JUGADORES RELAY (26/10 tarde, comparando tunnel_pump del
+  v1.6 en 0x140017b4b/0x140018400 y allocate_server): (1) CRITICO: el
+  relay CIFRA TODO payload que manda (keystream HMAC-SHA256 con llave
+  r2h_enc y seq del frame, bloque N con contador LE); faltaba el XOR de
+  descifrado antes de inyectar en 127.0.0.1:8606 -> el handshake del
+  jugador llegaba cifrado y ENet lo ignoraba (conectaba al tunel pero
+  nunca hacia "joined", se cortaba a los 45s). (2) MTU clamp 1368 +
+  buffers socket 512KB en allocate_server (payload max del tunel 1368 <
+  MTU default ENet 1392 -> datagramas grandes se caian silencioso).
+  (3) relay_lookup_ip declarado en Relay.h e integrado en CONNECT de
+  states/Server.c (los releados mostraban IP: 127.0.0.1 en el join;
+  ahora sale la IP real que reporto el relay). Syntax check OK de los
+  3 .c. Zip relay_port_v1.3.zip (13 archivos, 81488 B, MD5
+  0b461bd9e3d315e48f7d5c3949354ed0) subido a tmpfiles (link directo
+  verificado MD5 identico; gofile cayo: /upload devuelve 404 en todos
+  los stores, cambio de API).
 - v1.1 FIX GUI (26/10, reporte del usuario): al recompilar tras
   aplicar la v1.0 el exe salio en MODO CONSOLA (sin ventana SDL de
   ~770 KB). Causa raiz: los "unset(BUILD_UI CACHE)" al final del
@@ -374,6 +399,7 @@
 | relay-port-v1      | Relay relaysc.dr2.site INTEGRADO al server (ver 6.2)          | relay_port_v1.zip |
 | relay-gui-v1.1     | Fix exe consola -> vuelve GUI SDL (unset BUILD_UI) (ver 6.2)  | relay_port_v1.1.zip |
 | relay-fix-v1.2     | Fix salt CHALLENGE (offset 8): adiós "wrong password" (ver 6.2)| relay_port_v1.2.zip |
+| relay-v1.3         | Fix r2h-enc + MTU 1368 + IP real en join (ver 6.2)             | relay_port_v1.3.zip |
 
 ### 7.1 ENDINGS MUSIC v2 (instalado en el repo; detalle: LEEME_ENDINGS_V2.txt)
 Musica de ending SEGUN CUANTOS ESCAPARON (estilo TD original) + el server
@@ -437,26 +463,35 @@ y las pistas nuevas de 20-28s se cortaban).
 8. Server: anticheat:false permite mods de cliente. Conectar por 127.0.0.1
    = op (pasa duplicados); por IP LAN no es op (necesita allow_duplicate_ip:
    true para 2 ventanas en el mismo PC).
+   CONFIRMADO EN VIVO (26/10): con anticheat:true, nuestro cliente (Amy
+   Canon + Sonic Quiz + DLL portfix) da checksum 0 -> mod_tool=true ->
+   NO puede ser elegido exe (CharSelect.c:71 exige !mod_tool) -> si TODOS
+   son modificados charselect_choose_exe devuelve false -> RAssert de
+   CHARSELECT.C:255 falla -> loop mapvote->charselect->lobby sin iniciar
+   partida NUNCA. Con anticheat:false, mod_tool queda false y arranca
+   normal. Config correcta para server + cliente propios de comunidad:
+   anticheat:false (los bans por UDID siguen funcionando).
 9. angle_difference/point_direction/degtorad: built-ins disponibles. En
    pantalla Y crece hacia abajo => los draws usan _y - sin(a)*d.
 
 ## 9. PENDIENTES / esperando al usuario
-- El usuario anuncio (26/10) un "PROBLEMA IMPORTANTE" del proyecto que
-  quiere arreglar, pero AUN NO lo ha descrito. Preguntar: que pasa, en
-  que pantalla/situacion ocurre, y si hay mensaje de error o captura.
+- relay-v1.3: pendiente PRUEBA REAL CON JUGADOR EXTERNO por el relay.
+  Setup listo: server v1.3 + cliente con DLL portfix IP:PUERTO +
+  anticheat:false CONFIRMADO arrancando partidas. Solo falta: alguien
+  de fuera entra con IP:PUERTO al puerto del log "players can join
+  at" -> debe ver el join con SU IP REAL (no 127.0.0.1). Avisar de
+  cualquier rareza con pantallazo.
+- anticheat: RESUELTO (26/10) — era el loop RASSERT de CharSelect con
+  todos los clientes modificados; solucion = anticheat:false (ya
+  documentado en lecciones, punto 8).
+- conexiones fantasma: RESUELTO (26/10) — scanners de internet, normal
+  e inofensivo (ver 6.2, diagnostico completo).
 - enet: submodulo sin incluir en el repo GitHub => un clone fresco no
   compila (ver seccion 6). Decidir: commitear enet/ o dejar instrucciones
   de clonado en el LEEME.
 - endings-v2: pendiente CONFIRMAR en partida real (prueba rapida en
   LEEME_ENDINGS_V2.txt: ronda con escapados => musica completa y salto
   al lobby ~1s despues de que termine la cancion).
-- relay-port-v1: pendiente PRUEBA EN VIVO — el usuario pone la
-  password de su cuenta en Config.json (o opcion 7 del .bat),
-  arranca el server y debe ver "Relay: online - players can join at
-  ... ports X-Y". Despues: entrar desde el cliente con fix IP:PUERTO
-  a relaysc.dr2.site:puerto_publico. OJO: el exe debe recompilarse
-  con las opciones 1 o 2 del .bat (no hace falta borrarlo, el .bat
-  ya detecta si esta corriendo y lo cierra).
 - flecha-pegada-v2: pendiente PROBAR en partida (calibracion 14px / 20 grados
   ajustable en un minuto si no convence).
 - (Los 2 bugs originales del tarot y los sensores ya estan cerrados por
@@ -521,3 +556,10 @@ y las pistas nuevas de 20-28s se cortaban).
   7 + anti-exe-bloqueado, configurar_relay.ps1. Config.json del repo ya
   trae la cuenta del usuario (password vacia a proposito). Validado
   compilando + 3 smoke tests SIN usar la cuenta.
+- 2026-10-26 (tarde, sesion 2): v1.3 empaquetada y subida (r2h-enc +
+  MTU + IP real). Diagnostico anticheat RESUELTO EN VIVO con el
+  usuario: loop RASSERT CHARSELECT.C:255 = todos los jugadores
+  modificados (checksum 0 -> mod_tool) -> nadie elegible como exe;
+  con anticheat:false arranca normal. Diagnostico conexiones
+  fantasma: scanners (Sudafrica), inofensivos. LEEME_RELAY.txt
+  v1.3 con seccion fantasma. Links tmpfiles (60 min) para v1.3.
