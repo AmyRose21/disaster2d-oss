@@ -73,7 +73,13 @@ if(isTarotFloat)
 if(isTarotDashing)
 {
         if(tarotSnd3 == -1)
+        {
                 tarotSnd3 = audio_play_sound(Loop_Card, 0, true);
+                
+                // NET: arranque del loop de cartas (en el otro cliente suena
+                // entero, ~13 seg, y su puppet lo corta al salir del estado).
+                net_sound_emit(Loop_Card);
+        }
         if(tarotSnd2 != -1) // venia de la pasiva: DSTAROT2 fuera
         {
                 audio_stop_sound(tarotSnd2);
@@ -83,9 +89,28 @@ if(isTarotDashing)
 else if(isTarotFloat)
 {
         if(tarotSnd2 == -1)
+        {
                 tarotSnd2 = audio_play_sound(DSTAROT2, 0, true);
+                
+                // NET: arranque del loop de flotacion.
+                net_sound_emit(DSTAROT2);
+        }
         if(tarotSnd3 == -1)
+        {
                 tarotSnd3 = audio_play_sound(Loop_Card, 0, true);
+                net_sound_emit(Loop_Card);
+        }
+        
+        // NET: re-emision periodica mientras flota, igual que hace Tails
+        // con snd_tails_fly (flyTimer mod 18): DSTAROT2 dura ~1.26 seg,
+        // reenviarlo cada 60 frames lo mantiene continuo en el otro
+        // cliente; Loop_Card dura ~13.7 seg, se reenvia cada 13 seg por
+        // si la flotacion dura mas que el sonido.
+        tarotNetTimer++;
+        if(tarotNetTimer mod 60 == 0)
+                net_sound_emit(DSTAROT2);
+        if(tarotNetTimer mod 780 == 0)
+                net_sound_emit(Loop_Card);
 }
 else
 {
@@ -100,6 +125,8 @@ else
                 audio_stop_sound(tarotSnd3);
                 tarotSnd3 = -1;
         }
+        
+        tarotNetTimer = 0; // NET: reset del contador de reenvio
 }
 
 if(reviveObj != noone)

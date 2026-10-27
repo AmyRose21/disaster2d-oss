@@ -36,6 +36,22 @@ if(character == CHARACTER_TAILS)
 		audio_stop_sound(snd_tails_fly);
 }
 
+// TAROT de Amy Canon: cortar los loops del tarot cuando el estado
+// termina en este cliente (mismo patron que el vuelo de Tails: el
+// estado ya viene sincronizado en CLIENT_PLAYER_DATA y quien emite
+// los sonidos los re-envia cada cierto tiempo mientras dura el
+// estado, asi el corte tambien corta el re-envio). OJO con las
+// transiciones directas flotacion <-> impulso: DSTAROT2 solo suena
+// flotando (se corta al pasar a TAROTDASH), Loop_Card suena en ambos
+// (se corta al salir de los dos), igual que en el jugador local.
+if(character == CHARACTER_AMY_CANON)
+{
+	if(state != AMY_CANON_TAROT && audio_is_playing(DSTAROT2))
+		audio_stop_sound(DSTAROT2);
+	if(state != AMY_CANON_TAROT && state != AMY_CANON_TAROTDASH && audio_is_playing(Loop_Card))
+		audio_stop_sound(Loop_Card);
+}
+
 if(instance_exists(obj_hiding_parent))
 	isHiding = place_meeting(x, y, obj_hiding_parent) && state == LOOKDOWN;
 

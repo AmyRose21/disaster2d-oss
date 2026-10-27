@@ -109,7 +109,15 @@ global.net_snds =
 	
 	snd_tailsball_jumpscare2,
 	snd_roar,
-	snd_boohoo
+	snd_boohoo,
+	
+	// --- Amy Canon (tarot): agregados AL FINAL a proposito para no mover
+	// los indices de los sonidos existentes (un cliente viejo que reciba
+	// uno de estos indices simplemente lo ignora, no se cuelga). Los usa
+	// net_sound_emit desde scr_amy_canon_special y obj_amy_canon. ---
+	DSTAROT1,   // 104: impulso aereo de tarot (one-shot al arrancar)
+	DSTAROT2,   // 105: pasiva del tarot (loop de flotacion)
+	Loop_Card   // 106: loop de cartas (flotacion + impulso)
 ];
 global.tmp_sndid = 0;
 

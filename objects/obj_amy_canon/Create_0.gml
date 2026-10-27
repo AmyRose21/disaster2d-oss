@@ -110,6 +110,7 @@ tarotDashDir = 1;        // direccion del impulso aereo (1 = der, -1 = izq)
 tarotSnd1 = -1;          // canal de DSTAROT1 (one-shot del impulso; no se detiene a mano)
 tarotSnd2 = -1;          // canal de DSTAROT2 (loop de la pasiva)
 tarotSnd3 = -1;          // canal de Loop_Card (loop compartido pasiva/impulso)
+tarotNetTimer = 0;       // NET: contador de frames para re-enviar los loops del tarot
 
 // --- Variables del ESTADO BURBUJA (secuestro, reglas canonicas) ---
 // Ver scr_amy_canon_bubble.gml para el significado y los valores

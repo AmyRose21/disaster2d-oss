@@ -144,6 +144,10 @@ function scr_amy_canon_special()
 		// en loop y se apaga solo). Loop_Card lo pone el Step_0 en loop.
 		tarotSnd1 = audio_play_sound(DSTAROT1, 0, false);
 		
+		// NET: mandar el one-shot del impulso al resto de la sala
+		// (mismo patron que el snd_tails_fly de scr_tails_special).
+		net_sound_emit(DSTAROT1);
+		
 		// CD de la habilidad 2 (el que muestra el icono 2 de la UI).
 		attackTimer = revivalTimes >= 2 ? AMY_CANON_ETAROTDASH_RECHARGE : AMY_CANON_TAROTDASH_RECHARGE;
 	}
