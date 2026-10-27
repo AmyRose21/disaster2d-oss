@@ -160,7 +160,7 @@ global.player_anims[? CHARACTER_SONIC] =
         spr_sonic_emotion3, //11
         spr_sonic_jump, //12 = SPIN (rodar): mismo sprite del salto, como Tails/Knux
         spr_sonic_balancing, //13
-        spr_sonic_attack2, //14 = ATAQUE 1: el golpe estilo EXE (estado SONIC_ATTACK)
+        spr_sonic_attack2_tierra1, //14 = ATAQUE 1: el golpe estilo EXE (estado SONIC_ATTACK)
         spr_sonic_spin_charger, //15 = ATAQUE 2: carga del spindash (estado SONIC_SPINDASH)
         spr_none, //16
         spr_sonic_zipline //17
@@ -350,7 +350,7 @@ global.player_eanims[? CHARACTER_SONIC] =
         spr_sonic_emotion3, //11
         spr_sonic_jump, //12
         spr_sonic_balancing, //13
-        spr_sonic_attack2, //14
+        spr_sonic_attack2_tierra1, //14
         spr_sonic_spin_charger, //15
         spr_none, //16
         spr_sonic_zipline //17
