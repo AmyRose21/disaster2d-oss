@@ -3372,7 +3372,23 @@ function net_state_game(rbuff, nps, isPasstrough)
 				instance_destroy();
 				
 			global.player.reviveObj = noone;
-			global.player.hurttime = 60 * 4;
+			// SONIC: revive con POWERBOOST (fase 2): 6 segundos de inmunidad
+			// (el revive estandar da 4) y los efectos del boost NO se apagan
+			// al acabar la inmunidad: esa es su fase 2 persistente (solo la
+			// apaga morir de verdad o demonizarse; ver obj_sonic Step_0).
+			if(global.character == CHARACTER_SONIC)
+			{
+				global.player.hurttime = SONIC_REVIVEBOOST_INVULN;
+				global.player.reviveBoost = true;
+				global.player.pbTime = 0;
+				global.player.pbFlash = SONIC_PB_FLASH_FRAMES;
+				
+				audio_play_sound(snd_dash, 0, false);
+				net_quick_effect(global.player.x, global.player.y, spr_shockparticle, false, 1, 0, 0, 1);
+			}
+			else
+				global.player.hurttime = 60 * 4;
+			
 			global.cameraMode = 0;
 			break;
 		}

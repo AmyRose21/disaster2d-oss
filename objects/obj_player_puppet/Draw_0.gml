@@ -31,9 +31,20 @@ switch(character)
                 break;
 }
 
+// SONIC POWERBOOST (fase 3 de Nervios o fase 2 del revive): mismo look
+// Frontiers que el jugador local (aura detras, rayos/tinte encima).
+// El estado llega con el bitflag PLAYER_POWERBOOST de CLIENT_PLAYER_DATA.
+var _pb = (character == CHARACTER_SONIC && powerBoost);
+
+if(_pb)
+        scr_powerboost_fx_back(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, angle, current_time / 16);
+
 scr_palette_swap(fromPallete, toPallete);
 draw_sprite_ext(is_cheating ? spr_merfurmu : sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, angle, image_blend, (isHurt || isHiding) ? 0.5 : image_alpha);
 shader_reset();
+
+if(_pb)
+        scr_powerboost_fx_front(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, angle, current_time / 16, abs(x - xprevious) + abs(y - yprevious) > 0.1);
 
 if(potater)
         draw_sprite(spr_goodperson, potatoTimer, floor(x), floor(y)); 

@@ -72,9 +72,10 @@ with(global.player)
 					bitflags |= PLAYER_ATTACKING;
 			}
 			
-			// SONIC: powerboost de Nervios de Acero. Con este bitflag el
-			// resto de clientes dibujan la estela de fantasmas en su puppet.
-			if(global.character == CHARACTER_SONIC && nerviosState == 3)
+			// SONIC: powerboost de Nervios de Acero (fase 3) o el boost
+			// persistente del revive (fase 2). Con este bitflag el resto de
+			// clientes dibujan la estela y los efectos Frontiers en su puppet.
+			if(global.character == CHARACTER_SONIC && (nerviosState == 3 || reviveBoost))
 				bitflags |= PLAYER_POWERBOOST;
 		
 			if(global.character == CHARACTER_SALLY)

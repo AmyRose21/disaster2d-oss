@@ -29,7 +29,7 @@ function scr_player_instakill()
         
         // === NERVIOS DE ACERO (Sonic): su 1ra caida NO lo mata ===
         // Igual que la burbuja de Amy: en vez de la agonia, cae al suelo
-        // 3 segundos, se levanta y tiene 4 segundos de invulnerabilidad
+        // 4 segundos, se levanta y tiene 4 segundos de invulnerabilidad
         // total (powerboost con estela de fantasmas). Salva inclusive en
         // muerte subita. Solo la 2da caida (nerviosUsed) muere de verdad.
         if(global.character == CHARACTER_SONIC && !global.player.nerviosUsed)

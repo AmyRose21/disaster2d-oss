@@ -62,12 +62,13 @@
 //  de corta duracion (estilo dash de Cream). Solo 1 vez por ronda.
 //  (60 frames = 1 segundo)
 // =====================================================================
-#macro SONIC_NERVIOS_TIME (60 * 3)          // DURACION tirado en el suelo, Idle en LOOP (3 seg; pon (60 * 4) si quieres 4)
+#macro SONIC_NERVIOS_TIME (60 * 4)          // DURACION tirado en el suelo, Idle en LOOP (4 seg; pon (60 * 3) si lo prefieres de 3)
 #macro SONIC_NERVIOS_IDLE_SPD 0.5           // velocidad del LOOP del Idle (frames de sprite por step)
 #macro SONIC_NERVIOS_FINISH_TIME 30         // DURACION de la animacion de levantarse (~0.5 seg)
 #macro SONIC_NERVIOS_INVULN (60 * 4)        // DURACION del powerboost (4 seg)
 #macro SONIC_NERVIOS_GHOST_EVERY 5          // un fantasma cada N frames
 #macro SONIC_NERVIOS_GHOST_FADE 0.07        // velocidad de desvanecido (~14 frames de vida)
+#macro SONIC_REVIVEBOOST_INVULN (60 * 6)    // inmunidad al REVIVIR con powerboost (6 seg; el revive normal da 4)
 
 // =====================================================================
 //  ATAQUE 1 variantes (golpe, tecla X): en el AIRE la hitbox de stuneo
@@ -113,6 +114,11 @@ nerviosState = 0;    // 0=apagada, 1=tirado en el suelo, 2=levantandose, 3=power
 nerviosUsed = false; // true tras usarla: 1 sola vez por ronda
 nerviosTimer = 0;    // contador de la fase actual
 ghostTimer = 0;      // contador para la estela de fantasmas
+
+// --- POWERBOOST visual (FX Frontiers procedurales: scr_powerboost_fx) ---
+reviveBoost = false; // FASE 2: true tras ser revivido -> efectos persistentes
+pbTime = 0;          // reloj de animacion del pulso del aura
+pbFlash = 0;         // frames restantes del anillo de activacion
 
 // --- Variante del ATAQUE 1 (golpe) ---
 // El golpe escanea solo los sprites del proyecto: cualquier

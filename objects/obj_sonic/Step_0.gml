@@ -2,11 +2,12 @@
 
 // =====================================================================
 //  PASIVA NERVIOS DE ACERO
-//  Fase 1: tirado en el suelo 3 seg con ..._Idle en LOOP (sin control;
+//  Fase 1: tirado en el suelo 4 seg con ..._Idle en LOOP (sin control;
 //          cae plano si estaba en el aire). Inmune a TODO (scr_player_hurt).
 //  Fase 2: animacion de levantarse ..._finish (SONIC_NERVIOS_FINISH_TIME).
-//  Fase 3: POWERBOOST 4 seg: control total, invulnerable y dejando
-//          una estela de fantasmas de corta duracion.
+//  Fase 3: POWERBOOST 4 seg: control total, invulnerable, con los
+//          efectos Frontiers (aura + rayos + speed lines + estela de
+//          fantasmas al moverse: scr_powerboost_fx).
 //  Las fases 1-2 reemplazan el movimiento normal; la 3 lo deja correr
 //  con normalidad (solo añade la estela y el timer).
 // =====================================================================
@@ -56,6 +57,7 @@ if(nerviosState == 1 || nerviosState == 2)
                         nerviosState = 3;
                         nerviosTimer = SONIC_NERVIOS_INVULN;
                         ghostTimer = 0;
+                        pbFlash = SONIC_PB_FLASH_FRAMES; // anillo de activacion del boost
                         hp = 100;
                         
                         audio_play_sound(snd_dash, 0, false);
@@ -77,9 +79,12 @@ else if(nerviosState == 3)
                 nerviosState = 0; // fin de la pasiva: vuelta a la normalidad
         else
         {
+                pbTime++;       // reloj de la animacion de los efectos
                 ghostTimer++;
                 
-                if(ghostTimer mod SONIC_NERVIOS_GHOST_EVERY == 0)
+                // la estela sale solo en movimiento: parado se ve "cargado"
+                // (aura + rayos); corriendo o en el aire si deja la estela
+                if((!isGrounded || abs(xspd) + abs(gspd) > 0.5) && ghostTimer mod SONIC_NERVIOS_GHOST_EVERY == 0)
                 {
                         var _ghost = instance_create_depth(x, y, 0, obj_quickeffect_fade);
                         _ghost.sprite_index = sprite_index;
@@ -111,6 +116,39 @@ else
         shockedTimer--;
         hurttime = 60 * 2;
 }
+
+// =====================================================================
+//  POWERBOOST DE REVIVE (fase 2 persistente)
+//  Al ser revivido por un companero (SERVER_REVIVAL_REVIVED), Sonic
+//  activa el powerboost: 6 seg de inmunidad (SONIC_REVIVEBOOST_INVULN,
+//  el revive normal da 4) y los efectos visuales del boost NO se
+//  apagan al acabar la inmunidad: esa es su fase 2, y dura hasta que
+//  muera de verdad o se demonice. La estela solo sale en movimiento.
+// =====================================================================
+if(reviveBoost)
+{
+        pbTime++;
+        
+        ghostTimer++;
+        
+        if((!isGrounded || abs(xspd) + abs(gspd) > 0.5) && ghostTimer mod SONIC_NERVIOS_GHOST_EVERY == 0)
+        {
+                var _rbGhost = instance_create_depth(x, y, 0, obj_quickeffect_fade);
+                _rbGhost.sprite_index = sprite_index;
+                _rbGhost.image_index = image_index;
+                _rbGhost.image_xscale = image_xscale;
+                _rbGhost.image_yscale = 1;
+                _rbGhost.image_angle = radtodeg(angle);
+                _rbGhost.fadeSpeed = SONIC_NERVIOS_GHOST_FADE;
+                _rbGhost.depth = 1; // detras del jugador (depth 0)
+        }
+        
+        if(isDead || revivalTimes >= 2)
+                reviveBoost = false; // murio o se demonizo: fin de la fase 2
+}
+
+if(pbFlash > 0)
+        pbFlash--; // contador del anillo de activacion (lo dibuja Draw_0)
 
 scr_collision_basic();
 

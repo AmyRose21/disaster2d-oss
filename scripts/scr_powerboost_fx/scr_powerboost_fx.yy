@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_powerboost_fx",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_powerboost_fx",
+  "parent":{
+    "name":"Specials",
+    "path":"folders/Scripts/Players/Specials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

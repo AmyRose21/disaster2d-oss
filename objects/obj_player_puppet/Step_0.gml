@@ -36,9 +36,12 @@ if(character == -1)
 // local: un quickeffect_fade justo detras del puppet.
 if(powerBoost)
 {
+	// la estela sale solo en movimiento (parado queda solo el aura,
+	// como el boost de Frontiers); la posicion llega por red, asi que
+	// el movimiento se mide con el desplazamiento real del puppet.
 	ghostTimer++;
 	
-	if(ghostTimer mod SONIC_NERVIOS_GHOST_EVERY == 0)
+	if((abs(x - xprevious) + abs(y - yprevious) > 0.1) && ghostTimer mod SONIC_NERVIOS_GHOST_EVERY == 0)
 	{
 		var _ghost = instance_create_depth(x, y, 0, obj_quickeffect_fade);
 		_ghost.sprite_index = sprite_index;
