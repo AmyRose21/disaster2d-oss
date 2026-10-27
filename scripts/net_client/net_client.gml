@@ -47,3 +47,26 @@ function buffer_read_s(buffer, type)
 	
 	return buffer_read(buffer, type);
 }
+
+// Speeds come off the wire as f16, which can hold inf/NaN. Servers that relay
+// derived speeds (big-lobby relays) can send those when a u16 position wraps,
+// and "y += yspd" then poisons the puppet forever. Never trust them.
+#macro NET_MAX_SPEED 64
+
+function net_sanitize_speed(value)
+{
+	if(is_nan(value) || is_infinity(value))
+		return 0;
+
+	return clamp(value, -NET_MAX_SPEED, NET_MAX_SPEED);
+}
+
+// Positions are sent as u16, so a player slightly above/left of the room
+// (-5) arrives as 65531. Map the top of the range back to negatives.
+function net_unwrap_coord(value)
+{
+	if(value > 65535 - 4096)
+		return value - 65536;
+
+	return value;
+}
