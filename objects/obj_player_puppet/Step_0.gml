@@ -30,6 +30,25 @@ if(room == room_act9)
 if(character == -1)
 	return;
 
+// SALLY CANON fase 2: el squash & stretch del salto (pt3) y del
+// aterrizaje (pt4) se deriva SOLO del estado sincronizado: al ver la
+// transicion pt2->pt3 se estira, pt3->pt4 se aplasta, y decae solo
+// (mismo feel que el jugador local, sin datos extra por red).
+if(character == CHARACTER_SALLY_CANON)
+{
+	if(state == SALLY_CANON_F2_PT3 && f2LastState != SALLY_CANON_F2_PT3)
+		f2Sq = SALLY_CANON_SQ_STRETCH;
+	
+	if(state == SALLY_CANON_F2_PT4 && f2LastState != SALLY_CANON_F2_PT4)
+		f2Sq = SALLY_CANON_SQ_SQUASH;
+	
+	f2LastState = state;
+	f2Sq += (0 - f2Sq) * SALLY_CANON_SQ_DECAY;
+	
+	if(abs(f2Sq) < 0.01)
+		f2Sq = 0;
+}
+
 // SONIC POWERBOOST (Nervios de Acero): el Sonic remoto deja estela
 // de fantasmas mientras dura (bitflag PLAYER_POWERBOOST de
 // CLIENT_PLAYER_DATA). Mismo efecto de corta duracion que el jugador

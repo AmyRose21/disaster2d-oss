@@ -39,8 +39,22 @@ var _pb = (character == CHARACTER_SONIC && powerBoost);
 if(_pb)
         scr_powerboost_fx_back(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, angle, current_time / 16);
 
+// SALLY CANON fase 2: squash & stretch remoto (estira al despegar del
+// salto de pt3, se aplasta al aterrizar en pt4), anclado al suelo igual
+// que en el jugador local. El valor lo deriva el Step de este puppet.
+var _f2xs = image_xscale;
+var _f2ys = image_yscale;
+var _f2yoff = 0;
+
+if(character == CHARACTER_SALLY_CANON && f2Sq != 0)
+{
+        _f2ys = image_yscale * (1 + f2Sq);
+        _f2xs = image_xscale * (1 - f2Sq * 0.6);
+        _f2yoff = (sprite_height - sprite_yoffset) * (1 - _f2ys);
+}
+
 scr_palette_swap(fromPallete, toPallete);
-draw_sprite_ext(is_cheating ? spr_merfurmu : sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, angle, image_blend, (isHurt || isHiding) ? 0.5 : image_alpha);
+draw_sprite_ext(is_cheating ? spr_merfurmu : sprite_index, image_index, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, (isHurt || isHiding) ? 0.5 : image_alpha);
 shader_reset();
 
 if(_pb)

@@ -120,14 +120,14 @@ function net_udpprocess(rbuff)
                                                 
                                                 // SONIC v4: sin esta linea el puppet de Sonic nunca queda
                                                 // isAttacking en el cliente del EXE -> el golpe no aturdia.
-                                                if(character == CHARACTER_KNUX || character == CHARACTER_EGGMAN || (character == CHARACTER_AMY || character == CHARACTER_AMY_CANON) || character == CHARACTER_SALLY || character == CHARACTER_SONIC)
+                                                if(character == CHARACTER_KNUX || character == CHARACTER_EGGMAN || (character == CHARACTER_AMY || character == CHARACTER_AMY_CANON) || character == CHARACTER_SALLY || character == CHARACTER_SALLY_CANON || character == CHARACTER_SONIC)
                                                         isAttacking = bitflags & PLAYER_ATTACKING;
                                                         
                                                 isHurt = bitflags & PLAYER_HURT;
                                                 hasRedRing = bitflags & PLAYER_REDRING;
                                                 effect = bitflags & PLAYER_EFFECT;
                                                 
-                                                if(character == CHARACTER_SALLY)
+                                                if(character == CHARACTER_SALLY || character == CHARACTER_SALLY_CANON)
                                                         sallyShield = bitflags & PLAYER_SALLYSHIELD;
                                                 
                                                 // SONIC: powerboost de Nervios de Acero

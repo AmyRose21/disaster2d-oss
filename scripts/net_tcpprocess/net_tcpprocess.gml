@@ -172,7 +172,8 @@ function net_tcpprocess(rbuff)
 					true,
 					true,
 					true,  //7 (amy canon)
-					true  //8 (sonic)
+					true,  //8 (sonic)
+					true  //9 (sally canon)
 				];
 				
 				gameEnds = false;

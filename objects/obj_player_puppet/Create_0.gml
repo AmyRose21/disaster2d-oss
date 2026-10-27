@@ -54,3 +54,7 @@ palleteName = "";
 
 potater = false;
 potatoTimer = 0;
+
+// SALLY CANON fase 2: squash & stretch remoto (derivado del estado)
+f2Sq = 0;
+f2LastState = 0;

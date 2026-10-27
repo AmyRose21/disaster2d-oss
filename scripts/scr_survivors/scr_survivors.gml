@@ -21,6 +21,7 @@
 #macro CHARACTER_SALLY (CHARACTER_TAILS+5)
 #macro CHARACTER_AMY_CANON (CHARACTER_TAILS+6)
 #macro CHARACTER_SONIC (CHARACTER_TAILS+7)
+#macro CHARACTER_SALLY_CANON (CHARACTER_TAILS+8)
 
 global.player_anims = ds_map_create();
 
@@ -216,6 +217,35 @@ global.player_anims[? CHARACTER_SALLY] =
         spr_sally_zipline // 17
 ];
 
+//Sally Canon (reusa el retrato de menu y el icono de vida de Sally;
+//sus sprites propios son los _canon. 18-21 = fase 2, ver
+//scr_sally_canon_fase2.gml)
+global.player_anims[? CHARACTER_SALLY_CANON] =
+[
+        spr_sally_idle_canon, //0
+        spr_sally_walk_canon, //1
+        spr_sally_run_canon, //2
+        spr_sally_jump_canon, //3
+        spr_sally_fall_canon, //4
+        spr_sally_hurt_canon, //5
+        spr_sally_dead_canon, //6
+        spr_sally_lookup_canon, //7
+        spr_sally_lookdown_canon, //8
+        spr_sally_emotion1_canon, //9
+        spr_sally_emotion2_canon, //10
+        spr_sally_emotion3_canon, //11
+        spr_sally_jump_canon, //12
+        spr_sally_balancing_canon, //13
+        spr_sally_attack_canon, //14
+        spr_sally_slide_canon, //15
+        spr_none, // 16
+        spr_sally_zipline_canon, //17
+        spr_sally_fase2_canon_pt1, //18 = FASE 2 pt1: golpe + retroceso
+        spr_sally_fase2_canon_pt2, //19 = FASE 2 pt2: tirada en el suelo
+        spr_sally_fase2_canon_pt3, //20 = FASE 2 pt3: salto (loop)
+        spr_sally_fase2_canon_pt4 //21 = FASE 2 pt4: recuperacion
+];
+
 global.player_eanims = ds_map_create();
 
 //Tails
@@ -408,6 +438,35 @@ global.player_eanims[? CHARACTER_SALLY] =
         spr_esally_zipline // 17
 ];
 
+//Sally Canon (demonizada): JAMAS se demoniza (regla canonica, parche
+//del server), asi que reusa sus sprites normales. Solo defensivo por
+//si algun camino llegara a leer eanims con revivalTimes >= 2.
+global.player_eanims[? CHARACTER_SALLY_CANON] =
+[
+        spr_sally_idle_canon, //0
+        spr_sally_walk_canon, //1
+        spr_sally_run_canon, //2
+        spr_sally_jump_canon, //3
+        spr_sally_fall_canon, //4
+        spr_sally_hurt_canon, //5
+        spr_sally_dead_canon, //6
+        spr_sally_lookup_canon, //7
+        spr_sally_lookdown_canon, //8
+        spr_sally_emotion1_canon, //9
+        spr_sally_emotion2_canon, //10
+        spr_sally_emotion3_canon, //11
+        spr_sally_jump_canon, //12
+        spr_sally_balancing_canon, //13
+        spr_sally_attack_canon, //14
+        spr_sally_slide_canon, //15
+        spr_none, // 16
+        spr_sally_zipline_canon, //17
+        spr_sally_fase2_canon_pt1, //18
+        spr_sally_fase2_canon_pt2, //19
+        spr_sally_fase2_canon_pt3, //20
+        spr_sally_fase2_canon_pt4 //21
+];
+
 // =====================================================================
 //  SONIC: variantes dinamicas del golpe (tecla X). Cualquier sprite
 //  llamado spr_sonic_attack2_tierra<N> o spr_sonic_attack2_aereo<N>
@@ -482,5 +541,8 @@ function player_get(ind)
                         
                 case CHARACTER_SALLY:
                         return obj_sally;
+
+                case CHARACTER_SALLY_CANON:
+                        return obj_sally_canon;
         }
 }

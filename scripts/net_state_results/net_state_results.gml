@@ -7,6 +7,12 @@ function net_state_results(rbuff, nps, isPasstrough)
 		{
 			var _name = buffer_read_s(rbuff, buffer_string);
 			var _char = buffer_read_s(rbuff, buffer_s8);
+		// 6 = Amy Canon, 8 = Sally Canon (valores crudos del server):
+		// reusan los iconos de Amy (3) y Sally (5) en las tiras
+		if(_char == 6)
+			_char = 3;
+		else if(_char == 8)
+			_char = 5;
 			var _end = buffer_read_s(rbuff, buffer_u8);
 			var _time = buffer_read_s(rbuff, buffer_u16);
 			var _quit = buffer_read_s(rbuff, buffer_u8);
@@ -70,15 +76,15 @@ function net_state_results(rbuff, nps, isPasstrough)
 				case 1:
 				{
 					_inst.icon = spr_playerhealth_demon;
-					/* Amy v100 (_char 6): reusa el grupo de Amy */
-					_inst.frame = _char == 6 ? 3 : _char;
+					/* _char ya remapeado arriba (Amy Canon->3, Sally Canon->5) */
+					_inst.frame = _char;
 					break;
 				}
 				
 				case 2:
 				{
 					_inst.icon = spr_playerhealth;
-					_inst.frame = 6 + (_char == 6 ? 3 : _char) * 7;
+					_inst.frame = 6 + _char * 7;
 					break;
 				}
 				

@@ -66,7 +66,7 @@ with(global.player)
 			if(redRingTimer > 0)
 				bitflags |= PLAYER_REDRING;
 		
-			if(global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) || global.character == CHARACTER_SALLY || global.character == CHARACTER_EGGMAN || global.character == CHARACTER_SONIC)
+			if(global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) || global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON || global.character == CHARACTER_EGGMAN || global.character == CHARACTER_SONIC)
 			{
 				if(isAttacking)
 					bitflags |= PLAYER_ATTACKING;
@@ -78,7 +78,7 @@ with(global.player)
 			if(global.character == CHARACTER_SONIC && (nerviosState == 3 || reviveBoost))
 				bitflags |= PLAYER_POWERBOOST;
 		
-			if(global.character == CHARACTER_SALLY)
+			if(global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON)
 			{
 				if(shieldTimer > 0)
 					bitflags |= PLAYER_SALLYSHIELD;

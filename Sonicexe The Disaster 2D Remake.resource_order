@@ -1,9 +1,12 @@
 {
   "FolderOrderSettings":[
+    {"name":"Sally Canon","order":2,"path":"folders/Objects/Player/Survivors/Sally Canon.yy",},
     {"name":"Sally Canon","order":1,"path":"folders/Sprites/Player/Survivors/Sally Canon.yy",},
   ],
   "ResourceOrderSettings":[
+    {"name":"obj_sally_canon","order":1,"path":"objects/obj_sally_canon/obj_sally_canon.yy",},
     {"name":"scr_powerboost_fx","order":5,"path":"scripts/scr_powerboost_fx/scr_powerboost_fx.yy",},
+    {"name":"scr_sally_canon_fase2","order":6,"path":"scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.yy",},
     {"name":"spr_sally_balancing_canon","order":1,"path":"sprites/spr_sally_balancing_canon/spr_sally_balancing_canon.yy",},
     {"name":"spr_sally_dead_canon","order":2,"path":"sprites/spr_sally_dead_canon/spr_sally_dead_canon.yy",},
     {"name":"spr_sally_emotion1_canon","order":3,"path":"sprites/spr_sally_emotion1_canon/spr_sally_emotion1_canon.yy",},

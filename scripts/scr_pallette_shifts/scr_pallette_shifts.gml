@@ -25,3 +25,7 @@ global.paletteShifts[? EXE_EXELLER  + PALETTE_EXE] = scr_palette([ #177aff, #0f4
 
 global.paletteShifts[? CHARACTER_AMY_CANON] = scr_palette([ #800000, #e00000, #ff7575 ]);
 global.paletteShifts[? CHARACTER_AMY_CANON + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20, #632d33 ]);
+
+// Sally Canon: mismos tonos que Sally (es Sally)
+global.paletteShifts[? CHARACTER_SALLY_CANON] = scr_palette([ #2d008f, #3600ff, #6060e0, #25518a ]);
+global.paletteShifts[? CHARACTER_SALLY_CANON + PALETTE_DEMON] = scr_palette([ #1b1342, #202886, #474784 ]);

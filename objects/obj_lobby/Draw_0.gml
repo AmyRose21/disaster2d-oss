@@ -108,7 +108,7 @@ else if(state == 2 || state == 3)
 		sprInd = selected - 1;
 		
 		if(obj_netclient.exeId == obj_netclient.nid)
-			sprInd += CHARACTER_SONIC;
+			sprInd += CHARACTER_SALLY_CANON; // ahora son 9 supervivientes
 	}
 	
 	// Amy Canon oculta sin token: ni retrato ni placa de info (doble seguro
@@ -125,6 +125,8 @@ else if(state == 2 || state == 3)
 	var _infoFrame = sprInd;
 	if(obj_netclient.exeId == obj_netclient.nid)
 		_infoFrame = sprInd - 1;
+	else if(sprInd == 8)
+		_infoFrame = 5; // sally canon: usa la placa de Sally
 	else if(sprInd >= 7)
 		_infoFrame = 11; // sonic
 	if(!_amyHidden)

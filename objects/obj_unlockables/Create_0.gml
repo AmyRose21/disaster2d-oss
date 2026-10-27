@@ -240,3 +240,10 @@ if(!ds_map_exists(palettes, CHARACTER_SONIC))
 
 if(!ds_map_exists(palettes, CHARACTER_SONIC + PALETTE_DEMON))
         palettes[? CHARACTER_SONIC + PALETTE_DEMON] = { name: "default", custom: false, character: CHARACTER_SONIC + PALETTE_DEMON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
+
+// Sally Canon — asegura paletas por defecto (mismo patron)
+if(!ds_map_exists(palettes, CHARACTER_SALLY_CANON))
+        palettes[? CHARACTER_SALLY_CANON] = { name: "default", custom: false, character: CHARACTER_SALLY_CANON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
+
+if(!ds_map_exists(palettes, CHARACTER_SALLY_CANON + PALETTE_DEMON))
+        palettes[? CHARACTER_SALLY_CANON + PALETTE_DEMON] = { name: "default", custom: false, character: CHARACTER_SALLY_CANON + PALETTE_DEMON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };

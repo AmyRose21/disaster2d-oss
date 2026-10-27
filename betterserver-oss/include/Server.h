@@ -67,7 +67,10 @@ typedef struct PeerData
 		CH_AMY_CANON,
 
 		/* Sonic (mod): sobreviviente #8, mismo orden que el cliente */
-		CH_SONIC
+		CH_SONIC,
+
+		/* Sally Canon (mod): sobreviviente #9, mismo orden que el cliente */
+		CH_SALLY_CANON
 	} surv_char;
 
 	enum
@@ -106,7 +109,7 @@ typedef struct
 	/* Character Select */
 	int8_t map;
 	uint16_t exe;
-	bool avail[CH_SONIC + 1];
+	bool avail[CH_SALLY_CANON + 1];
 } Lobby;
 
 typedef enum

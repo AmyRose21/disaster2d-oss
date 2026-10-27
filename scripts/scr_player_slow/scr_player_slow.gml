@@ -50,6 +50,8 @@ function scr_player_slow(time)
 			break;
 			
 		case CHARACTER_SALLY:
+		
+		case CHARACTER_SALLY_CANON:
 			global.player.isSlow = true;
 			global.player.acc = (SALLY_ACC * (100-40)) / 100;
 			global.player.maxHSpeed = (SALLY_MAXSPEED * (100-40)) / 100;

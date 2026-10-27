@@ -43,7 +43,7 @@ function scr_move_basic()
 		isBoosting = false;
 		isHiding = false;
 		
-		if(global.character == CHARACTER_SALLY)
+		if(global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON)
 		{
 			isAttacking = false;
 			isSliding = false;
@@ -140,6 +140,8 @@ function scr_move_basic()
 				break;
 			
 			case CHARACTER_SALLY:
+			
+			case CHARACTER_SALLY_CANON:
 				isAttacking = false;
 				isSliding = false;
 				break;
@@ -180,7 +182,7 @@ function scr_move_basic()
 				isStuck = false;
 			}
 		}
-		else if(global.character == CHARACTER_SALLY)
+		else if(global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON)
 		{
 			if(shieldTimer > 0)
 				shieldTimer = 0;
@@ -303,7 +305,7 @@ function scr_move_basic()
 		isOnEdge = false;
 	
 	// Emotions
-	if((state != IDLE && state != EMOTION1 && state != EMOTION2 && state != EMOTION3 && (((global.character != CHARACTER_AMY && global.character != CHARACTER_AMY_CANON) && global.character != CHARACTER_SALLY) || state != 15)) && emotion)
+	if((state != IDLE && state != EMOTION1 && state != EMOTION2 && state != EMOTION3 && (((global.character != CHARACTER_AMY && global.character != CHARACTER_AMY_CANON) && global.character != CHARACTER_SALLY && global.character != CHARACTER_SALLY_CANON) || state != 15)) && emotion)
 		emotion = false;
 		
 	if(state == IDLE && keyboard_check_pressed(global.KeyIdle))

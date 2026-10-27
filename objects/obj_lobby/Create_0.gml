@@ -21,6 +21,7 @@ chars =
 	spr_menu_sally,
 	spr_menu_amy_canon,
 	spr_menu_sonic_canon,
+	spr_menu_sally, // 8: Sally Canon reusa el retrato de Sally
 	spr_menu_exe,
 	spr_menu_chaos,
 	spr_menu_exetior,

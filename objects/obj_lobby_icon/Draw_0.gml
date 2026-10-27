@@ -31,7 +31,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		else
 		{
 			if(selected < 1)
-				selected = CHARACTER_SONIC;
+				selected = CHARACTER_SALLY_CANON;
 		}
 			
 		audio_play_sound(snd_menu_select, 0, false);
@@ -52,7 +52,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		}
 		else
 		{
-			if(selected > CHARACTER_SONIC)
+			if(selected > CHARACTER_SALLY_CANON)
 				selected = 1;
 		}
 			
@@ -101,7 +101,8 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 	}
 	else
 	{
-		image_index = selected + 1;
+		// Sally Canon reusa el icono de Sally en el tira de sprites del lobby
+		image_index = selected == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : selected + 1;
 		image_blend = c_gray;
 	}
 }

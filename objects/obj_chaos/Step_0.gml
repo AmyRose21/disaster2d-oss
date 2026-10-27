@@ -68,7 +68,7 @@ if(invisTimer <= 0 && bounceTimer <= 0 && slimeTimer <= 0)
 		var jumping = (inst.state == JUMP || inst.state == SPIN) || _amyTarot;
 		if(jumping && (isJumping || isSpinning))
 		{
-			if(!_amyTarot && (inst.character == CHARACTER_EGGMAN || (inst.character == CHARACTER_AMY || inst.character == CHARACTER_AMY_CANON) || inst.character == CHARACTER_SALLY))
+			if(!_amyTarot && (inst.character == CHARACTER_EGGMAN || (inst.character == CHARACTER_AMY || inst.character == CHARACTER_AMY_CANON) || inst.character == CHARACTER_SALLY || inst.character == CHARACTER_SALLY_CANON))
 				continue;
 				
 			var dirX = sign(inst.x - x);

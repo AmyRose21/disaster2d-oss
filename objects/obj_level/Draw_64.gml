@@ -66,7 +66,9 @@ if(global.showHud && titleCard > 4)
 	//self icon
 	if(obj_netclient.exeId != obj_netclient.nid)
 	{		
-		var sprIndex = (global.character-CHARACTER_TAILS) * 7;
+		// Sally Canon reusa los iconos de Sally en la barra de vida
+		var _hudChar = global.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : global.character;
+		var sprIndex = (_hudChar-CHARACTER_TAILS) * 7;
 		
 		if(player_exists)
 		{
@@ -77,14 +79,14 @@ if(global.showHud && titleCard > 4)
 				if(global.player.hp <= 0)
 				{
 					if(global.player.revivalTimes == 0)
-						sprIndex = (global.character-CHARACTER_TAILS) * 7 + 5;
+						sprIndex = (_hudChar-CHARACTER_TAILS) * 7 + 5;
 					else
-						sprIndex = (global.character-CHARACTER_TAILS) * 7 + 6;
+						sprIndex = (_hudChar-CHARACTER_TAILS) * 7 + 6;
 				}
 				
 				draw_sprite(global.player.redRingTimer > 0 ? spr_playerhealth_redring : spr_playerhealth, sprIndex, pos, 268);
 				if(global.player.revivalTimes >= 1 && global.player.hp > 0)
-					draw_sprite(spr_playerhealth_hit, global.character - 1, pos, 268);
+					draw_sprite(spr_playerhealth_hit, _hudChar - 1, pos, 268);
 				
 				if(global.player.isDead)
 				{
@@ -95,10 +97,10 @@ if(global.showHud && titleCard > 4)
 					scr_number_spr(pos + 12, 264, string(global.player.shards), #27ff23);		
 			}
 			else
-				draw_sprite(spr_playerhealth_demon, global.character-CHARACTER_TAILS, pos, 268);
+				draw_sprite(spr_playerhealth_demon, _hudChar-CHARACTER_TAILS, pos, 268);
 		}
 		else
-			draw_sprite(spr_playerescaped, (global.character-CHARACTER_TAILS), pos, 268);
+			draw_sprite(spr_playerescaped, (_hudChar-CHARACTER_TAILS), pos, 268);
 		
 		pos += 28;
 	}
@@ -133,20 +135,22 @@ if(global.showHud && titleCard > 4)
 		{
 			if(!inst.isDemonized || inst.character == CHARACTER_EXE)
 			{
-				var sprIndex = (inst.character-CHARACTER_TAILS) * 7;
+				// Sally Canon reusa los iconos de Sally en la barra de vida
+				var _pch = inst.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : inst.character;
+				var sprIndex = (_pch-CHARACTER_TAILS) * 7;
 				sprIndex += round((1.0 - (inst.hp / 100.0)) * 5);
 				
 				if(inst.hp <= 0)
 				{
 					if(inst.revivalTimes == 0)
-						sprIndex = (inst.character-CHARACTER_TAILS) * 7 + 5;
+						sprIndex = (_pch-CHARACTER_TAILS) * 7 + 5;
 					else
-						sprIndex = (inst.character-CHARACTER_TAILS) * 7 + 6;
+						sprIndex = (_pch-CHARACTER_TAILS) * 7 + 6;
 				}
 				
 				draw_sprite(redRing ? spr_playerhealth_redring : spr_playerhealth, sprIndex, pos + i * 28, 268);
 				if(inst.revivalTimes >= 1 && inst.hp > 0)
-					draw_sprite(spr_playerhealth_hit, inst.character - 1, pos + i * 28, 268);
+					draw_sprite(spr_playerhealth_hit, _pch - 1, pos + i * 28, 268);
 				
 				if(inst.revivalTimes == 0 && inst.deadTimer < 31)
 					scr_number_spr(pos + i * 28 + 12, 264, string(inst.deadTimer), inst.deadColor);
@@ -155,11 +159,11 @@ if(global.showHud && titleCard > 4)
 			}
 			else
 			{
-				draw_sprite(spr_playerhealth_demon, inst.character-CHARACTER_TAILS, pos + i * 28, 268);
+				draw_sprite(spr_playerhealth_demon, _pch-CHARACTER_TAILS, pos + i * 28, 268);
 			}
 		}
 		else 
-			draw_sprite(spr_playerescaped, (player.character-CHARACTER_TAILS), pos + i * 28, 268);
+			draw_sprite(spr_playerescaped, ((player.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : player.character)-CHARACTER_TAILS), pos + i * 28, 268);
 			
 		i++;
 	}

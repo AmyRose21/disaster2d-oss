@@ -20,7 +20,8 @@ with(obj_netclient)
 		true,
 		true,
 		true,  //7 (amy canon)
-		true  //8 (sonic)
+		true,  //8 (sonic)
+		true  //9 (sally canon)
 	];
 	
 	state = STATE_LOBBY;

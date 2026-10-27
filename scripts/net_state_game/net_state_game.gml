@@ -2343,6 +2343,8 @@ function net_state_game(rbuff, nps, isPasstrough)
 					break;
 					
 				case CHARACTER_SALLY:
+				
+				case CHARACTER_SALLY_CANON: // defensivo: el server jamas la demoniza
 					global.player.attackTimer = 0;
 					global.player.shieldTimer = 0;
 					global.player.shieldRechrage = 0;	
@@ -2584,7 +2586,8 @@ function net_state_game(rbuff, nps, isPasstrough)
 					true,
 					true,
 					true,  //7 (amy canon)
-					true  //8 (sonic)
+					true,  //8 (sonic)
+					true  //9 (sally canon)
 				];
 				
 				gameEnds = false;
@@ -2746,7 +2749,8 @@ function net_state_game(rbuff, nps, isPasstrough)
 					true,
 					true,
 					true,  //7 (amy canon)
-					true  //8 (sonic)
+					true,  //8 (sonic)
+					true  //9 (sally canon)
 				];
 				
 				gameEnds = false;
@@ -3306,7 +3310,8 @@ function net_state_game(rbuff, nps, isPasstrough)
 					true,
 					true,
 					true,  //7 (amy canon)
-					true  //8 (sonic)
+					true,  //8 (sonic)
+					true  //9 (sally canon)
 				];
 				
 				gameEnds = false;

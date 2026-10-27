@@ -113,6 +113,8 @@ function scr_collision_objects_after()
 					
 					
 				case CHARACTER_SALLY:
+				
+				case CHARACTER_SALLY_CANON:
 					if(isAttacking)
 					{
 						attackTimer = revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
@@ -236,6 +238,8 @@ function scr_collision_objects_after()
 					
 					
 				case CHARACTER_SALLY:
+				
+				case CHARACTER_SALLY_CANON:
 					if(isAttacking)
 					{
 						attackTimer = revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
@@ -291,7 +295,7 @@ function scr_collision_objects_after()
 		var _isAttacking = false;
 		var ch = global.character;
 	
-		if(global.player.isAttacking && (ch == CHARACTER_EXE || (ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON) || ch == CHARACTER_KNUX || ch == CHARACTER_EGGMAN || ch == CHARACTER_SALLY || ch == CHARACTER_SONIC))
+		if(global.player.isAttacking && (ch == CHARACTER_EXE || (ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON) || ch == CHARACTER_KNUX || ch == CHARACTER_EGGMAN || ch == CHARACTER_SALLY || ch == CHARACTER_SALLY_CANON || ch == CHARACTER_SONIC))
 			_isAttacking = true;
 				
 		if((ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON) && global.player.state == AMY_HJUMP)

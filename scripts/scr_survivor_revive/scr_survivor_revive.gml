@@ -16,6 +16,18 @@ function scr_survivor_revive()
                         return;
                 }
         }
+        
+        // FASE 2 (Sally Canon): durante sus 4 partes NO esta muerta (el
+        // server nunca la marco como tal): sin prompt de revive ni paquetes.
+        if(character == CHARACTER_SALLY_CANON)
+        {
+                if(state >= SALLY_CANON_F2_PT1 && state <= SALLY_CANON_F2_PT4)
+                {
+                        reviveObj.over = -1;
+                        reviveObj.show = false;
+                        return;
+                }
+        }
                 
         if(hp > 0)
         {

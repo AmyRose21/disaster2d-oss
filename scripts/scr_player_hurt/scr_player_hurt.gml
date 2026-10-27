@@ -65,6 +65,19 @@ function scr_player_instakill()
                 return; // el server nunca sabe que "murio": sigue vivo para todos
         }
         
+        // === FASE 2 (Sally Canon): su 1ra caida NO la mata ===
+        // Igual que la burbuja de Amy o los Nervios de Sonic: en vez de
+        // la agonia entra en su modo de 4 partes (retroceso del golpe ->
+        // suelo -> salto con squash & stretch -> recuperacion con la vida
+        // subiendo sola). Inmune a TODO mientras dure. Salva inclusive en
+        // muerte subita. Solo la 2da caida (fase2Used) muere de verdad,
+        // y el server (parche) la marca muerta directa: JAMAS se hace exe.
+        if(global.character == CHARACTER_SALLY_CANON && !global.player.fase2Used)
+        {
+                scr_sally_canon_fase2_start(global.player.fase2HitX);
+                return; // el server nunca sabe que "murio": sigue viva para todos
+        }
+        
         var packet = cpacket_tcp(PacketType.CLIENT_PLAYER_DEATH_STATE);
         buffer_write(packet, buffer_bool, true);
         buffer_write(packet, buffer_u8, global.player.revivalTimes);
@@ -131,6 +144,16 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         if(global.character == CHARACTER_SONIC && (global.player.nerviosState > 0 || global.player.isAttacking))
                 return;
         
+        // FASE 2 (Sally Canon): inmune a TODO durante las 4 partes
+        // (desde el retroceso del golpe hasta levantarse ya con vida llena).
+        if(global.character == CHARACTER_SALLY_CANON && global.player.fase2State > 0)
+                return;
+        
+        // SLIDE (Sally Canon): i-frames durante TODO el slide (y solo
+        // durante el slide): mientras se desliza no puede ser herida.
+        if(global.character == CHARACTER_SALLY_CANON && global.player.isSliding)
+                return;
+        
         if(global.player.hurttime > 0)
         {
                 if(ignore)
@@ -151,9 +174,9 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         {
                 if(damage > 0)
                 {
-                        if(global.character == CHARACTER_SALLY && global.player.shieldTimer > 0)
+                        if((global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON) && global.player.shieldTimer > 0)
                         {
-                                if(global.player.revivalTimes < 2 && global.player.hp <= 20)
+                                if(global.character == CHARACTER_SALLY && global.player.revivalTimes < 2 && global.player.hp <= 20)
                                 {
                                         obj_achivements.rSallyShield++;
                                         
@@ -167,7 +190,7 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                                                 obj_achivements.save();
                                         }
                                 }
-                                global.player.hurttime = 60;
+                                global.player.hurttime = global.character == CHARACTER_SALLY_CANON ? SALLY_CANON_SHIELD_BREAK_INVULN : 60; // Canon: 1 seg base + 2 extra
                                 global.player.shieldTimer = 0;
                                 
                                 audio_play_sound(snd_sally_shieldbreak, 0, false);
@@ -180,6 +203,12 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 if(global.player.revivalTimes < 2) // ignore if we're demonized
                 {
                         obj_achivements.wasHurt = true;
+                        
+                        // SALLY CANON: guarda la direccion del golpe para el
+                        // retroceso de su fase 2 (parte 1)
+                        if(global.character == CHARACTER_SALLY_CANON)
+                                global.player.fase2HitX = xpw;
+                        
                         global.player.hp -= damage;
                         
                         if(global.player.hp <= 0)

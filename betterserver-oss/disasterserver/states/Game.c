@@ -407,14 +407,15 @@ bool game_demonize(Server* server, PeerData* data)
         Packet pack;
         PacketCreate(&pack, SERVER_GAME_DEATHTIMER_END);
 
-        /* === AMY CANON (reglas canonicas) =============================
-         * Amy Canon JAMAS se convierte en exe/minion. Su muerte real
-         * (2da caida, ya gastada su burbuja de secuestro) la marca la
-         * rama de CLIENT_PLAYER_DEATH_STATE como muerta directa y no
-         * llega nunca hasta aqui. Este guard extra cubre cualquier
-         * otro camino que la quiera demonizar, p. ej. el bloque de
-         * muerte subita que demoniza a todos los PLAYER_DEAD. */
-        if (data->surv_char == CH_AMY_CANON)
+        /* === AMY CANON / SALLY CANON / SONIC (reglas canonicas) ========
+         * Ninguno de los tres JAMAS se convierte en exe/minion. Su
+         * muerte real (la 2da caida, ya gastada su pasiva: burbuja de
+         * secuestro, fase 2 o nervios de acero) la marca la rama de
+         * CLIENT_PLAYER_DEATH_STATE como muerta directa y no llega
+         * nunca hasta aqui. Este guard extra cubre cualquier otro
+         * camino que los quiera demonizar, p. ej. el bloque de muerte
+         * subita que demoniza a todos los PLAYER_DEAD. */
+        if (data->surv_char == CH_AMY_CANON || data->surv_char == CH_SALLY_CANON || data->surv_char == CH_SONIC)
                 return true;
 
         int players = 0;
@@ -1102,7 +1103,10 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                  * puede tocarla (solo demoniza a los PLAYER_DEAD).
                                  * Su muerte real (2da caida) es directa: muerta sin agonia,
                                  * sin timer de 30s y sin poder revivir. JAMAS se demoniza. */
-                                if (v->surv_char == CH_AMY_CANON)
+                                /* AMY CANON / SALLY CANON / SONIC: muerte
+                                 * directa (sin agonia, sin timer de 30s, sin
+                                 * poder revivir). JAMAS se demonizan. */
+                                if (v->surv_char == CH_AMY_CANON || v->surv_char == CH_SALLY_CANON || v->surv_char == CH_SONIC)
                                 {
                                         SET_FLAG(v->plr.flags, PLAYER_CANTREVIVE);
                                         v->plr.death_timer_sec = 0;
