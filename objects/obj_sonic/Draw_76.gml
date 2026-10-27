@@ -68,13 +68,31 @@ switch(state)
                 image_speed = abs(xspd) / 5;
                 break;
                 
-        // EL GOLPE (tecla X): la animacion del ataque termina sola el
-        // golpe; al llegar al ultimo frame se apaga isAttacking.
+        // EL GOLPE (tecla X): 3 variantes (tierra 1 / tierra 2 / aire).
+        // La animacion termina sola el golpe; al llegar al ultimo frame
+        // se apaga isAttacking. La variante la fijo scr_sonic_special.
         case SONIC_ATTACK:
+        case SONIC_ATTACK_TIERRA2:
+        case SONIC_ATTACK_AIRE:
                 image_speed = SONIC_ATTACK_ANIMSPD;
 
                 if(image_index >= image_number - 1)
                         isAttacking = false;
+                break;
+                
+        // NERVIOS DE ACERO: tirado en el suelo. Una sola pasada lenta en
+        // los 3 segundos de espera y se queda clavado en el ultimo frame.
+        case SONIC_NERVIOS:
+                image_speed = 0.03;
+
+                if(image_index >= image_number - 1)
+                        image_index = image_number - 1;
+                break;
+                
+        // NERVIOS DE ACERO: levantandose. El paso a powerboost lo corta
+        // el timer del Step (SONIC_NERVIOS_FINISH_TIME), no la animacion.
+        case SONIC_NERVIOS_FINISH:
+                image_speed = 0.15;
                 break;
                 
         // SPINDASH: carga de la bola. Mientras mas carga tiene, mas

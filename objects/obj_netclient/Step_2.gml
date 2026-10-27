@@ -71,6 +71,11 @@ with(global.player)
 				if(isAttacking)
 					bitflags |= PLAYER_ATTACKING;
 			}
+			
+			// SONIC: powerboost de Nervios de Acero. Con este bitflag el
+			// resto de clientes dibujan la estela de fantasmas en su puppet.
+			if(global.character == CHARACTER_SONIC && nerviosState == 3)
+				bitflags |= PLAYER_POWERBOOST;
 		
 			if(global.character == CHARACTER_SALLY)
 			{

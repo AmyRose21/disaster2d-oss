@@ -25,6 +25,8 @@ pY = y;
 image_speed = 0;
 isHiding = false;
 hasRedRing = false;
+powerBoost = false; // SONIC: powerboost de Nervios de Acero (bitflag de PLAYER_DATA)
+ghostTimer = 0;     // contador de la estela de fantasmas
 deadTimer = 31;
 deadColor = c_white;
 

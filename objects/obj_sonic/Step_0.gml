@@ -1,6 +1,100 @@
 /// @description General movement
 
-if(shockedTimer <= 0)
+// =====================================================================
+//  PASIVA NERVIOS DE ACERO
+//  Fase 1: tirado en el suelo 3 seg (sin control; cae plano si estaba
+//          en el aire). Inmune a TODO (lo garantiza scr_player_hurt).
+//  Fase 2: animacion de levantarse (SONIC_NERVIOS_FINISH_TIME).
+//  Fase 3: POWERBOOST 4 seg: control total, invulnerable y dejando
+//          una estela de fantasmas de corta duracion.
+//  Las fases 1-2 reemplazan el movimiento normal; la 3 lo deja correr
+//  con normalidad (solo añade la estela y el timer).
+// =====================================================================
+if(nerviosState == 1 || nerviosState == 2)
+{
+        // Sin control: se cancela todo lo que estuviera haciendo
+        isAttacking = false;
+        isSpinCharging = false;
+        spinCharge = 0;
+        isJumping = false;
+        isSpinning = false;
+        isBoosting = false;
+        isZipline = false;
+        isHiding = false;
+        isLookingDown = false;
+        isLookingUp = false;
+        emotion = false;
+        
+        // Cae plano; ya en el suelo queda clavado en el sitio
+        if(isGrounded)
+        {
+                xspd = 0;
+                gspd = 0;
+                yspd = 0;
+        }
+        
+        if(nerviosState == 1)
+        {
+                nerviosTimer--;
+                
+                if(nerviosTimer <= 0)
+                {
+                        // Fin de la espera: empieza a levantarse
+                        nerviosState = 2;
+                        nerviosTimer = SONIC_NERVIOS_FINISH_TIME;
+                }
+        }
+        else
+        {
+                nerviosTimer--;
+                
+                if(nerviosTimer <= 0)
+                {
+                        // De pie: 4 segundos de powerboost (invulnerable
+                        // + estela de fantasmas)
+                        nerviosState = 3;
+                        nerviosTimer = SONIC_NERVIOS_INVULN;
+                        ghostTimer = 0;
+                        hp = 100;
+                        
+                        audio_play_sound(snd_dash, 0, false);
+                        net_sound_emit(snd_dash);
+                        net_quick_effect(x, y, spr_shockparticle, false, 1, 0, 0, 1);
+                }
+        }
+        // (la colision la aplica la llamada unica de abajo, igual que las
+        // demas ramas: asi no se aplica la gravedad dos veces)
+}
+else if(nerviosState == 3)
+{
+        // POWERBOOST: se mueve y actua con total normalidad, pero va
+        // dejando fantasmas detras (estilo dash de Cream) y no puede
+        // recibir dano (check en scr_player_hurt).
+        nerviosTimer--;
+        
+        if(nerviosTimer <= 0)
+                nerviosState = 0; // fin de la pasiva: vuelta a la normalidad
+        else
+        {
+                ghostTimer++;
+                
+                if(ghostTimer mod SONIC_NERVIOS_GHOST_EVERY == 0)
+                {
+                        var _ghost = instance_create_depth(x, y, 0, obj_quickeffect_fade);
+                        _ghost.sprite_index = sprite_index;
+                        _ghost.image_index = image_index;
+                        _ghost.image_xscale = image_xscale;
+                        _ghost.image_yscale = 1;
+                        _ghost.image_angle = radtodeg(angle);
+                        _ghost.fadeSpeed = SONIC_NERVIOS_GHOST_FADE;
+                        _ghost.depth = 1; // detras del jugador (depth 0)
+                }
+        }
+        
+        scr_move_basic();
+        // (la colision la aplica la llamada unica de abajo)
+}
+else if(shockedTimer <= 0)
         scr_move_basic();
 else
 {

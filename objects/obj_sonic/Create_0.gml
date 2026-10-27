@@ -52,6 +52,30 @@
 #macro SONIC_SPINDASH_CHARGE_MAX 6
 #macro SONIC_SPINDASH_DECAY 90
 
+// =====================================================================
+//  PASIVA NERVIOS DE ACERO: la 1ra caida de la ronda NO mata a Sonic.
+//  Igual que la burbuja de Amy: en vez del estado de agonia, cae al
+//  suelo SONIC_NERVIOS_TIME segundos (animacion ..._Idle), se levanta
+//  (animacion ..._finish) y entra en POWERBOOST: SONIC_NERVIOS_INVULN
+//  segundos de invulnerabilidad TOTAL dejando una estela de fantasmas
+//  de corta duracion (estilo dash de Cream). Solo 1 vez por ronda.
+//  (60 frames = 1 segundo)
+// =====================================================================
+#macro SONIC_NERVIOS_TIME (60 * 3)          // DURACION tirado en el suelo (3 seg)
+#macro SONIC_NERVIOS_FINISH_TIME 30         // DURACION de la animacion de levantarse (~0.5 seg)
+#macro SONIC_NERVIOS_INVULN (60 * 4)        // DURACION del powerboost (4 seg)
+#macro SONIC_NERVIOS_GHOST_EVERY 5          // un fantasma cada N frames
+#macro SONIC_NERVIOS_GHOST_FADE 0.07        // velocidad de desvanecido (~14 frames de vida)
+
+// =====================================================================
+//  ATAQUE 1 variantes (golpe, tecla X): en el AIRE la hitbox de stuneo
+//  es 30% mas grande; en TIERRA hay 2 variantes al azar: la 1 usa la
+//  hitbox normal y la 2 es 20% mas grande. En ambos casos Sonic es
+//  inmune al dano mientras dura el golpe (ver scr_player_hurt).
+// =====================================================================
+#macro SONIC_ATTACK_AIRE_PAD 9              // px extra de hitbox en el aire (~30%)
+#macro SONIC_ATTACK_TIERRA2_PAD 6           // px extra de la variante 2 de tierra (~20%)
+
 //Variables
 gspd = 0;
 xspd = 0;
@@ -81,6 +105,16 @@ attackTimer = 0;
 isSpinCharging = false;   // true mientras esta agachado cargando la bola
 spinCharge = 0;           // carga actual (0..SONIC_SPINDASH_CHARGE_MAX)
 spinChargeDecay = 0;      // contador para perder carga con el tiempo
+
+// --- Variables de NERVIOS DE ACERO (pasiva) ---
+nerviosState = 0;    // 0=apagada, 1=tirado en el suelo, 2=levantandose, 3=powerboost
+nerviosUsed = false; // true tras usarla: 1 sola vez por ronda
+nerviosTimer = 0;    // contador de la fase actual
+ghostTimer = 0;      // contador para la estela de fantasmas
+
+// --- Variante del ATAQUE 1 (golpe) ---
+// 0=tierra variante 1 (hitbox normal), 1=tierra variante 2 (+20%), 2=aire (+30%)
+atkVariant = 0;
 
 //General
 hp = 100;

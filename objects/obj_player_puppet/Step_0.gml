@@ -30,6 +30,27 @@ if(room == room_act9)
 if(character == -1)
 	return;
 
+// SONIC POWERBOOST (Nervios de Acero): el Sonic remoto deja estela
+// de fantasmas mientras dura (bitflag PLAYER_POWERBOOST de
+// CLIENT_PLAYER_DATA). Mismo efecto de corta duracion que el jugador
+// local: un quickeffect_fade justo detras del puppet.
+if(powerBoost)
+{
+	ghostTimer++;
+	
+	if(ghostTimer mod SONIC_NERVIOS_GHOST_EVERY == 0)
+	{
+		var _ghost = instance_create_depth(x, y, 0, obj_quickeffect_fade);
+		_ghost.sprite_index = sprite_index;
+		_ghost.image_index = image_index;
+		_ghost.image_xscale = image_xscale;
+		_ghost.image_yscale = 1;
+		_ghost.image_angle = radtodeg(angle);
+		_ghost.fadeSpeed = SONIC_NERVIOS_GHOST_FADE;
+		_ghost.depth = depth + 1; // detras del puppet
+	}
+}
+
 if(character == CHARACTER_TAILS)
 {
 	if(state != TAILS_FLY && audio_is_playing(snd_tails_fly))
@@ -80,7 +101,20 @@ var _acTarotPad = (character == CHARACTER_AMY_CANON && state == AMY_CANON_TAROTD
 // (BALANCING+2), asi que el hack de la Amy original ya la cubre.
 var _acHJPad = (character == CHARACTER_AMY_CANON && state == AMY_CANON_HJUMP && image_index < 3 && distance_to_object(global.player) <= AMY_CANON_HJUMP_HITBOX_PAD);
 
-if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad)
+// ATAQUE DE SONIC: hitbox de stuneo ampliada segun la variante del
+// golpe: en el AIRE es 30% mas grande (SONIC_ATTACK_AIRE_PAD) y en
+// tierra la variante 2 un 20% (SONIC_ATTACK_TIERRA2_PAD). La variante
+// 1 de tierra usa el contacto normal (place_meeting), como siempre.
+var _sonicPad = 0;
+if(character == CHARACTER_SONIC && isAttacking)
+{
+	if(state == SONIC_ATTACK_AIRE)
+		_sonicPad = SONIC_ATTACK_AIRE_PAD;
+	else if(state == SONIC_ATTACK_TIERRA2)
+		_sonicPad = SONIC_ATTACK_TIERRA2_PAD;
+}
+
+if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad))
 {
 	if(isAttacking)
 	{

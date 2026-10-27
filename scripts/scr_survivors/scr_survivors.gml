@@ -163,7 +163,11 @@ global.player_anims[? CHARACTER_SONIC] =
         spr_sonic_attack2_tierra1, //14 = ATAQUE 1: el golpe estilo EXE (estado SONIC_ATTACK)
         spr_sonic_spin_charger, //15 = ATAQUE 2: carga del spindash (estado SONIC_SPINDASH)
         spr_none, //16
-        spr_sonic_zipline //17
+        spr_sonic_zipline, //17
+        spr_sonic_attack2_tierra2, //18 = ATAQUE 1 en tierra, variante 2 (hitbox +20%)
+        spr_sonic_attack2_aereo1, //19 = ATAQUE 1 en el aire (hitbox +30%)
+        spr_sonic_nervios_de_acero_Idle, //20 = NERVIOS DE ACERO: tirado en el suelo (3 seg)
+        spr_sonic_nervios_de_acero_finish //21 = NERVIOS DE ACERO: levantandose
 ];
 
 //Cream
@@ -353,7 +357,11 @@ global.player_eanims[? CHARACTER_SONIC] =
         spr_sonic_attack2_tierra1, //14
         spr_sonic_spin_charger, //15
         spr_none, //16
-        spr_sonic_zipline //17
+        spr_sonic_zipline, //17
+        spr_sonic_attack2_tierra2, //18 (demonizado: misma variante)
+        spr_sonic_attack2_aereo1, //19
+        spr_sonic_nervios_de_acero_Idle, //20
+        spr_sonic_nervios_de_acero_finish //21
 ];
 
 //Cream

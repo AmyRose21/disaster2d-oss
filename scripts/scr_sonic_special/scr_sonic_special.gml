@@ -52,6 +52,16 @@ function scr_sonic_special()
                 isJumping = false;
                 isSpinning = false;
                 
+                // VARIANTE del golpe (se decide al INICIARLO y no cambia a
+                // mitad de animacion): en el AIRE la hitbox de stuneo es 30%
+                // mas grande; en TIERRA sale al azar la variante 1 (hitbox
+                // normal) o la 2 (20% mas grande). En ambos casos Sonic es
+                // inmune al dano mientras dura el golpe.
+                if(!isGrounded)
+                        atkVariant = 2;
+                else
+                        atkVariant = irandom(1);
+                
                 // Mismo sonido que el ataque normal de los EXE.
                 audio_play_sound(snd_dash, 0, false);
                 net_sound_emit(snd_dash);

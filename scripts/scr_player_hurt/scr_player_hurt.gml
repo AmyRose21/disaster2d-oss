@@ -27,6 +27,43 @@ function scr_player_instakill()
                 // bubbleState == OVER: 2da caida -> cae al flujo normal (muerte directa)
         }
         
+        // === NERVIOS DE ACERO (Sonic): su 1ra caida NO lo mata ===
+        // Igual que la burbuja de Amy: en vez de la agonia, cae al suelo
+        // 3 segundos, se levanta y tiene 4 segundos de invulnerabilidad
+        // total (powerboost con estela de fantasmas). Salva inclusive en
+        // muerte subita. Solo la 2da caida (nerviosUsed) muere de verdad.
+        if(global.character == CHARACTER_SONIC && !global.player.nerviosUsed)
+        {
+                with(global.player)
+                {
+                        nerviosState = 1;             // fase 1: tirado en el suelo
+                        nerviosUsed = true;            // 1 sola vez por ronda
+                        nerviosTimer = SONIC_NERVIOS_TIME;
+                        ghostTimer = 0;
+                        
+                        hp = max(hp, 0);               // normaliza la vida que la dejo la caida
+                        hurttime = 0;                  // sin invulnerabilidad ni knockback heredado
+                        shockedTimer = 0;              // por si la caida venia de un stun
+                        isDead = false;                // la pasiva NO cuenta como muerte
+                        rings = 0;
+                        gspd = 0;
+                        xspd = 0;
+                        yspd = 0;
+                        isAttacking = false;
+                        isSpinCharging = false;
+                        spinCharge = 0;
+                        isJumping = false;
+                        isSpinning = false;
+                        isBoosting = false;
+                        isZipline = false;
+                        isHiding = false;
+                        isHurt = false;
+                        emotion = false;
+                }
+                
+                return; // el server nunca sabe que "murio": sigue vivo para todos
+        }
+        
         var packet = cpacket_tcp(PacketType.CLIENT_PLAYER_DEATH_STATE);
         buffer_write(packet, buffer_bool, true);
         buffer_write(packet, buffer_u8, global.player.revivalTimes);
@@ -78,7 +115,20 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         {
                 if(global.player.bubbleState == AMY_BUBBLE_ACTIVE)
                         return;
+                
+                // HABILIDADES DE AMY CANON: durante el impulso de tarot
+                // (tarot shock) y la acometida de martillo (hammer rush)
+                // Amy no recibe dano mientras dure la habilidad.
+                if(global.player.isDashing || global.player.isTarotDashing)
+                        return;
         }
+        
+        // NERVIOS DE ACERO (Sonic): inmune a TODO en sus 3 fases (tirado
+        // en el suelo, levantandose y powerboost de 4 seg). Ademas, el
+        // golpe (ataque en aire o tierra) lo blinda mientras dura la
+        // animacion: no puede recibir dano durante el uso de la habilidad.
+        if(global.character == CHARACTER_SONIC && (global.player.nerviosState > 0 || global.player.isAttacking))
+                return;
         
         if(global.player.hurttime > 0)
         {

@@ -179,3 +179,5 @@ enum PacketType
 #macro PLAYER_SALLYSHIELD 1 << 5
 #macro PLAYER_INVIS 1 << 6
 #macro PLAYER_SLIME 1 << 7
+// SONIC: powerboost de Nervios de Acero (estela de fantasmas en el puppet)
+#macro PLAYER_POWERBOOST 1 << 0

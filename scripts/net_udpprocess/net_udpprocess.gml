@@ -129,6 +129,11 @@ function net_udpprocess(rbuff)
                                                 
                                                 if(character == CHARACTER_SALLY)
                                                         sallyShield = bitflags & PLAYER_SALLYSHIELD;
+                                                
+                                                // SONIC: powerboost de Nervios de Acero
+                                                // (estela de fantasmas en este puppet)
+                                                if(character == CHARACTER_SONIC)
+                                                        powerBoost = bitflags & PLAYER_POWERBOOST;
                                         }
                                         break;
                                 }
