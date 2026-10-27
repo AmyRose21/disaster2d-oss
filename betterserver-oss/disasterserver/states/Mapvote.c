@@ -175,7 +175,7 @@ bool mapvote_init(Server* server)
 
 	RAssert(server);
 	server->state = ST_MAPVOTE;
-	server->lobby.countdown_sec = 30;
+	server->lobby.countdown_sec = g_config.mapvote_time;
 	server->lobby.countdown = TICKSPERSEC;
 	memset(server->lobby.votes, 0, sizeof(server->lobby.votes));
 

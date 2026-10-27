@@ -261,7 +261,7 @@ bool charselect_init(int8_t map, Server *server)
 	}
 
 	server->state = ST_CHARSELECT;
-	server->lobby.countdown_sec = 30;
+	server->lobby.countdown_sec = g_config.charselect_time;
 	server->lobby.countdown = TICKSPERSEC;
 	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_SONIC + 1));
 
@@ -320,7 +320,7 @@ bool charselect_init_survpractice(Server *server)
 	server->lobby.exe = 0xFFFF;
 
 	server->state = ST_CHARSELECT;
-	server->lobby.countdown_sec = 60;
+	server->lobby.countdown_sec = g_config.practice_time;
 	server->lobby.countdown = TICKSPERSEC;
 	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_SONIC + 1));
 

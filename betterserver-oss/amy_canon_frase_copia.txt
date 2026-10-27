@@ -1,9 +1,0 @@
-Tu frase secreta de Amy Canon (guardada el 2026-10-24 10:37):
-
-SweetPassion
-
-Si algun dia la cambias a mano, debe quedar IDENTICA en:
-
-- el Config.json del server (clave amy_canon_token)
-
-- tu archivo amy_canon.token

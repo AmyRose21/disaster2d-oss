@@ -35,6 +35,13 @@ SERVER_API Config g_config =
         .random_mode = false,
         .chatfix = true,
 
+        /* Timers del lobby (ver include/Config.h) */
+        .afk_kick_time = 25,
+        .charselect_time = 30,
+        .practice_time = 60,
+        .lobby_countdown = 5,
+        .mapvote_time = 30,
+
         /* Relay: desactivado por defecto; la cuenta se coloca a mano en
          * Config.json (igual que el betterserver v1.6 de penguinehis) */
         .relay = {
@@ -131,7 +138,12 @@ bool collection_init(cJSON** output, const char* file, const char* default_value
 bool config_init(void)
 {
         MutexCreate(g_config.map_list_lock);
-        
+
+        /* true si el Config.json existente no tiene las claves de timers
+           (se reescribe al final para que aparezcan). Declarada aqui
+           arriba porque el goto init_balls salta el bloque de parseo. */
+        bool timers_missing = false;
+
         // Try to open config
         FILE* file = fopen(CONFIG_FILE, "r");
         if (!file)
@@ -178,6 +190,68 @@ bool config_init(void)
         /* Amy Canon: permitir 2 juegos desde la misma PC (test local).
            Clave "allow_duplicate_ip" en Config.json; si falta => false. */
         g_config.allow_duplicate_ip = cJSON_IsTrue(cJSON_GetObjectItemCaseSensitive(json, "allow_duplicate_ip"));
+
+        /* Timers del lobby: segundos configurables desde Config.json.
+           Si falta la clave (Config.json viejo) se quedan los defaults.
+           El protocolo manda el tiempo en 8 bits -> max 255, excepto el
+           AFK que no viaja por red (max 3600 = 1 hora). */
+        cJSON* jtimer = NULL;
+
+        jtimer = cJSON_GetObjectItemCaseSensitive(json, "afk_kick_time");
+        if (cJSON_IsNumber(jtimer))
+        {
+                g_config.afk_kick_time = (int32_t)cJSON_GetNumberValue(jtimer);
+                if (g_config.afk_kick_time < 10)  g_config.afk_kick_time = 10;
+                if (g_config.afk_kick_time > 3600) g_config.afk_kick_time = 3600;
+        }
+        else
+                timers_missing = true;
+
+        jtimer = cJSON_GetObjectItemCaseSensitive(json, "charselect_time");
+        if (cJSON_IsNumber(jtimer))
+        {
+                g_config.charselect_time = (int32_t)cJSON_GetNumberValue(jtimer);
+                if (g_config.charselect_time < 10)  g_config.charselect_time = 10;
+                if (g_config.charselect_time > 255) g_config.charselect_time = 255;
+        }
+        else
+                timers_missing = true;
+
+        jtimer = cJSON_GetObjectItemCaseSensitive(json, "practice_time");
+        if (cJSON_IsNumber(jtimer))
+        {
+                g_config.practice_time = (int32_t)cJSON_GetNumberValue(jtimer);
+                if (g_config.practice_time < 10)  g_config.practice_time = 10;
+                if (g_config.practice_time > 255) g_config.practice_time = 255;
+        }
+        else
+                timers_missing = true;
+
+        jtimer = cJSON_GetObjectItemCaseSensitive(json, "lobby_countdown");
+        if (cJSON_IsNumber(jtimer))
+        {
+                g_config.lobby_countdown = (int32_t)cJSON_GetNumberValue(jtimer);
+                if (g_config.lobby_countdown < 1)  g_config.lobby_countdown = 1;
+                /* max 60: el reloj interno usa uint8 y reserva +1 como
+                   valor "detenido", no debe desbordar */
+                if (g_config.lobby_countdown > 60) g_config.lobby_countdown = 60;
+        }
+        else
+                timers_missing = true;
+
+        jtimer = cJSON_GetObjectItemCaseSensitive(json, "mapvote_time");
+        if (cJSON_IsNumber(jtimer))
+        {
+                g_config.mapvote_time = (int32_t)cJSON_GetNumberValue(jtimer);
+                if (g_config.mapvote_time < 10)  g_config.mapvote_time = 10;
+                if (g_config.mapvote_time > 255) g_config.mapvote_time = 255;
+        }
+        else
+                timers_missing = true;
+
+        Info("Timers: AFK kick %ds, char select %ds, practica %ds, countdown %ds, mapvote %ds",
+             g_config.afk_kick_time, g_config.charselect_time, g_config.practice_time,
+             g_config.lobby_countdown, g_config.mapvote_time);
 
         /* Relay: seccion anidada "relay" (enabled, directory_host,
            directory_port, username, password). Si falta la seccion se
@@ -226,6 +300,14 @@ init_balls:
                 Info(LOG_YLW "Anticheat is disabled, client modifications are allowed.");
         }
 
+        /* Config.json viejo sin claves de timers: reescribirlo para que
+           aparezcan y se puedan editar (preserva el resto de valores). */
+        if (timers_missing)
+        {
+                Info("Config.json: anadiendo claves de timers (afk_kick_time, charselect_time, practice_time, lobby_countdown, mapvote_time)...");
+                RAssert(config_save());
+        }
+
         return true;
 }
 
@@ -243,6 +325,13 @@ SERVER_API bool config_save(void)
         cJSON_AddItemToObject(json, "pride", cJSON_CreateBool(g_config.pride));
         cJSON_AddItemToObject(json, "motd", cJSON_CreateString(g_config.motd));
         cJSON_AddItemToObject(json, "random_mode", cJSON_CreateBool(g_config.random_mode));
+
+        /* Timers del lobby (se pueden editar a mano en el .json) */
+        cJSON_AddItemToObject(json, "afk_kick_time", cJSON_CreateNumber(g_config.afk_kick_time));
+        cJSON_AddItemToObject(json, "charselect_time", cJSON_CreateNumber(g_config.charselect_time));
+        cJSON_AddItemToObject(json, "practice_time", cJSON_CreateNumber(g_config.practice_time));
+        cJSON_AddItemToObject(json, "lobby_countdown", cJSON_CreateNumber(g_config.lobby_countdown));
+        cJSON_AddItemToObject(json, "mapvote_time", cJSON_CreateNumber(g_config.mapvote_time));
         cJSON_AddItemToObject(json, "amy_canon_token", cJSON_CreateString(g_config.amy_canon_token));
         cJSON_AddItemToObject(json, "allow_duplicate_ip", cJSON_CreateBool(g_config.allow_duplicate_ip));
 

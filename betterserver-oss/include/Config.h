@@ -47,6 +47,15 @@ typedef struct
         char    motd[256];
         bool    random_mode;
         bool    chatfix;
+
+        /* Timers del lobby (segundos, configurables en Config.json).
+           Si falta la clave en un Config.json viejo se usan estos defaults. */
+        int32_t afk_kick_time;     /* Kick AFK en la sala de espera (default 25, min 10, max 3600) */
+        int32_t charselect_time;   /* TIME UP seleccion de personaje (default 30, min 10, max 255) */
+        int32_t practice_time;     /* TIME UP practica sin EXE (default 60, min 10, max 255) */
+        int32_t lobby_countdown;   /* Cuenta atras cuando todos estan ready (default 5, min 1, max 60) */
+        int32_t mapvote_time;      /* Votacion de mapa (default 30, min 10, max 255) */
+
         char    amy_canon_token[65];    /* Amy Canon: frase secreta (max 64); vacia = bloqueada para todos */
         bool    allow_duplicate_ip;     /* Amy Canon: true = permite conectar 2 juegos desde la misma PC/IP (test local).
                                            CON RELAY ACTIVO DEBE SER true: todos los jugadores relayeados

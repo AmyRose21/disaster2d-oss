@@ -1,4 +1,7 @@
 {
   "FolderOrderSettings":[],
-  "ResourceOrderSettings":[],
+  "ResourceOrderSettings":[
+    {"name":"spr_sonic_nervios_de_acero_finish","order":2,"path":"sprites/spr_sonic_nervios_de_acero_finish/spr_sonic_nervios_de_acero_finish.yy",},
+    {"name":"spr_sonic_nervios_de_acero_Idle","order":1,"path":"sprites/spr_sonic_nervios_de_acero_Idle/spr_sonic_nervios_de_acero_Idle.yy",},
+  ],
 }

@@ -7,15 +7,18 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define NO_COUNTDOWN (5 + 1)
-#define COUNTDOWN (5)
+/* Timers del lobby configurables en Config.json:
+ *   lobby_countdown  -> cuenta atras cuando todos estan ready
+ *   afk_kick_time    -> kick al jugador que no da ready
+ * El valor "detenido" del reloj es lobby_countdown + 1
+ * (antes era el #define NO_COUNTDOWN). */
 
 bool lobby_send_countdown(Server* server)
 {
 	Packet pack;
 
 	PacketCreate(&pack, SERVER_LOBBY_COUNTDOWN);
-	PacketWrite(&pack, packet_write8, server->lobby.countdown_sec < NO_COUNTDOWN);
+	PacketWrite(&pack, packet_write8, server->lobby.countdown_sec <= g_config.lobby_countdown);
 	PacketWrite(&pack, packet_write8, server->lobby.countdown_sec);
 	
 	server_broadcast(server, &pack, true);
@@ -94,13 +97,13 @@ bool lobby_check_countdown(Server* server)
 	if (count == server->peers.noitems && server->peers.noitems > 1)
 	{
 		server->lobby.countdown = TICKSPERSEC;
-		server->lobby.countdown_sec = COUNTDOWN;
+		server->lobby.countdown_sec = g_config.lobby_countdown;
 		RAssert(lobby_send_countdown(server));
 	}
-	else if (server->lobby.countdown_sec != NO_COUNTDOWN)
+	else if (server->lobby.countdown_sec != g_config.lobby_countdown + 1)
 	{
 		server->lobby.countdown = TICKSPERSEC;
-		server->lobby.countdown_sec = NO_COUNTDOWN;
+		server->lobby.countdown_sec = g_config.lobby_countdown + 1;
 		RAssert(lobby_send_countdown(server));
 	}
 
@@ -557,7 +560,7 @@ bool lobby_state_tick(Server* server)
 					if ((int)peer->timeout % 60 == 0)
 						Debug("tick for %s: %f", peer->nickname.value, peer->timeout/60.0f);
 
-					if (peer->timeout >= 25 * TICKSPERSEC)
+					if (peer->timeout >= g_config.afk_kick_time * TICKSPERSEC)
 						server_disconnect(server, peer->peer, DR_AFKTIMEOUT, NULL);
 				}
 				else
@@ -589,7 +592,7 @@ bool lobby_state_tick(Server* server)
 		lobby_check_vote(server);
 
 	// Do countdown every second
-	if (server->lobby.countdown_sec <= COUNTDOWN)
+	if (server->lobby.countdown_sec <= g_config.lobby_countdown)
 	{
 		if (server->lobby.countdown <= 0)
 		{
@@ -653,7 +656,7 @@ bool lobby_init(Server* server)
 
 	server->state = ST_LOBBY;
 	server->lobby.countdown = TICKSPERSEC;
-	server->lobby.countdown_sec = NO_COUNTDOWN;
+	server->lobby.countdown_sec = g_config.lobby_countdown + 1;
 	server->lobby.prac_countdown = 0;
 	memset(&server->lobby.vote, 0, sizeof(Vote));
 
