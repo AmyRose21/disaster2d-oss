@@ -39,6 +39,7 @@ function scr_player_instakill()
                         nerviosState = 1;             // fase 1: tirado en el suelo
                         nerviosUsed = true;            // 1 sola vez por ronda
                         nerviosTimer = SONIC_NERVIOS_TIME;
+                        image_index = 0; // el Idle en loop empieza desde el frame 0
                         ghostTimer = 0;
                         
                         hp = max(hp, 0);               // normaliza la vida que la dejo la caida

@@ -103,14 +103,18 @@ var _acHJPad = (character == CHARACTER_AMY_CANON && state == AMY_CANON_HJUMP && 
 
 // ATAQUE DE SONIC: hitbox de stuneo ampliada segun la variante del
 // golpe: en el AIRE es 30% mas grande (SONIC_ATTACK_AIRE_PAD) y en
-// tierra la variante 2 un 20% (SONIC_ATTACK_TIERRA2_PAD). La variante
-// 1 de tierra usa el contacto normal (place_meeting), como siempre.
+// tierra la variante 2 o superior un 20% (SONIC_ATTACK_TIERRA2_PAD).
+// La variante 1 de tierra usa el contacto normal (place_meeting),
+// como siempre. El estado ya codifica la variante: SONIC_ATK_AIRE o
+// mas (aire) / SONIC_ATK_TIERRA+1 en adelante (tierra variante 2+).
+// Si empezo en el aire sigue contando como aire aunque aterrice: la
+// variante se fijo al empezar el golpe.
 var _sonicPad = 0;
 if(character == CHARACTER_SONIC && isAttacking)
 {
-	if(state == SONIC_ATTACK_AIRE)
+	if(state >= SONIC_ATK_AIRE)
 		_sonicPad = SONIC_ATTACK_AIRE_PAD;
-	else if(state == SONIC_ATTACK_TIERRA2)
+	else if(state >= SONIC_ATK_TIERRA + 1)
 		_sonicPad = SONIC_ATTACK_TIERRA2_PAD;
 }
 

@@ -55,13 +55,15 @@
 // =====================================================================
 //  PASIVA NERVIOS DE ACERO: la 1ra caida de la ronda NO mata a Sonic.
 //  Igual que la burbuja de Amy: en vez del estado de agonia, cae al
-//  suelo SONIC_NERVIOS_TIME segundos (animacion ..._Idle), se levanta
-//  (animacion ..._finish) y entra en POWERBOOST: SONIC_NERVIOS_INVULN
+//  suelo SONIC_NERVIOS_TIME segundos con la animacion ..._Idle en
+//  LOOP, luego se levanta (animacion ..._finish) y entra en POWERBOOST:
+//  SONIC_NERVIOS_INVULN
 //  segundos de invulnerabilidad TOTAL dejando una estela de fantasmas
 //  de corta duracion (estilo dash de Cream). Solo 1 vez por ronda.
 //  (60 frames = 1 segundo)
 // =====================================================================
-#macro SONIC_NERVIOS_TIME (60 * 3)          // DURACION tirado en el suelo (3 seg)
+#macro SONIC_NERVIOS_TIME (60 * 3)          // DURACION tirado en el suelo, Idle en LOOP (3 seg; pon (60 * 4) si quieres 4)
+#macro SONIC_NERVIOS_IDLE_SPD 0.5           // velocidad del LOOP del Idle (frames de sprite por step)
 #macro SONIC_NERVIOS_FINISH_TIME 30         // DURACION de la animacion de levantarse (~0.5 seg)
 #macro SONIC_NERVIOS_INVULN (60 * 4)        // DURACION del powerboost (4 seg)
 #macro SONIC_NERVIOS_GHOST_EVERY 5          // un fantasma cada N frames
@@ -113,8 +115,12 @@ nerviosTimer = 0;    // contador de la fase actual
 ghostTimer = 0;      // contador para la estela de fantasmas
 
 // --- Variante del ATAQUE 1 (golpe) ---
-// 0=tierra variante 1 (hitbox normal), 1=tierra variante 2 (+20%), 2=aire (+30%)
-atkVariant = 0;
+// El golpe escanea solo los sprites del proyecto: cualquier
+// spr_sonic_attack2_tierra<N> o spr_sonic_attack2_aereo<N> (N=1,2,3...)
+// cuenta como una variante. Se fijan al INICIAR el golpe y no cambian:
+// si empezo en el aire, la animacion es aerea hasta el final.
+atkAir = false;  // true: el golpe empezo en el aire
+atkNum = 1;      // numero de la variante elegida (1..N)
 
 //General
 hp = 100;

@@ -2,9 +2,9 @@
 
 // =====================================================================
 //  PASIVA NERVIOS DE ACERO
-//  Fase 1: tirado en el suelo 3 seg (sin control; cae plano si estaba
-//          en el aire). Inmune a TODO (lo garantiza scr_player_hurt).
-//  Fase 2: animacion de levantarse (SONIC_NERVIOS_FINISH_TIME).
+//  Fase 1: tirado en el suelo 3 seg con ..._Idle en LOOP (sin control;
+//          cae plano si estaba en el aire). Inmune a TODO (scr_player_hurt).
+//  Fase 2: animacion de levantarse ..._finish (SONIC_NERVIOS_FINISH_TIME).
 //  Fase 3: POWERBOOST 4 seg: control total, invulnerable y dejando
 //          una estela de fantasmas de corta duracion.
 //  Las fases 1-2 reemplazan el movimiento normal; la 3 lo deja correr
@@ -42,6 +42,7 @@ if(nerviosState == 1 || nerviosState == 2)
                         // Fin de la espera: empieza a levantarse
                         nerviosState = 2;
                         nerviosTimer = SONIC_NERVIOS_FINISH_TIME;
+                        image_index = 0; // el finish empieza desde el frame 0
                 }
         }
         else

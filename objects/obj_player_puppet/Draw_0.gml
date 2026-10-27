@@ -122,4 +122,14 @@ switch(character)
                 if(sallyShield)
                         draw_sprite(revivalTimes >= 2 ? spr_sallyshield2 : spr_sallyshield, (current_time / 30) % 41, floor(x), floor(y));
                 break;
+                
+        case CHARACTER_SONIC:
+                // TIROLINA de Sonic: la cuerda. Antes Sonic se volvia
+                // invisible en la tirolina (el estado apuntaba a
+                // spr_none); ya esta arreglado (SONIC_ZIPLINE -> idx
+                // 17). Si la cuerda queda un pelin alta o baja, ajusta
+                // el 22 de abajo.
+                if(state == SONIC_ZIPLINE)
+                        draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 22 - 19);
+                break;
 }

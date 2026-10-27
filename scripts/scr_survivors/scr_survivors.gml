@@ -160,14 +160,15 @@ global.player_anims[? CHARACTER_SONIC] =
         spr_sonic_emotion3, //11
         spr_sonic_jump, //12 = SPIN (rodar): mismo sprite del salto, como Tails/Knux
         spr_sonic_balancing, //13
-        spr_sonic_attack2_tierra1, //14 = ATAQUE 1: el golpe estilo EXE (estado SONIC_ATTACK)
+        spr_sonic_attack2_tierra1, //14 = el golpe estilo EXE (backup; el golpe ya usa el escaneo dinamico)
         spr_sonic_spin_charger, //15 = ATAQUE 2: carga del spindash (estado SONIC_SPINDASH)
         spr_none, //16
-        spr_sonic_zipline, //17
-        spr_sonic_attack2_tierra2, //18 = ATAQUE 1 en tierra, variante 2 (hitbox +20%)
-        spr_sonic_attack2_aereo1, //19 = ATAQUE 1 en el aire (hitbox +30%)
-        spr_sonic_nervios_de_acero_Idle, //20 = NERVIOS DE ACERO: tirado en el suelo (3 seg)
-        spr_sonic_nervios_de_acero_finish //21 = NERVIOS DE ACERO: levantandose
+        spr_sonic_zipline, //17 = tirolina (estado SONIC_ZIPLINE, arreglado v2)
+        spr_sonic_nervios_de_acero_Idle, //18 = NERVIOS DE ACERO: tirado en el suelo, Idle en LOOP (estado SONIC_NERVIOS)
+        spr_sonic_nervios_de_acero_finish //19 = NERVIOS DE ACERO: levantandose (estado SONIC_NERVIOS_FINISH)
+        // Las variantes del golpe (spr_sonic_attack2_tierra<N> / aereo<N>)
+        // ya NO van aqui: se detectan solas por nombre (bloque de variantes
+        // dinamicas al final de este archivo, estados 20-39 / 40-59)
 ];
 
 //Cream
@@ -357,11 +358,9 @@ global.player_eanims[? CHARACTER_SONIC] =
         spr_sonic_attack2_tierra1, //14
         spr_sonic_spin_charger, //15
         spr_none, //16
-        spr_sonic_zipline, //17
-        spr_sonic_attack2_tierra2, //18 (demonizado: misma variante)
-        spr_sonic_attack2_aereo1, //19
-        spr_sonic_nervios_de_acero_Idle, //20
-        spr_sonic_nervios_de_acero_finish //21
+        spr_sonic_zipline, //17 = tirolina (arreglado v2)
+        spr_sonic_nervios_de_acero_Idle, //18 = NERVIOS DE ACERO (demonizado: igual)
+        spr_sonic_nervios_de_acero_finish //19 = NERVIOS DE ACERO: levantandose
 ];
 
 //Cream
@@ -408,6 +407,50 @@ global.player_eanims[? CHARACTER_SALLY] =
         spr_none, // 16
         spr_esally_zipline // 17
 ];
+
+// =====================================================================
+//  SONIC: variantes dinamicas del golpe (tecla X). Cualquier sprite
+//  llamado spr_sonic_attack2_tierra<N> o spr_sonic_attack2_aereo<N>
+//  (N = 1, 2, 3...) cuenta como una variante mas: se detecta solo al
+//  arrancar el juego, sin tocar este archivo. Para anadir una variante
+//  nueva solo crea el sprite con ese nombre. El golpe elige una al azar
+//  segun donde empezo (aire -> aereo<N>, tierra -> tierra<N>) y el
+//  estado que viaja por red hace que el puppet del otro cliente
+//  muestre exactamente la misma animacion.
+// =====================================================================
+global.sonicAtkTierra = [];
+global.sonicAtkAire = [];
+
+var _sonicScanN = 1;
+while(_sonicScanN <= SONIC_ATK_TIERRA_MAX)
+{
+        var _sonicScanSpr = asset_get_index("spr_sonic_attack2_tierra" + string(_sonicScanN));
+        
+        if(is_undefined(_sonicScanSpr) || _sonicScanSpr < 0)
+                break;
+        
+        array_push(global.sonicAtkTierra, _sonicScanSpr);
+        _sonicScanN++;
+}
+
+_sonicScanN = 1;
+while(_sonicScanN <= SONIC_ATK_AIRE_MAX)
+{
+        var _sonicScanSpr = asset_get_index("spr_sonic_attack2_aereo" + string(_sonicScanN));
+        
+        if(is_undefined(_sonicScanSpr) || _sonicScanSpr < 0)
+                break;
+        
+        array_push(global.sonicAtkAire, _sonicScanSpr);
+        _sonicScanN++;
+}
+
+// Failsafe (no deberia pasar nunca): que el golpe nunca quede sin sprite
+if(array_length(global.sonicAtkTierra) == 0)
+        array_push(global.sonicAtkTierra, spr_sonic_attack2_tierra1);
+
+if(array_length(global.sonicAtkAire) == 0)
+        array_push(global.sonicAtkAire, spr_sonic_attack2_aereo1);
 
 function player_get(ind)
 {

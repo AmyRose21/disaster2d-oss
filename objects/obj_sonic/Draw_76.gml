@@ -1,5 +1,30 @@
 var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
-sprite_index = arr[? CHARACTER_SONIC][state];
+
+// EL GOLPE (tecla X) usa estados dinamicos (>= SONIC_ATK_TIERRA) que
+// no estan en el array: el sprite sale del escaneo por nombre
+// (spr_sonic_attack2_tierra<N> / aereo<N>), igual que en el puppet del
+// otro cliente. El resto de estados usan el array, como siempre.
+var _spr = -1;
+
+if(state >= SONIC_ATK_AIRE)
+{
+        var _vi = state - SONIC_ATK_AIRE;
+        
+        if(_vi < array_length(global.sonicAtkAire))
+                _spr = global.sonicAtkAire[_vi];
+}
+else if(state >= SONIC_ATK_TIERRA)
+{
+        var _vi = state - SONIC_ATK_TIERRA;
+        
+        if(_vi < array_length(global.sonicAtkTierra))
+                _spr = global.sonicAtkTierra[_vi];
+}
+else if(state < array_length(arr[? CHARACTER_SONIC]))
+        _spr = arr[? CHARACTER_SONIC][state];
+
+if(_spr != -1)
+        sprite_index = _spr;
 
 switch(state)
 {
@@ -68,31 +93,18 @@ switch(state)
                 image_speed = abs(xspd) / 5;
                 break;
                 
-        // EL GOLPE (tecla X): 3 variantes (tierra 1 / tierra 2 / aire).
-        // La animacion termina sola el golpe; al llegar al ultimo frame
-        // se apaga isAttacking. La variante la fijo scr_sonic_special.
-        case SONIC_ATTACK:
-        case SONIC_ATTACK_TIERRA2:
-        case SONIC_ATTACK_AIRE:
-                image_speed = SONIC_ATTACK_ANIMSPD;
-
-                if(image_index >= image_number - 1)
-                        isAttacking = false;
-                break;
-                
-        // NERVIOS DE ACERO: tirado en el suelo. Una sola pasada lenta en
-        // los 3 segundos de espera y se queda clavado en el ultimo frame.
+        // NERVIOS DE ACERO: tirado en el suelo. La animacion de espera
+        // (..._Idle) va en LOOP durante TODA la fase; el paso a la
+        // siguiente lo corta el timer del Step, no la animacion.
         case SONIC_NERVIOS:
-                image_speed = 0.03;
-
-                if(image_index >= image_number - 1)
-                        image_index = image_number - 1;
+                image_speed = SONIC_NERVIOS_IDLE_SPD;
                 break;
                 
-        // NERVIOS DE ACERO: levantandose. El paso a powerboost lo corta
-        // el timer del Step (SONIC_NERVIOS_FINISH_TIME), no la animacion.
+        // NERVIOS DE ACERO: levantandose. La velocidad se calcula para
+        // que UNA pasada completa del sprite dure justo el timer de la
+        // fase (SONIC_NERVIOS_FINISH_TIME), tenga los frames que tenga.
         case SONIC_NERVIOS_FINISH:
-                image_speed = 0.15;
+                image_speed = max(image_number / SONIC_NERVIOS_FINISH_TIME, 0.05);
                 break;
                 
         // SPINDASH: carga de la bola. Mientras mas carga tiene, mas
@@ -106,4 +118,15 @@ switch(state)
         case EMOTION3:
                 image_speed = 1;                
                 break;
+}
+
+// EL GOLPE (tecla X): variantes dinamicas (estados >= SONIC_ATK_TIERRA).
+// La animacion corre una sola vez; al llegar al ultimo frame se apaga
+// isAttacking. La variante la fijo scr_sonic_special al iniciar.
+if(state >= SONIC_ATK_TIERRA)
+{
+        image_speed = SONIC_ATTACK_ANIMSPD;
+        
+        if(image_index >= image_number - 1)
+                isAttacking = false;
 }

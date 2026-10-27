@@ -53,14 +53,23 @@ function scr_sonic_special()
                 isSpinning = false;
                 
                 // VARIANTE del golpe (se decide al INICIARLO y no cambia a
-                // mitad de animacion): en el AIRE la hitbox de stuneo es 30%
-                // mas grande; en TIERRA sale al azar la variante 1 (hitbox
-                // normal) o la 2 (20% mas grande). En ambos casos Sonic es
-                // inmune al dano mientras dura el golpe.
+                // mitad de animacion): en el AIRE sale SIEMPRE una variante
+                // aerea (spr_sonic_attack2_aereo<N>); en TIERRA una terrestre
+                // (spr_sonic_attack2_tierra<N>). Cualquier sprite con ese
+                // nombre + numero cuenta como variante (escaneo automatico
+                // en scr_survivors). Hitbox: aire +30%; tierra v1 normal y
+                // v2+ +20% (pads en el puppet). Sonic es inmune al dano
+                // mientras dura el golpe (scr_player_hurt).
                 if(!isGrounded)
-                        atkVariant = 2;
+                {
+                        atkAir = true;
+                        atkNum = irandom(array_length(global.sonicAtkAire) - 1) + 1;
+                }
                 else
-                        atkVariant = irandom(1);
+                {
+                        atkAir = false;
+                        atkNum = irandom(array_length(global.sonicAtkTierra) - 1) + 1;
+                }
                 
                 // Mismo sonido que el ataque normal de los EXE.
                 audio_play_sound(snd_dash, 0, false);

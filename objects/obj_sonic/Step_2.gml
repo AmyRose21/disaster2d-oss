@@ -1,10 +1,22 @@
-#macro SONIC_ATTACK BALANCING+1      // el golpe: tierra variante 1 (spr_sonic_attack2_tierra1)
-#macro SONIC_SPINDASH BALANCING+2    // carga del spindash (spr_sonic_spin_charger)
-#macro SONIC_ZIPLINE BALANCING+3     // tirolina (spr_sonic_zipline)
-#macro SONIC_ATTACK_TIERRA2 BALANCING+4 // el golpe: tierra variante 2, hitbox +20% (spr idx 18)
-#macro SONIC_ATTACK_AIRE BALANCING+5    // el golpe en el aire, hitbox +30% (spr idx 19)
-#macro SONIC_NERVIOS BALANCING+6        // NERVIOS DE ACERO: tirado en el suelo (spr idx 20)
-#macro SONIC_NERVIOS_FINISH BALANCING+7 // NERVIOS DE ACERO: levantandose (spr idx 21)
+// v2: el golpe (tecla X) ya NO usa un estado fijo por variante: cada
+// variante tiene su propio estado dinamico (SONIC_ATK_TIERRA/AIRE + N-1)
+// y el sprite se resuelve con el escaneo por nombre de scr_survivors.gml.
+#macro SONIC_SPINDASH BALANCING+2    // carga del spindash (spr idx 15)
+#macro SONIC_ZIPLINE BALANCING+4     // tirolina (spr idx 17). ARREGLADO v2: antes apuntaba al 16 (spr_none) y Sonic se volvia invisible en la tirolina
+#macro SONIC_NERVIOS BALANCING+5     // NERVIOS DE ACERO: tirado en el suelo, Idle en LOOP (spr idx 18)
+#macro SONIC_NERVIOS_FINISH BALANCING+6 // NERVIOS DE ACERO: levantandose (spr idx 19)
+
+// GOLPE (tecla X) con variantes dinamicas: el juego escanea solo
+// cualquier sprite llamado spr_sonic_attack2_tierra<N> (golpe en
+// tierra) o spr_sonic_attack2_aereo<N> (golpe en el aire), N = 1, 2,
+// 3... Cada variante viaja por red como su propio estado (el server
+// lo reenvia intacto), asi el otro jugador ve la misma animacion.
+// Hitbox: aire +30%; tierra variante 1 normal, variante 2 o mas +20%
+// (pads en obj_player_puppet/Step_0).
+#macro SONIC_ATK_TIERRA 20        // variante N de tierra = estado 20 + (N-1), hasta 39
+#macro SONIC_ATK_TIERRA_MAX 20    // tope de variantes tierra que se escanean
+#macro SONIC_ATK_AIRE 40          // variante N de aire = estado 40 + (N-1), hasta 59
+#macro SONIC_ATK_AIRE_MAX 20      // tope de variantes aire que se escanean
 
 if(!emotion)
         state = IDLE;
@@ -48,14 +60,12 @@ if(isSpinCharging)
 
 if(isAttacking)
 {
-        // Variante del golpe: tierra 1 (normal), tierra 2 (+20% hitbox)
-        // o aire (+30% hitbox). La fija scr_sonic_special al iniciarlo.
-        if(atkVariant == 1)
-                state = SONIC_ATTACK_TIERRA2;
-        else if(atkVariant == 2)
-                state = SONIC_ATTACK_AIRE;
-        else
-                state = SONIC_ATTACK;
+        // Variante del golpe: la fijo scr_sonic_special al INICIARLO
+        // (atkAir + atkNum) y no cambia a mitad de animacion: si empezo
+        // en el aire sigue siendo aerea aunque aterrice (y al reves).
+        // El estado viaja tal cual por red: el puppet del otro cliente
+        // resuelve el mismo sprite con el mismo escaneo por nombre.
+        state = (atkAir ? SONIC_ATK_AIRE : SONIC_ATK_TIERRA) + (atkNum - 1);
         return;
 }
 

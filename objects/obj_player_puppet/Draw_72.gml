@@ -22,6 +22,35 @@ if(character == CHARACTER_EXE)
 }
 else
 {
+	// SONIC: el golpe (tecla X) usa estados dinamicos (>=
+	// SONIC_ATK_TIERRA) que no estan en el array: el sprite sale del
+	// mismo escaneo por nombre que usa el jugador local (misma
+	// variante en los dos clientes).
+	if(character == CHARACTER_SONIC && state >= SONIC_ATK_TIERRA)
+	{
+		var _spr = -1;
+		
+		if(state >= SONIC_ATK_AIRE)
+		{
+			var _vi = state - SONIC_ATK_AIRE;
+			
+			if(_vi < array_length(global.sonicAtkAire))
+				_spr = global.sonicAtkAire[_vi];
+		}
+		else
+		{
+			var _vi = state - SONIC_ATK_TIERRA;
+			
+			if(_vi < array_length(global.sonicAtkTierra))
+				_spr = global.sonicAtkTierra[_vi];
+		}
+		
+		if(_spr != -1)
+			sprite_index = _spr;
+		
+		return;
+	}
+	
 	var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
 	
 	if(state >= array_length(arr[? character]))
