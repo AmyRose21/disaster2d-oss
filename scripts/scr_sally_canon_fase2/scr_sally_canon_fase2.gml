@@ -3,8 +3,10 @@
 /// Amy Canon o los Nervios de Acero de Sonic): en vez de la agonia de
 /// 30 segundos entra en su modo de 2 fases con 4 animaciones:
 ///   PT1 (spr_sally_fase2_canon_pt1): recibe el golpe y sale volando
-///        hacia atras (al lado contrario de donde vino el golpe) 1.5
-///        seg. Animacion no repetible: congela en el ultimo frame.
+///        hacia atras (al lado contrario de donde vino el golpe)
+///        HASTA TOCAR EL SUELO tras el impulso (max 1.5 seg de
+///        seguridad si nunca aterriza: hoyo/borde). Animacion no
+///        repetible: congela en el ultimo frame.
 ///   PT2 (spr_sally_fase2_canon_pt2): tirada en el suelo 3.5 seg.
 ///        Tambien congela en el ultimo frame.
 ///   PT3 (spr_sally_fase2_canon_pt3): salto hacia arriba (como un jump
@@ -20,7 +22,13 @@
 // =====================================================================
 //  PARAMETROS AJUSTABLES  (60 frames = 1 segundo)
 // ---------------------------------------------------------------------
-//  * PT1_TIME     = frames del retroceso del golpe (90 = 1.5 seg)
+//  * PT1_AIRMIN   = frames minimos de vuelo del pt1 antes de poder
+//                   pasar a pt2 (evita que entre directa al suelo si
+//                   el golpe la agarro parada: primero el impulso la
+//                   despega, luego el aterrizaje la tira).
+//  * PT1_TIME     = MAXIMO de frames del retroceso: red de seguridad
+//                   para cuando el impulso la deja cayendo sin tocar
+//                   suelo (hoyo/borde); 90 = 1.5 seg
 //  * PT1_KNOCK_X / PT1_KNOCK_Y = fuerza del vuelo hacia atras. Es como
 //                   golpear algo y que este salga despedido: X segun de
 //                   donde vino el golpe, Y negativa = despega hacia arriba.
@@ -39,6 +47,7 @@
 #macro SALLY_CANON_F2_PT1_TIME 90                // PT1: retroceso (1.5 seg)
 #macro SALLY_CANON_F2_PT1_KNOCK_X 5.5            // PT1: fuerza horizontal del vuelo
 #macro SALLY_CANON_F2_PT1_KNOCK_Y -5             // PT1: despega hacia arriba
+#macro SALLY_CANON_F2_PT1_AIRMIN 8               // PT1: frames minimos en el aire
 #macro SALLY_CANON_F2_PT2_TIME 210               // PT2: en el suelo (3.5 seg)
 #macro SALLY_CANON_F2_PT3_AIRMIN 8               // PT3: frames minimos en el aire
 #macro SALLY_CANON_F2_PT4_REGEN_TIME 90          // PT4: llenar la vida (1.5 seg)
@@ -129,13 +138,26 @@ function scr_sally_canon_fase2()
 
 	if(fase2State == SALLY_CANON_F2_PT1)
 	{
-		// PT1: volando hacia atras por el golpe.
+		// PT1: volando hacia atras por el golpe. La parte 1
+		// termina al TOCAR EL SUELO tras el impulso (no por
+		// tiempo): nunca queda deslizandose por el piso en pose
+		// de vuelo ni se tira ahi misma donde estaba parada.
+		// AIRMIN garantiza que el impulso la despegue primero
+		// (aunque el golpe la agarre parada); el timer queda
+		// solo de red de seguridad si nunca aterriza (hoyo).
+		fase2Air++;
 		fase2Timer--;
 
-		if(fase2Timer <= 0)
+		if((fase2Air >= SALLY_CANON_F2_PT1_AIRMIN && isGrounded) || fase2Timer <= 0)
 		{
+			// impacto contra el suelo: polvo para todos (mismo
+			// patron que el aterrizaje del salto de pt3)
+			if(isGrounded)
+				net_quick_effect(x, y + 20, spr_dust);
+
 			fase2State = SALLY_CANON_F2_PT2;
 			fase2Timer = SALLY_CANON_F2_PT2_TIME;
+			fase2Air = 0;
 			image_index = 0;
 		}
 	}

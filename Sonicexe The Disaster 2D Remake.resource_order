@@ -1,6 +1,7 @@
 {
   "FolderOrderSettings":[
     {"name":"Sally Canon","order":2,"path":"folders/Objects/Player/Survivors/Sally Canon.yy",},
+    {"name":"Sally Canon","order":1,"path":"folders/Sounds/Player/Sally Canon.yy",},
     {"name":"Sally Canon","order":1,"path":"folders/Sprites/Player/Survivors/Sally Canon.yy",},
   ],
   "ResourceOrderSettings":[

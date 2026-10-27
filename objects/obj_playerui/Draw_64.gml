@@ -217,6 +217,31 @@ if(instance_exists(global.player) && !global.player.isDead)
 			draw_sprite_ext(spr_gui_sallyshield, global.player.revivalTimes >= 2, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
 			break;
 		}
+		case CHARACTER_SALLY_CANON:
+		{
+			// SALLY CANON: tiene las mismas habilidades que Sally
+			// (scr_sally_special), asi que usa sus mismos iconos del
+			// HUD: la PATADA aerea (tecla Z) y el ESCUDO (tecla C).
+			// El relleno de cada icono muestra el CD que le falta;
+			// blanco = listo (la patada ademas exige estar en el
+			// aire, igual que en el HUD de Sally).
+			var val = global.player.revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
+			var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
+			
+			var b = c_red;
+			if(prog == 1.0)
+				b = c_white;
+			
+			if(global.player.isGrounded)
+				b = c_red;
+			
+			draw_sprite_ext(spr_gui_sallyattack, global.player.revivalTimes >= 2, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);
+			
+			var val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
+			var prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
+			draw_sprite_ext(spr_gui_sallyshield, global.player.revivalTimes >= 2, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+			break;
+		}
 	}
 	
 	if(global.character != CHARACTER_EXE && (global.player.state == IDLE || global.player.emotion))
