@@ -188,8 +188,8 @@ function net_tcpprocess(rbuff)
 			case PacketType.SERVER_OPERATOR_STATE:
 			{
 				// Estado de operador (server -> cliente): 1 = este cliente
-				// es operador del server. Desbloquea Sonic y Sally Canon en
-				// la seleccion (ver scr_char_locked). Llega justo despues
+				// es operador del server. Desbloquea a Sally Canon en la
+				// seleccion (ver scr_char_locked). Llega justo despues
 				// de conectarte y al darte .op, en cualquier estado de la
 				// conexion, por eso vive en el switch principal.
 				global.isOperator = buffer_read_s(rbuff, buffer_u8) != 0;

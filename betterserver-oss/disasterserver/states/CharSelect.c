@@ -160,22 +160,22 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 			return true;
 		}
 
-		/* Sonic y Sally Canon: personajes RESERVADOS (sistema de
-		   seguridad ALTERNATIVO al token de Amy Canon). Solo pueden
-		   usarlos los OPERADORES (Operators.json / .op) o el jugador
-		   con el token valido (amy_authed). A los demas se les
-		   responde igual que si estuvieran ocupados: el cliente
-		   ademas ni se los muestra al ciclar (ver scr_char_locked),
-		   pero si alguien edita su cliente para pedirlos, el server
-		   los rechaza igual. Doble seguro. */
-		if ((id == CH_SONIC || id == CH_SALLY_CANON) && !v->op && !v->amy_authed)
+		/* Sally Canon: personaje RESERVADO. Solo pueden usarla los
+		   OPERADORES del server (Operators.json / .op). Sonic quedo
+		   libre para todos y Amy Canon sigue siendo solo del token
+		   (bloque de arriba). A los demas se les responde igual que
+		   si estuviera ocupada: el cliente ademas ni se la muestra
+		   al ciclar (ver scr_char_locked), pero si alguien edita su
+		   cliente para pedirla, el server la rechaza igual.
+		   Doble seguro. */
+		if (id == CH_SALLY_CANON && !v->op)
 		{
 			PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
 			PacketWrite(&pack, packet_write8, id + 1);
 			PacketWrite(&pack, packet_write8, 0);
 			RAssert(packet_send(v->peer, &pack, true));
 
-			Info("%s (id %d) tried to pick [%s] without unlock!", v->nickname.value, v->id, id == CH_SONIC ? "Sonic" : "Sally Canon");
+			Info("%s (id %d) tried to pick [Sally Canon] without unlock!", v->nickname.value, v->id);
 			return true;
 		}
 

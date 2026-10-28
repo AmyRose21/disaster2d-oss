@@ -89,9 +89,9 @@ bool peer_identity_process(PeerData *v, const char *addr, bool is_banned, uint64
         PacketWrite(&pack, packet_write16, v->id);
         RAssert(packet_send(v->peer, &pack, true));
 
-        // Sonic/Sally Canon reservados: informar a este cliente si es
+        // Sally Canon reservada: informar a este cliente si es
         // operador (el cliente lo guarda en global.isOperator y con eso
-        // le muestra u oculta esos personajes en la seleccion). Se envia
+        // le muestra u oculta a Sally Canon en la seleccion). Se envia
         // SIEMPRE (0 o 1) en cada conexion para dejar el estado explicito.
         PacketCreate(&pack, SERVER_OPERATOR_STATE);
         PacketWrite(&pack, packet_write8, v->op);
@@ -996,8 +996,8 @@ bool server_msg_handle(Server *server, PacketType type, PeerData *v, Packet *pac
                                 RAssert(op_add(peer->nickname.value, peer->ip.value));
                                 server_send_msg(v->server, peer->peer, CLRCODE_GRN "you're an operator now");
 
-                                // Sonic/Sally Canon: avisarle al nuevo operador
-                                // para que le aparezcan sin reconectarse
+                                // Sally Canon: avisarle al nuevo operador
+                                // para que le aparezca sin reconectarse
                                 Packet oppack;
                                 PacketCreate(&oppack, SERVER_OPERATOR_STATE);
                                 PacketWrite(&oppack, packet_write8, 1);

@@ -531,6 +531,14 @@ bool ui_button_op(struct _Component* component)
 
 			server_send_msg(server, peer->peer, CLRCODE_GRN "you're an operator now");
 			res = op_add(peer->nickname.value, peer->ip.value);
+
+			/* Sally Canon: avisarle al nuevo operador para que le
+			   aparezca sin reconectarse (mismo paquete que envian el
+			   .op del chat y la conexion; ver states/Server.c) */
+			Packet oppack;
+			PacketCreate(&oppack, SERVER_OPERATOR_STATE);
+			PacketWrite(&oppack, packet_write8, 1);
+			RAssert(packet_send(peer->peer, &oppack, true));
 		}
 	}
 	MutexUnlock(server->state_lock);

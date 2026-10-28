@@ -551,8 +551,9 @@ function player_get(ind)
 // de Amy Canon). Devuelve true si ESTE cliente no puede usar al
 // personaje ch (enum 1-based: CHARACTER_TAILS..CHARACTER_SALLY_CANON):
 //   * Amy Canon: solo con el token local (amy_canon.token)
-//   * Sonic y Sally Canon: con el token local O siendo operador del
-//     server (global.isOperator, seteado por SERVER_OPERATOR_STATE)
+//   * Sally Canon: solo siendo operador del server
+//     (global.isOperator, seteado por SERVER_OPERATOR_STATE)
+//   * Sonic: libre para todos
 // Quien no cumple NO ve el personaje al ciclar en la seleccion ni
 // puede pedirlo (obj_lobby_icon / obj_lobby); y si igual lo pide con
 // un cliente editado, el server se lo rechaza como si estuviera
@@ -563,8 +564,8 @@ function scr_char_locked(ch)
         if(ch == CHARACTER_AMY_CANON && global.amyCanonToken == "")
                 return true;
 
-        // Sonic y Sally Canon: token u operador
-        if((ch == CHARACTER_SONIC || ch == CHARACTER_SALLY_CANON) && !global.isOperator && global.amyCanonToken == "")
+        // Sally Canon: solo operador
+        if(ch == CHARACTER_SALLY_CANON && !global.isOperator)
                 return true;
 
         return false;

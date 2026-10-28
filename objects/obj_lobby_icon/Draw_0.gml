@@ -18,7 +18,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		offset = 3;
 		selected--;
 		
-		// Personajes reservados (Amy Canon / Sonic / Sally Canon):
+		// Personajes reservados (Amy Canon / Sally Canon):
 		// quien no puede usarlos no pasa por sus slots al ciclar
 		// (ver scr_char_locked). El while salta varios seguidos.
 		while(selected >= CHARACTER_TAILS && selected <= CHARACTER_SALLY_CANON && scr_char_locked(selected))
@@ -74,7 +74,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		else
 			packet = cpacket_tcp(PacketType.CLIENT_REQUEST_CHARACTER);
 				
-		// Personajes reservados (Amy Canon / Sonic / Sally Canon):
+		// Personajes reservados (Amy Canon / Sally Canon):
 		// sin permiso ni siquiera se piden al server (que tambien los
 		// rechaza por si solo: doble seguro; ver scr_char_locked)
 		if(obj_netclient.exeId == master_id || (obj_netclient.avCharacters[selected] && !scr_char_locked(selected)))

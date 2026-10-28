@@ -40,5 +40,7 @@
     {"name":"spr_sonic_attack2_tierra2","order":4,"path":"sprites/spr_sonic_attack2_tierra2/spr_sonic_attack2_tierra2.yy",},
     {"name":"spr_sonic_nervios_de_acero_finish","order":2,"path":"sprites/spr_sonic_nervios_de_acero_finish/spr_sonic_nervios_de_acero_finish.yy",},
     {"name":"spr_sonic_nervios_de_acero_Idle","order":1,"path":"sprites/spr_sonic_nervios_de_acero_Idle/spr_sonic_nervios_de_acero_Idle.yy",},
+    {"name":"spr_sonic_parry_success_canon","order":6,"path":"sprites/spr_sonic_parry_success_canon/spr_sonic_parry_success_canon.yy",},
+    {"name":"spr_sonic_parry_wait_canon","order":5,"path":"sprites/spr_sonic_parry_wait_canon/spr_sonic_parry_wait_canon.yy",},
   ],
 }

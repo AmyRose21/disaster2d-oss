@@ -93,9 +93,9 @@ global.levelDescriptions =
 
 // Operador del server: lo setea el server al conectarte
 // (SERVER_OPERATOR_STATE en net_tcpprocess) y al darte .op.
-// Estar en la lista de operadores desbloquea Sonic y Sally Canon
-// en la seleccion; el token de abajo ademas desbloquea Amy Canon
-// (y tambien Sonic y Sally Canon, ver scr_char_locked).
+// Estar en la lista de operadores desbloquea a Sally Canon en la
+// seleccion; el token de abajo desbloquea Amy Canon (Sonic es
+// libre; ver scr_char_locked).
 global.isOperator = false;
 
 // Amy Canon: token local del PERSONAJE RESERVADO.

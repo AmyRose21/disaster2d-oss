@@ -113,8 +113,9 @@ else if(state == 2 || state == 3)
 	
 	// Personajes reservados ocultos: ni retrato ni placa de info (doble
 	// seguro ademas del salto de slot en obj_lobby_icon). Amy Canon sin
-	// token; Sonic y Sally Canon sin token ni operador. sprInd es 0-based
-	// (6 = Amy Canon, 7 = Sonic, 8 = Sally Canon); ver scr_char_locked.
+	// token; Sally Canon sin ser operador (Sonic es libre).
+	// sprInd es 0-based (6 = Amy Canon, 7 = Sonic, 8 = Sally Canon);
+	// ver scr_char_locked.
 	var _amyHidden = scr_char_locked(sprInd + 1);
 	
 	if(!_amyHidden && (obj_netclient.exeId == obj_netclient.nid || obj_netclient.avCharacters[sprInd+1]))
