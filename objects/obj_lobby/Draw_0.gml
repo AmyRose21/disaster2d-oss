@@ -111,9 +111,11 @@ else if(state == 2 || state == 3)
 			sprInd += CHARACTER_SALLY_CANON; // ahora son 9 supervivientes
 	}
 	
-	// Amy Canon oculta sin token: ni retrato ni placa de info (doble seguro
-	// ademas del salto de slot en obj_lobby_icon; sprInd 6 = Amy Canon)
-	var _amyHidden = (sprInd == 6 && global.amyCanonToken == "");
+	// Personajes reservados ocultos: ni retrato ni placa de info (doble
+	// seguro ademas del salto de slot en obj_lobby_icon). Amy Canon sin
+	// token; Sonic y Sally Canon sin token ni operador. sprInd es 0-based
+	// (6 = Amy Canon, 7 = Sonic, 8 = Sally Canon); ver scr_char_locked.
+	var _amyHidden = scr_char_locked(sprInd + 1);
 	
 	if(!_amyHidden && (obj_netclient.exeId == obj_netclient.nid || obj_netclient.avCharacters[sprInd+1]))
 		draw_sprite(chars[sprInd], charIndex, 132, 230);

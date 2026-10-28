@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"EVASI1",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":0.5333333,
+  "exportDir":"",
+  "name":"EVASI1",
+  "parent":{
+    "name":"Sally Canon",
+    "path":"folders/Sounds/Player/Sally Canon.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"EVASI1.wav",
+  "volume":1.0,
+}

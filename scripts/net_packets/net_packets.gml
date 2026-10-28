@@ -162,7 +162,14 @@ enum PacketType
 	/* Amy Canon: token de desbloqueo del personaje reservado
 	   (se envia justo despues de IDENTITY; el server lo compara con
 	   "amy_canon_token" de su Config.json) */
-	CLIENT_AMY_AUTH
+	CLIENT_AMY_AUTH,
+
+	/* Estado de operador (server -> cliente, u8: 1 = eres operador).
+	   Lo envia el server al conectarte y al darte .op; estar en
+	   operadores desbloquea Sonic y Sally Canon en la seleccion
+	   (ver scr_char_locked). El valor numerico de este enum es
+	   IDENTICO al de Packet.h del server: no reordenar. */
+	SERVER_OPERATOR_STATE
 }
 
 #macro STATE_PENDING -1

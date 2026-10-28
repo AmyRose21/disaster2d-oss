@@ -5,6 +5,12 @@ isConnected = false;
 isReady = false;
 isServerReady = false;
 nid = -1;
+
+// Operador del server: lo setea el server al conectarte
+// (SERVER_OPERATOR_STATE, ver net_tcpprocess) y al darte .op.
+// Se resetea por conexion para no arrastrar el estado de otro
+// server. Desbloquea Sonic y Sally Canon (ver scr_char_locked).
+global.isOperator = false;
 frame = 0;
 gameEnds = false;
 reconnAttempts = 0;

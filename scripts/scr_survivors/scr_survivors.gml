@@ -546,3 +546,26 @@ function player_get(ind)
                         return obj_sally_canon;
         }
 }
+
+// Personajes RESERVADOS (sistema de seguridad alternativo al token
+// de Amy Canon). Devuelve true si ESTE cliente no puede usar al
+// personaje ch (enum 1-based: CHARACTER_TAILS..CHARACTER_SALLY_CANON):
+//   * Amy Canon: solo con el token local (amy_canon.token)
+//   * Sonic y Sally Canon: con el token local O siendo operador del
+//     server (global.isOperator, seteado por SERVER_OPERATOR_STATE)
+// Quien no cumple NO ve el personaje al ciclar en la seleccion ni
+// puede pedirlo (obj_lobby_icon / obj_lobby); y si igual lo pide con
+// un cliente editado, el server se lo rechaza como si estuviera
+// ocupado (states/CharSelect.c del betterserver).
+function scr_char_locked(ch)
+{
+        // Amy Canon: solo token
+        if(ch == CHARACTER_AMY_CANON && global.amyCanonToken == "")
+                return true;
+
+        // Sonic y Sally Canon: token u operador
+        if((ch == CHARACTER_SONIC || ch == CHARACTER_SALLY_CANON) && !global.isOperator && global.amyCanonToken == "")
+                return true;
+
+        return false;
+}

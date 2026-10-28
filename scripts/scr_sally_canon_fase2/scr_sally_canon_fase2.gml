@@ -109,9 +109,15 @@ function scr_sally_canon_fase2_start(hitDir = 0)
 		yspd = SALLY_CANON_F2_PT1_KNOCK_Y;
 		isGrounded = false;
 		
-		// Impacto visible para todos + sonido del golpe
+		// Impacto visible para todos. El sonido del golpe queda igual
+		// que siempre (snd_hurt por red) y su grito de dolor (1 de
+		// SALLY1-5 al azar) suena ADICIONAL encima: en su pantalla y en
+		// la de los demas, con el mismo paquete de sonido de siempre.
 		net_quick_effect(x, y, spr_blood2, false, -_dir, 0, 0, 1);
 		net_sound_emit(snd_hurt);
+		var _snd = choose(SALLY1, SALLY2, SALLY3, SALLY4, SALLY5);
+		audio_play_sound(_snd, 0, false);
+		net_sound_emit(_snd);
 	}
 }
 
@@ -206,6 +212,14 @@ function scr_sally_canon_fase2()
 
 			// Polvo del aterrizaje (visible en todos los clientes)
 			net_quick_effect(x, y + 20, spr_dust);
+
+			// EVASI2: su grito de evasion suena 1 SOLA vez, justo al
+			// entrar en la parte final de la fase 2 (pt4). Como la
+			// transicion PT3 -> PT4 ocurre una unica vez, nunca se
+			// repite. En su pantalla + en la de los demas por red
+			// (mismo patron que el salto de pt3).
+			audio_play_sound(EVASI2, 0, false);
+			net_sound_emit(EVASI2);
 		}
 	}
 	else if(fase2State == SALLY_CANON_F2_PT4)

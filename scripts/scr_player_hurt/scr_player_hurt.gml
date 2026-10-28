@@ -249,6 +249,19 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 audio_play_sound(sndid, 0, false);
                 net_sound_emit(sndid);
                 scr_camera_shake(25, 1, 0.2);
+                
+                // SALLY CANON: su voz de dolor (1 de SALLY1-5 al azar)
+                // suena ADICIONAL al sonido del golpe de arriba (el
+                // snd_hurt / snd_spike / snd_lavahit original NO se
+                // reemplaza: suenan los 2). En su pantalla y en la de
+                // todos por red, con el mismo paquete de sonido de
+                // siempre (sin cambios en el server).
+                if(global.character == CHARACTER_SALLY_CANON && damage > 0)
+                {
+                        var _snd = choose(SALLY1, SALLY2, SALLY3, SALLY4, SALLY5);
+                        audio_play_sound(_snd, 0, false);
+                        net_sound_emit(_snd);
+                }
         }
         
         if(damage > 0)

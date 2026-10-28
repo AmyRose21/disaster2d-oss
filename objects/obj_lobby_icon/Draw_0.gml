@@ -18,9 +18,10 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		offset = 3;
 		selected--;
 		
-		// Amy Canon oculta: sin token local se salta su slot por completo
-		// (quien no tiene amy_canon.token ni siquiera pasa por ahi al ciclar)
-		if(selected == CHARACTER_AMY_CANON && global.amyCanonToken == "")
+		// Personajes reservados (Amy Canon / Sonic / Sally Canon):
+		// quien no puede usarlos no pasa por sus slots al ciclar
+		// (ver scr_char_locked). El while salta varios seguidos.
+		while(selected >= CHARACTER_TAILS && selected <= CHARACTER_SALLY_CANON && scr_char_locked(selected))
 			selected--;
 		
 		if(obj_netclient.exeId == master_id)
@@ -31,7 +32,12 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		else
 		{
 			if(selected < 1)
+			{
+				// wrap: entra por el ultimo slot VISIBLE
 				selected = CHARACTER_SALLY_CANON;
+				while(selected >= CHARACTER_TAILS && scr_char_locked(selected))
+					selected--;
+			}
 		}
 			
 		audio_play_sound(snd_menu_select, 0, false);
@@ -41,8 +47,9 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		offset = 3;
 		selected++;
 		
-		// Amy Canon oculta: sin token local se salta su slot por completo
-		if(selected == CHARACTER_AMY_CANON && global.amyCanonToken == "")
+		// Personajes reservados: se saltan por completo al ciclar
+		// (ver scr_char_locked)
+		while(selected <= CHARACTER_SALLY_CANON && scr_char_locked(selected))
 			selected++;
 		
 		if(obj_netclient.exeId == master_id)
@@ -67,8 +74,10 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		else
 			packet = cpacket_tcp(PacketType.CLIENT_REQUEST_CHARACTER);
 				
-		// Amy Canon reservada: sin token local ni siquiera se puede pedir
-		if(obj_netclient.exeId == master_id || (obj_netclient.avCharacters[selected] && (selected != CHARACTER_AMY_CANON || global.amyCanonToken != "")))
+		// Personajes reservados (Amy Canon / Sonic / Sally Canon):
+		// sin permiso ni siquiera se piden al server (que tambien los
+		// rechaza por si solo: doble seguro; ver scr_char_locked)
+		if(obj_netclient.exeId == master_id || (obj_netclient.avCharacters[selected] && !scr_char_locked(selected)))
 		{
 			buffer_write(packet, buffer_u8, selected);
 			send_server_tcp(packet);

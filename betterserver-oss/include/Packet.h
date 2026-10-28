@@ -168,7 +168,16 @@ typedef enum
 	/* Amy Canon: token de desbloqueo del personaje reservado.
 	   El cliente lo envia justo despues de IDENTITY; ver el handler
 	   en states/Server.c y el filtro en states/CharSelect.c */
-	CLIENT_AMY_AUTH
+	CLIENT_AMY_AUTH,
+
+	/* Sonic y Sally Canon reservados (sistema de seguridad
+	   ALTERNATIVO al token de Amy Canon): el server envia esto a un
+	   cliente (u8: 1 = eres operador) al conectarse y al concederle
+	   .op; ser operador desbloquea esos personajes en su seleccion
+	   de personaje. Ver states/Server.c (envio) y states/CharSelect.c
+	   (rechazo). El valor numerico viaja igual en el enum del cliente
+	   (net_packets.gml). */
+	SERVER_OPERATOR_STATE
 } PacketType;
 
 typedef struct
