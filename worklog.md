@@ -1129,3 +1129,133 @@ Work Log:
 Stage Summary:
 - Documentacion al dia y empaquetada. Ver link en la respuesta al
   usuario (tmpfiles, 60 min).
+
+---
+Task ID: parry-v3.5-stun-propio-sonic
+Agent: main (Z.ai)
+Task: Fix del stun del atacante cuando el golpe parreado iba dirigido
+al PROPIO Sonic (solo funcionaba cuando la victima era un aliado del
+aura). Reporte del usuario + video 2026-10-29 01-18 (v3.4 compilada).
+
+Work Log:
+- Video (9.8s, 20 frames analizados con VLM + analisis de pixeles
+  Python): frame 14 Sonic abre el parry (circulo cian), frame 15 el
+  EXE ataca (flash rojo full-screen = obj_level.bloodFade que se setea
+  en obj_player_puppet/Step_0 JUSTO despues de scr_player_hurt con
+  exeSource=true -> PRUEBA de que la negacion corrio en el cliente de
+  Sonic), frames 16-20 el EXE vuelve al idle normal: cero particulas
+  amarillas de electroshock (verificado por conteo de pixeles, los
+  unicos amarillos son la antorcha y el anillo dorado), cero sprite
+  rigido -> NO stun. Sin sangre sobre Sonic (cero dano confirmado).
+- Causa: el dano lo niega el cliente de la VICTIMA (contacto exacto
+  ahi) pero el stun lo auto-aplica el cliente del ATACANTE
+  (scr_parry_try_stun_attacker via place_meeting del puppet de Sonic
+  vs la mascara de solo-garras del sprite de ataque del EXE, bbox
+  16..44 del spr_exe_attack1). Con victima=aliado el contacto en el
+  exe existe (camina encima) -> funcionaba. Con victima=Sonic el
+  golpe entra en la punta de las garras -> en la maquina del exe el
+  roce no siempre existe (lag del puppet + mascara recortada) -> no
+  habia stun aunque la negacion si corrio.
+- FIX v3.5 (cero paquetes nuevos, cero server, cero assets):
+  1. scr_parry_negate_hit emite snd_exe_stun posicionado en el nid
+     del ATACANTE (shouldPlay=true, mismo paquete CLIENT_SOUND_EMIT
+     de siempre) cuando self es obj_player_puppet (melee; laser,
+     bolas, cadenas y peligros de mapa no emiten: proyectiles no
+     stunean a su dueno por regla del parry).
+  2. CLIENT_SOUND_EMIT (net_state_game) reconoce esa senal en mi nid
+     -> scr_parry_stun_signal() en el cliente del atacante.
+  3. scr_parry_stun_signal: guards (lado EXE, vivo, shockedTimer<=0
+     para deduplicar contra el auto-stun local y stuns previos),
+     busca la victima que esta tocando para los paquetes de stats,
+     aplica scr_parry_apply_stun.
+  4. scr_parry_apply_stun: cuerpo comun (escudos Eggman/Sally
+     incluidos, 3.5s, knockback, sonidos, CLIENT_PLAYER_HURT +
+     CLIENT_STATS_REPORT solo si hay victima identificada).
+  5. scr_parry_try_stun_attacker: +guard shockedTimer>0 (dedup, el
+     camino del aliado queda identico), cuerpo delegado en
+     scr_parry_apply_stun. Syntax check OK (llaves/parentesis 0/0).
+- Entrega: parry_v3_5_stun.zip (LEEME + 2 scripts). Push sin
+  credenciales (igual que siempre): el usuario aplica el zip a mano.
+
+Stage Summary:
+- Golpe del EXE dirigido a Sonic con parry activo: bloquea Y stunea
+  al EXE 3.5s. Golpe a aliado: igual que antes (deduplicado). El
+  esbirro que ataque tambien recibe el stun por la misma senal.
+
+---
+Task ID: 2
+Agent: Super Z (main agent)
+Task: Parry de Amy Canon (v4.0) - mismas fijaciones que Sonic + HUD + tecla
+
+Work Log:
+- git pull del repo del usuario (commit "Update" 4e2e32c3): trae los
+  sprites spr_amy_parry_inicio (1 frame, 35x39) y
+  spr_amy_parry_exitoso (10 frames, 50x50) con SUS PROPIOS NOMBRES,
+  ademas del scr_parry v3.6 y el receptor del stun en
+  net_state_game. Merge con "la version del usuario manda" en el
+  conflicto de scr_parry.gml (backup local en
+  scripts/backup_scr_parry_LOCAL_v36.gml).
+- scr_parry.gml v4.0 (sistema compartido):
+  1. scr_parry_sprite(st, _char): sprites por personaje (Amy ->
+     spr_amy_parry_*, fallback spr_amy_attack1_canon; Sonic igual
+     que siempre).
+  2. scr_parry_char_has (Sonic o Amy Canon), scr_parry_key (C/V),
+     scr_parry_aura_color / _core (rosa Amy con los colores reales
+     de su sprite: 230,91,140 / 255,170,200; cian Sonic).
+  3. protects_me / ting_signal / try_stun_attacker: aceptan puppets
+     de Sonic O Amy Canon. scr_parry_step usa scr_parry_key().
+- obj_amy_canon: Create_0 (8 vars del parry + stubs nerviosState/
+  nerviosUsed/isSpinCharging para el step compartido), Step_0
+  (parry_step fuera de la burbuja; la burbuja corta el parry y
+  congela el CD como hace con la acometida), Step_2 (estados
+  60/61/64 antes del abrazo), Draw_76 (sprites parry + velocidades),
+  Draw_0 (aura rosa + anillo de activacion).
+- obj_player_puppet: Draw_72 (puppet Amy con sus sprites de parry,
+  scr_parry_sprite con el character del puppet), Draw_0 (aura por
+  personaje con scr_parry_aura_color; Sonic queda IDENTICO).
+- HUD (no olvidado esta vez): obj_playerui/Draw_64 - cuarto icono
+  de Amy Canon (y=276) con parryCooldown/Max, blanco=listo y en
+  suelo, rojo=lo demas, asset_get_index con fallback silencioso.
+- Boton (pregunta del usuario): TECLA V - Z/X/C ocupadas (salto
+  martillo / impulso tarot / acometida), A/S/D emotes (D=abrazo),
+  Ctrl esconder. Sonic no cambia (su parry sigue en C).
+  1. scr_globals: global.KeyV = ord("V").
+  2. obj_menu: bindChanged "special3" (default V, incluido en el
+     reset por defecto) -> remapeable.
+  3. obj_config: la V y vTouch persisten en el config, con
+     try/catch para configs viejas (mismo patron que idle/wTouch).
+  4. Gamepad: gp_face4 (Y) -> V en gameplay (press + release).
+  5. Android: boton tactil V nuevo (scr_controls_init_touch +
+     update_touch + obj_controls/Draw_64, frames 10/11 anadidos al
+     sprite spr_mobile_emotionbutton con cirugia de .yy validada
+     contra JSON).
+- scr_amy_hug: la V rompe el abrazo (como la C del Sonic) y
+  scr_amy_hug_try_start devuelve false con parryState > 0 (no se
+  abrazar mid-parry).
+- Icono del HUD NUEVO: spr_gui_amyparry_canon (33x14, anillo rosa
+  + chispa + tecla V con el estilo keycap exacto de los otros
+  iconos), generado por script y registrado en .yyp (1670 recursos)
+  y resource_order.
+- REPARACION: el tool de edicion convirtio tabs->espacios en 8
+  archivos (obj_menu, obj_config, obj_playerui, 3x scr_controls,
+  scr_globals, obj_controls); compila igual pero ensuciaba el diff
+  del repo. Script repair_tab_damage.py: git checkout de cada
+  archivo + re-aplicacion byte-exacta con la indentacion original
+  (regex con captura de indent, assert de ocurrencia unica). Diff
+  final: 371 inserciones reales, 0 ruido.
+- Validaciones: balance llaves/parentesis OK en los 16 archivos
+  GML tocados (check_gml_v40.py), .yyp y resource_order parsean
+  JSON, 12 frames + layers del sprite de botones presentes,
+  verificacion de contenidos (KeyV/bVX/vTouch/gp_face4/amyparry en
+  los archivos que corresponden).
+- Entrega: parry_v4_0_amy.zip (LEEME + 15 archivos + 2 sprites).
+  Cero cambios de servidor, cero paquetes nuevos, estados 60/61/64
+  compartidos.
+
+Stage Summary:
+- Amy Canon parrea con la misma mecanica v3.6 completa (melee + spin
+  negados, auto-stun 3.5s del atacante, desvio de laser, anillo
+  negro -> dorado, aura de aliados 58px) en la tecla V, con su aura
+  rosa, sus sprites (los del usuario) y su cuarto icono de HUD con
+  el CD. La burbuja congela el parry, el abrazo se rompe con V, y
+  Sonic queda 100% intacto.

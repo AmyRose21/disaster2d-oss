@@ -22,6 +22,8 @@
     {"$GMSpriteFrame":"v1","%Name":"1defb824-e8fb-49a3-90ee-c9a01c1b0d1c","name":"1defb824-e8fb-49a3-90ee-c9a01c1b0d1c","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
     {"$GMSpriteFrame":"v1","%Name":"374815a1-3b88-4da7-9b71-a5b864260c7a","name":"374815a1-3b88-4da7-9b71-a5b864260c7a","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
     {"$GMSpriteFrame":"v1","%Name":"4ce2a67c-0fee-4590-a869-938736b3b1ba","name":"4ce2a67c-0fee-4590-a869-938736b3b1ba","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"9c7a6cc8-abe8-479f-a42b-922dde04d7fa","name":"9c7a6cc8-abe8-479f-a42b-922dde04d7fa","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"53f8aa16-6133-4bdc-9d47-5fbc991ff4c0","name":"53f8aa16-6133-4bdc-9d47-5fbc991ff4c0","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
@@ -58,7 +60,7 @@
     },
     "eventStubScript":null,
     "eventToFunction":{},
-    "length":10.0,
+    "length":12.0,
     "lockOrigin":false,
     "moments":{
       "$KeyframeStore<MomentsEventKeyframe>":"",
@@ -107,6 +109,12 @@
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
                 "0":{"$SpriteFrameKeyframe":"","Id":{"name":"4ce2a67c-0fee-4590-a869-938736b3b1ba","path":"sprites/spr_mobile_emotionbutton/spr_mobile_emotionbutton.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"ee001863-5031-4b98-8862-8229cabea8de","IsCreationKey":false,"Key":9.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"9c7a6cc8-abe8-479f-a42b-922dde04d7fa","path":"sprites/spr_mobile_emotionbutton/spr_mobile_emotionbutton.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"0e9a4448-e832-4a05-b4f5-345c4e6ac033","IsCreationKey":false,"Key":10.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"53f8aa16-6133-4bdc-9d47-5fbc991ff4c0","path":"sprites/spr_mobile_emotionbutton/spr_mobile_emotionbutton.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"d24ddcaa-98ac-46e9-b6d2-8338a5ac226d","IsCreationKey":false,"Key":11.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

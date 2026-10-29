@@ -22,17 +22,19 @@ if(character == CHARACTER_EXE)
 }
 else
 {
-        // SONIC: el golpe (tecla X) usa estados dinamicos (>=
-        // SONIC_ATK_TIERRA) que no estan en el array: el sprite sale del
-        // mismo escaneo por nombre que usa el jugador local (misma
-        // variante en los dos clientes).
-        // PARRY (tecla C): estados 60-64, se resuelven ANTES que los del
-        // golpe (60+ entraria en el rango del ataque aereo). Mismo
-        // escaneo por nombre + fallback, asi el puppet muestra la misma
-        // animacion de parry que ve el Sonic local.
-        if(character == CHARACTER_SONIC && scr_parry_state_is(state))
+        // SONIC / AMY CANON: el golpe (tecla X) usa estados dinamicos (>=
+        // SONIC_ATK_TIERRA, solo Sonic) que no estan en el array: el
+        // sprite sale del mismo escaneo por nombre que usa el jugador
+        // local (misma variante en los dos clientes).
+        // PARRY (Sonic: C / Amy Canon: V): estados 60-64, se resuelven
+        // ANTES que los del golpe (60+ entraria en el rango del ataque
+        // aereo). Mismo escaneo por nombre + fallback, asi el puppet
+        // muestra la misma animacion de parry que ve el jugador local
+        // (los sprites de cada personaje salen de scr_parry_sprite,
+        // que ahora recibe el character del puppet).
+        if(scr_parry_char_has(character) && scr_parry_state_is(state))
         {
-                var _pspr = scr_parry_sprite(state);
+                var _pspr = scr_parry_sprite(state, character);
 
                 if(_pspr != -1)
                         sprite_index = _pspr;

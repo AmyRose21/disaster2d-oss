@@ -48,6 +48,23 @@ if(shockedTimer > 0)
         return;
 }
 
+// PARRY (tecla V): estados 60/61/64, los MISMOS numeros que Sonic (el
+// byte `state` viaja por jugador y Amy nunca uso el 60+). El _ACT es
+// la VENTANA ACTIVA: la que los otros clientes miran en su puppet para
+// saber que Amy esta cubriendo (aura de aliados + auto-stun del
+// atacante). Igual que el bloque de SONIC_PARRY_* de obj_sonic/Step_2.
+if(parryState > 0)
+{
+        if(parryState == 4)
+                state = SONIC_PARRY_EXITO;
+        else if(parryState == 2)
+                state = SONIC_PARRY_INICIO_ACT;
+        else
+                state = SONIC_PARRY_INICIO;
+
+        return;
+}
+
 // ABRAZO COMBINADO (interaccion con Sonic): mientras dura, su estado
 // de red es AMY_CANON_HUG. En este cliente el sprite combinado lo
 // dibuja Draw_0 (punto medio con Sonic) y en los demas, el puppet de

@@ -1,5 +1,17 @@
-/// scr_parry — PARRY DE SONIC (tecla C, estilo Frontiers)
+/// scr_parry — PARRY DE SONIC (tecla C) Y AMY CANON (tecla V)
 // =====================================================================
+//  v4.0: AMY CANON TIENE SU PROPIO PARRY (mismas fijaciones que el de
+//        Sonic: ventana, aura de aliados, cooldowns, stun del atacante,
+//        desvio de proyectiles y estados de red 60/61/64 — viajan igual
+//        porque el byte `state` es por-jugador y Amy nunca uso el 60+).
+//        Tecla V (nueva global.KeyV, remapeable como "special3"),
+//        gamepad gp_face4 (Y) y boton tactil nuevo en Android.
+//        Sus sprites: spr_amy_parry_inicio / spr_amy_parry_exitoso
+//        (los subio el usuario al repo). Aura ROSA en vez de cian.
+//        El HUD es el 4o icono de su fila (y=276) con el CD igual que
+//        Sonic (parryCooldownMax). La burbuja de secuestro congela el
+//        parry (igual que congela los demas CD de Amy). Nada de packets
+//        nuevos, cero cambios en el server.
 //  v3.6: LOS ATAQUES SPIN (bola al saltar / rodar) AHORA TAMBIEN DEVUELVEN
 //        EL STUN AL ATACANTE. Ese dano NO lo aplica el puppet del atacante
 //        (como el melee de las garras, que la v3.5 ya cubria) sino el
@@ -107,33 +119,88 @@
 #macro SONIC_PARRY_LASER_MAXDMG 4             // stun maximo (seg) del laser desviado
 #macro SONIC_PARRY_FLASH_FRAMES 18            // anillo cian de activacion
 
+// ===== COLOR DEL AURA (v4.0: rosa para Amy Canon, cian para Sonic) =====
+// El circulo que ven los aliados mientras la ventana esta abierta. Se
+// usa igual en el jugador local (Draw_0) y en el puppet (obj_player_puppet).
+#macro AMY_PARRY_COLOR      make_color_rgb(230, 91, 140)  // rosa de Amy (el de su sprite)
+#macro AMY_PARRY_COLOR_CORE make_color_rgb(255, 170, 200) // rosa claro (borde)
+
 // ===== SPRITES =====
-// v3: DOS sprites, solo en tierra:
-//   spr_sonic_parry_inicio   -> parte inicial del intento (windup+ventana)
-//   spr_sonic_parry_exitoso  -> parte de EXITO (al interceptar)
-// Ya estan en el proyecto (registrados en el .yyp del repo). Si no
-// existieran en alguna instalacion, cae al sprite del golpe
-// (spr_sonic_attack2_tierra1) para que nunca pete.
-function scr_parry_sprite(st)
+// v3: DOS sprites por personaje, solo en tierra:
+//   inicio  -> parte inicial del intento (windup+ventana)
+//   exitoso -> parte de EXITO (al interceptar)
+// v4.0: cada personaje con los SUYOS (mismo patron por nombre):
+//   Sonic     -> spr_sonic_parry_*  (fallback: su golpe de tierra)
+//   Amy Canon -> spr_amy_parry_*    (fallback: spr_amy_attack1_canon;
+//                los subio el usuario al repo). Si no existieran en
+//                alguna instalacion, cae al sprite del golpe del propio
+//                personaje para que nunca pete.
+function scr_parry_sprite(st, _char)
 {
+        if(_char == -1)
+                _char = global.character; // llamada sin personaje: el local
+
         var _name = "";
-        
-        if(st == SONIC_PARRY_INICIO || st == SONIC_PARRY_INICIO_ACT)
-                _name = "spr_sonic_parry_inicio";
-        else if(st == SONIC_PARRY_EXITO)
-                _name = "spr_sonic_parry_exitoso";
+        var _fb = "";
+
+        if(_char == CHARACTER_AMY_CANON)
+        {
+                if(st == SONIC_PARRY_INICIO || st == SONIC_PARRY_INICIO_ACT)
+                        _name = "spr_amy_parry_inicio";
+                else if(st == SONIC_PARRY_EXITO)
+                        _name = "spr_amy_parry_exitoso";
+                else
+                        return -1;
+
+                _fb = "spr_amy_attack1_canon";
+        }
         else
-                return -1;
-        
+        {
+                if(st == SONIC_PARRY_INICIO || st == SONIC_PARRY_INICIO_ACT)
+                        _name = "spr_sonic_parry_inicio";
+                else if(st == SONIC_PARRY_EXITO)
+                        _name = "spr_sonic_parry_exitoso";
+                else
+                        return -1;
+
+                _fb = "spr_sonic_attack2_tierra1";
+        }
+
         var _spr = asset_get_index(_name);
         if(!is_undefined(_spr) && _spr >= 0)
                 return _spr;
-        
-        _spr = asset_get_index("spr_sonic_attack2_tierra1");
+
+        _spr = asset_get_index(_fb);
         if(!is_undefined(_spr) && _spr >= 0)
                 return _spr;
-        
+
         return -1;
+}
+
+// Color del aura de ESTE personaje (v4.0): rosa para Amy Canon, cian
+// para Sonic. Lo leen el Draw_0 del jugador local y el del puppet.
+function scr_parry_aura_color(_char)
+{
+        return (_char == CHARACTER_AMY_CANON) ? AMY_PARRY_COLOR : SONIC_PB_COLOR;
+}
+
+function scr_parry_aura_color_core(_char)
+{
+        return (_char == CHARACTER_AMY_CANON) ? AMY_PARRY_COLOR_CORE : SONIC_PB_COLOR;
+}
+
+// ¿este personaje tiene sistema de parry? (v4.0: Sonic y Amy Canon)
+function scr_parry_char_has(_char)
+{
+        return _char == CHARACTER_SONIC || _char == CHARACTER_AMY_CANON;
+}
+
+// Tecla del parry del personaje local (v4.0): C para Sonic, V para Amy
+// Canon. La V es nueva (scr_globals) y tambien va en el remap como
+// "special3", asi que el usuario puede cambiarla en el menu.
+function scr_parry_key()
+{
+        return (global.character == CHARACTER_AMY_CANON) ? global.KeyV : global.KeyC;
 }
 
 // ¿el estado es una PROTECCION ACTIVA del parry? (lo miran los otros
@@ -192,22 +259,23 @@ function scr_parry_protects_me()
         if(global.player.isDead)
                 return noone;
 
-        // 1) yo soy Sonic y estoy cubierto: ventana activa (parryActive)
+        // 1) yo tengo parry y estoy cubierto: ventana activa (parryActive)
         //    o fase de EXITO (v3.3: el ataque interceptado llega a
         //    resolverse DESPUES de la deteccion de exito; sin esto el
-        //    dano entraba igual)
-        if(global.character == CHARACTER_SONIC
+        //    dano entraba igual). v4.0: Amy Canon vale igual que Sonic.
+        if(scr_parry_char_has(global.character)
         && (global.player.parryActive || global.player.parryState == 4))
                 return global.player;
 
-        // 2) un Sonic remoto con parry activa y yo dentro de su aura
+        // 2) un Sonic o Amy Canon remoto con parry activa y yo dentro de
+        //    su aura
         if(!instance_exists(obj_player_puppet))
                 return noone;
 
         var _res = noone;
         with(obj_player_puppet)
         {
-                if(character != CHARACTER_SONIC || isDemonized || isInactive)
+                if(!scr_parry_char_has(character) || isDemonized || isInactive)
                         continue;
 
                 if(!scr_parry_state_active(state))
@@ -412,12 +480,12 @@ function scr_parry_step()
                 return;
         }
 
-        // ===== INPUT: tap de C (v3: SOLO EN TIERRA) =====
+        // ===== INPUT: tap de C (Sonic) / V (Amy Canon). v3: SOLO EN TIERRA =====
         if(global.playerControls && parryCooldown <= 0 && isGrounded
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
         && !isAttacking && !isSpinCharging && nerviosState == 0
         && bounceTimer <= 0
-        && keyboard_check_pressed(global.KeyC))
+        && keyboard_check_pressed(scr_parry_key()))
         {
                 parryState = 1;
                 parryTimer = SONIC_PARRY_WINDUP;
@@ -472,7 +540,7 @@ function scr_parry_ting_play()
 // ya conto como exito, no hace nada.
 function scr_parry_ting_signal()
 {
-        if(global.character != CHARACTER_SONIC)
+        if(!scr_parry_char_has(global.character)) // v4.0: Sonic o Amy Canon
                 return;
 
         if(!instance_exists(global.player))
@@ -653,7 +721,7 @@ function scr_parry_try_stun_attacker()
         {
                 with(obj_player_puppet)
                 {
-                        if(character != CHARACTER_SONIC || isDemonized || isInactive)
+                        if(!scr_parry_char_has(character) || isDemonized || isInactive)
                                 continue;
 
                         if(!scr_parry_state_active(state))

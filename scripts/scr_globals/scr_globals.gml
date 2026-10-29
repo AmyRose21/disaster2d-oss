@@ -33,6 +33,10 @@ global.KeyDown = vk_down;
 global.KeyA = ord("Z");
 global.KeyB = ord("X");
 global.KeyC = ord("C");
+// v4.0 PARRY DE AMY CANON: 4a tecla de accion (remapeable en el menu
+// como "special3"; Sonic no la usa para nada). Libre en el teclado:
+// Z/X/C son salto/impulso tarot/acometida de Amy Canon y A/S/D emotes.
+global.KeyV = ord("V");
 global.KeyEm1 = ord("A");
 global.KeyEm2 = ord("S");
 global.KeyEm3 = ord("D");

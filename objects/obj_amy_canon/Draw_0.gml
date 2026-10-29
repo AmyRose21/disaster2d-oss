@@ -41,6 +41,24 @@ if(state == AMY_CANON_HUG)
         return;
 }
 
+// PARRY (tecla V): aura rosa visible mientras la ventana esta abierta
+// (para que los aliados vean el radio que les cubre, igual que el aura
+// cian de Sonic). El color lo fija scr_parry_aura_color: rosa para Amy.
+if(parryState == 2)
+{
+        gpu_set_blendmode(bm_add);
+        draw_set_circle_precision(32);
+        draw_set_alpha(0.13);
+        draw_set_color(scr_parry_aura_color(global.character));
+        draw_circle(x, y - 6, SONIC_PARRY_AURA, false);
+        draw_set_alpha(0.35);
+        draw_set_color(scr_parry_aura_color_core(global.character));
+        draw_circle(x, y - 6, SONIC_PARRY_AURA, true);
+        draw_set_alpha(1);
+        draw_set_color(c_white);
+        gpu_set_blendmode(bm_normal);
+}
+
 //Actual draw
 scr_palette_swap(global.palleteFrom, global.palleteTo);
 draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
@@ -53,3 +71,7 @@ shader_reset();
 // de clientes (los puppets la dibujan desde obj_player_puppet).
 if(bubbleState == AMY_BUBBLE_ACTIVE)
         draw_sprite(amy_Bubble, (current_time / 200) % 8, floor(x), floor(y));
+
+// PARRY: anillo de activacion / exito (mismo estilo del powerboost de
+// Sonic; el flash es blanco y no lleva color de personaje).
+scr_powerboost_fx_flash(floor(x), floor(y - 6), parryFlash);

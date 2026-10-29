@@ -11,6 +11,13 @@ scr_amy_hug_step_amy();
 // no corre, no salta y no puede atacar.
 if(bubbleState == AMY_BUBBLE_ACTIVE)
 {
+        // El secuestro corta cualquier parry en curso (no cuenta como
+        // fallo: la burbuja congela TODOS sus CDs, igual que hace con
+        // la acometida, que solo recarga pisando suelo).
+        parryState = 0;
+        parryActive = false;
+        parryLateSignal = 0;
+
         scr_amy_canon_bubble();
 }
 else if(shockedTimer <= 0)
@@ -32,6 +39,13 @@ else
         shockedTimer--;
         hurttime = 60 * 2;
 }
+
+// PARRY (tecla V): maquina de fases, deteccion de exito y desvios
+// (mismas fijaciones que el de Sonic). No toca el movimiento: el
+// parry es un estado, no una postura. En la burbuja no corre (sus
+// recargas se congelan sin suelo, como la de la acometida).
+if(bubbleState != AMY_BUBBLE_ACTIVE)
+        scr_parry_step();
 
 scr_collision_basic();
 

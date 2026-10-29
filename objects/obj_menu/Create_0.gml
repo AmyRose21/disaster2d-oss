@@ -857,6 +857,7 @@ buttonPressed = function(_bid, _bcolumn)
 					bindChanged("jump", ord("Z"));
 					bindChanged("special1", ord("X"));
 					bindChanged("special2", ord("C"));
+					bindChanged("special3", ord("V")); // v4.0: parry de Amy Canon
 					bindChanged("emotion1", ord("A"));
 					bindChanged("emotion2", ord("S"));
 					bindChanged("emotion3", ord("D"));
@@ -2065,6 +2066,7 @@ bindChanged = function (_bid, _key)
 		case "jump": global.KeyA = _key; break;
 		case "special1": global.KeyB = _key; break;
 		case "special2": global.KeyC = _key; break;
+		case "special3": global.KeyV = _key; break; // v4.0: parry de Amy Canon
 		case "hidegui": global.KeyHide = _key; break;
 		case "playerlist": global.KeyPList = _key; break;
 		case "emotion1": global.KeyEm1 = _key; break;

@@ -171,6 +171,13 @@ function scr_amy_hug_try_start()
         || isTarotFloat || isHJ || isZipline || isOnEdge || revivalTimes >= 2)
                 return false;
 
+        // v4.0: con el PARRY en curso no se abraza (el abrazo congela a
+        // Amy y dejaria un hugActive invisible conviviendo con la
+        // ventana del parry; sale el emote normal y ya podra abrazar
+        // cuando termine)
+        if(parryState > 0)
+                return false;
+
         var _sonic = scr_amy_hug_find_sonic(id, AMY_HUG_RANGE);
         if(_sonic == noone)
                 return false;
@@ -222,10 +229,13 @@ function scr_amy_hug_step_amy()
         }
 
         // cualquier otra tecla de accion/movimiento la saca del abrazo
+        // (la V del parry tambien: puede romper el abrazo y parrear en
+        // el mismo frame, como hace Sonic con su C)
         if(keyboard_check(global.KeyLeft) || keyboard_check(global.KeyRight)
         || keyboard_check_pressed(global.KeyUp) || keyboard_check_pressed(global.KeyDown)
         || keyboard_check_pressed(global.KeyA) || keyboard_check_pressed(global.KeyB)
-        || keyboard_check_pressed(global.KeyC) || keyboard_check_pressed(global.KeyHide))
+        || keyboard_check_pressed(global.KeyC) || keyboard_check_pressed(global.KeyV)
+        || keyboard_check_pressed(global.KeyHide))
         {
                 scr_amy_hug_end_amy();
                 return;

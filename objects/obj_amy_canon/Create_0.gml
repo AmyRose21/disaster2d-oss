@@ -147,6 +147,28 @@ hugActive = false;   // true mientras esta abrazando
 hugPartner = noone;  // el puppet del Sonic que abraza
 hugSide = 1;         // 1 = Amy quedo a la IZQUIERDA de Sonic (sprite tal cual)
 
+// --- PARRY (tecla V): mismas fijaciones que el de Sonic (v4.0) ---
+// La maquina de fases la corre scr_parry_step (la llama el Step_0);
+// los estados de red son los 60/61/64 compartidos y el HUD es el 4o
+// icono de su fila (obj_playerui). Ver scr_parry.gml.
+parryState = 0;       // 0=nada, 1=windup, 2=ventana activa, 4=exito
+parryTimer = 0;       // frames que le quedan a la fase actual
+parryCooldown = 0;    // frames restantes de recarga
+parryCooldownMax = 1; // duracion total del CD activo (lo lee el icono del HUD; 1 = evita /0)
+parrySuccess = false; // true si la ventana intercepto algo
+parryActive = false;  // true durante ventana+gracia (lo leen los checks de red)
+parryFlash = 0;       // frames restantes del anillo de activacion (lo dibuja Draw_0)
+parryLateSignal = 0;  // margen tras cerrar la ventana para la senal de exito que llega por red
+
+// Stubs para el scr_parry_step COMPARTIDO con Sonic (el mismo codigo
+// corre en los dos): Sonic si tiene Nervios de Acero (nerviosState/
+// nerviosUsed) y spindash (isSpinCharging); Amy Canon no, asi que aqui
+// valen neutro y todas las condiciones le quedan en paz.
+nerviosState = 0;       // Amy no tiene Nervios de Acero
+nerviosUsed = false;    // ... ni fase powerboost: CDs normales siempre
+isSpinCharging = false; // ... ni spindash
+spinCharge = 0;
+
 // DIANA SPECIFIC
 doubleJump = false;
 

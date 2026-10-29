@@ -14,6 +14,7 @@ _buffer = {
 	a: ord("Z"),
 	b: ord("X"),
 	c: ord("C"),
+	v: ord("V"),
 	em1: ord("A"),
 	em2: ord("S"),
 	em3: ord("D"),
@@ -77,6 +78,13 @@ _buffer = {
 		opacity: 0.6
 	},
 	
+	vTouch: {
+		xx: 466,
+		yy: 112+32+32,
+		scale: 1,
+		opacity: 0.6
+	},
+	
 	gTouch: {
 		xx: 23,
 		yy: 36+15+30,
@@ -99,6 +107,7 @@ global.KeyDown = _buffer.down;
 global.KeyA = _buffer.a;
 global.KeyB = _buffer.b;
 global.KeyC = _buffer.c;
+global.KeyV = _buffer.v;
 global.KeyEm1 = _buffer.em1;
 global.KeyEm2 = _buffer.em2;
 global.KeyEm3 = _buffer.em3;
@@ -151,6 +160,11 @@ bWY = _buffer.wTouch.yy;
 bWScale = _buffer.wTouch.scale;
 bWOpacity = _buffer.wTouch.opacity;
 
+bVX = _buffer.vTouch.xx;
+bVY = _buffer.vTouch.yy;
+bVScale = _buffer.vTouch.scale;
+bVOpacity = _buffer.vTouch.opacity;
+
 global.nickname = scr_nickname_validate(nickname);
 
 load = function(filename)
@@ -194,6 +208,15 @@ load = function(filename)
 	catch(ex) {
 		_buffer.idle = ord("W");
 		global.KeyIdle = _buffer.idle;
+	}
+
+	try
+	{
+		global.KeyV = _buffer.v;
+	}
+	catch(ex) {
+		_buffer.v = ord("V");
+		global.KeyV = _buffer.v;
 	}
 
 	dpadX = _buffer.gampadTouch.xx;
@@ -258,6 +281,28 @@ load = function(filename)
 		bWOpacity = _buffer.wTouch.opacity;
 	}
 
+	try
+	{
+		bVX = _buffer.vTouch.xx;
+		bVY = _buffer.vTouch.yy;
+		bVScale = _buffer.vTouch.scale;
+		bVOpacity = _buffer.vTouch.opacity;
+	}
+	catch(ex) 
+	{
+		_buffer.vTouch = {
+			xx: 466,
+			yy: 112+32+32,
+			scale: 1,
+			opacity: 0.6
+		};
+		
+		bVX = _buffer.vTouch.xx;
+		bVY = _buffer.vTouch.yy;
+		bVScale = _buffer.vTouch.scale;
+		bVOpacity = _buffer.vTouch.opacity;
+	}
+
 	global.nickname = scr_nickname_validate(nickname);
 }
 
@@ -275,6 +320,7 @@ save = function()
 	_buffer.a = global.KeyA;
 	_buffer.b = global.KeyB;
 	_buffer.c = global.KeyC;
+	_buffer.v = global.KeyV;
 	_buffer.em1 = global.KeyEm1;
 	_buffer.em2 = global.KeyEm2;
 	_buffer.em3 = global.KeyEm3;
@@ -326,6 +372,11 @@ save = function()
 	_buffer.wTouch.yy = bWY;
 	_buffer.wTouch.scale = bWScale;
 	_buffer.wTouch.opacity = bWOpacity;
+	
+	_buffer.vTouch.xx = bVX;
+	_buffer.vTouch.yy = bVY;
+	_buffer.vTouch.scale = bVScale;
+	_buffer.vTouch.opacity = bVOpacity;
 	
 	try
 	{

@@ -1,3 +1,33 @@
+// PARRY (tecla V): estados 60-64, ANTES que el abrazo y que el array de
+// scr_survivors (el 60 no existe en el array). Sprite por nombre con
+// fallback al suyo de ataque (scr_parry_sprite), igual que hace Sonic
+// con los suyos. Mismas velocidades de animacion que el de Sonic.
+if(scr_parry_state_is(state))
+{
+        var _pspr = scr_parry_sprite(state, global.character);
+
+        if(_pspr != -1)
+                sprite_index = _pspr;
+
+        switch(state)
+        {
+                case SONIC_PARRY_INICIO:
+                        image_index = 0;
+                        image_speed = max(image_number / SONIC_PARRY_WINDUP, 0.05);
+                        break;
+
+                case SONIC_PARRY_INICIO_ACT:
+                        image_speed = max(image_number / (SONIC_PARRY_WINDOW + SONIC_PARRY_GRACE), 0.05);
+                        break;
+
+                case SONIC_PARRY_EXITO:
+                        image_speed = max(image_number / SONIC_PARRY_EXITO_TIME, 0.05);
+                        break;
+        }
+
+        return;
+}
+
 // ABRAZO COMBINADO: el estado AMY_CANON_HUG NO va por el array de
 // scr_survivors (se intercepta aqui, igual que el parry de Sonic en
 // su Draw_76): mientras Amy abraza su cuerpo ni siquiera se dibuja;

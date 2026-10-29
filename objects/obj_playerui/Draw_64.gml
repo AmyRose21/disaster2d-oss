@@ -156,6 +156,24 @@ if(instance_exists(global.player) && !global.player.isDead)
 			var prog = 1.0 - (max(global.player.dashTimer, 0) / val);
 			var b = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
 			draw_sprite_ext(spr_gui_amydash_canon, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);	
+			
+			// Icono 4: PARRY (tecla V, v4.0). Mismas fijaciones que el de
+			// Sonic (estados 60/61/64). El relleno muestra el CD que falta:
+			// como el CD depende de COMO termino el ultimo intento
+			// (fallo/exito), se guarda la duracion total en
+			// parryCooldownMax al aplicarlo y asi el icono siempre arranca
+			// lleno. Blanco = listo Y en el suelo (el parry es solo en
+			// tierra); rojo = lo demas. Si spr_gui_amyparry_canon no
+			// existiera en el proyecto, no se dibuja pero tampoco crashea
+			// (mismo patron que el parry de Sonic y el spindash).
+			var _sprParry = asset_get_index("spr_gui_amyparry_canon");
+			if(_sprParry >= 0)
+			{
+				var _pmax = max(global.player.parryCooldownMax, 1);
+				var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
+				var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
+				draw_sprite_ext(_sprParry, 0, _pprog * 10, 276 - (os_type == os_android ? 200 : 0), 1, 1, 0, _pready, _pprog);
+			}
 			break;
 		}
 		case CHARACTER_SONIC:

@@ -210,6 +210,27 @@ function scr_controls_update_touch()
 			WPressed(false);
 			WTouchId = -1;
 		}
+
+		// V (v4.0: parry de Amy Canon; misma mecanica pulsar/soltar)
+		if(_state && point_in_circle(_x, _y, obj_config.bVX, obj_config.bVY, 22 * obj_config.bVScale))
+		{
+			if(VTouchId == -1)
+			{
+				VTouchId = i;
+				VPressed(true);
+			}
+		}
+		else if(VTouchId == i)
+		{
+			VPressed(false);
+			VTouchId = -1;
+		}
+		
+		if(!_state && VTouchId == i)
+		{
+			VPressed(false);
+			VTouchId = -1;
+		}
 	}
 	
 	// Joystick

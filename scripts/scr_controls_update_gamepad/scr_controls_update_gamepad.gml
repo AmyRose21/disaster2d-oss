@@ -91,6 +91,11 @@ function scr_controls_update_gamepad()
 		if(gamepad_button_check_pressed(gamepadId, gp_face3))
 			keyboard_key_press(global.KeyC);
 			
+			// v4.0 PARRY DE AMY CANON: el boton Y (face4) estaba libre en
+			// el gameplay (solo navegaba menus) -> va la tecla V.
+		if(gamepad_button_check_pressed(gamepadId, gp_face4))
+			keyboard_key_press(global.KeyV);
+			
 		if(gamepad_button_check_pressed(gamepadId, gp_start))
 			keyboard_key_press(vk_enter);
 			
@@ -121,6 +126,9 @@ function scr_controls_update_gamepad()
 			
 		if(gamepad_button_check_released(gamepadId, gp_face3))
 			keyboard_key_release(global.KeyC);
+			
+		if(gamepad_button_check_released(gamepadId, gp_face4))
+			keyboard_key_release(global.KeyV);
 			
 		if(gamepad_button_check_released(gamepadId, gp_start))
 			keyboard_key_release(vk_enter);

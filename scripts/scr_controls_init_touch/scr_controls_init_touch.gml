@@ -44,6 +44,13 @@ function scr_controls_init_touch()
 	bWScale = 1;
 	bWOpacity = 0.5;
 	
+	// v4.0 PARRY DE AMY CANON: boton V de la columna derecha (la
+	// posicion/scale/opacity de verdad viven en obj_config.vTouch)
+	bVX = 466;
+	bVY = 112+32+32;
+	bVScale = 1;
+	bVOpacity = 0.5;
+	
 	jTouchId = -1;
 	jDir = 0;
 	jScale = 1;
@@ -61,6 +68,7 @@ function scr_controls_init_touch()
 	FTouchId = -1;
 	GTouchId = -1;
 	WTouchId = -1;
+	VTouchId = -1;
 	
 	APressed = function(state)
 	{
@@ -286,6 +294,17 @@ function scr_controls_init_touch()
 			keyboard_key_press(global.KeyIdle);
 		else
 			keyboard_key_release(global.KeyIdle);
+	}
+	
+	// v4.0 PARRY DE AMY CANON: el boton V es igual que los de los
+	// emotes (pulsar/soltar la tecla V). En el menu no hace nada
+	// especial: la V solo sirve en partida.
+	VPressed = function(state)
+	{
+		if(state)
+			keyboard_key_press(global.KeyV);
+		else
+			keyboard_key_release(global.KeyV);
 	}
 	
 	gToggle = false;
