@@ -379,7 +379,7 @@ function scr_parry_negate_hit()
         static _fxLast = -9999;
         if(current_time - _fxLast >= 200)
         {
-                net_sound_emit_at(snd_parry, _nid);
+                net_sound_emit_at(Perfect_Parry, _nid);
 
                 // v3.5 / v3.6: SENAL DE STUN AL ATACANTE, con el mismo
                 // paquete de sonido de siempre (shouldPlay=true): el cliente
@@ -588,7 +588,7 @@ function scr_parry_ting_play()
         if(current_time - _tingLast >= 200)
         {
                 _tingLast = current_time;
-                audio_play_sound(snd_parry, false, 0);
+                audio_play_sound(Perfect_Parry, false, 0);
         }
 
         scr_parry_ting_signal();
@@ -812,7 +812,7 @@ function scr_parry_try_stun_attacker()
         // parry y Sonic tiene que ver su animacion. Cuando la victima si
         // nego, los dos "ting" llegan casi juntos y el receptor los
         // deduplica (200ms).
-        net_sound_emit_at(snd_parry, _parrySonic.master_id);
+        net_sound_emit_at(Perfect_Parry, _parrySonic.master_id);
 
         return true;
 }
