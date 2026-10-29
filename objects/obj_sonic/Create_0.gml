@@ -135,6 +135,7 @@ atkNum = 1;      // numero de la variante elegida (1..N)
 parryState = 0;      // 0=nada, 1=windup, 2=ventana activa, 4=exito
 parryTimer = 0;      // frames restantes de la fase actual
 parryCooldown = 0;   // frames restantes de recarga
+parryCooldownMax = 1;// duracion total del CD activo (lo lee el icono del HUD; 1 = evita /0)
 parrySuccess = false;// true si la ventana intercepto algo
 parryActive = false; // true durante ventana+gracia (lo leen los checks de red)
 parryFlash = 0;      // frames restantes del anillo cian (lo dibuja Draw_0)

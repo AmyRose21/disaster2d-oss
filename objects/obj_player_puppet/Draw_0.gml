@@ -40,9 +40,20 @@ if(_pb)
         scr_powerboost_fx_back(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, angle, current_time / 16);
 
 // SONIC PARRY: aura cian visible en el puppet mientras su ventana esta
-// abierta (estado SONIC_PARRY_*_ACT viajando por UDP), para que todos
-// vean el radio que esta cubriendo.
-if(character == CHARACTER_SONIC && scr_parry_state_active(state))
+// abierta (estado SONIC_PARRY_*_ACT viajando por UDP), para que los
+// ALIADOS vean el radio que esta cubriendo.
+// v3.2: SOLO LA VEN LOS SUPERVIVIENTES. El EXE y los demonizados
+// (esbirros, revivalTimes >= 2) NO ven el circulo: si lo vieran, el
+// EXE sabria exactamente hasta donde llega la proteccion y le daria
+// la vuelta en vez de atacar. La animacion del parry si la ve todo el
+// mundo (Sonic se pone en pose delante de todos); lo que se oculta es
+// el radio exacto del aura. Misma convencion de bando que
+// scr_parry_protects_me (EXE o demonizado = lado EXE).
+var _parryAuraVisible = (global.character != CHARACTER_EXE);
+if(_parryAuraVisible && instance_exists(global.player) && global.player.revivalTimes >= 2)
+        _parryAuraVisible = false; // esbirro: mismo bando que el EXE
+
+if(_parryAuraVisible && character == CHARACTER_SONIC && scr_parry_state_active(state))
 {
         gpu_set_blendmode(bm_add);
         draw_set_circle_precision(32);

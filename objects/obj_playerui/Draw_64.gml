@@ -160,6 +160,24 @@ if(instance_exists(global.player) && !global.player.isDead)
 		}
 		case CHARACTER_SONIC:
 		{
+			// Icono (tecla C): PARRY (v3.2). El relleno muestra el CD
+			// que falta: como el CD depende de COMO termino el ultimo
+			// intento (fallo/exito x normal/powerboost), se guarda la
+			// duracion total en parryCooldownMax al aplicarlo y asi el
+			// icono siempre arranca lleno. Blanco = listo Y en el
+			// suelo (el parry es solo en tierra); rojo = lo demas.
+			// Si spr_gui_sonicparry no existiera en el proyecto, no se
+			// dibuja pero tampoco crashea (mismo patron que el
+			// spindash de abajo).
+			var _sprParry = asset_get_index("spr_gui_sonicparry");
+			if(_sprParry >= 0)
+			{
+				var _pmax = max(global.player.parryCooldownMax, 1);
+				var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
+				var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
+				draw_sprite_ext(_sprParry, 0, _pprog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, _pready, _pprog);
+			}
+			
 			// Icono (tecla X): EL GOLPE. Reutiliza el icono generico del
 			// ataque de Amy; cuando crees spr_gui_sonicattack, cambialo aqui.
 			var val = global.player.revivalTimes >= 2 ? SONIC_EATTACK_RECHARGE : SONIC_ATTACK_RECHARGE;

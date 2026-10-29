@@ -1,5 +1,9 @@
 /// scr_parry — PARRY DE SONIC (tecla C, estilo Frontiers)
 // =====================================================================
+//  v3.2: ventana 30f, aura SOLO VISIBLE para supervivientes (el EXE y
+//        los esbirros no ven el circulo) e icono de HUD con el CD
+//        (spr_gui_sonicparry, tecla C, como los demas personajes).
+//
 //  COMO FUNCIONA (resumen):
 //   * Tap de C -> windup (SONIC_PARRY_WINDUP frames, sin proteccion)
 //     -> VENTANA ACTIVA (SONIC_PARRY_WINDOW frames de proteccion +
@@ -35,7 +39,7 @@
 
 // ===== TIMINGS (frames; 60 = 1 seg) =====
 #macro SONIC_PARRY_WINDUP 4       // preparacion (sin proteccion)
-#macro SONIC_PARRY_WINDOW 12      // ventana activa
+#macro SONIC_PARRY_WINDOW 30      // ventana activa (v3.2: era 12)
 #macro SONIC_PARRY_GRACE 4        // gracia invisible (latencia de red)
 #macro SONIC_PARRY_EXITO_TIME 22  // duracion de la animacion de exito
 
@@ -97,6 +101,15 @@ function scr_parry_bbox_overlap(a, b)
 {
         return a.bbox_right >= b.bbox_left && a.bbox_left <= b.bbox_right
                 && a.bbox_bottom >= b.bbox_top && a.bbox_top <= b.bbox_bottom;
+}
+
+// Aplica un cooldown de parry y recuerda su duracion total (para que
+// el icono del HUD sepa cuanto dura ESTE cd en concreto: fallo/exito x
+// normal/powerboost duran distinto y el relleno siempre arranca lleno).
+function scr_parry_apply_cd(_cd)
+{
+        parryCooldown = _cd;
+        parryCooldownMax = _cd;
 }
 
 // =====================================================================
@@ -190,7 +203,7 @@ function scr_parry_step()
         if(parryState > 0 && (isDead || isHurt || shockedTimer > 0 || nerviosState > 0 || (!isGrounded && parryState != 4)))
         {
                 if(parryState != 4 && !parrySuccess && parryCooldown <= 0)
-                        parryCooldown = nerviosUsed ? SONIC_PARRY_CD_FAIL_PB : SONIC_PARRY_CD_FAIL;
+                        scr_parry_apply_cd(nerviosUsed ? SONIC_PARRY_CD_FAIL_PB : SONIC_PARRY_CD_FAIL);
 
                 parryState = 0;
                 parryActive = false;
@@ -226,7 +239,7 @@ function scr_parry_step()
                                 parryState = 0;
 
                                 if(!parrySuccess)
-                                        parryCooldown = nerviosUsed ? SONIC_PARRY_CD_FAIL_PB : SONIC_PARRY_CD_FAIL;
+                                        scr_parry_apply_cd(nerviosUsed ? SONIC_PARRY_CD_FAIL_PB : SONIC_PARRY_CD_FAIL);
                         }
                 }
 
@@ -381,7 +394,7 @@ function scr_parry_detect()
                 parryTimer = SONIC_PARRY_EXITO_TIME;
                 parryActive = false;
                 parryFlash = SONIC_PARRY_FLASH_FRAMES;
-                parryCooldown = nerviosUsed ? SONIC_PARRY_CD_OK_PB : SONIC_PARRY_CD_OK;
+                scr_parry_apply_cd(nerviosUsed ? SONIC_PARRY_CD_OK_PB : SONIC_PARRY_CD_OK);
                 scr_camera_shake(30, 2, 0.25);
         }
 
