@@ -18,14 +18,12 @@ if(scr_parry_state_is(state))
 
         switch(state)
         {
-                case SONIC_PARRY_SUELO:
-                case SONIC_PARRY_AIRE:
+                case SONIC_PARRY_INICIO:
                         image_index = 0;
                         image_speed = max(image_number / SONIC_PARRY_WINDUP, 0.05);
                         break;
 
-                case SONIC_PARRY_SUELO_ACT:
-                case SONIC_PARRY_AIRE_ACT:
+                case SONIC_PARRY_INICIO_ACT:
                         image_speed = max(image_number / (SONIC_PARRY_WINDOW + SONIC_PARRY_GRACE), 0.05);
                         break;
 

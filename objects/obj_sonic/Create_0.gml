@@ -137,7 +137,6 @@ parryTimer = 0;      // frames restantes de la fase actual
 parryCooldown = 0;   // frames restantes de recarga
 parrySuccess = false;// true si la ventana intercepto algo
 parryActive = false; // true durante ventana+gracia (lo leen los checks de red)
-parryAir = false;    // el parry empezo en el aire (elige sprite/state)
 parryFlash = 0;      // frames restantes del anillo cian (lo dibuja Draw_0)
 
 //General

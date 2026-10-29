@@ -27,11 +27,11 @@
 // =====================================================================
 
 // ===== ESTADOS DE RED (byte `state`; 60+ libres, los golpes usan 20-59) =====
-#macro SONIC_PARRY_SUELO 60       // windup en tierra (aun sin proteccion)
-#macro SONIC_PARRY_SUELO_ACT 61   // VENTANA ACTIVA en tierra (protege)
-#macro SONIC_PARRY_AIRE 62        // windup en aire
-#macro SONIC_PARRY_AIRE_ACT 63    // VENTANA ACTIVA en aire (protege)
-#macro SONIC_PARRY_EXITO 64       // parte de EXITO (al interceptar)
+// v3: SOLO EN TIERRA (un unico sprite de inicio). Los 62/63 quedaron
+// libres (eran las variantes de AIRE de la v1/v2, ya no se usan).
+#macro SONIC_PARRY_INICIO 60     // windup (aun sin proteccion)
+#macro SONIC_PARRY_INICIO_ACT 61 // VENTANA ACTIVA (protege)
+#macro SONIC_PARRY_EXITO 64      // parte de EXITO (al interceptar)
 
 // ===== TIMINGS (frames; 60 = 1 seg) =====
 #macro SONIC_PARRY_WINDUP 4       // preparacion (sin proteccion)
@@ -50,43 +50,31 @@
 #macro SONIC_PARRY_FLASH_FRAMES 14            // anillo cian de activacion
 
 // ===== SPRITES =====
-// Se buscan POR NOMBRE (como las variantes del golpe): importa los
-// sprites con estos nombres y listo. Si no existen, cae al sprite del
-// golpe (spr_sonic_attack2_tierra1 / aereo1) para que nunca pete.
-//   spr_sonic_parry_suelo  -> parte inicial en tierra
-//   spr_sonic_parry_aire   -> parte inicial en el aire
-//   spr_sonic_parry_exito  -> parte de EXITO (la 2da de tu animacion)
+// v3: DOS sprites, solo en tierra:
+//   spr_sonic_parry_inicio   -> parte inicial del intento (windup+ventana)
+//   spr_sonic_parry_exitoso  -> parte de EXITO (al interceptar)
+// Ya estan en el proyecto (registrados en el .yyp del repo). Si no
+// existieran en alguna instalacion, cae al sprite del golpe
+// (spr_sonic_attack2_tierra1) para que nunca pete.
 function scr_parry_sprite(st)
 {
         var _name = "";
-        var _fb = "";
-
-        if(st == SONIC_PARRY_SUELO || st == SONIC_PARRY_SUELO_ACT)
-        {
-                _name = "spr_sonic_parry_suelo";
-                _fb = "spr_sonic_attack2_tierra1";
-        }
-        else if(st == SONIC_PARRY_AIRE || st == SONIC_PARRY_AIRE_ACT)
-        {
-                _name = "spr_sonic_parry_aire";
-                _fb = "spr_sonic_attack2_aereo1";
-        }
+        
+        if(st == SONIC_PARRY_INICIO || st == SONIC_PARRY_INICIO_ACT)
+                _name = "spr_sonic_parry_inicio";
         else if(st == SONIC_PARRY_EXITO)
-        {
-                _name = "spr_sonic_parry_exito";
-                _fb = "spr_sonic_attack2_tierra1";
-        }
+                _name = "spr_sonic_parry_exitoso";
         else
                 return -1;
-
+        
         var _spr = asset_get_index(_name);
         if(!is_undefined(_spr) && _spr >= 0)
                 return _spr;
-
-        _spr = asset_get_index(_fb);
+        
+        _spr = asset_get_index("spr_sonic_attack2_tierra1");
         if(!is_undefined(_spr) && _spr >= 0)
                 return _spr;
-
+        
         return -1;
 }
 
@@ -94,13 +82,13 @@ function scr_parry_sprite(st)
 // clientes en el puppet de Sonic para saber que esta protegiendo)
 function scr_parry_state_active(st)
 {
-        return st == SONIC_PARRY_SUELO_ACT || st == SONIC_PARRY_AIRE_ACT;
+        return st == SONIC_PARRY_INICIO_ACT;
 }
 
 // ¿el estado es alguno del parry? (para el dibujado del puppet)
 function scr_parry_state_is(st)
 {
-        return st >= SONIC_PARRY_SUELO && st <= SONIC_PARRY_EXITO;
+        return st == SONIC_PARRY_INICIO || st == SONIC_PARRY_INICIO_ACT || st == SONIC_PARRY_EXITO;
 }
 
 // overlap de bounding boxes entre dos instancias (contacto
@@ -196,8 +184,10 @@ function scr_parry_step()
         if(parryCooldown > 0)
                 parryCooldown--;
 
-        // cancelacion: si lo hieren/stunean matando el parry, cuenta como fallo
-        if(parryState > 0 && (isDead || isHurt || shockedTimer > 0 || nerviosState > 0))
+        // cancelacion: si lo hieren/stunean matando el parry, cuenta como
+        // fallo. v3: TAMBIEN si se va al aire (el parry es SOLO en tierra;
+        // la parte de EXITO se deja terminar para no cortar la animacion).
+        if(parryState > 0 && (isDead || isHurt || shockedTimer > 0 || nerviosState > 0 || (!isGrounded && parryState != 4)))
         {
                 if(parryState != 4 && !parrySuccess && parryCooldown <= 0)
                         parryCooldown = nerviosUsed ? SONIC_PARRY_CD_FAIL_PB : SONIC_PARRY_CD_FAIL;
@@ -247,8 +237,8 @@ function scr_parry_step()
                 return;
         }
 
-        // ===== INPUT: tap de C =====
-        if(global.playerControls && parryCooldown <= 0
+        // ===== INPUT: tap de C (v3: SOLO EN TIERRA) =====
+        if(global.playerControls && parryCooldown <= 0 && isGrounded
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
         && !isAttacking && !isSpinCharging && nerviosState == 0
         && bounceTimer <= 0
@@ -258,7 +248,6 @@ function scr_parry_step()
                 parryTimer = SONIC_PARRY_WINDUP;
                 parrySuccess = false;
                 parryActive = false;
-                parryAir = !isGrounded;
         }
 }
 

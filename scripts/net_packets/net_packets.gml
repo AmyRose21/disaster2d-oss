@@ -170,7 +170,14 @@ enum PacketType
            mismo orden en el Packet.h del server, y un cliente viejo que no
            los conozca simplemente los ignora. */
         CLIENT_TPROJECTILE_DEFLECT,
-        CLIENT_BRING_DEFLECT
+        CLIENT_BRING_DEFLECT,
+
+        /* Sistema de operadores (.op) del server: el server envia el
+           estado de operador de este cliente (1 = es operador:
+           desbloquea a Sally Canon en la seleccion, ver net_tcpprocess
+           y scr_char_locked). Lo mandan Server.c y ui/Main.c. Mismo
+           orden en el Packet.h del server. */
+        SERVER_OPERATOR_STATE
 }
 
 #macro STATE_PENDING -1

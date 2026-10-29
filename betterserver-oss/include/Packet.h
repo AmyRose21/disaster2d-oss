@@ -175,7 +175,12 @@ typedef enum
            Exetior en anillo dorado recogible (bring -> cring). Mismo orden
            que el enum del cliente (net_packets.gml). */
         CLIENT_TPROJECTILE_DEFLECT,
-        CLIENT_BRING_DEFLECT
+        CLIENT_BRING_DEFLECT,
+
+        /* Sistema de operadores (.op): estado de operador (server ->
+           cliente; 1 = es operador). Mismo orden que el enum del
+           cliente (net_packets.gml). */
+        SERVER_OPERATOR_STATE
 } PacketType;
 
 typedef struct

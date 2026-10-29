@@ -1838,16 +1838,16 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 
                                 var _ddir = buffer_read_s(rbuff, buffer_s8);
                                 
-                                with(obj_tails_projectile)
+                                // Struct access (como el spawn original): 'dir' a secas dentro de un with
+                                // colisionaria con la var local 'dir' del case del snowball de este script
+                                var _laser = instance_find(obj_tails_projectile, 0);
+                                if(!_laser.isBreaking)
                                 {
-                                        if(isBreaking)
-                                                break;
-                                        
-                                        isExe = false;
-                                        dir = _ddir;
-                                        image_xscale = _ddir;
-                                        dmg = min(dmg, SONIC_PARRY_LASER_MAXDMG); // el stun al tocar al EXE queda en max 3s
-                                        image_blend = SONIC_PB_COLOR; // cian Frontiers: reconocible que ya no es dañino para nosotros
+                                        _laser.isExe = false;
+                                        _laser.dir = _ddir;
+                                        _laser.image_xscale = _ddir;
+                                        _laser.dmg = min(_laser.dmg, SONIC_PARRY_LASER_MAXDMG); // el stun al tocar al EXE queda en max 3s
+                                        _laser.image_blend = SONIC_PB_COLOR; // cian Frontiers: reconocible que ya no es dañino para nosotros
                                 }
                         }
                         break;

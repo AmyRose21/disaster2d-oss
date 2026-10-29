@@ -1,0 +1,123 @@
+=====================================================================
+ PARRY DE SONIC (v3) - SOLO EN TIERRA + FIXES DEL PULL
+ Tecla C | Aura 56px | Ventana 12f + gracia 4f | Stun 3s
+=====================================================================
+
+QUE SE CAMBIO EN LA v3
+----------------------
+  1. SOLO EN TIERRA: el parry ya no se puede iniciar en el aire. Si
+     durante el intento (windup o ventana) Sonic se va al aire (salto,
+     caida de plataforma, empujon), el parry se CANCELA y cuenta como
+     fallo (mismo cooldown de fallo). La animacion de EXITO si se deja
+     terminar completa aunque te empujen al aire.
+  2. SPRITES NUEVOS (2, los que subiste al repo):
+        spr_sonic_parry_inicio   -> parte inicial del intento
+                                    (windup + ventana activa)
+        spr_sonic_parry_exitoso  -> parte de EXITO (al interceptar)
+     Ya estan registrados en el .yyp del repo, NO hay que importar
+     nada. Estados de red simplificados: 60=inicio, 61=inicio activo,
+     64=exito (los 62/63 de la variante de aire quedaron libres).
+  3. FIXES DE LOS 3 ERRORES DE COMPILACION DEL PULL (ver abajo).
+
+LOS 3 ERRORES DEL PULL (de donde salian y como se arreglan)
+-----------------------------------------------------------
+  * GM1014 "enum PacketType does not contain SERVER_OPERATOR_STATE"
+    (net_tcpprocess 188): la mejora nueva del repo (sistema de
+    operadores .op, desbloquea a Sally Canon) usa ese paquete en
+    net_tcpprocess.gml, Server.c y ui/Main.c, pero NADIE lo habia
+    anadido al enum. FIX: anadido AL FINAL del enum en
+    scripts/net_packets/net_packets.gml (cliente) y en
+    betterserver-oss/include/Packet.h (server), en la MISMA posicion
+    en los dos lados. Sin esto, el CLIENTE y el SERVER no compilaban.
+  * GM1020 "buttonSelected takes no less than 4 arguments" en
+    obj_menu_slider y obj_menu_textbox: la funcion del menu cambio a
+    4 parametros (_bid, _bcolumn, _dir, _anim) pero esos dos objetos
+    seguian llamandola con 3 y 2. FIX: las llamadas ahora pasan los
+    4 argumentos (bid, -1, 0, true; direccion neutral, con animacion,
+    que es lo correcto para un click del usuario).
+  * Ademas se RE-APLICO el fix v2 del desvio del laser (el repo tenia
+    la v1: "dir = _ddir" dentro del with colisionaba con una variable
+    local de otro case del mismo script y el laser desviado no
+    cambiaba de direccion de verdad; ahora usa struct access
+    _laser.dir, como el spawn original del juego).
+
+QUE HACE (igual que antes, salvo el aire)
+-----------------------------------------
+Tap de C EN TIERRA y Sonic hace el parry (2 partes: inicio y exito).
+Durante la ventana activa:
+
+  * CUALQUIER ataque del lado EXE que fuera a golpear a Sonic O A UN
+    ALIADO DENTRO DE SU AURA (56px, circulo cian) queda INTERCEPTADO:
+    el dano se niega por completo (aunque el objetivo fuera otro).
+  * El atacante (EXE o esbirro) queda ATURDIDO 3 SEGUNDOS IGNORANDO
+    SUS I-FRAMES. Escudo de Eggman esbirro: CONSUMIDO ENTERO. Escudo
+    de Sally esbirro: ROTO.
+  * PROYECTILES (no stunean al que los tiro):
+      - LASER DE TAILS esbirro: se DESVIA (server lo invierte), pasa
+        a ser del lado de Sonic, recolor CIAN, y aturde al EXE/esbirro
+        que toque (max 3s).
+      - ANILLO NEGRO DE EXETIOR: se CONVIERTE en anillo DORADO real
+        recogible (+1 para cualquier sobreviviente).
+  * COOLDOWN: fase normal: fallo 14s / exito 7s. Fase powerboost
+    (tras usar Nervios de Acero): fallo 10s / exito 2s.
+  * TIMINGS: windup 4f (sin proteccion) -> ventana 12f + 4f de gracia
+    invisible (absorbe latencia). Ahora: SOLO EN TIERRA.
+  * NO parrea: peligros ambientales (pinchos, lava, hoyos) y el EXE
+    invisible.
+
+ARCHIVOS DEL PAQUETE (40)
+-------------------------
+  EDITADO scripts/scr_parry/scr_parry.gml     (solo tierra + sprites v3)
+          objects/obj_sonic/Create_0.gml      (fuera parryAir)
+          objects/obj_sonic/Step_2.gml        (estados 60/61/64)
+          objects/obj_sonic/Draw_76.gml       (cases de animacion v3)
+          scripts/net_packets/net_packets.gml (+SERVER_OPERATOR_STATE)
+          betterserver-oss/include/Packet.h   (+SERVER_OPERATOR_STATE)
+          objects/obj_menu_slider/Draw_0.gml  (fix GM1020)
+          objects/obj_menu_textbox/Draw_0.gml (fix GM1020)
+          scripts/net_state_game/net_state_game.gml (fix deflect v2)
+  IGUALES objects/obj_sonic/Step_0.gml, Draw_0.gml
+  AL REPO scripts/scr_sonic_special, scr_player_hurt, obj_player_puppet
+          (Step_0/Draw_0/Draw_72), obj_tails_projectile, los 14 objetos
+          con flag exeSource, net_sounds, Game.c (handlers del server),
+          scr_parry.yy, snd_parry.*, yyp, resource_order
+          (se incluyen para que el zip sea autocontenido)
+
+COMO INSTALAR
+-------------
+  1. Extraer el zip SOBRE la raiz del proyecto GameMaker (donde esta
+     el .yyp), aceptando sobreescribir.
+     * OJO con el .yyp: el de este zip es el del repo (con TODO
+       registrado: sprites del parry, sonidos EVASI/SALLY, sistema
+       operator). Si extrajiste un zip viejo DESPUES del pull, tu
+       .yyp quedo viejo: extrae este y recupera todo. Si en cambio
+       agregaste cosas tuyas en el IDE despues del ultimo push,
+       NO extraigas el .yyp y solo copia el resto.
+  2. Compilar el CLIENTE.
+  3. RECOMPILAR el SERVER (compilar_server.bat): sin esto no compila
+     por SERVER_OPERATOR_STATE y pierdes el desvio del laser y el
+     anillo dorado.
+  4. Todos los jugadores con el mod a la vez (los estados del parry
+     cambiaron: un cliente v2 junto a uno v3 no veria bien la animacion).
+
+AJUSTES RAPIDOS (arriba de scripts/scr_parry/scr_parry.gml)
+-----------------------------------------------------------
+  SONIC_PARRY_WINDUP    4     frames de preparacion (sin proteccion)
+  SONIC_PARRY_WINDOW    12    frames de ventana activa
+  SONIC_PARRY_GRACE     4     frames de gracia invisible (latencia)
+  SONIC_PARRY_AURA      56    radio del aura que protege aliados (px)
+  SONIC_PARRY_STUN_TIME 60*3  stun del atacante parreado
+  SONIC_PARRY_CD_FAIL   60*14 fallo fase normal
+  SONIC_PARRY_CD_OK     60*7  exito fase normal
+  SONIC_PARRY_CD_FAIL_PB 60*10 fallo fase powerboost
+  SONIC_PARRY_CD_OK_PB  60*2  exito fase powerboost
+  SONIC_PARRY_EXITO_TIME 22   duracion de la animacion de exito
+
+NOTAS
+-----
+  * Los sprites spr_sonic_parry_wait_canon / spr_sonic_parry_success_canon
+    que subiste al repo quedan SIN USAR (no los toca el mod). Si los
+    quieres usar para algo, dime para que y los conecto.
+  * La parte de EXITO dura SONIC_PARRY_EXITO_TIME frames sin importar
+    cuantos frames tenga tu sprite (la velocidad se calcula sola).
+  * Si el lag es alto (100ms+), sube SONIC_PARRY_GRACE a 6.
