@@ -110,7 +110,12 @@ function scr_player_instakill()
         net_sound_emit(snd_dead);
 }
 
-function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1, ignore=false)
+// PARRY DE SONIC: param opcional exeSource — true solo en las llamadas
+// cuyo dano viene de un ataque/habilidad del lado EXE (golpe de puppets
+// EXE/esbirros, escudo electrico de Eggman, laser de Tails esbirro,
+// bolas de Exetior, cadenas, etc). Los peligros ambientales (pinchos,
+// lava, hoyos, agua) NO lo ponen: el parry no salva del escenario.
+function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1, ignore=false, exeSource=false)
 {       
         if(!instance_exists(global.player))
                 return;
@@ -169,6 +174,18 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 
                 return;
         }
+        
+        // =============================================================
+        //  PARRY DE SONIC (negacion, lado de la VICTIMA): el golpe viene
+        //  de un ataque del lado EXE (exeSource) y habria caido de
+        //  verdad (ya paso los i-frames). Si un Sonic con la ventana
+        //  activa cubre al jugador local — el mismo Sonic o un aliado
+        //  dentro de su aura de 56px — el dano se NIEGA por completo.
+        //  El stun del atacante lo aplica el cliente del propio atacante
+        //  (scr_parry_try_stun_attacker) con los mismos datos sincronizados.
+        // =============================================================
+        if(exeSource && damage > 0 && scr_parry_negate_hit())
+                return;
         
         if(global.character != CHARACTER_EXE)
         {
@@ -249,19 +266,6 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 audio_play_sound(sndid, 0, false);
                 net_sound_emit(sndid);
                 scr_camera_shake(25, 1, 0.2);
-                
-                // SALLY CANON: su voz de dolor (1 de SALLY1-5 al azar)
-                // suena ADICIONAL al sonido del golpe de arriba (el
-                // snd_hurt / snd_spike / snd_lavahit original NO se
-                // reemplaza: suenan los 2). En su pantalla y en la de
-                // todos por red, con el mismo paquete de sonido de
-                // siempre (sin cambios en el server).
-                if(global.character == CHARACTER_SALLY_CANON && damage > 0)
-                {
-                        var _snd = choose(SALLY1, SALLY2, SALLY3, SALLY4, SALLY5);
-                        audio_play_sound(_snd, 0, false);
-                        net_sound_emit(_snd);
-                }
         }
         
         if(damage > 0)

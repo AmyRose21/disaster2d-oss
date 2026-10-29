@@ -63,7 +63,8 @@ for(var i = 0; i < ds_list_size(list); i++)
 			continue;
 			
 		var dirX = -sign(inst.x - x) * 3;
-		scr_player_hurt(20, dirX, -4, snd_hurt, spr_blood2);
+		// exeSource=true: daño de un ataque del lado EXE (parry puede negarlo)
+		scr_player_hurt(20, dirX, -4, snd_hurt, spr_blood2, false, true);
 		
 		if(hp <= 0 && inst.revivalTimes >= 2)
 		{

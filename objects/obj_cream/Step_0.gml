@@ -71,7 +71,8 @@ for(var i = 0; i < ds_list_size(list); i++)
 		var dirX = -sign(inst.x - x) * 3;
 		var dirY = dmg == 0 ? -sign(inst.y - y) * 4 : -4;
 		
-		scr_player_hurt(dmg, dirX, dirY, (isJumping || isSpinning) ? snd_buble : snd_hurt, spr_blood2, true);	
+		// exeSource=true: daño de un ataque del lado EXE (parry puede negarlo)
+		scr_player_hurt(dmg, dirX, dirY, (isJumping || isSpinning) ? snd_buble : snd_hurt, spr_blood2, true, true);
 		
 		if(hp <= 0 && inst.revivalTimes >= 2)
 		{

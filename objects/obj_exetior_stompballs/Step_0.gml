@@ -57,7 +57,8 @@ if(place_meeting(x, y, global.player))
 	if(global.player.hurttime > 0)
 		return;
 		
-	scr_player_hurt(20, dir * 3);
+	// exeSource=true: habilidad del EXE (parry puede negarla)
+	scr_player_hurt(20, dir * 3, -6, snd_hurt, spr_blood1, false, true);
 	scr_exe_checkwin();
 	
 	if(instance_exists(obj_player_puppet))

@@ -118,19 +118,11 @@ global.net_snds =
         DSTAROT1,   // 104: impulso aereo de tarot (one-shot al arrancar)
         DSTAROT2,   // 105: pasiva del tarot (loop de flotacion)
         Loop_Card,  // 106: loop de cartas (flotacion + impulso)
-        
-        // --- Sally Canon (voz): tambien AL FINAL por la misma regla (no mover
-        // los indices de los sonidos existentes). Los usa net_sound_emit desde
-        // scr_player_hurt (dolor al recibir dano) y scr_sally_canon_fase2
-        // (dolor del golpe fatal + EVASI2 al entrar en la parte final). ---
-        SALLY1,     // 107: voz de dolor 1 (al azar al recibir dano)
-        SALLY2,     // 108: voz de dolor 2
-        SALLY3,     // 109: voz de dolor 3
-        SALLY4,     // 110: voz de dolor 4
-        SALLY5,     // 111: voz de dolor 5
-        EVASI1,     // 112: evasion (reserva para un futuro uso)
-        EVASI2,     // 113: evasion: 1 vez al entrar en la parte final (pt4)
-        EVASI3      // 114: evasion (reserva para un futuro uso)
+
+        // --- Sonic parry: "ting" metalico del momento exacto del parry.
+        // Tambien AL FINAL por la misma razon. Lo emite scr_parry_negate_hit
+        // (net_sound_emit_at para que suene posicionado en el Sonic). ---
+        snd_parry   // 107
 ];
 global.tmp_sndid = 0;
 

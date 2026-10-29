@@ -150,6 +150,10 @@ if(reviveBoost)
 if(pbFlash > 0)
         pbFlash--; // contador del anillo de activacion (lo dibuja Draw_0)
 
+// PARRY (tecla C): maquina de fases, deteccion de exito y desvios.
+// No toca el movimiento: el parry es un estado, no una postura.
+scr_parry_step();
+
 scr_collision_basic();
 
 if(reviveObj != noone)
@@ -211,7 +215,8 @@ for(var i = 0; i < ds_list_size(list); i++)
                 var dirX = -sign(inst.x - x) * 3;
                 var dirY = dmg == 0 ? -sign(inst.y - y) * 4 : -4;
                 
-                scr_player_hurt(dmg, dirX, dirY, (isJumping || isSpinning) ? snd_buble : snd_hurt, spr_blood2, true);
+                // exeSource=true: daño de un ataque del lado EXE (parry puede negarlo)
+                scr_player_hurt(dmg, dirX, dirY, (isJumping || isSpinning) ? snd_buble : snd_hurt, spr_blood2, true, true);
                 
                 if(hp <= 0 && inst.revivalTimes >= 2)
                 {               

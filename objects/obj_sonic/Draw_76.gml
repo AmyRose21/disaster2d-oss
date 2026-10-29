@@ -6,6 +6,37 @@ var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
 // otro cliente. El resto de estados usan el array, como siempre.
 var _spr = -1;
 
+// PARRY (tecla C): estados 60-64, ANTES que los del golpe (60+ entraria
+// en el rango del ataque aereo). Sprite por nombre con fallback al
+// golpe (scr_parry_sprite), igual que las variantes.
+if(scr_parry_state_is(state))
+{
+        _spr = scr_parry_sprite(state);
+
+        if(_spr != -1)
+                sprite_index = _spr;
+
+        switch(state)
+        {
+                case SONIC_PARRY_SUELO:
+                case SONIC_PARRY_AIRE:
+                        image_index = 0;
+                        image_speed = max(image_number / SONIC_PARRY_WINDUP, 0.05);
+                        break;
+
+                case SONIC_PARRY_SUELO_ACT:
+                case SONIC_PARRY_AIRE_ACT:
+                        image_speed = max(image_number / (SONIC_PARRY_WINDOW + SONIC_PARRY_GRACE), 0.05);
+                        break;
+
+                case SONIC_PARRY_EXITO:
+                        image_speed = max(image_number / SONIC_PARRY_EXITO_TIME, 0.05);
+                        break;
+        }
+
+        return;
+}
+
 if(state >= SONIC_ATK_AIRE)
 {
         var _vi = state - SONIC_ATK_AIRE;

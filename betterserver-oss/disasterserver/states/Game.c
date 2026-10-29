@@ -765,6 +765,43 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         break;
                 }
 
+                /* Sonic parry: el laser del lado EXE fue parreado. Se invierte
+                   (exe=0, direccion al reves, dano capado a 3) y se rebroadcastea
+                   como _state 3: a partir de ahi es un ataque del lado de los
+                   sobrevivientes y aturde al EXE/esbirro que toque (rama que ya
+                   existe en el cliente). Idempotente: solo aplica si exe==1, asi
+                   que varios clientes pidiendolo a la vez no rompen nada. */
+                case CLIENT_TPROJECTILE_DEFLECT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+
+                        Entity* ents;
+                        if (game_find(v->server, &ents, "tproj", 1))
+                        {
+                                TProjectile* tproj = (TProjectile*)ents;
+
+                                if (tproj->exe)
+                                {
+                                        tproj->exe = 0;
+                                        tproj->damage = 3;
+
+                                        if (tproj->dir > 0)
+                                                tproj->dir = -1;
+                                        else if (tproj->dir < 0)
+                                                tproj->dir = 1;
+
+                                        Packet pack;
+                                        PacketCreate(&pack, SERVER_TPROJECTILE_STATE);
+                                        PacketWrite(&pack, packet_write8, 3);
+                                        PacketWrite(&pack, packet_write8, tproj->dir);
+                                        server_broadcast(v->server, &pack, true);
+                                }
+                        }
+
+                        break;
+                }
+
                 case CLIENT_RING_COLLECTED:
                 {
                         AssertOrDisconnect(v->server, v->in_game);
@@ -949,6 +986,37 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 Packet pack;
                                 PacketCreate(&pack, SERVER_BRING_COLLECTED);
                                 packet_send(v->peer, &pack, true);
+                        }
+                        break;
+                }
+
+                /* Sonic parry: el anillo negro de Exetior fue parreado. Se
+                   quita el anillo negro (bring_uninit avisa a los clientes) y
+                   en el mismo sitio aparece un anillo REAL (cring_init hace el
+                   broadcast del SERVER_RING_STATE _state 2): dorado, recogible
+                   con el flujo normal de siempre (+1 anillo incluido), nunca
+                   la trampa de los -5 anillos. */
+                case CLIENT_BRING_DEFLECT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+                        PacketRead(eid, packet, packet_read16, uint16_t);
+
+                        Entity* brings[128];
+                        int cnt = game_find(v->server, (Entity**)brings, "bring", 128);
+
+                        for (int i = 0; i < cnt; i++)
+                        {
+                                if (brings[i]->id != eid)
+                                        continue;
+
+                                float bx = brings[i]->pos.x;
+                                float by = brings[i]->pos.y;
+
+                                if (game_despawn(v->server, NULL, eid))
+                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(bx, by, false)), sizeof(CreamRing), NULL));
+
+                                break;
                         }
                         break;
                 }

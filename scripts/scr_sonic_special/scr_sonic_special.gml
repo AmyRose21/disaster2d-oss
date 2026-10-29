@@ -35,8 +35,11 @@ function scr_sonic_special()
         }
         
         // --- ATAQUE 1: inicio del golpe (tecla X) ---
+        // (parryState == 0: mientras dura el parry no se pueden empezar
+        // otras acciones — el parry reemplaza el golpe)
         if(global.playerControls && !isAttacking && !isSpinCharging
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline
+        && parryState == 0
         && keyboard_check_pressed(global.KeyB) && attackTimer <= 0)
         {
                 // Direccion: si aprietas izquierda/derecha al iniciar,
@@ -87,8 +90,10 @@ function scr_sonic_special()
         // =================================================================
         
         // --- Entrada / revolucadas: abajo + Z (solo en el suelo, parado) ---
+        // (parryState == 0: idem golpe, no durante el parry)
         if(global.playerControls && !isSpinCharging && isGrounded && !isAttacking
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline
+        && parryState == 0
         && keyboard_check(global.KeyDown) && gspd == 0 && keyboard_check_pressed(global.KeyA))
         {
                 isSpinCharging = true;

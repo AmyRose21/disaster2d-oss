@@ -18,6 +18,15 @@
 #macro SONIC_ATK_AIRE 40          // variante N de aire = estado 40 + (N-1), hasta 59
 #macro SONIC_ATK_AIRE_MAX 20      // tope de variantes aire que se escanean
 
+// PARRY (tecla C): estados 60-64 (ver scr_parry.gml). El _ACT es la
+// VENTANA ACTIVA: es el que los otros clientes miran en el puppet para
+// saber que Sonic esta protegiendo (a si mismo y a su aura de aliados).
+#macro SONIC_PARRY_SUELO 60       // windup en tierra
+#macro SONIC_PARRY_SUELO_ACT 61   // ventana activa en tierra
+#macro SONIC_PARRY_AIRE 62        // windup en aire
+#macro SONIC_PARRY_AIRE_ACT 63    // ventana activa en aire
+#macro SONIC_PARRY_EXITO 64       // parte de exito (al interceptar)
+
 if(!emotion)
         state = IDLE;
 
@@ -47,6 +56,21 @@ if(isDead)
 if(shockedTimer > 0)
 {
         state = DEAD;
+        return;
+}
+
+// PARRY: estados propios (60-64). Van antes que spindash/ataque: el
+// parry reemplaza cualquier otra animacion mientras dura. El _ACT
+// (ventana activa) es el que viaja mientras Sonic esta protegiendo.
+if(parryState > 0)
+{
+        if(parryState == 4)
+                state = SONIC_PARRY_EXITO;
+        else if(parryState == 2)
+                state = parryAir ? SONIC_PARRY_AIRE_ACT : SONIC_PARRY_SUELO_ACT;
+        else
+                state = parryAir ? SONIC_PARRY_AIRE : SONIC_PARRY_SUELO;
+
         return;
 }
 

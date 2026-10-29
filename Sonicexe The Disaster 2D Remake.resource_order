@@ -1,21 +1,14 @@
 {
   "FolderOrderSettings":[
-    {"name":"Sally Canon","order":2,"path":"folders/Objects/Player/Survivors/Sally Canon.yy",},
-    {"name":"Sally Canon","order":1,"path":"folders/Sounds/Player/Sally Canon.yy",},
     {"name":"Sally Canon","order":1,"path":"folders/Sprites/Player/Survivors/Sally Canon.yy",},
+    {"name":"Sally Canon","order":2,"path":"folders/Objects/Player/Survivors/Sally Canon.yy",},
   ],
   "ResourceOrderSettings":[
     {"name":"obj_sally_canon","order":1,"path":"objects/obj_sally_canon/obj_sally_canon.yy",},
     {"name":"scr_powerboost_fx","order":5,"path":"scripts/scr_powerboost_fx/scr_powerboost_fx.yy",},
     {"name":"scr_sally_canon_fase2","order":6,"path":"scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.yy",},
-    {"name":"EVASI1","order":1,"path":"sounds/EVASI1/EVASI1.yy",},
-    {"name":"EVASI2","order":2,"path":"sounds/EVASI2/EVASI2.yy",},
-    {"name":"EVASI3","order":3,"path":"sounds/EVASI3/EVASI3.yy",},
-    {"name":"SALLY1","order":4,"path":"sounds/SALLY1/SALLY1.yy",},
-    {"name":"SALLY2","order":5,"path":"sounds/SALLY2/SALLY2.yy",},
-    {"name":"SALLY3","order":6,"path":"sounds/SALLY3/SALLY3.yy",},
-    {"name":"SALLY4","order":7,"path":"sounds/SALLY4/SALLY4.yy",},
-    {"name":"SALLY5","order":8,"path":"sounds/SALLY5/SALLY5.yy",},
+    {"name":"scr_parry","order":7,"path":"scripts/scr_parry/scr_parry.yy",},
+    {"name":"snd_parry","order":1,"path":"sounds/snd_parry/snd_parry.yy",},
     {"name":"spr_sally_balancing_canon","order":1,"path":"sprites/spr_sally_balancing_canon/spr_sally_balancing_canon.yy",},
     {"name":"spr_sally_dead_canon","order":2,"path":"sprites/spr_sally_dead_canon/spr_sally_dead_canon.yy",},
     {"name":"spr_sally_emotion1_canon","order":3,"path":"sprites/spr_sally_emotion1_canon/spr_sally_emotion1_canon.yy",},
@@ -40,7 +33,5 @@
     {"name":"spr_sonic_attack2_tierra2","order":4,"path":"sprites/spr_sonic_attack2_tierra2/spr_sonic_attack2_tierra2.yy",},
     {"name":"spr_sonic_nervios_de_acero_finish","order":2,"path":"sprites/spr_sonic_nervios_de_acero_finish/spr_sonic_nervios_de_acero_finish.yy",},
     {"name":"spr_sonic_nervios_de_acero_Idle","order":1,"path":"sprites/spr_sonic_nervios_de_acero_Idle/spr_sonic_nervios_de_acero_Idle.yy",},
-    {"name":"spr_sonic_parry_success_canon","order":6,"path":"sprites/spr_sonic_parry_success_canon/spr_sonic_parry_success_canon.yy",},
-    {"name":"spr_sonic_parry_wait_canon","order":5,"path":"sprites/spr_sonic_parry_wait_canon/spr_sonic_parry_wait_canon.yy",},
   ],
 }

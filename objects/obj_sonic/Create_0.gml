@@ -128,6 +128,18 @@ pbFlash = 0;         // frames restantes del anillo de activacion
 atkAir = false;  // true: el golpe empezo en el aire
 atkNum = 1;      // numero de la variante elegida (1..N)
 
+// --- PARRY (tecla C, estilo Frontiers) ---
+// Logica completa en scripts/scr_parry/scr_parry.gml. Cooldowns:
+// fallo 14s / exito 7s en fase normal; fallo 10s / exito 2s tras haber
+// usado Nervios de Acero (fase powerboost, nerviosUsed).
+parryState = 0;      // 0=nada, 1=windup, 2=ventana activa, 4=exito
+parryTimer = 0;      // frames restantes de la fase actual
+parryCooldown = 0;   // frames restantes de recarga
+parrySuccess = false;// true si la ventana intercepto algo
+parryActive = false; // true durante ventana+gracia (lo leen los checks de red)
+parryAir = false;    // el parry empezo en el aire (elige sprite/state)
+parryFlash = 0;      // frames restantes del anillo cian (lo dibuja Draw_0)
+
 //General
 hp = 100;
 isGrounded = false;

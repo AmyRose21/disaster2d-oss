@@ -39,6 +39,24 @@ var _pb = (character == CHARACTER_SONIC && powerBoost);
 if(_pb)
         scr_powerboost_fx_back(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, angle, current_time / 16);
 
+// SONIC PARRY: aura cian visible en el puppet mientras su ventana esta
+// abierta (estado SONIC_PARRY_*_ACT viajando por UDP), para que todos
+// vean el radio que esta cubriendo.
+if(character == CHARACTER_SONIC && scr_parry_state_active(state))
+{
+        gpu_set_blendmode(bm_add);
+        draw_set_circle_precision(32);
+        draw_set_alpha(0.13);
+        draw_set_color(SONIC_PB_COLOR);
+        draw_circle(x, y - 6, SONIC_PARRY_AURA, false);
+        draw_set_alpha(0.35);
+        draw_set_color(SONIC_PB_COLOR);
+        draw_circle(x, y - 6, SONIC_PARRY_AURA, true);
+        draw_set_alpha(1);
+        draw_set_color(c_white);
+        gpu_set_blendmode(bm_normal);
+}
+
 // SALLY CANON fase 2: squash & stretch remoto (estira al despegar del
 // salto de pt3, se aplasta al aterrizar en pt4), anclado al suelo igual
 // que en el jugador local. El valor lo deriva el Step de este puppet.

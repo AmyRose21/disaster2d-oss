@@ -24,7 +24,8 @@ if(image_index >= 8 && place_meeting(x, y, global.player))
 {
 	global.player.isSlow = true;
 	global.player.alarm[4] = 60 * 3;
-	scr_player_hurt(20, -global.player.image_xscale * 4);
+	// exeSource=true: habilidad del EXE (parry puede negarla)
+	scr_player_hurt(20, -global.player.image_xscale * 4, -6, snd_hurt, spr_blood1, false, true);
 }
 
 timer++;
