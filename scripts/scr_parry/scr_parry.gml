@@ -45,20 +45,20 @@
 #macro SONIC_PARRY_EXITO 64      // parte de EXITO (al interceptar)
 
 // ===== TIMINGS (frames; 60 = 1 seg) =====
-#macro SONIC_PARRY_WINDUP 4       // preparacion (sin proteccion)
-#macro SONIC_PARRY_WINDOW 30      // ventana activa (v3.2: era 12)
+#macro SONIC_PARRY_WINDUP 1       // preparacion (sin proteccion)
+#macro SONIC_PARRY_WINDOW 50      // ventana activa (v3.2: era 12)
 #macro SONIC_PARRY_GRACE 4        // gracia invisible (latencia de red)
 #macro SONIC_PARRY_EXITO_TIME 22  // duracion de la animacion de exito
 
 // ===== NUMEROS =====
-#macro SONIC_PARRY_AURA 56                    // radio del aura que cubre aliados (px)
-#macro SONIC_PARRY_STUN_TIME (60 * 3)         // stun del atacante parreado (3 seg)
+#macro SONIC_PARRY_AURA 58                    // radio del aura que cubre aliados (px)
+#macro SONIC_PARRY_STUN_TIME (60 * 3.5)         // stun del atacante parreado (3 seg)
 #macro SONIC_PARRY_CD_FAIL (60 * 14)          // fallo  - fase normal (14 seg)
 #macro SONIC_PARRY_CD_OK (60 * 7)             // exito  - fase normal (7 seg)
 #macro SONIC_PARRY_CD_FAIL_PB (60 * 10)       // fallo  - fase powerboost (10 seg)
 #macro SONIC_PARRY_CD_OK_PB (60 * 2)          // exito  - fase powerboost (2 seg)
-#macro SONIC_PARRY_LASER_MAXDMG 3             // stun maximo (seg) del laser desviado
-#macro SONIC_PARRY_FLASH_FRAMES 14            // anillo cian de activacion
+#macro SONIC_PARRY_LASER_MAXDMG 4             // stun maximo (seg) del laser desviado
+#macro SONIC_PARRY_FLASH_FRAMES 18            // anillo cian de activacion
 
 // ===== SPRITES =====
 // v3: DOS sprites, solo en tierra:
