@@ -1788,6 +1788,24 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 // el audio a 200ms) y ademas dispara la animacion de exito.
                                 if(global.net_snds[sid] == snd_parry)
                                         scr_parry_ting_play();
+                                else if(global.net_snds[sid] == snd_exe_stun)
+                                {
+                                        // PARRY DE SONIC (v3.5): snd_exe_stun posicionado EN
+                                        // MI nid (shouldPlay=true) solo lo emite la NEGACION de
+                                        // la victima (scr_parry_negate_hit) cuando MI golpe melee
+                                        // acaba de ser parreado por un Sonic. El contacto exacto
+                                        // golpe-a-cuerpo solo existe en el cliente de la victima;
+                                        // cuando el golpe iba dirigido al PROPIO Sonic, el auto-stun
+                                        // local (scr_parry_try_stun_attacker) no siempre se disparaba
+                                        // en esta maquina (lag del puppet / mascara de solo-garras del
+                                        // ataque) y el exe quedaba sin stun aunque el dano si fue
+                                        // negado. Esta senal lo corrige: me aturdo a mi mismo con
+                                        // las mismas reglas (scr_parry_stun_signal; deduplica con
+                                        // shockedTimer contra el auto-stun local y otros stuns).
+                                        // El sonido lo aplica el propio stun (no aqui): ya viajo
+                                        // en este paquete para los demas clientes en 3D.
+                                        scr_parry_stun_signal();
+                                }
                                 else
                                         audio_play_sound(global.net_snds[sid], false, 0);
                         }
