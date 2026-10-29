@@ -3,6 +3,13 @@
 //  v3.2: ventana 30f, aura SOLO VISIBLE para supervivientes (el EXE y
 //        los esbirros no ven el circulo) e icono de HUD con el CD
 //        (spr_gui_sonicparry, tecla C, como los demas personajes).
+//  v3.3: FIX CRITICO del golpe que entraba tras el exito: la deteccion
+//        de exito cerraba la ventana (parryState=4, estado de red 61->64)
+//        ANTES de que el ataque interceptado se resolviera en las otras
+//        maquinas, asi que el dano entraba igual y el atacante nunca se
+//        stuneaba. El EXITO ahora protege igual que la ventana: estado 64
+//        activo para el auto-stun del atacante y el aura, y la victima
+//        cubierta tambien durante la animacion de exito.
 //
 //  COMO FUNCIONA (resumen):
 //   * Tap de C -> windup (SONIC_PARRY_WINDUP frames, sin proteccion)
@@ -82,11 +89,18 @@ function scr_parry_sprite(st)
         return -1;
 }
 
-// ¿el estado es una VENTANA ACTIVA del parry? (lo miran los otros
-// clientes en el puppet de Sonic para saber que esta protegiendo)
+// ¿el estado es una PROTECCION ACTIVA del parry? (lo miran los otros
+// clientes en el puppet de Sonic para saber que esta cubriendo: el
+// aura que protege aliados, el circulo que se dibuja y el auto-stun
+// del atacante).
+// v3.3: INCLUYE EL EXITO (64). La deteccion de exito cierra la ventana
+// al instante (parryState=4) pero el ataque interceptado sigue
+// resolviendose unos frames despues en las otras maquinas (el golpe
+// no es atomico entre clientes): si el 64 no contara como activo, el
+// dano entraba un frame despues y el atacante nunca se stuneaba.
 function scr_parry_state_active(st)
 {
-        return st == SONIC_PARRY_INICIO_ACT;
+        return st == SONIC_PARRY_INICIO_ACT || st == SONIC_PARRY_EXITO;
 }
 
 // ¿el estado es alguno del parry? (para el dibujado del puppet)
@@ -131,8 +145,12 @@ function scr_parry_protects_me()
         if(global.player.isDead)
                 return noone;
 
-        // 1) yo soy Sonic y mi ventana esta activa
-        if(global.character == CHARACTER_SONIC && global.player.parryActive)
+        // 1) yo soy Sonic y estoy cubierto: ventana activa (parryActive)
+        //    o fase de EXITO (v3.3: el ataque interceptado llega a
+        //    resolverse DESPUES de la deteccion de exito; sin esto el
+        //    dano entraba igual)
+        if(global.character == CHARACTER_SONIC
+        && (global.player.parryActive || global.player.parryState == 4))
                 return global.player;
 
         // 2) un Sonic remoto con parry activa y yo dentro de su aura
@@ -178,9 +196,19 @@ function scr_parry_negate_hit()
         // pantalla (shouldPlay del emit_at) y 3D desde su puppet en las
         // demas (mismo sistema de sonido de red de siempre). Sin play
         // local extra: en un self-parry el emit_at ya lo suena una vez.
-        net_sound_emit_at(snd_parry, _nid);
-        net_quick_effect(_sonic.x, _sonic.y - 8, spr_shockparticle, false, 1, 0, 0, 1);
-        scr_camera_shake(20, 2, 0.2);
+        // v3.3: en rafaga (throttle 200ms). Con el EXITO protegiendo, el
+        // MISMO ataque interceptado vuelve a pedir la negacion varios
+        // frames seguidos (hasta que el stun del atacante le llega y le
+        // cancela el ataque); sin esto el "ting", el shake y el paquete
+        // de sonido salian una vez por frame.
+        static _fxLast = -9999;
+        if(current_time - _fxLast >= 200)
+        {
+                net_sound_emit_at(snd_parry, _nid);
+                net_quick_effect(_sonic.x, _sonic.y - 8, spr_shockparticle, false, 1, 0, 0, 1);
+                scr_camera_shake(20, 2, 0.2);
+                _fxLast = current_time;
+        }
 
         return true;
 }
