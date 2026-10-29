@@ -35,13 +35,16 @@
 //  snd_spin del juego). Al SOLTAR ABAJO, Sonic sale disparado en bola
 //  (isSpinning) a una velocidad que depende de la carga.
 //
-//  * BASE      = velocidad minima al soltar sin ninguna carga.
-//  * REV       = velocidad que suma cada pulsacion de Z.
+//  * BASE       = velocidad minima al soltar sin ninguna carga.
+//  * REV        = velocidad que suma cada pulsacion de Z.
 //  * CHARGE_MAX = carga maxima posible. Velocidad maxima al soltar =
-//                BASE + CHARGE_MAX (8 + 6 = 14, igual de rapida que la
-//                acometida de martillo de Amy Canon).
-//  * DECAY     = frames que tarda en perder 1 punto de carga estando
-//                quieto sin pulsar Z (90 frames = 1.5 segundos).
+//                 BASE + CHARGE_MAX (8 + 10 = 18: 5 revolucadas, muy
+//                 por encima de los 12 de los EXE; hasta v2 eran 6 de
+//                 carga y 14 de tope, y encima el clamp de la colision
+//                 recortaba TODO a 11, asi que machacar Z no aumentaba
+//                 nada; arreglado en v3, ver scr_collision_basic).
+//  * DECAY      = frames que tarda en perder 1 punto de carga estando
+//                 quieto sin pulsar Z (90 frames = 1.5 segundos).
 //
 //  El spindash NO tiene cooldown: su coste es quedarte quieto
 //  cargandolo. Al salir disparado va en bola (estado SPIN), y la
@@ -49,8 +52,50 @@
 // =====================================================================
 #macro SONIC_SPINDASH_BASE 8
 #macro SONIC_SPINDASH_REV 2
-#macro SONIC_SPINDASH_CHARGE_MAX 6
+#macro SONIC_SPINDASH_CHARGE_MAX 10
 #macro SONIC_SPINDASH_DECAY 90
+
+// =====================================================================
+//  JUGO del spindash (v3): tono y polvo
+//  PITCH_STEP: cuanto SUBE el tono de cada revolucada (snd_spin). El
+//  tono va en PROPORCION a la carga: 1.0 al empezar y 1.0 + PITCH_STEP
+//  con la bola llena (con 0.8: 1.0 -> 1.8, el crescendo clasico de los
+//  Sonic de Genesis, ahora con 5 escalones en vez de 3).
+//  DUST_EVERY: 1 nube de polvo ambiente detras cada N frames mientras
+//  carga (solo local; el polvo de cada revolucada y el de la salida
+//  SI viajan por red con net_quick_effect).
+//  BURST_MIN/MAX: nubes de la polvareda al SOLTAR abajo: de 3 (soltar
+//  sin nada de carga) a 8 (bola llena).
+// =====================================================================
+#macro SONIC_SPINDASH_PITCH_STEP 0.8
+#macro SONIC_SPINDASH_DUST_EVERY 10
+#macro SONIC_SPINDASH_BURST_MIN 3
+#macro SONIC_SPINDASH_BURST_MAX 8
+
+// =====================================================================
+//  ATAQUE 2b: DROP DASH (mantener Z en el aire; estilo Sonic Mania)
+// ---------------------------------------------------------------------
+//  Tras SALTAR, mantén Z pulsado en el aire SONIC_DROPDASH_HOLD frames
+//  (30 = medio segundo) y la bola queda ARMADA (destello + tono agudo).
+//  Al ATERRIZAR sale disparado en rodadura (estado SPIN) a
+//  SONIC_DROPDASH_SPEED. Soltar Z en el aire lo desarma. Sin cooldown:
+//  el coste es el medio segundo de agarre.
+//
+//  * HOLD  = frames de agarre para armarlo (30 = 0.5s; el salto dura
+//            ~64 frames, asi que siempre da tiempo en un salto normal).
+//  * SPEED = velocidad del disparo al aterrizar (14: mas que correr y
+//            que los EXE, menos que un spindash de 4-5 revolucadas:
+//            el spindash cargado siempre gana).
+//
+//  SONIC_ROLL_SPEED_CAP: techo de velocidad de la bola de Sonic en el
+//  suelo (spindash, drop dash y rodar cuesta abajo): por encima de la
+//  velocidad de carrera (11) pero con tope, como el roll de los Sonic
+//  clasicos. Lo aplica el clamp de scr_collision_basic; hasta v2 ese
+//  clamp recortaba SIEMPRE a 11 (bug: la carga extra no servia de nada).
+// =====================================================================
+#macro SONIC_DROPDASH_HOLD 30
+#macro SONIC_DROPDASH_SPEED 14
+#macro SONIC_ROLL_SPEED_CAP 18
 
 // =====================================================================
 //  PASIVA NERVIOS DE ACERO: la 1ra caida de la ronda NO mata a Sonic.
@@ -108,6 +153,13 @@ attackTimer = 0;
 isSpinCharging = false;   // true mientras esta agachado cargando la bola
 spinCharge = 0;           // carga actual (0..SONIC_SPINDASH_CHARGE_MAX)
 spinChargeDecay = 0;      // contador para perder carga con el tiempo
+spinRevSnd = -1;          // handle del sonido de la ultima revolucada (tono ascendente)
+spinDustTimer = 0;        // contador del polvo ambiente mientras carga
+
+// --- Variables del DROP DASH (ataque 2b, mantener Z en el aire) ---
+dropDashTimer = 0;        // frames seguidos manteniendo Z en el aire (el armado)
+dropDashReady = false;    // true: bola ARMADA, al aterrizar sale el drop dash
+dropDashFromJump = false; // latch: este vuelo empezo con un salto (habilita el armado)
 
 // --- Variables de NERVIOS DE ACERO (pasiva) ---
 nerviosState = 0;    // 0=apagada, 1=tirado en el suelo, 2=levantandose, 3=powerboost

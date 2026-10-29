@@ -224,6 +224,29 @@ if(instance_exists(global.player) && !global.player.isDead)
 				else
 					draw_sprite_ext(_sprSpindash, 0, 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, c_white, 1);
 			}
+			
+			// Icono (Z en el aire): DROP DASH (v3). Sin cooldown: su coste
+			// es medio segundo de agarre en el aire. Se dibuja AL LADO del
+			// spindash, en su misma fila (como el parry de Amy Canon v4.1:
+			// la vista mide 480x270 y una fila mas caeria fuera de
+			// pantalla). El relleno es el armado (dropDashTimer / HOLD);
+			// blanco = en el aire tras saltar (se puede armar), rojo = en
+			// tierra o vuelo sin salto; lleno y fijo = ARMADO: al aterrizar
+			// sale disparado. Usa el sprite spr_gui_sonicdropdash (existia
+			// en el proyecto sin usar). Si no existiera, no se dibuja pero
+			// tampoco crashea (mismo patron que el parry y el spindash).
+			var _sprDropdash = asset_get_index("spr_gui_sonicdropdash");
+			if(_sprDropdash >= 0)
+			{
+				if(global.player.dropDashReady)
+					draw_sprite_ext(_sprDropdash, 0, 54, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, c_white, 1);
+				else
+				{
+					var _ddprog = min(global.player.dropDashTimer / SONIC_DROPDASH_HOLD, 1.0);
+					var _ddcol = (global.player.dropDashFromJump && !global.player.isGrounded) ? c_white : c_red;
+					draw_sprite_ext(_sprDropdash, 0, 44 + _ddprog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, _ddcol, 0.4 + _ddprog * 0.6);
+				}
+			}
 			break;
 		}
 		case CHARACTER_CREAM:

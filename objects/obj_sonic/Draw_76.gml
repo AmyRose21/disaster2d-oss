@@ -100,8 +100,11 @@ switch(state)
                 
         // PASIVA SPIN: el salto de Sonic es giratorio (bola). Mientras
         // dura, el contacto con el EXE en salto/rodadura se repelen.
+        // v3: mientras el DROP DASH esta ARMADO (Z mantenido en el aire)
+        // la bola gira al doble: se ve (y se oye, con el destello) el
+        // instante exacto en que ya puede soltar el drop dash.
         case JUMP:
-                image_speed = 1.1;
+                image_speed = dropDashReady ? 2.2 : 1.1;
                 
                 if(image_index >= image_number - 1)
                         isJumping = false;
@@ -152,9 +155,11 @@ switch(state)
                 break;
                 
         // SPINDASH: carga de la bola. Mientras mas carga tiene, mas
-        // rapido gira la animacion (efecto de revolucadas).
+        // rapido gira la animacion (efecto de revolucadas). v3:
+        // proporcional a la carga (0.5 -> 1.7 con la bola llena; antes
+        // era fijo por punto y con CHARGE_MAX 10 se disparaba a 2.0).
         case SONIC_SPINDASH:
-                image_speed = 0.5 + (spinCharge * 0.15);
+                image_speed = 0.5 + (spinCharge / SONIC_SPINDASH_CHARGE_MAX) * 1.2;
                 break;
                 
         case EMOTION1:

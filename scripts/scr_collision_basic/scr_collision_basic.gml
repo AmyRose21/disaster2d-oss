@@ -101,7 +101,14 @@ function scr_collision_check(_near)
 		
 		var dist1 = 0;
 		var inst1 = instance_position(sens1.x, sens1.y, _near);
-		while(inst1 == noone && dist1 < maxHSpeed+1)
+		// v3 (spindash/drop dash de Sonic): el sensor escanea hasta donde
+		// ALCANZA A MOVERSE este frame, no solo maxHSpeed+1. Mientras Sonic
+		// rueda con impulso (bola) supera maxHSpeed y los muros mas lejos
+		// que maxHSpeed+1 no se veian. Para todo lo demas el limite es EL
+		// MISMO de siempre: cuando |xspd| <= maxHSpeed,
+		// max(maxHSpeed, |xspd|)+1 == maxHSpeed+1.
+		var _scanMax = max(maxHSpeed, abs(xspd)) + 1;
+		while(inst1 == noone && dist1 < _scanMax)
 		{
 			sens1.x--;
 			dist1++;
@@ -110,7 +117,7 @@ function scr_collision_check(_near)
 		
 		var dist2 = 0;
 		var inst2 = instance_position(sens2.x, sens2.y, _near);
-		while(inst2 == noone && dist2 < maxHSpeed+1)
+		while(inst2 == noone && dist2 < _scanMax)
 		{
 			sens2.x++;
 			dist2++;
@@ -120,7 +127,13 @@ function scr_collision_check(_near)
 		sens1.dist = dist1;
 		sens2.dist = dist2;
 		
-		if(-dist1 >= min(xspd, -1))
+		// Guarda v3: solo frena contra una pared REAL (inst1 != noone).
+		// Antes, si el escaneo se agotaba sin ver pared, dist1 quedaba en
+		// el limite y a velocidad > maxHSpeed+1 disparaba un freno FANTASMA
+		// (teletransportaba atras y paraba en seco). Con el escaneo
+		// extendido de arriba ya no puede pasar, pero la guarda lo hace
+		// imposible por diseno (igual que scr_collision_check_top).
+		if(inst1 != noone && -dist1 >= min(xspd, -1))
 		{
 			if(!position_meeting(sens1.x, sens1.y, obj_platform_jumptrough))
 			{
@@ -190,7 +203,8 @@ function scr_collision_check(_near)
 			}
 		}
 		
-		if(dist2 <= max(xspd, 1))
+		// Guarda v3: idem lado derecho (sens2), solo paredes reales.
+		if(inst2 != noone && dist2 <= max(xspd, 1))
 		{
 			if(!position_meeting(sens2.x, sens2.y, obj_platform_jumptrough))
 			{
@@ -528,7 +542,21 @@ function scr_collision_check_bottom(_near)
 function scr_collision_basic()
 {				
 	// Clamp speed and apply Y Velocity
-	xspd = clamp(xspd, -maxHSpeed, maxHSpeed);
+	// v3 (spindash/drop dash): mientras SONIC rueda (isSpinning, bola),
+	// su velocidad de rodadura puede superar la de carrera (11): el techo
+	// del clamp pasa a ser su gspd actual (tope SONIC_ROLL_SPEED_CAP =
+	// 18). Antes este clamp recortaba SIEMPRE a 11: cualquier
+	// lanzamiento del spindash por encima de 11 salia a 11 y machacar Z
+	// no aumentaba NADA la velocidad (bug reportado). Para el resto de
+	// personajes (y para Sonic fuera de la bola) el techo es el de
+	// siempre: maxHSpeed. Rodar cuesta abajo tambien puede superar 11
+	// ahora (como los Sonic clasicos), con el mismo tope de 18.
+	var _clampX = maxHSpeed;
+	
+	if(global.character == CHARACTER_SONIC && isSpinning)
+		_clampX = max(maxHSpeed, min(abs(gspd), SONIC_ROLL_SPEED_CAP));
+	
+	xspd = clamp(xspd, -_clampX, _clampX);
 	yspd = clamp(yspd, -maxYSpeed, maxYSpeed);
 	
 	if(y - 30 >= room_height)

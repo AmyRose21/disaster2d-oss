@@ -33,6 +33,13 @@ if(nerviosState == 1 || nerviosState == 2)
         isLookingUp = false;
         emotion = false;
         
+        // v3: la pasiva tambien corta el armado del drop dash (si
+        // cayo a la agonia con la bola armada, no puede salir disparado
+        // al levantarse)
+        dropDashTimer = 0;
+        dropDashReady = false;
+        dropDashFromJump = false;
+        
         // Cae plano; ya en el suelo queda clavado en el sitio
         if(isGrounded)
         {
@@ -118,6 +125,9 @@ else
         isJumping = false;
         isSpinCharging = false; // el electro-shock cancela la carga del spindash
         spinCharge = 0;
+        dropDashTimer = 0;     // v3: y tambien el armado del drop dash
+        dropDashReady = false;
+        dropDashFromJump = false;
         gspd -= min(abs(gspd), acc) * sign(gspd); 
         xspd -= min(abs(xspd), acc) * sign(xspd); 
         shockedTimer--;

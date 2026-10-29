@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":1.404921,
+  "duration":1.4049206,
   "exportDir":"",
   "name":"snd_spin",
   "parent":{
