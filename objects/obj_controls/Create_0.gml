@@ -57,6 +57,11 @@ buttonSetProp = function(_btn,  _scale, _opacity)
 			obj_config.bWOpacity = _opacity;
 			break;
 			
+		case 9: // v4.1: boton tactil V del parry de Amy Canon
+			obj_config.bVScale = _scale
+			obj_config.bVOpacity = _opacity;
+			break;
+			
 	}
 	
 	obj_config.save();
@@ -109,6 +114,10 @@ buttonSetPos = function(_btn, _x, _y)
 		case 8:
 			obj_config.bWX = _x;
 			obj_config.bWY = _y;
+			break;
+		case 9: // v4.1: boton tactil V del parry de Amy Canon
+			obj_config.bVX = _x;
+			obj_config.bVY = _y;
 			break;
 	}
 	

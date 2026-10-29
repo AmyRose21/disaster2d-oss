@@ -37,6 +37,13 @@ switch(bid)
 		scale = obj_config.bWScale;
 		image_alpha = obj_config.bWOpacity;
 		break;
+	
+	case 9: // v4.1: boton tactil V del parry de Amy Canon
+		x = obj_config.bVX;
+		y = obj_config.bVY;
+		scale = obj_config.bVScale;
+		image_alpha = obj_config.bVOpacity;
+		break;
 }
 
 if(mouse_check_button_released(mb_any) && position_meeting(mouse_x, mouse_y, self))

@@ -13,6 +13,7 @@ obj_menu.findTextpanel("down").text = scr_controls_keycode_to_key(global.KeyDown
 obj_menu.findTextpanel("jump").text = scr_controls_keycode_to_key(global.KeyA);
 obj_menu.findTextpanel("special1").text = scr_controls_keycode_to_key(global.KeyB);
 obj_menu.findTextpanel("special2").text = scr_controls_keycode_to_key(global.KeyC);
+obj_menu.findTextpanel("special3").text = scr_controls_keycode_to_key(global.KeyV);
 obj_menu.findTextpanel("playerlist").text = scr_controls_keycode_to_key(global.KeyPList);
 obj_menu.findTextpanel("emotion1").text = scr_controls_keycode_to_key(global.KeyEm1);
 obj_menu.findTextpanel("emotion2").text = scr_controls_keycode_to_key(global.KeyEm2);

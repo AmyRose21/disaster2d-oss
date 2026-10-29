@@ -842,6 +842,15 @@ buttonPressed = function(_bid, _bcolumn)
 				}
 				else if(_bid == 10)
 					changeSubmenu(SUBMENU_NONE);
+				else if(_bid == 4) // v4.1: bind de la V (parry de Amy Canon).
+				{
+					// bcolumn 2 = columna reservada de solo raton (como las flechas de
+					// salida): asi NO compite con el bid 4 de la lista de jugadores,
+					// que sigue igual en el teclado. Click en la fila SPECIAL 3 = remap.
+					bind = true;
+					bindBtn = "special3";
+					findTextpanel(bindBtn).text = "press...";
+				}
 			}
 			else
 			{
@@ -947,6 +956,12 @@ buttonPressed = function(_bid, _bcolumn)
 				obj_config.bWY = 112 + 32;
 				obj_config.bWScale = 1;
 				obj_config.bWOpacity = 0.6;
+				
+				// v4.1: el boton V del parry tambien se resetea con los demas
+				obj_config.bVX = 466;
+				obj_config.bVY = 112 + 32 + 32;
+				obj_config.bVScale = 1;
+				obj_config.bVOpacity = 0.6;
 				
 				obj_config.bGX = 23;
 				obj_config.bGY = 36+15;

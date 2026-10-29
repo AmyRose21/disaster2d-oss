@@ -166,13 +166,18 @@ if(instance_exists(global.player) && !global.player.isDead)
 			// tierra); rojo = lo demas. Si spr_gui_amyparry_canon no
 			// existiera en el proyecto, no se dibuja pero tampoco crashea
 			// (mismo patron que el parry de Sonic y el spindash).
+						// v4.1: se dibuja AL LADO del icono de la acometida (misma fila
+			// que la C, a su derecha) y no DEBAJO: la vista mide 480x270 y una
+			// cuarta fila apilada (y=276) caia FUERA de pantalla (por eso no
+			// salia). C y V comparten fila, como Z X C V en el teclado; en
+			// Android (y-200) tampoco choca con el boton G (23,81).
 			var _sprParry = asset_get_index("spr_gui_amyparry_canon");
 			if(_sprParry >= 0)
 			{
 				var _pmax = max(global.player.parryCooldownMax, 1);
 				var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
 				var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
-				draw_sprite_ext(_sprParry, 0, _pprog * 10, 276 - (os_type == os_android ? 200 : 0), 1, 1, 0, _pready, _pprog);
+				draw_sprite_ext(_sprParry, 0, 44 + _pprog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, _pready, _pprog);
 			}
 			break;
 		}

@@ -39,6 +39,7 @@ function scr_controls_update_touch()
 			FTouchId = -1;
 			GTouchId = -1;
 			WTouchId = -1;
+			VTouchId = -1;
 			return;
 		}
 		
