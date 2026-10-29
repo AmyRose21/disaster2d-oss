@@ -1,5 +1,12 @@
 /// @description General movement
 
+// ABRAZO COMBINADO (interaccion con Amy Canon): si una Amy cerca ya
+// esta abrazandolo y Sonic esta abrazable (parado, en tierra, nada
+// en manos), entra solo en SONIC_HUGGED. Va arriba del todo: si rompe
+// el abrazo con una tecla, el resto del step de este frame procesa
+// esa tecla con normalidad (p.ej. romper con C y parrear).
+scr_amy_hug_step_sonic();
+
 // =====================================================================
 //  PASIVA NERVIOS DE ACERO
 //  Fase 1: tirado en el suelo 4 seg con ..._Idle en LOOP (sin control;

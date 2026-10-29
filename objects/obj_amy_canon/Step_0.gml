@@ -1,5 +1,11 @@
 /// @description General movement
 
+// ABRAZO COMBINADO (interaccion con Sonic): entrada por scr_move_basic
+// (tecla del EMOTE 3 con un Sonic abrazable cerca), salidas/mantengo
+// aqui. Va arriba del todo: si el abrazo se rompe con una tecla, el
+// resto del step de este frame ya procesa esa tecla con normalidad.
+scr_amy_hug_step_amy();
+
 // ESTADO BURBUJA (secuestro): mientras esta dentro usa su fisica
 // propia (levitacion + lateral, ver scr_amy_canon_bubble.gml);
 // no corre, no salta y no puede atacar.

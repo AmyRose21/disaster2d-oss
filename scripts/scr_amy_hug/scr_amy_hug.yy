@@ -1,0 +1,12 @@
+{
+  "%Name":"scr_amy_hug",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_amy_hug",
+  "parent":{
+    "name":"Specials",
+    "path":"folders/Scripts/Players/Specials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

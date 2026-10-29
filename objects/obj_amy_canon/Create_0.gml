@@ -139,6 +139,14 @@ isZipline = false;
 isOnEdge = false;
 edgeDir = 1;
 
+// ABRAZO COMBINADO (interaccion especial con Sonic, tecla del EMOTE 3
+// cerca de el): mientras dura, el estado de red es AMY_CANON_HUG y su
+// cuerpo no se dibuja: Draw_0 pinta el sprite combinado (spr_amy_hug_canon)
+// en el punto medio con Sonic. Ver scr_amy_hug.gml.
+hugActive = false;   // true mientras esta abrazando
+hugPartner = noone;  // el puppet del Sonic que abraza
+hugSide = 1;         // 1 = Amy quedo a la IZQUIERDA de Sonic (sprite tal cual)
+
 // DIANA SPECIFIC
 doubleJump = false;
 

@@ -1,3 +1,16 @@
+// ABRAZO COMBINADO: el estado AMY_CANON_HUG NO va por el array de
+// scr_survivors (se intercepta aqui, igual que el parry de Sonic en
+// su Draw_76): mientras Amy abraza su cuerpo ni siquiera se dibuja;
+// Draw_0 pinta el sprite combinado en el punto medio con Sonic.
+// Poner esto ANTES de leer el array (el indice 24 no existe en el).
+if(state == AMY_CANON_HUG)
+{
+        sprite_index = spr_amy_hug_canon;
+        image_speed = 0;
+        image_index = 0;
+        return;
+}
+
 var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
 sprite_index = arr[? CHARACTER_AMY_CANON][state];
 

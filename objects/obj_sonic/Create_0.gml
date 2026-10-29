@@ -140,6 +140,15 @@ parrySuccess = false;// true si la ventana intercepto algo
 parryActive = false; // true durante ventana+gracia (lo leen los checks de red)
 parryFlash = 0;      // frames restantes del anillo cian (lo dibuja Draw_0)
 
+// --- ABRAZO COMBINADO (interaccion especial con Amy Canon) ---
+// Cuando una Amy Canon cerca empieza a abrazarlo (tecla de su EMOTE 3),
+// Sonic entra solo en SONIC_HUGGED (estado de red 65): su cuerpo no se
+// dibuja mientras dura (lo tapa el sprite combinado que dibuja Amy en
+// cada cliente) y puede soltarse pulsando cualquier tecla. Logica
+// completa en scripts/scr_amy_hug/scr_amy_hug.gml.
+hugged = false;      // true mientras Amy Canon lo esta abrazando
+hugAmy = noone;      // la Amy Canon que lo abraza
+
 //General
 hp = 100;
 isGrounded = false;

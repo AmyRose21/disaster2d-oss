@@ -14,6 +14,33 @@ if(effectTime > 0)
         }
 }
 
+// ABRAZO COMBINADO (interaccion con Sonic): mientras Amy abraza, su
+// cuerpo NO se dibuja; en su lugar se pinta el sprite combinado de
+// los dos (spr_amy_hug_canon, con los corazones) en el punto medio
+// entre los dos cuerpos. A Sonic lo esconden los demas clientes con
+// el mismo check en vivo (scr_amy_hug_amy_near), asi que aqui solo
+// importa el dibujado. El espejado sale de la posicion relativa real
+// (si Amy quedo a la derecha de Sonic, se dibuja volteado para que
+// cada uno quede en su lado). Nada de paleta ni de cuerpo propio.
+if(state == AMY_CANON_HUG)
+{
+        var _sonic = scr_amy_hug_find_sonic(id, AMY_HUG_KEEP);
+
+        if(_sonic != noone)
+        {
+                var _mx = floor((x + _sonic.x) / 2);
+                var _my = floor((y + _sonic.y) / 2);
+                var _side = (x > _sonic.x) ? -1 : 1;
+
+                // pequeña respiracion: sube 1 px y baja cada ~400 ms
+                var _bob = ((current_time / 400) mod 2) < 1 ? 0 : -1;
+
+                draw_sprite_ext(spr_amy_hug_canon, 0, _mx, _my + _bob, _side, 1, 0, c_white, 1);
+        }
+
+        return;
+}
+
 //Actual draw
 scr_palette_swap(global.palleteFrom, global.palleteTo);
 draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);

@@ -35,6 +35,18 @@ if(scr_parry_state_is(state))
         return;
 }
 
+// ABRAZO COMBINADO (interaccion con Amy Canon): estado 65. El cuerpo
+// de Sonic no se dibuja mientras lo abrazan (lo tapa el sprite
+// combinado de Amy); el estado solo viaja por red. Sprite fijo al idle
+// para que si algo llegase a dibujarlo no quedara congelado a medias.
+if(state == SONIC_HUGGED)
+{
+        sprite_index = spr_sonic_idle;
+        image_speed = 0;
+        image_index = 0;
+        return;
+}
+
 if(state >= SONIC_ATK_AIRE)
 {
         var _vi = state - SONIC_ATK_AIRE;

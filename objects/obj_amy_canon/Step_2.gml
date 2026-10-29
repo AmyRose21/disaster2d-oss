@@ -48,6 +48,18 @@ if(shockedTimer > 0)
         return;
 }
 
+// ABRAZO COMBINADO (interaccion con Sonic): mientras dura, su estado
+// de red es AMY_CANON_HUG. En este cliente el sprite combinado lo
+// dibuja Draw_0 (punto medio con Sonic) y en los demas, el puppet de
+// Amy con el mismo check. Va ANTES que todo lo demas (el abrazo es
+// solo un emote: si le pasa algo, scr_amy_hug_step_amy lo rompe y
+// este bloque ya no corre).
+if(hugActive)
+{
+        state = AMY_CANON_HUG;
+        return;
+}
+
 if(isHJ)
 {
         state = AMY_CANON_HJUMP;

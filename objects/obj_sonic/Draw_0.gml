@@ -1,3 +1,12 @@
+// ABRAZO COMBINADO (interaccion con Amy Canon): mientras lo estan
+// abrazando (o Amy acaba de empezar y su estado de abrazo todavia no
+// le llego por red: el check en vivo lo cubre), el cuerpo de Sonic no
+// se dibuja: el sprite combinado (spr_amy_hug_canon) ya lo incluye y
+// lo dibuja la Amy de cada cliente. La barra de HP (Draw_64) sigue
+// igual: el abrazo no oculta el estado del jugador.
+if(state == SONIC_HUGGED || scr_amy_hug_amy_near(id, AMY_HUG_KEEP) != noone)
+        return;
+
 if(effectTime > 0)
 {
         effectTime--;

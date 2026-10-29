@@ -76,6 +76,16 @@ if(parryState > 0)
         return;
 }
 
+// ABRAZO COMBINADO (interaccion con Amy Canon): mientras lo abraza, su
+// estado de red es SONIC_HUGGED (65). Su cuerpo no se dibuja en ninguna
+// maquina (lo tapa el sprite combinado); el estado solo viaja para que
+// los demas clientes lo escondan en el mismo instante.
+if(hugged)
+{
+        state = SONIC_HUGGED;
+        return;
+}
+
 // La carga del spindash tiene prioridad sobre el ataque: mientras
 // carga esta agachado en bola y no puede pegar.
 if(isSpinCharging)

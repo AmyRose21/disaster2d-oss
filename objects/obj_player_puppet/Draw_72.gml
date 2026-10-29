@@ -40,6 +40,23 @@ else
                 return;
         }
 
+        // ABRAZO COMBINADO (interaccion Amy Canon + Sonic): estados 65
+        // (Sonic abrazado) y 24 (Amy abrazando). Ninguno va por el array
+        // (el 65 entraria en el rango del golpe aereo): el cuerpo de
+        // ambos lo gestionan sus Draw_0 (el de Amy dibuja el sprite
+        // combinado en el punto medio; el de Sonic no dibuja nada).
+        if(character == CHARACTER_SONIC && state == SONIC_HUGGED)
+        {
+                sprite_index = spr_sonic_idle;
+                return;
+        }
+
+        if(character == CHARACTER_AMY_CANON && state == AMY_CANON_HUG)
+        {
+                sprite_index = spr_amy_hug_canon;
+                return;
+        }
+
         if(character == CHARACTER_SONIC && state >= SONIC_ATK_TIERRA)
         {
                 var _spr = -1;

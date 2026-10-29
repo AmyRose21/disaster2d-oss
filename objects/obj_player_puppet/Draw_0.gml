@@ -22,6 +22,34 @@ if(effect)
         
         effectTimer++;
 }
+
+// ABRAZO COMBINADO (interaccion Amy Canon + Sonic): la AMY que esta
+// abrazando dibuja el sprite combinado de los dos (spr_amy_hug_canon)
+// en el punto medio con SU Sonic de este cliente (puppet o jugador
+// local, lo encuentra scr_amy_hug_find_sonic) y no dibuja su cuerpo.
+// El SONIC abrazado no se dibuja: lo tapa el sprite combinado. El
+// check en vivo (scr_amy_hug_amy_near) cubre tambien el hueco de
+// latencia en el que su propio estado 65 todavia no llego por red.
+if(character == CHARACTER_AMY_CANON && state == AMY_CANON_HUG)
+{
+        var _hsonic = scr_amy_hug_find_sonic(id, AMY_HUG_KEEP);
+
+        if(_hsonic != noone)
+        {
+                var _hmx = floor((x + _hsonic.x) / 2);
+                var _hmy = floor((y + _hsonic.y) / 2);
+                var _hside = (x > _hsonic.x) ? -1 : 1;
+                var _hbob = ((current_time / 400) mod 2) < 1 ? 0 : -1;
+
+                draw_sprite_ext(spr_amy_hug_canon, 0, _hmx, _hmy + _hbob, _hside, 1, 0, c_white, 1);
+        }
+
+        return;
+}
+
+if(character == CHARACTER_SONIC
+&& (state == SONIC_HUGGED || scr_amy_hug_amy_near(id, AMY_HUG_KEEP) != noone))
+        return;
  
 switch(character)
 {               
