@@ -10,6 +10,7 @@ if(global.showHud && isMobile)
 		draw_sprite_ext(spr_mobile_emotionbutton, GTouchId == -1 ? 6 : 7, obj_config.bGX, obj_config.bGY, obj_config.bGScale, obj_config.bGScale, 0, c_white, GTouchId == -1 ? obj_config.bGOpacity : obj_config.bGOpacity + 0.15);
 		draw_sprite_ext(spr_mobile_emotionbutton, WTouchId == -1 ? 8 : 9, obj_config.bWX, obj_config.bWY, obj_config.bWScale, obj_config.bWScale, 0, c_white, WTouchId == -1 ? obj_config.bWOpacity : obj_config.bWOpacity + 0.15);
 		// v4.0: boton V del parry de Amy Canon (frames 10/11)
+		// v4.2: limpiadas 2 lineas W duplicadas que se colaron al copiar
 		draw_sprite_ext(spr_mobile_emotionbutton, VTouchId == -1 ? 10 : 11, obj_config.bVX, obj_config.bVY, obj_config.bVScale, obj_config.bVScale, 0, c_white, VTouchId == -1 ? obj_config.bVOpacity : obj_config.bVOpacity + 0.15);
 	}
 	

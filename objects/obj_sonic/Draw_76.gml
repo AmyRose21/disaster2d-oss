@@ -28,7 +28,10 @@ if(scr_parry_state_is(state))
                         break;
 
                 case SONIC_PARRY_EXITO:
-                        image_speed = max(image_number / SONIC_PARRY_EXITO_TIME, 0.05);
+                        // v4.2: duracion por personaje (scr_parry_exito_time):
+                        // para Sonic devuelve exactamente SONIC_PARRY_EXITO_TIME
+                        // (22), igual que siempre; Amy usa la suya (sprite mas largo).
+                        image_speed = max(image_number / scr_parry_exito_time(global.character), 0.05);
                         break;
         }
 

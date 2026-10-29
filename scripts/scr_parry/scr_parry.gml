@@ -1,5 +1,19 @@
 /// scr_parry — PARRY DE SONIC (tecla C) Y AMY CANON (tecla V)
 // =====================================================================
+//  v4.2: SONIDO PERFECT_PARRY EN EL EXITO (pedido del usuario): el
+//        parry exitoso suena Perfect_Parry en la pantalla del que
+//        parrea, para TODO: melee, LASER devueltos y anillos negros
+//        (antes los proyectiles no sonaban NADA al devolverlos, otra
+//        queja del usuario: cubierto porque TODO pasa por
+//        scr_parry_success_now). Es local a proposito: los demas
+//        clientes ya oyen el "ting" (snd_parry) por la red de siempre
+//        y no se toca el enum de sonidos de red (cero cambios server).
+//        ANIMACION DE AMY COMPLETA: su spr_amy_parry_exitoso tiene 10
+//        frames (vs 3 el de Sonic) y se comprimia en 22 frames
+//        (SONIC_PARRY_EXITO_TIME) viendose cortada; ahora cada
+//        personaje dura lo que pide su sprite
+//        (scr_parry_exito_time) y el puppet lo refleja solo porque el
+//        image_index ya viaja por la red de siempre.
 //  v4.0: AMY CANON TIENE SU PROPIO PARRY (mismas fijaciones que el de
 //        Sonic: ventana, aura de aliados, cooldowns, stun del atacante,
 //        desvio de proyectiles y estados de red 60/61/64 — viajan igual
@@ -107,7 +121,9 @@
 #macro SONIC_PARRY_WINDOW 50      // ventana activa (v3.2: era 12)
 #macro SONIC_PARRY_GRACE 4        // gracia invisible (latencia de red)
 #macro SONIC_PARRY_SIGNAL_GRACE 12 // v3.4: margen tras cerrar la ventana para la senal de exito por red
-#macro SONIC_PARRY_EXITO_TIME 22  // duracion de la animacion de exito
+#macro SONIC_PARRY_EXITO_TIME 22  // duracion de la animacion de exito (SONIC; Amy calcula la suya)
+#macro AMY_PARRY_EXITO_FRAMES_PER 4.5 // v4.2: frames de juego por cada frame del sprite de exito de Amy
+                                       // (ajustable: 4.5 => sus 10 frames duran 45f = 0.75s)
 
 // ===== NUMEROS =====
 #macro SONIC_PARRY_AURA 58                    // radio del aura que cubre aliados (px)
@@ -201,6 +217,41 @@ function scr_parry_char_has(_char)
 function scr_parry_key()
 {
         return (global.character == CHARACTER_AMY_CANON) ? global.KeyV : global.KeyC;
+}
+
+// =====================================================================
+//  v4.2 - DURACION DE LA FASE DE EXITO POR PERSONAJE. La animacion de
+//  exito de Amy Canon (spr_amy_parry_exitoso, 10 frames) es MAS LARGA
+//  que la de Sonic (3 frames) y antes se comprimia en 22 frames
+//  (SONIC_PARRY_EXITO_TIME) con lo que se veia cortada (queja del
+//  usuario: "debe durar toda su animacion"). Ahora cada personaje
+//  dura lo que pide su sprite: Amy reproduce TODA su animacion a ritmo
+//  AMY_PARRY_EXITO_FRAMES_PER frames de juego por frame de sprite (4.5
+//  => 45 frames = 0.75s con el sprite actual; se recalcula solo si el
+//  sprite cambia de frames). Sonic sigue clavado en sus 22. El puppet
+//  de los demas clientes no necesita nada: replica el image_index que
+//  ya viaja por el paquete de estado de siempre y el estado 64 dura
+//  lo mismo porque el timer es del dueno.
+// =====================================================================
+function scr_parry_exito_time(_char)
+{
+        if(_char == -1)
+                _char = global.character;
+
+        if(_char == CHARACTER_AMY_CANON)
+        {
+                var _spr = asset_get_index("spr_amy_parry_exitoso");
+
+                if(!is_undefined(_spr) && _spr >= 0)
+                {
+                        var _n = sprite_get_number(_spr);
+
+                        if(_n > 0)
+                                return ceil(_n * AMY_PARRY_EXITO_FRAMES_PER);
+                }
+        }
+
+        return SONIC_PARRY_EXITO_TIME;
 }
 
 // ¿el estado es una PROTECCION ACTIVA del parry? (lo miran los otros
@@ -503,12 +554,20 @@ function scr_parry_success_now()
 {
         parrySuccess = true;
         parryState = 4; // parte de EXITO
-        parryTimer = SONIC_PARRY_EXITO_TIME;
+        parryTimer = scr_parry_exito_time(global.character); // v4.2: Amy dura lo que pide su sprite
         parryActive = false;
         parryFlash = SONIC_PARRY_FLASH_FRAMES;
         parryLateSignal = 0;
         scr_parry_apply_cd(nerviosUsed ? SONIC_PARRY_CD_OK_PB : SONIC_PARRY_CD_OK);
         scr_camera_shake(30, 2, 0.25);
+
+        // v4.2 (pedido del usuario): SONIDO DE PARRY PERFECTO en la pantalla
+        // del que parrea. Cubre TODOS los caminos de exito porque todos
+        // pasan por aqui: melee detectado, LASER DEVUELTO (antes sin ningun
+        // sonido), anillo negro convertido y la senal del aliado (ting).
+        // Local a proposito: los demas clientes ya oyen el "ting" (snd_parry)
+        // por la red de siempre y asi no se toca el enum de sonidos de red.
+        audio_play_sound(Perfect_Parry, 0, false);
 }
 
 // =====================================================================

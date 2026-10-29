@@ -849,7 +849,12 @@ buttonPressed = function(_bid, _bcolumn)
 					// que sigue igual en el teclado. Click en la fila SPECIAL 3 = remap.
 					bind = true;
 					bindBtn = "special3";
-					findTextpanel(bindBtn).text = "press...";
+
+					// v4.2: guarda anti-crash (mismo error read-only
+					// del Alarm_0 si el panel no existiera)
+					var _tp = findTextpanel(bindBtn);
+					if(_tp != noone)
+						_tp.text = "press...";
 				}
 			}
 			else
@@ -910,7 +915,10 @@ buttonPressed = function(_bid, _bcolumn)
 					}
 				}
 				
-				findTextpanel(bindBtn).text = "press...";
+				// v4.2: guarda anti-crash (panel sin crear = noone, no petar)
+				var _tp = findTextpanel(bindBtn);
+				if(_tp != noone)
+					_tp.text = "press...";
 			}
 			break;
 			
@@ -2069,7 +2077,12 @@ textChanged = function(_bid, _text)
 
 bindChanged = function (_bid, _key)
 {
+	// v4.2: guarda anti-crash: sin esto, el boton de RESET (bid 9)
+	// petaba con el mismo "read only variable" si la fila special3
+	// no existia en la room de quien importa solo los .gml
 	var btn = findTextpanel(_bid);
+	if(btn == noone)
+		return;
 	btn.text = scr_controls_keycode_to_key(_key);
 	
 	switch(_bid)
