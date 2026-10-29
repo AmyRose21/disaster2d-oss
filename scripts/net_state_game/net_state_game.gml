@@ -1777,7 +1777,20 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 break;
                         
                         if(shouldPlay && pid == obj_netclient.nid)
-                                audio_play_sound(global.net_snds[sid], false, 0);
+                        {
+                                // PARRY DE SONIC (v3.4): el "ting" del parry suena EN MI nid
+                                // solo cuando mi ventana nego un golpe en la maquina de la
+                                // victima (yo mismo o un aliado del aura: scr_parry_negate_hit
+                                // / scr_parry_try_stun_attacker). En el caso del ALIADO esa es
+                                // la SENAL de exito que faltaba: el contacto alli solo es
+                                // exacto en el cliente de la victima y scr_parry_detect nunca
+                                // lo ve en el de Sonic. scr_parry_ting_play suena (deduplica
+                                // el audio a 200ms) y ademas dispara la animacion de exito.
+                                if(global.net_snds[sid] == snd_parry)
+                                        scr_parry_ting_play();
+                                else
+                                        audio_play_sound(global.net_snds[sid], false, 0);
+                        }
                         
                         if(instance_exists(obj_player_puppet))
                         {

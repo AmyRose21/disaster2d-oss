@@ -10,6 +10,20 @@
 //        stuneaba. El EXITO ahora protege igual que la ventana: estado 64
 //        activo para el auto-stun del atacante y el aura, y la victima
 //        cubierta tambien durante la animacion de exito.
+//  v3.4: SENAL DE EXITO PARA EL ALIADO. Cuando el golpe iba dirigido a
+//        un aliado del aura, el contacto solo es exacto en el cliente
+//        de ESA victima: en el de Sonic el puppet del atacante se queda
+//        corto (lag + knockback del stun) y la deteccion local
+//        (scr_parry_detect) nunca disparaba -> Sonic solo hacia la
+//        animacion de exito cuando el dano era para el. Ahora la
+//        negacion de la victima ya emite un "ting" posicionado en el
+//        nid del Sonic que cubre (snd_parry viajando por el
+//        CLIENT_SOUND_EMIT de siempre): el receptor de ese paquete en
+//        la maquina del Sonic lo toma como SENAL de exito
+//        (scr_parry_ting_signal). El auto-stun del atacante tambien lo
+//        emite (cubre a las victimas con i-frames, que nunca negaban
+//        nada) y el receptor deduplica el audio a 200ms. Cero paquetes
+//        nuevos, cero cambios en el server.
 //
 //  COMO FUNCIONA (resumen):
 //   * Tap de C -> windup (SONIC_PARRY_WINDUP frames, sin proteccion)
@@ -48,6 +62,7 @@
 #macro SONIC_PARRY_WINDUP 1       // preparacion (sin proteccion)
 #macro SONIC_PARRY_WINDOW 50      // ventana activa (v3.2: era 12)
 #macro SONIC_PARRY_GRACE 4        // gracia invisible (latencia de red)
+#macro SONIC_PARRY_SIGNAL_GRACE 12 // v3.4: margen tras cerrar la ventana para la senal de exito por red
 #macro SONIC_PARRY_EXITO_TIME 22  // duracion de la animacion de exito
 
 // ===== NUMEROS =====
@@ -225,6 +240,10 @@ function scr_parry_step()
         if(parryCooldown > 0)
                 parryCooldown--;
 
+        // v3.4: margen de la senal de exito por red
+        if(parryLateSignal > 0)
+                parryLateSignal--;
+
         // cancelacion: si lo hieren/stunean matando el parry, cuenta como
         // fallo. v3: TAMBIEN si se va al aire (el parry es SOLO en tierra;
         // la parte de EXITO se deja terminar para no cortar la animacion).
@@ -235,6 +254,7 @@ function scr_parry_step()
 
                 parryState = 0;
                 parryActive = false;
+                parryLateSignal = 0;
         }
 
         // fase EXITO: solo termina la animacion
@@ -267,7 +287,17 @@ function scr_parry_step()
                                 parryState = 0;
 
                                 if(!parrySuccess)
+                                {
                                         scr_parry_apply_cd(nerviosUsed ? SONIC_PARRY_CD_FAIL_PB : SONIC_PARRY_CD_FAIL);
+
+                                        // v3.4: la SENAL de exito del aliado viene por red y
+                                        // puede llegar un poco despues de cerrar la ventana
+                                        // (latencia de ida y vuelta del paquete de sonido).
+                                        // La negacion ocurrio DENTRO de la ventana en el
+                                        // cliente de la victima, asi que se admite dentro
+                                        // de este margen; luego ya no.
+                                        parryLateSignal = SONIC_PARRY_SIGNAL_GRACE;
+                                }
                         }
                 }
 
@@ -289,6 +319,75 @@ function scr_parry_step()
                 parryTimer = SONIC_PARRY_WINDUP;
                 parrySuccess = false;
                 parryActive = false;
+        }
+}
+
+// =====================================================================
+//  DISPARO DEL EXITO (v3.4): lo comparten la deteccion local
+//  (scr_parry_detect) y la senal de red (scr_parry_ting_play, el caso
+//  del aliado). `self` tiene que ser el Sonic local.
+// =====================================================================
+function scr_parry_success_now()
+{
+        parrySuccess = true;
+        parryState = 4; // parte de EXITO
+        parryTimer = SONIC_PARRY_EXITO_TIME;
+        parryActive = false;
+        parryFlash = SONIC_PARRY_FLASH_FRAMES;
+        parryLateSignal = 0;
+        scr_parry_apply_cd(nerviosUsed ? SONIC_PARRY_CD_OK_PB : SONIC_PARRY_CD_OK);
+        scr_camera_shake(30, 2, 0.25);
+}
+
+// =====================================================================
+//  RECEPTOR DEL "TING" (v3.4): lo llama el CLIENT_SOUND_EMIT de
+//  net_state_game cuando el sonido es snd_parry y llega posicionado en
+//  el nid del jugador local. Ese sonido SOLO lo emiten la negacion de la
+//  victima (scr_parry_negate_hit) y el auto-stun del atacante
+//  (scr_parry_try_stun_attacker), siempre con el nid del Sonic que
+//  cubria: o sea, "mi parry acaba de salvar a alguien". En el caso del
+//  aliado es la UNICA forma fiable de enterarse (el contacto alli solo
+//  es exacto en el cliente de la victima). El audio se deduplica a
+//  200ms porque la negacion y el auto-stun emiten casi a la vez.
+// =====================================================================
+function scr_parry_ting_play()
+{
+        static _tingLast = -99999;
+
+        if(current_time - _tingLast >= 200)
+        {
+                _tingLast = current_time;
+                audio_play_sound(snd_parry, false, 0);
+        }
+
+        scr_parry_ting_signal();
+}
+
+// La parte de la senal: convierte el "ting" en animacion de exito del
+// Sonic local (si procede). Idempotente: si ya esta en fase de exito o
+// ya conto como exito, no hace nada.
+function scr_parry_ting_signal()
+{
+        if(global.character != CHARACTER_SONIC)
+                return;
+
+        if(!instance_exists(global.player))
+                return;
+
+        with(global.player)
+        {
+                if(parryState == 4 || parrySuccess)
+                        return;
+
+                // ventana activa -> exito normal
+                if(parryState == 2)
+                        scr_parry_success_now();
+                else if(parryState == 0 && parryLateSignal > 0)
+                {
+                        // cerro hace un instante y la senal llego con retraso:
+                        // la negacion ocurrio DENTRO de la ventana -> cuenta
+                        scr_parry_success_now();
+                }
         }
 }
 
@@ -416,15 +515,7 @@ function scr_parry_detect()
         }
 
         if(_hit)
-        {
-                parrySuccess = true;
-                parryState = 4; // parte de EXITO
-                parryTimer = SONIC_PARRY_EXITO_TIME;
-                parryActive = false;
-                parryFlash = SONIC_PARRY_FLASH_FRAMES;
-                scr_parry_apply_cd(nerviosUsed ? SONIC_PARRY_CD_OK_PB : SONIC_PARRY_CD_OK);
-                scr_camera_shake(30, 2, 0.25);
-        }
+                scr_parry_success_now();
 
         return _hit;
 }
@@ -526,6 +617,15 @@ function scr_parry_try_stun_attacker()
 
         if(global.character == CHARACTER_EXE)
                 scr_exe_stunsound();
+
+        // v3.4: SENAL hacia el Sonic que cubria (el mismo "ting" que emite
+        // la negacion de la victima, posicionado en su nid). Cubre a las
+        // victimas con i-frames: su cliente nunca llamo a scr_player_hurt
+        // -> nunca nego -> nunca emitio, pero este stun SI es un exito del
+        // parry y Sonic tiene que ver su animacion. Cuando la victima si
+        // nego, los dos "ting" llegan casi juntos y el receptor los
+        // deduplica (200ms).
+        net_sound_emit_at(snd_parry, _parrySonic.master_id);
 
         return true;
 }

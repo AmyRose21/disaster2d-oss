@@ -139,6 +139,7 @@ parryCooldownMax = 1;// duracion total del CD activo (lo lee el icono del HUD; 1
 parrySuccess = false;// true si la ventana intercepto algo
 parryActive = false; // true durante ventana+gracia (lo leen los checks de red)
 parryFlash = 0;      // frames restantes del anillo cian (lo dibuja Draw_0)
+parryLateSignal = 0; // v3.4: frames de margen tras cerrar la ventana para aceptar la senal de exito que llega por red
 
 // --- ABRAZO COMBINADO (interaccion especial con Amy Canon) ---
 // Cuando una Amy Canon cerca empieza a abrazarlo (tecla de su EMOTE 3),

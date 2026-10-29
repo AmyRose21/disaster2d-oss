@@ -1,4 +1,5 @@
 {
+  "$GMScript":"v1",
   "%Name":"scr_amy_hug",
   "isCompatibility":false,
   "isDnD":false,
