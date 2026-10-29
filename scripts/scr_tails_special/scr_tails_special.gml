@@ -25,7 +25,7 @@ function scr_tails_special()
 			audio_play_sound(snd_tails_fly, 0, false);
 			net_sound_emit(snd_tails_fly);
 			
-			flyTimer = 160;
+			flyTimer = TAILS_FLY_TIME;
 			isFlying = true;
 		}
 		

@@ -1806,6 +1806,15 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         // en este paquete para los demas clientes en 3D.
                                         scr_parry_stun_signal();
                                 }
+                                else if(global.net_snds[sid] == snd_snap)
+                                {
+                                        // CARRY (v1): un snap SENALADO a mi nid (shouldPlay=true)
+                                        // solo lo emite el PORTADOR (Tails/Cream) al pulsar la V
+                                        // para soltarme: suelta al que cuelga con saltito
+                                        // (scr_carry_drop_signal). El snap del AGARRE (tirolina y
+                                        // carry) viaja con shouldPlay=false y nunca entra aqui.
+                                        scr_carry_drop_signal();
+                                }
                                 else
                                         audio_play_sound(global.net_snds[sid], false, 0);
                         }

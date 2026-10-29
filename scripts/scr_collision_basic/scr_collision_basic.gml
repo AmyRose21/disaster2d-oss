@@ -556,6 +556,17 @@ function scr_collision_basic()
 	if(global.character == CHARACTER_SONIC && isSpinning)
 		_clampX = max(maxHSpeed, min(abs(gspd), SONIC_ROLL_SPEED_CAP));
 	
+	// v4 (fix Amy Canon): su ACOMETIDA (tecla C) y su IMPULSO DE TAROT
+	// (tecla X en el aire) corren a AMY_CANON_DASH_SPEED /
+	// AMY_CANON_TAROTDASH_SPEED (14), por ENCIMA de maxHSpeed (11).
+	// Mismo bug que el spindash de Sonic v3: este clamp las recortaba
+	// SIEMPRE a 11, asi que la acometida NO era mas rapida que correr
+	// (el comentario de sus macros prometia "mayor que 11 = mas
+	// rapida que correr" y nunca se cumplia). Tope = el mayor de sus
+	// dos macros de velocidad, por si se ajustan por separado.
+	if(global.character == CHARACTER_AMY_CANON && (isDashing || isTarotDashing))
+		_clampX = max(maxHSpeed, max(AMY_CANON_DASH_SPEED, AMY_CANON_TAROTDASH_SPEED));
+	
 	xspd = clamp(xspd, -_clampX, _clampX);
 	yspd = clamp(yspd, -maxYSpeed, maxYSpeed);
 	

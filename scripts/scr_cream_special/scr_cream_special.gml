@@ -97,7 +97,7 @@ function scr_cream_special()
 		yspd = 1;
 		
 		flyTimeout++;
-		if(flyTimeout > 60 * 2)
+		if(flyTimeout > CREAM_FLY_TIME)
 			isFlying = false;
 		
 		if(isGrounded)

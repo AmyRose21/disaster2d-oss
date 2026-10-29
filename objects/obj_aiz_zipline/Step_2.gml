@@ -62,6 +62,17 @@ if(instance_exists(global.player) && global.player.hp > 0)
 		if(global.character == CHARACTER_SALLY && global.player.state == SALLY_ZIPLINE)
 			return;
 			
+		// CARRY (v1): guard nuevo para SONIC y SALLY CANON (a todos los demas
+		// personajes ya los cubria su check de arriba, estos dos no tenian
+		// ninguno). Un jugador colgado de un Tails/Cream volando viaja en
+		// estado ZIPLINE: sin este guard la tirolina lo agarraba al pasar por
+		// encima de su punto de inicio y se lo quedaba.
+		if(global.character == CHARACTER_SONIC && global.player.state == SONIC_ZIPLINE)
+			return;
+			
+		if(global.character == CHARACTER_SALLY_CANON && global.player.state == SALLY_ZIPLINE)
+			return;
+			
 		audio_play_sound(snd_snap, 0, false);
 		net_sound_emit(snd_snap);
 		hasPlayer = true;

@@ -1259,3 +1259,150 @@ Stage Summary:
   rosa, sus sprites (los del usuario) y su cuarto icono de HUD con
   el CD. La burbuja congela el parry, el abrazo se rompe con V, y
   Sonic queda 100% intacto.
+---
+Task ID: carry-v1
+Agent: main (Z.ai)
+Task: (1) Fix del bug de velocidad de Amy Canon (mismo patron del
+spindash de Sonic v3). (2) Mecanica NUEVA: Tails y Cream llevan a un
+aliado colgado mientras vuelan (estilo lianas: agarrarse al tocar,
+soltarse con Z). Peticion del usuario: "Añadiremos una mecanica que
+tails permitira llevar a un aliado en su vuelo. Parecido a las
+lianas estas de Hide seek 1 ... con la z te puedes soltar. Tails
+debe tener la posibilidad de llevar a un aliado Cream tambien" +
+"sobre lo que decia de amy era el bug de velocidad ... no notaste
+que amy tiene ese bug parecido?".
+
+Work Log:
+- BUG AMY CONFIRMADO: AMY_CANON_DASH_SPEED y _TAROTDASH_SPEED = 14
+  ("mayor que 11 = mas rapida que correr") pero scr_collision_basic
+  clamp(xspd, -maxHSpeed, maxHSpeed) las recortaba a 11 siempre; el
+  fix v3 de Sonic solo exceptuo CHARACTER_SONIC+isSpinning. FIX v4:
+  misma excepcion para CHARACTER_AMY_CANON con isDashing ||
+  isTarotDashing, tope = max de sus 2 macros. Short-circuit && =
+  vars de Amy solo se evaluan siendo ella (patron bugfix-tarot-v1).
+  El escaneo de muros v3 ya era generico (usa abs(xspd)).
+- CARRY, investigacion previa: tirolina (obj_aiz_zipline: agarra
+  place_meeting en aire, _holdPlayer bloquea con isZipline=true +
+  playerControls=false, mueve al player en SU Step_2 = End Step,
+  suelta con KeyA + keyboard_key_release, timeout 3s, snd_snap),
+  abrazo (scr_amy_hug: estados custom viajan en el u8 de state sin
+  server, checks en vivo contra puppets, vars por personaje detras
+  de gates), parry v3.5 (senal por red: net_sound_emit_at con
+  shouldPlay=true al nid objetivo, rama en CLIENT_SOUND_EMIT de
+  net_state_game), netclient Step_2 (playerControls se re-activa en
+  frames de reconnect => re-afirmar false cada frame como la
+  tirolina; PLAYER_DATA manda x,y,xspd,yspd,state,angle,
+  image_index,image_xscale cada frame).
+- DISENO DEL CARRY (cero server, cero paquetes nuevos): el llevado
+  viaja en el estado *_ZIPLINE de SU personaje (sprites de tirolina
+  ya registrados en scr_survivors/Draw_76/Draw_72 para los 9
+  supervivientes) + su posicion la pega su cliente al puppet del
+  portador cada End Step; el portador viaja NORMAL (TAILS_FLY/
+  CREAM_FLY). Drop del portador = tecla V => net_sound_emit_at(
+  snd_snap, nid_del_colgado) => rama nueva en CLIENT_SOUND_EMIT
+  (snd_snap con shouldPlay=true a mi nid) => scr_carry_drop_signal.
+  El snap del AGARRE viaja shouldPlay=false (no entra a la rama).
+- NUEVOS: scripts/scr_carry/scr_carry.gml (macros CARRY_*: GRAB 32,
+  HANG_Y 26, HOP -6.5, REGRAB 120, CHECK 48; scr_carry_zipline_state
+  mapa char->estado; find_carrier/find_hanger contra puppets con
+  isInactive/isDemonized/hp; grab_ok con gates por personaje;
+  scr_carry_step mantener/soltar con re-afirmar playerControls=false
+  cada frame; scr_carry_end(hop,quiet); scr_carry_carrier_step
+  early-return no-Tails/Cream + V + drain de flyTimer de Tails 1.5x
+  entero-alternando para no romper el mod 18 del sonido) +
+  objects/obj_carry_controller (Create + End Step; creado por
+  obj_spawnpoint DESPUES del player => su End Step corre ultimo y
+  el snap es la ultima palabra del frame; inicializa carryActive/
+  carryPartner/carryCooldown/carryDrainTick en la instancia al
+  detectar player nuevo; EXE nunca lo crea: spawnpoint bloquea
+  character EXE).
+- WIRING: obj_spawnpoint/Create_0.gml crea el controlador
+  (idempotente); net_state_game.gml rama snd_snap tras la del
+  snd_exe_stun; obj_aiz_zipline/Step_2.gml +guards SONIC y
+  SALLY_CANON (la tirolina ROBABA a un llevado de esos dos al volar
+  sobre su punto de inicio: les faltaba el check de estado que todos
+  los demas personajes ya tenian); .yyp + resource_order (2
+  recursos, parent Specials/Spawners).
+- Reglas: agarre = tocar (dist<=32) a Tails/Cream en TAILS_FLY/
+  CREAM_FLY estando en el aire y sin bloqueos (herido/stun/
+  escondido/anillo rojo/emote/atacando/demonizado; Amy Canon:
+  burbuja/tarot/hj/dash/parry; Sonic: nervios/parry; Knux: planeo);
+  1 pasajero por portador (find_hanger); suelta con Z (hop -6.5 +
+  keyboard_key_release como la tirolina); auto-suelta si el portador
+  deja de volar/aterriza/es herido/muere/desconecta o el colgado
+  toca suelo/es herido/muere/demoniza; demonizados ni llevan ni
+  cuelgan; EXE excluido; cooldown 2s tras soltar.
+- INCIDENTE de herramienta 2 veces: el Edit expandio TABs->8
+  espacios en obj_spawnpoint (arreglado re-escribiendo con Python)
+  y en scr_collision_basic COMPLETO (1231 lineas de diff fantasma;
+  git checkout + re-aplicado byte-exacto con \t literales). Diffs
+  finales: 44 insertions / 1 deletion en 6 archivos + recursos
+  nuevos.
+- Validador scripts/carry_v1_validate.py: 137 OK / 0 FAIL
+  (sintaxis con tokenizador string/comentario, macros usadas vs
+  definidas en TODO el proyecto, CARRY_* 1 vez, gates de personaje
+  (multi-linea, mirando atras), wiring completo, estados ZIPLINE
+  resueltos vs arrays de scr_survivors (los 9), TAILS_FLY=14,
+  CREAM_FLY=14, BALANCING=13, funciones de red existen, vars de
+  personaje existen en sus Creates, .yyp/resource_order parsean
+  (JSON relajado), eventos Create+EndStep, higiene CR/indent,
+  10 simulaciones de agarre + mapa de estados + shouldPlay).
+- LEEME_CARRY_V1.txt con instrucciones, macros ajustables y guion
+  de prueba de 8 pasos con 2 ventanas.
+
+Stage Summary:
+- AMY: acometida (C) y tarot (X) ahora SI corren a 14 (antes salian
+  a 11 por el clamp; mismo bug que el spindash de Sonic).
+- CARRY: cualquier superviviente se cuelga de un Tails/Cream volando
+  al tocarlo, cuelga con su sprite de tirolina debajo del portador,
+  se suelta con Z (saltito) o el portador lo suelta con V (senal de
+  red snd_snap a su nid). Auto-suelta en todos los casos logicos.
+  Tails gasta vuelo 1.5x cargando. Un pasajero por portador.
+- CERO server: solo extraer, reabrir GameMaker y ejecutar. El
+  entregable es download/carry_v1.zip (5 nuevos + 6 modificados +
+  LEEME + worklog).
+
+---
+Task ID: flybuff-v1.1
+Agent: Super Z (main agent)
+Task: Mejora sustancial de vuelo pedida por el usuario ("el vuelo
+dura demasiado poco"): Tails y Cream a 5.5 seg maximos.
+
+Work Log:
+- Diagnostico: Tails volaba 160 frames (2.67 seg; flyTimer = 160 en
+  scr_tails_special) y Cream 120 frames (2 seg; flyTimeout > 60*2 en
+  scr_cream_special). Ambos muy por debajo de los 5.5 seg pedidos.
+- Macros NUEVAS junto a las de recarga (patron del proyecto):
+  TAILS_FLY_TIME (60*5.5) en obj_tails/Create_0.gml y CREAM_FLY_TIME
+  (60*5.5) en obj_cream/Create_0.gml. 60*5.5 = 330 frames.
+- scr_tails_special.gml: flyTimer = 160 -> TAILS_FLY_TIME. La
+  recarga NO cambia (-420 en suelo = 7 seg para poder volver a
+  volar); los clamps de redRing (-420+2) e isHiding (-420+120)
+  siguen coherentes; el "flyTimer mod 18" del sonido sigue
+  funcionando (330 = 18*18+6: suena ~18 veces durante el vuelo).
+- scr_cream_special.gml: flyTimeout > 60*2 -> CREAM_FLY_TIME. La
+  recarga NO cambia (CREAM_FLY_RECHARGE = 60*15 en tiempo real, sin
+  necesitar suelo); el clamp de isHiding sobre flyTimer (recarga,
+  60*2) tampoco se toca.
+- GUI intacto: la barra de Tails mapea la RECARGA (min(flyTimer,0) /
+  -420 en obj_playerui/Draw_64) y la de Cream la recarga (flyTimer /
+  CREAM_FLY_RECHARGE); ninguna dependia de la duracion del vuelo.
+- CARRY intacto en logica: el drain 1.5x de Tails con pasajero
+  (scr_carry) sigue igual -> 330/1.5 = 220 frames = 3.7 seg cargando
+  a alguien (antes volar SOLO duraba 2.67 seg). Actualizados solo
+  textos obsoletos: comentario de scr_carry.gml ("su vuelo ya es un
+  planeo corto") y la frase "planeo de 2 segundos" del
+  LEEME_CARRY_V1.txt (ahora describen que el planeo de Cream no gana
+  altura, que es la razon real de que no tenga penalizacion).
+- Aplicador scripts/apply_flybuff_v1_1.py (matches exactos == 1,
+  convencion #2 de CACHE.md, cero Edits directos) + validador
+  scripts/flybuff_v1_1_validate.py.
+
+Stage Summary:
+- VUELO 5.5 SEG: Tails 2.67 -> 5.5 seg, Cream 2 -> 5.5 seg. Solo
+  duracion: fisica de vuelo, recargas (7 seg suelo Tails / 15 seg
+  real Cream), HUD y carry sin cambios de logica.
+- Con pasajero, Tails vuela ~3.7 seg (drain 1.5x): llevar a alguien
+  cuesta menos que volar solo antes de la mejora.
+- Ajustable: TAILS_FLY_TIME / CREAM_FLY_TIME en los Create_0.
+- Entregable: download/fly_buff_v1.zip. Cero server, cero assets.

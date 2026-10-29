@@ -1,0 +1,150 @@
+=====================================================================
+ CARRY V1  (Tails y Cream llevan aliados volando)
+ + FIX DE VELOCIDAD DE AMY CANON (acomotida y tarot a 14 de verdad)
+=====================================================================
+
+QUE HAY EN ESTE PAQUETE (2 cosas):
+
+  1) FIX del bug de velocidad de Amy Canon (el mismo que tenia el
+     spindash de Sonic antes del fix v3).
+
+  2) Mecanica NUEVA: Tails y Cream pueden llevar a un aliado
+     colgado mientras vuelan, estilo las lianas/tirolinas del
+     juego: te agarras al tocarlos y te sueltas con Z.
+
+
+---------------------------------------------------------------------
+ 1) FIX DE VELOCIDAD DE AMY CANON
+---------------------------------------------------------------------
+
+QUE PASABA: la acometida (tecla C) y el impulso aereo de tarot
+(tecla X) tienen velocidad 14 ("mas rapida que correr", decian sus
+propias macros)... pero NUNCA fue cierto: scr_collision_basic
+recortaba SIEMPRE la velocidad horizontal a maxHSpeed (11). Era
+exactamente el mismo bug del spindash de Sonic (velocidad 11
+clavada) que se arreglo en la v3 de su script, solo que el fix de
+Sonic dejo la excepcion solo para el. La acometida de Amy corria a
+11, igual que corriendo normal.
+
+QUE SE ARREGLO: la excepcion del clamp ahora tambien cubre a Amy
+Canon mientras dura la acometida o el impulso de tarot. Tope = el
+mayor de sus dos macros (AMY_CANON_DASH_SPEED / _TAROTDASH_SPEED,
+los dos en 14). Si algun dia cambias esas macros, el tope las sigue
+solas.
+
+EN JUEGO: la acometida (C) ahora SI adelanta a alguien corriendo,
+y el impulso de tarot (X) tambien viaja a 14. Para ajustar la
+velocidad: macros AMY_CANON_DASH_SPEED y AMY_CANON_TAROTDASH_SPEED
+en objects/obj_amy_canon/Create_0.gml.
+
+ARCHIVO TOCADO: scripts/scr_collision_basic/scr_collision_basic.gml
+(nada mas: el escaneo de muros a alta velocidad ya era generico
+desde el fix de Sonic v3).
+
+
+---------------------------------------------------------------------
+ 2) LLEVAR ALIADOS VOLANDO (Tails y Cream)
+---------------------------------------------------------------------
+
+COMO SE USA (igual que una liana):
+
+  * AGARRARSE: siendo cualquier SUPERVIVIENTE, salta hacia un Tails
+    o una Cream que este VOLANDO y tocalo: te agarras solo y quedas
+    colgando debajo (con el sprite de tirolina de tu personaje).
+    Como la liana: no hace falta tecla, con tocar basta.
+
+  * SOLTARSE: pulsa Z (la tecla de salto). Sales con un pequeno
+    saltito hacia arriba. Despues de soltarte hay 2 segundos de
+    espera antes de poder agarrarte otra vez.
+
+  * El PORTADOR (el Tails o la Cream que vuela) suelta a su
+    pasajero con la tecla V.
+
+  * SE SUELTAN SOLOS si:
+      - el portador aterriza, se queda sin vuelo, ataca, es herido,
+        muere, se demoniza o se desconecta;
+      - o el que cuelga toca el suelo, es herido, muere o se
+        demoniza (los demonizados son del equipo EXE: ni llevan ni
+        cuelgan).
+
+  * BALANCE: mientras Tails lleva a alguien, su vuelo se gasta un
+    50% mas rapido (se nota en el sonido del vuelo, que se acaba
+    antes). Cream no tiene penalizacion: su planeo no gana altura (solo
+    frena la caida).
+
+  * Solo UN pasajero por portador.
+
+DETALLES UTILES:
+
+  * El EXE no puede montarse (ni las variantes EXE), y un Tails o
+    Cream demonizados tampoco pueden llevar a nadie.
+
+  * El que cuelga esta expuesto: el EXE puede golpearlo en el aire
+    (y al golpearlo se suelta solo). Llevar a alguien es util pero
+    arriesgado.
+
+  * Si el portador vuela bajo y el que cuelga toca el suelo, se
+    suelta en ese momento (no se queda arrastrandose).
+
+  * Funciona con CUALQUIER superviviente colgando: Tails, Knux,
+    Eggman, Amy, Amy Canon, Sonic, Cream, Sally y Sally Canon.
+    Cada uno cuelga con su propio sprite de tirolina.
+
+AJUSTABLE (macros al principio de scripts/scr_carry/scr_carry.gml):
+
+  CARRY_GRAB_RANGE  32    distancia maxima para agarrarse (px)
+  CARRY_HANG_Y      26    cuanto por debajo del portador cuelga
+  CARRY_HOP         -6.5  fuerza del saltito al soltarse con Z
+  CARRY_REGRAB_CD   120   frames sin re-agarrarse (120 = 2 seg)
+  CARRY_CHECK_DIST  48    radio del "llevo a alguien" (lado portador)
+
+
+---------------------------------------------------------------------
+ INSTALACION
+---------------------------------------------------------------------
+
+  1. Cierra GameMaker.
+  2. Extrae este zip ENCIMA de la raiz del proyecto (la carpeta que
+     contiene el .yyp), aceptando sobreescribir.
+  3. Abre el proyecto y ejecuta el juego normal (F5). Es cambio de
+     CLIENTE: NO hay que recompilar el server ni cambiar nada de
+     Config.json.
+
+Archivos NUEVOS:
+  scripts/scr_carry/scr_carry.gml          (toda la logica)
+  scripts/scr_carry/scr_carry.yy
+  objects/obj_carry_controller/Create_0.gml
+  objects/obj_carry_controller/Step_2.gml  (End Step: corre la logica)
+  objects/obj_carry_controller/obj_carry_controller.yy
+
+Archivos MODIFICADOS:
+  scripts/scr_collision_basic/scr_collision_basic.gml  (fix Amy)
+  objects/obj_spawnpoint/Create_0.gml   (crea el controlador cada ronda)
+  scripts/net_state_game/net_state_game.gml  (senal de "soltame" con V)
+  objects/obj_aiz_zipline/Step_2.gml    (para que la tirolina no robe
+                                         a un Sonic/Sally Canon llevado)
+  Sonicexe The Disaster 2D Remake.yyp    (registro de los 2 recursos)
+  Sonicexe The Disaster 2D Remake.resource_order
+
+
+---------------------------------------------------------------------
+ COMO PROBARLO RAPIDO (2 ventanas en la misma PC)
+---------------------------------------------------------------------
+
+  1. Server arrancado + "allow_duplicate_ip": true (como ya tienes).
+  2. Ventana 1: Tails. Ventana 2: cualquier superviviente.
+  3. Con Tails: salta y pulsa Z repetido para volar.
+  4. Con el otro: salta hacia Tails y tocalo en el aire -> te
+     cuelgas (sonido de snap). En la ventana de Tails te ve colgado
+     debajo, con el sprite de tirolina.
+  5. Pulsa Z -> te sueltas con saltito.
+  6. Agarrate otra vez y que Tails pulse V -> te suelta el.
+  7. Agarrate y que Tails deje de volar (suelta el Z / se acaba el
+     vuelo / aterriza) -> te sueltas solo.
+  8. La acometida de Amy Canon (C) y el tarot (X) ahora deben NOTAR
+     que pasan a alguien que corre (14 vs 11).
+
+NOTA: el pasajero se ve colgado con un pelin de retraso respecto al
+portador en las pantallas de los demas (es el retraso normal de red
+del juego, igual que se ve cualquier movimiento); en la pantalla
+del propio pasajero y en la del portador va perfecto.

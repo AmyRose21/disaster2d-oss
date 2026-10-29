@@ -4,8 +4,10 @@
     {"name":"Sally Canon","order":1,"path":"folders/Sprites/Player/Survivors/Sally Canon.yy",},
   ],
   "ResourceOrderSettings":[
+    {"name":"obj_carry_controller","order":1,"path":"objects/obj_carry_controller/obj_carry_controller.yy",},
     {"name":"obj_sally_canon","order":1,"path":"objects/obj_sally_canon/obj_sally_canon.yy",},
     {"name":"scr_amy_hug","order":8,"path":"scripts/scr_amy_hug/scr_amy_hug.yy",},
+    {"name":"scr_carry","order":1,"path":"scripts/scr_carry/scr_carry.yy",},
     {"name":"scr_parry","order":7,"path":"scripts/scr_parry/scr_parry.yy",},
     {"name":"scr_powerboost_fx","order":5,"path":"scripts/scr_powerboost_fx/scr_powerboost_fx.yy",},
     {"name":"scr_sally_canon_fase2","order":6,"path":"scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.yy",},

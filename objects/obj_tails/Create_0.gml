@@ -2,6 +2,7 @@
 
 #macro TAILS_ATTACK_RECHARGE  (23 * 60)
 #macro ETAILS_ATTACK_RECHARGE (12 * 60)
+#macro TAILS_FLY_TIME         (60 * 5.5)
 #macro TAILS_MAXSPEED 11
 #macro TAILS_ACC 0.046875
 

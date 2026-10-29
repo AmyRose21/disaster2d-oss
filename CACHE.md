@@ -400,6 +400,8 @@
 | relay-gui-v1.1     | Fix exe consola -> vuelve GUI SDL (unset BUILD_UI) (ver 6.2)  | relay_port_v1.1.zip |
 | relay-fix-v1.2     | Fix salt CHALLENGE (offset 8): adiós "wrong password" (ver 6.2)| relay_port_v1.2.zip |
 | relay-v1.3         | Fix r2h-enc + MTU 1368 + IP real en join (ver 6.2)             | relay_port_v1.3.zip |
+| parry-v3.5/v4.x    | Parry Sonic(C)/Amy(V) + auto-stun + HUD (ver 7.2)              | (zips parry) |
+| carry-v1           | Tails/Cream LLEVAN aliados volando + fix velocidad Amy (ver 7.3)| carry_v1.zip |
 
 ### 7.1 ENDINGS MUSIC v2 (instalado en el repo; detalle: LEEME_ENDINGS_V2.txt)
 Musica de ending SEGUN CUANTOS ESCAPARON (estilo TD original) + el server
@@ -435,6 +437,38 @@ y las pistas nuevas de 20-28s se cortaban).
 - MANTENIMIENTO: reemplazar un mp3 => medir con ffprobe, actualizar su
   ENDINGLEN_* en Results.c y recompilar el server. No bajar
   ENDING_MARGIN de 0.5 (con ping alto se cortaria).
+
+### 7.3 CARRY v1: Tails y Cream llevan aliados volando (ver LEEME_CARRY_V1.txt)
+- FIX velocidad Amy Canon: scr_collision_basic v4 exceptua el clamp para
+  CHARACTER_AMY_CANON con isDashing||isTarotDashing (tope max de sus macros
+  14/14). Antes la acometida (C) y el tarot aereo (X) salian a 11 (=maxHSpeed)
+  aunque sus macros prometian 14: mismo bug que el spindash de Sonic (fix v3
+  que solo exceptuaba a Sonic+isSpinning).
+- MECANICA: cualquier superviviente en el aire que TOCA a un Tails/Cream en
+  estado TAILS_FLY/CREAM_FLY se agarra (dist<=32px) y cuelga CARRY_HANG_Y=26px
+  debajo, viajando en el estado *_ZIPLINE de SU personaje (sprite de tirolina
+  ya existente para los 9) mientras su cliente pega su x/y al puppet del
+  portador cada End Step. Suelta con Z (hop -6.5 + keyboard_key_release,
+  patron tirolina; cooldown 2s) o el portador con V (senal: net_sound_emit_at
+  snd_snap al nid del colgado; rama nueva en CLIENT_SOUND_EMIT de
+  net_state_game junto a las del parry). Auto-suelta en todos los casos
+  logicos (portador aterriza/para/herido/muerto/desconecta/demoniza; colgado
+  toca suelo/herido/muerto/demoniza). 1 pasajero por portador. Tails gasta
+  vuelo 1.5x (drain entero alternando frames: no rompe el mod 18 del sonido).
+- ARQUITECTURA: scripts/scr_carry/scr_carry.gml (toda la logica; macros
+  CARRY_* ajustables al inicio) + objects/obj_carry_controller (Create + End
+  Step; lo crea obj_spawnpoint DESPUES del player => su End Step corre
+  ultimo: el snap es la ultima palabra del frame, como la tirolina;
+  inicializa las 4 vars del carry en la instancia al cambiar de player; el
+  EXE nunca lo crea). Guards por personaje con short-circuit (bubbleState/
+  isTarotDashing/etc solo se leen siendo Amy Canon, nerviosState siendo
+  Sonic, isGliding siendo Knux, isFlying/flyTimer siendo Tails/Cream).
+- Guards anti-robo en obj_aiz_zipline/Step_2.gml: SONIC y SALLY_CANON no
+  tenian check de estado ZIPLINE (a todos los demas ya los cubria el
+  original): sin ellos la tirolina ROBABA a un llevado al pasar sobre su
+  punto de inicio.
+- CERO server, cero paquetes nuevos, cero assets: estados ZIPLINE y
+  PLAYER_DATA existentes + 1 rama de sonido. Extraer + reabrir GameMaker.
 
 ## 8. CONVENCIONES Y TRAMPAS DEL CODIGO (lecciones pagadas — leer ANTES de editar)
 1. SANGRIA MIXTA: la mayoria de .gml usan TABs, pero ALGUNOS usan 8 espacios
@@ -494,6 +528,9 @@ y las pistas nuevas de 20-28s se cortaban).
   al lobby ~1s despues de que termine la cancion).
 - flecha-pegada-v2: pendiente PROBAR en partida (calibracion 14px / 20 grados
   ajustable en un minuto si no convence).
+- carry-v1: pendiente PROBAR en partida real (2 ventanas: colgarse de un
+  Tails volando, soltar con Z, soltar con V, auto-sueltas, y notar la
+  acometida/tarot de Amy a 14). Guion de 8 pasos en LEEME_CARRY_V1.txt.
 - (Los 2 bugs originales del tarot y los sensores ya estan cerrados por
   bugfix-tarot-v1. Worklog y CACHE sincronizados con el repo 26/10.)
 
@@ -513,6 +550,10 @@ y las pistas nuevas de 20-28s se cortaban).
 - Misc (historico): check_arrow_colors.py (colores de sprites de flecha).
 
 ## 11. CHANGELOG DEL CACHE
+- 2026-10-30: carry-v1 (seccion 7.3): Tails/Cream llevan aliados (agarrarse
+  al tocar en el aire, soltar con Z, portador suelta con V, estado ZIPLINE
+  reutilizado, senal snd_snap por red) + fix v4 del clamp para la velocidad
+  real (14) de la acometida/tarot de Amy Canon. Tabla de mods actualizada.
 - 2026-10-24: v1 creada con barrido completo del proyecto: workspace, juego,
   cliente (302 objetos clasificados), personajes, mapa de flechas con
   colores verificados por pixels (roja=exe->survivor, azul=survivor->exe,
@@ -563,3 +604,16 @@ y las pistas nuevas de 20-28s se cortaban).
   con anticheat:false arranca normal. Diagnostico conexiones
   fantasma: scanners (Sudafrica), inofensivos. LEEME_RELAY.txt
   v1.3 con seccion fantasma. Links tmpfiles (60 min) para v1.3.
+
+- 2026-10-30 (flybuff-v1.1): MEJORA DE VUELO (usuario: "el vuelo dura
+  demasiado poco"): Tails 2.67 -> 5.5 seg y Cream 2 -> 5.5 seg.
+  Macros nuevas TAILS_FLY_TIME / CREAM_FLY_TIME (60*5.5 = 330) en los
+  Create_0 de cada personaje; scr_tails_special usa TAILS_FLY_TIME
+  para el flyTimer inicial y scr_cream_special usa CREAM_FLY_TIME
+  para el limite del flyTimeout. Recargas intactas (Tails: -420 en
+  suelo = 7 seg; Cream: CREAM_FLY_RECHARGE = 15 seg reales), GUI
+  intacto (barras mapean recarga, no duracion), carry intacto (drain
+  1.5x de Tails => ~3.7 seg cargando pasajero). Textos obsoletos
+  actualizados en scr_carry.gml y LEEME_CARRY_V1.txt. Entregable:
+  download/fly_buff_v1.zip. Detalle tecnico completo: worklog
+  flybuff-v1.1.

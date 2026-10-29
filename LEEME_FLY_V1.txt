@@ -1,0 +1,70 @@
+=====================================================================
+ MEJORA DE VUELO V1  (Tails y Cream a 5.5 seg)  [flybuff v1.1]
+=====================================================================
+
+QUE CAMBIA:
+
+  El vuelo duraba demasiado poco; ahora dura mucho mas:
+  * TAILS:  2.67 seg  ->  5.5 seg  (mas del doble)
+  * CREAM:  2.00 seg  ->  5.5 seg  (casi el triple)
+
+  La mejora es SOLO de duracion: la fisica del vuelo (subir con Z en
+  Tails, planeo lento en Cream), las recargas y el HUD quedan igual.
+
+DETALLES:
+
+  * TAILS: al empezar a volar, el flyTimer pasa de 160 a 330 frames
+    (5.5 seg). La recarga en el suelo sigue siendo de 7 segundos,
+    como siempre. El sonido del vuelo sigue sonando igual (cada 18
+    frames); ahora suena mas veces simplemente porque el vuelo dura
+    mas.
+
+  * CREAM: su planeo pasa de 2 a 5.5 segundos. Su recarga sigue
+    siendo de 15 segundos (en tiempo real: no hace falta pisar el
+    suelo para recargar).
+
+  * CARRY (llevar aliados, del paquete anterior) NO cambia su
+    logica: Tails sigue gastando el vuelo un 50% mas rapido mientras
+    lleva a alguien. Con la mejora, cargar a un pasajero te da
+    ~3.7 seg de vuelo (antes volar SOLO duraba 2.67 seg, o sea que
+    llevar a alguien era mas caro que volar; ahora ya no).
+
+AJUSTABLE:
+
+  * TAILS:  macro TAILS_FLY_TIME  (60 * 5.5)  en
+            objects/obj_tails/Create_0.gml
+  * CREAM:  macro CREAM_FLY_TIME  (60 * 5.5)  en
+            objects/obj_cream/Create_0.gml
+
+  Cambia el 5.5 por los segundos que quieras (60 = 1 segundo).
+  La RECARGA de Tails la sigue mandando el -420 de siempre (en
+  scr_tails_special.gml y obj_tails/Create_0.gml: 7 seg en suelo) y
+  la de Cream la macro CREAM_FLY_RECHARGE (60 * 15).
+
+INSTALACION:
+
+  1. Cierra GameMaker.
+  2. Extrae este zip ENCIMA de la raiz del proyecto (la carpeta que
+     contiene el .yyp), aceptando sobreescribir.
+  3. Abre el proyecto y ejecuta normal (F5). CERO cambios de server:
+     es todo del cliente.
+
+COMO PROBARLO:
+
+  1. Con Tails: salta y pulsa Z repetido para mantenerte volando ->
+     ahora aguantas 5.5 segundos en el aire (se nota mucho: el
+     sonido del vuelo suena muchas mas veces antes de apagarse).
+  2. Con Cream: salta y pulsa Z en el aire para planear -> el
+     planeo dura 5.5 segundos (antes se acababa en 2).
+  3. Con un aliado colgado de tu Tails (tocarlo volando, soltar con
+     Z; el portador suelta con V): el vuelo cargando se acaba antes
+     (~3.7 seg) pero llegais MUCHO mas lejos que antes.
+
+Archivos MODIFICADOS:
+  objects/obj_tails/Create_0.gml          (+ macro TAILS_FLY_TIME)
+  objects/obj_cream/Create_0.gml          (+ macro CREAM_FLY_TIME)
+  scripts/scr_tails_special/scr_tails_special.gml   (160 -> macro)
+  scripts/scr_cream_special/scr_cream_special.gml   (60*2 -> macro)
+  scripts/scr_carry/scr_carry.gml         (solo un comentario viejo)
+  LEEME_CARRY_V1.txt                      (solo una frase obsoleta)
+  worklog.md + CACHE.md                   (documentacion del cambio)
