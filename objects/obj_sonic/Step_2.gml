@@ -18,13 +18,14 @@
 #macro SONIC_ATK_AIRE 40          // variante N de aire = estado 40 + (N-1), hasta 59
 #macro SONIC_ATK_AIRE_MAX 20      // tope de variantes aire que se escanean
 
-// PARRY (tecla C): estados 60/61/64 (ver scr_parry.gml). El _ACT es la
-// VENTANA ACTIVA: es el que los otros clientes miran en el puppet para
-// saber que Sonic esta protegiendo (a si mismo y a su aura de aliados).
+// PARRY (tecla C): estados 60/61/64. El _ACT es la VENTANA ACTIVA: es
+// el que los otros clientes miran en el puppet para saber que Sonic
+// esta protegiendo (a si mismo y a su aura de aliados).
 // v3: SOLO EN TIERRA (62/63 eran las variantes de aire, ya libres).
-#macro SONIC_PARRY_INICIO 60     // windup
-#macro SONIC_PARRY_INICIO_ACT 61 // ventana activa
-#macro SONIC_PARRY_EXITO 64      // parte de exito (al interceptar)
+// v3.1: los #macro de estos estados (SONIC_PARRY_INICIO / _ACT / _EXITO)
+// estan definidos SOLO en scr_parry.gml. En GML las macros son globales:
+// redefinirlos aqui daba "macro is already defined". Se usan mas abajo
+// sin problema porque scr_parry.gml siempre compila antes.
 
 if(!emotion)
         state = IDLE;
