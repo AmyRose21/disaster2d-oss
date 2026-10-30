@@ -594,7 +594,25 @@ function scr_chocola_stun_signal(frames)
     if(global.character != CHARACTER_EXE)
         return;
 
-    // dedup: ya stuneado (auto-stun local, parry u otra senal)
+    // SONIDO DE STUN — SIEMPRE, ANTES del dedup (v2.1.4). Antes el
+    // unico sonido (el grito, scr_exe_stunsound) vivia AL FINAL: si el
+    // exe ya estaba stuneado (shockedTimer > 0 por un contra-golpe, un
+    // parry u otra senal) el return del dedup se lo comia y Chocola le
+    // pegaba EN SILENCIO. Y cuando sonaba, sonaba SOLO el grito del
+    // personaje: en todos los demas stuns del juego (parry de Sonic,
+    // laser de Tails, contra-golpe de Knux/Sally) el exe oye PRIMERO el
+    // golpe canonico (snd_exe_stun) y ENCIMA el grito. Ahora igual:
+    // golpe + grito, aunque el stun en si se dedupe (el golpe fue real,
+    // se tiene que oir). El net_sound_emit reenvia el golpe por red:
+    // los demas clientes lo oyen en 3D desde la posicion del exe (el
+    // grito ya lo reenvia scr_exe_stunsound por su cuenta).
+    audio_play_sound(snd_exe_stun, 0, false);
+    net_sound_emit(snd_exe_stun);
+    scr_exe_stunsound();
+
+    // dedup: ya stuneado (auto-stun local, parry u otra senal): no se
+    // re-aplica el stun ni el knockback ni el shake (igual que el dedup
+    // del parry); el sonido de arriba si sono
     if(global.player.shockedTimer > 0)
         return;
 
@@ -615,10 +633,6 @@ function scr_chocola_stun_signal(frames)
     buffer_write(_buffer, buffer_u16, floor(global.player.y));
     buffer_write(_buffer, buffer_u16, frames div 60);
     send_server_tcp(_buffer);
-
-    // sonido de stun canonico por exeCharacter (ademas lo emite por red:
-    // todos oyen el grito del exe en su posicion)
-    scr_exe_stunsound();
 }
 
 // =====================================================================
