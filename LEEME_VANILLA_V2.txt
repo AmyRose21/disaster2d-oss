@@ -2,26 +2,29 @@
  VANILLA V2 — CHOCOLA, PACIENCIA, FLOAT RUN Y LAS PASIVAS DE MADRE
 ════════════════════════════════════════════════════════════════════
 
- REVISION 3 (rev3) — ARREGLA EL ERROR AL ABRIR EL PROYECTO:
-   "scripts/scr_chocola/scr_chocola.yy(3,3): Error: Field "%Name":
-   expected."
- La causa: ese archivo tenia "%%Name" (DOBLE porcentaje) en vez de
- "%Name". Ya esta corregido. Solo cambia ESE archivo respecto a la
- rev2; nada mas.
- La buena noticia: ese error significa que la rev2 SI se aplico bien
- (GameMaker ya conoce scr_chocola gracias al .yyp corregido); solo
- que al leer su ficha de recurso encontraba el nombre de campo mal
- escrito y se negaba a cargar el proyecto entero. Con este archivo
- corregido el proyecto abre.
-
- Instalacion rev3: con GameMaker CERRADO, extrae el zip ENCIMA de la
- raiz (aceptar sobrescribir todo) y abre el proyecto. No hay que
- recompilar el server (no cambia). Luego F5.
-
- Ademas se valido AUTOMATICAMENTE el JSON de TODOS los .yy/.yyp del
- proyecto (1770 archivos) con un parser igual de estricto que el de
- GameMaker: 0 errores. Este chequeo queda integrado en el validador
- para siempre.
+ REVISION 2.1 (este zip): 2 cambios pedidos tras probar la rev2.
+   1. CHOCOLA SE VE EN LA PANTALLA DEL EXE: la mini-embestida (el
+      ataque cercano del 33% y el de la custodia de Cream) ahora
+      viaja por red con una senal nueva (sonido snd_chocola_dive,
+      asset nuevo del mod): TODOS los clientes — el del EXE incluido
+      — ven a Chocola salir volando hacia el exe desde donde este,
+      igual que en la pantalla de Vanilla. Antes solo la veia el
+      cliente que la rollaba y al exe el stun le llegaba "de la
+      nada". (La caza grande de la paciencia ya se veia en todas
+      las pantallas; esa no cambia.)
+   2. BALANCE: bloqueo de golpes del exe 50% -> 65%
+      (VANILLA_CHOCOLA_BLOCK_CHANCE) y enfriamiento compartido
+      bloqueo/ataque 4.5 s -> 2.5 s (VANILLA_CHOCOLA_CD). Ambas
+      macros al inicio de scripts/scr_chocola/scr_chocola.gml.
+ INSTALACION: extraer ENCIMA de la raiz del proyecto con GameMaker
+ CERRADO y aceptar sobrescribir TODO — comprueba que se
+ sobrescriban "Sonicexe The Disaster 2D Remake.yyp" y
+ "...resource_order" (traen el sonido nuevo registrado; si no se
+ sobrescriben, snd_chocola_dive "no existe" al compilar). Al abrir
+ GM debe aparecer snd_chocola_dive en la carpeta Sounds. Compilar
+ F5. EL SERVER NO CAMBIA (no hace falta recompilarlo).
+ El guion de prueba tiene 2 pasos nuevos (3 y 8) para ver la
+ embestida en la ventana del exe y notar el balance nuevo.
 
  REVISION 2 (rev2): la primera version del zip tenia 3 erratas de
  sintaxis que impedian compilar en GameMaker. Ya estan corregidas:
@@ -134,14 +137,20 @@ el kit de la v2 sobre la v1.2 que ya tenias.
 ──────────────────────────────────────────────────────────────────────
  Invocada ya, Chocola protege a Vanilla de forma permanente:
 
-  · BLOQUEO 50%: cuando Vanilla recibe un golpe del lado del exe,
-    50% de probabilidad de BLOQUEAR el dano por completo. Sale
-    semi-transparente con i-frames de 2.5 s (como el escudo roto de
-    Sally, con el efecto de romper escudo). Enfriamiento 4.5 s.
+  · BLOQUEO 65% (v2.1, antes 50%): cuando Vanilla recibe un golpe del
+    lado del exe, 65% de probabilidad de BLOQUEAR el dano por completo.
+    Sale semi-transparente con i-frames de 2.5 s (como el escudo roto de
+    Sally, con el efecto de romper escudo). Enfriamiento 2.5 s (v2.1,
+    antes 4.5 s).
   · ATAQUE 33%: si el exe se acerca a menos de ~90 px de Vanilla,
     cada 0.5 s hay 33% de que Chocola lo embista y lo stunee 1.5 s.
     NO ataca si el exe tiene i-frames. Enfriamiento compartido de
-    4.5 s entre ataques y bloqueos.
+    2.5 s entre ataques y bloqueos (v2.1, antes 4.5 s).
+  · v2.1: la mini-embestida ahora SE VE EN TODAS LAS PANTALLAS (senal
+    snd_chocola_dive): antes solo la veia el cliente que la rollaba y
+    en la pantalla del EXE el stun le llegaba sin ver a Chocola venir.
+    Ahora el exe la ve salir volando hacia el desde donde este (junto
+    a Vanilla o a Cream), igual que en la pantalla de Vanilla.
   · CELEBRACION: cuando Vanilla usa su poder de anillos (C), Chocola
     gira 360 con spr_vanilla_chocola_support_power (el giro lo hace
     la animacion del sprite, como el Cheese de Cream).
@@ -205,7 +214,8 @@ el kit de la v2 sobre la v1.2 que ya tenias.
   VANILLA_FLOAT_SPEED 14, VANILLA_FLOAT_RAMP_DELAY/ACC (rampa),
   VANILLA_PACIENCIA_TIME (5 s), VANILLA_CHOCOLA_PACIENCIA_STUN (5 s),
   VANILLA_MORIBUNDA_TIME (6 s) / _HEAL (30),
-  VANILLA_CHOCOLA_BLOCK_CHANCE (50) / _ATTACK_CHANCE (33) / _CD (4.5 s),
+  VANILLA_CHOCOLA_BLOCK_CHANCE (65, v2.1) / _ATTACK_CHANCE (33) /
+  _CD (2.5 s, v2.1),
   VANILLA_CHOCOLA_HEAL_CHANCE (15) / _HEAL_HP (30),
   VANILLA_FORTALEZA_*_PCT (15/30) / _MIN (3),
   VANILLA_DEDEMON_COST (15) / _RANGE (64),
@@ -227,8 +237,9 @@ el kit de la v2 sobre la v1.2 que ya tenias.
  · Chocola existe en TODOS los clientes (cada uno la simula pegada al
    puppet de Vanilla, como las mascotas); el stun del exe lo aplica
    su propio cliente al recibir la senal (mismo modelo de confianza
-   que todo el combate del juego). La mini-embestida del 33% solo se
-   ve en el cliente que la rolla; el stun y el sonido si los ven todos.
+   que todo el combate del juego). DESDE LA v2.1 la mini-embestida del
+   33% tambien viaja por red (senal snd_chocola_dive, indice 114) y la
+   ven todos los clientes, la pantalla del EXE incluida.
  · La paciencia/moribunda NO avisan al server (patron burbuja de Amy
    Canon / nervios de Sonic): para el server Vanilla nunca cayo.
  · El sprite de moribunda reusa spr_vanilla_paciencia_agotada.
@@ -248,7 +259,12 @@ el kit de la v2 sobre la v1.2 que ya tenias.
     el reloj se congela hasta el golpe. Al final: agotada 1 s ->
     100 hp + semi-transparente 2.5 s.
  3. Acercate al exe con Chocola en casa -> a veces te bloquea el
-    golpe (50%) y a veces ella lo stunea 1.5 s (33%).
+    golpe (65%, v2.1) y a veces ella lo stunea 1.5 s (33%).
+    v2.1: MIRA LA VENTANA DEL EXE -> cuando sale la embestida del 33%,
+    ahi tambien se ve a Chocola volar hacia el (antes el stun le
+    llegaba de la nada). Se oye su "picado" (sonido nuevo) en ambas
+    ventanas. Si la embestida sale de la custodia de Cream (paso 4),
+    el exe tambien la ve venir.
  4. Con un aliado Cream: V -> Chocola viaja a ella (velocidad normal);
     al llegar puede curarla (15%) y le bloquea 1 golpe. V otra vez ->
     vuelve rapido. Lejos una de otra: flecha amarilla en ambas.
@@ -257,3 +273,7 @@ el kit de la v2 sobre la v1.2 que ya tenias.
  6. 2da caida de Vanilla -> moribunda 6 s -> se levanta con 30 hp.
  7. Anillos: invoca con C y recoge -> +4 por anillo; con Cream en
     partida, los de Cream dan +2.
+ 8. Balance v2.1 rapido: deja que el exe te pegue 6-8 veces seguidas
+    con Chocola en casa -> ahora bloquea mas a menudo (65%) y el
+    bloqueo vuelve a estar listo antes (2.5 s): deberias ver 2
+    bloqueos en un rateo donde antes solo veias 1.

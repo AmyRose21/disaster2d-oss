@@ -752,6 +752,7 @@
     {"id":{"name":"snd_chaos_taunt","path":"sounds/snd_chaos_taunt/snd_chaos_taunt.yy",},},
     {"id":{"name":"snd_chaos_taunt2","path":"sounds/snd_chaos_taunt2/snd_chaos_taunt2.yy",},},
     {"id":{"name":"snd_chaos_vineboom","path":"sounds/snd_chaos_vineboom/snd_chaos_vineboom.yy",},},
+    {"id":{"name":"snd_chocola_dive","path":"sounds/snd_chocola_dive/snd_chocola_dive.yy",},},
     {"id":{"name":"snd_clock","path":"sounds/snd_clock/snd_clock.yy",},},
     {"id":{"name":"snd_creamdash","path":"sounds/snd_creamdash/snd_creamdash.yy",},},
     {"id":{"name":"snd_creamring","path":"sounds/snd_creamring/snd_creamring.yy",},},

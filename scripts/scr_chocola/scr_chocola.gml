@@ -3,7 +3,7 @@
 //  Toda la logica nueva de Vanilla the Rabbit en un solo script:
 //   - CHOCOLA: su chao. Aparece en la PACIENCIA (1ra caida) stuneando
 //     al exe 5 s y desde ahi se queda a su lado en la posicion de las
-//     mascotas de la tienda; la defiende (50% bloqueo con i-frames +
+//     mascotas de la tienda; la defiende (65% bloqueo con i-frames +
 //     33% ataque cercano) y con la tecla V puede ir a ayudar a CREAM.
 //   - FLOAT RUN: 3ra fase de corrida (el tope sube de 11 a 14) con
 //     pose propia (spr_vanilla_float_run) e imagenes residuales.
@@ -27,8 +27,8 @@
 
 // --- float run (3ra fase de corrida) ---
 #macro VANILLA_FLOAT_SPEED 14              // tope de la 3ra fase
-#macro VANILLA_FLOAT_RAMP_DELAY (60 * 0.5) // frames a tope (11) antes de acelerar
-#macro VANILLA_FLOAT_RAMP_ACC 0.08         // cuanto sube el tope por frame
+#macro VANILLA_FLOAT_RAMP_DELAY (60 * 1.5) // frames a tope (11) antes de acelerar
+#macro VANILLA_FLOAT_RAMP_ACC 0.03         // cuanto sube el tope por frame
 #macro VANILLA_FLOAT_GHOST_EVERY 5         // una imagen residual cada 5 frames
 #macro VANILLA_FLOAT_GHOST_FADE 0.07       // fadeo de cada imagen residual
 
@@ -48,9 +48,9 @@
 #macro VANILLA_MORIBUNDA_INVULN (60 * 3)
 
 // --- chocola: defensa y ataques ---
-#macro VANILLA_CHOCOLA_BLOCK_CHANCE 50          // % de bloquear el dano del exe
+#macro VANILLA_CHOCOLA_BLOCK_CHANCE 65          // % de bloquear el dano del exe
 #macro VANILLA_CHOCOLA_BLOCK_INVULN (60 * 2.5)  // i-frames tras bloquear (semi-transparente)
-#macro VANILLA_CHOCOLA_CD (60 * 4.5)            // enfriamiento compartido bloqueo/ataque
+#macro VANILLA_CHOCOLA_CD (60 * 2.5)            // enfriamiento compartido bloqueo/ataque
 #macro VANILLA_CHOCOLA_ATTACK_CHANCE 33         // % de atacar al exe cercano
 #macro VANILLA_CHOCOLA_ATTACK_RANGE 90          // px: "el exe se acerca mucho"
 #macro VANILLA_CHOCOLA_ATTACK_STUN (60 * 1.5)   // stun del ataque cercano
@@ -84,6 +84,7 @@
 #macro CHOCOLA_NET_RECALL 2
 #macro CHOCOLA_NET_DUTY_DONE 3
 #macro CHOCOLA_NET_SUPPORT 4
+#macro CHOCOLA_NET_HUNT_SMALL 5 // v2.1: mini-embestida, la ven todos los clientes
 
 // =====================================================================
 //  HELPERS DE BUSQUEDA
@@ -162,31 +163,6 @@ function scr_chocola_find_cream()
     }
 
     return noone;
-}
-
-// ¿El home se esta moviendo o esta en el aire? SOLO para elegir el
-// sprite de Chocola en FOLLOW (move vs Idle): NADA de logica de juego
-// depende de esto. La Vanilla LOCAL expone isGrounded (la inicializa
-// su Create y la actualiza su colision), pero su PUPPET no la tiene
-// ni la tendra jamas: esa variable NO viaja por red — las unicas
-// escrituras del juego son sobre global.player (obj_player_puppet
-// Step_0:161/184/305/316/369 escriben sobre el jugador LOCAL
-// golpeado, no sobre el puppet). En el puppet se mide con el
-// desplazamiento real entre frames, el mismo patron canonico que la
-// estela del powerboost de Sonic en su propio Step. rev7: leer
-// isGrounded de frente era el crash "Variable
-// obj_player_puppet.isGrounded not set" en FOLLOW (linea 46).
-function scr_chocola_home_moving(inst)
-{
-    if(inst == noone)
-        return false;
-
-    if(variable_instance_exists(inst, "isGrounded"))
-        return abs(inst.xspd) > 0.5 || !inst.isGrounded;
-
-    // puppet: sin isGrounded por red; la posicion si viaja, asi que el
-    // movimiento real entre frames es la unica senal fiable
-    return abs(inst.x - inst.xprevious) > 0.5 || abs(inst.y - inst.yprevious) > 0.5;
 }
 
 // ¿Hay una Vanilla en la partida? (pasivas que protegen a Cream)
@@ -346,13 +322,9 @@ function scr_vanilla_v2_step()
     // 14; al alcanzarlo Vanilla toma la pose float_run y deja imagenes
     // residuales (aqui solo el tope y el flag; la pose la elige Step_2,
     // la estela local Draw_0 y la remota el bitflag POWERBOOST).
-    // rev6: el contador se mide con gspd (velocidad SOBRE el suelo) para
-    // que las cuestas no lo reinicien (xspd = gspd*cos(angle) cae solo
-    // por la pendiente) y el dash ya NO corta la cuenta (el LEEME solo
-    // lista soltar/frenar/saltar/zonas lentas como reinicios).
     floatRunCap = CREAM_MAXSPEED;
 
-    if(isGrounded && !isSlow && global.playerControls && !isFlying && ringsSpawn <= 0 && abs(gspd) >= CREAM_MAXSPEED - 0.25)
+    if(isGrounded && !isSlow && global.playerControls && !isFlying && ringsSpawn <= 0 && dashing <= 0 && abs(xspd) >= CREAM_MAXSPEED - 0.25)
         runHold++;
     else
         runHold = 0;
@@ -360,7 +332,7 @@ function scr_vanilla_v2_step()
     if(runHold > VANILLA_FLOAT_RAMP_DELAY)
         floatRunCap = min(VANILLA_FLOAT_SPEED, CREAM_MAXSPEED + (runHold - VANILLA_FLOAT_RAMP_DELAY) * VANILLA_FLOAT_RAMP_ACC);
 
-    isFloatRunning = isGrounded && abs(gspd) >= VANILLA_FLOAT_SPEED - 0.25;
+    isFloatRunning = isGrounded && abs(xspd) >= VANILLA_FLOAT_SPEED - 0.25;
 
     // ---------------- TECLA V: CHOCOLA <-> CREAM ----------------
     if(global.playerControls && keyboard_check_pressed(global.KeyV) && pacienciaState == 0 && moribundaState == 0)
@@ -400,7 +372,7 @@ function scr_vanilla_v2_step()
     // ---------------- ATAQUE CERCANO DE CHOCOLA (33%) ----------------
     // El exe se acerca demasiado: probabilidad de stun de 1.5 s. Chocola
     // NO ataca si el exe tiene i-frames (isHurt en su puppet). Mismo
-    // enfriamiento de 4.5 s que el bloqueo.
+    // enfriamiento de 2.5 s que el bloqueo.
     if(chocolaCd <= 0 && instance_exists(obj_chocola))
     {
         chocolaProxTimer--;
@@ -416,8 +388,12 @@ function scr_vanilla_v2_step()
             {
                 if(random(100) < VANILLA_CHOCOLA_ATTACK_CHANCE)
                 {
-                    // mini-embestida local: al llegar manda la senal de
-                    // stun corto (snd_vasebreak) al nid del exe
+                    // mini-embestida: al llegar manda la senal de stun
+                    // corto (snd_vasebreak) al nid del exe. v2.1: se
+                    // anuncia por red (snd_chocola_dive broadcast) para
+                    // que TODOS los clientes — el del EXE incluido — la
+                    // vean volar hacia el exe (antes solo la veia este
+                    // cliente y al exe el stun le llegaba de la nada)
                     chocolaCd = VANILLA_CHOCOLA_CD;
                     _choc.mode = CHOCOLA_HUNT;
                     _choc.huntSmall = true;
@@ -425,6 +401,9 @@ function scr_vanilla_v2_step()
                     _choc.authority = true;
                     _choc.huntTimer = 0;
                     _choc.targetInst = _exe2;
+
+                    audio_play_sound(snd_chocola_dive, 0, false);
+                    net_sound_emit(snd_chocola_dive);
                 }
             }
         }
@@ -489,14 +468,25 @@ function scr_chocola_net_event(kind, nid)
 {
     var _choc = scr_chocola_get();
 
-    // la unica senal que puede CREAR a Chocola en este cliente es la
-    // de caza de la paciencia; las demas la ignoran si no existe
+    // las unicas senales que pueden CREAR a Chocola en este cliente
+    // son las de caza (la grande de la paciencia y la mini-embestida);
+    // las demas la ignoran si no existe
     if(_choc == noone)
     {
-        if(kind != CHOCOLA_NET_HUNT)
+        if(kind != CHOCOLA_NET_HUNT && kind != CHOCOLA_NET_HUNT_SMALL)
             return;
 
         _choc = instance_create_depth(0, 0, 0, obj_chocola);
+
+        // nace junto a su casa (por si este cliente aun no la tenia: la
+        // mini-embestida NO reposiciona, arranca desde donde este)
+        var _home0 = scr_chocola_find_home();
+
+        if(_home0 != noone)
+        {
+            _choc.x = _home0.x - _home0.image_xscale * 32;
+            _choc.y = _home0.y - 10;
+        }
     }
 
     switch(kind)
@@ -526,6 +516,27 @@ function scr_chocola_net_event(kind, nid)
             }
 
             if(_exe == noone)
+                _choc.mode = CHOCOLA_RETURN;
+
+            break;
+        }
+
+        case CHOCOLA_NET_HUNT_SMALL:
+        {
+            // v2.1: mini-embestida (ataque cercano 33% o custodia de
+            // Cream). Los demas clientes ven a Chocola salir volando
+            // hacia el exe DESDE DONDE ESTA (junto a Vanilla o Cream):
+            // sin esta senal el exe recibia el stun sin verla venir.
+            var _exeS = scr_chocola_find_exe();
+
+            _choc.mode = CHOCOLA_HUNT;
+            _choc.huntSmall = true;
+            _choc.fromGuard = false;
+            _choc.authority = false;
+            _choc.huntTimer = 0;
+            _choc.targetInst = _exeS;
+
+            if(_exeS == noone)
                 _choc.mode = CHOCOLA_RETURN;
 
             break;

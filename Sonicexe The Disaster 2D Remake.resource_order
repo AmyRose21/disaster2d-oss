@@ -59,6 +59,7 @@
     {"name":"hitspark_snd_LOUD","order":30,"path":"sounds/hitspark_snd_LOUD/hitspark_snd_LOUD.yy",},
     {"name":"Perfect_Parry","order":1,"path":"sounds/Perfect_Parry/Perfect_Parry.yy",},
     {"name":"snd_parry","order":1,"path":"sounds/snd_parry/snd_parry.yy",},
+    {"name":"snd_chocola_dive","order":1,"path":"sounds/snd_chocola_dive/snd_chocola_dive.yy",},
     {"name":"amy_Bubble","order":20,"path":"sprites/amy_Bubble/amy_Bubble.yy",},
     {"name":"hitspark_area_sprite","order":2,"path":"sprites/hitspark_area_sprite/hitspark_area_sprite.yy",},
     {"name":"hitspark_light","order":1,"path":"sprites/hitspark_light/hitspark_light.yy",},

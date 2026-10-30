@@ -135,7 +135,15 @@ global.net_snds =
         snd_vasebreak,   // 110: senal al exe: stun de 1.5 s (ataque cercano)
         snd_ready,       // 111: Chocola va hacia Cream (tecla V)
         snd_npteleport,  // 112: Chocola vuelve con Vanilla (V otra vez)
-        snd_achivement   // 113: custodia cumplida en Cream: vuelve a casa
+        snd_achivement,  // 113: custodia cumplida en Cream: vuelve a casa
+
+        // --- VANILLA V2.1 (CHOCOLA): mini-embestida (ataque cercano del
+        // 33% y ataque de la custodia). Broadcast desde el cliente que
+        // la rolla: el resto (el del EXE incluido) ponen a su Chocola a
+        // volar hacia el exe. Asset NUEVO del mod (no existia antes y
+        // nadie mas lo emite por red). Al FINAL a proposito: un cliente
+        // viejo que reciba el indice 114 simplemente lo ignora. ---
+        snd_chocola_dive // 114: Chocola se lanza sobre el exe (mini-embestida)
 ];
 global.tmp_sndid = 0;
 

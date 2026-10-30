@@ -268,10 +268,10 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         if(exeSource && damage > 0 && scr_parry_negate_hit())
                 return;
         
-        // CHOCOLA (Vanilla v2): 50% de BLOQUEAR el dano del lado EXE.
+        // CHOCOLA (Vanilla v2): 65% de BLOQUEAR el dano del lado EXE.
         // Si sale, Vanilla no pierde vida y queda semi-transparente con
         // i-frames de 2.5 s (hurttime, como el escudo roto de Sally).
-        // Enfriamiento compartido de 4.5 s con su ataque cercano.
+        // Enfriamiento compartido de 2.5 s con su ataque cercano.
         if(global.character == CHARACTER_VANILLA && exeSource && damage > 0 && global.player.chocolaCd <= 0 && instance_exists(obj_chocola))
         {
                 var _vchoc = scr_chocola_get();

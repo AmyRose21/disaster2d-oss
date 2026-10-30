@@ -1858,6 +1858,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 scr_chocola_net_event(CHOCOLA_NET_DUTY_DONE, master_id);
                                         else if(global.net_snds[sid] == snd_creamring && character == CHARACTER_VANILLA)
                                                 scr_chocola_net_event(CHOCOLA_NET_SUPPORT, master_id);
+                                        else if(global.net_snds[sid] == snd_chocola_dive)
+                                                scr_chocola_net_event(CHOCOLA_NET_HUNT_SMALL, master_id);
                                         
                                         scr_audio_play_3d(emitter, global.net_snds[sid], false, 0);
                                         break;

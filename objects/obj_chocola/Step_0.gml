@@ -43,7 +43,7 @@ switch(mode)
                 }
                 else
                 {
-                        if(scr_chocola_home_moving(homeInst))
+                        if(abs(homeInst.xspd) > 0.5 || !homeInst.isGrounded)
                                 sprite_index = spr_vanilla_chocola_move;
                         else
                                 sprite_index = spr_vanilla_chocola_Idle;
@@ -79,18 +79,6 @@ switch(mode)
 
                 if(distance_to_object(targetInst) < 20)
                 {
-                        // IMPACTO audible en TODOS los clientes: cada
-                        // simulacion local ve su propio golpe en el mismo
-                        // frame, asi que suena AQUI y sin reenvio por red (un
-                        // broadcast lo duplicaria: cada cliente lo oiria N
-                        // veces). Es el mismo feedback canonico del juego al
-                        // stunear al exe (snd_exe_stun local, como en
-                        // obj_player_puppet); el grito de la variante del exe
-                        // llega justo despues por la senal (scr_exe_stunsound
-                        // en el cliente del exe). rev7: antes solo la
-                        // autoridad emitia la senal MUDA y nadie oia el golpe.
-                        audio_play_sound(snd_exe_stun, 0, false);
-
                         // GOLPE: la autoridad manda la senal de stun al nid
                         // del exe (5 s en la caza grande, 1.5 s en la mini)
                         if(authority)
@@ -224,6 +212,12 @@ switch(mode)
                                         authority = true;
                                         huntTimer = 0;
                                         targetInst = _gexe;
+
+                                        // v2.1: anuncia la embestida por
+                                        // red (snd_chocola_dive): el exe
+                                        // y los demas la ven venir
+                                        audio_play_sound(snd_chocola_dive, 0, false);
+                                        net_sound_emit(snd_chocola_dive);
                                 }
                                 else
                                 {
