@@ -2,6 +2,45 @@
  VANILLA V2 — CHOCOLA, PACIENCIA, FLOAT RUN Y LAS PASIVAS DE MADRE
 ════════════════════════════════════════════════════════════════════
 
+ REVISION 2 (rev2): la primera version del zip tenia 3 erratas de
+ sintaxis que impedian compilar en GameMaker. Ya estan corregidas:
+   * net_sounds.gml: faltaba una coma despues de snd_parry (los 6
+     sonidos nuevos de Chocola quedaban pegados al elemento final
+     del array). Ese era el error "got 'snd_mermer' expected ','
+     or ']'".
+   * obj_vanilla/Draw_76.gml: dos 'break;' escritos con DOS PUNTOS
+     ('break:') en los casos RUN/JUMP y VANILLA_FLOAT_RUN. Ese era
+     el error "unexpected symbol ':' in expression".
+ NADA mas cambia: misma logica, mismos numeros, mismo server. Se
+ audito automaticamente el proyecto entero (875 .gml) buscando mas
+ errores de esas familias (comas faltantes, 'break:' con dos
+ puntos, ternarios encadenados, llaves desbalanceadas) y salio
+ limpio: estos 3 eran los unicos.
+
+ OJO, ENCONTRAMOS UN 2do PROBLEMA (el mas grave): al extraer la v2
+ en tu PC NO se sobrescribieron "Sonicexe The Disaster 2D Remake.yyp"
+ ni "Sonicexe The Disaster 2D Remake.resource_order" (lo vi en tu
+ ultimo push a GitHub: les faltan las 4 entradas nuevas). Sin esas
+ entradas GameMaker NO conoce obj_chocola, obj_vanilla_indicators,
+ obj_family_indicator ni scr_chocola: aunque se arreglaran los
+ typos, la compilacion fallaria igual con "scr_chocola no existe".
+ Este zip ya trae esos 2 archivos COMPLETOS.
+
+ INSTALACION DE LA REV2 (importante, leer):
+ 1) Con GameMaker CERRADO, extraer el zip ENCIMA de la raiz del
+    proyecto y aceptar sobrescribir TODO. En particular comprueba
+    que se sobrescriban "Sonicexe The Disaster 2D Remake.yyp" y
+    "Sonicexe The Disaster 2D Remake.resource_order" (si tu
+    descompresor pregunta, di que SI a todo; si algo falla, copia
+    esos 2 archivos a mano desde el zip a la raiz).
+ 2) Reabrir GameMaker y compilar F5. En el arbol de recursos deben
+    aparecer obj_chocola y scr_chocola (si no aparecen, el .yyp no
+    se sobrescribio).
+ 3) Server: NO hace falta recompilar si ya compilaste el de la v2
+    (el server no cambia en la rev2). Si aun no lo compilaste:
+    compilar_server.bat (los anillos x4/x2 y la des-demonizacion lo
+    necesita).
+
 Vanilla the Rabbit pasa a ser una de las 3 mas fuertes del mod (contigo
 y con Sally; Sonic pertenece a otra rama). Este paquete le anade TODO
 el kit de la v2 sobre la v1.2 que ya tenias.

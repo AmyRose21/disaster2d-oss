@@ -122,7 +122,7 @@ global.net_snds =
         // --- Sonic parry: "ting" metalico del momento exacto del parry.
         // Tambien AL FINAL por la misma razon. Lo emite scr_parry_negate_hit
         // (net_sound_emit_at para que suene posicionado en el Sonic). ---
-        snd_parry   // 107
+        snd_parry,  // 107
         
         // --- VANILLA V2 (CHOCOLA): senales de la mascota de Vanilla.
         // AL FINAL a proposito (mismo patron que DSTAROT/snd_parry): un

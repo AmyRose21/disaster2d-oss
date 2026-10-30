@@ -585,6 +585,18 @@ y las pistas nuevas de 20-28s se cortaban).
    anticheat:false (los bans por UDID siguen funcionando).
 9. angle_difference/point_direction/degtorad: built-ins disponibles. En
    pantalla Y crece hacia abajo => los draws usan _y - sin(a)*d.
+10. ERRATAS QUE ROMPEN LA COMPILACION (vanilla-v2-fix1): el validador
+    comprobaba logica pero NO sintaxis pura. Dos clases se colaron:
+    (a) insertar elementos despues del ULTIMO de un array (snd_parry
+    era el final de global.net_snds sin coma -> pegar snd_mermer:
+    "expected ',' or ']'"); (b) 'break:' con DOS PUNTOS en un switch
+    ("unexpected symbol ':'"). Ambas vivian en las CADENAS del
+    aplicador (apply_vanilla_v2.py). REGLA: todo parche que empalma
+    con el final de una lista debe anadir la coma al elemento previo;
+    y tras aplicar, correr scripts/gml_syntax_audit.py (0 sospechosos
+    = compile limpio de esas familias; calibrado: 875 .gml del repo,
+    0 falsos positivos). Ya integrado como seccion 13 del validador
+    de vanilla v2 (check 'sintaxis <archivo>' por cada GML tocado).
 
 ## 9. PENDIENTES / esperando al usuario
 - relay-v1.3: pendiente PRUEBA REAL CON JUGADOR EXTERNO por el relay.
@@ -619,6 +631,16 @@ y las pistas nuevas de 20-28s se cortaban).
   en worklog.md. Convencion del proyecto: scripts/apply_<task>.py =
   aplicador de ediciones quirurgicas (match exacto == 1 vez, TABs
   literales); scripts/<task>_validate.py = validador post-edicion.
+- (30/10, vanilla-v2) scripts/ EXISTE de nuevo en este sandbox con:
+  apply_vanilla_v2.py (+v2_content.py), vanilla_v2_validate.py (195
+  checks, seccion 13 = sintaxis), apply_flybuff_v1_*.py,
+  flybuff/carry validadores, y gml_syntax_audit.py (AUDITOR
+  SINTACTICO GML reutilizable: `python3 scripts/gml_syntax_audit.py`
+  audita los GML de la ultima task; `--all` audita los 875 del repo.
+  Caza: comas faltantes id+id/]+id dentro de expresiones, 'break:'/
+  'continue:', ternarios encadenados a profundidad 0 (excluye
+  accessor [?), desbalance de llaves. Entiende $hex, #hex, strings
+  multilinea y el separador de sentencia por salto de linea).
 - Aplicadores de parches (historico): apply_bugfix.py, apply_arrowfix.py.
 - Validadores (historico): bugfix_v1_validate.py, flecha_roja_v1_validate.py,
   hammer_v1_validate.py, td2dr_validate.py.
@@ -628,6 +650,21 @@ y las pistas nuevas de 20-28s se cortaban).
 - Misc (historico): check_arrow_colors.py (colores de sprites de flecha).
 
 ## 11. CHANGELOG DEL CACHE
+- 2026-10-30 (vanilla-v2-fix1/rev2): el usuario compilo la v2 y GM
+  fallo: (1) net_sounds.gml 'snd_parry' sin coma (los 6 sonidos de
+  Chocola se insertaron tras el ULTIMO elemento del array), error
+  "got 'snd_mermer' expected ',' or ']'"; (2) obj_vanilla/Draw_76
+  dos 'break:' con dos puntos (RUN/JUMP y VANILLA_FLOAT_RUN), error
+  "unexpected symbol ':'". Corregidos en repo + en las cadenas del
+  aplicador. NUEVA HERRAMIENTA scripts/gml_syntax_audit.py
+  (lecciones seccion 8.10): 21 GML de v2 y 875 del repo = 0 errores/
+  0 falsos positivos -> los 3 typos eran los unicos. Validador
+  195/195 (seccion 13 nueva de sintaxis). HALLAZGO 2: el .yyp y
+  .resource_order del usuario (a10d81d2) NO tenian las 4 entradas
+  nuevas (no se sobrescribieron al extraer el zip) -> restauradas
+  con rebase encima de su arbol. Entregable:
+  download/vanilla_v2_rev2.zip (misma logica y server que v2). EL
+  PUSH A GITHUB LO HACE EL USUARIO (sandbox sin credenciales).
 - 2026-10-30 (vanilla-v2): KIT COMPLETO de Vanilla top-3 (seccion
   7.4): Chocola la guardiana (paciencia 5 s + stun 5 s al exe con
   reloj congelado, bloqueo 50%, ataque 33%, V hacia Cream con cura
@@ -759,3 +796,35 @@ y las pistas nuevas de 20-28s se cortaban).
   obj_lobby_icon, obj_menu_waiting usan TABs (verificar repr antes
   de parchear).
 - Entregable: download/vanilla_v1_rev2.zip (115/115 checks).
+
+## 2026-10-30 vanilla-v2-fix1 (erratas de sintaxis que rompen compilacion)
+- El validador de vanilla-v2 daba 174/174 pero GM no compilaba: los
+  checks miraban LOGICA, no sintaxis. Dos erratas en las cadenas del
+  APLICADOR (apply_vanilla_v2.py) y por tanto clonadas al repo:
+  1. net_sounds.gml: NS_NEW empalmaba los 6 sonidos de Chocola tras
+     'snd_parry   // 107', que era el ULTIMO elemento de
+     global.net_snds SIN coma -> "got 'snd_mermer' expected ',' or
+     ']'". Fix: 'snd_parry,'. LECCION: al insertar al final de una
+     lista, anadir la coma al que era ultimo.
+  2. obj_vanilla/Draw_76.gml: VD76_RUN_NEW tenia 2 'break:' con dos
+     puntos (casos RUN/JUMP y VANILLA_FLOAT_RUN) -> "unexpected
+     symbol ':' in expression". GM reporta la linea ANTERIOR a la del
+     typo (senalaba la 32 cuando el ':' estaba en la 33).
+- Creado scripts/gml_syntax_audit.py + seccion 13 del validador (ver
+  seccion 8.10 y 10). Flujo nuevo OBLIGATORIO tras aplicar cualquier
+  parche: validador de la task + gml_syntax_audit.py (o --all).
+- 2a LECCION (yyp fantasma): el push del usuario (a10d81d2) demostro
+  que al extraer el zip en su PC NO se sobrescribieron el .yyp ni el
+  .resource_order -> los 4 recursos nuevos (obj_chocola,
+  obj_vanilla_indicators, obj_family_indicator, scr_chocola) NO
+  existian para GM. REGLA: todo zip que cree recursos DEBE incluir
+  .yyp + .resource_order y el LEEME debe decir EXPLICITAMENTE que se
+  verifique su sobrescritura (y como comprobarlo: obj_chocola debe
+  aparecer en el arbol de recursos). Sin eso, arreglar los typos
+  solo cambia el error por "scr_chocola no existe".
+- 3a LECCION (flujo git real): este sandbox NO tiene credenciales de
+  GitHub (push falla). El flujo real es: yo commit local + zip ->
+  usuario extrae + compila + pushea. Ante un push nuevo del usuario
+  con contenido de un zip mio: rebase de mis commits (git rebase
+  --onto origin/main <mi-commit-viejo> main) y diff contra mi
+  version para detectar archivos que el NO sobrescribio.

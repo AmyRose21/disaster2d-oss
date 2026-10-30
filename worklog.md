@@ -1713,3 +1713,66 @@ Stage Summary:
   Entregable: download/vanilla_v2.zip. LEEME_VANILLA_V2.txt con
   instalacion, ajustes (macros en scr_chocola.gml), decisiones de
   diseno y guion de prueba de 7 pasos.
+
+---
+Task ID: vanilla-v2-fix1 (rev2)
+Agent: Super Z (main agent)
+Task: El usuario compilo la v2 y GameMaker fallo con errores de
+sintaxis: net_sounds.gml "got 'snd_mermer' expected ',' or ']'" y
+obj_vanilla/Draw_76.gml "unexpected symbol ':' in expression".
+
+Work Log:
+- Pull primero (regla del usuario): ya al dia, HEAD 28cbf395.
+- Causa 1 (net_sounds): el parche NS_NEW insertaba los 6 sonidos de
+  Chocola (108-113) DESPUES de 'snd_parry   // 107', que era el
+  ULTIMO elemento del array global.net_snds y no llevaba coma.
+  Corregido a 'snd_parry,' en el repo y en apply_vanilla_v2.py
+  (NS_ANCHOR queda igual: describe la base sin parchear).
+- Causa 2 (Draw_76): VD76_RUN_NEW escribia 'break:' (dos puntos) en
+  vez de 'break;' en 2 sitios (caso RUN/JUMP y caso VANILLA_FLOAT_RUN;
+  GM senala la linea anterior al typo). Corregidos los 2 'break;'
+  en el repo y las 2 cadenas del aplicador.
+- Verificado que los 6 sonidos (snd_mermer, snd_nono, snd_vasebreak,
+  snd_ready, snd_npteleport, snd_achivement) existen como assets.
+- Creado scripts/gml_syntax_audit.py: auditor sintactico GML que caza
+  esas familias (id+id o ]+id pegados dentro de expresiones = coma
+  faltante; 'break:'/'continue:'; ternarios '?' encadenados a
+  profundidad 0 excluyendo el accessor [? de ds_map; llaves/parens/
+  corchetes desbalanceados). Entiende $hex/#hex, strings multilinea,
+  comentarios y el separador de sentencia por salto de linea (legal
+  fuera de expresiones). Calibracion: los 875 .gml del repo entero
+  dan 0 sospechosos (0 falsos positivos sobre codigo que compila);
+  los 21 GML tocados por v2: LIMPIOS -> los 3 typos corregidos eran
+  los UNICOS errores de esas familias.
+- Validador: nueva seccion 13 "SINTAXIS GML" (21 checks, uno por
+  archivo) -> 195/195. Un error de compilacion de estas clases ya no
+  puede volver a pasar los checks.
+- Empaquetado download/vanilla_v2_rev2.zip (mismos 35 archivos que
+  la v2, con las 3 correcciones; server IDENTICO, no hace falta
+  recompilarlo si ya se compilo la v2).
+- HALLAZGO CRITICO al integrar con el push del usuario (a10d81d2
+  "Cambios importantes a vanilla" = el mismo zip v2 que el aplico):
+  su .yyp y .resource_order NO tienen las 4 entradas nuevas
+  (obj_chocola, obj_vanilla_indicators, obj_family_indicator,
+  scr_chocola) -> esos 2 archivos no se sobrescribieron al extraer
+  el zip en su PC. Aunque se arreglaran los typos, el compile
+  fallaria con "scr_chocola/obj_chocola no existen". Integrado con
+  rebase (fix commit encima de su arbol, conservando su tweak de
+  spr_gui_amyparry_canon.yy) + restauradas las 4 entradas.
+- LEEME rev2 reescrito con instalacion explicita: verificar que el
+  .yyp/.resource_order se sobrescriban y que obj_chocola/scr_chocola
+  aparezcan en el arbol de recursos.
+- PUSH IMPOSIBLE desde este sandbox (sin credenciales GitHub):
+  como siempre, el flujo real es usuario-extrae-zip-y-pushea. Los
+  commits locales quedan listos por si se anade un token despues.
+
+Stage Summary:
+- 3 erratas de sintaxis corregidas (1 coma + 2 'break;') + 4
+  entradas .yyp/.resource_order restauradas (no se habian
+  aplicado en la copia del usuario). CERO cambios de
+  logica/numeros/server respecto a la v2. Nuevo flujo obligatorio:
+  validador + gml_syntax_audit.py tras cada parche. Entregable:
+  download/vanilla_v2_rev2.zip. Instalar: extraer ENCIMA de la raiz
+  con GM cerrado COMPROBANDO que el .yyp y .resource_order se
+  sobrescriben, recompilar F5 (server solo si no se compilo aun).
+  El usuario debe pushear el resultado a GitHub (yo no puedo).
