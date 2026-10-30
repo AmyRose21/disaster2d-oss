@@ -41,6 +41,28 @@ flyTimer = 0;
 flyTimeout = 0;
 dashTimer = 0;
 
+// V2 (defensivo, fix v2.1.2): variables del kit de Vanilla (paciencia,
+// moribunda, chocola, float run). Cream NO las usa, pero es el clone de
+// Vanilla y comparte sus scripts genericos (scr_move_basic,
+// scr_player_hurt...): si alguna lectura sin gate se cuela en una rama
+// comun (le paso con el salto: "pacienciaState not set"), Cream crasheaba.
+// Con estos defaults toda lectura en Cream es valida y da 0/false: mismo
+// comportamiento que siempre, pero a prueba de ese patron de crash.
+pacienciaState = 0;
+pacienciaTimer = 0;
+pacienciaWaitChocola = false;
+pacienciaChocolaOut = false;
+pacienciaUsed = false;
+moribundaState = 0;
+moribundaTimer = 0;
+chocolaCd = 0;
+chocolaProxTimer = 0;
+dedemonCd = 0;
+runHold = 0;
+floatRunCap = CREAM_MAXSPEED;
+isFloatRunning = false;
+floatGhostTimer = 0;
+
 //General
 hp = 100;
 isGrounded = false;

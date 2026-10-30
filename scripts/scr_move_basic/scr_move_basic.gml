@@ -649,7 +649,18 @@ function scr_move_basic()
                         if(global.character == CHARACTER_SONIC && (isAttacking || isSpinCharging))
                                 return;
                         
-                        if((global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA) && (ringsSpawn > 0 || pacienciaState > 0 || moribundaState > 0))
+                        // CREAM/VANILLA (original del juego): no saltan
+                        // mientras invocan anillos.
+                        if((global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA) && ringsSpawn > 0)
+                                return;
+
+                        // VANILLA V2: en paciencia/moribunda no salta (quieta
+                        // e inmune). OJO: pacienciaState/moribundaState SOLO
+                        // existen en obj_vanilla — esta lectura debe ir en su
+                        // propia linea gated, NUNCA mezclada con la rama de
+                        // Cream de arriba (obj_cream no las define y leerlas
+                        // ahi crashea: bug v2.1.2, "Cream salto y tiro error").
+                        if(global.character == CHARACTER_VANILLA && (pacienciaState > 0 || moribundaState > 0))
                                 return;
                         
                         audio_play_sound(snd_jump, 0, false);
