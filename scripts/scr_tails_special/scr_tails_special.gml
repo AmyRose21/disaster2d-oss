@@ -25,7 +25,8 @@ function scr_tails_special()
 			audio_play_sound(snd_tails_fly, 0, false);
 			net_sound_emit(snd_tails_fly);
 			
-			flyTimer = TAILS_FLY_TIME;
+			flyTimer = TAILS_FLY_SOLO;
+			flyElapsed = 0;
 			isFlying = true;
 		}
 		
@@ -49,6 +50,24 @@ function scr_tails_special()
 		if(flyGrv < 2)
 		{
 			flyGrv += 0.035;
+		}
+		
+		// CARRY (v1.2): reloj del vuelo desde que despega (flyElapsed).
+		// SOLO = TAILS_FLY_SOLO (2.67 seg, el de siempre); con un
+		// PASAJERO colgado = TAILS_FLY_CARRY (5.5 seg). Si el pasajero
+		// se suelta, el tope vuelve al de solo (su tiempo normal).
+		// El guard flyTimer > 0 respeta los resets externos (p.ej. la
+		// demonizacion pone flyTimer = -420: el vuelo muere igual que
+		// siempre en vez de resucitar).
+		if(!isGrounded && flyTimer > 0)
+		{
+			flyElapsed++;
+			var _flyCap = TAILS_FLY_SOLO;
+			
+			if(scr_carry_find_hanger(id, CARRY_CHECK_DIST) != noone)
+				_flyCap = TAILS_FLY_CARRY;
+			
+			flyTimer = max(0, _flyCap - flyElapsed);
 		}
 		
 		if(flyTimer <= 0)

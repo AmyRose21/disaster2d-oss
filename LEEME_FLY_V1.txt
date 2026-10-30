@@ -1,70 +1,67 @@
 =====================================================================
- MEJORA DE VUELO V1  (Tails y Cream a 5.5 seg)  [flybuff v1.1]
+ MEJORA DE VUELO V1 rev2  (5.5 seg SOLO al llevar pasajero)
+ [flybuff v1.2 - corrige la v1.1: el tiempo extra es SOLO cargando]
 =====================================================================
 
-QUE CAMBIA:
+QUE CAMBIA (rev2):
 
-  El vuelo duraba demasiado poco; ahora dura mucho mas:
-  * TAILS:  2.67 seg  ->  5.5 seg  (mas del doble)
-  * CREAM:  2.00 seg  ->  5.5 seg  (casi el triple)
+  La v1.1 alargaba el vuelo SIEMPRE. Esta rev2 lo corrige: el tiempo
+  extra SOLO se gana llevando a un pasajero colgado.
 
-  La mejora es SOLO de duracion: la fisica del vuelo (subir con Z en
-  Tails, planeo lento en Cream), las recargas y el HUD quedan igual.
+  * TAILS volando SOLO:    2.67 seg  (su tiempo normal de siempre)
+  * TAILS con PASAJERO:    hasta 5.5 seg en total
+  * CREAM planeando SOLA:  2 seg     (su tiempo normal de siempre)
+  * CREAM con PASAJERO:    hasta 5.5 seg en total
 
-DETALLES:
+COMO FUNCIONA:
 
-  * TAILS: al empezar a volar, el flyTimer pasa de 160 a 330 frames
-    (5.5 seg). La recarga en el suelo sigue siendo de 7 segundos,
-    como siempre. El sonido del vuelo sigue sonando igual (cada 18
-    frames); ahora suena mas veces simplemente porque el vuelo dura
-    mas.
-
-  * CREAM: su planeo pasa de 2 a 5.5 segundos. Su recarga sigue
-    siendo de 15 segundos (en tiempo real: no hace falta pisar el
-    suelo para recargar).
-
-  * CARRY (llevar aliados, del paquete anterior) NO cambia su
-    logica: Tails sigue gastando el vuelo un 50% mas rapido mientras
-    lleva a alguien. Con la mejora, cargar a un pasajero te da
-    ~3.7 seg de vuelo (antes volar SOLO duraba 2.67 seg, o sea que
-    llevar a alguien era mas caro que volar; ahora ya no).
+  * El reloj del vuelo corre desde que despegas. Mientras llevas a
+    alguien colgado, el tope de ese reloj sube a 5.5 seg.
+  * Si el pasajero se suelta ANTES de que se acabe tu tiempo normal,
+    sigues volando con lo que te quede (tiempo normal).
+  * Si el pasajero se suelta DESPUES de tu tiempo normal, el vuelo se
+    corta en ese momento (el extra era del transporte).
+  * La vieja penalizacion del carry (vuelo gastandose un 50% mas
+    rapido con pasajero) SE ELIMINA: ahora llevar a alguien es lo
+    que ALARGA el vuelo.
 
 AJUSTABLE:
 
-  * TAILS:  macro TAILS_FLY_TIME  (60 * 5.5)  en
-            objects/obj_tails/Create_0.gml
-  * CREAM:  macro CREAM_FLY_TIME  (60 * 5.5)  en
-            objects/obj_cream/Create_0.gml
+  * TAILS:  TAILS_FLY_SOLO  160          en objects/obj_tails/Create_0.gml
+            TAILS_FLY_CARRY (60 * 5.5)   (5.5 = segundos max cargando)
+  * CREAM:  CREAM_FLY_SOLO  (60 * 2)
+            CREAM_FLY_CARRY (60 * 5.5)   en objects/obj_cream/Create_0.gml
 
-  Cambia el 5.5 por los segundos que quieras (60 = 1 segundo).
-  La RECARGA de Tails la sigue mandando el -420 de siempre (en
-  scr_tails_special.gml y obj_tails/Create_0.gml: 7 seg en suelo) y
-  la de Cream la macro CREAM_FLY_RECHARGE (60 * 15).
+  Las RECARGAS no cambian (Tails: -420 en suelo = 7 seg; Cream:
+  CREAM_FLY_RECHARGE = 15 seg reales).
 
 INSTALACION:
 
   1. Cierra GameMaker.
-  2. Extrae este zip ENCIMA de la raiz del proyecto (la carpeta que
-     contiene el .yyp), aceptando sobreescribir.
-  3. Abre el proyecto y ejecuta normal (F5). CERO cambios de server:
-     es todo del cliente.
+  2. Extrae el zip ENCIMA de la raiz del proyecto (la carpeta con el
+     .yyp), aceptando sobreescribir. Este zip es COMPLETO: incluye el
+     CARRY V1, asi que sirve tanto desde cero como encima de lo que
+     ya tengas.
+  3. Abre el proyecto y ejecuta normal (F5). CERO cambios de server.
 
 COMO PROBARLO:
 
-  1. Con Tails: salta y pulsa Z repetido para mantenerte volando ->
-     ahora aguantas 5.5 segundos en el aire (se nota mucho: el
-     sonido del vuelo suena muchas mas veces antes de apagarse).
-  2. Con Cream: salta y pulsa Z en el aire para planear -> el
-     planeo dura 5.5 segundos (antes se acababa en 2).
-  3. Con un aliado colgado de tu Tails (tocarlo volando, soltar con
-     Z; el portador suelta con V): el vuelo cargando se acaba antes
-     (~3.7 seg) pero llegais MUCHO mas lejos que antes.
+  1. Tails SOLO: salta + Z repetido -> el vuelo se apaga a los 2.67
+     seg como siempre (el sonido del vuelo se acaba pronto).
+  2. Tails + aliado: que el aliado salte y te toque volando (se
+     cuelga solo) -> el vuelo sigue sonando hasta los 5.5 seg.
+  3. A mitad del camino, que el aliado se suelte con Z: si aun no
+     pasaban tus 2.67 seg, sigues volando lo que te quede; si ya
+     habian pasado, caes en ese momento.
+  4. Cream sola: planeo de 2 seg. Cream con colgado: 5.5 seg.
+  5. El portador suelta con V: mismo efecto que el punto 3.
 
-Archivos MODIFICADOS:
-  objects/obj_tails/Create_0.gml          (+ macro TAILS_FLY_TIME)
-  objects/obj_cream/Create_0.gml          (+ macro CREAM_FLY_TIME)
-  scripts/scr_tails_special/scr_tails_special.gml   (160 -> macro)
-  scripts/scr_cream_special/scr_cream_special.gml   (60*2 -> macro)
-  scripts/scr_carry/scr_carry.gml         (solo un comentario viejo)
-  LEEME_CARRY_V1.txt                      (solo una frase obsoleta)
-  worklog.md + CACHE.md                   (documentacion del cambio)
+Archivos MODIFICADOS (rev2):
+  objects/obj_tails/Create_0.gml     (macros _FLY_SOLO/_CARRY + flyElapsed)
+  objects/obj_cream/Create_0.gml     (macros _FLY_SOLO/_CARRY)
+  scripts/scr_tails_special/scr_tails_special.gml  (reloj con tope por carry)
+  scripts/scr_cream_special/scr_cream_special.gml  (tope por carry)
+  scripts/scr_carry/scr_carry.gml    (fuera el drain 1.5x de Tails)
+  objects/obj_carry_controller/Step_2.gml (fuera la var del drain)
+  LEEME_CARRY_V1.txt                 (seccion BALANCE actualizada)
+  worklog.md + CACHE.md              (documentacion)

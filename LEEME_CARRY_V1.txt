@@ -67,10 +67,11 @@ COMO SE USA (igual que una liana):
         demoniza (los demonizados son del equipo EXE: ni llevan ni
         cuelgan).
 
-  * BALANCE: mientras Tails lleva a alguien, su vuelo se gasta un
-    50% mas rapido (se nota en el sonido del vuelo, que se acaba
-    antes). Cream no tiene penalizacion: su planeo no gana altura (solo
-    frena la caida).
+  * BALANCE (v1.2): llevar a alguien ya NO gasta el vuelo mas
+    rapido: al contrario, mientras el pasajero este colgado el
+    vuelo/planeo se ALARGA hasta 5.5 seg en total (volando solos
+    duran lo de siempre). Si el pasajero se suelta despues de
+    pasar su tiempo normal, el vuelo se corta en ese momento.
 
   * Solo UN pasajero por portador.
 

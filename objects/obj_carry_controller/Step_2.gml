@@ -20,7 +20,6 @@ if(carryInst != _pl)
 	_pl.carryActive = false;
 	_pl.carryPartner = noone;
 	_pl.carryCooldown = 0;
-	_pl.carryDrainTick = false;
 }
 
 with(_pl)
@@ -29,6 +28,6 @@ with(_pl)
 	scr_carry_step();
 	
 	// lado del portador (solo hace algo si soy Tails o Cream):
-	// soltar con V + gasto extra de vuelo de Tails
+	// soltar con V (la extension de vuelo vive en los specials)
 	scr_carry_carrier_step();
 }

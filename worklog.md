@@ -1406,3 +1406,52 @@ Stage Summary:
   cuesta menos que volar solo antes de la mejora.
 - Ajustable: TAILS_FLY_TIME / CREAM_FLY_TIME en los Create_0.
 - Entregable: download/fly_buff_v1.zip. Cero server, cero assets.
+
+
+---
+Task ID: flybuff-v1.2
+Agent: Super Z (main agent)
+Task: Correccion del flybuff v1.1 (usuario: "el tiempo solo se agrega
+si agarra a alguien; si es solo, su tiempo normal"): los 5.5 seg
+SOLO aplican llevando pasajero.
+
+Work Log:
+- v1.1 habia subido el vuelo a 5.5 seg SIEMPRE (Tails y Cream). El
+  usuario corrigio el diseno: el extra solo al llevar a alguien.
+- NUEVO modelo (reloj compartido, tope conmutado):
+  * Tails: flyElapsed (var nueva en obj_tails/Create) cuenta frames
+    desde el despegue (reset al despegar); cada frame del isFlying
+    flyTimer = max(0, tope - flyElapsed) con tope = TAILS_FLY_SOLO
+    (160 = 2.67 seg, vanilla) o TAILS_FLY_CARRY (60*5.5 = 330) si
+    scr_carry_find_hanger(id, CARRY_CHECK_DIST) ve al colgado. Guard
+    "flyTimer > 0" para no resucitar resets externos (demonizacion
+    pone flyTimer = -420: el vuelo muere como siempre).
+  * Cream: flyTimeout (ascendente) se compara contra CREAM_FLY_SOLO
+    (60*2 = 120, vanilla) o CREAM_FLY_CARRY (330), mismo check de
+    hanger.
+  * Soltar al pasajero devuelve el tope al solo: si ya paso la marca
+    normal el vuelo corta en ese frame; si no, sigue con lo que
+    quede del normal. Sims del validador: solo 160/120 exactos,
+    grab@40 -> 330, drop@100 -> 160/120, drop@200 -> corta en 200.
+- ELIMINADO el drain 1.5x del carry v1 (bloque de
+  scr_carry_carrier_step + init de carryDrainTick en el controller):
+  la penalizacion contradecia la nueva extension.
+- Deteccion del pasajero = mismo find_hanger del soltar-con-V
+  (puppet en ZIPLINE cerca/abajo): hereda su latencia de red (1-2
+  frames; un agarre en los ultimos ~2 frames del vuelo puede llegar
+  tarde y soltarse solo: raro y se recupera con el cooldown de 2 s)
+  y su falso positivo teorico con tirolinas de mapa o colgados de
+  otro portador a <48 px (inofensivo: solo daria el tope largo).
+- Macros renombradas: TAILS_FLY_TIME -> TAILS_FLY_SOLO/_CARRY,
+  CREAM_FLY_TIME -> CREAM_FLY_SOLO/_CARRY (cero usos viejos).
+- Aplicador scripts/apply_flybuff_v1_2.py (line-anchored, indent
+  derivado del propio archivo) + validador
+  scripts/flybuff_v1_2_validate.py (8 sims de reloj incluidas).
+
+Stage Summary:
+- SOLO = tiempo vanilla (Tails 2.67 s, Cream 2 s). CON pasajero =
+  hasta 5.5 s totales desde el despegue. Soltar = vuelve al reloj
+  normal (corta si ya paso la marca). Sin drain 1.5x.
+- Requiere CARRY V1. Entregable: download/fly_buff_v1_rev2.zip
+  (SUPERSET: lleva el carry v1 completo dentro; sustituye a
+  fly_buff_v1.zip).

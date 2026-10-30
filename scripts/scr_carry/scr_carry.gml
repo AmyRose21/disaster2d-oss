@@ -12,9 +12,9 @@
 //   * Se sueltan solos si: el portador aterriza / deja de volar / es
 //     herido / muere / se desconecta, o si el que cuelga toca el
 //     suelo / es herido / muere / se demoniza.
-//   * Tails gasta el vuelo un 50% mas rapido mientras lleva a alguien
-//     (Cream no tiene penalizacion: su planeo no gana altura, solo
-//     frena la caida).
+//   * Mientras llevan a alguien colgado, el vuelo de Tails y el
+//     planeo de Cream se ALARGAN hasta 5.5 seg (volando solos:
+//     su tiempo normal; lo calcula cada especial con su reloj).
 //
 //  COMO FUNCIONA POR RED (cero cambios del server):
 //   * El que cuelga viaja en el estado *_ZIPLINE de SU personaje (el
@@ -354,18 +354,10 @@ function scr_carry_carrier_step()
         if(_hanger != noone && keyboard_check_pressed(global.KeyV))
                 net_sound_emit_at(snd_snap, _hanger.master_id);
         
-        // Tails: mientras lleva a alguien el vuelo se gasta un 50% mas
-        // rapido (un tick extra cada 2 frames). El drain extra es
-        // ENTERO a proposito: el "flyTimer mod 18" del sonido de vuelo
-        // dejaria de cumplirse con fracciones y se quedaria mudo.
-        if(_hanger != noone && global.character == CHARACTER_TAILS
-        && isFlying && !isGrounded && flyTimer > 0)
-        {
-                carryDrainTick = !carryDrainTick;
-                
-                if(carryDrainTick)
-                        flyTimer--;
-        }
+        // (v1.2) Fuera la penalizacion 1.5x de Tails: llevar a
+        // alguien ahora ALARGA el vuelo. El tope mientras hay
+        // pasajero colgado (TAILS_FLY_CARRY / CREAM_FLY_CARRY =
+        // 5.5 seg) lo calcula cada especial con su propio reloj.
 }
 
 // =====================================================================

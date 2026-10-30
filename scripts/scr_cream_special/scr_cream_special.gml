@@ -97,7 +97,16 @@ function scr_cream_special()
 		yspd = 1;
 		
 		flyTimeout++;
-		if(flyTimeout > CREAM_FLY_TIME)
+		
+		// CARRY (v1.2): planeo SOLO = CREAM_FLY_SOLO (2 seg, el de
+		// siempre); con un PASAJERO colgado = CREAM_FLY_CARRY (5.5
+		// seg). Si el pasajero se suelta, vuelve al tope de sola.
+		var _flyCap = CREAM_FLY_SOLO;
+		
+		if(scr_carry_find_hanger(id, CARRY_CHECK_DIST) != noone)
+			_flyCap = CREAM_FLY_CARRY;
+		
+		if(flyTimeout > _flyCap)
 			isFlying = false;
 		
 		if(isGrounded)

@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"hitspark_snd_heavy",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":2.742721,
+  "exportDir":"",
+  "name":"hitspark_snd_heavy",
+  "parent":{
+    "name":"sounds",
+    "path":"folders/Sprites/Effects/hitspark/sounds.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"hitspark_snd_heavy.wav",
+  "volume":1.0,
+}

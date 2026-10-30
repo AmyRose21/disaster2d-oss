@@ -2,7 +2,8 @@
 
 #macro TAILS_ATTACK_RECHARGE  (23 * 60)
 #macro ETAILS_ATTACK_RECHARGE (12 * 60)
-#macro TAILS_FLY_TIME         (60 * 5.5)
+#macro TAILS_FLY_SOLO  160        // vuelo SOLO: 2.67 seg (el original)
+#macro TAILS_FLY_CARRY (60 * 5.5) // vuelo con PASAJERO colgado: max 5.5 seg
 #macro TAILS_MAXSPEED 11
 #macro TAILS_ACC 0.046875
 
@@ -17,6 +18,7 @@ rings = 0;
 lookTimer = 0;
 effectTime = 0;
 flyTimer = -420;
+flyElapsed = 0;
 flyGrv = 0;
 attackTimer = 0;
 attackCharge = 0;

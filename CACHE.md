@@ -617,3 +617,17 @@ y las pistas nuevas de 20-28s se cortaban).
   actualizados en scr_carry.gml y LEEME_CARRY_V1.txt. Entregable:
   download/fly_buff_v1.zip. Detalle tecnico completo: worklog
   flybuff-v1.1.
+
+
+- 2026-10-30 (flybuff-v1.2): CORRECCION por diseno del usuario: los
+  5.5 seg aplican SOLO llevando pasajero; solos = tiempos vanilla
+  (Tails 160 = 2.67 s; Cream 120 = 2 s). Modelo: reloj compartido con
+  tope conmutado (Tails: flyElapsed nuevo + flyTimer = max(0, tope -
+  flyElapsed), guard flyTimer > 0 para respetar resets externos;
+  tope *_FLY_SOLO/_CARRY segun find_hanger; Cream: flyTimeout >
+  tope). Soltar pasajero = tope vuelve al solo (corta si ya paso la
+  marca). ELIMINADO drain 1.5x del carry + var carryDrainTick.
+  Macros renombradas *_FLY_SOLO/_CARRY en los Create_0. Sims:
+  solo 160/120, grab@40 -> 330, drop@100 -> 160/120, drop@200 -> 200.
+  Requiere carry v1. Entregable: download/fly_buff_v1_rev2.zip
+  (superset con carry v1 dentro).

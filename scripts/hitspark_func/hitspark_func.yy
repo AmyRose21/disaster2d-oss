@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"hitspark_func",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"hitspark_func",
+  "parent":{
+    "name":"hitspark",
+    "path":"folders/Sprites/Effects/hitspark.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
