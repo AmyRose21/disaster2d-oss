@@ -72,6 +72,7 @@ function scr_carry_zipline_state(ch)
                 case CHARACTER_CREAM:       return CREAM_ZIPLINE;
                 case CHARACTER_SALLY:       return SALLY_ZIPLINE;
                 case CHARACTER_SALLY_CANON: return SALLY_ZIPLINE;
+                case CHARACTER_VANILLA:      return CREAM_ZIPLINE; // Vanilla vuela como Cream
         }
         
         return -1;   // el EXE y variantes: nunca cuelgan del carry
@@ -86,6 +87,9 @@ function scr_carry_partner_flying(p)
                 return p.state == TAILS_FLY;
         
         if(p.character == CHARACTER_CREAM)
+                return p.state == CREAM_FLY;
+
+        if(p.character == CHARACTER_VANILLA)
                 return p.state == CREAM_FLY;
         
         return false;
@@ -282,7 +286,7 @@ function scr_carry_step()
         
         // si el que se agarra es Tails o Cream, deja de volar (cuelga):
         // su propio Step_2 apaga el sonido del vuelo al ver isFlying=false
-        if(global.character == CHARACTER_TAILS || global.character == CHARACTER_CREAM)
+        if(global.character == CHARACTER_TAILS || global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA)
                 isFlying = false;
         
         // mira hacia donde mira el portador (su image_xscale viaja por red)
@@ -336,7 +340,7 @@ function scr_carry_end(hop, quiet)
 // =====================================================================
 function scr_carry_carrier_step()
 {
-        if(global.character != CHARACTER_TAILS && global.character != CHARACTER_CREAM)
+        if(global.character != CHARACTER_TAILS && global.character != CHARACTER_CREAM && global.character != CHARACTER_VANILLA)
                 return;
         
         // herido/muerto/stuneado: nada que hacer (el pasajero se entera

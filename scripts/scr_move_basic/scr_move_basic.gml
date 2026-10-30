@@ -52,7 +52,7 @@ function scr_move_basic()
                                 shieldTimer = 0;
                 }
                 
-                if(global.character == CHARACTER_CREAM)
+                if(global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA)
                 {
                         dashing = 0;
                         ringsSpawn = 0;
@@ -135,6 +135,8 @@ function scr_move_basic()
                                 break;
                                 
                         case CHARACTER_CREAM:
+
+                        case CHARACTER_VANILLA: // igual que Cream
                                 dashing = 0;
                                 ringsSpawn = 0;
                                 break;
@@ -647,7 +649,7 @@ function scr_move_basic()
                         if(global.character == CHARACTER_SONIC && (isAttacking || isSpinCharging))
                                 return;
                         
-                        if(global.character == CHARACTER_CREAM && ringsSpawn > 0)
+                        if((global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA) && ringsSpawn > 0)
                                 return;
                         
                         audio_play_sound(snd_jump, 0, false);

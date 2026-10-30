@@ -631,3 +631,40 @@ y las pistas nuevas de 20-28s se cortaban).
   solo 160/120, grab@40 -> 330, drop@100 -> 160/120, drop@200 -> 200.
   Requiere carry v1. Entregable: download/fly_buff_v1_rev2.zip
   (superset con carry v1 dentro).
+
+
+- 2026-10-30 (vanilla-v1): Vanilla the Rabbit superviviente #10 (solo
+  token amy). obj_vanilla = clon byte-exacto de obj_cream SIN
+  redeclarar macros (CREAM_*/ECREAM_* viven en obj_cream: patron
+  sally_canon con las de Sally); specialFunc = scr_cream_special
+  directo; estados por red = CREAM_* (layout anims 14-16). UI: retrato
+  spr_menu_cream (slot 9 de chars[]), barra de vida/escapados/iconos
+  mapeados Vanilla->Cream en obj_level (x3), net_state_charselect (x2),
+  menu_waiting (crudo 9->4), results (crudo 9->4), placa 9->4.
+  CHARACTER_VANILLA = TAILS+9 = 10 (1-based cliente); server
+  CH_VANILLA = 9 (0-based tras id--). Gate: MISMO token de Amy Canon
+  (amyCanonToken cliente / amy_authed server); operador NO la abre.
+  Server: SOLO states/*.c + include/ son compilados (los .c raiz de
+  disasterserver son legacy SIN el codigo de sally/amy canon: NO
+  parchearlos). CLIENT_CREAM_SPAWN_RINGS acepta CH_VANILLA (si no,
+  anticheat la kickea). Vanilla SI se demoniza (cooldown
+  CREAM_RING_SPAWN reset como Cream). FIX regresion sally canon:
+  placas EXE en obj_lobby iban 8-11 en vez de 7-10 (offset +9 sin
+  ajustar el -1); ahora sprInd - (CHARACTER_VANILLA - 7) = 7-10 ok.
+  avCharacters = 11 entradas (2 sitios). Server compilado+linkeado con
+  gcc (enet estatico) y smoke-testeado. 108/108 checks. Requiere
+  recompilar el server (compilar_server.bat). Entregable:
+  download/vanilla_v1.zip.
+
+## 2026-10-30 vanilla-v1-fix1 (GM LTS 2026)
+- GM LTS 2026 (runtime 2026.0.0.23) NO compila ternarios encadenados
+  `a ? b : c ? d : e` -> "unexpected symbol ?" / "got '?' expected ')'".
+  Ternarios simples y separados-por-argumento: OK (originales compilan).
+  REGLA: segundo remapeo = ternario simple + if plano.
+  Cascada tipica: error atribuido a la DEFINICION de macro en
+  scr_survivors ("got '+' expected '}'") cuando la macro se expande
+  dentro de un ternario roto en OTRO archivo.
+- obj_level/Draw_64.gml usa ESPACIOS; net_state_charselect,
+  obj_lobby_icon, obj_menu_waiting usan TABs (verificar repr antes
+  de parchear).
+- Entregable: download/vanilla_v1_rev2.zip (115/115 checks).

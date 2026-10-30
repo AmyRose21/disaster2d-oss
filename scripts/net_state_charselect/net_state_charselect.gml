@@ -85,6 +85,8 @@ function net_state_charselect(rbuff, nps, isPasstrough)
 					sprite_index = spr_lobby_icon;
 					// Sally Canon (9) reusa el icono de Sally en la tira
 					image_index = char == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : char + 1;
+					if(char == CHARACTER_VANILLA)
+						image_index = CHARACTER_CREAM + 1;
 					image_xscale = 0;
 				}
 				
@@ -218,6 +220,8 @@ function net_state_charselect(rbuff, nps, isPasstrough)
 					image_xscale = 0;
 					// Sally Canon (9) reusa el icono de Sally en la tira
 					image_index = char == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : char + 1;
+					if(char == CHARACTER_VANILLA)
+						image_index = CHARACTER_CREAM + 1;
 				}
 			}
 			

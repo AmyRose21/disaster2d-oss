@@ -13,6 +13,8 @@ function net_state_results(rbuff, nps, isPasstrough)
 			_char = 3;
 		else if(_char == 8)
 			_char = 5;
+		else if(_char == 9)
+			_char = 4; // 9 = Vanilla: reusa los iconos de Cream
 			var _end = buffer_read_s(rbuff, buffer_u8);
 			var _time = buffer_read_s(rbuff, buffer_u16);
 			var _quit = buffer_read_s(rbuff, buffer_u8);

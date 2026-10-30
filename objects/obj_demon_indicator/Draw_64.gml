@@ -9,6 +9,7 @@ if(instance_exists(global.player))
 	{
 		case CHARACTER_TAILS:
 		case CHARACTER_CREAM:
+		case CHARACTER_VANILLA:
 			pos = 20;
 			break;
 			

@@ -21,7 +21,8 @@ with(obj_netclient)
 		true,
 		true,  //7 (amy canon)
 		true,  //8 (sonic)
-		true  //9 (sally canon)
+		true,  //9 (sally canon)
+		true  //10 (vanilla) - vanilla-v1
 	];
 	
 	state = STATE_LOBBY;

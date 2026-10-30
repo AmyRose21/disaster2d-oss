@@ -1,0 +1,117 @@
+=====================================================================
+ VANILLA THE RABBIT  (superviviente #10 - exclusiva con token amy)
+ [vanilla-v1 rev2 - fix compilacion GM LTS 2026]
+=====================================================================
+
+REV2 (30/10): FIX DE COMPILACION. La rev1 usaba ternarios
+encadenados  a ? b : c ? d : e  en 7 lineas de 5 archivos y el
+compilador de GM LTS 2026 (runtime 2026.0.0.23) NO los acepta
+("unexpected symbol ?"). Ahora son un ternario simple + un if
+plano; mismo comportamiento, misma indentacion. Si ya aplicaste
+la rev1: extrae esta rev2 ENCIMA igual (sobreescribe todo).
+
+QUE ANADE:
+
+  Vanilla the Rabbit como personaje jugable, con sus sprites propios
+  (los spr_vanilla_* que ya tenias en el proyecto).
+
+  * HABILIDADES: las de Cream EXACTAS (mismo scr_cream_special):
+      Z = planeo (vuelo que no sube)     X = dash
+      C = anillos (spawn de anillos)
+      tirolina, spin, spindash, emociones, todo igual.
+    Incluye el flybuff v1.2: llevando a un aliado colgado su planeo
+    dura hasta 5.5 seg (2 seg volando sola), y puede AGARRAR y
+    SOLTAR aliados igual que Tails y Cream.
+  * MENU: reusa el retrato y la placa de info de Cream (Vanilla aun
+    no tiene propios).
+  * BARRA DE VIDA: reusa los iconos de Cream (los 3 sitios: tu
+    icono, los puppets y los escapados).
+  * HUD de habilidades: las 3 barritas de Cream (vuelo/dash/anillos).
+
+QUIEN PUEDE USARLA (lo importante):
+
+  * SOLO quien tenga el TOKEN DE AMY (el mismo de Amy Canon):
+    el archivo amy_canon.token con la frase de "amy_canon_token"
+    en el Config.json del server (SweetPassion).
+  * Ni operadores ni publico: si no tienes el token...
+      - el cliente NI TE MUESTRA a Vanilla al ciclar personajes, y
+      - el server te la RECHAZA igual que si estuviera ocupada
+        (doble seguro, aunque alguien edite su cliente).
+  * Como es el mismo token: quien desbloquea Amy Canon desbloquea
+    Vanilla. O sea: tu.
+
+INSTALACION:
+
+  1. Cierra GameMaker.
+  2. Extrae el zip ENCIMA de la raiz del proyecto (la carpeta con el
+     .yyp), aceptando sobreescribir.
+  3. RECOMPILA EL SERVER: abre betterserver-oss y usa
+     compilar_server.bat (o tu cmake de siempre). Sin recompilar, el
+     server viejo rechazara a Vanilla como ocupada (no crashea, es
+     seguro, pero no la dejara elegir).
+  4. Abre el proyecto en GameMaker y ejecuta (F5).
+
+  El server compilado lo verifique aqui: compila limpio con gcc y
+  arranca bien (escucha el 8606 y entra al lobby).
+
+DETALLE TECNICO (por si algo se toca en el futuro):
+
+  * IMPORTANTE - GM LTS 2026 no soporta ternarios encadenados
+    (a ? b : c ? d : e). Para remapear a un segundo personaje hay
+    que usar un if plano despues del ternario simple (asi se hizo
+    en los 7 sitios de esta rev2). Los ternarios SIMPLES y los
+    ternarios separados como argumentos de funcion si van bien.
+  * CHARACTER_VANILLA = CHARACTER_TAILS+9 = 10 en el cliente
+    (1-based); en el server es CH_VANILLA = 9 (0-based, tras el
+    id-- que ya hace el server). Mismo orden que siempre.
+  * obj_vanilla es un clon EXACTO de obj_cream salvo 3 cosas:
+    - Create_0 NO redeclara las macros CREAM_*/ECREAM_* (viven en
+      obj_cream; mismo patron que obj_sally_canon con las de Sally)
+    - Step_2 NO redeclara CREAM_FLY/CREAM_SPAWN/CREAM_ZIPLINE
+    - Draw_76 busca las anims con CHARACTER_VANILLA
+  * Sus animaciones van en scr_survivors.gml con el MISMO layout
+    que Cream: indices 14-16 = vuelo/anillos/tirolina. Los estados
+    que viajan por red son los CREAM_* de siempre, asi que los
+    puppets de los demas clientes la dibujan bien sin cambios.
+  * Al demonizarse: usa el icono demon de Cream en el HUD y sus
+    sprites normales (aun no hay sprites demonizados de Vanilla).
+  * La habilidad de anillos manda el paquete
+    CLIENT_CREAM_SPAWN_RINGS: el server ahora lo acepta para
+    CH_CREAM y CH_VANILLA (antes el anticheat la habria
+    desconectado).
+
+FIX EXTRA (regresion vieja de Sally Canon - incluida):
+
+  Desde que se anadio a Sally Canon, las PLACAS DE INFO del host
+  EXE en la seleccion estaban corridas por 1 (el EXE original
+  mostraba la placa de Chaos, Chaos la de Exetior, ... y Exeller
+  la de Sonic). Esto lo arregla: ahora el EXE muestra sus placas
+  correctas (frames 7-10). Si algun dia anades un superviviente
+  #11, el offset ya se calcula solo (sprInd - (CHARACTER_X - 7)).
+
+ARCHIVOS TOCADOS:
+
+  NUEVOS:  objects/obj_vanilla/ (9 archivos: 8 eventos + .yy)
+  CLIENTE: .yyp y .resource_order (registro del objeto),
+           scr_survivors, obj_netclient, net_tcpprocess, obj_lobby
+           (x2), obj_lobby_icon, net_state_charselect,
+           net_state_results, net_state_game, obj_level, obj_playerui,
+           obj_menu_waiting, obj_demon_indicator, obj_unlockables,
+           scr_pallette_shifts, scr_carry, scr_move_basic,
+           scr_collision_objects, scr_player_slow
+  SERVER:  betterserver-oss/include/Server.h,
+           betterserver-oss/disasterserver/states/CharSelect.c,
+           betterserver-oss/disasterserver/states/Game.c
+           (SOLO esos: los .c sueltos en la RAIZ de disasterserver
+           son copias viejas que el CMake NO compila - ahi estaba
+           la trampa de la vez pasada)
+
+PENDIENTE PARA EL FUTURO:
+
+  * Retrato y placa propios de Vanilla (cuando tengas el sprite,
+    es cambiar 2 lineas: chars[9] y el _infoFrame 9).
+  * Sprites demonizados de Vanilla (spr_evanilla_*) si algun dia
+    quieres que se vea distinta al demonizarse.
+  * Los hitspark que anadius todavia no se integran a nada (los
+    tengo localizados: hitsparkobject, hitspark_area,
+    hitspark_func y sus sonidos, por si los queremos usar).

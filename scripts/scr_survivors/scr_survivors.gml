@@ -22,6 +22,7 @@
 #macro CHARACTER_AMY_CANON (CHARACTER_TAILS+6)
 #macro CHARACTER_SONIC (CHARACTER_TAILS+7)
 #macro CHARACTER_SALLY_CANON (CHARACTER_TAILS+8)
+#macro CHARACTER_VANILLA (CHARACTER_TAILS+9)
 
 global.player_anims = ds_map_create();
 
@@ -246,6 +247,31 @@ global.player_anims[? CHARACTER_SALLY_CANON] =
         spr_sally_fase2_canon_pt4 //21 = FASE 2 pt4: recuperacion
 ];
 
+//Vanilla (mod): superviviente #10. Habilidades = Cream (scr_cream_special);
+//sprites propios spr_vanilla_*. Retrato de menu y barra de vida reusan
+//los de Cream (obj_lobby / obj_level). Indices 14-16 = vuelo/anillos/
+//tirolina (mismos estados CREAM_* que viajan por red para Cream).
+global.player_anims[? CHARACTER_VANILLA] =
+[
+        spr_vanilla_idle, //0
+        spr_vanilla_walk, //1
+        spr_vanilla_run, //2
+        spr_vanilla_jump, //3
+        spr_vanilla_fall, //4
+        spr_vanilla_hurt, //5
+        spr_vanilla_dead, //6
+        spr_vanilla_lookup, //7
+        spr_vanilla_lookdown, //8
+        spr_vanilla_emotion1, //9
+        spr_vanilla_emotion2, //10
+        spr_vanilla_emotion3, //11
+        spr_vanilla_jump, //12
+        spr_vanilla_balancing, //13
+        spr_vanilla_fly, //14
+        spr_vanilla_srings, //15
+        spr_vanilla_zipline //16
+];
+
 global.player_eanims = ds_map_create();
 
 //Tails
@@ -467,6 +493,32 @@ global.player_eanims[? CHARACTER_SALLY_CANON] =
         spr_sally_fase2_canon_pt4 //21
 ];
 
+//Vanilla (demonizada): no hay sprites demonizados suyos todavia;
+//reusa sus sprites normales (la demonizacion se ve en el HUD, el
+//icono y el palette shift demon). Defensivo, igual que el eanims
+//de Sally Canon: solo se lee si algun camino llega aqui con
+//revivalTimes >= 2.
+global.player_eanims[? CHARACTER_VANILLA] =
+[
+        spr_vanilla_idle, //0
+        spr_vanilla_walk, //1
+        spr_vanilla_run, //2
+        spr_vanilla_jump, //3
+        spr_vanilla_fall, //4
+        spr_vanilla_hurt, //5
+        spr_vanilla_dead, //6
+        spr_vanilla_lookup, //7
+        spr_vanilla_lookdown, //8
+        spr_vanilla_emotion1, //9
+        spr_vanilla_emotion2, //10
+        spr_vanilla_emotion3, //11
+        spr_vanilla_jump, //12
+        spr_vanilla_balancing, //13
+        spr_vanilla_fly, //14
+        spr_vanilla_srings, //15
+        spr_vanilla_zipline //16
+];
+
 // =====================================================================
 //  SONIC: variantes dinamicas del golpe (tecla X). Cualquier sprite
 //  llamado spr_sonic_attack2_tierra<N> o spr_sonic_attack2_aereo<N>
@@ -544,6 +596,9 @@ function player_get(ind)
 
                 case CHARACTER_SALLY_CANON:
                         return obj_sally_canon;
+
+                case CHARACTER_VANILLA:
+                        return obj_vanilla;
         }
 }
 
@@ -566,6 +621,13 @@ function scr_char_locked(ch)
 
         // Sally Canon: solo operador
         if(ch == CHARACTER_SALLY_CANON && !global.isOperator)
+                return true;
+
+        // Vanilla: SOLO el token de Amy (amy_canon.token), igual
+        // que Amy Canon. Ni operadores ni publica: exclusiva de
+        // la duena del token. El server tambien la rechaza por si
+        // solo (states/CharSelect.c): doble seguro.
+        if(ch == CHARACTER_VANILLA && global.amyCanonToken == "")
                 return true;
 
         return false;

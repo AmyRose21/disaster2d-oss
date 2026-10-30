@@ -143,7 +143,7 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 		id--; // id - 1
 
 		AssertOrDisconnect(v->server, id >= 0);
-		AssertOrDisconnect(v->server, id <= CH_SALLY_CANON);
+		AssertOrDisconnect(v->server, id <= CH_VANILLA);
 
 		/* Amy Canon: personaje RESERVADO. Solo el jugador con el
 		   token valido (CLIENT_AMY_AUTH, ver states/Server.c)
@@ -179,6 +179,22 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 			return true;
 		}
 
+		/* Vanilla: personaje RESERVADO. Solo el jugador con el token
+		   de Amy (mismo CLIENT_AMY_AUTH que Amy Canon) puede usarla;
+		   ni operadores ni publica. A los demas se les responde igual
+		   que si estuviera ocupada (el cliente ademas ni se la muestra
+		   al ciclar: ver scr_char_locked). Doble seguro. */
+		if (id == CH_VANILLA && !v->amy_authed)
+		{
+			PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+			PacketWrite(&pack, packet_write8, id + 1);
+			PacketWrite(&pack, packet_write8, 0);
+			RAssert(packet_send(v->peer, &pack, true));
+
+			Info("%s (id %d) tried to pick [Vanilla] without unlock!", v->nickname.value, v->id);
+			return true;
+		}
+
 		uint8_t avail = v->server->lobby.avail[id];
 		if (avail)
 			v->server->lobby.avail[id] = 0;
@@ -207,7 +223,8 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 			"Sally",
 			"Amy Canon",
 			"Sonic",
-			"Sally Canon"};
+			"Sally Canon",
+			"Vanilla"};
 
 		Info("%s " LOG_RST "(id %d) choses [" LOG_GRN "%s" LOG_RST "]!", v->nickname.value, v->id, survs[id]);
 		return charselect_check_state(v->server) || lobby_init(v->server);
@@ -283,7 +300,7 @@ bool charselect_init(int8_t map, Server *server)
 	server->state = ST_CHARSELECT;
 	server->lobby.countdown_sec = g_config.charselect_time;
 	server->lobby.countdown = TICKSPERSEC;
-	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_SALLY_CANON + 1));
+	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_VANILLA + 1));
 
 	Packet pack;
 	PacketCreate(&pack, SERVER_LOBBY_EXE);
@@ -342,7 +359,7 @@ bool charselect_init_survpractice(Server *server)
 	server->state = ST_CHARSELECT;
 	server->lobby.countdown_sec = g_config.practice_time;
 	server->lobby.countdown = TICKSPERSEC;
-	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_SALLY_CANON + 1));
+	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_VANILLA + 1));
 
 	Packet pack;
 

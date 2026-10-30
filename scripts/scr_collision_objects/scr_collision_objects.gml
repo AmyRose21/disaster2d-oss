@@ -73,6 +73,8 @@ function scr_collision_objects_after()
 					break;
 					
 				case CHARACTER_CREAM:
+
+				case CHARACTER_VANILLA: // vuela como Cream
 					if(isFlying)
 					{
 						flyTimer = CREAM_FLY_RECHARGE;
@@ -198,6 +200,8 @@ function scr_collision_objects_after()
 					break;
 					
 				case CHARACTER_CREAM:
+
+				case CHARACTER_VANILLA: // vuela como Cream
 					if(isFlying)
 					{
 						flyTimer = CREAM_FLY_RECHARGE;

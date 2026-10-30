@@ -21,7 +21,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		// Personajes reservados (Amy Canon / Sally Canon):
 		// quien no puede usarlos no pasa por sus slots al ciclar
 		// (ver scr_char_locked). El while salta varios seguidos.
-		while(selected >= CHARACTER_TAILS && selected <= CHARACTER_SALLY_CANON && scr_char_locked(selected))
+		while(selected >= CHARACTER_TAILS && selected <= CHARACTER_VANILLA && scr_char_locked(selected))
 			selected--;
 		
 		if(obj_netclient.exeId == master_id)
@@ -34,7 +34,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 			if(selected < 1)
 			{
 				// wrap: entra por el ultimo slot VISIBLE
-				selected = CHARACTER_SALLY_CANON;
+				selected = CHARACTER_VANILLA;
 				while(selected >= CHARACTER_TAILS && scr_char_locked(selected))
 					selected--;
 			}
@@ -49,7 +49,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		
 		// Personajes reservados: se saltan por completo al ciclar
 		// (ver scr_char_locked)
-		while(selected <= CHARACTER_SALLY_CANON && scr_char_locked(selected))
+		while(selected <= CHARACTER_VANILLA && scr_char_locked(selected))
 			selected++;
 		
 		if(obj_netclient.exeId == master_id)
@@ -59,7 +59,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 		}
 		else
 		{
-			if(selected > CHARACTER_SALLY_CANON)
+			if(selected > CHARACTER_VANILLA)
 				selected = 1;
 		}
 			
@@ -112,6 +112,8 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
 	{
 		// Sally Canon reusa el icono de Sally en el tira de sprites del lobby
 		image_index = selected == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : selected + 1;
+		if(selected == CHARACTER_VANILLA)
+			image_index = CHARACTER_CREAM + 1;
 		image_blend = c_gray;
 	}
 }

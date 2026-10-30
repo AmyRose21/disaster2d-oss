@@ -70,7 +70,12 @@ typedef struct PeerData
 		CH_SONIC,
 
 		/* Sally Canon (mod): sobreviviente #9, mismo orden que el cliente */
-		CH_SALLY_CANON
+		CH_SALLY_CANON,
+
+		/* Vanilla (mod): sobreviviente #10, mismo orden que el cliente.
+		   SOLO se desbloquea con el token de Amy (amy_canon_token),
+		   igual que Amy Canon: ni operadores ni publica. */
+		CH_VANILLA
 	} surv_char;
 
 	enum
@@ -109,7 +114,7 @@ typedef struct
 	/* Character Select */
 	int8_t map;
 	uint16_t exe;
-	bool avail[CH_SALLY_CANON + 1];
+	bool avail[CH_VANILLA + 1];
 } Lobby;
 
 typedef enum

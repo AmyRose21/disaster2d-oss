@@ -463,6 +463,7 @@ bool game_demonize(Server* server, PeerData* data)
                         }
 
                         case CH_CREAM:
+                        case CH_VANILLA: /* Vanilla: mismas habilidades que Cream */
                         {
                                 server->game.cooldowns[CREAM_RING_SPAWN] = 0;
                                 break;
@@ -839,7 +840,9 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                 {
                         AssertOrDisconnect(v->server, v->in_game);
                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
-                        AssertOrDisconnect(v->server, v->surv_char == CH_CREAM);
+                        /* Vanilla usa las mismas habilidades que Cream:
+                           el paquete de anillos tambien es valido para ella */
+                        AssertOrDisconnect(v->server, v->surv_char == CH_CREAM || v->surv_char == CH_VANILLA);
                         AssertOrDisconnect(v->server, v->server->game.cooldowns[CREAM_RING_SPAWN] <= 0);
 
                         if (v->mod_tool)

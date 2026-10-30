@@ -1290,7 +1290,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 y += 1368;
                                 }
                                 
-                                if(global.character == CHARACTER_CREAM)
+                                if(global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA)
                                 {
                                         ringsTimer = global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_RINGS_RECHARGE;
                                         ringsSpawn = 0;
@@ -2395,6 +2395,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         global.player.dashTimer = 0; // ATAQUE 3: acometida lista al empezar la partida
                                         break;
                                         
+                                case CHARACTER_VANILLA: // mismas habilidades que Cream
+                                        
                                 case CHARACTER_CREAM:
                                         global.player.flyTimer = 0;
                                         global.player.dashTimer = 0;
@@ -2646,7 +2648,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         true,
                                         true,  //7 (amy canon)
                                         true,  //8 (sonic)
-                                        true  //9 (sally canon)
+                                        true,  //9 (sally canon)
+                                        true  //10 (vanilla) - vanilla-v1
                                 ];
                                 
                                 gameEnds = false;
@@ -2809,7 +2812,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         true,
                                         true,  //7 (amy canon)
                                         true,  //8 (sonic)
-                                        true  //9 (sally canon)
+                                        true,  //9 (sally canon)
+                                        true  //10 (vanilla) - vanilla-v1
                                 ];
                                 
                                 gameEnds = false;
@@ -3370,7 +3374,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         true,
                                         true,  //7 (amy canon)
                                         true,  //8 (sonic)
-                                        true  //9 (sally canon)
+                                        true,  //9 (sally canon)
+                                        true  //10 (vanilla) - vanilla-v1
                                 ];
                                 
                                 gameEnds = false;

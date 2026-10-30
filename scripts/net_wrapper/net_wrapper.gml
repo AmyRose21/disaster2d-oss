@@ -86,7 +86,8 @@ function net_poll()
                                         true,
                                         true,  //7 (amy canon)
                                         true,  //8 (sonic)
-                                        true  //9 (sally canon)
+                                        true,  //9 (sally canon)
+                                        true  //10 (vanilla) - vanilla-v1
                                 ];
                 
                                 isConnected = true;

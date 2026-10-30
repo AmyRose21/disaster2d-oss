@@ -53,8 +53,11 @@ if(!obj_minigame.ingame)
 			else
 			{
 				sprite = spr_lobby_icon;
-				// 8 = Sally Canon (valor crudo del server): icono de Sally
+				// 8 = Sally Canon (valor crudo del server): icono de Sally;
+				// 9 = Vanilla (valor crudo): icono de Cream
 				index = (plr.char == 8 ? 5 : plr.char) + 2;
+				if(plr.char == 9)
+					index = 4 + 2;
 			}
 		}
 		else

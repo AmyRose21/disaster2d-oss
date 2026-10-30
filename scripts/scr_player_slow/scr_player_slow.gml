@@ -60,6 +60,8 @@ function scr_player_slow(time)
 			break;
 			
 		case CHARACTER_CREAM:
+
+		case CHARACTER_VANILLA: // mismas stats que Cream
 			global.player.isSlow = true;
 			global.player.acc = (CREAM_ACC * (100-40)) / 100;
 			global.player.maxHSpeed = (CREAM_MAXSPEED * (100-40)) / 100;

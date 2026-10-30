@@ -247,3 +247,10 @@ if(!ds_map_exists(palettes, CHARACTER_SALLY_CANON))
 
 if(!ds_map_exists(palettes, CHARACTER_SALLY_CANON + PALETTE_DEMON))
         palettes[? CHARACTER_SALLY_CANON + PALETTE_DEMON] = { name: "default", custom: false, character: CHARACTER_SALLY_CANON + PALETTE_DEMON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
+
+// Vanilla - asegura paletas por defecto (mismo patron; solo token amy)
+if(!ds_map_exists(palettes, CHARACTER_VANILLA))
+        palettes[? CHARACTER_VANILLA] = { name: "default", custom: false, character: CHARACTER_VANILLA, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
+
+if(!ds_map_exists(palettes, CHARACTER_VANILLA + PALETTE_DEMON))
+        palettes[? CHARACTER_VANILLA + PALETTE_DEMON] = { name: "default", custom: false, character: CHARACTER_VANILLA + PALETTE_DEMON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };

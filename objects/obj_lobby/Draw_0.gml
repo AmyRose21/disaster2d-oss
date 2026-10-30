@@ -108,7 +108,7 @@ else if(state == 2 || state == 3)
 		sprInd = selected - 1;
 		
 		if(obj_netclient.exeId == obj_netclient.nid)
-			sprInd += CHARACTER_SALLY_CANON; // ahora son 9 supervivientes
+			sprInd += CHARACTER_VANILLA; // ahora son 10 supervivientes
 	}
 	
 	// Personajes reservados ocultos: ni retrato ni placa de info (doble
@@ -124,13 +124,16 @@ else if(state == 2 || state == 3)
 	draw_sprite(spr_char_bars, obj_netclient.exeId == obj_netclient.nid, 0, 0);
 	// Placa de info: survivors usan su frame (0-6 los originales, 11 = sonic
 	// el nuevo). El HOST (EXE) usa los frames 7-10 de los killers; como su
-	// sprInd ya viene desplazado (+8), se le resta 1 para volver a 7-10.
+	// sprInd ya viene desplazado (+CHARACTER_VANILLA = +10); se le resta
+	// (CHARACTER_VANILLA - 7) = 3 para volver a los frames 7-10.
 	var _infoFrame = sprInd;
 	if(obj_netclient.exeId == obj_netclient.nid)
-		_infoFrame = sprInd - 1;
+		_infoFrame = sprInd - (CHARACTER_VANILLA - 7);
 	else if(sprInd == 8)
 		_infoFrame = 5; // sally canon: usa la placa de Sally
-	else if(sprInd >= 7)
+	else if(sprInd == 9)
+		_infoFrame = 4; // vanilla: usa la placa de Cream
+	else if(sprInd == 7)
 		_infoFrame = 11; // sonic
 	if(!_amyHidden)
 		draw_sprite(spr_char_info, _infoFrame, 1, 232-5);

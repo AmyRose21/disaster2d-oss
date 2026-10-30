@@ -1455,3 +1455,142 @@ Stage Summary:
 - Requiere CARRY V1. Entregable: download/fly_buff_v1_rev2.zip
   (SUPERSET: lleva el carry v1 completo dentro; sustituye a
   fly_buff_v1.zip).
+
+---
+Task ID: vanilla-v1
+Agent: Super Z (main agent)
+
+VANILLA THE RABBIT como superviviente #10 (solo token de Amy).
+
+Pedido: sprites canon ya en el proyecto; habilidades = las de Cream;
+retrato de menu y barra de vida reusando los de Cream; server parcheado
+para que sea elegible; EXCLUSIVA de quien tenga el token amy (ni
+operadores ni publica); cubrir todos los detalles (leccion de Sally
+Canon).
+
+Trabajo:
+- obj_vanilla nuevo (carpeta Objects/Player/Survivors/Vanilla Canon),
+  clon byte-exacto de obj_cream salvo: Create_0 sin redeclarar las
+  macros CREAM_*/ECREAM_* (viven en obj_cream; patron sally_canon),
+  Step_2 sin redeclarar CREAM_FLY/SPAWN/ZIPLINE, Draw_76 con lookup
+  arr[? CHARACTER_VANILLA]. specialFunc = scr_cream_special SIN clonar
+  (como sally_canon usa scr_sally_special).
+- Registro: .yyp (recurso + carpeta Vanilla Canon en Objects) y
+  .resource_order (recurso + carpeta).
+- scr_survivors.gml: #macro CHARACTER_VANILLA (CHARACTER_TAILS+9);
+  player_anims[? CHARACTER_VANILLA] (17 sprites spr_vanilla_*, layout
+  Cream, indices 14-16 = fly/srings/zipline = estados CREAM_* por red);
+  player_eanims defensivo (sprites normales, como sally_canon);
+  player_get case -> obj_vanilla; scr_char_locked: Vanilla exige
+  global.amyCanonToken (MISMO token/file que Amy Canon: amy_canon.token
+  contra amy_canon_token del Config.json del server).
+- Seleccion: avCharacters con 11 entradas (obj_netclient + net_tcpprocess);
+  chars[] del lobby con spr_menu_cream en el slot 9 (retrato reusado);
+  offset EXE += CHARACTER_VANILLA; _infoFrame 9 -> placa de Cream;
+  obj_lobby_icon con limites/wrap a CHARACTER_VANILLA e icono de tira
+  Vanilla -> Cream.
+- Networking: net_state_charselect mapea icono Vanilla->Cream (x2);
+  net_state_results remapea valor crudo 9 -> 4 (Cream); net_state_game
+  inicia ringsTimer para Vanilla y su demonizacion resetea
+  fly/dash/rings como Cream.
+- HUD: obj_playerui case Vanilla con las 3 barras de Cream;
+  obj_level barra de vida mapea Vanilla->Cream en los 3 sitios (propio,
+  puppets, escapados; sin esto los indices (10-1)*7 se salian de
+  spr_playerhealth); obj_menu_waiting icono crudo 9->4; obj_demon_indicator
+  pos 20 (vuela).
+- Paletas: defaults en obj_unlockables (normal + PALETTE_DEMON, mismo
+  patron que sally_canon) y paletteShifts con tonos de Cream.
+- Gameplay paridad Cream: scr_carry (zipline=Cream, partner_flying,
+  agarre apaga vuelo, puede portar con el flybuff v1.2), scr_move_basic
+  (reset dano/muerte, salto bloqueado en spawn de anillos),
+  scr_collision_objects (cancelar vuelo x2), scr_player_slow (stats).
+- SERVER (solo archivos compilados; los .c de la RAIZ de disasterserver
+  son copias viejas que CMake NO compila - esa fue la trampa de Sally):
+  * include/Server.h: CH_VANILLA al final del enum (mismo orden que el
+    cliente: cliente manda 1-based, server hace id--), avail[CH_VANILLA+1].
+  * states/CharSelect.c: bound del assert a CH_VANILLA; gate de token
+    (id == CH_VANILLA && !v->amy_authed -> respuesta "ocupada" igual
+    que Amy Canon; NO la abre ser operador); survs[] con "Vanilla";
+    memsets x2 a CH_VANILLA+1.
+  * states/Game.c: CLIENT_CREAM_SPAWN_RINGS acepta CH_CREAM o CH_VANILLA
+    (sin esto el anticheat la desconectaba al usar anillos);
+    cooldown de demonizacion CREAM_RING_SPAWN tambien para Vanilla.
+    Vanilla SI se demoniza como Cream (no se anade a los guards canon).
+- FIX EXTRA (regresion preexistente de sally canon): las placas de info
+  del HOST EXE en obj_lobby/Draw_0.gml quedaban corridas desde que el
+  offset paso de +8 a +9 (mostraban 8-11 en vez de 7-10; Exeller
+  mostraba la placa de Sonic). Con 10 supervivientes seria 9-12 (frame
+  inexistente). Fix: _infoFrame = sprInd - (CHARACTER_VANILLA - 7).
+- Validacion: vanilla_v1_validate.py 108/108 (anims en orden, arrays
+  11 entradas, wire 1-based/0-based coherente, legacy sin tocar, LF,
+  llaves balanceadas). Server compilado y LINKADO con gcc (enet clonado
+  y compilado estatico) + smoke test: arranca, escucha 8606, entra a
+  Lobby. Validador: /home/z/my-project/scripts/vanilla_v1_validate.py.
+- Aplicadores: /home/z/my-project/scripts/apply_vanilla_v1.py (objeto+
+  registro), apply_vanilla_v1b.py (41 parches + 4 inserciones, con
+  dry-run de TODAS las anclas antes de tocar nada), apply_vanilla_v1c.py
+  (fix placas + docs).
+
+Notas:
+- El token es el MISMO de Amy Canon: quien tenga amy_canon.token (frase
+  de amy_canon_token en Config.json) desbloquea a Amy Canon Y a Vanilla.
+- El server HAY que recompilarlo (compilar_server.bat en Windows o
+  cmake) para que Vanilla sea elegible; sin recompilar, el server viejo
+  la rechaza como ocupada (comportamiento seguro).
+- eanims de Vanilla = sprites normales (no hay demonizados suyos aun).
+
+Stage Summary:
+- Vanilla #10, habilidades Cream exactas (vuelo/dash/anillos/carry
+  flybuff v1.2 incluido), UI de Cream, solo con token amy (cliente la
+  oculta sin token; server la rechaza sin token; operador NO la abre).
+- Requiere recompilar el server. Entregable: download/vanilla_v1.zip
+  (parches del cliente + server parcheado + LEEME).
+
+---
+Task ID: vanilla-v1-fix1
+Agent: Super Z (main agent)
+
+FIX DE COMPILACION GM LTS 2026 (rev2 del vanilla-v1).
+
+Sintoma (log del usuario, runtime 2026.0.0.23):
+  gml_GlobalScript_net_state_charselect(86) : unexpected symbol "?"
+  gml_Object_obj_level_Draw_64(69)          : unexpected symbol "?"
+  gml_Object_obj_lobby_icon_Draw_0(113)     : unexpected symbol "?"
+  gml_Object_obj_menu_waiting_Draw_64(57)   : got '?' expected ')'
+  gml_Script_scr_survivors(19)              : got '+' expected '}'  (cascada)
+
+Causa raiz: el vanilla-v1 introdujo 7 TERNARIOS ENCADENADOS
+(a ? b : c ? d : e) en 5 archivos. El compilador de GM LTS 2026
+NO los parsea (los ternarios simples y los separados como
+argumentos de funcion si van; el proyecto original esta lleno de
+esos y siempre compilo). El error de scr_survivors(19) apuntaba a
+la definicion de macro CHARACTER_AMY (CHARACTER_TAILS+3): cascada
+por expansion de macros dentro de los ternarios rotos - nada malo
+en scr_survivors en si (diff 100% patrones originales).
+
+Arreglo (apply_vanilla_v1d.py, byte-exacto, idempotente):
+se restaura el ternario SIMPLE original y se agrega un if plano
+para el remapeo Vanilla->Cream. 6 ops / 7 sitios:
+- net_state_charselect x2 (lineas 87, 220): image_index, if(char...)
+- obj_level/Draw_64 x3: propio (_hudChar), puppets (_pch),
+  escapados (_ech; ese sitio era un else de sentencia unica ->
+  ahora es un bloque con llaves { var _ech; if; draw_sprite; })
+- obj_lobby_icon x1: image_index, if(selected...)
+- obj_menu_waiting x1: index crudo 9 -> if(plr.char == 9)
+Indentacion preservada (obj_level usa ESPACIOS, el resto TABs).
+
+Validacion: vanilla_v1_validate.py actualizado (4 checks al
+patron nuevo + seccion 11 "GM2026 sin ternarios encadenados" en
+los 5 archivos) = 115/115. Scan global: 0 encadenados con
+CHARACTER_VANILLA; los 33 restantes de 2+ '?' son codigo ORIGINAL
+(obj_playerui: ternarios separados como args; scr_move_basic:248
+anidado con parentesis, presente en HEAD, siempre compilo).
+
+Entregable: download/vanilla_v1_rev2.zip (36 archivos; sustituye
+a vanilla_v1.zip). LEEME actualizado con nota REV2 + regla para
+el futuro: nunca ternarios encadenados, usar ternario simple + if.
+
+Stage Summary:
+- Misma funcionalidad 100%, solo sintaxis compatible GM LTS 2026.
+- El usuario ya tiene la rev1 aplicada: extraer rev2 ENCIMA
+  (sobreescribe los 5 archivos arreglados y todo lo demas).

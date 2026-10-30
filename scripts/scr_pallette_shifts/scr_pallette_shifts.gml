@@ -29,3 +29,7 @@ global.paletteShifts[? CHARACTER_AMY_CANON + PALETTE_DEMON] = scr_palette([ #260
 // Sally Canon: mismos tonos que Sally (es Sally)
 global.paletteShifts[? CHARACTER_SALLY_CANON] = scr_palette([ #2d008f, #3600ff, #6060e0, #25518a ]);
 global.paletteShifts[? CHARACTER_SALLY_CANON + PALETTE_DEMON] = scr_palette([ #1b1342, #202886, #474784 ]);
+
+// Vanilla: mismos tonos que Cream (sus sprites son estilo Cream)
+global.paletteShifts[? CHARACTER_VANILLA] = scr_palette([ #800000, #e00000 ]);
+global.paletteShifts[? CHARACTER_VANILLA + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20 ]);

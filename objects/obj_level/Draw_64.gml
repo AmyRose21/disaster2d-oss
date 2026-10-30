@@ -66,8 +66,10 @@ if(global.showHud && titleCard > 4)
         //self icon
         if(obj_netclient.exeId != obj_netclient.nid)
         {               
-                // Sally Canon reusa los iconos de Sally en la barra de vida
+                // Sally Canon reusa los iconos de Sally y Vanilla los de Cream
                 var _hudChar = global.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : global.character;
+                if(global.character == CHARACTER_VANILLA)
+                        _hudChar = CHARACTER_CREAM;
                 var sprIndex = (_hudChar-CHARACTER_TAILS) * 7;
                 
                 if(player_exists)
@@ -136,6 +138,8 @@ if(global.showHud && titleCard > 4)
                         // Sally Canon reusa los iconos de Sally en la barra de vida
                         // (declarado fuera del if para que la rama demonizado tambien lo tenga)
                         var _pch = inst.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : inst.character;
+                        if(inst.character == CHARACTER_VANILLA)
+                                _pch = CHARACTER_CREAM;
                         if(!inst.isDemonized || inst.character == CHARACTER_EXE)
                         {
                                 var sprIndex = (_pch-CHARACTER_TAILS) * 7;
@@ -164,7 +168,12 @@ if(global.showHud && titleCard > 4)
                         }
                 }
                 else 
-                        draw_sprite(spr_playerescaped, ((player.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : player.character)-CHARACTER_TAILS), pos + i * 28, 268);
+                        {
+                                var _ech = player.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : player.character;
+                                if(player.character == CHARACTER_VANILLA)
+                                        _ech = CHARACTER_CREAM;
+                                draw_sprite(spr_playerescaped, (_ech-CHARACTER_TAILS), pos + i * 28, 268);
+                        }
                         
                 i++;
         }
