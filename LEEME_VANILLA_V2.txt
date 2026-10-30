@@ -2,6 +2,27 @@
  VANILLA V2 — CHOCOLA, PACIENCIA, FLOAT RUN Y LAS PASIVAS DE MADRE
 ════════════════════════════════════════════════════════════════════
 
+ REVISION 3 (rev3) — ARREGLA EL ERROR AL ABRIR EL PROYECTO:
+   "scripts/scr_chocola/scr_chocola.yy(3,3): Error: Field "%Name":
+   expected."
+ La causa: ese archivo tenia "%%Name" (DOBLE porcentaje) en vez de
+ "%Name". Ya esta corregido. Solo cambia ESE archivo respecto a la
+ rev2; nada mas.
+ La buena noticia: ese error significa que la rev2 SI se aplico bien
+ (GameMaker ya conoce scr_chocola gracias al .yyp corregido); solo
+ que al leer su ficha de recurso encontraba el nombre de campo mal
+ escrito y se negaba a cargar el proyecto entero. Con este archivo
+ corregido el proyecto abre.
+
+ Instalacion rev3: con GameMaker CERRADO, extrae el zip ENCIMA de la
+ raiz (aceptar sobrescribir todo) y abre el proyecto. No hay que
+ recompilar el server (no cambia). Luego F5.
+
+ Ademas se valido AUTOMATICAMENTE el JSON de TODOS los .yy/.yyp del
+ proyecto (1770 archivos) con un parser igual de estricto que el de
+ GameMaker: 0 errores. Este chequeo queda integrado en el validador
+ para siempre.
+
  REVISION 2 (rev2): la primera version del zip tenia 3 erratas de
  sintaxis que impedian compilar en GameMaker. Ya estan corregidas:
    * net_sounds.gml: faltaba una coma despues de snd_parry (los 6

@@ -14,12 +14,12 @@
 #macro VANILLA_RINGS_RECHARGE (60 * 15)  // recarga de anillos: 15 s (Cream: 40 s)
 #macro EVANILLA_RINGS_RECHARGE (60 * 10) // idem escapada/demonizada (Cream: 30 s)
 
-// V2 — paciencia, moribunda, chocola y float run (macros ajustables).
-// La logica vive en scripts/scr_chocola/scr_chocola.gml; el tope del
-// float run (14) y los % de las pasivas tambien ahi (VANILLA_*).
-#macro VANILLA_PACIENCIA_TIME (60 * 5)     // paciencia: 5 s totales
-#macro VANILLA_MORIBUNDA_TIME (60 * 6)     // moribunda: 6 s tirada
-#macro VANILLA_FLOAT_SPEED 14              // tope de la 3ra fase de corrida
+// V2 — paciencia, moribunda, chocola y float run: la logica y TODAS las
+// macros de la v2 viven en scripts/scr_chocola/scr_chocola.gml
+// (VANILLA_PACIENCIA_*, VANILLA_MORIBUNDA_*, VANILLA_FLOAT_*,
+// VANILLA_CHOCOLA_*, pasivas de madre...). Regla GM: una #macro es
+// GLOBAL y solo puede definirse UNA vez en todo el proyecto, asi que
+// aqui no se repiten (v5: eliminadas las 3 duplicadas que rompian build).
 #macro VANILLA_RINGS_WORTH 4               // cada anillo invocado vale 4 (server)
 
 //Variables
@@ -100,174 +100,174 @@ canSpin = true;
 specialFunc = function() /* V1.2: habilidades propias de Vanilla (antes scr_cream_special) */
 {
 
-	// V2: paciencia/moribunda, float run, tecla V (Chocola), ataque
-	// cercano de Chocola y des-demonizacion (todo en scr_chocola.gml).
-	scr_vanilla_v2_step();
-	
-	if(pacienciaState > 0 || moribundaState > 0)
-		return; // quieta mientras dura: ni vuelo, ni dash, ni anillos
-	if(redRingTimer > 0)
-	{
-		if(flyTimer <= 2)
-			flyTimer = 2;
-		
-		if(dashTimer <= 2)
-			dashTimer = 2;
-			
-		if(ringsTimer <= 2)
-			ringsTimer = 2;
-			
-		ringsSpawn = 0;
-	}
-	
-	if(isHiding)
-	{
-		if(flyTimer <= 60 * 2)
-			flyTimer = 60 * 2;
-		
-		if(dashTimer <= 60 * 2)
-			dashTimer = 60 * 2;
-			
-		if(ringsTimer <= 60 * 2)
-			ringsTimer = 60 * 2;
-			
-		ringsSpawn = 0;
-	}
-	
-	// VUELO TIPO TAILS (v1.2): pulsar A en el aire tras un salto.
-	// MIENTRAS se mantiene A SUBE (VANILLA_FLY_RISE); al soltar
-	// planea lento (VANILLA_FLY_GLIDE, como Cream). Dura 5 s
-	// (VANILLA_FLY_SOLO) o 7.5 s con pasajero (VANILLA_FLY_CARRY).
-	if(global.playerControls && isJumping && !justJumped && keyboard_check_pressed(global.KeyA) && flyTimer <= 0)
-	{
-		flyTimeout = 0;
-		isFlying = true;
-		isJumping = false;
-		isSpinning = false;
-		flyTimer = VANILLA_FLY_RECHARGE;
-	}
-	
-	if(global.playerControls && keyboard_check_pressed(global.KeyB) && dashTimer <= 0 && abs(xspd) > 0 && ringsSpawn <= 0)
-	{
-		dashing = .5 * 60;
-		effectTime = .5 * 60;
-		dashTimer = VANILLA_DASH_RECHARGE;
-		maxHSpeed = 13;
-				
-		audio_play_sound(snd_creamdash, 0, false);
-		net_sound_emit(snd_creamdash);
-	}
-	
-	isColliding = place_meeting(x, y, obj_angleanuller) || collision_circle(x - 12 + (image_xscale < 0 ? 7 : 0), y-16, 32, obj_floor_parent, true, true);
-	
-	if(revivalTimes >= 2 && instance_exists(obj_redring) && distance_to_object(obj_redring) < 130)
-		isColliding = true;
-	
-	// ANILLOS (v2): cada anillo invocado por Vanilla VALE 4 al
-	// recogerlo (lo aplica el server, vale para quien lo recoja) y la
-	// recarga es VANILLA_RINGS_RECHARGE (15 s; Cream tarda 40 s).
-	if(global.playerControls && keyboard_check_pressed(global.KeyC) && ringsTimer <= 0 && isGrounded)
-	{
-		if(!isColliding)
-		{
-			ringsTimer = revivalTimes >= 2 ? EVANILLA_RINGS_RECHARGE : VANILLA_RINGS_RECHARGE;
-			ringsSpawn = 60;
-			image_index = 0; // v1.2: la animacion de invocar arranca en el frame 0
-		}	
-	}
-	
-	if(ringsSpawn > 1)
-	{
-		if(!isGrounded || !global.playerControls)
-		{
-			ringsTimer = global.player.revivalTimes >= 2 ? EVANILLA_RINGS_RECHARGE : VANILLA_RINGS_RECHARGE;
-			ringsSpawn = 0;
-		}
-		
-		gspd = 0;
-		xspd = 0;
-		yspd = 0;
-		ringsSpawn--;
-	}
-	else if(ringsSpawn == 1)
-	{
-		if(!collision_circle(x - 12 + (image_xscale < 0 ? 7 : 0), y-16, 32, obj_floor_parent, true, true))
-		{
-			audio_play_sound(snd_creamring, 0, false);
-			net_sound_emit(snd_creamring);
-			
-			// V2: si Chocola esta en casa, celebra el poder con su giro
-			// de 360 (spr_vanilla_chocola_support_power, como el Cheese
-			// de Cream: el giro lo hace la animacion del sprite)
-			var _choc = scr_chocola_get();
-			
-			if(_choc != noone && _choc.mode == CHOCOLA_FOLLOW)
-				_choc.supportTimer = 40;
-		
-			var pk = cpacket_tcp(PacketType.CLIENT_CREAM_SPAWN_RINGS, false);
-			buffer_write(pk, buffer_u16, x - 12 + (image_xscale < 0 ? 7 : 0));
-			buffer_write(pk, buffer_u16, y - 16);
-			buffer_write(pk, buffer_bool, revivalTimes >= 2);
-			send_server_tcp(pk);
-		}
-		
-		ringsSpawn = 0;
-	}
-	
-	if(isFlying)
-	{
-		// v1.2: manteniendo A SUBE, soltando planea (antes era el
-		// planeo fijo de Cream, yspd = 1, sin poder subir nunca).
-		if(global.playerControls && keyboard_check(global.KeyA))
-			yspd = VANILLA_FLY_RISE;
-		else
-			yspd = VANILLA_FLY_GLIDE;
-		
-		flyTimeout++;
-		
-		// CARRY (v1.2): con un PASAJERO colgado dura mas.
-		var _flyCap = VANILLA_FLY_SOLO;
-		
-		if(scr_carry_find_hanger(id, CARRY_CHECK_DIST) != noone)
-			_flyCap = VANILLA_FLY_CARRY;
-		
-		if(flyTimeout > _flyCap)
-			isFlying = false;
-		
-		if(isGrounded)
-			isFlying = false;
-	}
-	
-	if(dashing > 0)
-	{
-		if(isJumping)
-			isJumping = false;
-			
-		acc = .8;
-		dashing--;
-	} 
-	else 
-	{
-		if(isSlow)
-		{ 
-			maxHSpeed = (CREAM_MAXSPEED * (100-30)) / 100;
-			acc = (CREAM_ACC * (100-30)) / 100;
-		}
-		else
-		{
-			maxHSpeed = floatRunCap; // V2: el tope sube de 11 a 14 (float run)
-			acc = CREAM_ACC;
-		}
-	}
-	
-	if(!isFlying && flyTimer > 0)
-		flyTimer--;
-	
-	if(ringsTimer > 0)
-		ringsTimer--;
-	
-	if(dashTimer > 0)
-		dashTimer--;
+        // V2: paciencia/moribunda, float run, tecla V (Chocola), ataque
+        // cercano de Chocola y des-demonizacion (todo en scr_chocola.gml).
+        scr_vanilla_v2_step();
+        
+        if(pacienciaState > 0 || moribundaState > 0)
+                return; // quieta mientras dura: ni vuelo, ni dash, ni anillos
+        if(redRingTimer > 0)
+        {
+                if(flyTimer <= 2)
+                        flyTimer = 2;
+                
+                if(dashTimer <= 2)
+                        dashTimer = 2;
+                        
+                if(ringsTimer <= 2)
+                        ringsTimer = 2;
+                        
+                ringsSpawn = 0;
+        }
+        
+        if(isHiding)
+        {
+                if(flyTimer <= 60 * 2)
+                        flyTimer = 60 * 2;
+                
+                if(dashTimer <= 60 * 2)
+                        dashTimer = 60 * 2;
+                        
+                if(ringsTimer <= 60 * 2)
+                        ringsTimer = 60 * 2;
+                        
+                ringsSpawn = 0;
+        }
+        
+        // VUELO TIPO TAILS (v1.2): pulsar A en el aire tras un salto.
+        // MIENTRAS se mantiene A SUBE (VANILLA_FLY_RISE); al soltar
+        // planea lento (VANILLA_FLY_GLIDE, como Cream). Dura 5 s
+        // (VANILLA_FLY_SOLO) o 7.5 s con pasajero (VANILLA_FLY_CARRY).
+        if(global.playerControls && isJumping && !justJumped && keyboard_check_pressed(global.KeyA) && flyTimer <= 0)
+        {
+                flyTimeout = 0;
+                isFlying = true;
+                isJumping = false;
+                isSpinning = false;
+                flyTimer = VANILLA_FLY_RECHARGE;
+        }
+        
+        if(global.playerControls && keyboard_check_pressed(global.KeyB) && dashTimer <= 0 && abs(xspd) > 0 && ringsSpawn <= 0)
+        {
+                dashing = .5 * 60;
+                effectTime = .5 * 60;
+                dashTimer = VANILLA_DASH_RECHARGE;
+                maxHSpeed = 13;
+                                
+                audio_play_sound(snd_creamdash, 0, false);
+                net_sound_emit(snd_creamdash);
+        }
+        
+        isColliding = place_meeting(x, y, obj_angleanuller) || collision_circle(x - 12 + (image_xscale < 0 ? 7 : 0), y-16, 32, obj_floor_parent, true, true);
+        
+        if(revivalTimes >= 2 && instance_exists(obj_redring) && distance_to_object(obj_redring) < 130)
+                isColliding = true;
+        
+        // ANILLOS (v2): cada anillo invocado por Vanilla VALE 4 al
+        // recogerlo (lo aplica el server, vale para quien lo recoja) y la
+        // recarga es VANILLA_RINGS_RECHARGE (15 s; Cream tarda 40 s).
+        if(global.playerControls && keyboard_check_pressed(global.KeyC) && ringsTimer <= 0 && isGrounded)
+        {
+                if(!isColliding)
+                {
+                        ringsTimer = revivalTimes >= 2 ? EVANILLA_RINGS_RECHARGE : VANILLA_RINGS_RECHARGE;
+                        ringsSpawn = 60;
+                        image_index = 0; // v1.2: la animacion de invocar arranca en el frame 0
+                }       
+        }
+        
+        if(ringsSpawn > 1)
+        {
+                if(!isGrounded || !global.playerControls)
+                {
+                        ringsTimer = global.player.revivalTimes >= 2 ? EVANILLA_RINGS_RECHARGE : VANILLA_RINGS_RECHARGE;
+                        ringsSpawn = 0;
+                }
+                
+                gspd = 0;
+                xspd = 0;
+                yspd = 0;
+                ringsSpawn--;
+        }
+        else if(ringsSpawn == 1)
+        {
+                if(!collision_circle(x - 12 + (image_xscale < 0 ? 7 : 0), y-16, 32, obj_floor_parent, true, true))
+                {
+                        audio_play_sound(snd_creamring, 0, false);
+                        net_sound_emit(snd_creamring);
+                        
+                        // V2: si Chocola esta en casa, celebra el poder con su giro
+                        // de 360 (spr_vanilla_chocola_support_power, como el Cheese
+                        // de Cream: el giro lo hace la animacion del sprite)
+                        var _choc = scr_chocola_get();
+                        
+                        if(_choc != noone && _choc.mode == CHOCOLA_FOLLOW)
+                                _choc.supportTimer = 40;
+                
+                        var pk = cpacket_tcp(PacketType.CLIENT_CREAM_SPAWN_RINGS, false);
+                        buffer_write(pk, buffer_u16, x - 12 + (image_xscale < 0 ? 7 : 0));
+                        buffer_write(pk, buffer_u16, y - 16);
+                        buffer_write(pk, buffer_bool, revivalTimes >= 2);
+                        send_server_tcp(pk);
+                }
+                
+                ringsSpawn = 0;
+        }
+        
+        if(isFlying)
+        {
+                // v1.2: manteniendo A SUBE, soltando planea (antes era el
+                // planeo fijo de Cream, yspd = 1, sin poder subir nunca).
+                if(global.playerControls && keyboard_check(global.KeyA))
+                        yspd = VANILLA_FLY_RISE;
+                else
+                        yspd = VANILLA_FLY_GLIDE;
+                
+                flyTimeout++;
+                
+                // CARRY (v1.2): con un PASAJERO colgado dura mas.
+                var _flyCap = VANILLA_FLY_SOLO;
+                
+                if(scr_carry_find_hanger(id, CARRY_CHECK_DIST) != noone)
+                        _flyCap = VANILLA_FLY_CARRY;
+                
+                if(flyTimeout > _flyCap)
+                        isFlying = false;
+                
+                if(isGrounded)
+                        isFlying = false;
+        }
+        
+        if(dashing > 0)
+        {
+                if(isJumping)
+                        isJumping = false;
+                        
+                acc = .8;
+                dashing--;
+        } 
+        else 
+        {
+                if(isSlow)
+                { 
+                        maxHSpeed = (CREAM_MAXSPEED * (100-30)) / 100;
+                        acc = (CREAM_ACC * (100-30)) / 100;
+                }
+                else
+                {
+                        maxHSpeed = floatRunCap; // V2: el tope sube de 11 a 14 (float run)
+                        acc = CREAM_ACC;
+                }
+        }
+        
+        if(!isFlying && flyTimer > 0)
+                flyTimer--;
+        
+        if(ringsTimer > 0)
+                ringsTimer--;
+        
+        if(dashTimer > 0)
+                dashTimer--;
 };
 
 //constants

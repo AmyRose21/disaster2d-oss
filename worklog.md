@@ -1776,3 +1776,248 @@ Stage Summary:
   con GM cerrado COMPROBANDO que el .yyp y .resource_order se
   sobrescriben, recompilar F5 (server solo si no se compilo aun).
   El usuario debe pushear el resultado a GitHub (yo no puedo).
+
+---
+Task ID: vanilla-v2-fix3 (rev3+rev4)
+Agent: Super Z (main agent)
+Task: Dos incidentes seguidos: (rev3, ya aplicada por el usuario desde
+el zip) scr_chocola.yy con "%%Name" impedia ABRIR el proyecto; (rev4,
+esta entrega) tras arreglar eso, el compilador de assets (Igor) crashea
+con IndexOutOfRangeException en GMObject.GetEventName_Simple.
+
+Work Log:
+- Pull primero: el remoto traia "aja" (7a227d23) del usuario = su
+  aplicacion manual de la rev2 (coma snd_parry, break; del Draw_76 —
+  reescrito por el IDE, funcionalmente identico) + .md/.yyp. El fix
+  rev3 de scr_chocola.yy NO estaba en el remoto (el usuario lo aplico
+  en su PC desde el zip rev3 pero no llego al push; su compilador ya
+  cargaba el proyecto, confirmacion de que su copia local si lo tiene).
+- INCIDENTE SANDBOX: entre mensajes el sandbox se reciculo: la carpeta
+  del repo fue RE-CLONADA (reflog: solo "clone"), HEAD quedo en un
+  commit viejo (bab141d2) con todo el arbol marcado M (restauracion
+  de la plataforma sobre el clone), y se perdieron del workspace los
+  zips vanilla y TODOS los scripts de la task (apply, v2_content,
+  validadores, gml_syntax_audit, yy_json_validate). Recuperacion:
+  respaldo de los .md locales (resultaron PRE-v2, inservibles: el
+  remoto era mas nuevo), git reset --hard origin/main (base limpia
+  7a227d23 con toda la v2 + fixes rev2 del usuario) y RECREACION de
+  las herramientas desde el conocimiento de sesion.
+- CAUSA DEL CRASH (rev4): los eventList de los 3 objetos nuevos
+  tenian eventNum/eventType INTERCAMBIADOS (el generador de .yy
+  desestructuraba `for typ, num` sobre tuplas (num, typ)): p. ej.
+  eventNum:8,eventType:64 — el tipo de evento 64 NO existe (Draw GUI
+  es eventNum:64,eventType:8). GM CARGA el proyecto sin quejarse pero
+  el ASSET COMPILER explota en GetEventName_Simple (IndexOutOfRange,
+  exit -532462766). Pares correctos aplicados (verificados contra el
+  corpus de 253+ objetos del repo): Create (0,0), Step (3,0), Draw
+  (8,0), Draw GUI (8,64).
+- Fixes aplicados: 3 eventList (obj_chocola: Create+Step; los 2
+  indicadores: Create+Step+Draw+DrawGUI) + scr_chocola.yy %%Name
+  (rev3, para que quede en git). Cero cambios de logica/server/yyp.
+- HERRAMIENTAS RECREADAS (scripts/):
+  * yy_json_validate.py AHORA CON CHEQUEO DE PARES: valida JSON laxo
+    (comas finales), caza campos "%%", esquema GMScript/GMObject, y
+    NUEVO: cada par (eventType,eventNum) debe existir en el corpus
+    de todos los demas .yy del repo + cada evento debe tener su .gml
+    (Create_0, Step_0/1/2, Alarm_N, Other_N, Draw_N). Regresion: la
+    version intercambiada da 3 errores con el mensaje del crash de
+    Igor. Hallazgo al calibrar: los steps begin/end se llaman TODOS
+    "Step_N.gml" en disco (59 objetos usan Step_1/Step_2).
+  * gml_syntax_audit.py: recreado identico (875 .gml = 0 sospechosos,
+    regresiones coma/break: cazadas).
+  * vanilla_v2_validate.py: RECONSTRUIDO compacto (45 checks:
+    especificacion del usuario anclada por grep — macros de
+    scr_chocola, worth 4/2 en Game.c:931, paquete des-demonizacion,
+    sonidos 108-113, flecha madre-hija — + simulaciones de relojes
+    + sintaxis 21 archivos + JSON 6 archivos). La version perdida
+    tenia 201 checks (secciones 1-12 detalladas); esta conserva lo
+    esencial y las 2 secciones-herramienta.
+- Validaciones: 45/45; .yy del repo entero 1770/1770; GML 875/875.
+- LEEME rev4: explica el crash, que cambian solo 4 archivos y como
+  verificar en el IDE (obj_chocola = 2 eventos; indicadores = 4).
+- Zip download/vanilla_v2_rev4.zip (35 archivos; los 4 corregidos +
+  todo el paquete para instalar desde cualquier version anterior).
+
+Stage Summary:
+- Crash de Igor arreglado: 3 eventList con pares intercambiados +
+  rev3 versionada en git. El validador de .yy ahora caza esta clase
+  de bug ANTES de que llegue al compilador de GM (corpus de pares +
+  archivos de evento). Herramientas recreadas tras el reciclaje del
+  sandbox; backup_recycle/ conserva el estado pre-reset. Entregable:
+  download/vanilla_v2_rev4.zip. Instalar: extraer ENCIMA con GM
+  cerrado, F5; server sin recompilar. El usuario pushea a GitHub.
+
+---
+Task ID: vanilla-v2-fix4 (rev5)
+Agent: Super Z (main agent)
+Task: Tras rev4 el proyecto cargaba, pero al compilar GM reportaba
+"macro VANILLA_PACIENCIA_TIME / VANILLA_MORIBUNDA_TIME /
+VANILLA_FLOAT_SPEED is already defined" (obj_vanilla, Create, lineas
+20/21/22 — exactamente las lineas del repo).
+
+Work Log:
+- Pull primero: remoto sin novedades (0123a0bb seguia siendo HEAD) =>
+  el usuario ya tenia rev4 aplicado. Confirmacion implicita de que
+  el crash de Igor (rev4) quedo muerto: el compilador YA pasaba
+  MergeAssets y llegaba a la fase de codigo GML.
+- CAUSA: las 3 macros estaban definidas DOS veces — scr_chocola.gml
+  (fuente canonica del balance v2: lineas 29/36/46) y el Create de
+  obj_vanilla (lineas 20-22, insertadas por el parcheo v2). En GM una
+  #macro es GLOBAL y unica por proyecto; los scripts compilan antes
+  que los eventos => el error senala la 2a definicion (el Create).
+  Masked desde la v2 original: el error de coma de net_sounds (rev2)
+  abortaba la compilacion antes de llegar a la fase de macros.
+- FIX: Create_0.gml sin las 3 lineas duplicadas + comentario que
+  documenta la regla (una #macro = global, UNA definicion por
+  proyecto) y apunta a scr_chocola.gml como canon. VANILLA_RINGS_WORTH
+  4 se queda (unica, solo en el Create). Cero cambios de logica ni de
+  valores: Draw_76/Step_2/etc ven las macros igual via el script.
+- HERRAMIENTAS:
+  * gml_syntax_audit.py: NUEVA clase E = macros duplicadas a nivel
+    PROYECTO (macro_dupes(): recolecta todos los #macro de scripts/ +
+    objects/ y reporta repetidos; corre SIEMPRE al final del audit,
+    tambien sin --all). scripts/test_macro_e.py: regresion que
+    reconstruye el Create de rev4 via `git show 0123a0bb:...` +
+    scr_chocola actual y verifica que caza EXACTAMENTE las 3 con sus
+    lineas (20/21/22, las del reporte del usuario). PASS.
+  * scripts/v2_ref_check.py NUEVO: todo token obj_/scr_/spr_/snd_ de
+    los 21 GML de v2 (via tokenizador, sin comentarios/strings) debe
+    existir como carpeta de recurso o como funcion `function nombre(`
+    (151 funciones definidas — scr_vanilla_v2_step NO es carpeta, es
+    funcion de scr_chocola.gml). Resultado: 0 referencias rotas.
+  * vanilla_v2_validate.py: seccion 5 MACROS GLOBALES UNICAS (4
+    checks: 0 duplicadas en el proyecto, Create sin redefinir, canon
+    intacta en scr_chocola, RINGS_WORTH solo en el Create).
+- Validaciones: validador 49/49; gml_syntax_audit --all 875 archivos
+  0 sospechosos (incluida clase E); .yy 0 problemas; ref check 0 rotas.
+- LEEME rev5: explica el error, la regla de macro unica, que cambia
+  1 solo archivo y como verificar en el IDE (que el Create no tenga
+  ninguna linea "#macro VANILLA_PACIENCIA_TIME").
+- Zip download/vanilla_v2_rev5.zip (36 archivos = mismo paquete
+  completo que rev4 con el Create corregido; rev4.zip eliminado de
+  download/ para dejar solo el vigente).
+
+Stage Summary:
+- Ultimo obstaculo conocido eliminado: proyecto carga, asset compiler
+  pasa y fase de macros limpia. El auditor gana la clase E (macros
+  duplicadas) con test de regresion contra el commit rev4; nuevo ref
+  check de recursos; validador 49/49. Entregable:
+  download/vanilla_v2_rev5.zip. Instalar: extraer ENCIMA con GM
+  cerrado, F5; server sin recompilar. El usuario pushea a GitHub.
+
+---
+Task ID: vanilla-v2-fix5 (rev6)
+Agent: Super Z (main agent)
+Task: Reporte del usuario tras jugar la rev5 (captura: Chocola
+siguiendo a Vanilla en partida real): el chao mira al lado
+contrario y Vanilla NUNCA entra en la 3ra fase de corrida.
+
+Work Log:
+- Pull primero: sin novedades (e655e258 HEAD).
+- CHAO AL REVES: CERRADO SIN CODIGO. El usuario descubrio que el
+  importo los sprites volteados ("puse los sprites arreves"). El
+  arte de spr_vanilla_chocola_* debe mirar a la DERECHA (convencion
+  del proyecto: xscale=1=derecha, la misma de scr_move_basic:544).
+  Con el arte bien orientado TODOS los modos quedan bien: FOLLOW
+  copia image_xscale de Vanilla; HUNT/RETURN/GO_CREAM usan
+  sign(target.x - x). Documentado en LEEME rev6.
+- DIAGNOSTICO FLOAT RUN (logica correcta, numeros imposibles):
+  (a) cadena verificada: scr_move_basic capa gspd a maxHSpeed ->
+      specialFunc (linea 606) pone maxHSpeed = floatRunCap ->
+      scr_vanilla_v2_step computa floatRunCap/isFloatRunning ->
+      Step_2 estado 17 -> Draw_76/Draw_0; clamp de
+      scr_collision_basic:570 usa maxHSpeed (=14 en float run),
+      sin clamp duro (ya documentado en 7.4).
+  (b) tiempos: CREAM_ACC 0.046875/f => 235 f (~3.9 s) solo en
+      LLEGAR a 11; + 90 f de RAMP_DELAY + 100 f de rampa 0.03 =
+      ~425 f (~7.1 s) de carrera PERFECTA en llano. El LEEME decia
+      "corre 3-4 s": imposible de entrada.
+  (c) cuestas: el gate usaba abs(xspd) y xspd = gspd*cos(angle);
+      a 15 grados xspd = 10.6 < 10.75 => cualquier cuesta media
+      REINICIABA runHold. En mapas con colinas: inalcanzable.
+- FIX (scr_chocola.gml, 3 ajustes): RAMP_DELAY 60*1.5 -> 60*0.5;
+  RAMP_ACC 0.03 -> 0.08; gate e isFloatRunning ahora miden
+  abs(gspd) (velocidad SOBRE el suelo: cuestas no reinician) y
+  fuera el 'dashing <= 0' del gate (el dash ya no corta la cuenta;
+  el LEEME solo lista soltar/frenar/saltar/zonas lentas como
+  reinicios, y dash->pose es el camino divertido).
+  OJO matiz: con rampa 0.08 > acc 0.0469, gspd PERSIGUE el tope:
+  la pose llega cuando gspd cruza 13.75 (~89 f tras el tope), no
+  cuando el tope teorico toca 14 (~68 f). Sims del validador
+  modelan gspd, no el cap (leccion 8.15c).
+  Numeros nuevos: pose ~89 f (~1.5 s) tras llegar a tope; ~319 f
+  (~5.3 s) desde parada; ~84 f (~1.4 s) con dash B desde parada.
+- Validador: sims float run reescritas (89 f pose; 319 f desde
+  parada con acc 0.046875) + seccion 6 FLOAT RUN ALCANZABLE
+  (regresion: gates con gspd, sin 'dashing <= 0 && abs(xspd)',
+  macros 0.5 s / 0.08).
+- LEEME rev6 (causa, 3 ajustes, numeros nuevos, nota del chao),
+  CACHE 7.4 + leccion 8.15 + changelog.
+- Zip download/vanilla_v2_rev6.zip (cambia 1 archivo; rev5.zip
+  fuera de download/). Server sin recompilar.
+
+Stage Summary:
+- Float run alcanzable: de ~7.1 s perfectos e imposibles en
+  cuestas a ~1.5 s tras el tope / ~5.3 s desde parada / ~1.4 s tras
+  dash, con cuestas toleradas. Bug del chao cerrado sin codigo
+  (arte a la derecha). Entregable: download/vanilla_v2_rev6.zip.
+  Instalar: extraer ENCIMA con GM cerrado, F5; server sin
+  recompilar. El usuario pushea a GitHub.
+
+Task: Reporte del usuario tras probar la rev6 (el float run ya
+funciona en juego): error en runtime "Variable obj_player_puppet.
+isGrounded(100460, -2147483648) not set before reading it" en
+gml_Object_obj_chocola_Step_0 (linea 46), aparentemente al golpear
+Chocola al exe; ademas "no suena el sonido de impacto al exe".
+
+Work Log:
+- Pull primero: sin novedades (58522e36 HEAD; la rev6 del float run
+  ya estaba entregada — solo quedaba este bug nuevo).
+- DIAGNOSTICO A (crash): la linea 46 esta en CHOCOLA_FOLLOW (eleccion
+  de sprite move/Idle). homeInst viene de scr_chocola_find_home():
+  en el cliente de Vanilla es global.player (obj_vanilla real, con
+  isGrounded); en el RESTO de clientes es el PUPPET de Vanilla, y
+  obj_player_puppet NO tiene isGrounded: no viaja por red (las
+  escrituras del juego son sobre global.player —
+  obj_player_puppet Step_0:161/184/305/316/369 escriben sobre el
+  jugador LOCAL golpeado, no sobre el puppet). Chocola solo existe
+  tras la caza de la paciencia (la crea CHOCOLA_NET_HUNT), y el
+  error salia al TERMINAR el golpe: HUNT -> ATTACK_PAUSE (26 f) ->
+  RETURN -> FOLLOW -> crash en bucle cada frame, en todos los
+  clientes menos el de Vanilla. De ahi el "cuando chocola pega al
+  exe" del reporte.
+- DIAGNOSTICO B (sonido): en el bloque del golpe solo if(authority)
+  hacia algo: emitir la SENAL muda al nid del exe (snd_nono /
+  snd_vasebreak via net_sound_emit_at). Ningun cliente reproducia
+  audio local en el frame del impacto; lo unico que llegaba era el
+  grito de la variante del exe (scr_exe_stunsound al recibir la
+  senal, retrasado por el round trip). El feedback canonico del
+  juego al stunear al exe es snd_exe_stun LOCAL (puppet Step_0:
+  337/370): eso era lo que faltaba.
+- FIX (2 archivos):
+  1) scr_chocola.gml: nueva scr_chocola_home_moving(inst) — local:
+     abs(xspd)>0.5 || !isGrounded (identico a antes); puppet:
+     abs(x-xprevious)>0.5 || abs(y-yprevious)>0.5 (patron canonico
+     de la estela del powerboost de Sonic, puppet Step_0:63). Solo
+     para el sprite; nada de logica de juego depende de esto.
+  2) obj_chocola/Step_0.gml: FOLLOW pregunta a la helper (fuera la
+     lectura directa homeInst.isGrounded); y el golpe reproduce
+     audio_play_sound(snd_exe_stun, 0, false) en TODOS los clientes,
+     FUERA de if(authority): cada simulacion ve su propio golpe en
+     el mismo frame — LOCAL y sin reenvio (un broadcast lo oiria N
+     veces). La senal al nid del exe sigue intacta.
+- Validador 57/57 (nueva seccion 7: sin homeInst.isGrounded, helper
+  con guard variable_instance_exists, audio del golpe ANTES de
+  if(authority), senales intactas); v2_ref_check 0 rotas (152
+  funciones); test_macro_e PASS; gml_syntax_audit --all 875 limpios.
+- LEEME rev7, CACHE 7.4 + leccion 8.16 + changelog.
+- Zip download/vanilla_v2_rev7.zip (cambian 2 gml; rev6.zip fuera de
+  download/). Server sin recompilar.
+
+Stage Summary:
+- Crash del puppet arreglado en la fuente (regla: nunca leer vars de
+  jugador sobre un puppet; isGrounded no viaja por red) y golpe de
+  Chocola audible en todos los clientes con el feedback canonico
+  (snd_exe_stun + grito de la variante por la senal). Entregable:
+  download/vanilla_v2_rev7.zip. Instalar: extraer ENCIMA con GM
+  cerrado, F5; server sin recompilar. El usuario pushea a GitHub.

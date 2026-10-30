@@ -1,6 +1,6 @@
 {
   "$GMScript":"v1",
-  "%%Name":"scr_chocola",
+  "%Name":"scr_chocola",
   "isCompatibility":false,
   "isDnD":false,
   "name":"scr_chocola",

@@ -484,6 +484,17 @@ y las pistas nuevas de 20-28s se cortaban).
   cliente del exe (dedup shockedTimer, +CLIENT_PLAYER_HURT para el
   shake + scr_exe_stunsound). NINGUNO de los 6 sonidos se emitia por
   red antes (verificado): las ramas son exclusivas.
+- REV7 (puppet-safe + golpe audible): scr_chocola_home_moving(inst)
+  en scr_chocola.gml — local: abs(xspd)>0.5 || !isGrounded; puppet:
+  abs(x-xprevious)>0.5 || abs(y-yprevious)>0.5 (la posicion SI
+  viaja; patron powerboost). El crash "obj_player_puppet.isGrounded
+  not set" (obj_chocola FOLLOW:46) era leer una var que NO viaja por
+  red: solo existe en global.player (jugador local). El golpe al exe
+  ahora reproduce audio_play_sound(snd_exe_stun) LOCAL en cada
+  cliente, FUERA de if(authority) (cada simulacion ve su propio
+  golpe en el mismo frame; un broadcast lo duplicaria N veces); la
+  senal al nid del exe (snd_nono/snd_vasebreak -> scr_chocola_
+  stun_signal + scr_exe_stunsound) sigue intacta.
 - PACIENCIA (1ra caida, scr_player_instakill intercepta SIN avisar al
   server, patron burbuja/nervios/fase2): 5 s quieta+inmune (guard en
   scr_player_hurt; salto bloqueado en scr_move_basic); a los 2 s sale
@@ -495,9 +506,15 @@ y las pistas nuevas de 20-28s se cortaban).
   muere server-side: guards CH_VANILLA en game_demonize y
   CLIENT_PLAYER_DEATH_STATE (muerte directa canon por si un cliente
   viejo la mata: jamas demonizada).
-- FLOAT RUN: correr sostenido a 11 (1.5 s) -> tope rampa +0.03/f
-  hasta 14 (~3.2 s totales); pose estado 17 (spr_vanilla_float_run)
-  + afterimages locales (Draw_0, obj_quickeffect_fade 0.07/5f) +
+- FLOAT RUN (retimado rev6): correr sostenido a 11; a los 0.5 s el
+  tope rampa +0.08/f hasta 14 y la pose (estado 17,
+  spr_vanilla_float_run) llega ~1.5 s despues de alcanzar el tope
+  (~5.3 s desde parada por la aceleracion base; ~1.4 s tras dash B).
+  El contador mide gspd (las cuestas NO reinician — xspd=gspd*cos
+  (angle) caia en pendientes y reseteaba; rev5: 1.5 s de espera +
+  rampa 0.03 = ~7.1 s desde parada = inalcanzable) y el dash NO
+  corta la cuenta. Afterimages locales (Draw_0,
+  obj_quickeffect_fade 0.07/5f) +
   REMOTAS via bitflag PLAYER_POWERBOOST en obj_netclient (el ghost
   del puppet en Step_0 es generico if(powerBoost), NO solo-Sonic).
   maxHSpeed = floatRunCap (var del player, seteada por
@@ -597,6 +614,90 @@ y las pistas nuevas de 20-28s se cortaban).
     = compile limpio de esas familias; calibrado: 875 .gml del repo,
     0 falsos positivos). Ya integrado como seccion 13 del validador
     de vanilla v2 (check 'sintaxis <archivo>' por cada GML tocado).
+11. ARCHIVOS .yy (vanilla-v2-fix2/rev3): los .yy de GM usan el campo
+    "%Name" con UN porcentaje y comas finales (JSON laxo). TRAMPA
+    PYTHON: una plantilla con "%%Name" sale BIEN si pasa por el
+    operador % (%% -> %) pero sale "%%Name" LITERAL si es cadena
+    cruda -> GM: 'Field "%Name": expected.' al ABRIR el proyecto.
+    Reglas: (a) generar .yy con cadenas crudas que ya contengan UN
+    %; (b) nunca mezclar plantillas %-formateadas y crudas; (c)
+    '%'-literal en un mensaje Python con operador % = crash latente
+    (usar f-strings); (d) tras crear recursos: yy_json_validate.py
+    --all.
+12. eventList DE .yy DE OBJETOS (vanilla-v2-fix3/rev4): GM CARGA el
+    proyecto con pares (eventType,eventNum) invalidos pero el
+    COMPILADOR DE ASSETS crashea con IndexOutOfRange en
+    GMObject.GetEventName_Simple (Igor exit -532462766). Causa:
+    generador desestructuraba `for typ, num` sobre tuplas (num,
+    typ). Pares validos (corpus del repo): Create=(0,0), Step=
+    (3,0|1|2), Draw=(8,0), DrawGUI=(8,64), DrawEnd=(8,76), Alarm=
+    (2,0..11), Other=(7,n), Destroy=(1,0), Collision=(4,0). En
+    disco TODOS los steps se llaman Step_N.gml (no BeginStep/
+    EndStep). Un .yy nuevo de objeto DEBE pasar yy_json_validate.py
+    (corpus de pares + archivo .gml por evento) ANTES de empaquetar.
+13. RECICLAJE DEL SANDBOX (30/10, vanilla-v2-fix3): entre mensajes el
+    sandbox puede reciclarse: repo RE-CLONADO (reflog solo "clone",
+    HEAD en commit viejo con todo M), zips de download/ y scripts/
+    de la task PERDIDOS. Protocolo de recuperacion: (a) respaldar
+    .md locales y diff a backup_*/; (b) comparar local vs remoto
+    (el remoto suele ser MAS nuevo si el usuario ya pusheo un zip);
+    (c) git reset --hard origin/main; (d) recrear herramientas desde
+    worklog/CACHE/conocimiento de sesion (por eso el worklog
+    documenta cada herramienta con su comportamiento exacto).
+14. MACROS GM = GLOBALES Y UNICAS (vanilla-v2-fix4/rev5): una #macro
+    se define UNA sola vez en TODO el proyecto; duplicarla da
+    "macro X is already defined" senalando la SEGUNDA definicion (los
+    scripts compilan antes que los eventos => el script gana y el
+    error apunta al Create del objeto). Caso: 3 macros VANILLA_*
+    definidas en scr_chocola.gml Y en obj_vanilla/Create_0.gml. Puede
+    quedar MASKED por errores de sintaxis previos (abortan la
+    compilacion antes de la fase de macros). DEFENSA:
+    gml_syntax_audit.py clase E (macro_dupes: escaneo completo de
+    #macro en scripts/+objects/, corre siempre) + test_macro_e.py
+    (regresion con git show del commit rev4) + validador seccion 5 +
+    scripts/v2_ref_check.py (tokens obj_/scr_/spr_/snd_ de los GML v2
+    contra carpetas de recursos y funciones `function nombre(` — una
+    funcion de script NO es carpeta: scr_vanilla_v2_step vive dentro
+    de scr_chocola.gml).
+15. TUNING DE TIMERS DE GAMEPLAY (vanilla-v2-fix5/rev6): el float
+    run "nunca salia" con la logica CORRECTA: 1.5 s a tope + rampa
+    0.03 = ~7.1 s desde parada (CREAM_ACC 0.046875 tarda 235 f solo
+    en llegar a 11) y el gate usaba xspd = gspd*cos(angle) => toda
+    cuesta de 15+ grados reiniciaba el contador. REGLAS: (a) tasar
+    el tiempo total DESDE PARADA (sumar la aceleracion base), nunca
+    desde "ya estoy a tope"; (b) los gates de velocidad sostenida
+    midan gspd (sobre el suelo), nunca xspd (cae con el coseno del
+    angulo del suelo); (c) si la rampa sube mas rapido que acc, la
+    pose llega cuando GSPD cruza el umbral (persigue el tope), no
+    cuando el tope teorico lo toca — simular gspd, no el cap; (d)
+    dejar un camino rapido (el dash B mantiene viva la cuenta: pose
+    en ~1.4 s); (e) el tiempo del LEEME debe coincidir con los
+    numeros reales (decia "corre 3-4 s" cuando hacian falta 7).
+16. PUPPETS: VARIABLES QUE NO VIAJAN POR RED (vanilla-v2-fix6/rev7):
+    crash "Variable obj_player_puppet.isGrounded(100460,
+    -2147483648) not set before reading it" en obj_chocola Step_0:46
+    (modo FOLLOW). obj_player_puppet es la representacion REMOTA de
+    un jugador y SOLO tiene lo que la red sincroniza (x/y, sprite,
+    xspd/yspd, isHiding, isHurt, hp, revivalTimes, state, master_id,
+    character, exeCharacter...). isGrounded NO existe en el puppet
+    ni existira jamas: las escrituras del juego son sobre
+    global.player (obj_player_puppet Step_0:161/184/305/316/369 =
+    jugador LOCAL golpeado, NO el puppet). REGLAS: (a) NUNCA leer
+    .isGrounded u otra var de jugador sobre una instancia que puede
+    ser un puppet; (b) "se mueve / en el aire" para un puppet =
+    desplazamiento real abs(x - xprevious), patron canonico de la
+    estela del powerboost de Sonic (puppet Step_0:63); (c) distinguir
+    local/puppet con variable_instance_exists(id, "var") (ver
+    scr_chocola_home_moving); (d) el timing del bug engana: salia
+    "al golpear al exe" pero era SOLO el momento en que Chocola
+    entraba en FOLLOW tras la caza (la crea CHOCOLA_NET_HUNT) —
+    localizar el modo leyendo la pila de estados, no el reporte.
+    SONIDOS: las senales net_sound_emit_at son PAQUETES, no audio:
+    si algo debe SONAR en el frame del golpe en todos los clientes,
+    reproducirlo LOCAL en cada cliente (audio_play_sound) — el
+    broadcast lo duplicaria N veces. Feedback canonico de stun al
+    exe: snd_exe_stun local (puppet Step_0:337/370) + scr_exe_
+    stunsound (grito de la variante) que SI se emite por red.
 
 ## 9. PENDIENTES / esperando al usuario
 - relay-v1.3: pendiente PRUEBA REAL CON JUGADOR EXTERNO por el relay.
@@ -632,15 +733,21 @@ y las pistas nuevas de 20-28s se cortaban).
   aplicador de ediciones quirurgicas (match exacto == 1 vez, TABs
   literales); scripts/<task>_validate.py = validador post-edicion.
 - (30/10, vanilla-v2) scripts/ EXISTE de nuevo en este sandbox con:
-  apply_vanilla_v2.py (+v2_content.py), vanilla_v2_validate.py (195
-  checks, seccion 13 = sintaxis), apply_flybuff_v1_*.py,
-  flybuff/carry validadores, y gml_syntax_audit.py (AUDITOR
-  SINTACTICO GML reutilizable: `python3 scripts/gml_syntax_audit.py`
+  apply_flybuff_v1_*.py, flybuff/carry validadores, y gml_syntax_audit.py
+  (AUDITOR SINTACTICO GML reutilizable: `python3 scripts/gml_syntax_audit.py`
   audita los GML de la ultima task; `--all` audita los 875 del repo.
   Caza: comas faltantes id+id/]+id dentro de expresiones, 'break:'/
   'continue:', ternarios encadenados a profundidad 0 (excluye
-  accessor [?), desbalance de llaves. Entiende $hex, #hex, strings
-  multilinea y el separador de sentencia por salto de linea).
+  accessor [?), desbalance de llaves, y DESDE rev5 la clase E:
+  macros #macro duplicadas a nivel PROYECTO (macro_dupes, escaneo
+  completo siempre). Test de regresion: test_macro_e.py; junto a el,
+  v2_ref_check.py (referencias obj_/scr_/spr_/snd_ de los GML v2
+  contra carpetas de recursos y funciones definidas). Entiende $hex,
+  #hex, strings multilinea y el separador de sentencia por salto de
+  linea). OJO: apply_vanilla_v2.py y v2_content.py se PERDIERON en el
+  reciclaje del sandbox (rev4): el repo git es la fuente de verdad
+  del parche v2; vanilla_v2_validate.py fue reconstruido compacto
+  (49 checks, secciones 1-5).
 - Aplicadores de parches (historico): apply_bugfix.py, apply_arrowfix.py.
 - Validadores (historico): bugfix_v1_validate.py, flecha_roja_v1_validate.py,
   hammer_v1_validate.py, td2dr_validate.py.
@@ -650,6 +757,61 @@ y las pistas nuevas de 20-28s se cortaban).
 - Misc (historico): check_arrow_colors.py (colores de sprites de flecha).
 
 ## 11. CHANGELOG DEL CACHE
+- 2026-10-30 (vanilla-v2-fix6/rev7): crash en runtime "Variable
+  obj_player_puppet.isGrounded(100460, -2147483648) not set before
+  reading it" en gml_Object_obj_chocola_Step_0 linea 46 (modo
+  FOLLOW): el home de Chocola en los clientes sin Vanilla local es
+  su PUPPET y isGrounded no viaja por red (solo existe en
+  global.player). Salia "al golpear al exe" porque esa es la unica
+  ruta que la deja en FOLLOW (nace con CHOCOLA_NET_HUNT). Fix:
+  nueva scr_chocola_home_moving() (local = igual que antes; puppet =
+  abs(x-xprevious)/abs(y-yprevious), patron powerboost) + golpe
+  audible: audio_play_sound(snd_exe_stun) local en TODOS los
+  clientes fuera de if(authority) (antes solo la autoridad emitia la
+  senal muda y nadie oia el impacto; el usuario lo reporto como
+  "no suena el sonido de impacto al exe"). Validador 57/57 con
+  seccion 7 (regresion rev7). Entregable: download/vanilla_v2_rev7.zip
+  (cambian 2 gml; server sin recompilar). El usuario pushea.
+- 2026-10-30 (vanilla-v2-fix5/rev6): FLOAT RUN inalcanzable en
+  juego (~7.1 s de carrera perfecta: 3.9 s de aceleracion base +
+  1.5 s de espera + 1.7 s de rampa; y el gate con xspd reiniciaba
+  en cualquier cuesta de 15+ grados por el coseno del angulo).
+  Retimado en scr_chocola.gml: RAMP_DELAY 1.5 s -> 0.5 s, RAMP_ACC
+  0.03 -> 0.08, gates con gspd, dash ya no corta el contador
+  (pose ~1.5 s tras el tope / ~5.3 s desde parada / ~1.4 s tras
+  dash). Chao mirando al reves: sprites importados volteados por
+  el usuario (el arte debe mirar a la DERECHA; todos los modos de
+  Chocola comparten xscale=1=derecha) — sin cambios de codigo.
+  Validador con seccion 6 (regresion rev6) y sims de gspd.
+  Entregable: download/vanilla_v2_rev6.zip (cambia 1 archivo;
+  server sin recompilar). El usuario pushea.
+- 2026-10-30 (vanilla-v2-fix4/rev5): GM compilaba tras rev4 pero
+  reportaba "macro VANILLA_PACIENCIA_TIME/MORIBUNDA_TIME/
+  FLOAT_SPEED is already defined" (obj_vanilla Create 20-22): las 3
+  estaban definidas DOS veces (scr_chocola.gml canon + Create,
+  masked desde v2 por la coma de net_sounds). Corregido el Create
+  (definicion unica en el script; VANILLA_RINGS_WORTH se queda).
+  gml_syntax_audit.py +clase E (macros duplicadas proyecto, con
+  test_macro_e.py de regresion contra el commit rev4), NUEVO
+  scripts/v2_ref_check.py (referencias obj_/scr_/spr_/snd_ de los 21
+  GML v2: 0 rotas), validador 49/49 (seccion 5 macros unicas).
+  Entregable: download/vanilla_v2_rev5.zip (cambia 1 .gml; server
+  sin recompilar). El usuario pushea.
+- 2026-10-30 (vanilla-v2-fix3/rev4): crash del COMPILADOR de assets
+  (Igor, IndexOutOfRange GMObject.GetEventName_Simple): eventList de
+  los 3 objetos nuevos con eventNum/eventType INTERCAMBIADOS
+  (p. ej. eventType:64 que no existe; Draw GUI real = eventNum:64,
+  eventType:8). GM cargaba el proyecto sin quejarse. Corregidos los
+  3 eventList (pares verificados contra corpus de 253+ objetos) +
+  versionado en git el fix rev3 de scr_chocola.yy (%%Name) que el
+  push "aja" del usuario no incluia. yy_json_validate.py ampliado
+  con CORPUS DE PARES + chequeo de archivo .gml por evento
+  (regla 8.12; regresion intercambiada = 3 errores). SANDBOX
+  RECICLADO entre mensajes (regla 8.13): herramientas recreadas,
+  vanilla_v2_validate.py reconstruido compacto (45 checks vs 201
+  perdidos). Validaciones: 45/45, .yy 1770/1770, GML 875/875.
+  Entregable: download/vanilla_v2_rev4.zip (cambian 4 .yy; server
+  sin recompilar). El usuario pushea.
 - 2026-10-30 (vanilla-v2-fix1/rev2): el usuario compilo la v2 y GM
   fallo: (1) net_sounds.gml 'snd_parry' sin coma (los 6 sonidos de
   Chocola se insertaron tras el ULTIMO elemento del array), error

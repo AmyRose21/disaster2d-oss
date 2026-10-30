@@ -27,8 +27,8 @@
 
 // --- float run (3ra fase de corrida) ---
 #macro VANILLA_FLOAT_SPEED 14              // tope de la 3ra fase
-#macro VANILLA_FLOAT_RAMP_DELAY (60 * 1.5) // frames a tope (11) antes de acelerar
-#macro VANILLA_FLOAT_RAMP_ACC 0.03         // cuanto sube el tope por frame
+#macro VANILLA_FLOAT_RAMP_DELAY (60 * 0.5) // frames a tope (11) antes de acelerar
+#macro VANILLA_FLOAT_RAMP_ACC 0.08         // cuanto sube el tope por frame
 #macro VANILLA_FLOAT_GHOST_EVERY 5         // una imagen residual cada 5 frames
 #macro VANILLA_FLOAT_GHOST_FADE 0.07       // fadeo de cada imagen residual
 
@@ -162,6 +162,31 @@ function scr_chocola_find_cream()
     }
 
     return noone;
+}
+
+// ¿El home se esta moviendo o esta en el aire? SOLO para elegir el
+// sprite de Chocola en FOLLOW (move vs Idle): NADA de logica de juego
+// depende de esto. La Vanilla LOCAL expone isGrounded (la inicializa
+// su Create y la actualiza su colision), pero su PUPPET no la tiene
+// ni la tendra jamas: esa variable NO viaja por red — las unicas
+// escrituras del juego son sobre global.player (obj_player_puppet
+// Step_0:161/184/305/316/369 escriben sobre el jugador LOCAL
+// golpeado, no sobre el puppet). En el puppet se mide con el
+// desplazamiento real entre frames, el mismo patron canonico que la
+// estela del powerboost de Sonic en su propio Step. rev7: leer
+// isGrounded de frente era el crash "Variable
+// obj_player_puppet.isGrounded not set" en FOLLOW (linea 46).
+function scr_chocola_home_moving(inst)
+{
+    if(inst == noone)
+        return false;
+
+    if(variable_instance_exists(inst, "isGrounded"))
+        return abs(inst.xspd) > 0.5 || !inst.isGrounded;
+
+    // puppet: sin isGrounded por red; la posicion si viaja, asi que el
+    // movimiento real entre frames es la unica senal fiable
+    return abs(inst.x - inst.xprevious) > 0.5 || abs(inst.y - inst.yprevious) > 0.5;
 }
 
 // ¿Hay una Vanilla en la partida? (pasivas que protegen a Cream)
@@ -321,9 +346,13 @@ function scr_vanilla_v2_step()
     // 14; al alcanzarlo Vanilla toma la pose float_run y deja imagenes
     // residuales (aqui solo el tope y el flag; la pose la elige Step_2,
     // la estela local Draw_0 y la remota el bitflag POWERBOOST).
+    // rev6: el contador se mide con gspd (velocidad SOBRE el suelo) para
+    // que las cuestas no lo reinicien (xspd = gspd*cos(angle) cae solo
+    // por la pendiente) y el dash ya NO corta la cuenta (el LEEME solo
+    // lista soltar/frenar/saltar/zonas lentas como reinicios).
     floatRunCap = CREAM_MAXSPEED;
 
-    if(isGrounded && !isSlow && global.playerControls && !isFlying && ringsSpawn <= 0 && dashing <= 0 && abs(xspd) >= CREAM_MAXSPEED - 0.25)
+    if(isGrounded && !isSlow && global.playerControls && !isFlying && ringsSpawn <= 0 && abs(gspd) >= CREAM_MAXSPEED - 0.25)
         runHold++;
     else
         runHold = 0;
@@ -331,7 +360,7 @@ function scr_vanilla_v2_step()
     if(runHold > VANILLA_FLOAT_RAMP_DELAY)
         floatRunCap = min(VANILLA_FLOAT_SPEED, CREAM_MAXSPEED + (runHold - VANILLA_FLOAT_RAMP_DELAY) * VANILLA_FLOAT_RAMP_ACC);
 
-    isFloatRunning = isGrounded && abs(xspd) >= VANILLA_FLOAT_SPEED - 0.25;
+    isFloatRunning = isGrounded && abs(gspd) >= VANILLA_FLOAT_SPEED - 0.25;
 
     // ---------------- TECLA V: CHOCOLA <-> CREAM ----------------
     if(global.playerControls && keyboard_check_pressed(global.KeyV) && pacienciaState == 0 && moribundaState == 0)
