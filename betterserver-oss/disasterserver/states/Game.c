@@ -128,7 +128,18 @@ bool game_init(int exe, int8_t map, Server* server)
         // Setup cooldowns
         time_start(&server->game.tails_last_proj);
         memset(server->game.rings, 0, sizeof(server->game.rings));
-        memset(server->game.cooldowns, 0, sizeof(server->game.cooldowns));
+
+        /* v2.1.3: los cooldowns de habilidades son POR JUGADOR: se
+         * resetean para todos al empezar la partida (no arrastrar los
+         * de la partida anterior). */
+        for (size_t i = 0; i < server->peers.capacity; i++)
+        {
+                PeerData* data = (PeerData*)server->peers.ptr[i];
+                if (!data)
+                        continue;
+
+                memset(data->plr_cooldowns, 0, sizeof(data->plr_cooldowns));
+        }
 
         if (!dylist_create(&server->game.entities, 3000))
                 return false;
@@ -451,26 +462,26 @@ bool game_demonize(Server* server, PeerData* data)
                 
                 data->plr.stats.rings = 0;
 
-                // reset cooldown
+                // reset cooldown (v2.1.3: POR JUGADOR, en el demonizado)
                 switch (data->surv_char)
                 {
                         case CH_TAILS:
                         {
-                                server->game.cooldowns[TAILS_RECHARGE] = 0;
-                                server->game.cooldowns[ETAILS_RECHARGE] = 0;
+                                data->plr_cooldowns[TAILS_RECHARGE] = 0;
+                                data->plr_cooldowns[ETAILS_RECHARGE] = 0;
                                 break;
                         }
 
                         case CH_EGGMAN:
                         {
-                                server->game.cooldowns[EGGTRACK_RECHARGE] = 0;
+                                data->plr_cooldowns[EGGTRACK_RECHARGE] = 0;
                                 break;
                         }
 
                         case CH_CREAM:
                         case CH_VANILLA: /* Vanilla: mismas habilidades que Cream */
                         {
-                                server->game.cooldowns[CREAM_RING_SPAWN] = 0;
+                                data->plr_cooldowns[CREAM_RING_SPAWN] = 0;
                                 break;
                         }
                 }
@@ -704,14 +715,15 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, v->surv_char == CH_TAILS);
                         AssertOrDisconnect(v->server, game_find(v->server, NULL, "tproj", 10) <= 2);
 
+                        /* v2.1.3: cooldown POR JUGADOR (antes: global, con
+                         * kick + mensaje). Con 2+ Tails en la partida, el
+                         * 2.o en disparar dentro de la ventana era
+                         * desconectado sin razon. Ahora se IGNORA el
+                         * paquete (el laser no sale, sin kick): solo un
+                         * cliente modificado puede topar con esto. */
                         int cooldown_id = v->plr.flags & PLAYER_DEMONIZED ? ETAILS_RECHARGE : TAILS_RECHARGE;
-                        if(v->server->game.cooldowns[cooldown_id] > 0)
-                        {
-                                char msg[256];
-                                snprintf(msg, 256, "is_exe: %d, cool_id: %s, remaining_cooldown: %f", v->plr.flags & PLAYER_DEMONIZED, cooldown_id == TAILS_RECHARGE ? "TAILS_RECHARGE" : "ETAILS_RECHARGE", v->server->game.cooldowns[cooldown_id]);
-                                RAssert(server_disconnect(v->server, v->peer, DR_OTHER, msg));
-                                return false;
-                        }
+                        if (v->plr_cooldowns[cooldown_id] > 0)
+                                break;
 
                         PacketRead(x, packet, packet_read16, uint16_t);
                         PacketRead(y, packet, packet_read16, uint16_t);
@@ -757,7 +769,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 break;
 
                         RAssert(game_spawn(v->server, (Entity*)&(MakeTailsProj(x, y, v->id, dir, v->plr.flags & PLAYER_DEMONIZED, chg, dmg)), sizeof(TProjectile), NULL));
-                        v->server->game.cooldowns[cooldown_id] = 10 * TICKSPERSEC;
+                        v->plr_cooldowns[cooldown_id] = 10 * TICKSPERSEC;
                         break;
                 }
 
@@ -850,7 +862,15 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         /* Vanilla usa las mismas habilidades que Cream:
                            el paquete de anillos tambien es valido para ella */
                         AssertOrDisconnect(v->server, v->surv_char == CH_CREAM || v->surv_char == CH_VANILLA);
-                        AssertOrDisconnect(v->server, v->server->game.cooldowns[CREAM_RING_SPAWN] <= 0);
+                        /* v2.1.3: cooldown POR JUGADOR (antes: GLOBAL a
+                         * toda la partida). Vanilla y Cream soltando
+                         * anillos casi a la vez reventaban este assert y el
+                         * server desconectaba al 2.o (crash del cliente en
+                         * net_tcpprocess). Ahora: si ESTE jugador la uso
+                         * hace poco, se ignora el paquete (sin spawn, sin
+                         * kick). */
+                        if (v->plr_cooldowns[CREAM_RING_SPAWN] > 0)
+                                break;
 
                         if (v->mod_tool)
                         {
@@ -932,7 +952,11 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 }
                         }
 
-                        v->server->game.cooldowns[CREAM_RING_SPAWN] = 15 * TICKSPERSEC; /* v1.2: recarga de Vanilla = 15 s */
+                        /* v2.1.3: POR JUGADOR y 10 s = la recarga de
+                         * cliente mas corta (EVANILLA_RINGS_RECHARGE,
+                         * Vanilla demonizada), para que un jugador legitimo
+                         * jamas tope con este limite: solo frena el spam. */
+                        v->plr_cooldowns[CREAM_RING_SPAWN] = 10 * TICKSPERSEC;
                         break;
                 }
 
@@ -983,13 +1007,18 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, v->in_game);
                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
                         AssertOrDisconnect(v->server, v->surv_char == CH_EGGMAN);
-                        AssertOrDisconnect(v->server, v->server->game.cooldowns[EGGTRACK_RECHARGE] <= 0);
+                        /* v2.1.3: cooldown POR JUGADOR (antes: global; con
+                         * 2+ Eggman en la partida, el 2.o rastreador dentro
+                         * de la ventana desconectaba a su dueno). Ignorar
+                         * el paquete, sin kick. */
+                        if (v->plr_cooldowns[EGGTRACK_RECHARGE] > 0)
+                                break;
                         
                         PacketRead(x, packet, packet_read16, uint16_t);
                         PacketRead(y, packet, packet_read16, uint16_t);
                         
                         game_spawn(v->server, (Entity*)&(MakeEggTrack(x, y)), sizeof(EggTracker), NULL);
-                        v->server->game.cooldowns[EGGTRACK_RECHARGE] = 10 * TICKSPERSEC; 
+                        v->plr_cooldowns[EGGTRACK_RECHARGE] = 10 * TICKSPERSEC; 
                         break;
                 }
 
@@ -1021,7 +1050,10 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, v->in_game);
                         AssertOrDisconnect(v->server, v->id == v->server->game.exe);
                         AssertOrDisconnect(v->server, v->exe_char == EX_EXETIOR);
-                        AssertOrDisconnect(v->server, v->server->game.cooldowns[EXETIOR_BRING_SPAWN] <= 0);
+                        /* v2.1.3: cooldown POR JUGADOR (el Exetior es unico:
+                         * mismo comportamiento que antes, ahora por jugador) */
+                        if (v->plr_cooldowns[EXETIOR_BRING_SPAWN] > 0)
+                                break;
 
                         PacketRead(x, packet, packet_read16, uint16_t);
                         PacketRead(y, packet, packet_read16, uint16_t);
@@ -1043,7 +1075,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         }
                         
                         game_spawn(v->server, (Entity*)(&(MakeBlackRing(x, y))), sizeof(BRing), NULL);
-                        v->server->game.cooldowns[EXETIOR_BRING_SPAWN] = 10 * TICKSPERSEC;
+                        v->plr_cooldowns[EXETIOR_BRING_SPAWN] = 10 * TICKSPERSEC;
                         break;
                 }
 
@@ -1681,13 +1713,20 @@ bool game_entity_tick(Server* server)
 
 bool game_player_tick(Server* server)
 {
-        // Update player cooldown
-        for (int i = 0; i < PLAYER_COOLCOUNT; i++)
+        /* Update cooldowns (v2.1.3: POR JUGADOR) */
+        for (size_t p = 0; p < server->peers.capacity; p++)
         {
-                if (server->game.cooldowns[i] > 0)
-                        server->game.cooldowns[i] -= server->delta;
-                else
-                        server->game.cooldowns[i] = 0;
+                PeerData* data = (PeerData*)server->peers.ptr[p];
+                if (!data)
+                        continue;
+
+                for (int i = 0; i < PLAYER_COOLCOUNT; i++)
+                {
+                        if (data->plr_cooldowns[i] > 0)
+                                data->plr_cooldowns[i] -= server->delta;
+                        else
+                                data->plr_cooldowns[i] = 0;
+                }
         }
         
         PeerData* exe = server_find_peer(server, server->game.exe);

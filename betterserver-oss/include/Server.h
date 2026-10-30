@@ -25,6 +25,23 @@
 
 struct Server;
 struct auth_peer_data;
+
+/* v2.1.3: cooldowns de habilidades POR JUGADOR (PeerData.plr_cooldowns).
+   Antes vivian en Game.cooldowns, GLOBALES a toda la partida: con dos
+   jugadores con la misma habilidad (Vanilla y Cream soltando anillos,
+   dos Eggman con el rastreador, dos Tails con el laser) el assert del
+   2.o en usarla dentro de la ventana fallaba y el server lo desconectaba
+   (y su cliente crasheaba leyendo `type` sin definir en net_tcpprocess:
+   fix cliente v2.1.3). */
+#define PLAYER_COOLCOUNT 6
+// Cooldown indices (dentro de PeerData.plr_cooldowns)
+#define TAILS_RECHARGE 0
+#define CREAM_RING_SPAWN 1
+#define EXETIOR_BRING_SPAWN 2
+#define EXELLER_CLONE_SPAWN 3
+#define EGGTRACK_RECHARGE 4
+#define ETAILS_RECHARGE 5
+
 typedef struct PeerData
 {
 	uint16_t id;
@@ -95,6 +112,10 @@ typedef struct PeerData
 	double timeout;
 	double vote_cooldown;
 
+	/* v2.1.3: cooldowns de habilidades de ESTE jugador (indices de arriba).
+	   Se resetean en game_init y al demonizarse (states/Game.c). */
+	double plr_cooldowns[PLAYER_COOLCOUNT];
+
 	struct Server *server;
 } PeerData;
 
@@ -159,18 +180,8 @@ typedef struct
 	/* Lists */
 	DyList left;
 
-#define PLAYER_COOLCOUNT 6
-	double cooldowns[PLAYER_COOLCOUNT];
 	TimeStamp tails_last_proj;
 } Game;
-
-// List of cooldown indicies
-#define TAILS_RECHARGE 0
-#define CREAM_RING_SPAWN 1
-#define EXETIOR_BRING_SPAWN 2
-#define EXELLER_CLONE_SPAWN 3
-#define EGGTRACK_RECHARGE 4
-#define ETAILS_RECHARGE 5
 
 typedef struct Results
 {

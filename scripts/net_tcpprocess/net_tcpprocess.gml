@@ -78,6 +78,15 @@ function net_tcpprocess(rbuff)
 				if(_passtrough)
 					 break;
 				
+				// v2.1.3: el payload de este paquete es [u8 reason][string msg]
+				// (server_disconnect, betterserver-oss/states/Server.c). Este
+				// case leia `type` SIN definirla jamas -> crash "obj_netclient.type
+				// not set" en cuanto el server forzaba una desconexion. Pasaba
+				// al usar Vanilla y Cream la habilidad de anillos casi a la vez:
+				// el cooldown del server era GLOBAL y el assert del 2.o lo sacaba
+				// (fix server v2.1.3: cooldowns por jugador).
+				var type = buffer_read_s(rbuff, buffer_u8);
+				
 				if(type == 9)
 				{
 					isConnected = false;
@@ -100,6 +109,7 @@ function net_tcpprocess(rbuff)
 				show_message_async(msg);
 				global.errorCode = 1;
 				room_goto(room_message);
+				break; // v2.1.3: faltaba este break: el case caia (fall-through) dentro de SERVER_LOBBY_COUNTDOWN
 			}
 			
 			case PacketType.SERVER_LOBBY_COUNTDOWN:
