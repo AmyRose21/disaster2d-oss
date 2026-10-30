@@ -177,8 +177,8 @@ global.player_anims[? CHARACTER_SONIC] =
 global.player_anims[? CHARACTER_CREAM] = 
 [
         spr_cream_idle, //0
-        spr_vanilla_walk, //1
-        spr_vanilla_run, //2
+        spr_cream_walk, //1
+        spr_cream_run, //2
         spr_cream_jump, //3
         spr_cream_fall, //4
         spr_cream_hurt, //5

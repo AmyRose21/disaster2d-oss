@@ -1966,6 +1966,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         var _eid = buffer_read_s(rbuff, buffer_u16);
                         var _redRing = buffer_read_s(rbuff, buffer_bool);
                         var _canHeal = buffer_read_s(rbuff, buffer_bool);
+                        var _worth = buffer_read_s(rbuff, buffer_u8); // v1.2: anillos de Vanilla valen 3 (servers viejos: -1)
                         
                         if(_redRing)
                         {
@@ -1986,7 +1987,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         else
                         {                                               
                                 //Hp regen
-                                global.player.rings++;
+                                global.player.rings += _worth > 0 ? _worth : 1;
                                 if(global.player.redRingTimer >= 60)
                                 {
                                         var cnt = ((global.timeMinutes <= 0 && global.timeSeconds <  60) ? 2 : 0.5) * 60;

@@ -164,6 +164,7 @@
     {"name":"spr_vanilla_emotion2","order":3,"path":"sprites/spr_vanilla_emotion2/spr_vanilla_emotion2.yy",},
     {"name":"spr_vanilla_emotion3","order":4,"path":"sprites/spr_vanilla_emotion3/spr_vanilla_emotion3.yy",},
     {"name":"spr_vanilla_fall","order":5,"path":"sprites/spr_vanilla_fall/spr_vanilla_fall.yy",},
+    {"name":"spr_vanilla_float_run","order":19,"path":"sprites/spr_vanilla_float_run/spr_vanilla_float_run.yy",},
     {"name":"spr_vanilla_fly","order":6,"path":"sprites/spr_vanilla_fly/spr_vanilla_fly.yy",},
     {"name":"spr_vanilla_hurt","order":7,"path":"sprites/spr_vanilla_hurt/spr_vanilla_hurt.yy",},
     {"name":"spr_vanilla_idle","order":8,"path":"sprites/spr_vanilla_idle/spr_vanilla_idle.yy",},

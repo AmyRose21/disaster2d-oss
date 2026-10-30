@@ -610,6 +610,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 PacketWrite(&pack, packet_write16, 0);
                                 PacketWrite(&pack, packet_write8, true);
                                 PacketWrite(&pack, packet_write8, false);
+                                PacketWrite(&pack, packet_write8, 1); /* v1.2: byte worth (fake = 1) */
                                 RAssert(packet_send(v->peer, &pack, true));
                                 break;
                         }
@@ -819,8 +820,8 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 if (!ent->red)
                                 {
                                         time_start(&data->plr.last_rings);
-                                        data->plr.rings++;
-                                        data->plr.stats.rings++;
+                                        data->plr.rings += ent->worth;
+                                        data->plr.stats.rings += ent->worth;
                                 }
 
                                 Packet pack;
@@ -829,6 +830,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 PacketWrite(&pack, packet_write16, eid);
                                 PacketWrite(&pack, packet_write8, ent->red);
                                 PacketWrite(&pack, packet_write8, data->plr.rings > 0);
+                                PacketWrite(&pack, packet_write8, ent->worth); /* v1.2 */
 
                                 free(ent);
                                 RAssert(packet_send(v->peer, &pack, true));
@@ -853,6 +855,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 PacketWrite(&pack, packet_write16, 0);
                                 PacketWrite(&pack, packet_write8, true);
                                 PacketWrite(&pack, packet_write8, false);
+                                PacketWrite(&pack, packet_write8, 1); /* v1.2: byte worth (fake = 1) */
                                 RAssert(packet_send(v->peer, &pack, true));
                                 break;
                         }
@@ -889,7 +892,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                         uint16_t rX = x + posX[i];
                                         uint16_t rY = y + posY[i];
 
-                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(rX, rY, red_ring)), sizeof(CreamRing), NULL));
+                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(rX, rY, red_ring, 1)), sizeof(CreamRing), NULL));
                                 }
                         }
                         else
@@ -901,11 +904,12 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                         uint16_t rX = x + posX[i];
                                         uint16_t rY = y + posY[i];
 
-                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(rX, rY, red_ring)), sizeof(CreamRing), NULL));
+                                        /* v1.2: los anillos de VANILLA valen 3 al recogerlos */
+                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(rX, rY, red_ring, v->surv_char == CH_VANILLA ? 3 : 1)), sizeof(CreamRing), NULL));
                                 }
                         }
 
-                        v->server->game.cooldowns[CREAM_RING_SPAWN] = 25 * TICKSPERSEC;
+                        v->server->game.cooldowns[CREAM_RING_SPAWN] = 15 * TICKSPERSEC; /* v1.2: recarga de Vanilla = 15 s */
                         break;
                 }
 
@@ -959,7 +963,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 
                         if (v->mod_tool)
                         {
-                                RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(x, y, false)), sizeof(CreamRing), NULL));
+                                RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(x, y, false, 1)), sizeof(CreamRing), NULL));
                                 break;
                         }
 
@@ -1017,7 +1021,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 float by = brings[i]->pos.y;
 
                                 if (game_despawn(v->server, NULL, eid))
-                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(bx, by, false)), sizeof(CreamRing), NULL));
+                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(bx, by, false, 1)), sizeof(CreamRing), NULL));
 
                                 break;
                         }
@@ -1044,7 +1048,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         {
                                 for(int i = -3; i < 3; i++)
                                 {
-                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(x + i * 8, y, false)), sizeof(CreamRing), NULL));
+                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(x + i * 8, y, false, 1)), sizeof(CreamRing), NULL));
                                 }
                         }
 

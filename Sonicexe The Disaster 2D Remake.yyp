@@ -1886,6 +1886,7 @@
     {"id":{"name":"spr_vanilla_emotion2","path":"sprites/spr_vanilla_emotion2/spr_vanilla_emotion2.yy",},},
     {"id":{"name":"spr_vanilla_emotion3","path":"sprites/spr_vanilla_emotion3/spr_vanilla_emotion3.yy",},},
     {"id":{"name":"spr_vanilla_fall","path":"sprites/spr_vanilla_fall/spr_vanilla_fall.yy",},},
+    {"id":{"name":"spr_vanilla_float_run","path":"sprites/spr_vanilla_float_run/spr_vanilla_float_run.yy",},},
     {"id":{"name":"spr_vanilla_fly","path":"sprites/spr_vanilla_fly/spr_vanilla_fly.yy",},},
     {"id":{"name":"spr_vanilla_hurt","path":"sprites/spr_vanilla_hurt/spr_vanilla_hurt.yy",},},
     {"id":{"name":"spr_vanilla_idle","path":"sprites/spr_vanilla_idle/spr_vanilla_idle.yy",},},

@@ -18,7 +18,9 @@ switch(state)
 		break;
 		
 	case FALL:
-		image_index = yspd > 0 ? 1 : 0;
+		// v1.2: LOOP de verdad (antes: frame fijo 0/1, por eso nunca
+		// se repetia). La velocidad de la animacion crece con la caida.
+		image_speed = 0.15 + min(abs(yspd), 12) * 0.02;
 		break;
 		
 	case WALK:
@@ -65,10 +67,9 @@ switch(state)
 		break;
 		
 	case CREAM_SPAWN:
-		image_speed = 0.5;
-		
-		if(image_index >= image_number - 1)
-			image_index = image_number - 1;
+		// v1.2: LOOP (antes: clamp al ultimo frame; con el sprite de
+		// 4 frames se congelaba en el 3 casi todo el cast de 60).
+		image_speed = 0.2;
 		break;
 		
 	case EMOTION1:
