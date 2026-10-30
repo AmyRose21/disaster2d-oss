@@ -20,6 +20,9 @@ reviveObj = noone;
 revivalTimes = 0;
 xspd = 0;
 yspd = 0;
+// isGrounded NO viaja por red: default defensivo para que leerlo en un
+// puppet no reviente (lo hace obj_chocola para su sprite de movimiento)
+isGrounded = true;
 pX = x;
 pY = y;
 image_speed = 0;

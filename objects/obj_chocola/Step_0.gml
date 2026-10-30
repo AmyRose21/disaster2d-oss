@@ -43,7 +43,13 @@ switch(mode)
                 }
                 else
                 {
-                        if(abs(homeInst.xspd) > 0.5 || !homeInst.isGrounded)
+                        // "en movimiento": xspd e yspd SI viajan por red al
+                        // puppet (net_udpprocess: CLIENT_PLAYER_DATA), asi que
+                        // la misma regla vale para la Vanilla local y para su
+                        // puppet en las demas pantallas. isGrounded NO viaja:
+                        // existe en el puppet solo por el default defensivo
+                        // de su Create (antes leerlo ahi CRASHEABA el juego).
+                        if(abs(homeInst.xspd) > 0.5 || abs(homeInst.yspd) > 0.5 || !homeInst.isGrounded)
                                 sprite_index = spr_vanilla_chocola_move;
                         else
                                 sprite_index = spr_vanilla_chocola_Idle;
