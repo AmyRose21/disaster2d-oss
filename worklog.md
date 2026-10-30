@@ -1594,3 +1594,122 @@ Stage Summary:
 - Misma funcionalidad 100%, solo sintaxis compatible GM LTS 2026.
 - El usuario ya tiene la rev1 aplicada: extraer rev2 ENCIMA
   (sobreescribe los 5 archivos arreglados y todo lo demas).
+
+---
+Task ID: vanilla-v2
+Agent: Super Z (main agent)
+Task: KIT COMPLETO VANILLA V2: Chocola la guardiana (paciencia +
+bloqueo 50% + ataque 33% + V hacia Cream), float run a 14 con estela,
+anillos x4, moribunda (nunca muere), des-demonizacion (15 anillos),
+Fortaleza/Inspiracion/Madre-e-hija. Pedido del usuario 30/10 (tras
+pull con sprites nuevos spr_vanilla_chocola_* / paciencia /
+float_run subidos por el).
+
+Work Log:
+- PULL primero (regla nueva del usuario): remoto traia 6 commits
+  (41dda5d0) con TODOS los mods anteriores ya integrados (carry,
+  flybuff, vanilla-v1 + fix1) + sprites nuevos del usuario (chocola
+  x4, paciencia x2, float_run, srings, walk, zipline...) + un
+  obj_vanilla v1.2 evolucionado por el usuario (specialFunc inline
+  con macros VANILLA_FLY_*: vuelo tipo Tails 5 s / 7.5 s con
+  pasajero, dash, anillos 15 s). Cambios locales eran subconjunto
+  del remoto: checkout limpio + pull.
+- Recon completo en paralelo (3 subagentes): caida/demonizacion/
+  stun/i-frames (shockedTimer aplicado por el cliente del exe;
+  escudo Sally = hurttime + alpha 0.5; afterimages =
+  obj_quickeffect_fade; patron guards canon en scr_player_instakill
+  sin avisar al server), mascotas/flechas/V (pets = Draw_76 lerp
+  0.21 detras del jugador, creados por spawnpoint/netclient Other_4;
+  obj_amycanon_indicators clonable; V libre salvo carry-drop y
+  parry Sonic/AmyCanon), server (demonizacion server-authoritative
+  con flags PLAYER_*; worth de anillos via SERVER_RING_COLLECTED u8;
+  SERVER_FORCE_DAMAGE sin uso; enum PacketType identico en ambos
+  lados).
+- DISENO: Chocola = objeto nuevo simulado LOCALMENTE en cada cliente
+  (patron pets) con transiciones por BROADCASTS de sonido
+  (snd_mermer/nono/vasebreak/ready/npteleport/achivement, indices
+  108-113 de net_snds, ninguno se emitia por red antes); los STUNS
+  al exe viajan como senales shouldPlay=true a su nid (patron
+  parry v3.5) y los aplica su cliente (scr_chocola_stun_signal con
+  duracion parametrizada + dedup shockedTimer). Estado de Vanilla
+  por red: estados 17 (float run) / 18 (paciencia) / 19 (agotada/
+  moribunda) en player_anims/eanims extendidos a 20 entradas.
+  Estela remota del float run = bitflag PLAYER_POWERBOOST reutilizado
+  (el ghost del puppet es generico, no solo-Sonic). Paciencia/
+  moribunda interceptan scr_player_instakill SIN avisar al server
+  (patron burbuja/nervios/fase2); Vanilla nunca muerte server-side:
+  guards CH_VANILLA anadidos a game_demonize y CLIENT_PLAYER_DEATH_
+  STATE (muerte directa canon, jamas demonizada). Des-demonizacion =
+  unico paquete NUEVO (CLIENT/SERVER_VANILLA_DEDEMONIZE 144/145):
+  el server valida (CH_VANILLA, in_game, target demonizado, dist
+  <= 150) y limpia PLAYER_DEMONIZED + marca PLAYER_REVIVED (= "1
+  caida mas para re-demonizarse"); SIN esto el AssertOrDisconnect
+  de CLIENT_PLAYER_DEATH_STATE desconectaba al esbirro en su
+  siguiente caida. Worth: Vanilla 4 (server Game.c, MakeCreamRing);
+  Cream 2 si hay Vanilla in_game (loop de peers). Fortaleza:
+  scr_player_hurt pierde 15% (Vanilla) / 30% (Cream con Vanilla,
+  via scr_vanilla_in_match) min 3, en vez de todos los anillos.
+- ARCHIVOS NUEVOS (15): scripts/scr_chocola (macros + 10 funciones:
+  find home/exe/cream, scr_vanilla_v2_step = toda la logica del
+  paso de Vanilla, net_event, stun_signal, guard_consume),
+  objects/obj_chocola (Create + Step: 6 modos FOLLOW/HUNT/RETURN/
+  GO_CREAM/GUARD/ATTACK_PAUSE; FOLLOW usa la MISMA formula de los
+  pets; HUNT llega -> senal al nid del exe + attack pause + return;
+  GUARD junto a Cream con roll 33% y cura 15% AL LLEGAR solo en el
+  cliente de Cream), objects/obj_vanilla_indicators (clon de
+  amycanon: flecha verde ring + roja exe, solo su cliente),
+  objects/obj_family_indicator (flecha amarilla spr_sindicator3
+  madre-hija > 400 px, clientes de Vanilla Y Cream, la crea
+  obj_spawnpoint).
+- PARCHES CLIENTE (30 ops): scr_survivors (arrays Vanilla +3),
+  obj_vanilla Create (macros v2, 15 vars nuevas, specialFunc llama
+  scr_vanilla_v2_step + early-return paciencia, maxHSpeed =
+  floatRunCap, comment v2 anillos, chocola celebra con C, crea
+  indicadores), Step_2 (estados 17/18/19 en la cadena, float run en
+  la de corrida), Draw_76 (cases nuevos), Draw_0 (afterimages
+  locales), scr_player_hurt (guard inmune paciencia/moribunda,
+  bloqueo 50% con spr_shieldbreak + hurttime 150, custodia Cream
+  bloquea 1 dano exe O entorno, fortaleza 15/30% min 3, instakill
+  paciencia 1ra + moribunda 2da+ conservando anillos), scr_move_
+  basic (salto bloqueado en paciencia/moribunda), net_sounds (+6),
+  net_packets (+2), obj_netclient Step_2 (POWERBOOST si
+  isFloatRunning), obj_spawnpoint (family indicator), net_state_
+  game (senales snd_nono/vasebreak -> stun 5 s/1.5 s; hooks
+  broadcast en el with del puppet para HUNT/GO/RECALL/DUTY/SUPPORT
+  — SUPPORT se deriva del snd_creamring que Vanilla ya emite con
+  pid=puppet Vanilla; case SERVER_VANILLA_DEDEMONIZE con des-
+  demonizacion local del objetivo: revivalTimes=1, hp 100, paleta
+  normal + net_send_palette, destruye obj_demon_indicator).
+- PARCHES SERVER: include/Packet.h (+2 enum al final, mismo orden
+  que net_packets.gml), states/Game.c (guards canon x2, worth
+  4/cream_worth 2 con loop de peers, case CLIENT_VANILLA_DEDEMONIZE
+  con validaciones + broadcast + Info log).
+- VALIDACION: vanilla_v2_validate.py 174/174 (sintaxis balanceada,
+  sin CR, sin ternarios encadenados GM2026, registro yyp/rorder,
+  cableado completo, paridad de enums, sims de reloj: paciencia
+  300/180/freeze/exit, float run 190 f a tope, fortaleza 15/30/min3,
+  cooldowns). Server compilado 100% limpio (gcc + enet clonado,
+  build_v2) y smoke test OK (v1101, puerto 8606, Lobby).
+- Aplicador scripts/apply_vanilla_v2.py (50 operaciones, anclas
+  byte-exactas con indentacion verificada por archivo: ESPACIOS en
+  scr_survivors/scr_player_hurt/net_sounds/net_state_game/net_
+  packets/scr_move_basic, TABs en obj_vanilla*/obj_netclient/
+  obj_spawnpoint; marcadores idempotentes por parche). Bug del
+  primer dry-run (escribia en modo --dry): revertido con git
+  checkout y re-aplicado limpio.
+
+Stage Summary:
+- VANILLA V2 COMPLETA: anillos x4 (server), float run 11->14 con
+  pose+estela (local y remota), paciencia (1ra caida: 5 s inmune,
+  Chocola stunea al exe 5 s con el reloj congelado hasta golpear),
+  moribunda (nunca muere, 6 s + 30 hp), Chocola permanente (bloqueo
+  50%/2.5 s + ataque 33%/1.5 s, CD 4.5 s compartido), V = enviar/
+  llamar a Chocola con Cream (custodia: bloquea 1 dano o stun,
+  cura 15% al llegar), des-demonizacion por 15 anillos (paquete
+  nuevo con validacion server), Fortaleza (15%/30% min 3),
+  Inspiracion (anillos de Cream x2), Madre e hija (flecha amarilla
+  mutua > 400 px) + detectores exe/ring para Vanilla.
+- REQUIERE RECOMPILAR EL SERVER (worth 4/2 + des-demonizacion).
+  Entregable: download/vanilla_v2.zip. LEEME_VANILLA_V2.txt con
+  instalacion, ajustes (macros en scr_chocola.gml), decisiones de
+  diseno y guion de prueba de 7 pasos.

@@ -123,6 +123,19 @@ global.net_snds =
         // Tambien AL FINAL por la misma razon. Lo emite scr_parry_negate_hit
         // (net_sound_emit_at para que suene posicionado en el Sonic). ---
         snd_parry   // 107
+        
+        // --- VANILLA V2 (CHOCOLA): senales de la mascota de Vanilla.
+        // AL FINAL a proposito (mismo patron que DSTAROT/snd_parry): un
+        // cliente viejo que reciba uno de estos indices simplemente no
+        // reconoce el sonido. NINGUNO se emite por red desde otra parte
+        // del juego, asi que las ramas del CLIENT_SOUND_EMIT son
+        // exclusivas de Chocola (ver scr_chocola.gml). ---
+        snd_mermer,      // 108: CHOCOLA sale a cazar al exe (paciencia)
+        snd_nono,        // 109: senal al exe: stun de 5 s (golpe de paciencia)
+        snd_vasebreak,   // 110: senal al exe: stun de 1.5 s (ataque cercano)
+        snd_ready,       // 111: Chocola va hacia Cream (tecla V)
+        snd_npteleport,  // 112: Chocola vuelve con Vanilla (V otra vez)
+        snd_achivement   // 113: custodia cumplida en Cream: vuelve a casa
 ];
 global.tmp_sndid = 0;
 

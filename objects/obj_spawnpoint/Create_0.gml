@@ -18,6 +18,13 @@ if(!instance_exists(global.player) && global.character != CHARACTER_EXE)
 	if(!instance_exists(obj_carry_controller))
 		instance_create_depth(inst.x, inst.y, 0, obj_carry_controller);
 
+	// MADRE E HIJA (Vanilla v2): flecha que apunta hacia la otra (Vanilla
+	// <-> Cream) cuando estan lejos una de la otra. Solo la llevan los
+	// clientes de Vanilla y de Cream; el objeto decide solo si tiene algo
+	// que senalar (se autogestiona cada frame).
+	if(global.character == CHARACTER_VANILLA || global.character == CHARACTER_CREAM)
+		instance_create_depth(inst.x, inst.y, 0, obj_family_indicator);
+
 	if(room == room_ravinemist)
 		instance_create_depth(inst.x, inst.y, 0, obj_surv_ringindicator);
 	

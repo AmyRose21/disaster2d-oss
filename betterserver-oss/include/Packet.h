@@ -180,7 +180,14 @@ typedef enum
         /* Sistema de operadores (.op): estado de operador (server ->
            cliente; 1 = es operador). Mismo orden que el enum del
            cliente (net_packets.gml). */
-        SERVER_OPERATOR_STATE
+        SERVER_OPERATOR_STATE,
+
+        /* Vanilla v2 (Chocola): des-demonizacion de un esbirro pagada
+           con 15 anillos por Vanilla (esbirro ATURDIDO al alcance).
+           El server valida, limpia PLAYER_DEMONIZED y avisa a todos.
+           Mismo orden que el enum del cliente (net_packets.gml). */
+        CLIENT_VANILLA_DEDEMONIZE,
+        SERVER_VANILLA_DEDEMONIZE
 } PacketType;
 
 typedef struct

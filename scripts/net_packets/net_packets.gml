@@ -177,7 +177,15 @@ enum PacketType
            desbloquea a Sally Canon en la seleccion, ver net_tcpprocess
            y scr_char_locked). Lo mandan Server.c y ui/Main.c. Mismo
            orden en el Packet.h del server. */
-        SERVER_OPERATOR_STATE
+        SERVER_OPERATOR_STATE,
+        
+        /* Vanilla v2 (Chocola): des-demonizacion de un esbirro pagada
+           con 15 anillos por Vanilla (esbirro ATURDIDO al alcance). El
+           server valida estado y distancia, limpia su flag
+           PLAYER_DEMONIZED y avisa a todos. Mismo orden que el Packet.h
+           del server (betterserver-oss). */
+        CLIENT_VANILLA_DEDEMONIZE,
+        SERVER_VANILLA_DEDEMONIZE
 }
 
 #macro STATE_PENDING -1

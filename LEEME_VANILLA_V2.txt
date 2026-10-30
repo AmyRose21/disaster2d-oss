@@ -1,0 +1,199 @@
+════════════════════════════════════════════════════════════════════
+ VANILLA V2 — CHOCOLA, PACIENCIA, FLOAT RUN Y LAS PASIVAS DE MADRE
+════════════════════════════════════════════════════════════════════
+
+Vanilla the Rabbit pasa a ser una de las 3 mas fuertes del mod (contigo
+y con Sally; Sonic pertenece a otra rama). Este paquete le anade TODO
+el kit de la v2 sobre la v1.2 que ya tenias.
+
+──────────────────────────────────────────────────────────────────────
+ QUE HAY QUE HACER (instalacion)
+──────────────────────────────────────────────────────────────────────
+ 1) Cliente: extraer el zip ENCIMA de la raiz del proyecto (la carpeta
+    con el .yyp) con GameMaker CERRADO. Aceptar sobrescribir.
+ 2) Server: HAY QUE RECOMPILAR (compilar_server.bat, opcion 1 o 2).
+    El server trae 3 cambios: anillos de Vanilla valen 4, anillos de
+    Cream valen 2 contigo en la partida, y el paquete nuevo de
+    des-demonizacion. Sin recompilar, esas 3 cosas no funcionan (el
+    resto del mod SI: todo lo de Chocola y las pasivas viaja por los
+    canales que ya existian).
+ 3) Reabrir GameMaker y compilar con F5.
+
+ Si usas git: todo ya esta commiteado y pusheado en la rama main
+ (task vanilla-v2). El zip es lo mismo que el commit, por si prefieres
+ extraer a mano.
+
+──────────────────────────────────────────────────────────────────────
+ 1. ANILLOS QUE VALEN 4
+──────────────────────────────────────────────────────────────────────
+ Cada anillo que Vanilla invoca (tecla C) ahora da 4 al recogerlo en
+ vez de 3 (3 anillos x 4 = 12 por uso). El valor lo pone el SERVER al
+ spawnearlos y vale para QUIEN los recoja. La recarga sigue en 15 s.
+
+ PASIVA "Inspiracion de una madre": si Vanilla esta en la partida, los
+ anillos que invoca CREAM valen 2 en vez de 1 (3 x 2 = 6 por uso).
+ Solo con Vanilla presente (su presencia la inspira).
+
+──────────────────────────────────────────────────────────────────────
+ 2. FLOAT RUN (3ra fase de corrida)
+──────────────────────────────────────────────────────────────────────
+ Corriendo sin parar a tope (~1.5 s a velocidad 11), el limite de
+ Vanilla empieza a SUBIR SOLO hasta 14 (~1.7 s mas de rampa: en total
+ ~3.2 s de carrera sostenida para llegar a tope). Al alcanzar 14 toma
+ la pose spr_vanilla_float_run y deja IMAGENES RESIDUALES mientras
+ dura la pose (tambien las ven los demas clientes, en su puppet).
+ Soltar/frenar/saltar/ser frenada por zonas lentas: el contador se
+ reinicia y el tope vuelve a 11. La velocidad sobrante se conserva en
+ el aire como impulso normal.
+
+──────────────────────────────────────────────────────────────────────
+ 3. PACIENCIA (1ra caida) — nunca cae muerta
+──────────────────────────────────────────────────────────────────────
+ Cuando Vanilla llega a 0 de vida NO muere: entra en PACIENCIA
+ (spr_vanilla_paciencia), quieta e INMUNE a todo durante 5 segundos
+ (ni el exe ni el entorno le hacen nada; si cayo a un hoyo levita
+ suave hasta salir).
+
+  · A los 2 s sale su chao CHOCOLA (spr_vanilla_chocola_move) desde
+    el LADO CONTRARIO de la pantalla y vuela directo al exe.
+  · Al golpearlo (spr_vanilla_chocola_attack) el exe queda STUNEADO
+    5 SEGUNDOS. Chocola no se detiene hasta lograrlo: el tiempo
+    restante de la paciencia se CONGELA hasta que le pega (si el exe
+    se desconecta o no se le puede alcanzar en 8 s, se cancela y el
+    reloj se reanuda).
+  · Tras golpear, Chocola vuelve rapido con Vanilla y se queda en la
+    POSICION DE LAS MASCOTAS de la tienda (misma formula de
+    seguimiento que los pets: lerp + bob, Idle quieta / move en
+    movimiento). Todos los clientes la ven.
+  · Al terminar la paciencia toma la pose agotada
+    (spr_vanilla_paciencia_agotada) 1 segundo y se recupera con 100
+    de vida y 2.5 s de i-frames.
+
+──────────────────────────────────────────────────────────────────────
+ 4. CHOCOLA, LA GUARDIANA (despues de la paciencia)
+──────────────────────────────────────────────────────────────────────
+ Invocada ya, Chocola protege a Vanilla de forma permanente:
+
+  · BLOQUEO 50%: cuando Vanilla recibe un golpe del lado del exe,
+    50% de probabilidad de BLOQUEAR el dano por completo. Sale
+    semi-transparente con i-frames de 2.5 s (como el escudo roto de
+    Sally, con el efecto de romper escudo). Enfriamiento 4.5 s.
+  · ATAQUE 33%: si el exe se acerca a menos de ~90 px de Vanilla,
+    cada 0.5 s hay 33% de que Chocola lo embista y lo stunee 1.5 s.
+    NO ataca si el exe tiene i-frames. Enfriamiento compartido de
+    4.5 s entre ataques y bloqueos.
+  · CELEBRACION: cuando Vanilla usa su poder de anillos (C), Chocola
+    gira 360 con spr_vanilla_chocola_support_power (el giro lo hace
+    la animacion del sprite, como el Cheese de Cream).
+
+──────────────────────────────────────────────────────────────────────
+ 5. TECLA V: CHOCOLA VA CON CREAM
+──────────────────────────────────────────────────────────────────────
+  · V (con Chocola en casa): Chocola va hacia CREAM a velocidad
+    NORMAL (no la acelerada de la caza). No puede ir si Cream esta
+    caida o demonizada.
+  · AL LLEGAR: 15% de probabilidad de darle una curacion (+30 hp,
+    solo al llegar, nunca antes). Desde ese momento la CUSTODIA:
+    bloquea 1 dano (del exe O del entorno) y/o puede stunear al exe
+    si se acerca (mismo 33% / 1.5 s). Cumplida la mision (el bloqueo
+    o el stun), Chocola vuelve con Vanilla.
+  · V otra vez: la LLAMA de vuelta (cancela a mitad de trayectoria;
+    la vuelta es MAS RAPIDA que la ida).
+  · OJO: si Vanilla vuela llevando a alguien colgado (mod carry),
+    la V suelta al pasajero como siempre; Chocola no se envia en
+    ese momento para no pisarse.
+
+──────────────────────────────────────────────────────────────────────
+ 6. PASIVA: DES-DEMONIZACION (15 anillos)
+──────────────────────────────────────────────────────────────────────
+ Si Vanilla tiene 15+ anillos y un ESBIRRO ATURDIDO queda a su
+ alcance (~64 px, tocarlo), gasta los 15 anillos y LE QUITA LA
+ DEMONIZACION: el esbirro vuelve a la normalidad (paleta normal, 100
+ de vida, 2 s de i-frames) y queda "a 1 caida de demonizarse denuevo"
+ (su proxima caida lo re-demoniza directo). Es automatica al acercarse
+ al esbirro stuneado; el server valida el estado y la distancia.
+
+──────────────────────────────────────────────────────────────────────
+ 7. PASIVAS DE MADRE
+──────────────────────────────────────────────────────────────────────
+  · FORTALEZA DE UNA MADRE: al ser golpeada, Vanilla solo pierde el
+    15% de sus anillos (minimo 3). Cream, si Vanilla esta en la
+    partida, pierde solo el 30% (minimo 3). Los demas personajes
+    pierden todos, como siempre. (Los golpes mortales no cuentan:
+    la caida a 0 no te quita los anillos, y Vanilla no muere.)
+  · MADRE E HIJA: cuando Vanilla y Cream estan lejos una de la otra
+    (mas de ~400 px), a cada una le aparece una FLECHA AMARILLA que
+    apunta hacia la otra (como el detector de Amy). La llevan los
+    clientes de Vanilla y de Cream.
+  · DETECTOR: Vanilla tiene las 2 flechas de Amy Canon (verde hacia
+    el anillo de salida, roja hacia el EXE real). Cream NO las tiene.
+
+──────────────────────────────────────────────────────────────────────
+ 8. MORIBUNDA (2da caida en adelante)
+──────────────────────────────────────────────────────────────────────
+ La 2da caida (y todas las siguientes) tampoco la mata: entra en
+ MORIBUNDA (pose agotada) 6 segundos, inmune a todo, y se levanta
+ con 30 de vida y 3 s de i-frames. Vanilla NUNCA muere de verdad y
+ JAMAS se demoniza (el server la trata como canonica, igual que a
+ Sonic/Amy Canon/Sally Canon: si un cliente viejo sin el parche la
+ matara server-side, seria muerte directa sin demonizacion).
+
+──────────────────────────────────────────────────────────────────────
+ AJUSTES RAPIDOS (macros en scripts/scr_chocola/scr_chocola.gml)
+──────────────────────────────────────────────────────────────────────
+ Todo el balance vive en macros al inicio de scr_chocola.gml:
+  VANILLA_FLOAT_SPEED 14, VANILLA_FLOAT_RAMP_DELAY/ACC (rampa),
+  VANILLA_PACIENCIA_TIME (5 s), VANILLA_CHOCOLA_PACIENCIA_STUN (5 s),
+  VANILLA_MORIBUNDA_TIME (6 s) / _HEAL (30),
+  VANILLA_CHOCOLA_BLOCK_CHANCE (50) / _ATTACK_CHANCE (33) / _CD (4.5 s),
+  VANILLA_CHOCOLA_HEAL_CHANCE (15) / _HEAL_HP (30),
+  VANILLA_FORTALEZA_*_PCT (15/30) / _MIN (3),
+  VANILLA_DEDEMON_COST (15) / _RANGE (64),
+  VANILLA_MADRE_HIJA_DIST (400).
+ El worth de los anillos (4) esta en Game.c del server
+ (v->surv_char == CH_VANILLA ? 4 : cream_worth).
+
+──────────────────────────────────────────────────────────────────────
+ NOTAS TECNICAS / DECISIONES DE DISENO
+──────────────────────────────────────────────────────────────────────
+ · Cero paquetes nuevos para Chocola: sus eventos viajan como
+   "senales de sonido" (mismo canal que el parry y el carry):
+   snd_mermer (caza), snd_nono (stun 5 s), snd_vasebreak (stun 1.5 s),
+   snd_ready (va con Cream), snd_npteleport (vuelve), snd_achivement
+   (custodia cumplida). Ninguno de esos sonidos se usaba por red.
+ · Unico paquete NUEVO: CLIENT/SERVER_VANILLA_DEDEMONIZE (necesario
+   para que el server limpie el flag PLAYER_DEMONIZED del esbirro; sin
+   eso, su siguiente caida lo desconectaba por un assert anticheat).
+ · Chocola existe en TODOS los clientes (cada uno la simula pegada al
+   puppet de Vanilla, como las mascotas); el stun del exe lo aplica
+   su propio cliente al recibir la senal (mismo modelo de confianza
+   que todo el combate del juego). La mini-embestida del 33% solo se
+   ve en el cliente que la rolla; el stun y el sonido si los ven todos.
+ · La paciencia/moribunda NO avisan al server (patron burbuja de Amy
+   Canon / nervios de Sonic): para el server Vanilla nunca cayo.
+ · El sprite de moribunda reusa spr_vanilla_paciencia_agotada.
+ · El anillo ROJO de Vanilla sigue valiendo lo mismo que el de Cream
+   (solo cambio el worth de los anillos normales).
+ · Durante la paciencia Vanilla conserva sus anillos (los necesita
+   para la des-demonizacion); el golpe que la tumba tampoco se los
+   quita (mismo comportamiento que las demas pasivas canon).
+
+──────────────────────────────────────────────────────────────────────
+ PRUEBA RAPIDA (2 ventanas, allow_duplicate_ip)
+──────────────────────────────────────────────────────────────────────
+ 1. Vanilla + EXE en partida. Corre 3-4 s sin parar -> pose float run
+    + estela (el exe tambien la ve en el puppet).
+ 2. Deja que el exe baje tu vida a 0 -> paciencia: quieta, inmune,
+    a los 2 s Chocola cruza la pantalla y el exe queda stuneado 5 s;
+    el reloj se congela hasta el golpe. Al final: agotada 1 s ->
+    100 hp + semi-transparente 2.5 s.
+ 3. Acercate al exe con Chocola en casa -> a veces te bloquea el
+    golpe (50%) y a veces ella lo stunea 1.5 s (33%).
+ 4. Con un aliado Cream: V -> Chocola viaja a ella (velocidad normal);
+    al llegar puede curarla (15%) y le bloquea 1 golpe. V otra vez ->
+    vuelve rapido. Lejos una de otra: flecha amarilla en ambas.
+ 5. Que el exe demonize a alguien, stunealo (parry o laser) y tocalo
+    con Vanilla teniendo 15+ anillos -> se le quita la demonizacion.
+ 6. 2da caida de Vanilla -> moribunda 6 s -> se levanta con 30 hp.
+ 7. Anillos: invoca con C y recoge -> +4 por anillo; con Cream en
+    partida, los de Cream dan +2.

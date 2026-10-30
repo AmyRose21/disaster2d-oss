@@ -402,6 +402,7 @@
 | relay-v1.3         | Fix r2h-enc + MTU 1368 + IP real en join (ver 6.2)             | relay_port_v1.3.zip |
 | parry-v3.5/v4.x    | Parry Sonic(C)/Amy(V) + auto-stun + HUD (ver 7.2)              | (zips parry) |
 | carry-v1           | Tails/Cream LLEVAN aliados volando + fix velocidad Amy (ver 7.3)| carry_v1.zip |
+| vanilla-v2         | Vanilla v2: Chocola, paciencia, float run, pasivas (ver 7.4)  | vanilla_v2.zip |
 
 ### 7.1 ENDINGS MUSIC v2 (instalado en el repo; detalle: LEEME_ENDINGS_V2.txt)
 Musica de ending SEGUN CUANTOS ESCAPARON (estilo TD original) + el server
@@ -470,10 +471,87 @@ y las pistas nuevas de 20-28s se cortaban).
 - CERO server, cero paquetes nuevos, cero assets: estados ZIPLINE y
   PLAYER_DATA existentes + 1 rama de sonido. Extraer + reabrir GameMaker.
 
+### 7.4 VANILLA V2: Chocola + paciencia + float run + pasivas (ver LEEME_VANILLA_V2.txt)
+- ARQUITECTURA CHOCOLA: obj_chocola existe en TODOS los clientes como
+  simulacion local (patron pets: lerp 0.21 + bob, sprite Idle/move/
+  attack/support_power del usuario). Transiciones por BROADCASTS de
+  sonido: snd_mermer(108)=caza, snd_ready(111)=va con Cream,
+  snd_npteleport(112)=recall, snd_achivement(113)=custodia cumplida,
+  snd_creamring CON EMISOR Vanilla = support power (hook en el with
+  del CLIENT_SOUND_EMIT, net_state_game). STUNS al exe: senales
+  shouldPlay=true a su nid (snd_nono(109)=5 s paciencia,
+  snd_vasebreak(110)=1.5 s cercano) -> scr_chocola_stun_signal en el
+  cliente del exe (dedup shockedTimer, +CLIENT_PLAYER_HURT para el
+  shake + scr_exe_stunsound). NINGUNO de los 6 sonidos se emitia por
+  red antes (verificado): las ramas son exclusivas.
+- PACIENCIA (1ra caida, scr_player_instakill intercepta SIN avisar al
+  server, patron burbuja/nervios/fase2): 5 s quieta+inmune (guard en
+  scr_player_hurt; salto bloqueado en scr_move_basic); a los 2 s sale
+  Chocola desde el lado contrario de la pantalla (x±520) y el reloj
+  se CONGELA hasta golpear al exe (failsafe 8 s / exe fuera); exit:
+  agotada 1 s -> hp 100 + i-frames 2.5 s. CONSERVA sus anillos.
+- MORIBUNDA (2da caida y TODAS las siguientes): 6 s tirada (pose
+  agotada) + se levanta con 30 hp + 3 s i-frames. Vanilla NUNCA
+  muere server-side: guards CH_VANILLA en game_demonize y
+  CLIENT_PLAYER_DEATH_STATE (muerte directa canon por si un cliente
+  viejo la mata: jamas demonizada).
+- FLOAT RUN: correr sostenido a 11 (1.5 s) -> tope rampa +0.03/f
+  hasta 14 (~3.2 s totales); pose estado 17 (spr_vanilla_float_run)
+  + afterimages locales (Draw_0, obj_quickeffect_fade 0.07/5f) +
+  REMOTAS via bitflag PLAYER_POWERBOOST en obj_netclient (el ghost
+  del puppet en Step_0 es generico if(powerBoost), NO solo-Sonic).
+  maxHSpeed = floatRunCap (var del player, seteada por
+  scr_vanilla_v2_step); el clamp de scr_collision_basic usa
+  maxHSpeed -> NO hacia falta excepcion como en el fix v3/v4.
+- ESTADOS 17/18/19 en player_anims/eanims[VANILLA] (20 entradas);
+  paciencia pisa la cadena de Step_2 tras shockedTimer.
+- PASIVAS: anillos Vanilla VALEN 4 (server Game.c MakeCreamRing;
+  viaja en el u8 worth de SERVER_RING_COLLECTED); Cream 2 si hay
+  Vanilla in_game (loop de peers server-side). FORTALEZA:
+  scr_player_hurt pierde 15% (Vanilla) / 30% (Cream con Vanilla via
+  scr_vanilla_in_match) min 3 anillos, en vez de todos. Bloqueo
+  Chocola 50% (exeSource) con hurttime 150 + spr_shieldbreak;
+  ataque 33% a <90 px (no si exe isHurt) stun 1.5 s; CD compartido
+  4.5 s (chocolaCd en el player).
+- TECLA V (scr_vanilla_v2_step): FOLLOW -> GO_CREAM (velocidad 7,
+  NO la de caza 14; valida Cream hp>0 y revivalTimes<2); GO/GUARD ->
+  RETURN rapido (12). Gate scr_carry_find_hanger == noone (no pisar
+  el drop del carry). Custodia en Cream: cura 15% AL LLEGAR (+30 hp,
+  rolla el cliente de Cream) + bloquea 1 dano (exe O entorno) o
+  stun 33%; consumida -> snd_achivement broadcast -> todos vuelven.
+- DES-DEMONIZACION: unico paquete NUEVO (CLIENT/SERVER_VANILLA_
+  DEDEMONIZE = 144/145, al final del enum en AMBOS lados, mismo
+  orden). Trigger automatico en scr_vanilla_v2_step: esbirro con
+  revivalTimes>=2 && state DEAD (stuneado; los esbirros nunca estan
+  caidos) a <64 px y rings>=15 -> CLIENT_VANILLA_DEDEMONIZE(nid).
+  Server valida (CH_VANILLA, in_game, target != v, PLAYER_DEMONIZED,
+  dist<=150 server-side) -> DEL PLAYER_DEMONIZED + SET PLAYER_REVIVED
+  ("1 caida mas para re-demonizarse") + broadcast. Cliente objetivo:
+  revivalTimes=1, hp 100, i-frames 2 s, paleta normal +
+  net_send_palette, destruye obj_demon_indicator. SIN el DEL_FLAG el
+  AssertOrDisconnect de CLIENT_PLAYER_DEATH_STATE desconectaba al
+  esbirro en su siguiente caida (flag demonizado en server vs
+  revivalTimes 1 del cliente).
+- MADRE E HIJA: obj_family_indicator (flecha amarilla
+  spr_sindicator3, depth -200, >400 px, clientes de Vanilla Y Cream,
+  la crea obj_spawnpoint con gate character). Detectores exe/ring de
+  Vanilla: obj_vanilla_indicators (clon exacto de amycanon, lo crea
+  obj_vanilla en su Create). Cream NO los tiene.
+- REQUIERE RECOMPILAR SERVER (worth 4/2 + dedemonize). Validador:
+  scripts/vanilla_v2_validate.py (174 checks + sims de reloj).
+  Aplicador: scripts/apply_vanilla_v2.py (50 ops, marcadores
+  idempotentes; OJO: versiones < final tenian un bug y escribian en
+  --dry — siempre git status antes/despues de un dry).
+
 ## 8. CONVENCIONES Y TRAMPAS DEL CODIGO (lecciones pagadas — leer ANTES de editar)
-1. SANGRIA MIXTA: la mayoria de .gml usan TABs, pero ALGUNOS usan 8 espacios
-   literales (obj_amycanon_indicators, estilo vanilla). Verificar SIEMPRE con
-   `sed -n 'Np' archivo | cat -A` antes de intentar un match.
+1. SANGRIA MIXTA (mapa verificado en vanilla-v2): ESPACIOS de 4 en
+   scripts/scr_survivors, scr_player_hurt, scr_carry, scr_parry,
+   net_sounds, net_state_game, net_packets, scr_move_basic y
+   obj_amycanon_indicators (este a 8); TABs en objects/obj_vanilla*,
+   obj_netclient, obj_spawnpoint, pets y la mayoria de objects/*.
+   Verificar SIEMPRE con `sed -n 'Np' archivo | cat -A` (o python
+   repr) antes de intentar un match; hay espacios finales tras
+   'else' y '{' en archivos del usuario (ej. obj_vanilla/Create_0).
 2. Editar .gml SIEMPRE con script aplicador (scripts/apply_*.py) con
    verificacion de match exacto == 1 vez. Nunca Edit directo en archivos
    grandes (incidente: 554 lineas de diff por TAB->espacios).
@@ -550,6 +628,19 @@ y las pistas nuevas de 20-28s se cortaban).
 - Misc (historico): check_arrow_colors.py (colores de sprites de flecha).
 
 ## 11. CHANGELOG DEL CACHE
+- 2026-10-30 (vanilla-v2): KIT COMPLETO de Vanilla top-3 (seccion
+  7.4): Chocola la guardiana (paciencia 5 s + stun 5 s al exe con
+  reloj congelado, bloqueo 50%, ataque 33%, V hacia Cream con cura
+  15% y custodia), float run 11->14 con estela local+remota,
+  anillos x4 (Cream x2 con Vanilla), moribunda (NUNCA muere ni se
+  demoniza, guards CH_VANILLA server), des-demonizacion por 15
+  anillos (PAQUETE NUEVO 144/145 con validacion server — sin el
+  DEL_FLAG el esbirro se desconectaba en su siguiente caida),
+  Fortaleza 15%/30% min 3, madre-hija flecha amarilla > 400 px,
+  detectores exe/ring de Vanilla. 6 senales de sonido nuevas en
+  net_snds (108-113). Validador 174/174, server compilado+smoke.
+  Requiere recompilar server. Entregable: download/vanilla_v2.zip.
+  REGLA NUEVA del usuario: SIEMPRE git pull antes de empezar.
 - 2026-10-30: carry-v1 (seccion 7.3): Tails/Cream llevan aliados (agarrarse
   al tocar en el aire, soltar con Z, portador suelta con V, estado ZIPLINE
   reutilizado, senal snd_snap por red) + fix v4 del clamp para la velocidad

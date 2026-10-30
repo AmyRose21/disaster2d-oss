@@ -77,6 +77,12 @@ with(global.player)
 			// clientes dibujan la estela y los efectos Frontiers en su puppet.
 			if(global.character == CHARACTER_SONIC && (nerviosState == 3 || reviveBoost))
 				bitflags |= PLAYER_POWERBOOST;
+			
+			// VANILLA V2: FLOAT RUN (3ra fase de corrida a 14) manda el mismo
+			// bitflag que el powerboost de Sonic: el resto de clientes dibuja
+			// la estela de fantasmas en su puppet (obj_player_puppet Step_0).
+			if(global.character == CHARACTER_VANILLA && isFloatRunning)
+				bitflags |= PLAYER_POWERBOOST;
 		
 			if(global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON)
 			{

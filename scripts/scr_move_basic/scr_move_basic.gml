@@ -649,7 +649,7 @@ function scr_move_basic()
                         if(global.character == CHARACTER_SONIC && (isAttacking || isSpinCharging))
                                 return;
                         
-                        if((global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA) && ringsSpawn > 0)
+                        if((global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA) && (ringsSpawn > 0 || pacienciaState > 0 || moribundaState > 0))
                                 return;
                         
                         audio_play_sound(snd_jump, 0, false);

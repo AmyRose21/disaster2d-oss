@@ -16,6 +16,19 @@ if(shockedTimer > 0)
 	return;
 }
 
+// V2: paciencia / moribunda tienen sprite propio y pisan todo lo demas
+if(pacienciaState == 1)
+{
+	state = VANILLA_PACIENCIA;
+	return;
+}
+
+if(pacienciaState == 2 || moribundaState > 0)
+{
+	state = VANILLA_PACIENCIA_AGOTADA;
+	return;
+}
+
 if(ringsSpawn > 0)
 {
 	state = CREAM_SPAWN;
@@ -67,6 +80,8 @@ if(abs(xspd) > 0 && isGrounded)
 {
 	if(abs(xspd) < 6)
 		state = WALK;
+	else if(isFloatRunning)
+		state = VANILLA_FLOAT_RUN; // V2: 3ra fase de corrida
 	else
 		state = RUN;
 }

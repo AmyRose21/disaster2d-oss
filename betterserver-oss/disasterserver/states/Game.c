@@ -415,7 +415,12 @@ bool game_demonize(Server* server, PeerData* data)
          * nunca hasta aqui. Este guard extra cubre cualquier otro
          * camino que los quiera demonizar, p. ej. el bloque de muerte
          * subita que demoniza a todos los PLAYER_DEAD. */
-        if (data->surv_char == CH_AMY_CANON || data->surv_char == CH_SALLY_CANON || data->surv_char == CH_SONIC)
+        /* v2: VANILLA tampoco se demoniza JAMAS (su 1ra caida es la
+         * PACIENCIA y desde la 2da entra en MORIBUNDA sin avisar al
+         * server; este guard cubre cualquier otro camino, p. ej. el
+         * bloque de muerte subita). */
+        if (data->surv_char == CH_AMY_CANON || data->surv_char == CH_SALLY_CANON || data->surv_char == CH_SONIC
+            || data->surv_char == CH_VANILLA)
                 return true;
 
         int players = 0;
@@ -897,6 +902,25 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         }
                         else
                         {
+                                /* v2: los anillos de VANILLA valen 4 al recogerlos y los de
+                                 * CREAM valen 2 si hay una Vanilla en la partida (pasiva
+                                 * "Inspiracion de una madre": la presencia de su madre
+                                 * inspira a Cream). */
+                                int cream_worth = 1;
+                                for (size_t p = 0; p < v->server->peers.capacity; p++)
+                                {
+                                        PeerData* vp = (PeerData*)v->server->peers.ptr[p];
+
+                                        if (vp == NULL || !vp->in_game)
+                                                continue;
+
+                                        if (vp->surv_char == CH_VANILLA)
+                                        {
+                                                cream_worth = 2;
+                                                break;
+                                        }
+                                }
+
                                 uint16_t posX[3] = { 26, 0, -27 };
                                 uint16_t posY[3] = { 0, -26, 0 };
                                 for (int i = 0; i < 3; i++)
@@ -904,12 +928,53 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                         uint16_t rX = x + posX[i];
                                         uint16_t rY = y + posY[i];
 
-                                        /* v1.2: los anillos de VANILLA valen 3 al recogerlos */
-                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(rX, rY, red_ring, v->surv_char == CH_VANILLA ? 3 : 1)), sizeof(CreamRing), NULL));
+                                        RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(rX, rY, red_ring, v->surv_char == CH_VANILLA ? 4 : cream_worth)), sizeof(CreamRing), NULL));
                                 }
                         }
 
                         v->server->game.cooldowns[CREAM_RING_SPAWN] = 15 * TICKSPERSEC; /* v1.2: recarga de Vanilla = 15 s */
+                        break;
+                }
+
+                case CLIENT_VANILLA_DEDEMONIZE:
+                {
+                        /* VANILLA V2: con 15 anillos le quita la demonizacion a un
+                         * esbirro ATURDIDO que este a su alcance. La valida el
+                         * cliente de Vanilla (stun + anillos + distancia); aqui se
+                         * re-valida el estado del objetivo con los datos del server
+                         * y se limpia el flag PLAYER_DEMONIZED (sin esto, la
+                         * siguiente caida del jugador lo desconectaria por el
+                         * AssertOrDisconnect de CLIENT_PLAYER_DEATH_STATE). Al
+                         * marcarlo PLAYER_REVIVED, su siguiente caida lo
+                         * re-demoniza directo: "1 caida mas para demonizarse". */
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->surv_char == CH_VANILLA);
+
+                        PacketRead(pid, packet, packet_read16, uint16_t);
+
+                        PeerData* target = server_find_peer(v->server, pid);
+
+                        if (target == NULL)
+                                break;
+
+                        if (target == v || !target->in_game)
+                                break;
+
+                        if (!(target->plr.flags & PLAYER_DEMONIZED))
+                                break;
+
+                        if (vector2_dist(&target->plr.pos, &v->plr.pos) > 150)
+                                break;
+
+                        DEL_FLAG(target->plr.flags, PLAYER_DEMONIZED);
+                        SET_FLAG(target->plr.flags, PLAYER_REVIVED);
+
+                        Packet pack;
+                        PacketCreate(&pack, SERVER_VANILLA_DEDEMONIZE);
+                        PacketWrite(&pack, packet_write16, target->id);
+                        server_broadcast(v->server, &pack, true);
+
+                        Info("%s (id %d) de-demonized by Vanilla!", target->nickname.value, target->id);
                         break;
                 }
 
@@ -1181,7 +1246,11 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 /* AMY CANON / SALLY CANON / SONIC: muerte
                                  * directa (sin agonia, sin timer de 30s, sin
                                  * poder revivir). JAMAS se demonizan. */
-                                if (v->surv_char == CH_AMY_CANON || v->surv_char == CH_SALLY_CANON || v->surv_char == CH_SONIC)
+                                /* v2: VANILLA muere directa igual que los canon (solo
+                                 * posible desde un cliente viejo sin el patch: el v2 jamas
+                                 * reporta sus caidas). JAMAS se demoniza. */
+                                if (v->surv_char == CH_AMY_CANON || v->surv_char == CH_SALLY_CANON || v->surv_char == CH_SONIC
+                                    || v->surv_char == CH_VANILLA)
                                 {
                                         SET_FLAG(v->plr.flags, PLAYER_CANTREVIVE);
                                         v->plr.death_timer_sec = 0;

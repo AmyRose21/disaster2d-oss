@@ -1815,6 +1815,22 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         // carry) viaja con shouldPlay=false y nunca entra aqui.
                                         scr_carry_drop_signal();
                                 }
+                                else if(global.net_snds[sid] == snd_nono)
+                                {
+                                        // VANILLA V2 (CHOCOLA): senal de stun GRANDE — la emite el
+                                        // cliente de Vanilla cuando su Chocola llega al exe durante
+                                        // la PACIENCIA: 5 segundos de stun (la caza grande la ven
+                                        // todos los clientes porque el lanzamiento viajo como
+                                        // snd_mermer broadcast).
+                                        scr_chocola_stun_signal(VANILLA_CHOCOLA_PACIENCIA_STUN);
+                                }
+                                else if(global.net_snds[sid] == snd_vasebreak)
+                                {
+                                        // VANILLA V2 (CHOCOLA): senal de stun CORTO — la emite el
+                                        // roll del ataque cercano (33% con el exe a menos de 90 px,
+                                        // y no si tiene i-frames): 1.5 segundos de stun.
+                                        scr_chocola_stun_signal(VANILLA_CHOCOLA_ATTACK_STUN);
+                                }
                                 else
                                         audio_play_sound(global.net_snds[sid], false, 0);
                         }
@@ -1826,6 +1842,23 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         if(master_id != pid)
                                                 continue;
                                                 
+                                        // VANILLA V2 (CHOCOLA): los eventos de Chocola viajan
+                                        // como sonidos broadcast desde el cliente de Vanilla (o de
+                                        // Cream, en la custodia cumplida). Cada cliente actualiza
+                                        // SU simulacion local de Chocola (misma tecnica que las
+                                        // senales del parry/carry). El de SUPPORT se deriva del
+                                        // snd_creamring que Vanilla ya emite al invocar anillos.
+                                        if(global.net_snds[sid] == snd_mermer)
+                                                scr_chocola_net_event(CHOCOLA_NET_HUNT, master_id);
+                                        else if(global.net_snds[sid] == snd_ready)
+                                                scr_chocola_net_event(CHOCOLA_NET_GO_CREAM, master_id);
+                                        else if(global.net_snds[sid] == snd_npteleport)
+                                                scr_chocola_net_event(CHOCOLA_NET_RECALL, master_id);
+                                        else if(global.net_snds[sid] == snd_achivement)
+                                                scr_chocola_net_event(CHOCOLA_NET_DUTY_DONE, master_id);
+                                        else if(global.net_snds[sid] == snd_creamring && character == CHARACTER_VANILLA)
+                                                scr_chocola_net_event(CHOCOLA_NET_SUPPORT, master_id);
+                                        
                                         scr_audio_play_3d(emitter, global.net_snds[sid], false, 0);
                                         break;
                                 }
@@ -2433,6 +2466,57 @@ function net_state_game(rbuff, nps, isPasstrough)
                         global.player.reviveObj = noone;
                         global.player.hurttime = 60 * 2;
                         global.cameraMode = 0;
+                        break;
+                }
+                
+                case PacketType.SERVER_VANILLA_DEDEMONIZE:
+                {                               
+                        if(isPasstrough)
+                                break;
+                                
+                        var _dnid = buffer_read_s(rbuff, buffer_u16);
+                        
+                        // efecto + sonido en el puppet del esbirro (lo crean
+                        // TODOS los clientes al recibir este paquete)
+                        if(instance_exists(obj_player_puppet))
+                        {
+                                with(obj_player_puppet)
+                                {
+                                        if(master_id != _dnid)
+                                                continue;
+                                        
+                                        scr_effect_quick(x, y, spr_ring_teleport, 1, false, 0, 0);
+                                        audio_play_sound(snd_heal, false, 0);
+                                        break;
+                                }
+                        }
+                        
+                        // el OBJETIVO des-demoniza a SU jugador local: vuelve a
+                        // "1 caida mas para re-demonizarse" (revivalTimes 1),
+                        // paleta normal y 2 s de i-frames
+                        if(_dnid == obj_netclient.nid && instance_exists(global.player))
+                        {
+                                global.player.revivalTimes = 1;
+                                global.player.hp = 100;
+                                global.player.isDead = false;
+                                global.player.hurttime = 60 * 2;
+                                
+                                var _dtable = obj_unlockables.palettes[? global.character];
+                                
+                                global.palleteFrom = _dtable.from;
+                                global.palleteTo = _dtable.to;
+                                global.palleteName = _dtable.name;
+                                net_send_palette();
+                                
+                                with(obj_demon_indicator)
+                                        instance_destroy();
+                                
+                                // cooldowns listos (misericordia materna)
+                                global.player.flyTimer = 0;
+                                global.player.dashTimer = 0;
+                                global.player.ringsTimer = 0;
+                        }
+                        
                         break;
                 }
                 

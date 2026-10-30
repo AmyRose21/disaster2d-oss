@@ -14,6 +14,14 @@
 #macro VANILLA_RINGS_RECHARGE (60 * 15)  // recarga de anillos: 15 s (Cream: 40 s)
 #macro EVANILLA_RINGS_RECHARGE (60 * 10) // idem escapada/demonizada (Cream: 30 s)
 
+// V2 — paciencia, moribunda, chocola y float run (macros ajustables).
+// La logica vive en scripts/scr_chocola/scr_chocola.gml; el tope del
+// float run (14) y los % de las pasivas tambien ahi (VANILLA_*).
+#macro VANILLA_PACIENCIA_TIME (60 * 5)     // paciencia: 5 s totales
+#macro VANILLA_MORIBUNDA_TIME (60 * 6)     // moribunda: 6 s tirada
+#macro VANILLA_FLOAT_SPEED 14              // tope de la 3ra fase de corrida
+#macro VANILLA_RINGS_WORTH 4               // cada anillo invocado vale 4 (server)
+
 //Variables
 gspd = 0;
 xspd = 0;
@@ -46,6 +54,22 @@ flyTimer = 0;
 flyTimeout = 0;
 dashTimer = 0;
 
+// V2: estado propio de Vanilla (ver scr_chocola.gml)
+pacienciaState = 0;      // 0 normal | 1 paciencia | 2 agotada
+pacienciaTimer = 0;
+pacienciaWaitChocola = false; // congela el timer hasta el golpe de Chocola
+pacienciaChocolaOut = false;  // ya salio Chocola en esta paciencia
+pacienciaUsed = false;        // la paciencia solo 1 vez por ronda
+moribundaState = 0;
+moribundaTimer = 0;
+chocolaCd = 0;           // enfriamiento compartido bloqueo/ataque de Chocola
+chocolaProxTimer = 0;    // re-check del ataque cercano
+dedemonCd = 0;           // anti-spam de la des-demonizacion
+runHold = 0;             // frames corriendo a tope (rampa del float run)
+floatRunCap = CREAM_MAXSPEED; // tope actual de corrida (11 -> 14)
+isFloatRunning = false;  // en la pose de float run
+floatGhostTimer = 0;     // cadencia de las imagenes residuales
+
 //General
 hp = 100;
 isGrounded = false;
@@ -75,6 +99,13 @@ canSpinDash = true;
 canSpin = true;
 specialFunc = function() /* V1.2: habilidades propias de Vanilla (antes scr_cream_special) */
 {
+
+	// V2: paciencia/moribunda, float run, tecla V (Chocola), ataque
+	// cercano de Chocola y des-demonizacion (todo en scr_chocola.gml).
+	scr_vanilla_v2_step();
+	
+	if(pacienciaState > 0 || moribundaState > 0)
+		return; // quieta mientras dura: ni vuelo, ni dash, ni anillos
 	if(redRingTimer > 0)
 	{
 		if(flyTimer <= 2)
@@ -132,7 +163,7 @@ specialFunc = function() /* V1.2: habilidades propias de Vanilla (antes scr_crea
 	if(revivalTimes >= 2 && instance_exists(obj_redring) && distance_to_object(obj_redring) < 130)
 		isColliding = true;
 	
-	// ANILLOS (v1.2): cada anillo invocado por Vanilla VALE 3 al
+	// ANILLOS (v2): cada anillo invocado por Vanilla VALE 4 al
 	// recogerlo (lo aplica el server, vale para quien lo recoja) y la
 	// recarga es VANILLA_RINGS_RECHARGE (15 s; Cream tarda 40 s).
 	if(global.playerControls && keyboard_check_pressed(global.KeyC) && ringsTimer <= 0 && isGrounded)
@@ -164,6 +195,14 @@ specialFunc = function() /* V1.2: habilidades propias de Vanilla (antes scr_crea
 		{
 			audio_play_sound(snd_creamring, 0, false);
 			net_sound_emit(snd_creamring);
+			
+			// V2: si Chocola esta en casa, celebra el poder con su giro
+			// de 360 (spr_vanilla_chocola_support_power, como el Cheese
+			// de Cream: el giro lo hace la animacion del sprite)
+			var _choc = scr_chocola_get();
+			
+			if(_choc != noone && _choc.mode == CHOCOLA_FOLLOW)
+				_choc.supportTimer = 40;
 		
 			var pk = cpacket_tcp(PacketType.CLIENT_CREAM_SPAWN_RINGS, false);
 			buffer_write(pk, buffer_u16, x - 12 + (image_xscale < 0 ? 7 : 0));
@@ -216,7 +255,7 @@ specialFunc = function() /* V1.2: habilidades propias de Vanilla (antes scr_crea
 		}
 		else
 		{
-			maxHSpeed = CREAM_MAXSPEED;
+			maxHSpeed = floatRunCap; // V2: el tope sube de 11 a 14 (float run)
 			acc = CREAM_ACC;
 		}
 	}
@@ -248,3 +287,7 @@ instance_create_depth(x, y, 0, obj_player_sensorBL);
 instance_create_depth(x, y, 0, obj_player_sensorBR);
 instance_create_depth(x, y, 0, obj_player_sensorAL);
 instance_create_depth(x, y, 0, obj_player_sensorAR);
+
+// V2: sensores pasivos (solo SU cliente): flecha verde hacia la salida
+// + flecha roja hacia el EXE real (los mismos de Amy Canon).
+instance_create_depth(x, y, 0, obj_vanilla_indicators);

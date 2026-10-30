@@ -30,6 +30,15 @@ switch(state)
 	case RUN:
 	case JUMP:
 		image_speed = max(abs(xspd) / 20, 0.5);
+		break:
+		
+	case VANILLA_FLOAT_RUN: // V2: la pose corre tan rapido como RUN
+		image_speed = max(abs(xspd) / 20, 0.5);
+		break:
+		
+	case VANILLA_PACIENCIA: // V2: enojada / agotada / moribunda
+	case VANILLA_PACIENCIA_AGOTADA:
+		image_speed = 0.5;
 		break;
 		
 	case DEAD:

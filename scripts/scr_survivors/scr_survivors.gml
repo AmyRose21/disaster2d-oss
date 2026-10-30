@@ -269,7 +269,10 @@ global.player_anims[? CHARACTER_VANILLA] =
         spr_vanilla_balancing, //13
         spr_vanilla_fly, //14
         spr_vanilla_srings, //15
-        spr_vanilla_zipline //16
+        spr_vanilla_zipline, //16
+        spr_vanilla_float_run, //17 = V2: 3ra fase de corrida (estado VANILLA_FLOAT_RUN)
+        spr_vanilla_paciencia, //18 = V2: PACIENCIA (1ra caida, inmune)
+        spr_vanilla_paciencia_agotada //19 = V2: agotada al final / moribunda
 ];
 
 global.player_eanims = ds_map_create();
@@ -516,7 +519,10 @@ global.player_eanims[? CHARACTER_VANILLA] =
         spr_vanilla_balancing, //13
         spr_vanilla_fly, //14
         spr_vanilla_srings, //15
-        spr_vanilla_zipline //16
+        spr_vanilla_zipline, //16
+        spr_vanilla_run, //17 = V2: float run (defensivo; Vanilla no se demoniza)
+        spr_vanilla_paciencia, //18 = V2: paciencia
+        spr_vanilla_paciencia_agotada //19 = V2: agotada / moribunda
 ];
 
 // =====================================================================

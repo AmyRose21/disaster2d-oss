@@ -78,6 +78,81 @@ function scr_player_instakill()
                 return; // el server nunca sabe que "murio": sigue viva para todos
         }
         
+        // === PACIENCIA / MORIBUNDA (Vanilla v2): NUNCA cae muerta ===
+        // 1ra caida -> PACIENCIA: 5 s inmune; a los 2 s sale Chocola
+        // desde el lado contrario de la pantalla y stunea al exe 5 s
+        // (el reloj se congela hasta que golpea). 2da caida en adelante
+        // -> MORIBUNDA: 6 s tirada y se levanta con 30 de vida. El
+        // server JAMAS sabe que cayo (y de todos modos la trata como
+        // canonica: jamas se demoniza, ver Game.c del betterserver).
+        if(global.character == CHARACTER_VANILLA)
+        {
+                // dentro de paciencia/moribunda no puede "volver a caer"
+                if(global.player.pacienciaState > 0 || global.player.moribundaState > 0)
+                        return;
+                
+                if(!global.player.pacienciaUsed)
+                {
+                        with(global.player)
+                        {
+                                pacienciaState = 1;
+                                pacienciaUsed = true;
+                                pacienciaTimer = VANILLA_PACIENCIA_TIME;
+                                pacienciaWaitChocola = false;
+                                pacienciaChocolaOut = false;
+                                image_index = 0;
+                                
+                                hp = max(hp, 0);
+                                hurttime = 0;
+                                shockedTimer = 0;
+                                isDead = false;
+                                isHurt = false;
+                                gspd = 0;
+                                xspd = 0;
+                                yspd = 0;
+                                isAttacking = false;
+                                isJumping = false;
+                                isSpinning = false;
+                                isBoosting = false;
+                                isZipline = false;
+                                isHiding = false;
+                                emotion = false;
+                                isFlying = false;
+                                dashing = 0;
+                        }
+                        
+                        return; // el server nunca sabe que "cayo": paciencia
+                }
+                
+                // 2da caida (o posterior): MORIBUNDA (tampoco muere)
+                with(global.player)
+                {
+                        moribundaState = 1;
+                        moribundaTimer = VANILLA_MORIBUNDA_TIME;
+                        image_index = 0;
+                        
+                        hp = max(hp, 0);
+                        hurttime = 0;
+                        shockedTimer = 0;
+                        isDead = false;
+                        isHurt = false;
+                        gspd = 0;
+                        xspd = 0;
+                        yspd = 0;
+                        isAttacking = false;
+                        isJumping = false;
+                        isSpinning = false;
+                        isBoosting = false;
+                        isZipline = false;
+                        isHiding = false;
+                        emotion = false;
+                        isFlying = false;
+                        dashing = 0;
+                }
+                
+                return; // se levanta en 6 s
+        }
+        
         var packet = cpacket_tcp(PacketType.CLIENT_PLAYER_DEATH_STATE);
         buffer_write(packet, buffer_bool, true);
         buffer_write(packet, buffer_u8, global.player.revivalTimes);
@@ -158,6 +233,12 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         // durante el slide): mientras se desliza no puede ser herida.
         if(global.character == CHARACTER_SALLY_CANON && global.player.isSliding)
                 return;
+
+        // === VANILLA V2 ===
+        // PACIENCIA / MORIBUNDA: inmune a TODO mientras duran (enojada
+        // o tirada en el suelo: ni el exe ni el entorno le hacen nada).
+        if(global.character == CHARACTER_VANILLA && (global.player.pacienciaState > 0 || global.player.moribundaState > 0))
+                return;
         
         if(global.player.hurttime > 0)
         {
@@ -186,6 +267,46 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         // =============================================================
         if(exeSource && damage > 0 && scr_parry_negate_hit())
                 return;
+        
+        // CHOCOLA (Vanilla v2): 50% de BLOQUEAR el dano del lado EXE.
+        // Si sale, Vanilla no pierde vida y queda semi-transparente con
+        // i-frames de 2.5 s (hurttime, como el escudo roto de Sally).
+        // Enfriamiento compartido de 4.5 s con su ataque cercano.
+        if(global.character == CHARACTER_VANILLA && exeSource && damage > 0 && global.player.chocolaCd <= 0 && instance_exists(obj_chocola))
+        {
+                var _vchoc = scr_chocola_get();
+                
+                if(_vchoc != noone && _vchoc.mode == CHOCOLA_FOLLOW && random(100) < VANILLA_CHOCOLA_BLOCK_CHANCE)
+                {
+                        global.player.chocolaCd = VANILLA_CHOCOLA_CD;
+                        global.player.hurttime = VANILLA_CHOCOLA_BLOCK_INVULN;
+                        _vchoc.supportTimer = 26; // celebra el bloqueo girando
+                        
+                        audio_play_sound(snd_sally_shieldbreak, 0, false);
+                        net_quick_effect(global.player.x, global.player.y, spr_shieldbreak, false, 1, 0, 0, 1);
+                        net_sound_emit(snd_sally_shieldbreak);
+                        return;
+                }
+        }
+        
+        // CHOCOLA CUSTODIA (Cream v2): si Chocola llego hasta Cream y aun
+        // no cumplio su mision, BLOQUEA 1 dano (del exe o del entorno).
+        // Consumida la custodia, Chocola vuelve con Vanilla.
+        if(global.character == CHARACTER_CREAM && damage > 0 && !global.player.isDead && global.player.revivalTimes < 2 && instance_exists(obj_chocola))
+        {
+                var _gchoc = scr_chocola_get();
+                
+                if(_gchoc != noone && _gchoc.mode == CHOCOLA_GUARD && _gchoc.targetInst == global.player)
+                {
+                        scr_chocola_guard_consume();
+                        global.player.hurttime = VANILLA_CHOCOLA_BLOCK_INVULN;
+                        
+                        audio_play_sound(snd_sally_shieldbreak, 0, false);
+                        net_quick_effect(global.player.x, global.player.y, spr_shieldbreak, false, 1, 0, 0, 1);
+                        net_sound_emit(snd_sally_shieldbreak);
+                        return;
+                }
+        }
         
         if(global.character != CHARACTER_EXE)
         {
@@ -253,7 +374,23 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         
         if(global.player.rings > 0 && damage > 0)
         {
-                global.player.rings = 0;
+                // FORTALEZA DE UNA MADRE (Vanilla v2): Vanilla solo pierde
+                // el 15% de sus anillos al ser golpeada (minimo 3); Cream
+                // pierde el 30%, pero SOLO si Vanilla esta en la partida
+                // (la presencia de su madre la protege). El resto de
+                // personajes pierde todos, como siempre.
+                var _fortLoss = -1;
+                
+                if(global.character == CHARACTER_VANILLA)
+                        _fortLoss = max(VANILLA_FORTALEZA_MIN, floor(global.player.rings * VANILLA_FORTALEZA_VANILLA_PCT / 100));
+                else if(global.character == CHARACTER_CREAM && scr_vanilla_in_match())
+                        _fortLoss = max(VANILLA_FORTALEZA_MIN, floor(global.player.rings * VANILLA_FORTALEZA_CREAM_PCT / 100));
+                
+                if(_fortLoss > 0)
+                        global.player.rings = max(0, global.player.rings - min(_fortLoss, global.player.rings));
+                else
+                        global.player.rings = 0;
+                
                 audio_play_sound(snd_ringlose, 0, false);
                 
                 net_sound_emit(snd_ringlose);
