@@ -78,8 +78,10 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                                 
                 // Personajes reservados (Amy Canon / Sally Canon):
                 // sin permiso ni siquiera se piden al server (que tambien los
-                // rechaza por si solo: doble seguro; ver scr_char_locked)
-                if(obj_netclient.exeId == master_id || (obj_netclient.avCharacters[selected] && !scr_char_locked(selected)))
+                // rechaza por si solo: doble seguro; ver scr_char_locked).
+                // Lectura del slot blindada (scr_characters): nunca fuera
+                // de rango aunque haya pjs mas nuevos en el server.
+                if(obj_netclient.exeId == master_id || (scr_avchar_get(selected) && !scr_char_locked(selected)))
                 {
                         buffer_write(packet, buffer_u8, selected);
                         send_server_tcp(packet);
@@ -106,11 +108,11 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                         case 4:
                                 sprite_index = spr_lobby_exeicon4;
                                 break;
-				
-			case 5:
-				// v2.2 (TTB): Metal Amy
-				sprite_index = spr_lobby_exeicon6;
-				break;
+                                
+                        case 5:
+                                // v2.2 (TTB): Metal Amy
+                                sprite_index = spr_lobby_exeicon6;
+                                break;
                 }
                 
                 image_blend = c_gray;
@@ -121,14 +123,14 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 image_index = selected == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : selected + 1;
                 if(selected == CHARACTER_VANILLA)
                         image_index = CHARACTER_CREAM + 1;
-		// v2.2 (TTB): Metal/Amelia/Blaze tienen sus propios frames al
-		// final de la tira (10/11/12)
-		if(selected == CHARACTER_METAL)
-			image_index = 10;
-		else if(selected == CHARACTER_AMELIA)
-			image_index = 11;
-		else if(selected == CHARACTER_BLAZE)
-			image_index = 12;
+                // v2.2 (TTB): Metal/Amelia/Blaze tienen sus propios frames al
+                // final de la tira (10/11/12)
+                if(selected == CHARACTER_METAL)
+                        image_index = 10;
+                else if(selected == CHARACTER_AMELIA)
+                        image_index = 11;
+                else if(selected == CHARACTER_BLAZE)
+                        image_index = 12;
                 image_blend = c_gray;
         }
 }

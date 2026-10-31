@@ -594,6 +594,7 @@
     {"id":{"name":"scr_camera_shake","path":"scripts/scr_camera_shake/scr_camera_shake.yy",},},
     {"id":{"name":"scr_carry","path":"scripts/scr_carry/scr_carry.yy",},},
     {"id":{"name":"scr_chaos_special","path":"scripts/scr_chaos_special/scr_chaos_special.yy",},},
+    {"id":{"name":"scr_characters","path":"scripts/scr_characters/scr_characters.yy",},},
     {"id":{"name":"scr_chocola","path":"scripts/scr_chocola/scr_chocola.yy",},},
     {"id":{"name":"scr_chat_filter","path":"scripts/scr_chat_filter/scr_chat_filter.yy",},},
     {"id":{"name":"scr_collision_basic","path":"scripts/scr_collision_basic/scr_collision_basic.yy",},},

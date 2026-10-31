@@ -124,7 +124,7 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 			"Chaos",
 			"Exetior",
 			"Exeller",
-			"Metal Amy"}; /* v2.2 (TTB)
+			"Metal Amy"}; /* v2.2 (TTB) */
 
 		Info("%s " LOG_RST "(id %d) choses [" LOG_RED "%s" LOG_RST "]!", v->nickname.value, v->id, exes[id]);
 		return charselect_check_state(v->server) || lobby_init(v->server);

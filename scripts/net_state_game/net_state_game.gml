@@ -2642,34 +2642,34 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 case CHARACTER_SALLY:
                                 
                                 case CHARACTER_SALLY_CANON: // defensivo: el server jamas la demoniza
-					global.player.attackTimer = 0;
-					global.player.shieldTimer = 0;
-					global.player.shieldRechrage = 0;		
-					break;
-					
-					// v2.2 (TTB): cooldowns de los rescatados
-				case CHARACTER_METAL:
-					global.player.metalDashing = 0;
-					global.player.isElectro = 0;
-					global.player.dashTimer = 0;
-					global.player.electroTimer = 0;
-					break;
-					
-				case CHARACTER_AMELIA:
-					global.player.flyTimer = 0;
-					global.player.bananaTimer = 0;
-					global.player.bombTimer = 0;
-					global.player.isFlying = false;
-					break;
-					
-				case CHARACTER_BLAZE:
-					global.player.djumpRecharge = 0;
-					global.player.fireballTimer = 0;
-					global.player.burningTimer = 0;
-					global.player.burning = 0;
-					global.player.shootPose = 0;
-					break;
-			                        }
+                                        global.player.attackTimer = 0;
+                                        global.player.shieldTimer = 0;
+                                        global.player.shieldRechrage = 0;               
+                                        break;
+                                        
+                                        // v2.2 (TTB): cooldowns de los rescatados
+                                case CHARACTER_METAL:
+                                        global.player.metalDashing = 0;
+                                        global.player.isElectro = 0;
+                                        global.player.dashTimer = 0;
+                                        global.player.electroTimer = 0;
+                                        break;
+                                        
+                                case CHARACTER_AMELIA:
+                                        global.player.flyTimer = 0;
+                                        global.player.bananaTimer = 0;
+                                        global.player.bombTimer = 0;
+                                        global.player.isFlying = false;
+                                        break;
+                                        
+                                case CHARACTER_BLAZE:
+                                        global.player.djumpRecharge = 0;
+                                        global.player.fireballTimer = 0;
+                                        global.player.burningTimer = 0;
+                                        global.player.burning = 0;
+                                        global.player.shootPose = 0;
+                                        break;
+                                                }
                         
                         var table = obj_unlockables.palettes[? global.character + PALETTE_DEMON];
                         
@@ -2947,23 +2947,9 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 players = ds_map_create();
                                 exeId = -1;
                                 
-                                avCharacters = 
-                                [ 
-                                        false, //0 (exe) (cannot)
-                                        true,  //1 (t)
-                                        true,
-                                        true,
-                                        true,
-                                        true,
-                                        true,
-                                        true,  //7 (amy canon)
-                                        true,  //8 (sonic)
-                                        true,  //9 (sally canon)
-                                        true,  //10 (vanilla) - vanilla-v1
-                                        true,  //11 (metal) - v2.2 TTB
-                                        true,  //12 (amelia) - v2.2 TTB
-                                        true   //13 (blaze) - v2.2 TTB
-                                ];
+                                // Slots de personajes: se dimensionan solos
+                                // (ver scr_characters / scr_avchars_reset)
+                                avCharacters = scr_avchars_reset();
                                 
                                 gameEnds = false;
                                 state = STATE_LOBBY;
@@ -3114,23 +3100,9 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 players = ds_map_create();
                                 exeId = -1;
                                 
-                                avCharacters = 
-                                [ 
-                                        false, //0 (exe) (cannot)
-                                        true,  //1 (t)
-                                        true,
-                                        true,
-                                        true,
-                                        true,
-                                        true,
-                                        true,  //7 (amy canon)
-                                        true,  //8 (sonic)
-                                        true,  //9 (sally canon)
-                                        true,  //10 (vanilla) - vanilla-v1
-                                        true,  //11 (metal) - v2.2 TTB
-                                        true,  //12 (amelia) - v2.2 TTB
-                                        true   //13 (blaze) - v2.2 TTB
-                                ];
+                                // Slots de personajes: se dimensionan solos
+                                // (ver scr_characters / scr_avchars_reset)
+                                avCharacters = scr_avchars_reset();
                                 
                                 gameEnds = false;
                                 state = STATE_LOBBY;
@@ -3679,23 +3651,9 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 players = ds_map_create();
                                 exeId = -1;
                                 
-                                avCharacters = 
-                                [
-                                        false, //0 (exe) (cannot)
-                                        true,  //1 (t)
-                                        true,
-                                        true,
-                                        true,
-                                        true,
-                                        true,
-                                        true,  //7 (amy canon)
-                                        true,  //8 (sonic)
-                                        true,  //9 (sally canon)
-                                        true,  //10 (vanilla) - vanilla-v1
-                                        true,  //11 (metal) - v2.2 TTB
-                                        true,  //12 (amelia) - v2.2 TTB
-                                        true   //13 (blaze) - v2.2 TTB
-                                ];
+                                // Slots de personajes: se dimensionan solos
+                                // (ver scr_characters / scr_avchars_reset)
+                                avCharacters = scr_avchars_reset();
                                 
                                 gameEnds = false;
                                 state = STATE_LOBBY;

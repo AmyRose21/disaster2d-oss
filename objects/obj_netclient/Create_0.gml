@@ -38,19 +38,10 @@ lvlId = -1;
 pings = ds_map_create();
 
 players = ds_map_create();
-avCharacters = 
-[ 
-        false, //0 (exe) (cannot)
-        true,  //1 (tails)
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,  //7 (amy canon)
-        true,  //8 (sonic)
-        true,   //9 (sally canon)
-        true    //10 (vanilla) - vanilla-v1
-];
+
+// Slots de personajes libres/ocupados. Se dimensiona SOLO segun
+// los macros de personaje: ver scr_characters (scr_avchars_reset).
+// Leer/escribir solo con scr_avchar_get / scr_avchar_set.
+avCharacters = scr_avchars_reset();
 
 depth = -9999999;

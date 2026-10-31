@@ -146,6 +146,36 @@
 - Reserva en server: amy_canon_token "SweetPassion" en Config.json; quien
   no la escribe no la ve en charselect (server la valida).
 
+### SLOTS DE PERSONAJE (avCharacters) — seguro v2.2.3 (2026-10-31)
+- scripts/scr_characters/scr_characters.gml = UNICO dueno del array
+  avCharacters (slots libres/ocupados por pj; indice = macro CHARACTER_*).
+  Nacio del crash "Variable Index [13] out of range [11]" en
+  obj_lobby/Draw_0:121: el literal estaba copiado en 7 sitios y v2.2
+  (Blaze=13) solo actualizo 3.
+- Macros derivados solos: CHARACTER_SURV_MAX (ultimo survivor, apunta al
+  ULTIMO macro de scr_survivors), CHARACTER_COUNT (+exe), EXE_CHAR_COUNT
+  (ultimo macro de scr_exe), LOBBY_CHARS_MIN (entradas de chars[]).
+- API: scr_avchars_reset() array fresco (exe=false resto=true) |
+  scr_avchar_get(ch) lectura blindada (fuera de rango = OCUPADO + log) |
+  scr_avchar_set(ch,val) escritura blindada (crea slots al vuelo si un
+  server mas moderno manda un pj desconocido; huecos nuevos = ocupados
+  = innombrables) | scr_characters_sanity() lo llama obj_lobby/Create_0
+  UNA vez por arranque: loguea [charsanity] lo que falte en
+  chars[]/palettes/player_anims/player_get, nunca crashea |
+  scr_char_name(ch) nombres para logs.
+- Los 7 ex-literales ahora son "avCharacters = scr_avchars_reset()":
+  obj_netclient/Create_0, net_wrapper, net_tcpprocess, net_state_game
+  x3, obj_level/Alarm_2. Accesos blindados ademas: obj_lobby/Draw_0
+  (+clamp de sprInd contra chars[]), obj_lobby_icon/Draw_0,
+  net_tcpprocess (player left), net_state_charselect x2.
+- PARA AGREGAR UN PJ NUEVO: macro AL FINAL en scr_survivors (o scr_exe
+  si es killer) + player_anims + case en player_get + assets del lobby
+  (chars[], tira spr_lobby_icon, placa spr_char_info, exeicon, paleta
+  default) + enum CH_*/EX_* AL FINAL en betterserver include/Server.h
+  + nombre en states/CharSelect.c (survs[]/exes[]). El array de slots y
+  el sanity se ajustan solos; si falta un asset, [charsanity] avisa al
+  arrancar en vez de crashear en partida.
+
 ## 5. SISTEMA DE FLECHAS / INDICADORES (todos son Draw_64 = Draw GUI)
 ### Sprites y sus colores (verificado con analisis de pixels)
 - spr_indicator ... ROJA  32x16 (origin 3; bbox visible x[20..31]: la punta
@@ -408,6 +438,7 @@
 | vanilla-v2.1.2     | HOTFIX crash cream.pacienciaState al saltar (ver 7.4)           | vanilla_v2_1_2.zip |
 | vanilla-v2.1.3     | HOTFIX crash net_tcpprocess.type + cooldowns de habilidades POR JUGADOR en el server (ver 7.4) | vanilla_v2_1_3.zip |
 | vanilla-v2.1.4     | FIX sonido de stun de Chocola en la pantalla del exe (ver 7.4)  | vanilla_v2_1_4.zip |
+| vanilla-v2.2.2     | FIX de compilacion de v2.2: crash eventList invertido + 1.161 PNG de layers (ver 7.4.1) | vanilla_v2_2_2_compilefix.zip |
 
 ### 7.1 ENDINGS MUSIC v2 (instalado en el repo; detalle: LEEME_ENDINGS_V2.txt)
 Musica de ending SEGUN CUANTOS ESCAPARON (estilo TD original) + el server
@@ -554,7 +585,7 @@ y las pistas nuevas de 20-28s se cortaban).
   idempotentes; OJO: versiones < final tenian un bug y escribian en
   --dry — siempre git status antes/despues de un dry).
 
-### 7.4.1 HOTFIXES v2.1.1 - v2.1.4 (todos aplicados en el repo del usuario)
+### 7.4.1 HOTFIXES v2.1.1 - v2.2.2 (todos aplicados en el repo del usuario)
 - v2.1.1 (crash "obj_player_puppet.isGrounded not set" en obj_chocola
   Step_0 cuando Vanilla es remota): puppet Create_0 + `isGrounded =
   true;` y la regla de sprite FOLLOW usa xspd/yspd (SI viajan por red)
@@ -579,6 +610,31 @@ y las pistas nuevas de 20-28s se cortaban).
   ANTES del dedup y siempre; el golpe viaja por red (3D en los demas
   clientes). Solo cambia scr_chocola.gml, CERO server. Validador:
   vanilla_v2_1_4_validate.py (regresion 2.1.1+2.1.2+2.1.3 incluida).
+- v2.2.1 (linking, el proyecto NO ABRIA tras v2.2): los .yy de los 4
+  net_* traian parent folders/Scripts/Net.yy (carpeta nunca dada de
+  alta en el .yyp) -> reparent a folders/Scripts/Networking/
+  Specific.yy (junto a net_projectile/net_sounds). Cero .yyp/.gml/server.
+- v2.2.2 (el proyecto ABRIA pero NO COMPILABA — dos bugs del
+  importador TTB invisibles para el IDE):
+  * CRASH IndexOutOfRange en GMObject.GetEventName_Simple: los .yy
+    de obj_metal/obj_amelia/obj_blaze/obj_metalamy traian el
+    eventList con DOS entradas de campos invertidos:
+    "eventNum":0,"eventType":64 y "eventNum":0,"eventType":76
+    (tipos de evento inexistentes; la tabla del compilador llega a
+    ~14). Los reales: eventType 8, num 64 (Draw GUI) y 76; ref
+    upstream obj_aiz_zipline (type=8 num=76). Fix: reescritura
+    textual de esas 2 lineas en los 4 .yy.
+  * ~200 "File missing for GMSprite": cada .yy declara su capa
+    GMImageLayer con GUID G1 pero el PNG de cada frame se guardo
+    como layers/<frame>/<G2>.png (G2 distinto: dos tiradas del
+    generador). Fix: creados los 1.161 layers/<frame>/<G1>.png
+    copiando el PNG existente en cada dir (8.190 ya existian bien).
+    Abarca los 148 sprites TTB + spr_char_info (16 f) y
+    spr_lobby_icon (13 f), que mezclan layers del upstream.
+    Los <G2>.png viejos quedan huerfanos (inofensivos).
+  Fix integrado + validador: scripts/fix_v22_compile.py (0 missing,
+  eventList exacto {(0,0),(3,0),(8,0),(3,2),(2,4),(8,64),(8,76),
+  (7,7)}, parents OK). Entregable: vanilla_v2_2_2_compilefix.zip.
 
 ## 8. CONVENCIONES Y TRAMPAS DEL CODIGO (lecciones pagadas — leer ANTES de editar)
 1. SANGRIA MIXTA (mapa verificado en vanilla-v2): ESPACIOS de 4 en
@@ -634,6 +690,12 @@ y las pistas nuevas de 20-28s se cortaban).
     = compile limpio de esas familias; calibrado: 875 .gml del repo,
     0 falsos positivos). Ya integrado como seccion 13 del validador
     de vanilla v2 (check 'sintaxis <archivo>' por cada GML tocado).
+11. avCharacters (slots de pj): NUNCA acceder directo con
+    avCharacters[ch] ni duplicar el literal (causa del crash "Index [13]
+    out of range [11]" del 31/10: 4 de 7 copias quedaron con 11 slots
+    tras v2.2). Todo pasa por scr_avchar_get / scr_avchar_set /
+    scr_avchars_reset de scr_characters.gml. Lo mismo chars[] del lobby:
+    obj_lobby/Draw_0 ya clampa sprInd antes de indexar.
 
 ## 9. PENDIENTES / esperando al usuario
 - relay-v1.3: pendiente PRUEBA REAL CON JUGADOR EXTERNO por el relay.
@@ -936,3 +998,31 @@ y las pistas nuevas de 20-28s se cortaban).
   lobby, player_get, server) + gcc -fsyntax-only limpio en los 6 .c.
   Entregable download/vanilla_v2_2_ttb_characters.zip (~230 entradas,
   server incluido: RECOMPILAR antes de hospedar).
+- 2026-10-31 (vanilla-v2.2.1 + v2.2.2 — v2.2 abria pero no compilaba):
+  v2.2.1 (linkfix, ya entregado): parents Net.yy x4 ->
+  Networking/Specific (proyecto no abria). v2.2.2: (a) crash
+  IndexOutOfRange en GetEventName_Simple: eventList de los 4 objetos
+  player con "eventNum":0,"eventType":64/76 (campos invertidos;
+  reales: eventType 8, num 64/76 = Draw_64/Draw_76, ref obj_aiz_
+  zipline); (b) ~200 "File missing for GMSprite": el importador
+  declaro la capa GMImageLayer con un GUID y guardo el PNG con otro
+  -> creados 1.161 layers/<frame>/<GUID-del-yy>.png (copia del PNG
+  existente en el dir; 8.190 ya existian). Abarca los 148 TTB + las
+  2 tiras ampliadas (char_info/lobby_icon). Fix integrado:
+  scripts/fix_v22_compile.py; validacion 0 missing + eventList exacto.
+  Zip v2.2 original recuperado de litterbox (SHA verificado) tras el
+  reciclado del sandbox. Entregable download/vanilla_v2_2_2_compilefix.zip.
+- 2026-10-31 (charsafe-v2.2.3 — SEGURO DE SLOTS de personaje): el
+  usuario reporto crash "Variable Index [13] out of range [11]" en
+  obj_lobby Draw_0:121 y pidio un sistema que evite esta familia de
+  errores al agregar pjs. Causa: literal avCharacters duplicado en 7
+  sitios, v2.2 solo actualizo 3. CREADO scripts/scr_characters
+  (seccion 4 nueva arriba: macros de tope derivados de los
+  CHARACTER_*/EXE_*, reset/get/set blindados, sanity [charsanity] al
+  crear obj_lobby, scr_char_name). Sustituidas las 7 copias + 5
+  accesos directos blindados + clamp de sprInd en obj_lobby/Draw_0.
+  Validador workspace scripts/validate_slots.py TODO OK (sin
+  literales/accesos directos fuera del script, registro .yyp con
+  formato exacto, delimitadores balanceados en los 10 .gml tocados).
+  NO toca el server (el de v2.2 sigue valiendo). Entregable:
+  download/charsafe_v2_2_3.zip (extraer sobre la raiz con GM cerrado).

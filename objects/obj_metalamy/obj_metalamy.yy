@@ -15,7 +15,7 @@
   "name":"obj_metalamy",
   "overriddenProperties":[],
   "parent":{
-    "name":"Metal Am",
+    "name":"Metal Amy",
     "path":"folders/Objects/Player/Exes/Metal Amy.yy",
   },
   "parentObjectId":null,

@@ -1954,3 +1954,142 @@ Stage Summary:
   originales y habilidades fieles a las placas del mod.
 - EL SERVER CAMBIA: recompilar antes de hospedar.
 - Entregable: download/vanilla_v2_2_ttb_characters.zip.
+
+════════════════════════════════════════════════════════════════════
+2026-10-31 — VANILLA v2.2.1 + v2.2.2 (el proyecto abria pero NO COMPILABA)
+════════════════════════════════════════════════════════════════════
+
+v2.2.1 (ya entregada como linkfix, re-incluida aqui): "Cannot find
+folder path 'folders/Scripts/Net.yy'" x4 -> reparent de los 4 .yy a
+folders/Scripts/Networking/Specific.yy. Con esto el proyecto ABRIA.
+
+Pedido v2.2.2: el usuario compila y recibe (a) ~200 "File missing for
+GMSprite" en la ventana de errores y (b) crash del asset compiler:
+IndexOutOfRangeException en GMObject.GetEventName_Simple (Igor exit
+-532462766). NOTA: tras aplicar v2.2.1 el LOAD AND LINK fue
+SUCCESSFUL — los dos bugs nuevos son invisibles para el IDE y solo
+matan al COMPILADOR.
+
+Diagnostico (sobre el estado exacto del usuario; el zip v2.2 original
+se recupero de litterbox mdqgbq.zip, SHA verificado):
+- BUG A: los .yy de obj_metal/obj_amelia/obj_blaze/obj_metalamy
+  traian 8 eventos; 6 bien y 2 con los CAMPOS INVERTIDOS:
+  "eventNum":0,"eventType":64 y "eventNum":0,"eventType":76. Los
+  .gml se llaman Draw_64.gml/Draw_76.gml => los reales son
+  eventType 8 (Draw) num 64 (GUI) y 76 (referencia upstream:
+  obj_aiz_zipline type=8 num=76). Un eventType de 64/76 indexa fuera
+  de la tabla de nombres del compilador -> IndexOutOfRange.
+- BUG B: cada .yy de sprite TTB declara UNA capa GMImageLayer con
+  GUID G1 (p.ej. 1d061688) pero el importador guardo el PNG de cada
+  frame como layers/<frame>/<G2>.png con G2 distinto (a1585038):
+  DOS tiradas del generador de GUIDs. GM pide por convencion
+  layers/<frame>/<G1>.png -> File missing x cada frame de cada
+  sprite (los 148 TTB + las tiras ampliadas spr_char_info/spr_lobby_
+  icon, que ademas mezclan los layers del upstream).
+
+Fix (scripts/fix_v22_compile.py, sobre repo+zip = estado usuario):
+- BUG A: reemplazo textual exacto de las 2 lineas por .yy (4 .yy).
+- BUG B: creados 1.161 PNG layers/<frame>/<G1-del-yy>.png copiando
+  el PNG existente en cada dir layers/<frame>/ (8.190 ya existian
+  bien; 0 errores). Los PNG con G2 quedan huerfanos (inofensivos,
+  GM no los referencia).
+- BUG 3 (v2.2.1): incluido por si se viene de un v2.2 pelado.
+
+Validacion (en el mismo script): 0 sprites missing, eventList de
+los 4 == {(0,0),(3,0),(8,0),(3,2),(2,4),(8,64),(8,76),(7,7)},
+parents de los 4 net_ OK. Todo OK.
+
+Nota de sesion: el sandbox se reciclo y perdio el zip v2.2, el
+commit e596fadf, el dump UMT y public/ (hub). Recuperado gracias a
+la copia de litterbox (GET con --http1.1: el WAF pincha HTTP/2).
+Este commit re-integra v2.2 + v2.2.1 + v2.2.2 de una vez sobre
+38807afd (v2.1.4): 3.758 archivos nuevos + 28 modificados.
+
+Docs: LEEME (REVISION 2.2.2 + re-inserida la 2.2.1); CACHE (tabla,
+7.4.1 y changelog); esta entrada.
+
+Stage Summary:
+- v2.2 VUELVE A COMPILAR: extraer vanilla_v2_2_2_compilefix.zip
+  ENCIMA de la raiz con GM cerrado y F5. Nada de .gml, nada de
+  server (el de v2.2 sigue valiendo).
+- El zip lleva 1.161 PNG + 4 .yy de objetos + 4 .yy de scripts + docs.
+- Entregable: download/vanilla_v2_2_2_compilefix.zip.
+
+════════════════════════════════════════════════════════════════════
+2026-10-31 — CHARSAFE v2.2.3 (seguro de slots: fin de los crashes
+"Index [N] out of range" al agregar personajes)
+════════════════════════════════════════════════════════════════════
+
+Sintoma (reportado por el usuario): crash
+  Push :: Execution Error - Variable Index [13] out of range [11]
+  - 221.avCharacters(100093,13)
+  at gml_Object_obj_lobby_Draw_0 (line 121)
+al entrar a la seleccion de personajes. Y su pregunta: "no crees
+que deberiamos crear un seguro que permita crear el slot y todo
+eso automatico para cuando agreguemos un pj nuevo?" => hecho.
+
+Causa raiz: avCharacters (que slots de personaje estan libres) es
+un array de instancia de obj_netclient que estaba COPIADO A MANO
+en 7 lugares (obj_netclient/Create_0, net_wrapper, net_tcpprocess,
+net_state_game x3, obj_level/Alarm_2). En v2.2 se agrego Blaze
+(slot 13) y solo 3 copias se actualizaron a 14 entradas; las
+otras 4 quedaron con 11 => cualquier acceso al slot 12/13 explota.
+El literal duplicado era una trampa que ya habia mordido en v2.1
+(vanilla v1: "11 entradas (2 sitios)") y mordio de nuevo.
+
+Solucion (scripts/scr_characters/scr_characters.gml, NUEVO):
+- Macros de tope DERIVADOS de los enums existenes:
+  CHARACTER_SURV_MAX (= CHARACTER_BLAZE, el ultimo macro de
+  scr_survivors), CHARACTER_COUNT (+exe), EXE_CHAR_COUNT
+  (= EXE_METALAMY + 1), LOBBY_CHARS_MIN (chars[] del lobby).
+  Al agregar un pj nuevo al FINAL de la lista de macros, TODO se
+  re-dimensiona solo.
+- scr_avchars_reset(): array fresco [exe=false, resto=true].
+  Reemplaza a las 7 copias del literal.
+- scr_avchar_get(ch): lectura blindada. Fuera de rango => false
+  (= ocupado, el pj no se puede pedir) + log [chars]. NUNCA mas
+  "Variable Index out of range".
+- scr_avchar_set(ch, val): escritura blindada. Si un SERVER MAS
+  MODERNO manda un CHARACTER_CHANGE con un id que este cliente
+  no conoce, crea los slots al vuelo (huecos = ocupados =
+  innombrables) en vez de crashear: versiones viejas de cliente
+  pueden seguir jugando en servers con pjs nuevos.
+- scr_characters_sanity(): lo llama obj_lobby/Create_0 una vez
+  por arranque; loguea [charsanity] cualquier registro incompleto
+  (chars[] del lobby, paletas, player_anims, player_get) ANTES de
+  que explote en partida. Nunca crashea el mismo.
+- scr_char_name(ch): nombres para los logs.
+
+Cambios de integracion (todo validado por
+workspace/scripts/validate_slots.py, TODO OK):
+- 7 literales -> "avCharacters = scr_avchars_reset()".
+- 5 accesos directos blindados: obj_lobby/Draw_0:121 (el del
+  crash), obj_lobby_icon/Draw_0:82, net_tcpprocess:39 (player
+  left), net_state_charselect:111 y :189 (response/change).
+- obj_lobby/Draw_0: clamp de sprInd contra array_length(chars)
+  antes de chars[sprInd] y sprite_get_speed() (por si un server
+  mas moderno manda un pj sin retrato en este cliente).
+- Registro: scr_characters en el .yyp (formato exacto de linea
+  verificado contra las demas) + .yy con parent Players.
+- CACHE.md: seccion 4 nueva (SLOTS DE PERSONAJE), regla 8.11,
+  changelog. Este worklog.
+
+Server: NO se toca (betterserver de v2.2 sigue valiendo; su
+avail[] ya se dimensiona con CH_BLAZE+1).
+
+GUIA PARA EL PROXIMO PERSONAJE (queda en la cabecera del script
+y en CACHE.md seccion 4): macro AL FINAL en scr_survivors (o
+scr_exe si es killer) + player_anims + case player_get + assets
+de lobby (chars[], tira spr_lobby_icon, placa spr_char_info,
+exeicon, paleta default) + enum CH_*/EX_* AL FINAL en
+include/Server.h + nombre en states/CharSelect.c. El array de
+slots y el sanity se ajustan solos; lo que falte lo dice
+[charsanity] por consola al arrancar, no crasheando en partida.
+
+Stage Summary:
+- Crash del lobby ARREGLADO y familia de errores eliminada de
+  raiz: extraer charsafe_v2_2_3.zip ENCIMA de la raiz con GM
+  cerrado, aceptar sobrescribir y F5.
+- El zip lleva el script nuevo (.gml + .yy) + el .yyp + 10 .gml
+  modificados + LEEME + docs. NADA de server.
+- Entregable: download/charsafe_v2_2_3.zip.

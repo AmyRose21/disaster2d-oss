@@ -1,30 +1,19 @@
 with(obj_netclient)
 {
-	audio_stop_all();
-	global.ringId = 0;
-	global.player = noone;
-	global.character = -1;
-	global.exeCharacter = -1;
-	global.playerControls = true;
-	ds_map_destroy(players);
-	players = ds_map_create();
-	exeId = -1;
-	
-	avCharacters = 
-	[ 
-		false, //0 (exe) (cannot)
-		true,  //1 (t)
-		true,
-		true,
-		true,
-		true,
-		true,
-		true,  //7 (amy canon)
-		true,  //8 (sonic)
-		true,  //9 (sally canon)
-		true  //10 (vanilla) - vanilla-v1
-	];
-	
-	state = STATE_LOBBY;
-	room_goto(room_lobby);
+        audio_stop_all();
+        global.ringId = 0;
+        global.player = noone;
+        global.character = -1;
+        global.exeCharacter = -1;
+        global.playerControls = true;
+        ds_map_destroy(players);
+        players = ds_map_create();
+        exeId = -1;
+        
+        // Slots de personajes: se dimensionan solos
+        // (ver scr_characters / scr_avchars_reset)
+        avCharacters = scr_avchars_reset();
+        
+        state = STATE_LOBBY;
+        room_goto(room_lobby);
 }

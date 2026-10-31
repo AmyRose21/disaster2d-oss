@@ -1,0 +1,93 @@
+════════════════════════════════════════════════════════════════
+ CHARSAFE v2.2.3 — Seguro de slots de personaje (fix del crash
+ "Variable Index [13] out of range [11]" + sistema automatico)
+════════════════════════════════════════════════════════════════
+
+QUE ARREGLA
+-----------
+El crash que viste al entrar a la seleccion de personajes:
+
+  Push :: Execution Error - Variable Index [13] out of range [11]
+  - 221.avCharacters(100093,13)
+  at gml_Object_obj_lobby_Draw_0 (line 121)
+
+Causa: el array avCharacters (que personajes estan libres/ocupados)
+estaba copiado a mano en 7 sitios del codigo; al agregar Blaze en
+v2.2 solo se actualizaron 3 copias y las otras 4 quedaron con 11
+slots. Cualquier acceso al slot 12 o 13 (Metal/Amelia/Blaze)
+explotaba.
+
+QUE AGREGA (el "seguro" que pediste)
+------------------------------------
+Script nuevo scripts/scr_characters/scr_characters.gml, que es el
+UNICO dueno del array. A partir de ahora:
+
+1. scr_avchars_reset()  : crea el array con el tamaño correcto
+   SOLO, segun los macros de personaje. Las 7 copias del literal
+   desaparecen (nunca mas desincronizacion).
+
+2. scr_avchar_get(ch)   : lectura blindada. Si algo pide un slot
+   que no existe, devuelve "ocupado" y loguea en consola en vez
+   de crashear.
+
+3. scr_avchar_set(ch,v) : escritura blindada. Si un server mas
+   moderno manda un personaje que tu cliente aun no conoce, crea
+   el slot AL VUELO (quedando como ocupado/innombrable): nadie
+   crashea y todos pueden seguir jugando.
+
+4. scr_characters_sanity() : al crear el lobby revisa UNA vez que
+   retratos, placas, paletas, animaciones y player_get cubran a
+   todos los personajes. Lo que falte lo avisa por consola con
+   etiqueta [charsanity] AL ARRANCAR, no crasheando en partida.
+
+5. scr_char_name(ch)    : nombre corto de cada pj para los logs.
+
+COMO SE AGREGA UN PERSONAJE NUEVO DESDE AHORA
+---------------------------------------------
+1. scr_survivors.gml : #macro CHARACTER_XXX AL FINAL de la lista
+   (NUNCA reordenar los existentes) + sus player_anims + case en
+   player_get().
+2. scr_exe.gml       : si es killer, #macro EXE_XXX al final.
+3. ACA NO SE TOCA NADA: los slots se dimensionan solos.
+4. Server            : enum CH_XXX (o EX_XXX) al final en
+   include/Server.h + nombre en states/CharSelect.c.
+5. Assets            : retrato en obj_lobby chars[], frame en la
+   tira spr_lobby_icon, placa spr_char_info, exeicon si es killer
+   y paleta default en obj_unlockables.
+   Si se te olvida alguno, [charsanity] te lo dice por consola.
+
+INSTALACION
+-----------
+1. Cierra GameMaker.
+2. Extrae el zip ENCIMA de la raiz del proyecto (la carpeta que
+   contiene "Sonicexe The Disaster 2D Remake.yyp"), aceptando
+   sobrescribir.
+3. Abre el proyecto y F5.
+
+El zip sobrescribe: el .yyp, 10 .gml y agrega scripts/scr_characters/
+(.gml + .yy). NO toca el server: el betterserver de v2.2 sigue
+valiendo sin recompilar.
+
+CONTENIDO DEL PAQUETE
+---------------------
+- LEEME_CHARSAFE_V2_2_3.txt ................ este archivo
+- Sonicexe The Disaster 2D Remake.yyp ...... registra scr_characters
+- scripts/scr_characters/scr_characters.gml  EL SEGURO (nuevo)
+- scripts/scr_characters/scr_characters.yy
+- objects/obj_netclient/Create_0.gml ...... literal -> reset
+- scripts/net_wrapper/net_wrapper.gml ..... literal -> reset
+- scripts/net_tcpprocess/net_tcpprocess.gml  literal + set blindado
+- scripts/net_state_game/net_state_game.gml  x3 literales -> reset
+- objects/obj_level/Alarm_2.gml ........... literal -> reset
+- scripts/net_state_charselect/net_state_charselect.gml  x2 sets blindados
+- objects/obj_lobby/Draw_0.gml ............ fix del crash + clamp
+- objects/obj_lobby/Create_0.gml ........... llama al sanity
+- objects/obj_lobby_icon/Draw_0.gml ........ lectura blindada
+- worklog.md / CACHE.md ................... documentacion
+
+VERIFICACION RAPIDA TRAS INSTALAR
+---------------------------------
+- Compilar y entrar a un lobby: el ciclo de seleccion debe pasar
+  por Metal/Amelia/Blaze sin crash (ese era el bug).
+- En consola de depuracion deberias ver una linea:
+  [charsanity] OK: 13 supervivientes + 5 killers = 14 slots

@@ -75,20 +75,9 @@ function net_poll()
                                 exeId = 0;
                                 chance = 0;
                                 lvlId = -1;
-                                avCharacters = 
-                                [ 
-                                        false, //0 (exe) (cannot)
-                                        true,  //1 (tails)
-                                        true,
-                                        true,
-                                        true,
-                                        true,
-                                        true,
-                                        true,  //7 (amy canon)
-                                        true,  //8 (sonic)
-                                        true,  //9 (sally canon)
-                                        true  //10 (vanilla) - vanilla-v1
-                                ];
+                                // Slots de personajes: se dimensionan solos
+                                // (ver scr_characters / scr_avchars_reset)
+                                avCharacters = scr_avchars_reset();
                 
                                 isConnected = true;
                                 room_goto(room_waiting);
