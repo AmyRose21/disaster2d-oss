@@ -87,6 +87,13 @@ function net_state_charselect(rbuff, nps, isPasstrough)
 					image_index = char == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : char + 1;
 					if(char == CHARACTER_VANILLA)
 						image_index = CHARACTER_CREAM + 1;
+					// v2.2 (TTB): frames propios de Metal/Amelia/Blaze
+					if(char == CHARACTER_METAL)
+						image_index = 10;
+					else if(char == CHARACTER_AMELIA)
+						image_index = 11;
+					else if(char == CHARACTER_BLAZE)
+						image_index = 12;
 					image_xscale = 0;
 				}
 				
@@ -222,6 +229,13 @@ function net_state_charselect(rbuff, nps, isPasstrough)
 					image_index = char == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : char + 1;
 					if(char == CHARACTER_VANILLA)
 						image_index = CHARACTER_CREAM + 1;
+					// v2.2 (TTB): frames propios de Metal/Amelia/Blaze
+					if(char == CHARACTER_METAL)
+						image_index = 10;
+					else if(char == CHARACTER_AMELIA)
+						image_index = 11;
+					else if(char == CHARACTER_BLAZE)
+						image_index = 12;
 				}
 			}
 			

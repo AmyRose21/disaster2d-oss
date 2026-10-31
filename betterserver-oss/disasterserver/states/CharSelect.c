@@ -108,7 +108,7 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 		v->exe_char = id;
 
 		AssertOrDisconnect(v->server, id >= 0);
-		AssertOrDisconnect(v->server, id <= EX_EXELLER);
+		AssertOrDisconnect(v->server, id <= EX_METALAMY);
 
 		PacketCreate(&pack, SERVER_LOBBY_EXECHARACTER_RESPONSE);
 		PacketWrite(&pack, packet_write8, id);
@@ -123,7 +123,8 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 			"Classic Exe",
 			"Chaos",
 			"Exetior",
-			"Exeller"};
+			"Exeller",
+			"Metal Amy"}; /* v2.2 (TTB)
 
 		Info("%s " LOG_RST "(id %d) choses [" LOG_RED "%s" LOG_RST "]!", v->nickname.value, v->id, exes[id]);
 		return charselect_check_state(v->server) || lobby_init(v->server);
@@ -143,7 +144,7 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 		id--; // id - 1
 
 		AssertOrDisconnect(v->server, id >= 0);
-		AssertOrDisconnect(v->server, id <= CH_VANILLA);
+		AssertOrDisconnect(v->server, id <= CH_BLAZE);
 
 		/* Amy Canon: personaje RESERVADO. Solo el jugador con el
 		   token valido (CLIENT_AMY_AUTH, ver states/Server.c)
@@ -224,7 +225,10 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 			"Amy Canon",
 			"Sonic",
 			"Sally Canon",
-			"Vanilla"};
+			"Vanilla",
+			"Metal Sonic", /* v2.2 (TTB) */
+			"Amelia",
+			"Blaze"};
 
 		Info("%s " LOG_RST "(id %d) choses [" LOG_GRN "%s" LOG_RST "]!", v->nickname.value, v->id, survs[id]);
 		return charselect_check_state(v->server) || lobby_init(v->server);
@@ -300,7 +304,7 @@ bool charselect_init(int8_t map, Server *server)
 	server->state = ST_CHARSELECT;
 	server->lobby.countdown_sec = g_config.charselect_time;
 	server->lobby.countdown = TICKSPERSEC;
-	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_VANILLA + 1));
+	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_BLAZE + 1)); /* v2.2: hasta Blaze */
 
 	Packet pack;
 	PacketCreate(&pack, SERVER_LOBBY_EXE);
@@ -359,7 +363,7 @@ bool charselect_init_survpractice(Server *server)
 	server->state = ST_CHARSELECT;
 	server->lobby.countdown_sec = g_config.practice_time;
 	server->lobby.countdown = TICKSPERSEC;
-	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_VANILLA + 1));
+	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_BLAZE + 1)); /* v2.2: hasta Blaze */
 
 	Packet pack;
 

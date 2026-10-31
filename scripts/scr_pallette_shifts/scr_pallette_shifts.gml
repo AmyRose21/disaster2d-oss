@@ -33,3 +33,18 @@ global.paletteShifts[? CHARACTER_SALLY_CANON + PALETTE_DEMON] = scr_palette([ #1
 // Vanilla: mismos tonos que Cream (sus sprites son estilo Cream)
 global.paletteShifts[? CHARACTER_VANILLA] = scr_palette([ #800000, #e00000 ]);
 global.paletteShifts[? CHARACTER_VANILLA + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20 ]);
+
+// v2.2 — rescatados de TD2D Through the Blood. Metal Sonic: azul
+// metalico -> rojo sangre. Amelia: tonos crema como Cream. Blaze:
+// morado fuego -> rojo oscuro.
+global.paletteShifts[? CHARACTER_METAL] = scr_palette([ #0c4f8f, #2f9fe0 ]);
+global.paletteShifts[? CHARACTER_METAL + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20 ]);
+
+global.paletteShifts[? CHARACTER_AMELIA] = scr_palette([ #800000, #e00000 ]);
+global.paletteShifts[? CHARACTER_AMELIA + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20 ]);
+
+global.paletteShifts[? CHARACTER_BLAZE] = scr_palette([ #6a0dad, #b23ae0 ]);
+global.paletteShifts[? CHARACTER_BLAZE + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20 ]);
+
+// Metal Amy (killer): rosa metalico -> rojo sangre (patron Exeller)
+global.paletteShifts[? EXE_METALAMY + PALETTE_EXE] = scr_palette([ #940000, #ff0000 ]);

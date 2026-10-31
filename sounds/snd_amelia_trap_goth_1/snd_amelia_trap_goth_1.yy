@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"snd_amelia_trap_goth_1",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":1.5151020408163265,
+  "exportDir":"",
+  "name":"snd_amelia_trap_goth_1",
+  "parent":{
+    "name":"Amelia",
+    "path":"folders/Sounds/Player/Amelia.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"snd_amelia_trap_goth_1.wav",
+  "volume":1.0,
+}

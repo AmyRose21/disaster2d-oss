@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"net_blaze_fireball",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"net_blaze_fireball",
+  "parent":{
+    "name":"Specific",
+    "path":"folders/Scripts/Networking/Specific.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

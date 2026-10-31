@@ -23,10 +23,16 @@ chars =
 	spr_menu_sonic_canon,
 	spr_menu_sally, // 8: Sally Canon reusa el retrato de Sally
 	spr_menu_cream, // 9: Vanilla reusa el retrato de Cream
+	// v2.2 (TTB): los 3 rescatados
+	spr_menu_metal, // 10: Metal Sonic
+	spr_menu_amelia, // 11: Amelia
+	spr_menu_blaze, // 12: Blaze
+	// killers (offset CHARACTER_BLAZE = 13)
 	spr_menu_exe,
 	spr_menu_chaos,
 	spr_menu_exetior,
 	spr_menu_exeller,
+	spr_menu_metalamy, // 17: Metal Amy (v2.2)
 ];
 
 // Vote

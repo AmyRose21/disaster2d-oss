@@ -82,6 +82,20 @@ if(instance_exists(global.player) && !global.player.isDead)
 					
 					draw_sprite_ext(spr, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
 					break;
+				
+				case EXE_METALAMY:
+				{
+					// v2.2 (TTB): golpe (X) y bala del canon (C)
+					var prog = 1.0 - (min(global.player.attackTimer, 120) / 120.0);
+					draw_sprite_ext(spr_gui_metalamyattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+					
+					var prog = global.playerControls && global.player.isJumping;
+					draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog ? c_white : c_red, prog ? 1 : 0.5);
+					
+					var prog = 1.0 - (global.player.bulletTimer / METALAMY_BULLET_RECHARGE);
+					draw_sprite_ext(spr_gui_metal_amy_lazer, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+					break;
+				}
 			}
 			
 			break;
@@ -274,6 +288,48 @@ if(instance_exists(global.player) && !global.player.isDead)
 
 			var prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
 			draw_sprite_ext(spr_gui_creamrings, global.player.revivalTimes >= 2, prog * 10, 257 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog);
+			break;
+		}
+		
+		// ============================================================
+		// v2.2 (TTB) — METAL SONIC: dash (X) y electro (C)
+		case CHARACTER_METAL:
+		{
+			var prog = 1.0 - (max(global.player.dashTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE));
+			draw_sprite_ext(spr_gui_creamdash, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+			
+			var prog = 1.0 - (max(global.player.electroTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE));
+			draw_sprite_ext(spr_gui_eggshield, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+			break;
+		}
+		
+		// ============================================================
+		// v2.2 (TTB) — AMELIA: vuelo (Z), banana (X) y bomba (C)
+		case CHARACTER_AMELIA:
+		{
+			var prog = 1.0 - (max(global.player.flyTimer, 0) / AMELIA_FLY_RECHARGE);
+			draw_sprite_ext(spr_gui_creamfly, global.player.revivalTimes >= 2, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+			
+			var prog = 1.0 - (max(global.player.bananaTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_BANANA_RECHARGE : AMELIA_BANANA_RECHARGE));
+			draw_sprite_ext(spr_gui_amelia_trap, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog);
+			
+			var prog = 1.0 - (max(global.player.bombTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_BOMB_RECHARGE : AMELIA_BOMB_RECHARGE));
+			draw_sprite_ext(spr_gui_eggtrack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog);
+			break;
+		}
+		
+		// ============================================================
+		// v2.2 (TTB) — BLAZE: salto de fuego (Z), bola (X) y ardiente (C)
+		case CHARACTER_BLAZE:
+		{
+			var prog = 1.0 - (max(global.player.djumpRecharge, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_DJUMP_RECHARGE : BLAZE_DJUMP_RECHARGE));
+			draw_sprite_ext(spr_gui_eggdjump, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+			
+			var prog = 1.0 - (max(global.player.fireballTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_FIREBALL_RECHARGE : BLAZE_FIREBALL_RECHARGE));
+			draw_sprite_ext(spr_gui_amyattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+			
+			var prog = 1.0 - (max(global.player.burningTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_BURNING_RECHARGE : BLAZE_BURNING_RECHARGE));
+			draw_sprite_ext(spr_gui_sallyshield, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
 			break;
 		}
 		

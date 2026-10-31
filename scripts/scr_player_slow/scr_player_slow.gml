@@ -68,5 +68,27 @@ function scr_player_slow(time)
 			global.player.alarm[4] = 60 * time;
 			
 			break;
+			
+			// v2.2 (TTB): stats de los rescatados
+			case CHARACTER_METAL:
+				global.player.isSlow = true;
+				global.player.acc = (METAL_ACC * (100-40)) / 100;
+				global.player.maxHSpeed = (METAL_MAXSPEED * (100-40)) / 100;
+				global.player.alarm[4] = 60 * time;
+				break;
+			
+			case CHARACTER_AMELIA:
+				global.player.isSlow = true;
+				global.player.acc = (AMELIA_ACC * (100-40)) / 100;
+				global.player.maxHSpeed = (AMELIA_MAXSPEED * (100-40)) / 100;
+				global.player.alarm[4] = 60 * time;
+				break;
+			
+			case CHARACTER_BLAZE:
+				global.player.isSlow = true;
+				global.player.acc = (BLAZE_ACC * (100-40)) / 100;
+				global.player.maxHSpeed = (BLAZE_MAXSPEED * (100-40)) / 100;
+				global.player.alarm[4] = 60 * time;
+				break;
 	}
 }

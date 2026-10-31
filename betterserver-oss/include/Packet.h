@@ -187,7 +187,23 @@ typedef enum
            El server valida, limpia PLAYER_DEMONIZED y avisa a todos.
            Mismo orden que el enum del cliente (net_packets.gml). */
         CLIENT_VANILLA_DEDEMONIZE,
-        SERVER_VANILLA_DEDEMONIZE
+        SERVER_VANILLA_DEDEMONIZE,
+
+        /* v2.2 — personajes de TD2D Through the Blood (mod abandonado).
+           Amelia: banana (resorte-trampa) y bomba (mecha 5 s / pisada).
+           Blaze: bola de fuego (proyectil). Metal Amy (killer): bala
+           del canon. Mismo orden en el enum del cliente. */
+        CLIENT_AMELIA_BANANA,
+        CLIENT_AMELIA_BOMB,
+        CLIENT_AMELIA_BOMB_BOOM,
+        SERVER_AMELIA_BANANA_STATE,
+        SERVER_AMELIA_BOMB_STATE,
+        CLIENT_BLAZE_FIREBALL,
+        CLIENT_BLAZE_FIREBALL_HIT,
+        SERVER_BLAZE_FIREBALL_STATE,
+        CLIENT_METALAMY_BULLET,
+        CLIENT_METALAMY_BULLET_HIT,
+        SERVER_METALAMY_BULLET_STATE
 } PacketType;
 
 typedef struct

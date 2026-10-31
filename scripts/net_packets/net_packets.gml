@@ -185,7 +185,25 @@ enum PacketType
            PLAYER_DEMONIZED y avisa a todos. Mismo orden que el Packet.h
            del server (betterserver-oss). */
         CLIENT_VANILLA_DEDEMONIZE,
-        SERVER_VANILLA_DEDEMONIZE
+        SERVER_VANILLA_DEDEMONIZE,
+
+        /* v2.2 — personajes de TD2D Through the Blood (rescatados del
+           mod abandonado). Mismo orden en el Packet.h del server.
+           Amelia: banana (trampa resorte) y bomba (contigo, explota a
+           los 5 s o al pisarla el killer). Blaze: bola de fuego
+           (proyectil que aturde al killer 2 s). Metal Amy (killer):
+           bala (proyectil que dana a los sobrevivientes). */
+        CLIENT_AMELIA_BANANA,
+        CLIENT_AMELIA_BOMB,
+        CLIENT_AMELIA_BOMB_BOOM,
+        SERVER_AMELIA_BANANA_STATE,
+        SERVER_AMELIA_BOMB_STATE,
+        CLIENT_BLAZE_FIREBALL,
+        CLIENT_BLAZE_FIREBALL_HIT,
+        SERVER_BLAZE_FIREBALL_STATE,
+        CLIENT_METALAMY_BULLET,
+        CLIENT_METALAMY_BULLET_HIT,
+        SERVER_METALAMY_BULLET_STATE
 }
 
 #macro STATE_PENDING -1

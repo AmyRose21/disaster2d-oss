@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"net_metalamy_bullet",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"net_metalamy_bullet",
+  "parent":{
+    "name":"Specific",
+    "path":"folders/Scripts/Networking/Specific.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

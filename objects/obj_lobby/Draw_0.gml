@@ -108,7 +108,7 @@ else if(state == 2 || state == 3)
 		sprInd = selected - 1;
 		
 		if(obj_netclient.exeId == obj_netclient.nid)
-			sprInd += CHARACTER_VANILLA; // ahora son 10 supervivientes
+			sprInd += CHARACTER_BLAZE; // v2.2: 13 supervivientes + 5 killers
 	}
 	
 	// Personajes reservados ocultos: ni retrato ni placa de info (doble
@@ -128,13 +128,24 @@ else if(state == 2 || state == 3)
 	// (CHARACTER_VANILLA - 7) = 3 para volver a los frames 7-10.
 	var _infoFrame = sprInd;
 	if(obj_netclient.exeId == obj_netclient.nid)
-		_infoFrame = sprInd - (CHARACTER_VANILLA - 7);
+	{
+		// v2.2: offset killers (exe=13..metalamy=17 -> placas 7-10 + Metal Amy 15)
+		_infoFrame = sprInd - (CHARACTER_BLAZE - 7);
+		if(sprInd == CHARACTER_BLAZE + 4)
+			_infoFrame = 15; // metal amy (v2.2): su propia placa
+	}
 	else if(sprInd == 8)
 		_infoFrame = 5; // sally canon: usa la placa de Sally
 	else if(sprInd == 9)
 		_infoFrame = 4; // vanilla: usa la placa de Cream
 	else if(sprInd == 7)
 		_infoFrame = 11; // sonic
+	else if(sprInd == 10)
+		_infoFrame = 12; // metal (v2.2): su propia placa
+	else if(sprInd == 11)
+		_infoFrame = 13; // amelia (v2.2)
+	else if(sprInd == 12)
+		_infoFrame = 14; // blaze (v2.2)
 	if(!_amyHidden)
 		draw_sprite(spr_char_info, _infoFrame, 1, 232-5);
 	

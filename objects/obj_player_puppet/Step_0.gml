@@ -345,6 +345,21 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         xxspd = 0;
                                 }
                                 
+				
+				// v2.2 (TTB): la ELECTRO de Metal suena con su propio golpe y
+				// tiene efecto visible; el dash usa su hit normal. La forma
+				// ardiente de Blaze tambien tiene su sonido.
+				if(character == CHARACTER_METAL && state == METAL_ELECTRO)
+				{
+					net_quick_effect(global.player.x, global.player.y, spr_shockparticle);
+					snd = snd_metal_electro;
+					xxspd = 0;
+				}
+				else if(character == CHARACTER_METAL)
+					snd = snd_metal_hiit;
+				
+				if(character == CHARACTER_BLAZE && state == BLAZE_BURNING)
+					snd = snd_blaze_go;
                                 var buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
                                 buffer_write(buffer, buffer_u16, master_id);
                                 buffer_write(buffer, buffer_u16, x);

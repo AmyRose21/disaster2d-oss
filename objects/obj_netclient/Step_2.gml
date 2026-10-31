@@ -84,6 +84,15 @@ with(global.player)
 			if(global.character == CHARACTER_VANILLA && isFloatRunning)
 				bitflags |= PLAYER_POWERBOOST;
 		
+		
+			// v2.2 (TTB): el dash de Metal y la forma ardiente de Blaze
+			// mandan el mismo bitflag: los demas clientes ven la estela
+			// de imagenes residuales en su puppet.
+			if(global.character == CHARACTER_METAL && metalDashing > 0)
+				bitflags |= PLAYER_POWERBOOST;
+			
+			if(global.character == CHARACTER_BLAZE && burning > 0)
+				bitflags |= PLAYER_POWERBOOST;
 			if(global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON)
 			{
 				if(shieldTimer > 0)

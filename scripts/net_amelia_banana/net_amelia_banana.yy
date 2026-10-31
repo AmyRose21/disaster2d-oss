@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"net_amelia_banana",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"net_amelia_banana",
+  "parent":{
+    "name":"Specific",
+    "path":"folders/Scripts/Networking/Specific.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

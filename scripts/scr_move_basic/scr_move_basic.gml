@@ -649,6 +649,15 @@ function scr_move_basic()
                         if(global.character == CHARACTER_SONIC && (isAttacking || isSpinCharging))
                                 return;
                         
+
+				// v2.2 (TTB): METAL no salta en pleno dash (la electro si
+				// deja: es un campo pasivo alrededor).
+				if(global.character == CHARACTER_METAL && metalDashing > 0)
+					return;
+				
+				// v2.2 (TTB): BLAZE no salta en la pose de disparo.
+				if(global.character == CHARACTER_BLAZE && shootPose > 0 && isGrounded)
+					return;
                         // CREAM/VANILLA (original del juego): no saltan
                         // mientras invocan anillos.
                         if((global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA) && ringsSpawn > 0)

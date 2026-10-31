@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"snd_metalamy_dash",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":1.1293877551020408,
+  "exportDir":"",
+  "name":"snd_metalamy_dash",
+  "parent":{
+    "name":"Metal Amy",
+    "path":"folders/Sounds/Player/Metal Amy.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"snd_metalamy_dash.wav",
+  "volume":1.0,
+}

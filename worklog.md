@@ -1858,3 +1858,99 @@ Stage Summary:
 - Entregable: download/vanilla_v2_1.zip. Instalar: extraer ENCIMA
   de la raiz con GM cerrado (verificar que el .yyp y resource_order
   se sobrescriben; snd_chocola_dive debe aparecer en Sounds) y F5.
+
+════════════════════════════════════════════════════════════════════
+2026-10-31 — SYNC PULL + VANILLA v2.1.4 (fix sonido de stun de Chocola)
+════════════════════════════════════════════════════════════════════
+
+Pedido: "cuando chocola stunea no se oye el sonido de stun al exe" +
+pull del repositorio.
+
+Pull / sync:
+- fetch: origin/main avanzo a 57b9ae94 ("Mejora"). El push traia el
+  CODIGO v2.1.2+v2.1.3 aplicado por el usuario (TODOS los .gml y
+  betterserver-oss identicos a mis commits locales) pero LEEME/
+  CACHE/worklog quedaron en estado v2.1: al extraer los zips no
+  sobrescribio los 3 docs (mismo patron del ".yyp fantasma").
+- Divergencia local (3 commits mios) resuelta con reset a origin/main
+  (el codigo era identico; docs del usuario = canonico). Backup de
+  mis docs completos en scripts/doc_backup_v213/. Re-anadidas filas
+  v2.1.1-2.1.3 compactas en CACHE (tabla + seccion 7.4.1).
+
+Diagnostico del sonido (los 3 stuns del juego comparados):
+- parry (scr_parry_apply_stun) y laser de Tails
+  (obj_tails_projectile): el exe oye snd_exe_stun (golpe canonico)
+  + scr_exe_stunsound() (grito del personaje).
+- Chocola (scr_chocola_stun_signal): SOLO el grito, y ADEMAS colocado
+  AL FINAL, DESPUES del `if(shockedTimer > 0) return` del dedup =>
+  (a) exe ya stuneado por otra fuente = golpe de Chocola EN MUDO,
+  (b) exe limpio = solo grito (sin el "hit" que el jugador reconoce
+  como sonido de stun).
+
+Fix (scripts/scr_chocola/scr_chocola.gml, scr_chocola_stun_signal):
+- audio_play_sound(snd_exe_stun, 0, false) + net_sound_emit(
+  snd_exe_stun) + scr_exe_stunsound() movidos ANTES del dedup: el
+  golpe suena SIEMPRE (aunque el stun no se re-aplique; el golpe fue
+  real). El net_sound_emit reenvia el golpe: los demas clientes lo
+  oyen en 3D desde el exe, igual que en el parry. Dedup intacto (no
+  acumula stuns), mismas duraciones, mismo CLIENT_PLAYER_HURT/shake.
+
+Verificacion:
+- Validador nuevo scripts/vanilla_v2_1_4_validate.py: 28 checks
+  (forma del fix, orden sonido<dedup, sanidad GML, callers de
+  net_state_game, paridad con parry/laser, snd_exe_stun en
+  global.net_snds y como asset) + regresion completa: v2.1.1 (52),
+  v2.1.2 (90 + 866 archivos), v2.1.3 (34 + 9 archivos de red
+  linteados). TODO OK.
+- Zip verificado byte a byte contra el repo (2 archivos).
+
+Docs: LEEME seccion REVISION 2.1.4; CACHE tabla + 7.4.1 + changelog;
+worklog (esta entrada).
+
+Stage Summary:
+- El stun de Chocola ahora suena en la pantalla del exe IGUAL que
+  todos los demas stuns del juego: golpe canonico + grito, siempre
+  (tambien cuando el exe ya estaba stuneado y el dedup no re-aplica).
+- Solo cambia scripts/scr_chocola/scr_chocola.gml. CERO server, cero
+  assets nuevos: extraer con GM cerrado y F5.
+- Entregable: download/vanilla_v2_1_4.zip.
+
+## 2026-10-31 — vanilla-v2.2: rescate de personajes de TD2D "Through the blood" (cerrado)
+
+Contexto: el mod TTB de maxbaxwer fue abandonado y cerrado en GameJolt;
+el usuario pidio rescatar a sus personajes (builds cliente+server
+descargadas via API interna de GameJolt, data.win YYC 134 MB extraido
+con UndertaleModCli Ubuntu → /home/z/my-project/td2d_blood/dump).
+
+Hecho:
+- 148 sprites + 20 sonidos importados (ttb_import_assets.py: .yy
+  generados al 100%, PNG root + layers/, registro en .yyp → 1926
+  recursos, 0 duplicados).
+- 3 supervivientes (Metal Sonic / Amelia / Blaze) + 1 killer
+  (Metal Amy): objetos completos (8 eventos c/u, plantillas
+  vanilla/exeller), 4 special scripts, 4 entidades de red cliente
+  (banana/bomb/fireball/bullet), estados propios + eanims completos.
+- Red: 11 paquetes nuevos (paridad cliente/server verificada),
+  4 entidades server (patron TailsProjectile), 7 cases en Game.c,
+  cooldowns por jugador x4 (PLAYER_COOLCOUNT 10), limites de
+  CharSelect hasta CH_BLAZE / EX_METALAMY + memsets corregidos.
+- Lobby: chars[] 18, spr_lobby_icon 10→13 f y spr_char_info 12→16 f
+  (frames identificados por pixel-matching + OCR de las placas TTB),
+  exeicon6 (5.o killer), iconos de cooldown en playerui, springs/
+  slow/carry/move_basic integrados, PLAYER_POWERBOOST para el dash
+  de Metal y la forma ardiente de Blaze (estela en puppets).
+- Blaze CD de la bola = 9 s (leido por OCR de la placa original).
+
+Validacion: vanilla_v2_2_validate.py 316 checks OK (incluye paridad
+de enums, 17 slots por anim array, referencias a assets, macros
+unicas, sintaxis de 38 GML, registro en .yyp, server). gcc
+-fsyntax-only limpio en los 6 .c tocados del server.
+
+Docs: LEEME seccion REVISION 2.2; CACHE changelog; esta entrada.
+
+Stage Summary:
+- 4 personajes de TTB jugables: Metal Sonic, Amelia, Blaze
+  (supervivientes libres) y Metal Amy (killer #5), con assets
+  originales y habilidades fieles a las placas del mod.
+- EL SERVER CAMBIA: recompilar antes de hospedar.
+- Entregable: download/vanilla_v2_2_ttb_characters.zip.

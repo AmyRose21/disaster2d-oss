@@ -51,6 +51,206 @@ function net_state_game(rbuff, nps, isPasstrough)
 {
         switch(nps)
         {
+                // ============================================================
+                //  v2.2 (TTB) — entidades de los personajes rescatados
+                // ============================================================
+                case PacketType.SERVER_AMELIA_BANANA_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+                                
+                        var _state = buffer_read_s(rbuff, buffer_u8);
+                        var _id = buffer_read_s(rbuff, buffer_u16);
+                        var _x = buffer_read_s(rbuff, buffer_u16);
+                        var _y = buffer_read_s(rbuff, buffer_u16);
+                        
+                        if(_state == 0)
+                        {
+                                // colocar el resorte-trampa (la fisica del rebote
+                                // la aplica el sistema de resortes estandar en el
+                                // cliente de quien la pise)
+                                var inst = instance_create_depth(_x, _y, 0, obj_amelia_banana);
+                                inst.nid = _id;
+                        }
+                        else
+                        {
+                                with(obj_amelia_banana)
+                                {
+                                        if(nid != _id)
+                                                continue;
+                                        
+                                        instance_destroy();
+                                        break;
+                                }
+                        }
+                        break;
+                }
+                
+                case PacketType.SERVER_AMELIA_BOMB_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+                                
+                        var _state = buffer_read_s(rbuff, buffer_u8);
+                        var _id = buffer_read_s(rbuff, buffer_u16);
+                        var _x = buffer_read_s(rbuff, buffer_u16);
+                        var _y = buffer_read_s(rbuff, buffer_u16);
+                        
+                        if(_state == 0)
+                        {
+                                var inst = instance_create_depth(_x, _y, 0, obj_amelia_bomb);
+                                inst.nid = _id;
+                                inst.fuse = 60 * 5;
+                        }
+                        else if(_state == 1)
+                        {
+                                // retirada (fin de ronda etc.)
+                                with(obj_amelia_bomb)
+                                {
+                                        if(nid != _id)
+                                                continue;
+                                        
+                                        instance_destroy();
+                                        break;
+                                }
+                        }
+                        else if(_state == 2)
+                        {
+                                // BOOM: explosion visual + stun al jugador LOCAL del
+                                // lado del EXE si esta en el radio (cada cliente es
+                                // autoridad de su propio jugador)
+                                with(obj_amelia_bomb)
+                                {
+                                        if(nid != _id)
+                                                continue;
+                                        
+                                        instance_destroy();
+                                        break;
+                                }
+                                
+                                audio_play_sound(snd_amelia_trap_goth, 0, false);
+                                net_sound_emit(snd_amelia_trap_goth);
+                                net_quick_effect(_x, _y, spr_shockparticle, true, 1, 0, 0, 1.5);
+                                scr_camera_shake(30, 1.5, 0.2);
+                                
+                                if(instance_exists(global.player) && (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2))
+                                {
+                                        if(global.character == CHARACTER_EXE && global.player.invisTimer > 0)
+                                                break;
+                                        
+                                        if(global.player.shockedTimer <= 0 && point_distance(global.player.x, global.player.y, _x, _y) < 90)
+                                        {
+                                                global.player.shockedTimer = 60 * 2;
+                                                global.player.xspd = sign(global.player.x - _x) * 4;
+                                                global.player.yspd = -3;
+                                                global.player.isGrounded = false;
+                                                global.player.isAttacking = false;
+                                                
+                                                audio_play_sound(snd_exe_stun, 0, false);
+                                                net_sound_emit(snd_exe_stun);
+                                                
+                                                if(global.character == CHARACTER_EXE)
+                                                        scr_exe_stunsound();
+                                        }
+                                }
+                        }
+                        break;
+                }
+                
+                case PacketType.SERVER_BLAZE_FIREBALL_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+                                
+                        var _state = buffer_read_s(rbuff, buffer_u8);
+                        
+                        if(_state == 0) // Spawn
+                        {
+                                if(instance_exists(obj_blaze_fireball))
+                                        break;
+                                
+                                var _xx = buffer_read_s(rbuff, buffer_u16);
+                                var _yy = buffer_read_s(rbuff, buffer_u16);
+                                var _dir = buffer_read_s(rbuff, buffer_s8);
+                                
+                                var inst = instance_create_depth(_xx, _yy, 0, obj_blaze_fireball);
+                                inst.image_xscale = _dir;
+                                inst.dir = _dir;
+                        }
+                        else if(_state == 1) // Tick
+                        {
+                                var _xx = buffer_read_s(rbuff, buffer_u16);
+                                var _yy = buffer_read_s(rbuff, buffer_u16);
+                                
+                                with(obj_blaze_fireball)
+                                {
+                                        if(isBreaking)
+                                                continue;
+                                        
+                                        x = _xx;
+                                        y = _yy;
+                                        break;
+                                }
+                        }
+                        else // 2: despawn
+                        {
+                                with(obj_blaze_fireball)
+                                {
+                                        if(!isBreaking)
+                                                _destroy();
+                                        break;
+                                }
+                        }
+                        break;
+                }
+                
+                case PacketType.SERVER_METALAMY_BULLET_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+                                
+                        var _state = buffer_read_s(rbuff, buffer_u8);
+                        
+                        if(_state == 0) // Spawn
+                        {
+                                if(instance_exists(obj_metal_amy_bullet))
+                                        break;
+                                
+                                var _xx = buffer_read_s(rbuff, buffer_u16);
+                                var _yy = buffer_read_s(rbuff, buffer_u16);
+                                var _dir = buffer_read_s(rbuff, buffer_s8);
+                                
+                                var inst = instance_create_depth(_xx, _yy, 0, obj_metal_amy_bullet);
+                                inst.image_xscale = _dir;
+                                inst.dir = _dir;
+                        }
+                        else if(_state == 1) // Tick
+                        {
+                                var _xx = buffer_read_s(rbuff, buffer_u16);
+                                var _yy = buffer_read_s(rbuff, buffer_u16);
+                                
+                                with(obj_metal_amy_bullet)
+                                {
+                                        if(isBreaking)
+                                                continue;
+                                        
+                                        x = _xx;
+                                        y = _yy;
+                                        break;
+                                }
+                        }
+                        else // 2: despawn
+                        {
+                                with(obj_metal_amy_bullet)
+                                {
+                                        if(!isBreaking)
+                                                _destroy();
+                                        break;
+                                }
+                        }
+                        break;
+                }
+                
                 case PacketType.SERVER_FELLA:
                 {
                         var pid = buffer_read_s(rbuff, buffer_u16);
@@ -2442,11 +2642,34 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 case CHARACTER_SALLY:
                                 
                                 case CHARACTER_SALLY_CANON: // defensivo: el server jamas la demoniza
-                                        global.player.attackTimer = 0;
-                                        global.player.shieldTimer = 0;
-                                        global.player.shieldRechrage = 0;       
-                                        break;
-                        }
+					global.player.attackTimer = 0;
+					global.player.shieldTimer = 0;
+					global.player.shieldRechrage = 0;		
+					break;
+					
+					// v2.2 (TTB): cooldowns de los rescatados
+				case CHARACTER_METAL:
+					global.player.metalDashing = 0;
+					global.player.isElectro = 0;
+					global.player.dashTimer = 0;
+					global.player.electroTimer = 0;
+					break;
+					
+				case CHARACTER_AMELIA:
+					global.player.flyTimer = 0;
+					global.player.bananaTimer = 0;
+					global.player.bombTimer = 0;
+					global.player.isFlying = false;
+					break;
+					
+				case CHARACTER_BLAZE:
+					global.player.djumpRecharge = 0;
+					global.player.fireballTimer = 0;
+					global.player.burningTimer = 0;
+					global.player.burning = 0;
+					global.player.shootPose = 0;
+					break;
+			                        }
                         
                         var table = obj_unlockables.palettes[? global.character + PALETTE_DEMON];
                         
@@ -2736,7 +2959,10 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         true,  //7 (amy canon)
                                         true,  //8 (sonic)
                                         true,  //9 (sally canon)
-                                        true  //10 (vanilla) - vanilla-v1
+                                        true,  //10 (vanilla) - vanilla-v1
+                                        true,  //11 (metal) - v2.2 TTB
+                                        true,  //12 (amelia) - v2.2 TTB
+                                        true   //13 (blaze) - v2.2 TTB
                                 ];
                                 
                                 gameEnds = false;
@@ -2900,7 +3126,10 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         true,  //7 (amy canon)
                                         true,  //8 (sonic)
                                         true,  //9 (sally canon)
-                                        true  //10 (vanilla) - vanilla-v1
+                                        true,  //10 (vanilla) - vanilla-v1
+                                        true,  //11 (metal) - v2.2 TTB
+                                        true,  //12 (amelia) - v2.2 TTB
+                                        true   //13 (blaze) - v2.2 TTB
                                 ];
                                 
                                 gameEnds = false;
@@ -3462,7 +3691,10 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         true,  //7 (amy canon)
                                         true,  //8 (sonic)
                                         true,  //9 (sally canon)
-                                        true  //10 (vanilla) - vanilla-v1
+                                        true,  //10 (vanilla) - vanilla-v1
+                                        true,  //11 (metal) - v2.2 TTB
+                                        true,  //12 (amelia) - v2.2 TTB
+                                        true   //13 (blaze) - v2.2 TTB
                                 ];
                                 
                                 gameEnds = false;

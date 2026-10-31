@@ -2,6 +2,98 @@
  VANILLA V2 — CHOCOLA, PACIENCIA, FLOAT RUN Y LAS PASIVAS DE MADRE
 ════════════════════════════════════════════════════════════════════
 
+
+ REVISION 2.2 — LOS RESCATADOS DE "THROUGH THE BLOOD" (v2.2)
+════════════════════════════════════════════════════════════════════
+
+ QUE ES: el mod "Sonic.exe The disaster 2d remaker mod - Through the
+ blood" (de maxbaxwer, GameJolt) fue ABANDONADO y cerrado. Rescatamos
+ a sus 4 personajes nuevos con todos sus assets (sprites, sonidos y
+ habilidades reconstruidas a partir de sus datos): 3 SUPERVIVIENTES y
+ 1 KILLER nuevos. Son LIBRES para todos (sin token ni operador).
+
+ SUPERVIVIENTES nuevos (slots 11-13 en la seleccion):
+   * METAL SONIC (ofensivo, rapido 13):
+       - X: DASH — embestida hasta 10 s (o hasta chocar una pared /
+         soltar X); aturde al killer 3 s al tocarlo. CD 40 s.
+       - C: ELECTRO — 1 s electrificado: el killer que lo toque queda
+         aturdido 3 s (con chispas y su sonido). CD 30 s.
+   * AMELIA (voladora estilo Cream, 11):
+       - Z (en el aire): VUELO — sube manteniendo Z, planea al
+         soltar. 4 s. CD 18 s. Puede llevar pasajero (mod carry).
+       - X (abajo + en el suelo): BANANA — deja un RESORTE-trampa:
+         quien lo pise (killer incluido) sale disparado para arriba.
+         Dura 12 s. CD 25 s.
+       - C (en el suelo): BOMBA — mecha de 5 s (o explota si el killer
+         la pisa): aturde 2 s al killer en 90 px a la redonda. CD 35 s.
+   * BLAZE (rapida 12.5, salto alto):
+       - Z (en el aire): SALTO DE FUEGO — doble salto con llamas. CD 12 s.
+       - X: BOLA DE FUEGO — proyectil que aturde al killer 2 s
+         (parry-able por Sonic, como el laser de Tails). CD 9 s.
+       - C: BLAZE ARDIENTE — 1.5 s envuelta en fuego: +30% velocidad
+         y el killer que la toque queda aturdido 3 s. CD 30 s.
+
+ KILLER nuevo (slot 5 del EXE):
+   * METAL AMY (stats de Exeller):
+       - X: GOLPE — el cuerpo a cuerpo estandar de los killers.
+       - C: BALA DEL CANON — proyectil que hace 20 de dano al
+         sobreviviente que toque (parry-able). CD 7 s.
+
+ NOTAS DE RED: mismo modelo que el resto del juego (server = autoridad
+ de entidades, cada cliente = autoridad de su propio jugador): la
+ banana/bomba/bola/bala viajan por el server y el stun/dano lo aplica
+ SIEMPRE el cliente de la victima. Los tres supervivientes tienen su
+ forma DEMONIZADA completa (emetal_/eamelia_/eblaze_).
+
+ INSTALACION (importante, este zip es GRANDE):
+   1. Extraer ENCIMA de la raiz del proyecto con GameMaker CERRADO.
+      Son ~230 entradas: 148 sprites, 20 sonidos, 8 objetos, 8
+      scripts, 2 tiras ampliadas (iconos del lobby + placas de info),
+      el .yyp actualizado y los fuentes del SERVER.
+   2. EL SERVER CAMBIA (betterserver-oss): recompilar antes de
+      hospedar (un server viejo rechaza los personajes nuevos).
+   3. Compilar F5. Si el IDE se queja de un asset concreto, cerrar,
+      reabrir y F5 otra vez (pasa la 1.a vez que GM indexa muchos
+      assets nuevos de golpe).
+
+ Prueba rapida: lobby -> ciclar mas alla de Vanilla (Metal, Amelia,
+ Blaze) y con el host ciclar a la 5.a carita de killer (Metal Amy);
+ probar cada habilidad en partida y comprobar que el OTRO cliente ve
+ la banana/bomba/bola de fuego/bala y oye sus sonidos.
+
+ REVISION 2.1.4 (fix de sonido): "cuando Chocola stunea no
+ se oye el sonido de stun al exe". Eran DOS cosas en
+ scr_chocola_stun_signal (scripts/scr_chocola/scr_chocola.gml):
+   CAUSA 1: el unico sonido (el grito del personaje,
+     scr_exe_stunsound) vivia AL FINAL de la funcion, DESPUES del
+     "dedup" (el if que evita re-aplicar el stun si el exe ya estaba
+     stuneado por otra cosa: contra-golpe de Knux/Sally, parry de
+     Sonic, laser de Tails...). Si el exe ya estaba stuneado, ese
+     return se comia el sonido: Chocola le pegaba y el exe no oia
+     NADA.
+   CAUSA 2: y cuando el grito si sonaba, sonaba SOLO. En TODOS los
+     demas stuns del juego el exe oye PRIMERO el golpe canonico
+     (snd_exe_stun, el "hit" seco de toda la vida) y ENCIMA el grito
+     de su personaje. Solo el stun de Chocola sonaba distinto (solo
+     grito) — o nada (causa 1).
+   ARREGLO: mismo patron que el parry y el laser de Tails: cuando la
+     senal de stun de Chocola llega a la pantalla del exe, este oye
+     golpe (snd_exe_stun) + grito (scr_exe_stunsound), SIEMPRE, aun
+     si ya estaba stuneado (el golpe fue real, se tiene que oir). El
+     golpe ademas viaja por red: los demas clientes lo oyen en 3D
+     desde la posicion del exe, igual que en el parry. El stun en si
+     no cambia: mismas duraciones (5 s paciencia / 1.5 s ataque
+     cercano), mismo dedup (no se acumula).
+ INSTALACION: extraer ENCIMA de la raiz del proyecto con GameMaker
+ CERRADO. Solo cambia 1 archivo de codigo (scr_chocola.gml). No hay
+ assets nuevos ni .yyp que comprobar, y EL SERVER NO CAMBIA (no hace
+ falta recompilarlo). Compilar F5.
+ Prueba rapida: que el exe se acerque a Vanilla hasta que Chocola lo
+ embista (o la paciencia entera) — en la ventana del EXE ahora se oye
+ el "hit" del stun + el grito; pruebalo tambien justo despues de un
+ stun de otra fuente (el golpe de Chocola se oye igual aunque el stun
+ no se re-aplique).
+
  REVISION 2.1 (este zip): 2 cambios pedidos tras probar la rev2.
    1. CHOCOLA SE VE EN LA PANTALLA DEL EXE: la mini-embestida (el
       ataque cercano del 33% y el de la custodia de Cream) ahora

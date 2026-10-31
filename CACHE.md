@@ -404,6 +404,10 @@
 | carry-v1           | Tails/Cream LLEVAN aliados volando + fix velocidad Amy (ver 7.3)| carry_v1.zip |
 | vanilla-v2         | Vanilla v2: Chocola, paciencia, float run, pasivas (ver 7.4)  | vanilla_v2.zip |
 | vanilla-v2.1       | Chocola visible en el exe (senal dive) + bloqueo 65%/CD 2.5 s (ver 7.4) | vanilla_v2_1.zip |
+| vanilla-v2.1.1     | HOTFIX crash puppet.isGrounded en pantallas donde Vanilla es remota (ver 7.4) | vanilla_v2_1_1.zip |
+| vanilla-v2.1.2     | HOTFIX crash cream.pacienciaState al saltar (ver 7.4)           | vanilla_v2_1_2.zip |
+| vanilla-v2.1.3     | HOTFIX crash net_tcpprocess.type + cooldowns de habilidades POR JUGADOR en el server (ver 7.4) | vanilla_v2_1_3.zip |
+| vanilla-v2.1.4     | FIX sonido de stun de Chocola en la pantalla del exe (ver 7.4)  | vanilla_v2_1_4.zip |
 
 ### 7.1 ENDINGS MUSIC v2 (instalado en el repo; detalle: LEEME_ENDINGS_V2.txt)
 Musica de ending SEGUN CUANTOS ESCAPARON (estilo TD original) + el server
@@ -549,6 +553,32 @@ y las pistas nuevas de 20-28s se cortaban).
   Aplicador: scripts/apply_vanilla_v2.py (50 ops, marcadores
   idempotentes; OJO: versiones < final tenian un bug y escribian en
   --dry — siempre git status antes/despues de un dry).
+
+### 7.4.1 HOTFIXES v2.1.1 - v2.1.4 (todos aplicados en el repo del usuario)
+- v2.1.1 (crash "obj_player_puppet.isGrounded not set" en obj_chocola
+  Step_0 cuando Vanilla es remota): puppet Create_0 + `isGrounded =
+  true;` y la regla de sprite FOLLOW usa xspd/yspd (SI viajan por red)
+  en vez de isGrounded. Validador: vanilla_v2_1_1_validate.py.
+- v2.1.2 (crash "obj_cream.pacienciaState not set" en scr_move_basic:652,
+  Cream salta con Chocola encima): la rama CREAM||VANILLA leia vars
+  solo-Vanilla; defaults defensivos en obj_cream/Create (pacienciaState,
+  moribundaState, ringsSpawn...). Validador: vanilla_v2_1_2_validate.py.
+- v2.1.3 (crash "obj_netclient.type not set" en net_tcpprocess:81 cuando
+  Vanilla y Cream sueltan anillos casi a la vez): DOBLE bug — el server
+  expulsaba al 2.o jugador (cooldowns de habilidades GLOBALES) y el
+  handler del paquete de kick leia `type` sin definir (bug del juego
+  base). Fix cliente: leer [u8 reason][string msg] + break que faltaba.
+  Fix server: cooldowns POR JUGADOR (PeerData.plr_cooldowns, Server.h +
+  states/Game.c). REQUIERE recompilar server. Validador:
+  vanilla_v2_1_3_validate.py (incluye lint del stack de red completo).
+- v2.1.4 (fix de sonido, "cuando Chocola stunea no se oye el sonido de
+  stun al exe"): en scr_chocola_stun_signal el grito vivia DESPUES del
+  return del dedup (exe ya stuneado => golpe de Chocola mudo) y cuando
+  sonaba era SOLO el grito. Ahora suena golpe canonico (snd_exe_stun,
+  mismo que parry/laser/contra-golpe) + grito (scr_exe_stunsound),
+  ANTES del dedup y siempre; el golpe viaja por red (3D en los demas
+  clientes). Solo cambia scr_chocola.gml, CERO server. Validador:
+  vanilla_v2_1_4_validate.py (regresion 2.1.1+2.1.2+2.1.3 incluida).
 
 ## 8. CONVENCIONES Y TRAMPAS DEL CODIGO (lecciones pagadas — leer ANTES de editar)
 1. SANGRIA MIXTA (mapa verificado en vanilla-v2): ESPACIOS de 4 en
@@ -851,3 +881,58 @@ y las pistas nuevas de 20-28s se cortaban).
   en runtime con "unknown variable EVASI2". Si Sally Canon fase2 se
   juega sin errores, su .yyp local tiene sonidos que el repo no
   recibio al pushear.
+- 2026-10-31 (sync tras pull + vanilla-v2.1.4): el push del usuario
+  ("Mejora" 57b9ae94) traia el CODIGO v2.1.2+v2.1.3 aplicado (todos
+  los .gml identicos a mis commits) pero los docs (LEEME/CACHE/
+  worklog) quedaron en estado v2.1 — al extraer los zips no
+  sobrescribio los 3 docs (mismo patron del .yyp fantasma, leccion
+  2a). Resincronizado con reset a origin/main y re-anadidas las
+  filas/entradas de v2.1.1-2.1.3 (compactas, seccion 7.4.1).
+  v2.1.4 (fix de sonido del stun de Chocola): scr_chocola_stun_signal
+  tenia el grito (scr_exe_stunsound) DESPUES del return del dedup =>
+  exe ya stuneado = golpe mudo; y cuando sonaba era solo el grito, no
+  el golpe canonico. Fix: audio_play_sound(snd_exe_stun) +
+  net_sound_emit(snd_exe_stun) + scr_exe_stunsound() ANTES del dedup
+  (patron exacto de scr_parry_apply_stun / obj_tails_projectile /
+  obj_player_puppet). Solo scr_chocola.gml, cero server, cero assets.
+  Validador vanilla_v2_1_4_validate.py 28 checks + regresion completa
+  (52+90+34). Entregable download/vanilla_v2_1_4.zip.
+- 2026-10-31 (vanilla-v2.2 — RESCATE TTB): el mod "TD2D Through the
+  blood" (maxbaxwer, GameJolt, CERRADO) fue rescatado de sus builds
+  (data.win 134 MB, YYC): 1343 sprites + 297 sonidos extraidos con
+  UndertaleModCli (scripts/ttb_export*.csx). PORTADOS 4 personajes
+  con assets completos (148 sprites + 20 sonidos via
+  ttb_import_assets.py, .yy generados + .yyp 1926 recursos):
+  METAL SONIC (dash 10 s stun 3 s CD 40 + electro 1 s stun 3 s CD 30,
+  scr_metal_special), AMELIA (vuelo estilo Cream con carry + BANANA =
+  resorte-trampa colocable [entidad server aban, 12 s, el rebote lo
+  aplica el sistema de resortes del cliente que la pisa] + BOMBA
+  [abomb, mecha 5 s o pisada del killer, boom state 2, stun 2 s radio
+  90 en el cliente del exe], scr_amelia_special), BLAZE (salto de
+  fuego + BOLA DE FUEGO [bfire, patron laser de Tails, stun 2 s en el
+  cliente del killer, parry-able, CD 9 s = placa TTB] + forma
+  ARDIENTE 1.5 s [+30% vel, stun 3 s contacto, estela POWERBOOST en
+  puppets], scr_blaze_special) y el killer METAL AMY (EXE_METALAMY:
+  golpe estandar + BALA DEL CANON [mabul, patron laser exe de Tails,
+  dano 20 en el cliente de la victima, parry-able, CD 7 s],
+  scr_metalamy_special). Estados propios BALANCING+1..7 en sus
+  Step_2; eanims completos (emetal_/eamelia_/eblaze_); puppet
+  PLAYER_POWERBOOST para dash/burning (obj_netclient Step_2).
+  Integracion: enums CH_METAL/CH_AMELIA/CH_BLAZE + EXE_METALAMY
+  (mismo orden cliente/server), avCharacters x3 +11..13, lobby
+  (chars[] 18, tiras spr_lobby_icon 13 f [met 10/amel 11/blaze 12,
+  pixel-matching contra TTB] y spr_char_info 16 f [placas 12-15, OCR
+  para identificarlas], exeicon6 = 5.o killer), playerui iconos CD,
+  resortes cancelan dash/electro/vuelo, scr_player_slow, scr_carry
+  (Amelia portadora), scr_move_basic gates. SERVER: Packet.h +11
+  paquetes (paridad byte a byte verificada), Server.h CH_*/EX_* +
+  PLAYER_COOLCOUNT 10 (cooldowns por jugador banana/bomb/bfire/mabul),
+  4 entidades (AmeliaBanana/AmeliaBomb/BlazeFireball/MetalAmyBullet,
+  patron TailsProjectile), Game.c 7 cases + resets al demonizar,
+  CharSelect.c limites CH_BLAZE/EX_METALAMY + memsets + nombres.
+  Blaze fireball CD = 9 s (dato de la placa original del mod, OCR).
+  Validador vanilla_v2_2_validate.py 316 checks (paridad enums,
+  anims 17 slots, referencias, macros unicas, sintaxis, registro,
+  lobby, player_get, server) + gcc -fsyntax-only limpio en los 6 .c.
+  Entregable download/vanilla_v2_2_ttb_characters.zip (~230 entradas,
+  server incluido: RECOMPILAR antes de hospedar).

@@ -24,6 +24,13 @@
 #macro CHARACTER_SALLY_CANON (CHARACTER_TAILS+8)
 #macro CHARACTER_VANILLA (CHARACTER_TAILS+9)
 
+/* v2.2 — supervivientes rescatados de TD2D Through the Blood
+   (mod abandonado de maxbaxwer). Mismo orden que el CH_* del
+   server (betterserver-oss/include/Server.h). */
+#macro CHARACTER_METAL (CHARACTER_TAILS+10)   // Metal Sonic
+#macro CHARACTER_AMELIA (CHARACTER_TAILS+11)  // Amelia
+#macro CHARACTER_BLAZE (CHARACTER_TAILS+12)   // Blaze
+
 global.player_anims = ds_map_create();
 
 //Tails
@@ -273,6 +280,82 @@ global.player_anims[? CHARACTER_VANILLA] =
         spr_vanilla_float_run, //17 = V2: 3ra fase de corrida (estado VANILLA_FLOAT_RUN)
         spr_vanilla_paciencia, //18 = V2: PACIENCIA (1ra caida, inmune)
         spr_vanilla_paciencia_agotada //19 = V2: agotada al final / moribunda
+];
+
+// =====================================================================
+//  v2.2 — SUPERVIVIENTES DE TD2D THROUGH THE BLOOD
+//  (sprites rescatados del mod abandonado). Estados propios de cada
+//  uno definidos en su Step_2 (patron BALANCING+N).
+// =====================================================================
+
+// Metal Sonic: 14 = METAL_ATTACK (dash), 15 = METAL_ELECTRO,
+// 16 = METAL_ZIPLINE
+// METAL (demonizado): no tiene dead, reusa hurt (defensivo, como Vanilla)
+global.player_anims[? CHARACTER_METAL] =
+[
+        spr_metal_idle, //0
+        spr_metal_walk, //1
+        spr_metal_run, //2
+        spr_metal_jump, //3
+        spr_metal_fall, //4
+        spr_metal_hurt, //5
+        spr_metal_dead, //6
+        spr_metal_lookup, //7
+        spr_metal_lookdown, //8
+        spr_metal_emotion1, //9
+        spr_metal_emotion2, //10
+        spr_metal_emotion3, //11
+        spr_metal_jump, //12 (spin)
+        spr_metal_balancing, //13
+        spr_metal_attack, //14 = METAL_ATTACK: dash (tecla X)
+        spr_metal_attack2, //15 = METAL_ELECTRO: electrocutado (tecla C)
+        spr_metal_zipline //16 = METAL_ZIPLINE
+];
+
+// Amelia: 14 = AMELIA_FLY, 15 = AMELIA_SRINGS (defensivo),
+// 16 = AMELIA_ZIPLINE
+global.player_anims[? CHARACTER_AMELIA] =
+[
+        spr_amelia_idle, //0
+        spr_amelia_walk, //1
+        spr_amelia_run, //2
+        spr_amelia_jump, //3
+        spr_amelia_fall, //4
+        spr_amelia_hurt, //5
+        spr_amelia_dead, //6
+        spr_amelia_lookup, //7
+        spr_amelia_lookdown, //8
+        spr_amelia_emotion1, //9
+        spr_amelia_emotion2, //10
+        spr_amelia_emotion3, //11
+        spr_amelia_jump, //12 (spin)
+        spr_amelia_balancing, //13
+        spr_amelia_fly, //14 = AMELIA_FLY (tecla Z en el aire)
+        spr_amelia_srings, //15 = AMELIA_SRINGS (defensivo, sin uso)
+        spr_amelia_zipline //16 = AMELIA_ZIPLINE
+];
+
+// Blaze: 14 = BLAZE_FIREBALL (posicion de disparo), 15 = BLAZE_BURNING,
+// 16 = BLAZE_ZIPLINE
+global.player_anims[? CHARACTER_BLAZE] =
+[
+        spr_blaze_idle, //0
+        spr_blaze_walk, //1
+        spr_blaze_run, //2
+        spr_blaze_jump, //3
+        spr_blaze_fall, //4
+        spr_blaze_hurt, //5
+        spr_blaze_dead, //6
+        spr_blaze_lookup, //7
+        spr_blaze_lookdown, //8
+        spr_blaze_emotion1, //9
+        spr_blaze_emotion2, //10
+        spr_blaze_emotion3, //11
+        spr_blaze_jump, //12 (spin)
+        spr_blaze_balancing, //13
+        spr_blaze_go, //14 = BLAZE_FIREBALL: lanzar bola (tecla X)
+        spr_blaze_goon, //15 = BLAZE_BURNING: forma ardiente (tecla C)
+        spr_blaze_zipline //16 = BLAZE_ZIPLINE
 ];
 
 global.player_eanims = ds_map_create();
@@ -525,6 +608,75 @@ global.player_eanims[? CHARACTER_VANILLA] =
         spr_vanilla_paciencia_agotada //19 = V2: agotada / moribunda
 ];
 
+// METAL SONIC (demonizado): set completo de emetal_* (TTB). El slot 6
+// de las formas demonizadas es el STUN (patron etails/eknux).
+global.player_eanims[? CHARACTER_METAL] =
+[
+        spr_emetal_idle, //0
+        spr_emetal_walk, //1
+        spr_emetal_run, //2
+        spr_emetal_jump, //3
+        spr_emetal_fall, //4
+        spr_emetal_hurt, //5
+        spr_emetal_stun, //6
+        spr_emetal_lookup, //7
+        spr_emetal_lookdown, //8
+        spr_emetal_emotion1, //9
+        spr_emetal_emotion2, //10
+        spr_emetal_emotion3, //11
+        spr_emetal_jump, //12
+        spr_emetal_balancing, //13
+        spr_emetal_attack, //14
+        spr_emetal_attack2, //15
+        spr_emetal_zipline //16
+];
+
+// AMELIA (demonizada): set completo de eamelia_*. El 6 es stun (no
+// existe sprite stun propio: reusa hurt, defensivo).
+global.player_eanims[? CHARACTER_AMELIA] =
+[
+        spr_eamelia_idle, //0
+        spr_eamelia_walk, //1
+        spr_eamelia_run, //2
+        spr_eamelia_jump, //3
+        spr_eamelia_fall, //4
+        spr_eamelia_hurt, //5
+        spr_eamelia_hurt, //6 (stun defensivo)
+        spr_eamelia_lookup, //7
+        spr_eamelia_lookdown, //8
+        spr_eamelia_emotion1, //9
+        spr_eamelia_emotion2, //10
+        spr_eamelia_emotion3, //11
+        spr_eamelia_jump, //12
+        spr_eamelia_balancing, //13
+        spr_eamelia_fly, //14
+        spr_eamelia_srings, //15 (defensivo)
+        spr_eamelia_zipline //16
+];
+
+// BLAZE (demonizada): set completo de eblaze_* (incluye su propio
+// stun y el disparo wshot para la forma demonizada).
+global.player_eanims[? CHARACTER_BLAZE] =
+[
+        spr_eblaze_idle, //0
+        spr_eblaze_walk, //1
+        spr_eblaze_run, //2
+        spr_eblaze_jump, //3
+        spr_eblaze_fall, //4
+        spr_eblaze_hurt, //5
+        spr_eblaze_stun, //6
+        spr_eblaze_lookup, //7
+        spr_eblaze_lookdown, //8
+        spr_eblaze_emotion1, //9
+        spr_eblaze_emotion2, //10
+        spr_eblaze_emotion3, //11
+        spr_eblaze_jump, //12
+        spr_eblaze_balancing, //13
+        spr_eblaze_wshot, //14
+        spr_eblaze_goon, //15
+        spr_eblaze_zipline //16
+];
+
 // =====================================================================
 //  SONIC: variantes dinamicas del golpe (tecla X). Cualquier sprite
 //  llamado spr_sonic_attack2_tierra<N> o spr_sonic_attack2_aereo<N>
@@ -605,6 +757,15 @@ function player_get(ind)
 
                 case CHARACTER_VANILLA:
                         return obj_vanilla;
+
+                case CHARACTER_METAL:
+                        return obj_metal;
+
+                case CHARACTER_AMELIA:
+                        return obj_amelia;
+
+                case CHARACTER_BLAZE:
+                        return obj_blaze;
         }
 }
 

@@ -81,6 +81,32 @@ function scr_collision_objects_after()
 						isFlying = false;
 					}
 					break;
+
+				// v2.2 (TTB): Amelia cancela el vuelo igual que Cream
+				case CHARACTER_AMELIA:
+					if(isFlying)
+					{
+						flyTimer = AMELIA_FLY_RECHARGE;
+						isFlying = false;
+					}
+					break;
+					
+				// v2.2 (TTB): Metal corta el dash y la electro al rebotar
+				case CHARACTER_METAL:
+					if(metalDashing > 0)
+					{
+						metalDashing = 0;
+						isAttacking = false;
+						dashTimer = revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE;
+					}
+					
+					if(isElectro > 0)
+					{
+						isElectro = 0;
+						isAttacking = false;
+						electroTimer = revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE;
+					}
+					break;
 					
 				case CHARACTER_KNUX:
 					if(isGliding)
@@ -206,6 +232,32 @@ function scr_collision_objects_after()
 					{
 						flyTimer = CREAM_FLY_RECHARGE;
 						isFlying = false;
+					}
+					break;
+
+				// v2.2 (TTB): Amelia cancela el vuelo igual que Cream
+				case CHARACTER_AMELIA:
+					if(isFlying)
+					{
+						flyTimer = AMELIA_FLY_RECHARGE;
+						isFlying = false;
+					}
+					break;
+					
+				// v2.2 (TTB): Metal corta el dash y la electro al rebotar
+				case CHARACTER_METAL:
+					if(metalDashing > 0)
+					{
+						metalDashing = 0;
+						isAttacking = false;
+						dashTimer = revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE;
+					}
+					
+					if(isElectro > 0)
+					{
+						isElectro = 0;
+						isAttacking = false;
+						electroTimer = revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE;
 					}
 					break;
 					

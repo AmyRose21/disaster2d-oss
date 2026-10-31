@@ -33,7 +33,7 @@ struct auth_peer_data;
    2.o en usarla dentro de la ventana fallaba y el server lo desconectaba
    (y su cliente crasheaba leyendo `type` sin definir en net_tcpprocess:
    fix cliente v2.1.3). */
-#define PLAYER_COOLCOUNT 6
+#define PLAYER_COOLCOUNT 10
 // Cooldown indices (dentro de PeerData.plr_cooldowns)
 #define TAILS_RECHARGE 0
 #define CREAM_RING_SPAWN 1
@@ -41,6 +41,11 @@ struct auth_peer_data;
 #define EXELLER_CLONE_SPAWN 3
 #define EGGTRACK_RECHARGE 4
 #define ETAILS_RECHARGE 5
+/* v2.2 (TTB): habilidades de los rescatados */
+#define AMELIA_BANANA_SPAWN 6
+#define AMELIA_BOMB_SPAWN 7
+#define BLAZE_FIREBALL_SPAWN 8
+#define METALAMY_BULLET 9
 
 typedef struct PeerData
 {
@@ -92,8 +97,14 @@ typedef struct PeerData
 		/* Vanilla (mod): sobreviviente #10, mismo orden que el cliente.
 		   SOLO se desbloquea con el token de Amy (amy_canon_token),
 		   igual que Amy Canon: ni operadores ni publica. */
-		CH_VANILLA
-	} surv_char;
+		CH_VANILLA,
+
+		/* v2.2 (TTB): supervivientes #11-13 rescatados de TD2D Through
+		   the Blood, LIBRES para todos. Mismo orden que el cliente. */
+		CH_METAL,
+		CH_AMELIA,
+		CH_BLAZE
+		} surv_char;
 
 	enum
 	{
@@ -102,8 +113,11 @@ typedef struct PeerData
 		EX_ORIGINAL,
 		EX_CHAOS,
 		EX_EXETIOR,
-		EX_EXELLER
-	} exe_char;
+		EX_EXELLER,
+
+		/* v2.2 (TTB): killer #5 rescatado de TD2D Through the Blood */
+		EX_METALAMY
+		} exe_char;
 
 	bool should_timeout;
 
@@ -135,7 +149,7 @@ typedef struct
 	/* Character Select */
 	int8_t map;
 	uint16_t exe;
-	bool avail[CH_VANILLA + 1];
+	bool avail[CH_BLAZE + 1];
 } Lobby;
 
 typedef enum

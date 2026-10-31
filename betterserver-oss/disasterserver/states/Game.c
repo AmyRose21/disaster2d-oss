@@ -13,6 +13,10 @@
 #include <entities/CreamRing.h>
 #include <entities/BlackRing.h>
 #include <entities/TailsProjectile.h>
+#include <entities/AmeliaBanana.h>
+#include <entities/AmeliaBomb.h>
+#include <entities/BlazeFireball.h>
+#include <entities/MetalAmyBullet.h>
 #include <entities/EggmanTracker.h>
 #include <entities/ExellerClone.h>
 
@@ -482,6 +486,17 @@ bool game_demonize(Server* server, PeerData* data)
                         case CH_VANILLA: /* Vanilla: mismas habilidades que Cream */
                         {
                                 data->plr_cooldowns[CREAM_RING_SPAWN] = 0;
+                                break;
+                        }
+
+                        /* v2.2 (TTB): cooldowns de los rescatados */
+                        case CH_METAL:
+                        case CH_AMELIA:
+                        case CH_BLAZE:
+                        {
+                                data->plr_cooldowns[AMELIA_BANANA_SPAWN] = 0;
+                                data->plr_cooldowns[AMELIA_BOMB_SPAWN] = 0;
+                                data->plr_cooldowns[BLAZE_FIREBALL_SPAWN] = 0;
                                 break;
                         }
                 }
@@ -1002,6 +1017,130 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         break;
                 }
 
+
+                /* ============================================================
+                 *  v2.2 (TTB) — habilidades de los personajes rescatados
+                 * ============================================================ */
+                case CLIENT_AMELIA_BANANA:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->surv_char == CH_AMELIA);
+
+                        /* cooldown POR JUGADOR (patron v2.1.3): ignorar, sin kick */
+                        if (v->plr_cooldowns[AMELIA_BANANA_SPAWN] > 0)
+                                break;
+
+                        PacketRead(x, packet, packet_read16, uint16_t);
+                        PacketRead(y, packet, packet_read16, uint16_t);
+
+                        RAssert(game_spawn(v->server, (Entity*)&(MakeAmeliaBanana(x, y, v->id)), sizeof(AmeliaBanana), NULL));
+                        v->plr_cooldowns[AMELIA_BANANA_SPAWN] = 20 * TICKSPERSEC;
+                        break;
+                }
+
+                case CLIENT_AMELIA_BOMB:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->surv_char == CH_AMELIA);
+
+                        if (v->plr_cooldowns[AMELIA_BOMB_SPAWN] > 0)
+                                break;
+
+                        /* max 1 bomba viva a la vez (como los clons de Exeller) */
+                        if (game_find(v->server, NULL, "abomb", 1) > 0)
+                                break;
+
+                        PacketRead(x, packet, packet_read16, uint16_t);
+                        PacketRead(y, packet, packet_read16, uint16_t);
+
+                        RAssert(game_spawn(v->server, (Entity*)&(MakeAmeliaBomb(x, y, v->id)), sizeof(AmeliaBomb), NULL));
+                        v->plr_cooldowns[AMELIA_BOMB_SPAWN] = 30 * TICKSPERSEC;
+                        break;
+                }
+
+                case CLIENT_AMELIA_BOMB_BOOM:
+                {
+                        /* el killer piso la bomba: reventarla YA (el
+                           cliente del killer la detecto; el boom lo ve
+                           todo el mundo a la vez) */
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id == v->server->game.exe);
+
+                        Entity* ents;
+                        if (game_find(v->server, &ents, "abomb", 1))
+                                game_despawn(v->server, NULL, ents->id);
+
+                        break;
+                }
+
+                case CLIENT_BLAZE_FIREBALL:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->surv_char == CH_BLAZE);
+
+                        if (v->plr_cooldowns[BLAZE_FIREBALL_SPAWN] > 0)
+                                break;
+
+                        /* max 1 bola viva (como el laser de Tails) */
+                        if (game_find(v->server, NULL, "bfire", 1) > 0)
+                                break;
+
+                        PacketRead(x, packet, packet_read16, uint16_t);
+                        PacketRead(y, packet, packet_read16, uint16_t);
+                        PacketRead(dir, packet, packet_read8, int8_t);
+                        AssertOrDisconnect(v->server, dir >= -1 && dir <= 1);
+
+                        RAssert(game_spawn(v->server, (Entity*)&(MakeBlazeFireball(x, y, v->id, dir)), sizeof(BlazeFireball), NULL));
+                        v->plr_cooldowns[BLAZE_FIREBALL_SPAWN] = 8 * TICKSPERSEC;
+                        break;
+                }
+
+                case CLIENT_BLAZE_FIREBALL_HIT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+
+                        Entity* ents;
+                        if (game_find(v->server, &ents, "bfire", 1))
+                                game_despawn(v->server, NULL, ents->id);
+
+                        break;
+                }
+
+                case CLIENT_METALAMY_BULLET:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id == v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->exe_char == EX_METALAMY);
+
+                        if (v->plr_cooldowns[METALAMY_BULLET] > 0)
+                                break;
+
+                        if (game_find(v->server, NULL, "mabul", 1) > 0)
+                                break;
+
+                        PacketRead(x, packet, packet_read16, uint16_t);
+                        PacketRead(y, packet, packet_read16, uint16_t);
+                        PacketRead(dir, packet, packet_read8, int8_t);
+                        AssertOrDisconnect(v->server, dir >= -1 && dir <= 1);
+
+                        RAssert(game_spawn(v->server, (Entity*)&(MakeMetalAmyBullet(x, y, v->id, dir)), sizeof(MetalAmyBullet), NULL));
+                        v->plr_cooldowns[METALAMY_BULLET] = 7 * TICKSPERSEC;
+                        break;
+                }
+
+                case CLIENT_METALAMY_BULLET_HIT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+
+                        Entity* ents;
+                        if (game_find(v->server, &ents, "mabul", 1))
+                                game_despawn(v->server, NULL, ents->id);
+
+                        break;
+                }
                 case CLIENT_ETRACKER:
                 {
                         AssertOrDisconnect(v->server, v->in_game);
