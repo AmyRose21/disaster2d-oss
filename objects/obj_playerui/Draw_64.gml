@@ -292,10 +292,15 @@ if(instance_exists(global.player) && !global.player.isDead)
                 }
                 
                 // ============================================================
-                // v2.2 (TTB) — METAL SONIC: dash (X) y electro (C)
+                // v2.2 (TTB) / v2.7 — METAL SONIC: OVERDRIVE (X) y SPARK
+                // FIELD (C), los nombres de su placa del TTB. El overdrive
+                // v2.7 es AUTOMATICO (no hay que mantener X): arranca
+                // solo, gana velocidad (11 -> 16 en 0.4 s) y se corta solo
+                // al chocar contra una pared (ver scr_metal_special).
+                // Iconos prestados del juego base hasta que haya propios.
                 case CHARACTER_METAL:
                 {
-                        var prog = 1.0 - (max(global.player.dashTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE));
+                        var prog = 1.0 - (max(global.player.dashTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_OVERDRIVE_RECHARGE : METAL_OVERDRIVE_RECHARGE));
                         draw_sprite_ext(spr_gui_creamdash, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
                         
                         var prog = 1.0 - (max(global.player.electroTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE));
@@ -304,16 +309,42 @@ if(instance_exists(global.player) && !global.player.isDead)
                 }
                 
                 // ============================================================
-                // v2.4 (TTB) — AMELIA: trampolin (X) y trampa (C).
-                // (v2.2 tenia 3 iconos: el de vuelo se elimino junto a
-                // la habilidad; se reusan los sprites ya registrados)
+                // v2.7 — AMELIA: spindash (abajo + Z), trampolin (X) y
+                // trampa (C), cada una con SU icono (antes el trampolin
+                // usaba el icono de la trampa y la trampa el eggtrack de
+                // Eggman; el spindash no tenia icono). Sprites que ya
+                // estaban en el proyecto, ninguno nuevo.
                 case CHARACTER_AMELIA:
                 {
-                        var prog = 1.0 - (max(global.player.bananaTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_BANANA_RECHARGE : AMELIA_BANANA_RECHARGE));
-                        draw_sprite_ext(spr_gui_amelia_trap, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog);
+                        // Icono (abajo + Z): SPINDASH (v2.6). Sin cooldown:
+                        // su coste es el tiempo de revolucioneo. Mismo
+                        // patron que el de Sonic: cargando, el relleno
+                        // crece con la carga y brilla al llenarse; fuera
+                        // de carga, blanco fijo. Reusa el icono de Sonic
+                        // (para uno cobrizo propio, cambia ese PNG y ya).
+                        var _sprSpin = asset_get_index("spr_gui_sonicspindash");
+                        if(_sprSpin >= 0)
+                        {
+                                if(global.player.isSpinCharging)
+                                {
+                                        var _charge = global.player.spinCharge / AMELIA_SPINDASH_CHARGE_MAX;
+                                        draw_sprite_ext(_sprSpin, 0, _charge * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, _charge >= 1.0 ? c_white : c_red, 0.4 + _charge * 0.6);
+                                }
+                                else
+                                        draw_sprite_ext(_sprSpin, 0, 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, c_white, 1);
+                        }
                         
+                        // Icono (tecla X): TRAMPOLIN — el resorte
+                        // (spr_gui_sonicspring; estaba en disco desde la
+                        // extraccion del mod de Sonic y v2.7 lo registra
+                        // en el .yyp, hasta ahora jamas se uso).
+                        var prog = 1.0 - (max(global.player.bananaTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_BANANA_RECHARGE : AMELIA_BANANA_RECHARGE));
+                        draw_sprite_ext(spr_gui_sonicspring, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog);
+                        
+                        // Icono (tecla C): TRAMPA — la trampa-oso que
+                        // siempre fue suya (antes estaba en el slot X).
                         var prog = 1.0 - (max(global.player.trapTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE));
-                        draw_sprite_ext(spr_gui_eggtrack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog);
+                        draw_sprite_ext(spr_gui_amelia_trap, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog);
                         break;
                 }
                 

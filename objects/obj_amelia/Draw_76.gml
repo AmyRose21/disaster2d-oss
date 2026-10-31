@@ -43,4 +43,9 @@ switch(state)
         case SPIN:
                 image_speed = abs(xspd) / 5;
                 break;
+
+        case AMELIA_SPINDASH:
+                // como Sonic: la bola gira mas rapido cuanto mas cargada
+                image_speed = 0.5 + (spinCharge / AMELIA_SPINDASH_CHARGE_MAX) * 1.2;
+                break;
 }

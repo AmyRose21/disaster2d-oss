@@ -288,7 +288,7 @@ global.player_anims[? CHARACTER_VANILLA] =
 //  uno definidos en su Step_2 (patron BALANCING+N).
 // =====================================================================
 
-// Metal Sonic: 14 = METAL_ATTACK (dash), 15 = METAL_ELECTRO,
+// Metal Sonic: 14 = METAL_ATTACK (overdrive), 15 = METAL_ELECTRO,
 // 16 = METAL_ZIPLINE
 // METAL (demonizado): no tiene dead, reusa hurt (defensivo, como Vanilla)
 global.player_anims[? CHARACTER_METAL] =
@@ -312,7 +312,7 @@ global.player_anims[? CHARACTER_METAL] =
         spr_metal_zipline //16 = METAL_ZIPLINE
 ];
 
-// Amelia: 14 = AMELIA_FLY, 15 = AMELIA_SRINGS (defensivo),
+// Amelia: 14 = AMELIA_FLY, 15 = AMELIA_SPINDASH (v2.6),
 // 16 = AMELIA_ZIPLINE
 global.player_anims[? CHARACTER_AMELIA] =
 [
@@ -331,7 +331,7 @@ global.player_anims[? CHARACTER_AMELIA] =
         spr_amelia_jump, //12 (spin)
         spr_amelia_balancing, //13
         spr_amelia_fly, //14 = AMELIA_FLY (tecla Z en el aire)
-        spr_amelia_srings, //15 = AMELIA_SRINGS (defensivo, sin uso)
+        spr_amelia_spindash, //15 = AMELIA_SPINDASH: carga del spindash (v2.6)
         spr_amelia_zipline //16 = AMELIA_ZIPLINE
 ];
 
@@ -650,7 +650,7 @@ global.player_eanims[? CHARACTER_AMELIA] =
         spr_eamelia_jump, //12
         spr_eamelia_balancing, //13
         spr_eamelia_fly, //14
-        spr_eamelia_srings, //15 (defensivo)
+        spr_eamelia_spindash, //15 = AMELIA_SPINDASH (v2.6)
         spr_eamelia_zipline //16
 ];
 

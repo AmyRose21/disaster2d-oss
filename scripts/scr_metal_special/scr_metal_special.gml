@@ -1,32 +1,40 @@
 // =====================================================================
 //  METAL SONIC (v2.2, rescatado de TD2D Through the Blood).
-//  Ofensivo con dos habilidades (descripcion original del mod):
-//   * DASH (tecla X): embestida a maxima velocidad hasta por 10
-//     segundos o hasta chocar contra un objeto; aturde al killer 3 s
-//     al tocarlo (via isAttacking, el mismo canal del escudo de
-//     Eggman: el stun lo aplica el cliente del killer en
-//     obj_player_puppet). Recarga 40 s.
-//   * ELECTRO (tecla C): electrificado 1 segundo; cualquier killer
-//     que lo toque queda aturdido 3 s (el golpe electrico lo pone el
-//     cliente del killer: caso METAL en obj_player_puppet, con
-//     spr_shockparticle + snd_metal_electro). Recarga 30 s.
+//  v2.7: kit con los nombres de su placa del TTB —
+//   * OVERDRIVE (tecla X; placa: "DEFENSE: OVERDRIVE 2 SEC."):
+//     impulsion AUTOMATICA (v2.7, pedido del usuario). Una pulsacion
+//     de X y Metal sale solo, sin mantener nada: su velocidad AUMENTA
+//     de la carrera (11) al tope (16) en 0.4 s y se mantiene; dura
+//     2 s (placa) o hasta CHOCHAR CONTRA UNA PARED (corte con
+//     polvareda + mini-temblor de camara). Al killer que lo toque en
+//     pleno overdrive lo aturde 3 s (via isAttacking, el mismo canal
+//     del escudo de Eggman: el stun lo aplica el cliente del killer
+//     en obj_player_puppet). Recarga 40 s. (v2.2-v2.6 era "dash":
+//     exiga mantener X y duraba hasta 10 s.)
+//   * SPARK FIELD (tecla C; placa: "SPARK FIELD 2 SEC."): el
+//     electrocampo de v2.2 con su nombre de placa. Electrificado 1
+//     segundo; cualquier killer que lo toque queda aturdido 3 s (el
+//     golpe electrico lo pone el cliente del killer: caso METAL en
+//     obj_player_puppet, con spr_shockparticle + snd_metal_electro).
+//     Recarga 30 s. NOTA: la placa dice 2 s y el juego usa 1 s desde
+//     v2.2 — sin tocar (misma decision pendiente que la TRAP 2/3 s
+//     de Amelia); si lo quieres alineado, cambia METAL_ELECTRO_TIME.
 //  Stats: carrera de superviviente estandar (11); como robot que es,
-//  arranca un pelin mas pesado (acc 0.040). El dash es su velocidad
-//  real (16, ver METAL_DASH_SPEED): ahi si supera a los EXE.
-//  v2.2.4: antes corria a 13 con acc 0.4 — mas rapido que los EXE
-//  (12) y acelerando 8.5x mas que un superviviente normal (0.046875):
-//  llegaba al tope en 3 frames, por eso se sentia descontrolado.
+//  arranca un pelin mas pesado (acc 0.040). El overdrive es su
+//  velocidad real (16, ver METAL_OVERDRIVE_SPEED): ahi si supera a
+//  los EXE.
 //  Valores canonicos del 110v: survivors 11 / EXE 12.
 // =====================================================================
 #macro METAL_MAXSPEED 11
 #macro METAL_ACC 0.040
-#macro METAL_DASH_RECHARGE (60 * 40)
-#macro EMETAL_DASH_RECHARGE (60 * 15)
-#macro METAL_DASH_MAX (60 * 10)      // duracion maxima del dash (10 s)
-#macro METAL_DASH_SPEED 16
+#macro METAL_OVERDRIVE_RECHARGE (60 * 40)
+#macro EMETAL_OVERDRIVE_RECHARGE (60 * 15)
+#macro METAL_OVERDRIVE_TIME (60 * 2)   // duracion maxima (placa: 2 s)
+#macro METAL_OVERDRIVE_SPEED 16       // velocidad tope del overdrive
+#macro METAL_OVERDRIVE_RAMP 24        // frames en subir de 11 a 16
 #macro METAL_ELECTRO_RECHARGE (60 * 30)
 #macro EMETAL_ELECTRO_RECHARGE (60 * 12)
-#macro METAL_ELECTRO_TIME 60         // 1 s electrificado
+#macro METAL_ELECTRO_TIME 60         // 1 s electrificado (placa: 2 s, ver nota)
 
 function scr_metal_special()
 {
@@ -43,7 +51,7 @@ function scr_metal_special()
                 metalDashing = 0;
         }
 
-        // ---- DASH (tecla X) ----
+        // ---- OVERDRIVE (tecla X) ----
         if(global.playerControls && keyboard_check_pressed(global.KeyB) && dashTimer <= 0 && !metalDashing && !isElectro && isGrounded)
         {
                 if(keyboard_check(global.KeyLeft))
@@ -51,7 +59,7 @@ function scr_metal_special()
                 else if(keyboard_check(global.KeyRight))
                         image_xscale = 1;
 
-                metalDashing = METAL_DASH_MAX;
+                metalDashing = METAL_OVERDRIVE_TIME;
                 isAttacking = true;
                 isSpinning = false;
                 image_index = 0;
@@ -62,13 +70,22 @@ function scr_metal_special()
 
         if(metalDashing > 0)
         {
-                // mantener X: sigue el dash; soltarla lo corta
-                if(!global.playerControls || !keyboard_check(global.KeyB) || isHurt || isDead || shockedTimer > 0)
+                // v2.7 IMPULSO AUTOMATICO: ya no hay que mantener X —
+                // una pulsacion y sigue solo. Solo lo cortan dano,
+                // stun, muerte (y abajo la pared, el rebote en resorte
+                // de scr_collision_objects o el anillo rojo/esconderse).
+                if(isHurt || isDead || shockedTimer > 0)
                         metalDashing = 1; // cortar en el siguiente bloque
 
-                // velocidad constante en la direccion del dash
-                maxHSpeed = METAL_DASH_SPEED;
-                xspd = METAL_DASH_SPEED * image_xscale;
+                // v2.7 AUMENTO DE VELOCIDAD: arranca a la velocidad de
+                // carrera y sube linealmente hasta el tope en
+                // METAL_OVERDRIVE_RAMP frames; luego se mantiene.
+                var _ovElapsed = METAL_OVERDRIVE_TIME - metalDashing;
+                var _ovSpeed = METAL_MAXSPEED + (METAL_OVERDRIVE_SPEED - METAL_MAXSPEED) * min(_ovElapsed / METAL_OVERDRIVE_RAMP, 1);
+
+                // velocidad en la direccion del overdrive
+                maxHSpeed = _ovSpeed;
+                xspd = _ovSpeed * image_xscale;
                 gspd = xspd;
                 acc = 1;
 
@@ -76,16 +93,24 @@ function scr_metal_special()
                 if(floor(x) mod 3 == 0)
                         net_quick_effect(x - 10 * image_xscale, y, spr_dust);
 
-                // choque contra pared: corta el dash
+                // CHOQUE CONTRA PARED: corta el overdrive con polvareda
+                // y mini-temblor de camara (mismo feedback que el
+                // lanzamiento del spindash de Amelia v2.6)
                 if(place_meeting(x + 4 * image_xscale, y, obj_floor_parent) || place_meeting(x - 4 * image_xscale, y, obj_floor_parent))
+                {
                         metalDashing = 1;
+                        scr_camera_shake(12, 2, 0.2);
+
+                        repeat(4)
+                                net_quick_effect(x + 8 * image_xscale + random_range(-6, 6), y + random_range(-10, 4), spr_dust);
+                }
 
                 metalDashing--;
 
                 if(metalDashing <= 0)
                 {
                         isAttacking = false;
-                        dashTimer = revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE;
+                        dashTimer = revivalTimes >= 2 ? EMETAL_OVERDRIVE_RECHARGE : METAL_OVERDRIVE_RECHARGE;
                 }
         }
         else

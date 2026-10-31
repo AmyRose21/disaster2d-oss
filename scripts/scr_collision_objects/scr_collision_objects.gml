@@ -82,13 +82,14 @@ function scr_collision_objects_after()
                                         }
                                         break;
 
-                                // v2.2 (TTB): Metal corta el dash y la electro al rebotar
+                                // v2.2 (TTB) / v2.7: Metal corta el
+                                // overdrive y la electro al rebotar
                                 case CHARACTER_METAL:
                                         if(metalDashing > 0)
                                         {
                                                 metalDashing = 0;
                                                 isAttacking = false;
-                                                dashTimer = revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE;
+                                                dashTimer = revivalTimes >= 2 ? EMETAL_OVERDRIVE_RECHARGE : METAL_OVERDRIVE_RECHARGE;
                                         }
                                         
                                         if(isElectro > 0)
@@ -226,13 +227,14 @@ function scr_collision_objects_after()
                                         }
                                         break;
 
-                                // v2.2 (TTB): Metal corta el dash y la electro al rebotar
+                                // v2.2 (TTB) / v2.7: Metal corta el
+                                // overdrive y la electro al rebotar
                                 case CHARACTER_METAL:
                                         if(metalDashing > 0)
                                         {
                                                 metalDashing = 0;
                                                 isAttacking = false;
-                                                dashTimer = revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE;
+                                                dashTimer = revivalTimes >= 2 ? EMETAL_OVERDRIVE_RECHARGE : METAL_OVERDRIVE_RECHARGE;
                                         }
                                         
                                         if(isElectro > 0)

@@ -555,6 +555,11 @@ function scr_collision_basic()
 	
 	if(global.character == CHARACTER_SONIC && isSpinning)
 		_clampX = max(maxHSpeed, min(abs(gspd), SONIC_ROLL_SPEED_CAP));
+
+	// v2.6 (spindash de Amelia): mismo trato que la bola de Sonic — su
+	// rodadura puede superar la de carrera hasta AMELIA_ROLL_SPEED_CAP.
+	if(global.character == CHARACTER_AMELIA && isSpinning)
+		_clampX = max(maxHSpeed, min(abs(gspd), AMELIA_ROLL_SPEED_CAP));
 	
 	// v4 (fix Amy Canon): su ACOMETIDA (tecla C) y su IMPULSO DE TAROT
 	// (tecla X en el aire) corren a AMY_CANON_DASH_SPEED /

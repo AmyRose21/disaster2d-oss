@@ -1072,3 +1072,22 @@ y las pistas nuevas de 20-28s se cortaban).
   Extra: remapeo SALLY_CANON/VANILLA anyadido a drawPing (marcador TAB),
   que Draw_64 ya tenia (icono hit/demon invisible para ellos). Server: 0
   cambios. Entregable: download/hudbar_v2_5.zip.
+- 2026-11-01 (placas TTB + amelia-v2.6): decodificacion pixel-exacto
+  de las placas de spr_char_info (12-15): Amelia = MOBILITY HIGH/HIGH +
+  SPINDASH + SUPPORT: TRAP (2 SEC) + SPRING + NEW PASSIVE ABILITY:
+  SPINNING; Metal = SPARK FIELD (2s) + OVERDRIVE (2s); Blaze = FIRE BALL
+  (3s) + FIRE DASH (3s); todos con la pasiva SPINNING (que ya tenian:
+  canSpin=true v2.2). Hallazgos: el "FIRE BALL 9 SEC" del OCR de v2.2
+  era un 3 mal leido (juego usa 9s, ajustable a pedido); la P de
+  "PASSIVE" en las placas TTB quedo en gris tenue (artefacto del
+  modder, por eso los OCR leian "ASSIVE"). IMPLEMENTADO el SPINDASH de
+  Amelia (la firma de su fila 1, faltante desde v2.2): porte del de
+  Sonic sin drop dash, abajo+Z parada = revolucadas (tono creciente +
+  polvo por red), soltar abajo = bola a 8+carga (tope 18 con clamp
+  propio en scr_collision_basic), estado AMELIA_SPINDASH=BALANCING+2
+  con slot 15 = spr_[e]amelia_spindash (reemplaza el srings sin uso),
+  sin salto/trampolin/trampa mientras carga, cancelaciones completas,
+  reset de ronda. Server: 0 cambios. Scripts del agente:
+  letters_placas.py / apply_amelia_spindash_v26.py /
+  validate_amelia_spindash_v26.py. Entregable:
+  download/amelia_spindash_v2_6.zip.

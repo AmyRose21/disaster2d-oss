@@ -2638,6 +2638,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 case CHARACTER_AMELIA:
                                         global.player.bananaTimer = 0;
                                         global.player.trapTimer = 0;
+                                        global.player.isSpinCharging = false;
+                                        global.player.spinCharge = 0;
                                         break;
                                         
                                 case CHARACTER_BLAZE:

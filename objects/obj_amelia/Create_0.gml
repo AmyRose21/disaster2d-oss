@@ -1,7 +1,8 @@
 // =====================================================================
 //  AMELIA (v2.4, rescatada de TD2D Through the Blood).
 //  Macros en scr_amelia_special; estados propios en Step_2.
-//  (v2.4: sin vuelo ni velocidad — solo trampolin y trampa.)
+//  (v2.4 quito vuelo/velocidad; v2.6 anyade el SPINDASH de su placa
+//  del TTB: abajo + Z repetido, soltar abajo lanza en bola.)
 // =====================================================================
 
 //Variables
@@ -33,6 +34,12 @@ isColliding = false;
 // AMELIA: trampolin y trampa
 bananaTimer = 0;
 trapTimer = 0;
+// v2.6 (SPINDASH de su placa TTB): carga del spindash (patron Sonic)
+isSpinCharging = false;
+spinCharge = 0;           // carga actual (0..AMELIA_SPINDASH_CHARGE_MAX)
+spinChargeDecay = 0;
+spinDustTimer = 0;
+spinRevSnd = -1;
 
 //General
 hp = 100;

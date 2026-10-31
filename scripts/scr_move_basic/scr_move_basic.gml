@@ -648,6 +648,12 @@ function scr_move_basic()
                         // (abajo + Z da revolucadas, no salta; ver scr_sonic_special).
                         if(global.character == CHARACTER_SONIC && (isAttacking || isSpinCharging))
                                 return;
+
+                        // AMELIA v2.6 (spindash de su placa TTB): no salta
+                        // mientras carga (abajo + Z da revolucadas, no salto;
+                        // ver scr_amelia_special).
+                        if(global.character == CHARACTER_AMELIA && isSpinCharging)
+                                return;
                         
 
 				// v2.2 (TTB): METAL no salta en pleno dash (la electro si

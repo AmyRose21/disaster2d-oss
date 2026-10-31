@@ -1,0 +1,363 @@
+From e4d13cb6a6d18720d6b3e0814991863892139212 Mon Sep 17 00:00:00 2001
+From: Z User <z@container>
+Date: Sat, 31 Oct 2026 20:32:42 +0000
+Subject: [PATCH] amelia v2.6: SPINDASH de su placa TTB (abajo + Z, soltar
+ abajo lanza)
+
+Las placas del TTB (spr_char_info 12-15, decodificadas pixel-exacto)
+dicen: Amelia = MOBILITY HIGH/HIGH + SPINDASH (fila 1) +
+SUPPORT: TRAP (2 SEC) + SPRING + NEW PASSIVE ABILITY: SPINNING.
+La pasiva SPINNING ya estaba (canSpin=true, v2.2); el SPINDASH era
+la habilidad firma que faltaba (sprites importados sin mecanica).
+
+- porte 1:1 del de Sonic (sin drop dash): revolucadas abajo+Z con
+  tono creciente + polvo por red, lanzamiento en bola (estado SPIN)
+  a 8+carga px/frame, tope de bola 18 (scr_collision_basic)
+- estado AMELIA_SPINDASH = BALANCING+2 (slot 15): srings (sin uso)
+  -> spr_amelia_spindash / spr_eamelia_spindash en scr_survivors
+- no salta ni suelta trampolin/trampa mientras carga; anillo rojo,
+  esconderse, dano, stun, tirolina y perder el suelo la cancelan
+- server: CERO cambios (client-local, como el de Sonic)
+---
+ objects/obj_amelia/Create_0.gml               |   9 +-
+ objects/obj_amelia/Draw_76.gml                |   5 +
+ objects/obj_amelia/Step_2.gml                 |  11 +-
+ scripts/net_state_game/net_state_game.gml     |   2 +
+ .../scr_amelia_special/scr_amelia_special.gml | 136 +++++++++++++++++-
+ .../scr_collision_basic.gml                   |   5 +
+ scripts/scr_move_basic/scr_move_basic.gml     |   6 +
+ scripts/scr_survivors/scr_survivors.gml       |   6 +-
+ 8 files changed, 172 insertions(+), 8 deletions(-)
+
+diff --git a/objects/obj_amelia/Create_0.gml b/objects/obj_amelia/Create_0.gml
+index 7d317f2e..b305ef82 100644
+--- a/objects/obj_amelia/Create_0.gml
++++ b/objects/obj_amelia/Create_0.gml
+@@ -1,7 +1,8 @@
+ // =====================================================================
+ //  AMELIA (v2.4, rescatada de TD2D Through the Blood).
+ //  Macros en scr_amelia_special; estados propios en Step_2.
+-//  (v2.4: sin vuelo ni velocidad — solo trampolin y trampa.)
++//  (v2.4 quito vuelo/velocidad; v2.6 anyade el SPINDASH de su placa
++//  del TTB: abajo + Z repetido, soltar abajo lanza en bola.)
+ // =====================================================================
+ 
+ //Variables
+@@ -33,6 +34,12 @@ isColliding = false;
+ // AMELIA: trampolin y trampa
+ bananaTimer = 0;
+ trapTimer = 0;
++// v2.6 (SPINDASH de su placa TTB): carga del spindash (patron Sonic)
++isSpinCharging = false;
++spinCharge = 0;           // carga actual (0..AMELIA_SPINDASH_CHARGE_MAX)
++spinChargeDecay = 0;
++spinDustTimer = 0;
++spinRevSnd = -1;
+ 
+ //General
+ hp = 100;
+diff --git a/objects/obj_amelia/Draw_76.gml b/objects/obj_amelia/Draw_76.gml
+index 5da8f9bc..dbefdf34 100644
+--- a/objects/obj_amelia/Draw_76.gml
++++ b/objects/obj_amelia/Draw_76.gml
+@@ -43,4 +43,9 @@ switch(state)
+         case SPIN:
+                 image_speed = abs(xspd) / 5;
+                 break;
++
++        case AMELIA_SPINDASH:
++                // como Sonic: la bola gira mas rapido cuanto mas cargada
++                image_speed = 0.5 + (spinCharge / AMELIA_SPINDASH_CHARGE_MAX) * 1.2;
++                break;
+ }
+diff --git a/objects/obj_amelia/Step_2.gml b/objects/obj_amelia/Step_2.gml
+index 83fe3648..8255a2d1 100644
+--- a/objects/obj_amelia/Step_2.gml
++++ b/objects/obj_amelia/Step_2.gml
+@@ -1,5 +1,5 @@
+ #macro AMELIA_FLY BALANCING+1     // (v2.2: sin uso; v2.4 quito el vuelo, corre normal)
+-#macro AMELIA_SRINGS BALANCING+2 // defensivo (sin uso)
++#macro AMELIA_SPINDASH BALANCING+2 // v2.6: carga del spindash (spr idx 15)
+ #macro AMELIA_ZIPLINE BALANCING+3
+ 
+ if(!emotion)
+@@ -17,6 +17,15 @@ if(shockedTimer > 0)
+         return;
+ }
+ 
++// v2.6 (SPINDASH de su placa TTB): la carga tiene prioridad sobre
++// mirar abajo/rodar — mientras carga esta agachada en bola (patron
++// Sonic: este bloque va ANTES que el de isLookingDown).
++if(isSpinCharging)
++{
++        state = AMELIA_SPINDASH;
++        return;
++}
++
+ if(isHurt)
+ {
+         state = HURT;
+diff --git a/scripts/net_state_game/net_state_game.gml b/scripts/net_state_game/net_state_game.gml
+index cca0fa6d..fa5ba43a 100644
+--- a/scripts/net_state_game/net_state_game.gml
++++ b/scripts/net_state_game/net_state_game.gml
+@@ -2638,6 +2638,8 @@ function net_state_game(rbuff, nps, isPasstrough)
+                                 case CHARACTER_AMELIA:
+                                         global.player.bananaTimer = 0;
+                                         global.player.trapTimer = 0;
++                                        global.player.isSpinCharging = false;
++                                        global.player.spinCharge = 0;
+                                         break;
+                                         
+                                 case CHARACTER_BLAZE:
+diff --git a/scripts/scr_amelia_special/scr_amelia_special.gml b/scripts/scr_amelia_special/scr_amelia_special.gml
+index d7fb5f4f..94eb8a5b 100644
+--- a/scripts/scr_amelia_special/scr_amelia_special.gml
++++ b/scripts/scr_amelia_special/scr_amelia_special.gml
+@@ -19,6 +19,14 @@
+ //     el cliente de la victima sobre su propio jugador; el resto
+ //     solo ve el efecto y escucha el sonido). Recarga 35 s. Maximo
+ //     1 viva por Amelia (lo lleva el server).
++//   * SPINDASH (abajo + Z repetido, parada; v2.6): la habilidad
++//     firma de la fila 1 de su placa del TTB. Porte del de Sonic:
++//     revolucadas con tono creciente y polvo, al soltar ABAJO sale
++//     disparada en bola (estado SPIN) a (8 + carga) px/frame; la bola
++//     rueda por encima de la carrera con tope 18 (clamp de
++//     scr_collision_basic). Sin cooldown: el coste es el tiempo de
++//     revolucioneo. (La pasiva SPINNING del pie de su placa ya estaba:
++//     canSpin = true desde v2.2.)
+ //  Stats: equilibrada (11) con la aceleracion canonica de
+ //  superviviente del 110v (v2.2.4), salto estandar, con spindash.
+ // =====================================================================
+@@ -29,9 +37,21 @@
+ #macro AMELIA_TRAP_RECHARGE (60 * 35)
+ #macro EAMELIA_TRAP_RECHARGE (60 * 15)
+ 
++// v2.6 (SPINDASH, la habilidad firma de la fila 1 de su placa TTB):
++// valores 1:1 con los de Sonic (misma movilidad y stats de placa).
++#macro AMELIA_SPINDASH_BASE 8
++#macro AMELIA_SPINDASH_REV 2
++#macro AMELIA_SPINDASH_CHARGE_MAX 10
++#macro AMELIA_SPINDASH_DECAY 90
++#macro AMELIA_SPINDASH_PITCH_STEP 0.8
++#macro AMELIA_SPINDASH_DUST_EVERY 10
++#macro AMELIA_SPINDASH_BURST_MIN 3
++#macro AMELIA_SPINDASH_BURST_MAX 8
++#macro AMELIA_ROLL_SPEED_CAP 18
++
+ function scr_amelia_special()
+ {
+-        // Red ring / esconderse: corta todo
++        // Red ring / esconderse: corta todo (tambien la carga v2.6)
+         if(redRingTimer > 0 || isHiding)
+         {
+                 if(bananaTimer <= 60 * 2)
+@@ -39,6 +59,15 @@ function scr_amelia_special()
+ 
+                 if(trapTimer <= 60 * 2)
+                         trapTimer = 60 * 2;
++
++                if(isSpinCharging)
++                {
++                        isSpinCharging = false;
++                        spinCharge = 0;
++
++                        if(spinRevSnd != -1)
++                                audio_stop_sound(spinRevSnd);
++                }
+         }
+ 
+         // Stats de base respetando el slow de la trampa (patron
+@@ -63,7 +92,7 @@ function scr_amelia_special()
+         var _xx = image_xscale > 0 ? 12 : -12;
+         isColliding = isGrounded && !place_meeting(x, y, obj_angleanuller) && position_meeting(x + _xx, y + 18, obj_floor_parent);
+ 
+-        if(global.playerControls && keyboard_check_pressed(global.KeyB) && bananaTimer <= 0 && isLookingDown && isColliding)
++        if(global.playerControls && keyboard_check_pressed(global.KeyB) && bananaTimer <= 0 && !isSpinCharging && isLookingDown && isColliding)
+         {
+                 audio_play_sound(snd_amelia_banana_spawn, 0, false);
+                 net_sound_emit(snd_amelia_banana_spawn);
+@@ -74,7 +103,7 @@ function scr_amelia_special()
+         }
+ 
+         // ---- TRAMPA (tecla C en el suelo) ----
+-        if(global.playerControls && keyboard_check_pressed(global.KeyC) && trapTimer <= 0 && isColliding)
++        if(global.playerControls && keyboard_check_pressed(global.KeyC) && trapTimer <= 0 && !isSpinCharging && isColliding)
+         {
+                 audio_play_sound(snd_amelia_trap, 0, false);
+                 net_sound_emit(snd_amelia_trap);
+@@ -84,6 +113,107 @@ function scr_amelia_special()
+                 trapTimer = revivalTimes >= 2 ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE;
+         }
+ 
++        // ---- SPINDASH (abajo + Z repetido; soltar abajo lanza) ----
++        // v2.6: porte del de Sonic (sin drop dash: su placa solo lista
++        // SPINDASH). UN solo camino para la 1a pulsacion y las
++        // siguientes: este bloque se re-dispara con cada Z porque la
++        // carga mantiene gspd == 0.
++        if(global.playerControls && isGrounded && !isAttacking && !isHurt
++        && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
++        && redRingTimer <= 0
++        && keyboard_check(global.KeyDown) && gspd == 0 && keyboard_check_pressed(global.KeyA))
++        {
++                isSpinCharging = true;
++                spinCharge = min(spinCharge + AMELIA_SPINDASH_REV, AMELIA_SPINDASH_CHARGE_MAX);
++                spinChargeDecay = 0;
++                spinDustTimer = 0;
++                image_index = 0;
++
++                // cada revolucada suena MAS aguda (1.0 -> 1.8 con la
++                // bola llena) y patea polvo detras (por red). El tono
++                // solo lo oye la local: el paquete de sonido del
++                // protocolo no lleva pitch.
++                if(spinRevSnd != -1)
++                        audio_stop_sound(spinRevSnd);
++                spinRevSnd = audio_play_sound(snd_spin, 0, false);
++                audio_sound_pitch(spinRevSnd, 1.0 + (spinCharge / AMELIA_SPINDASH_CHARGE_MAX) * AMELIA_SPINDASH_PITCH_STEP);
++                net_sound_emit(snd_spin);
++
++                net_quick_effect(x - image_xscale * 12, y + 16, spr_dust, false, -image_xscale, -image_xscale * 2, -1);
++        }
++
++        if(isSpinCharging)
++        {
++                // Quieta mientras carga, pero puede girar la mirada.
++                gspd = 0;
++
++                if(keyboard_check(global.KeyLeft))
++                        image_xscale = -1;
++                else if(keyboard_check(global.KeyRight))
++                        image_xscale = 1;
++
++                // La carga decae sola si dejas de dar revolucadas.
++                spinChargeDecay++;
++                if(spinChargeDecay >= AMELIA_SPINDASH_DECAY)
++                {
++                        spinChargeDecay = 0;
++                        spinCharge = max(0, spinCharge - 1);
++                }
++
++                // polvo ambiente detras mientras carga (solo local)
++                spinDustTimer++;
++
++                if(spinDustTimer >= AMELIA_SPINDASH_DUST_EVERY)
++                {
++                        spinDustTimer = 0;
++                        scr_effect_quick(x - image_xscale * (10 + irandom(4)), y + 14 + irandom(3), spr_dust, 0.4, false, -image_xscale, -0.5);
++                }
++
++                // Cancelaciones: dano, stun, muerte, tirolina, perder el
++                // suelo, anillo rojo o esconderse.
++                if(isHurt || isDead || shockedTimer > 0 || isZipline || !isGrounded
++                || redRingTimer > 0 || isHiding)
++                {
++                        isSpinCharging = false;
++                        spinCharge = 0;
++
++                        if(spinRevSnd != -1)
++                                audio_stop_sound(spinRevSnd);
++                }
++                else if(!global.playerControls || !keyboard_check(global.KeyDown))
++                {
++                        // --- LANZAMIENTO del spindash ---
++                        var _chg = spinCharge;
++                        isSpinCharging = false;
++                        isSpinning = true;    // sale en bola (estado SPIN)
++                        isJumping = false;
++                        gspd = (AMELIA_SPINDASH_BASE + _chg) * image_xscale;
++                        spinCharge = 0;
++
++                        if(spinRevSnd != -1)
++                                audio_stop_sound(spinRevSnd);
++
++                        audio_play_sound(snd_dash, 0, false);
++                        net_sound_emit(snd_dash);
++
++                        // polvareda de salida detras (3 nubes sin carga
++                        // -> 8 con la bola llena), por red
++                        var _burst = AMELIA_SPINDASH_BURST_MIN + floor(_chg / AMELIA_SPINDASH_CHARGE_MAX * (AMELIA_SPINDASH_BURST_MAX - AMELIA_SPINDASH_BURST_MIN));
++
++                        for(var i = 0; i < _burst; i++)
++                        {
++                                var _dx = x - image_xscale * (6 + irandom(12));
++                                var _dy = y + 12 + irandom(5);
++
++                                net_quick_effect(_dx, _dy, spr_dust, false, -image_xscale, -image_xscale * (1 + irandom(2)), -irandom(1));
++                        }
++
++                        // mini-temblor de camara proporcional a la carga
++                        if(_chg > 0)
++                                scr_camera_shake(12, 1 + _chg * 0.15, 0.2);
++                }
++        }
++
+         // timers
+         if(bananaTimer > 0)
+                 bananaTimer--;
+diff --git a/scripts/scr_collision_basic/scr_collision_basic.gml b/scripts/scr_collision_basic/scr_collision_basic.gml
+index 4429e12c..eca8b431 100644
+--- a/scripts/scr_collision_basic/scr_collision_basic.gml
++++ b/scripts/scr_collision_basic/scr_collision_basic.gml
+@@ -555,6 +555,11 @@ function scr_collision_basic()
+ 	
+ 	if(global.character == CHARACTER_SONIC && isSpinning)
+ 		_clampX = max(maxHSpeed, min(abs(gspd), SONIC_ROLL_SPEED_CAP));
++
++	// v2.6 (spindash de Amelia): mismo trato que la bola de Sonic — su
++	// rodadura puede superar la de carrera hasta AMELIA_ROLL_SPEED_CAP.
++	if(global.character == CHARACTER_AMELIA && isSpinning)
++		_clampX = max(maxHSpeed, min(abs(gspd), AMELIA_ROLL_SPEED_CAP));
+ 	
+ 	// v4 (fix Amy Canon): su ACOMETIDA (tecla C) y su IMPULSO DE TAROT
+ 	// (tecla X en el aire) corren a AMY_CANON_DASH_SPEED /
+diff --git a/scripts/scr_move_basic/scr_move_basic.gml b/scripts/scr_move_basic/scr_move_basic.gml
+index b7f9ba36..87ad18dc 100644
+--- a/scripts/scr_move_basic/scr_move_basic.gml
++++ b/scripts/scr_move_basic/scr_move_basic.gml
+@@ -648,6 +648,12 @@ function scr_move_basic()
+                         // (abajo + Z da revolucadas, no salta; ver scr_sonic_special).
+                         if(global.character == CHARACTER_SONIC && (isAttacking || isSpinCharging))
+                                 return;
++
++                        // AMELIA v2.6 (spindash de su placa TTB): no salta
++                        // mientras carga (abajo + Z da revolucadas, no salto;
++                        // ver scr_amelia_special).
++                        if(global.character == CHARACTER_AMELIA && isSpinCharging)
++                                return;
+                         
+ 
+ 				// v2.2 (TTB): METAL no salta en pleno dash (la electro si
+diff --git a/scripts/scr_survivors/scr_survivors.gml b/scripts/scr_survivors/scr_survivors.gml
+index 231d52fa..2b62292b 100644
+--- a/scripts/scr_survivors/scr_survivors.gml
++++ b/scripts/scr_survivors/scr_survivors.gml
+@@ -312,7 +312,7 @@ global.player_anims[? CHARACTER_METAL] =
+         spr_metal_zipline //16 = METAL_ZIPLINE
+ ];
+ 
+-// Amelia: 14 = AMELIA_FLY, 15 = AMELIA_SRINGS (defensivo),
++// Amelia: 14 = AMELIA_FLY, 15 = AMELIA_SPINDASH (v2.6),
+ // 16 = AMELIA_ZIPLINE
+ global.player_anims[? CHARACTER_AMELIA] =
+ [
+@@ -331,7 +331,7 @@ global.player_anims[? CHARACTER_AMELIA] =
+         spr_amelia_jump, //12 (spin)
+         spr_amelia_balancing, //13
+         spr_amelia_fly, //14 = AMELIA_FLY (tecla Z en el aire)
+-        spr_amelia_srings, //15 = AMELIA_SRINGS (defensivo, sin uso)
++        spr_amelia_spindash, //15 = AMELIA_SPINDASH: carga del spindash (v2.6)
+         spr_amelia_zipline //16 = AMELIA_ZIPLINE
+ ];
+ 
+@@ -650,7 +650,7 @@ global.player_eanims[? CHARACTER_AMELIA] =
+         spr_eamelia_jump, //12
+         spr_eamelia_balancing, //13
+         spr_eamelia_fly, //14
+-        spr_eamelia_srings, //15 (defensivo)
++        spr_eamelia_spindash, //15 = AMELIA_SPINDASH (v2.6)
+         spr_eamelia_zipline //16
+ ];
+ 
+-- 
+2.47.3
+

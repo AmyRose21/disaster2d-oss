@@ -2232,3 +2232,89 @@ Server: CERO cambios (bug 100% cliente/asset). Protocolo v1101 intacto.
 Entregable: download/hudbar_v2_5.zip (extraer sobre la raiz con GM
 cerrado; ver LEEME_HUDBAR_V2_5.txt — lleva cleaner opcional de layers
 viejos y el .patch para usuarios de git).
+
+## 2026-11-01 — placas TTB + amelia-v2.6: SPINDASH (la firma de su placa)
+
+CONTEXTO: el usuario pidio anyadir pasivas a Amelia, pero ANTES senalo
+que la extraccion del Blood trae las placas de info (descripcion /
+stats / habilidad) de Amelia, Metal Sonic y Blaze. Objetivo de ese
+paso: usar la placa como fuente de verdad.
+
+PLACAS (ya estaban en el repo desde v2.2: spr_char_info frames 12-15,
+el lobby las dibuja: Metal=12, Amelia=13, Blaze=14, MetalAmy=15). El
+dump /home/z/td2d_blood se perdio con el sandbox, pero el arte
+importado sobrevive. Decodificacion pixel-exacto del agente (los OCR
+previos eran poco fiables; el pipeline: segmentacion de glifos por
+proyeccion + identificacion letra a letra; los numeros van tras un
+asterisco cian y el digito se valido comparando el bitmap entre
+placas — los 5 asteriscos son identicos y los digitos se leen por la
+columna del trazo inferior: izquierda=2, derecha=3):
+
+  AMELIA : MOBILITY: HIGH+HIGH | fila1 fin: SPINDASH (sin numero)
+           fila2: SUPPORT: TRAP (2 SEC.) SPRING
+           pie: [badge NEW verde] PASSIVE ABILITY: SPINNING
+           (la P de PASSIVE quedo en gris tenue: artefacto del
+           modder TTB al pegar el badge; por eso los OCR leian
+           "ASSIVE")
+  METAL  : MOBILITY: HIGH+HIGH | fila1 fin: SPARK FIELD (2 SEC.)
+           fila2: DEFENSE: OVERDRIVE (2 SEC.)
+           pie: [NEW] PASSIVE ABILITY: SPINNING (en rojo)
+  BLAZE  : MOBILITY: MEDIUM+MEDIUM (sin habilidad en fila1)
+           fila2: DEFENSE: FIRE BALL (3 SEC.) FIRE DASH (3 SEC.)
+           pie: [NEW] PASSIVE ABILITY: SPINNING
+  TAILS (referencia original): fila1: FLYING (3 SEC.); fila2:
+  DEFENSE: ARM CANNON BLAST (1-6 SEC.); pie: PASSIVE ABILITY:
+  SPINNING — o sea que SPINNING es la pasiva de TODOS los
+  supervivientes del juego base, y el pie TTB solo remarca que los
+  nuevos TAMBIEN la tienen.
+
+Hallazgos vs implementacion:
+- SPINNING (la pasiva del pie): YA estaba — canSpin = true en los 3
+  TTB desde v2.2 (rodar con ABAJO corriendo, scr_move_basic).
+- SPINDASH (fila 1 de Amelia, su habilidad firma): NO estaba. Los
+  sprites vinieron del TTB (spr_amelia_spindash/spr_eamelia_,
+  5 frames 30x27) pero la mecanica nunca se porto; el flag
+  canSpinDash existe en todos los personajes pero esta MUERTO (solo
+  Sonic tiene spindash real, en scr_sonic_special).
+- OCR viejo de v2.2: "Blaze fireball CD = 9 s" era un 3 mal leido
+  (placa real: FIRE BALL 3 SEC.). El juego usa 9 s desde v2.2;
+  queda a decision del usuario ajustarlo o no.
+- La placa dice TRAP 2 SEC.; el diseno v2.4 del usuario usa stun 3 s
+  (+ slow). Sin tocar.
+
+FIX v2.6 (commit e4d13cb6): SPINDASH de Amelia, porte 1:1 del de
+Sonic (SIN drop dash — la placa no lo lista), client-local (cero
+cambios de server, protocolo v1101 intacto):
+- scr_amelia_special: macros (BASE 8 / REV 2 / CHARGE_MAX 10 / DECAY
+  90 / PITCH 0.8 / DUST 10 / BURST 3-8 / ROLL_CAP 18) + bloque de
+  revolucadas (abajo + Z parada; tono 1.0->1.8 + polvo por red) +
+  bloque de carga (girar mirada, decay, polvo ambiente, cancelaciones:
+  dano/stun/muerte/tirolina/aire/anillo rojo/escondite) + lanzamiento
+  al soltar ABAJO (isSpinning=true, gspd=(8+carga)*escala, polvareda
+  3-8 nubes por red, mini-temblor de camara).
+- Trampolin y trampa NO se sueltan mientras carga (gate
+  !isSpinCharging); el anillo rojo / esconderse corta la carga y
+  adema congela los CDs como ya hacia.
+- obj_amelia: Create (isSpinCharging/spinCharge/spinChargeDecay/
+  spinDustTimer/spinRevSnd), Step_2 (estado AMELIA_SPINDASH =
+  BALANCING+2 con prioridad ANTES que isLookingDown, patron Sonic;
+  la macro AMELIA_SRINGS sin uso se reemplaza por esta), Draw_76
+  (case con image_speed 0.5+charge*1.2 como Sonic).
+- scr_survivors: slot 15 de Amelia = spr_amelia_spindash (antes
+  srings "defensivo sin uso") y slot 15 demonizada =
+  spr_eamelia_spindash. El puppet de los demas clientes resuelve
+  solo (mismo array, mismo estado).
+- scr_collision_basic: la bola de Amelia rueda por encima de la
+  carrera hasta 18 (mismo clamp que el de Sonic v3; sin esto las
+  revolucadas se recortaban a 11 — el bug que ya comio Sonic).
+- scr_move_basic: no salta mientras carga (idem Sonic).
+- net_state_game: reset de isSpinCharging/spinCharge al empezar ronda.
+
+Validacion: scripts/validate_amelia_spindash_v26.py — delimitadores
+de los 8 archivos, macros presentes, orden de prioridad del Step_2,
+slots de anims, clamp, no-salto, reset, composites de los 2 sprites,
+kit v2.4 (trampolin+trampa) intacto, sin CR. TODO OK.
+
+Entregable: download/amelia_spindash_v2_6.zip (extraer sobre la raiz
+con GM cerrado; server SIN recompilar — no cambio nada). Placas
+ampliadas para el usuario: download/placa_frame1[2-5]_*.png.
