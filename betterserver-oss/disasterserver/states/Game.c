@@ -1045,29 +1045,33 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
                         AssertOrDisconnect(v->server, v->surv_char == CH_AMELIA);
 
+                        /* cooldown POR JUGADOR (patron v2.1.3): ignorar,
+                           sin kick. v2.8: 15 s = la recarga legitima mas
+                           rapida del cliente (EAMELIA_TRAP_RECHARGE de la
+                           Amelia demonizada; la superviviente tarda 35 s),
+                           para que el server JAMAS se coma en silencio una
+                           colocacion que el cliente ya cobro con su
+                           recarga (30 s viejos bloqueaban a la demonizada
+                           cada 2.a trampa). */
                         if (v->plr_cooldowns[AMELIA_TRAP_SPAWN] > 0)
                                 break;
 
-                        /* v2.4: max 1 trampa viva POR AMELIA. La vida ahora
-                           es de 60 s: con el limite global de v2.2 varias
-                           Amelias se estorbarian durante un minuto entero. */
-                        bool ownTrap = false;
-                        for (size_t it = 0; it < v->server->game.entities.capacity && !ownTrap; it++)
-                        {
-                                Entity* ent = (Entity*)v->server->game.entities.ptr[it];
-
-                                if (ent && strcmp(ent->tag, "atrap") == 0)
-                                        ownTrap = ((AmeliaTrap*)ent)->owner == v->id;
-                        }
-
-                        if (ownTrap)
-                                break;
-
+                        /* v2.8: SIN limite de trampas vivas. El chequeo
+                           "max 1 viva por Amelia" de v2.4 rompia la
+                           mecanica: la trampa vive 60 s y la recarga es
+                           de 35 s (15 s demonizada), asi que TODA
+                           colocacion entre los 35 y los 60 s llegaba
+                           aqui, pasaba el cooldown y se descartaba sin
+                           avisar (el cliente ya habia gastado la recarga
+                           y sonado el spawn). Ahora cada colocacion
+                           spawnea su propia entidad con id unico; el
+                           ritmo real lo marca la recarga del cliente y
+                           este cooldown anti-spam. */
                         PacketRead(x, packet, packet_read16, uint16_t);
                         PacketRead(y, packet, packet_read16, uint16_t);
 
                         RAssert(game_spawn(v->server, (Entity*)&(MakeAmeliaTrap(x, y, v->id)), sizeof(AmeliaTrap), NULL));
-                        v->plr_cooldowns[AMELIA_TRAP_SPAWN] = 30 * TICKSPERSEC;
+                        v->plr_cooldowns[AMELIA_TRAP_SPAWN] = 15 * TICKSPERSEC;
                         break;
                 }
 

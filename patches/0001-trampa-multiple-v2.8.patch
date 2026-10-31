@@ -1,0 +1,78 @@
+diff --git a/betterserver-oss/disasterserver/states/Game.c b/betterserver-oss/disasterserver/states/Game.c
+index 215f44b6..75112b22 100644
+--- a/betterserver-oss/disasterserver/states/Game.c
++++ b/betterserver-oss/disasterserver/states/Game.c
+@@ -1045,29 +1045,33 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
+                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+                         AssertOrDisconnect(v->server, v->surv_char == CH_AMELIA);
+ 
++                        /* cooldown POR JUGADOR (patron v2.1.3): ignorar,
++                           sin kick. v2.8: 15 s = la recarga legitima mas
++                           rapida del cliente (EAMELIA_TRAP_RECHARGE de la
++                           Amelia demonizada; la superviviente tarda 35 s),
++                           para que el server JAMAS se coma en silencio una
++                           colocacion que el cliente ya cobro con su
++                           recarga (30 s viejos bloqueaban a la demonizada
++                           cada 2.a trampa). */
+                         if (v->plr_cooldowns[AMELIA_TRAP_SPAWN] > 0)
+                                 break;
+ 
+-                        /* v2.4: max 1 trampa viva POR AMELIA. La vida ahora
+-                           es de 60 s: con el limite global de v2.2 varias
+-                           Amelias se estorbarian durante un minuto entero. */
+-                        bool ownTrap = false;
+-                        for (size_t it = 0; it < v->server->game.entities.capacity && !ownTrap; it++)
+-                        {
+-                                Entity* ent = (Entity*)v->server->game.entities.ptr[it];
+-
+-                                if (ent && strcmp(ent->tag, "atrap") == 0)
+-                                        ownTrap = ((AmeliaTrap*)ent)->owner == v->id;
+-                        }
+-
+-                        if (ownTrap)
+-                                break;
+-
++                        /* v2.8: SIN limite de trampas vivas. El chequeo
++                           "max 1 viva por Amelia" de v2.4 rompia la
++                           mecanica: la trampa vive 60 s y la recarga es
++                           de 35 s (15 s demonizada), asi que TODA
++                           colocacion entre los 35 y los 60 s llegaba
++                           aqui, pasaba el cooldown y se descartaba sin
++                           avisar (el cliente ya habia gastado la recarga
++                           y sonado el spawn). Ahora cada colocacion
++                           spawnea su propia entidad con id unico; el
++                           ritmo real lo marca la recarga del cliente y
++                           este cooldown anti-spam. */
+                         PacketRead(x, packet, packet_read16, uint16_t);
+                         PacketRead(y, packet, packet_read16, uint16_t);
+ 
+                         RAssert(game_spawn(v->server, (Entity*)&(MakeAmeliaTrap(x, y, v->id)), sizeof(AmeliaTrap), NULL));
+-                        v->plr_cooldowns[AMELIA_TRAP_SPAWN] = 30 * TICKSPERSEC;
++                        v->plr_cooldowns[AMELIA_TRAP_SPAWN] = 15 * TICKSPERSEC;
+                         break;
+                 }
+ 
+diff --git a/scripts/net_amelia_trap/net_amelia_trap.gml b/scripts/net_amelia_trap/net_amelia_trap.gml
+index 4348bdec..de3ed3c5 100644
+--- a/scripts/net_amelia_trap/net_amelia_trap.gml
++++ b/scripts/net_amelia_trap/net_amelia_trap.gml
+@@ -1,10 +1,13 @@
+ // =====================================================================
+-//  v2.4 — AMELIA: pide al server plantar la TRAMPA en (xx, yy).
+-//  El server valida (Amelia + cooldown + max 1 viva por Amelia),
+-//  spawnea la entidad AmeliaTrap (vida max 60 s) y la reenvia a
+-//  todos como SERVER_AMELIA_TRAP_STATE 0; a los 60 s la retira con
+-//  state 1. Cuando alguien del lado del EXE la pisa, el cliente de
+-//  la victima avisa con CLIENT_AMELIA_TRAP_TRIGGER (nid = id de la
++//  v2.4/v2.8 — AMELIA: pide al server plantar la TRAMPA en (xx, yy).
++//  El server valida (Amelia + cooldown anti-spam de 15 s) y la spawnea
++//  como entidad AmeliaTrap (vida max 60 s), reenviada a TODOS los
++//  clientes como SERVER_AMELIA_TRAP_STATE 0; a los 60 s la retira con
++//  state 1. SIN limite de trampas vivas desde v2.8: cada colocacion es
++//  su propia entidad con nid unico, asi que pueden convivir varias a
++//  la vez (el ritmo lo marca la recarga del cliente: 35 s / 15 s
++//  demonizada). Cuando alguien del lado del EXE pisa una, el cliente
++//  de la victima avisa con CLIENT_AMELIA_TRAP_TRIGGER (nid = id de esa
+ //  entidad) y el server la revienta a todos con state 2.
+ //  (betterserver-oss: states/Game.c, entities/AmeliaTrap.c)
+ // =====================================================================
