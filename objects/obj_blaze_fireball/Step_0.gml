@@ -4,6 +4,11 @@ if(isBreaking && image_index >= image_number - 1)
         return;
 }
 
+// throttle local de informes de rebote (v2.9): mientras llega el
+// arreglo del server no volvemos a informar el mismo choque
+if(bounceCd > 0)
+        bounceCd--;
+
 if(!instance_exists(global.player))
         return;
 

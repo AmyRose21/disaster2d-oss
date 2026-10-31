@@ -5,12 +5,14 @@
 //  strings, spr_blaze_skak/snd_blaze_skak para su salto):
 //   * SALTO DE FUEGO (tecla Z en el aire): doble salto con impulso de
 //     llamas (patron jetpack de Eggman). Recarga 12 s.
-//   * BOLA DE FUEGO (tecla X): proyectil de fuego horizontal que
-//     aturde al killer 2 s al tocarlo (mismo modelo que el laser de
-//     Tails: el server lo tick-ea y lo reenvia; el stun lo aplica el
-//     cliente del killer al ser tocado; el aliado Sonic puede
-//     parrear el reflejo). Recarga 23 s.
-//   * BLAZE ARDIENTE (tecla C): 1.5 s envuelta en fuego, +30% de
+//   * BOLA DE FUEGO (tecla X): PROYECTIL REBOTANTE (v2.9): arco con
+//     gravedad que RICOTEA en el suelo, las paredes y el techo
+//     (fisica en el server; los rebotes los reportan los clientes)
+//     y aturde al killer 2 s al tocarlo. Vida 4 s; varias a la vez
+//     (nid por bola). Recarga 9 s (placa TTB).
+//   * GIRO DE FUEGO / BLAZE ARDIENTE (tecla C): 1.5 s girando en un
+//     remolino de fuego REBOTANDO en el suelo, las paredes y el
+//     techo (patron pinball; ver obj_blaze/Step_0), +30% de
 //     velocidad y cualquier killer que la toque queda aturdido 3 s
 //     (canal isAttacking; el golpe de fuego lo pone el cliente del
 //     killer: caso BLAZE en obj_player_puppet). Recarga 30 s.
@@ -19,7 +21,7 @@
 //  el ardor, no la velocidad de punta.
 //  v2.2.4: antes corria a 12.5 con acc 0.42 — mas rapido que los
 //  EXE (12) y acelerando 9x lo normal: imposible de controlar.
-//  El BLAZE ARDIENTE ahora da 11 * 1.3 = 14.3 de punta temporal,
+//  El GIRO DE FUEGO ahora da 11 * 1.3 = 14.3 de punta temporal,
 //  arriba de los EXE pero con su recarga de 30 s (mismo principio
 //  que el spindash de Sonic, que llega a 18).
 // =====================================================================
@@ -33,6 +35,9 @@
 #macro BLAZE_BURNING_RECHARGE (60 * 30)
 #macro EBLAZE_BURNING_RECHARGE (60 * 12)
 #macro BLAZE_BURNING_TIME (60 * 1.5)
+// v2.9 — GIRO DE FUEGO: fuerza del rebote contra el suelo (y 0.6x la
+// del techo, hacia abajo); altura similar a la del salto normal
+#macro BLAZE_BURN_BOUNCE 7.5
 
 function scr_blaze_special()
 {
@@ -79,8 +84,9 @@ function scr_blaze_special()
                 audio_play_sound(snd_blaze_shot, 0, false);
                 net_sound_emit(snd_blaze_shot);
 
-                // spawn local inmediato + aviso al server (que lo
-                // reenvia al resto: ver net_blaze_fireball)
+                // aviso al server: valida, spawnea la entidad y la
+                // reenvia a TODOS (incluido este cliente) como
+                // SERVER_BLAZE_FIREBALL_STATE 0; ver net_blaze_fireball
                 net_blaze_fireball(x + 14 * image_xscale, y - 4, image_xscale);
 
                 scr_camera_shake(15, 0.8, 0.1);

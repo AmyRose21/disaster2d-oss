@@ -1114,12 +1114,21 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
                         AssertOrDisconnect(v->server, v->surv_char == CH_BLAZE);
 
+                        /* v2.9: cooldown anti-spam 4 s = EBLAZE_FIREBALL_
+                           RECHARGE (la recarga legitima mas rapida del
+                           cliente; la normal es 9 s), para que el server
+                           JAMAS se coma en silencio un disparo que el
+                           cliente ya cobro con su recarga (los 8 s viejos
+                           bloqueaban a la demonizada cada 2.a bola). */
                         if (v->plr_cooldowns[BLAZE_FIREBALL_SPAWN] > 0)
                                 break;
 
-                        /* max 1 bola viva (como el laser de Tails) */
-                        if (game_find(v->server, NULL, "bfire", 1) > 0)
-                                break;
+                        /* v2.9: SIN limite de bolas vivas (patron v2.8 de
+                           la trampa): cada disparo spawnea su entidad con
+                           nid unico. El limite global de v2.2 hacia que
+                           dos Blazes se robaran la bola entre ellas (la
+                           2.a se descartaba en silencio) y la vida de 4 s
+                           ya limita la densidad por jugadora. */
 
                         PacketRead(x, packet, packet_read16, uint16_t);
                         PacketRead(y, packet, packet_read16, uint16_t);
@@ -1127,17 +1136,62 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, dir >= -1 && dir <= 1);
 
                         RAssert(game_spawn(v->server, (Entity*)&(MakeBlazeFireball(x, y, v->id, dir)), sizeof(BlazeFireball), NULL));
-                        v->plr_cooldowns[BLAZE_FIREBALL_SPAWN] = 8 * TICKSPERSEC;
+                        v->plr_cooldowns[BLAZE_FIREBALL_SPAWN] = 4 * TICKSPERSEC;
                         break;
                 }
 
                 case CLIENT_BLAZE_FIREBALL_HIT:
                 {
+                        /* v2.9: la bola aturdio al jugador LOCAL del que
+                           reporta (su cliente ya aplico el stun): solo
+                           despawnea ESA bola (nid), no la primera que
+                           encuentre como hacia v2.2. */
                         AssertOrDisconnect(v->server, v->in_game);
 
-                        Entity* ents;
-                        if (game_find(v->server, &ents, "bfire", 1))
-                                game_despawn(v->server, NULL, ents->id);
+                        PacketRead(nid, packet, packet_read16, uint16_t);
+
+                        for (size_t it = 0; it < v->server->game.entities.capacity; it++)
+                        {
+                                Entity* ent = (Entity*)v->server->game.entities.ptr[it];
+
+                                if (ent && strcmp(ent->tag, "bfire") == 0 && ent->id == nid)
+                                {
+                                        game_despawn(v->server, NULL, ent->id);
+                                        break;
+                                }
+                        }
+
+                        break;
+                }
+
+                case CLIENT_BLAZE_FIREBALL_BOUNCE:
+                {
+                        /* v2.9: la bola REBOTA. El server no tiene la
+                           colision del mapa: cualquier cliente que vea
+                           el choque reporta cual bola (nid), que
+                           componentes de velocidad invertir (flip) y en
+                           que posicion estaba el primer solape. Todos
+                           los clientes ven el mismo choque casi al mismo
+                           tiempo: el primero gana y el lockout de la
+                           entidad ignora los duplicados. */
+                        AssertOrDisconnect(v->server, v->in_game);
+
+                        PacketRead(nid, packet, packet_read16, uint16_t);
+                        PacketRead(flip, packet, packet_read8, uint8_t);
+                        AssertOrDisconnect(v->server, flip >= 1 && flip <= 3);
+                        PacketRead(x, packet, packet_read16, uint16_t);
+                        PacketRead(y, packet, packet_read16, uint16_t);
+
+                        for (size_t it = 0; it < v->server->game.entities.capacity; it++)
+                        {
+                                Entity* ent = (Entity*)v->server->game.entities.ptr[it];
+
+                                if (ent && strcmp(ent->tag, "bfire") == 0 && ent->id == nid)
+                                {
+                                        bfire_bounce(v->server, ent, flip, x, y);
+                                        break;
+                                }
+                        }
 
                         break;
                 }

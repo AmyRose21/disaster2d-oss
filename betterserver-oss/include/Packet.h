@@ -204,7 +204,14 @@ typedef enum
         SERVER_BLAZE_FIREBALL_STATE,
         CLIENT_METALAMY_BULLET,
         CLIENT_METALAMY_BULLET_HIT,
-        SERVER_METALAMY_BULLET_STATE
+        SERVER_METALAMY_BULLET_STATE,
+
+        /* v2.9 — Blaze: la bola de fuego REBOTA en suelo/pared/techo.
+           El server no tiene colision de mapa: el cliente que ve el
+           choque reporta nid + que componentes de velocidad invertir
+           + la posicion del primer solape. Mismo orden que el enum
+           del cliente (net_packets.gml). */
+        CLIENT_BLAZE_FIREBALL_BOUNCE
 } PacketType;
 
 typedef struct

@@ -141,43 +141,60 @@ function net_state_game(rbuff, nps, isPasstrough)
                 {
                         if(isPasstrough)
                                 break;
-                                
+
                         var _state = buffer_read_s(rbuff, buffer_u8);
-                        
+
                         if(_state == 0) // Spawn
                         {
-                                if(instance_exists(obj_blaze_fireball))
-                                        break;
-                                
+                                // v2.9: nid por bola — pueden convivir
+                                // varias a la vez (patron v2.8 trampa)
+                                var _nid = buffer_read_s(rbuff, buffer_u16);
                                 var _xx = buffer_read_s(rbuff, buffer_u16);
                                 var _yy = buffer_read_s(rbuff, buffer_u16);
                                 var _dir = buffer_read_s(rbuff, buffer_s8);
-                                
+
                                 var inst = instance_create_depth(_xx, _yy, 0, obj_blaze_fireball);
+                                inst.nid = _nid;
                                 inst.image_xscale = _dir;
                                 inst.dir = _dir;
                         }
                         else if(_state == 1) // Tick
                         {
+                                // v2.9: nid + dir + vy (gravedad del
+                                // server): el cometa rota siguiendo su
+                                // trayectoria de proyectil rebotante
+                                var _nid = buffer_read_s(rbuff, buffer_u16);
                                 var _xx = buffer_read_s(rbuff, buffer_u16);
                                 var _yy = buffer_read_s(rbuff, buffer_u16);
-                                
+                                var _dir = buffer_read_s(rbuff, buffer_s8);
+                                var _vy = buffer_read_s(rbuff, buffer_s8);
+
                                 with(obj_blaze_fireball)
                                 {
-                                        if(isBreaking)
+                                        if(nid != _nid || isBreaking)
                                                 continue;
-                                        
+
+                                        vx = _dir * 10;
+                                        vy = _vy;
+                                        dir = _dir;
                                         x = _xx;
                                         y = _yy;
+                                        image_xscale = 1;
+                                        image_angle = point_direction(0, 0, vx, vy);
                                         break;
                                 }
                         }
                         else // 2: despawn
                         {
+                                var _nid = buffer_read_s(rbuff, buffer_u16);
+
                                 with(obj_blaze_fireball)
                                 {
+                                        if(nid != _nid)
+                                                continue;
+
                                         if(!isBreaking)
-                                                _destroy();
+                                                _destroy(false);
                                         break;
                                 }
                         }
