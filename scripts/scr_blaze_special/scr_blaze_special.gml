@@ -14,10 +14,17 @@
 //     velocidad y cualquier killer que la toque queda aturdido 3 s
 //     (canal isAttacking; el golpe de fuego lo pone el cliente del
 //     killer: caso BLAZE en obj_player_puppet). Recarga 30 s.
-//  Stats: rapida (12.5), salto alto (7.5).
+//  Stats: carrera estandar (11) con aceleracion ligeramente agil
+//  (0.052) y salto alto (7.5) — su agilidad es el salto multiple y
+//  el ardor, no la velocidad de punta.
+//  v2.2.4: antes corria a 12.5 con acc 0.42 — mas rapido que los
+//  EXE (12) y acelerando 9x lo normal: imposible de controlar.
+//  El BLAZE ARDIENTE ahora da 11 * 1.3 = 14.3 de punta temporal,
+//  arriba de los EXE pero con su recarga de 30 s (mismo principio
+//  que el spindash de Sonic, que llega a 18).
 // =====================================================================
-#macro BLAZE_MAXSPEED 12.5
-#macro BLAZE_ACC 0.42
+#macro BLAZE_MAXSPEED 11
+#macro BLAZE_ACC 0.052
 #macro BLAZE_DJUMP_RECHARGE (60 * 12)
 #macro EBLAZE_DJUMP_RECHARGE (60 * 6)
 // TTB (placa del mod): FIRE BALL 9 SEC

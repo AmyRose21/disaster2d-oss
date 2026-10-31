@@ -16,9 +16,13 @@
 //     90 px (cada cliente se aplica su propio stun; los aliados solo
 //     reciben empujon). Recarga 35 s.
 //  Stats: equilibrada (11), salto estandar, con spindash.
+//  v2.2.4: el tope ya estaba bien (11); el acc 0.35 era 7.5x el
+//  estandar del juego (0.046875) y la hacia salir disparada al
+//  instante. Ahora acelera exactamente como Amy (misma base del
+//  110v para supervivientes).
 // =====================================================================
 #macro AMELIA_MAXSPEED 11
-#macro AMELIA_ACC 0.35
+#macro AMELIA_ACC 0.046875
 #macro AMELIA_FLY_SOLO (60 * 4)
 #macro AMELIA_FLY_RISE -3.5
 #macro AMELIA_FLY_GLIDE 1

@@ -10,10 +10,16 @@
 //     que lo toque queda aturdido 3 s (el golpe electrico lo pone el
 //     cliente del killer: caso METAL en obj_player_puppet, con
 //     spr_shockparticle + snd_metal_electro). Recarga 30 s.
-//  Stats: rapido (13) con aceleracion alta, salto estandar.
+//  Stats: carrera de superviviente estandar (11); como robot que es,
+//  arranca un pelin mas pesado (acc 0.040). El dash es su velocidad
+//  real (16, ver METAL_DASH_SPEED): ahi si supera a los EXE.
+//  v2.2.4: antes corria a 13 con acc 0.4 — mas rapido que los EXE
+//  (12) y acelerando 8.5x mas que un superviviente normal (0.046875):
+//  llegaba al tope en 3 frames, por eso se sentia descontrolado.
+//  Valores canonicos del 110v: survivors 11 / EXE 12.
 // =====================================================================
-#macro METAL_MAXSPEED 13
-#macro METAL_ACC 0.4
+#macro METAL_MAXSPEED 11
+#macro METAL_ACC 0.040
 #macro METAL_DASH_RECHARGE (60 * 40)
 #macro EMETAL_DASH_RECHARGE (60 * 15)
 #macro METAL_DASH_MAX (60 * 10)      // duracion maxima del dash (10 s)

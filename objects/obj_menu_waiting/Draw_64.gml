@@ -1,92 +1,104 @@
 if(audio_is_playing(mus_waiting) || audio_is_playing(mus_minigame))
 {
-	var str = "";
-	for(var i = 0; i < array_length(chat); i++)
-		str += chat[i] + "\n";
+        var str = "";
+        for(var i = 0; i < array_length(chat); i++)
+                str += chat[i] + "\n";
 
-	scr_text_spr(3, 148-6+40, str);
+        scr_text_spr(3, 148-6+40, str);
 
-	var ind = chatMode;
-	if(string_length(chatMsg) > 0)
-		ind = 1;
+        var ind = chatMode;
+        if(string_length(chatMsg) > 0)
+                ind = 1;
 
-	draw_sprite(spr_lobby_chatbox, ind, 0, 211+40);
-	scr_text_spr(2, 214+40, chatMsg);
+        draw_sprite(spr_lobby_chatbox, ind, 0, 211+40);
+        scr_text_spr(2, 214+40, chatMsg);
 }
 
 if(!obj_minigame.ingame)
 {
-	var i = 0;
-	for(var k = ds_map_find_first(players); !is_undefined(k); k = ds_map_find_next(players, k)) 
-	{
-		var plr = ds_map_find_value(players, k);
-	
-		var _x = 40 + i * 80;
-		var _y = 58;
-	
-		var sprite = spr_lobby_dicon;
-		var index = 0;
-	
-		if(plr.icon == 19954)
-		{
-			if(plr.exe)
-			{
-				switch(plr.char)
-				{
-					case 0:
-						sprite = spr_lobby_exeicon;
-						break;
-					
-					case 1:
-						sprite = spr_lobby_exeicon2;
-						break;
-					
-					case 2:
-						sprite = spr_lobby_exeicon3;
-						break;
-					
-					case 3:
-						sprite = spr_lobby_exeicon4;
-						break;
-				}
-			}
-			else
-			{
-				sprite = spr_lobby_icon;
-				// 8 = Sally Canon (valor crudo del server): icono de Sally;
-				// 9 = Vanilla (valor crudo): icono de Cream
-				index = (plr.char == 8 ? 5 : plr.char) + 2;
-				if(plr.char == 9)
-					index = 4 + 2;
-			}
-		}
-		else
-		{
-			sprite = spr_lobby_dicon;
-			index = plr.icon;
-		}
-	
-		draw_sprite_ext(sprite, index, _x, _y, plr.scale, 1, 0, c_white, 1);
-		var _size = scr_text_spr(-2000, -200, plr.nickname);
-		scr_text_spr(_x - _size/2, _y + 16, plr.nickname);
-	
-		if(plr.scale < 1)
-			plr.scale += 0.2;
-		else
-			plr.scale = 1;
-		
-		i++;
-	}	
+        var i = 0;
+        for(var k = ds_map_find_first(players); !is_undefined(k); k = ds_map_find_next(players, k)) 
+        {
+                var plr = ds_map_find_value(players, k);
+        
+                var _x = 40 + i * 80;
+                var _y = 58;
+        
+                var sprite = spr_lobby_dicon;
+                var index = 0;
+        
+                if(plr.icon == 19954)
+                {
+                        if(plr.exe)
+                        {
+                                switch(plr.char)
+                                {
+                                        case 0:
+                                                sprite = spr_lobby_exeicon;
+                                                break;
+                                        
+                                        case 1:
+                                                sprite = spr_lobby_exeicon2;
+                                                break;
+                                        
+                                        case 2:
+                                                sprite = spr_lobby_exeicon3;
+                                                break;
+                                        
+                                        case 3:
+                                                sprite = spr_lobby_exeicon4;
+                                                break;
+                                        
+                                        case 4:
+                                                // v2.2.4: Metal Amy (5.o killer). Sin este case
+                                                // quedaba el icono por defecto (spr_lobby_dicon).
+                                                sprite = spr_lobby_exeicon6;
+                                                break;
+                                }
+                        }
+                        else
+                        {
+                                sprite = spr_lobby_icon;
+                                // 8 = Sally Canon (valor crudo del server): icono de Sally;
+                                // 9 = Vanilla (valor crudo): icono de Cream
+                                index = (plr.char == 8 ? 5 : plr.char) + 2;
+                                if(plr.char == 9)
+                                        index = 4 + 2;
+                                // v2.2.4: Metal/Amelia/Blaze (10/11/12 crudos) viven
+                                // en los frames 10/11/12 de la tira; 2+id daria
+                                // 12/13/14 (fuera de rango, y Metal sobre el frame
+                                // de Blaze).
+                                if(plr.char >= 10)
+                                        index = plr.char;
+                        }
+                }
+                else
+                {
+                        sprite = spr_lobby_dicon;
+                        index = plr.icon;
+                }
+        
+                draw_sprite_ext(sprite, index, _x, _y, plr.scale, 1, 0, c_white, 1);
+                var _size = scr_text_spr(-2000, -200, plr.nickname);
+                scr_text_spr(_x - _size/2, _y + 16, plr.nickname);
+        
+                if(plr.scale < 1)
+                        plr.scale += 0.2;
+                else
+                        plr.scale = 1;
+                
+                i++;
+        }       
 }
 
 if(voteKick)
 {
-	draw_sprite(spr_lobby_votekick, (current_time / 300) % 4, 240, 8);
-	return;
+        draw_sprite(spr_lobby_votekick, (current_time / 300) % 4, 240, 8);
+        return;
 }
 
 if(!draw_clock)
-	return;
+        return;
 
 draw_sprite(spr_clock, 0, 211, 0);
 clockAngle = lerp(clockAngle, (-45 * timeFrame), 0.2);
