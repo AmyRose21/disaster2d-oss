@@ -86,7 +86,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         break;
                 }
                 
-                case PacketType.SERVER_AMELIA_BOMB_STATE:
+                case PacketType.SERVER_AMELIA_TRAP_STATE:
                 {
                         if(isPasstrough)
                                 break;
@@ -98,14 +98,14 @@ function net_state_game(rbuff, nps, isPasstrough)
                         
                         if(_state == 0)
                         {
-                                var inst = instance_create_depth(_x, _y, 0, obj_amelia_bomb);
+                                var inst = instance_create_depth(_x, _y, 0, obj_amelia_trap);
                                 inst.nid = _id;
-                                inst.fuse = 60 * 5;
+                                inst.life = 60 * 60;
                         }
                         else if(_state == 1)
                         {
-                                // retirada (fin de ronda etc.)
-                                with(obj_amelia_bomb)
+                                // retirada (60 s agotados, fin de ronda etc.)
+                                with(obj_amelia_trap)
                                 {
                                         if(nid != _id)
                                                 continue;
@@ -116,10 +116,11 @@ function net_state_game(rbuff, nps, isPasstrough)
                         }
                         else if(_state == 2)
                         {
-                                // BOOM: explosion visual + stun al jugador LOCAL del
-                                // lado del EXE si esta en el radio (cada cliente es
-                                // autoridad de su propio jugador)
-                                with(obj_amelia_bomb)
+                                // PISADA: la trampa se activo. El STUN (3 s) y el slow
+                                // (-40%, 3.5 s tras el stun) ya los aplico el cliente
+                                // de la victima al detectar la pisada; el resto solo
+                                // ve el efecto y escucha el sonido.
+                                with(obj_amelia_trap)
                                 {
                                         if(nid != _id)
                                                 continue;
@@ -131,28 +132,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 audio_play_sound(snd_amelia_trap_goth, 0, false);
                                 net_sound_emit(snd_amelia_trap_goth);
                                 net_quick_effect(_x, _y, spr_shockparticle, true, 1, 0, 0, 1.5);
-                                scr_camera_shake(30, 1.5, 0.2);
-                                
-                                if(instance_exists(global.player) && (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2))
-                                {
-                                        if(global.character == CHARACTER_EXE && global.player.invisTimer > 0)
-                                                break;
-                                        
-                                        if(global.player.shockedTimer <= 0 && point_distance(global.player.x, global.player.y, _x, _y) < 90)
-                                        {
-                                                global.player.shockedTimer = 60 * 2;
-                                                global.player.xspd = sign(global.player.x - _x) * 4;
-                                                global.player.yspd = -3;
-                                                global.player.isGrounded = false;
-                                                global.player.isAttacking = false;
-                                                
-                                                audio_play_sound(snd_exe_stun, 0, false);
-                                                net_sound_emit(snd_exe_stun);
-                                                
-                                                if(global.character == CHARACTER_EXE)
-                                                        scr_exe_stunsound();
-                                        }
-                                }
+                                scr_camera_shake(20, 1, 0.2);
                         }
                         break;
                 }
@@ -2656,10 +2636,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         break;
                                         
                                 case CHARACTER_AMELIA:
-                                        global.player.flyTimer = 0;
                                         global.player.bananaTimer = 0;
-                                        global.player.bombTimer = 0;
-                                        global.player.isFlying = false;
+                                        global.player.trapTimer = 0;
                                         break;
                                         
                                 case CHARACTER_BLAZE:

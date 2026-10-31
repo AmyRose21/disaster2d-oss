@@ -189,15 +189,16 @@ enum PacketType
 
         /* v2.2 — personajes de TD2D Through the Blood (rescatados del
            mod abandonado). Mismo orden en el Packet.h del server.
-           Amelia: banana (trampa resorte) y bomba (contigo, explota a
-           los 5 s o al pisarla el killer). Blaze: bola de fuego
+           Amelia: banana (trampolin resorte) y trampa (dura hasta
+           60 s o hasta que la pise el lado del EXE: stun 3 s +
+           slow -40% 3.5 s tras el stun). Blaze: bola de fuego
            (proyectil que aturde al killer 2 s). Metal Amy (killer):
            bala (proyectil que dana a los sobrevivientes). */
         CLIENT_AMELIA_BANANA,
-        CLIENT_AMELIA_BOMB,
-        CLIENT_AMELIA_BOMB_BOOM,
+        CLIENT_AMELIA_TRAP,
+        CLIENT_AMELIA_TRAP_TRIGGER,
         SERVER_AMELIA_BANANA_STATE,
-        SERVER_AMELIA_BOMB_STATE,
+        SERVER_AMELIA_TRAP_STATE,
         CLIENT_BLAZE_FIREBALL,
         CLIENT_BLAZE_FIREBALL_HIT,
         SERVER_BLAZE_FIREBALL_STATE,

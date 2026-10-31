@@ -1,6 +1,7 @@
 // =====================================================================
-//  AMELIA (v2.2, rescatada de TD2D Through the Blood).
+//  AMELIA (v2.4, rescatada de TD2D Through the Blood).
 //  Macros en scr_amelia_special; estados propios en Step_2.
+//  (v2.4: sin vuelo ni velocidad — solo trampolin y trampa.)
 // =====================================================================
 
 //Variables
@@ -29,14 +30,9 @@ chunkY = -1000;
 chunkTimer = 0;
 
 isColliding = false;
-isFlying = false;
-dashing = 0;
-flyTimer = 0;
-flyTimeout = 0;
-dashTimer = 0;
-// AMELIA: trampas
+// AMELIA: trampolin y trampa
 bananaTimer = 0;
-bombTimer = 0;
+trapTimer = 0;
 
 //General
 hp = 100;
@@ -46,7 +42,6 @@ isLookingUp = false;
 isLookingDown = false;
 isDead = false;
 isHurt = false;
-isFlying = false;
 isSpinning = false;
 isAttacking = false;
 isHiding = false;

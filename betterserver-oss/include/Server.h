@@ -43,192 +43,192 @@ struct auth_peer_data;
 #define ETAILS_RECHARGE 5
 /* v2.2 (TTB): habilidades de los rescatados */
 #define AMELIA_BANANA_SPAWN 6
-#define AMELIA_BOMB_SPAWN 7
+#define AMELIA_TRAP_SPAWN 7
 #define BLAZE_FIREBALL_SPAWN 8
 #define METALAMY_BULLET 9
 
 typedef struct PeerData
 {
-	uint16_t id;
-	String ip;
-	ENetPeer *peer;
+        uint16_t id;
+        String ip;
+        ENetPeer *peer;
 
-	/* General info */
-	Player plr;
-	String nickname;
-	String udid;
-	uint8_t lobby_icon;
-	int8_t pet;
+        /* General info */
+        Player plr;
+        String nickname;
+        String udid;
+        uint8_t lobby_icon;
+        int8_t pet;
 
-	bool verified;
-	bool in_game;
-	bool op;
-	bool ready;
-	bool mod_tool;
-	bool is_mobile;
-	bool can_vote;
-	bool voted;
-	bool disconnecting;
-	bool amy_authed; /* Amy Canon: envio el token correcto (CLIENT_AMY_AUTH) */
+        bool verified;
+        bool in_game;
+        bool op;
+        bool ready;
+        bool mod_tool;
+        bool is_mobile;
+        bool can_vote;
+        bool voted;
+        bool disconnecting;
+        bool amy_authed; /* Amy Canon: envio el token correcto (CLIENT_AMY_AUTH) */
 
-	auth_peer_data auth;
+        auth_peer_data auth;
 
-	/* Character */
-	enum
-	{
-		CH_NONE = -1,
+        /* Character */
+        enum
+        {
+                CH_NONE = -1,
 
-		CH_TAILS,
-		CH_KNUX,
-		CH_EGGMAN,
-		CH_AMY,
-		CH_CREAM,
-		CH_SALLY,
+                CH_TAILS,
+                CH_KNUX,
+                CH_EGGMAN,
+                CH_AMY,
+                CH_CREAM,
+                CH_SALLY,
 
-		/* Copia clasica de Amy (sprites v100) */
-		CH_AMY_CANON,
+                /* Copia clasica de Amy (sprites v100) */
+                CH_AMY_CANON,
 
-		/* Sonic (mod): sobreviviente #8, mismo orden que el cliente */
-		CH_SONIC,
+                /* Sonic (mod): sobreviviente #8, mismo orden que el cliente */
+                CH_SONIC,
 
-		/* Sally Canon (mod): sobreviviente #9, mismo orden que el cliente */
-		CH_SALLY_CANON,
+                /* Sally Canon (mod): sobreviviente #9, mismo orden que el cliente */
+                CH_SALLY_CANON,
 
-		/* Vanilla (mod): sobreviviente #10, mismo orden que el cliente.
-		   SOLO se desbloquea con el token de Amy (amy_canon_token),
-		   igual que Amy Canon: ni operadores ni publica. */
-		CH_VANILLA,
+                /* Vanilla (mod): sobreviviente #10, mismo orden que el cliente.
+                   SOLO se desbloquea con el token de Amy (amy_canon_token),
+                   igual que Amy Canon: ni operadores ni publica. */
+                CH_VANILLA,
 
-		/* v2.2 (TTB): supervivientes #11-13 rescatados de TD2D Through
-		   the Blood, LIBRES para todos. Mismo orden que el cliente. */
-		CH_METAL,
-		CH_AMELIA,
-		CH_BLAZE
-		} surv_char;
+                /* v2.2 (TTB): supervivientes #11-13 rescatados de TD2D Through
+                   the Blood, LIBRES para todos. Mismo orden que el cliente. */
+                CH_METAL,
+                CH_AMELIA,
+                CH_BLAZE
+                } surv_char;
 
-	enum
-	{
-		EX_NONE = -1,
+        enum
+        {
+                EX_NONE = -1,
 
-		EX_ORIGINAL,
-		EX_CHAOS,
-		EX_EXETIOR,
-		EX_EXELLER,
+                EX_ORIGINAL,
+                EX_CHAOS,
+                EX_EXETIOR,
+                EX_EXELLER,
 
-		/* v2.2 (TTB): killer #5 rescatado de TD2D Through the Blood */
-		EX_METALAMY
-		} exe_char;
+                /* v2.2 (TTB): killer #5 rescatado de TD2D Through the Blood */
+                EX_METALAMY
+                } exe_char;
 
-	bool should_timeout;
+        bool should_timeout;
 
-	/* State info */
-	uint8_t exe_chance;
-	double timeout;
-	double vote_cooldown;
+        /* State info */
+        uint8_t exe_chance;
+        double timeout;
+        double vote_cooldown;
 
-	/* v2.1.3: cooldowns de habilidades de ESTE jugador (indices de arriba).
-	   Se resetean en game_init y al demonizarse (states/Game.c). */
-	double plr_cooldowns[PLAYER_COOLCOUNT];
+        /* v2.1.3: cooldowns de habilidades de ESTE jugador (indices de arriba).
+           Se resetean en game_init y al demonizarse (states/Game.c). */
+        double plr_cooldowns[PLAYER_COOLCOUNT];
 
-	struct Server *server;
+        struct Server *server;
 } PeerData;
 
 typedef struct
 {
-	/* Lobby */
-	double countdown;
-	double prac_countdown;
-	uint8_t countdown_sec;
-	Vote vote;
-	PeerData kick_target;
+        /* Lobby */
+        double countdown;
+        double prac_countdown;
+        uint8_t countdown_sec;
+        Vote vote;
+        PeerData kick_target;
 
-	/* Map Vote */
-	uint8_t maps[3];
-	uint8_t votes[3];
+        /* Map Vote */
+        uint8_t maps[3];
+        uint8_t votes[3];
 
-	/* Character Select */
-	int8_t map;
-	uint16_t exe;
-	bool avail[CH_BLAZE + 1];
+        /* Character Select */
+        int8_t map;
+        uint16_t exe;
+        bool avail[CH_BLAZE + 1];
 } Lobby;
 
 typedef enum
 {
-	BS_NONE,
-	BS_DEACTIVATED,
-	BS_ACTIVATED,
+        BS_NONE,
+        BS_DEACTIVATED,
+        BS_ACTIVATED,
 } BigRingState;
 
 typedef enum
 {
-	ED_EXEWIN,
-	ED_SURVWIN,
-	ED_TIMEOVER
+        ED_EXEWIN,
+        ED_SURVWIN,
+        ED_TIMEOVER
 } Ending;
 
 typedef struct
 {
-	int exe;
-	int8_t map;
-	bool started;
-	bool sudden_death;
+        int exe;
+        int8_t map;
+        bool started;
+        bool sudden_death;
 
-	double start_timeout;
-	double time;
-	double elapsed;
-	uint16_t time_sec;
-	double end;
-	Ending ending;
+        double start_timeout;
+        double time;
+        double elapsed;
+        uint16_t time_sec;
+        double end;
+        Ending ending;
 
-	BigRingState bring_state;
-	uint8_t bring_loc;
+        BigRingState bring_state;
+        uint8_t bring_loc;
 
-	/* Entities */
-	uint16_t entid;
-	DyList entities;
+        /* Entities */
+        uint16_t entid;
+        DyList entities;
 
-	/* Rings */
-	bool rings[256];
-	uint8_t ring_coff;
+        /* Rings */
+        bool rings[256];
+        uint8_t ring_coff;
 
-	/* Lists */
-	DyList left;
+        /* Lists */
+        DyList left;
 
-	TimeStamp tails_last_proj;
+        TimeStamp tails_last_proj;
 } Game;
 
 typedef struct Results
 {
-	double countdown;
-	bool music_synced; /* >>[endings v2]<< la espera ya se ajusto a la pista real */
+        double countdown;
+        bool music_synced; /* >>[endings v2]<< la espera ya se ajusto a la pista real */
 } Results;
 
 typedef struct Server
 {
-	uint16_t id;
-	bool running;
+        uint16_t id;
+        bool running;
 
-	enum
-	{
-		ST_LOBBY,
-		ST_MAPVOTE,
-		ST_CHARSELECT,
-		ST_GAME,
-		ST_RESULTS
-	} state;
-	Mutex state_lock;
+        enum
+        {
+                ST_LOBBY,
+                ST_MAPVOTE,
+                ST_CHARSELECT,
+                ST_GAME,
+                ST_RESULTS
+        } state;
+        Mutex state_lock;
 
-	/* States */
-	Lobby lobby;
-	Game game;
-	Results results;
+        /* States */
+        Lobby lobby;
+        Game game;
+        Results results;
 
-	int8_t last_map;
-	int16_t map_pickrates[30];
+        int8_t last_map;
+        int16_t map_pickrates[30];
 
-	double delta;
-	DyList peers;
-	ENetHost *host;
+        double delta;
+        DyList peers;
+        ENetHost *host;
 } Server;
 
 bool server_state_joined(PeerData *v);

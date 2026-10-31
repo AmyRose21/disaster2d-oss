@@ -1,0 +1,82 @@
+=====================================================================
+ AMELIA v2.4 — kit del TD original (trampolin + trampa)
+ Reconstruida sobre tu commit "ok" (tu fix del acc v2.2.4 va dentro)
+=====================================================================
+
+QUE CAMBIA
+----------
+Amelia queda SOLO con trampas, como en el TD original:
+
+  * TRAMPOLIN (tecla X, mirando abajo en el suelo): SIN CAMBIOS.
+    Resorte colocable de 12 s, recarga 25 s (demonizada 10 s).
+
+  * TRAMPA (tecla C en el suelo): reemplaza a la "bomba" de v2.2.
+    - Dura hasta 60 s (maximo; la retira el server) o hasta que
+      la pise alguien del lado del EXE.
+    - Pisada: STUN de 3 s + debuff de velocidad -40% durante
+      3.5 s AL SALIR del stun (los 3 s de stun no cuentan).
+    - Maximo 1 trampa viva por Amelia (lo controla el server).
+    - Recarga 35 s (demonizada 15 s).
+
+  * VUELO: ELIMINADO por completo (macros, estado, carry de
+    aliados, icono). La tirolina de Cream se conserva.
+  * VELOCIDAD: no entra (eliminada antes de salir; ademas tu fix
+    del acc 0.046875 de la v2.2.4 es el que queda: 11 de tope).
+  * Stats: 11 / acc 0.046875 (tu v2.2.4), salto estandar, spindash.
+  * UI: 2 iconos (trampolin y trampa) con los sprites que ya
+    tenias registrados.
+  * Extra: case SONIC en scr_player_slow (faltaba desde siempre:
+    un Sonic demonizado no recibia slow ni del eggtrack ni de la
+    trampa).
+
+COMO INSTALAR (CLIENTE)
+-----------------------
+1. CIERRA GameMaker (con el proyecto cerrado).
+2. Extrae este zip ENCIMA de la raiz del proyecto (la carpeta que
+   contiene "Sonicexe The Disaster 2D Remake.yyp") y acepta
+   SOBRESCRIBIR TODO.
+3. BORRA a mano estas carpetas/archivos viejos de la bomba (ya no
+   estan en el .yyp y el zip no puede borrarlos):
+       objects\obj_amelia_bomb\          (carpeta completa)
+       scripts\net_amelia_bomb\           (carpeta completa)
+       betterserver-oss\disasterserver\entities\AmeliaBomb.c
+       betterserver-oss\include\entities\AmeliaBomb.h
+4. Abre GameMaker y dale F5. Debe compilar sin errores.
+
+COMO INSTALAR (SERVER) — OBLIGATORIO JUNTOS
+--------------------------------------------
+El protocolo se renombro (CLIENT_AMELIA_BOMB -> CLIENT_AMELIA_TRAP,
+etc.): cliente y server DEBEN actualizarse a la vez o rompes la
+compatibilidad.
+
+1. El zip ya dejo los archivos nuevos en betterserver-oss\
+   (AmeliaTrap.c/.h, Game.c, Packet.h, Server.h, CMakeLists.txt).
+2. Recompila como siempre (CONFIGURAR_AMY.bat / compilar_server.bat
+   con CMake). En Linux/gcc compila y arranca probado: BetterServer
+   v1101 levanta en 8606 y entra a Lobby sin errores.
+   - Si compilas a mano: disasterserver\Game.c (raiz) es un archivo
+     viejo huerfano que NO esta en el CMakeLists (usa
+     game.cooldowns, que ya no existe). El real es states\Game.c.
+     No lo incluyas.
+
+CONTENIDO DEL ZIP
+-----------------
+- 15 archivos .gml del cliente + 2 .yy nuevos (obj_amelia_trap,
+  net_amelia_trap) + el .yyp con los renombres ya registrados
+  (1927 recursos, JSON validado, sin duplicados).
+- Server: AmeliaTrap.c/.h nuevos, Packet.h, Server.h,
+  states/Game.c (3 handlers: spawn con max 1 por Amelia, trigger
+  por nid exacto, cooldowns) y CMakeLists.txt.
+- worklog.md y CACHE.md actualizados (entrada completa del cambio).
+- patches\: el commit completo en formato git am (por si prefieres
+  aplicarlo con git en vez de extraer el zip).
+
+PROBADO
+-------
+- Validador: .yyp JSON valido, delimitadores balanceados en los
+  15 .gml, 0 referencias huerfanas a bomba/vuelo en todo el arbol.
+- Server compilado con gcc (enet clonado aparte) y ejecutado:
+  v1101 escucha en 8606, entra a Lobby, sin errores.
+- El stun/slow de la trampa usa el patron de autoridad de la
+  banana (cada cliente aplica sobre su propio jugador), asi que
+  funciona igual con jugadores externos y con el relay.

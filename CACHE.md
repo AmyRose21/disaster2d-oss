@@ -697,6 +697,17 @@ y las pistas nuevas de 20-28s se cortaban).
     scr_avchars_reset de scr_characters.gml. Lo mismo chars[] del lobby:
     obj_lobby/Draw_0 ya clampa sprInd antes de indexar.
 
+12. SPRITES LAYERED (hudbar-v2.5): al anyadir frames a un sprite por
+    script, el composite <frameGuid>.png en la RAIZ de sprites/<spr>/ es
+    OBLIGATORIO (la texture page NO mira layers/). El PNG interno va en
+    layers/<frameGuid>/<capaDefault>.png con el GUID de la capa default
+    del .yy (no un GUID aleatorio). Sintoma de composite perdido:
+    sprite renderiza basura/nothing solo para los frames nuevos. Auditor
+    reutilizable: scripts/audit_sprite_frames.py del workspace del agente.
+    Los ~85 PNG huerfanos por carpeta (raiz+layers, GUIDs del TTB
+    original) son casi seguro el arte de Silver/Shadow/Lord X/Koloosos
+    para el port futuro: NO borrarlos.
+
 ## 9. PENDIENTES / esperando al usuario
 - relay-v1.3: pendiente PRUEBA REAL CON JUGADOR EXTERNO por el relay.
   Setup listo: server v1.3 + cliente con DLL portfix IP:PUERTO +
@@ -1026,3 +1037,38 @@ y las pistas nuevas de 20-28s se cortaban).
   formato exacto, delimitadores balanceados en los 10 .gml tocados).
   NO toca el server (el de v2.2 sigue valiendo). Entregable:
   download/charsafe_v2_2_3.zip (extraer sobre la raiz con GM cerrado).
+- 2026-11-01 (amelia-v2.3+v2.4 reconstruidos sobre 1af7dce3 "ok"):
+  el sandbox del agente se reciclo (commits locales perdidos) y se
+  rehizo TODO sobre el commit del usuario, que ya traia SU fix
+  v2.2.4 del acc (0.35 -> 0.046875, "salía disparada al instante")
+  — respetado tal cual. KIT FINAL: trampolin (X, sin cambios) +
+  TRAMPA (C): vida 60 s server (retiro state 1), pisada detectada
+  por el cliente de la victima (lado EXE) => stun 3 s + slow -40%
+  3.5 s tras el stun (scr_player_slow por el total 6.5 s),
+  CLIENT_AMELIA_TRAP_TRIGGER con nid y busqueda tag "atrap"+id
+  exacto (mata los 2 bugs latentes de la bomba v2.2: boom por
+  pisada jamas emitido y game_find("abomb") cruzando Amelias), max
+  1 viva POR Amelia. VUELO fuera (macros, estado defensivo, carry,
+  resortes, icono); velocidad NUNCA entra (pedido v2.4 tras el bug;
+  ademas habria pisado isBoosting de las botas con la tecla de
+  salto = carrera forzada). Renombres bomb->trap completos cliente+
+  server (mismo orden numerico, actualizar juntos). UI 2 iconos con
+  sprites ya registrados. Extra: case SONIC en scr_player_slow.
+  Validado (.yyp 1927 sin duplicados, delimitadores OK, 0 stale) y
+  server compilado+probado con gcc (v1101 en 8606, Lobby OK; enet
+  clonado a mano, build agent scripts/build_server.sh replica el
+  CMakeLists). OJO: disasterserver/Game.c raiz es huerfano (usa
+  game.cooldowns inexistente, fuera del build real = states/Game.c).
+  Entregable: download/amelia_v2_4.zip.
+- 2026-11-01 (hudbar-v2.5): barra de vida bugeada de Amelia = ASSETS,
+  no codigo. 1af7dce3 anyadio los frames 56-90 de spr_playerhealth (y los
+  de redring/hit/demon/escaped/tab_entry) dejando los PNG en
+  layers/<frameGuid>/ (capas GMS2.3) en vez de la raiz (composite que
+  consume la texture page) => GM renderiza basura para esos frames. 88
+  frames en 6 sprites reparados (composite a raiz + layer renombrado al
+  GUID default; scripts del agente fix_healthbar_composites.py +
+  audit_sprite_frames.py reutilizables). Slots 8/9 = placeholder
+  transparente a proposito (remapeados en el draw, jamas se renderizan).
+  Extra: remapeo SALLY_CANON/VANILLA anyadido a drawPing (marcador TAB),
+  que Draw_64 ya tenia (icono hit/demon invisible para ellos). Server: 0
+  cambios. Entregable: download/hudbar_v2_5.zip.

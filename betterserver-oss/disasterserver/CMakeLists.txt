@@ -59,7 +59,7 @@ set(SOURCES
         "entities/BlackRing.c"
         "entities/ExellerClone.c"
         "entities/AmeliaBanana.c"
-        "entities/AmeliaBomb.c"
+        "entities/AmeliaTrap.c"
         "entities/BlazeFireball.c"
         "entities/MetalAmyBullet.c"
         "entities/RMZSlug.c"

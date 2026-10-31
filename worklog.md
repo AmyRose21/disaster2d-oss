@@ -2093,3 +2093,142 @@ Stage Summary:
 - El zip lleva el script nuevo (.gml + .yy) + el .yyp + 10 .gml
   modificados + LEEME + docs. NADA de server.
 - Entregable: download/charsafe_v2_2_3.zip.
+
+---
+
+## 2026-11-01 — amelia-v2.3+v2.4 (reconstruidos juntos): kit del TD + velocidad eliminada
+
+Contexto: el sandbox del agente se reciclo y se perdieron los commits
+locales de v2.3/v2.4 (nunca llegaron a GitHub). Se reconstruyo TODO
+encima del commit "ok" (1af7dce3) del usuario — que ya traia SU fix
+del bug de velocidad v2.2.4 (AMELIA_ACC 0.35 -> 0.046875: "la hacía
+salir disparada al instante"). Ese fix se RESPETA tal cual.
+
+Pedido v2.3 (literal): "1 que todo Amelia usa trampas la trampa dura
+hasta un max de 60 seg 2 la habilidad de vuelo es remplazada por la
+velocidad (cream) y el trmapolin este sigue igual. el stun de la
+trampa es de 3 seg. y tambien aplica debuff de vel de movimiento por
+3.5 seg (despues que salga del stun producido por la trampa)."
+Pedido v2.4 (literal): "Elimina la velocidad y hay un bug de
+velocidad en amelia" -> la velocidad pedida en v2.3 NO entra: Amelia
+queda SOLO con trampolin + trampa (kit del TD original). El bug de
+velocidad es el del acc que el propio usuario ya habia arreglado en
+v2.2.4 (y un boost con la tecla de salto pisando isBoosting de las
+botas habria sido carrera forzada: mejor fuera).
+
+RESULTADO (v2.4 final, cliente + server):
+
+1) TRAMPA (tecla C; antes "bomba" de mecha 5 s + boom radio 90):
+   - Vida maxima 60 s (la lleva el server: retiro silencioso con
+     SERVER_AMELIA_TRAP_STATE 1; el cliente ademas se desvanece solo
+     si el paquete se pierde).
+   - Pisada: la detecta el cliente de la VICTIMA (lado EXE, viva) =>
+     STUN 3 s (shockedTimer + xspd=0 + snd_exe_stun) + debuff -40%
+     otros 3.5 s AL SALIR del stun (scr_player_slow pide el TOTAL
+     3.5+3: los 3 primeros quedan tapados por el stun, no hay
+     movimiento). Patron de autoridad de la banana: cada cliente
+     manda sobre su propio jugador; el resto ve state 2 (destroy +
+     goth + shock + shake suave 20 frames).
+   - CLIENT_AMELIA_TRAP_TRIGGER lleva el NID: el server busca tag
+     "atrap" + id EXACTO. MATA 2 bugs latentes de la v2.2: (a) el boom
+     por pisada nunca se emitia (game_despawn directo sin state 2) y
+     (b) game_find("abomb") podia borrar la bomba de OTRA Amelia.
+   - Max 1 viva POR AMELIA (v2.2 era limite global: con 60 s de vida
+     varias Amelias se estorbarian un minuto entero).
+   - Renombres completos: obj_amelia_bomb -> obj_amelia_trap,
+     net_amelia_bomb -> net_amelia_trap, AmeliaBomb.c/.h ->
+     AmeliaTrap.c/.h, "abomb" -> "atrap", AMELIA_BOMB_SPAWN ->
+     AMELIA_TRAP_SPAWN, CLIENT_AMELIA_BOMB(_BOOM) ->
+     CLIENT_AMELIA_TRAP(_TRIGGER), SERVER_AMELIA_BOMB_STATE ->
+     SERVER_AMELIA_TRAP_STATE. Mismo orden numerico => protocolo
+     compatible cliente v2.4 + server v2.4 (actualizar JUNTOS).
+
+2) VUELO: FUERA por completo (isFlying/flyTimer/flyTimeout,
+   AMELIA_FLY_* macros, estado AMELIA_FLY queda defensivo, carry de
+   aliados en scr_carry_partner_flying, cases de resorte en
+   scr_collision_objects, icono spr_gui_creamfly). La tirolina de
+   Cream (CREAM_ZIPLINE) SE CONSERVA. NINGUNA habilidad nueva en Z.
+
+3) TRAMPOLIN (tecla X): SIN CAMBIOS (pedido: "este sigue igual"):
+   resorte colocable 12 s, recarga 25 s, fisica local del juego,
+   recarga demonizada 10 s.
+
+4) UI (obj_playerui): 2 iconos (trampolin 240 / trampa 258) con los
+   sprites ya registrados (spr_gui_amelia_trap y spr_gui_eggtrack,
+   los mismos que usaba la v2.2 para banana/bomba).
+
+5) Extra: case CHARACTER_SONIC en scr_player_slow (faltaba desde
+   siempre: un Sonic demonizado no recibia slow ni del eggtrack ni de
+   la trampa nueva).
+
+Validacion: .yyp JSON valido sin duplicados (1927 recursos, renames
+aplicados); delimitadores balanceados en los 15 .gml tocados; 0
+referencias stale a bomba/vuelo en codigo (script del agente
+validate_amelia_v24.py). Server COMPILADO con gcc (enet clonado a
+mano: el submodule nunca estuvo inicializado; build del agente
+build_server.sh que replica la lista exacta de fuentes del
+CMakeLists) y PROBADO: BetterServer v1101 levanta en 8606 y entra a
+Lobby sin errores. NOTA del build: disasterserver/Game.c (raiz) es un
+archivo viejo huérfano FUERA del CMakeLists (usa game.cooldowns ya
+inexistente); el real es states/Game.c — no tocar el raiz.
+
+Entregable: download/amelia_v2_4.zip (extraer sobre la raiz con GM
+cerrado + recompilar el server; ver LEEME dentro).
+
+Stage Summary:
+- Amelia v2.4 = trampolin (X) + trampa (C): vida 60 s, stun 3 s,
+  slow -40% 3.5 s tras el stun, max 1 por Amelia, trigger por nid.
+- Vuelo y velocidad: ELIMINADOS. Stats 11 / acc 0.046875 (v2.2.4).
+- Cliente: 15 .gml + 2 .yy nuevos (trap) + .yyp renames.
+- Server: AmeliaTrap.c/.h nuevos, Packet.h, Server.h, Game.c (states),
+  CMakeLists. Compilado y probado.
+
+## 2026-11-01 — hudbar-v2.5: barra de vida de Amelia bugeada (composites perdidos)
+
+SINTOMA (usuario): "aparece bugeada la barra de vida de la propia Amelia".
+
+DIAGNOSTICO: no era codigo, eran ASSETS. obj_level/Draw_64.gml dibuja la
+barra como draw_sprite(spr_playerhealth, (char-CHARACTER_TAILS)*7 +
+estado) => 91 frames = 13 slots x 7 estados. Los slots 10/11/12
+(METAL/AMELIA/BLAZE) existian en el .yy desde 1af7dce3, pero sus PNG
+composite NO estaban en la raiz del sprite: aquel commit los dejo caidos
+en sprites/<spr>/layers/<frameGuid>/<randomGuid>.png (estructura de
+CAPAS de GMS2.3) en vez de sprites/<spr>/<frameGuid>.png (el composite
+del que la texture page toma los pixeles). Frame registrado sin
+composite => GM mete basura en la textura => barra bugeada. Explica
+tambien por que Metal/Blaze nunca tuvieron barra correcta y por que el
+marcador TAB mostraba filas rotas para los 3.
+
+Alcance real (auditoria repo-wide del agente,
+scripts/audit_sprite_frames.py — reutilizable): 88 frames rotos en 6
+sprites — spr_playerhealth 35, spr_playerhealth_redring 35,
+spr_playerhealth_hit 5, spr_playerhealth_demon 5, spr_playerescaped 5 y
+spr_tab_entry 3 (filas 12/13/14 = Metal/Amelia/Blaze del TAB).
+
+FIX (scripts/fix_healthbar_composites.py, idempotente): por cada frame
+del .yy sin composite: (1) copiar layers/<g>/<x>.png -> <g>.png en la
+raiz; (2) renombrar el PNG interno al GUID de la capa default del .yy
+(misma estructura que los frames viejos que siempre funcionaron). Slots
+8/9 (SALLY_CANON/VANILLA) quedan como placeholder 100% transparente: es
+correcto, jamas se dibujan (Draw_64 los remapea a SALLY/CREAM).
+
+EXTRA (misma familia de bug, 1 archivo): drawPing (obj_level/Create_0.gml,
+marcador TAB) calculaba hchar = char-1 SIN el remapeo SALLY_CANON->SALLY
+/ VANILLA->CREAM que si hace Draw_64 => icono hit/demon invisible para
+esos dos personajes en el TAB. Remapeo anyadido (solo toca hchar; la
+fila del TAB sigue usando su propio frame 8/9).
+
+VALIDACION: re-auditoria => 0 frames sin composite en todo el repo;
+md5 sin duplicados nuevos (solo los 7 AMY==AMY_CANON preexistentes y el
+placeholder 8/9 repetido); 2 hojas de contacto (download/
+healthbar_verificacion.png y hud_aux_verificacion.png) verificadas con
+el modelo de vision: fila AMELIA == sprite idle real de Amelia (pelo
+cobrizo, ojos azules), METAL/BLAZE distintos entre si, 7 estados e0-e6
+coherentes (aro verde->amarillo->rojo->X), tab_entry 12/13/14 validas,
+cero frames corruptos; delimitadores de Create_0.gml balanceados.
+
+Server: CERO cambios (bug 100% cliente/asset). Protocolo v1101 intacto.
+
+Entregable: download/hudbar_v2_5.zip (extraer sobre la raiz con GM
+cerrado; ver LEEME_HUDBAR_V2_5.txt — lleva cleaner opcional de layers
+viejos y el .patch para usuarios de git).

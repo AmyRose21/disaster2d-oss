@@ -14,7 +14,7 @@
 #include <entities/BlackRing.h>
 #include <entities/TailsProjectile.h>
 #include <entities/AmeliaBanana.h>
-#include <entities/AmeliaBomb.h>
+#include <entities/AmeliaTrap.h>
 #include <entities/BlazeFireball.h>
 #include <entities/MetalAmyBullet.h>
 #include <entities/EggmanTracker.h>
@@ -495,7 +495,7 @@ bool game_demonize(Server* server, PeerData* data)
                         case CH_BLAZE:
                         {
                                 data->plr_cooldowns[AMELIA_BANANA_SPAWN] = 0;
-                                data->plr_cooldowns[AMELIA_BOMB_SPAWN] = 0;
+                                data->plr_cooldowns[AMELIA_TRAP_SPAWN] = 0;
                                 data->plr_cooldowns[BLAZE_FIREBALL_SPAWN] = 0;
                                 break;
                         }
@@ -1039,38 +1039,67 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         break;
                 }
 
-                case CLIENT_AMELIA_BOMB:
+                case CLIENT_AMELIA_TRAP:
                 {
                         AssertOrDisconnect(v->server, v->in_game);
                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
                         AssertOrDisconnect(v->server, v->surv_char == CH_AMELIA);
 
-                        if (v->plr_cooldowns[AMELIA_BOMB_SPAWN] > 0)
+                        if (v->plr_cooldowns[AMELIA_TRAP_SPAWN] > 0)
                                 break;
 
-                        /* max 1 bomba viva a la vez (como los clons de Exeller) */
-                        if (game_find(v->server, NULL, "abomb", 1) > 0)
+                        /* v2.4: max 1 trampa viva POR AMELIA. La vida ahora
+                           es de 60 s: con el limite global de v2.2 varias
+                           Amelias se estorbarian durante un minuto entero. */
+                        bool ownTrap = false;
+                        for (size_t it = 0; it < v->server->game.entities.capacity && !ownTrap; it++)
+                        {
+                                Entity* ent = (Entity*)v->server->game.entities.ptr[it];
+
+                                if (ent && strcmp(ent->tag, "atrap") == 0)
+                                        ownTrap = ((AmeliaTrap*)ent)->owner == v->id;
+                        }
+
+                        if (ownTrap)
                                 break;
 
                         PacketRead(x, packet, packet_read16, uint16_t);
                         PacketRead(y, packet, packet_read16, uint16_t);
 
-                        RAssert(game_spawn(v->server, (Entity*)&(MakeAmeliaBomb(x, y, v->id)), sizeof(AmeliaBomb), NULL));
-                        v->plr_cooldowns[AMELIA_BOMB_SPAWN] = 30 * TICKSPERSEC;
+                        RAssert(game_spawn(v->server, (Entity*)&(MakeAmeliaTrap(x, y, v->id)), sizeof(AmeliaTrap), NULL));
+                        v->plr_cooldowns[AMELIA_TRAP_SPAWN] = 30 * TICKSPERSEC;
                         break;
                 }
 
-                case CLIENT_AMELIA_BOMB_BOOM:
+                case CLIENT_AMELIA_TRAP_TRIGGER:
                 {
-                        /* el killer piso la bomba: reventarla YA (el
-                           cliente del killer la detecto; el boom lo ve
-                           todo el mundo a la vez) */
+                        /* la piso alguien del lado del EXE (killer o
+                           demonizado): su cliente ya aplico el stun (3 s) y
+                           el slow (3.5 s tras el stun) sobre su propio
+                           jugador; aqui solo queda reventarla YA con state 2
+                           para que todo el mundo vea el efecto a la vez */
                         AssertOrDisconnect(v->server, v->in_game);
-                        AssertOrDisconnect(v->server, v->id == v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->id == v->server->game.exe || (v->plr.flags & PLAYER_DEMONIZED));
 
-                        Entity* ents;
-                        if (game_find(v->server, &ents, "abomb", 1))
-                                game_despawn(v->server, NULL, ents->id);
+                        PacketRead(nid, packet, packet_read16, uint16_t);
+
+                        Entity* target = NULL;
+                        for (size_t it = 0; it < v->server->game.entities.capacity; it++)
+                        {
+                                Entity* ent = (Entity*)v->server->game.entities.ptr[it];
+
+                                if (ent && strcmp(ent->tag, "atrap") == 0 && ent->id == nid)
+                                {
+                                        target = ent;
+                                        break;
+                                }
+                        }
+
+                        if (target)
+                        {
+                                amelia_trap_trigger(v->server, target);
+                                game_despawn(v->server, NULL, target->id);
+                        }
 
                         break;
                 }

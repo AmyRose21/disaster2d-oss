@@ -73,7 +73,7 @@ function scr_carry_zipline_state(ch)
                 case CHARACTER_SALLY:       return SALLY_ZIPLINE;
                 case CHARACTER_SALLY_CANON: return SALLY_ZIPLINE;
                 case CHARACTER_VANILLA:      return CREAM_ZIPLINE; // Vanilla vuela como Cream
-                case CHARACTER_AMELIA:       return CREAM_ZIPLINE; // v2.2: Amelia vuela como Cream
+                case CHARACTER_AMELIA:       return CREAM_ZIPLINE; // v2.4: Amelia ya no vuela, pero sigue usando la tirolina de Cream
         }
         
         return -1;   // el EXE y variantes: nunca cuelgan del carry
@@ -92,10 +92,6 @@ function scr_carry_partner_flying(p)
 
         if(p.character == CHARACTER_VANILLA)
                 return p.state == CREAM_FLY;
-
-        // v2.2 (TTB): Amelia vuela como Cream
-        if(p.character == CHARACTER_AMELIA)
-                return p.state == AMELIA_FLY;
         
         return false;
 }
@@ -345,7 +341,7 @@ function scr_carry_end(hop, quiet)
 // =====================================================================
 function scr_carry_carrier_step()
 {
-        if(global.character != CHARACTER_TAILS && global.character != CHARACTER_CREAM && global.character != CHARACTER_VANILLA && global.character != CHARACTER_AMELIA)
+        if(global.character != CHARACTER_TAILS && global.character != CHARACTER_CREAM && global.character != CHARACTER_VANILLA)
                 return;
         
         // herido/muerto/stuneado: nada que hacer (el pasajero se entera

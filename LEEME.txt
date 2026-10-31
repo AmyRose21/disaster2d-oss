@@ -1,0 +1,47 @@
+AMELIA v2.3 — kit del TD original (trampa + velocidad)
+======================================================
+
+QUE CAMBIA (pedido textual del usuario):
+  1. TRAMPA (tecla C): la "bomba" de v2.2 era en realidad una trampa.
+     Ahora dura hasta 60 s (el server la retira al agotarse) o hasta
+     que la pisa alguien del lado del EXE: STUN de 3 s y, al salir
+     del stun, debuff de velocidad (-40%) durante 3.5 s mas.
+     Maximo 1 trampa viva por Amelia. Recarga 35 s (15 s demonizada).
+  2. VELOCIDAD (tecla Z): el vuelo estilo Cream se REPLAZA por un
+     boost de velocidad. Mantener Z: corre a 16 (base 11) hasta 4 s,
+     con estela de polvo. Recarga 18 s (8 s demonizada). Sin carry.
+  3. TRAMPOLIN (tecla X): SIN CAMBIOS (resorte de 12 s, recarga 25 s).
+  4. Iconos de habilidad: ahora los 3 originales del TD
+     (spin / spring / trap). Dos son sprites NUEVOS del dump.
+
+IMPORTANTE — ANTES DE EXTRAER, BORRAR ESTAS CARPETAS/ARCHIVOS VIEJOS
+(el zip no puede borrarlos; el .yyp ya no los referencia):
+  objects/obj_amelia_bomb/          (carpeta completa)
+  scripts/net_amelia_bomb/          (carpeta completa)
+  betterserver-oss/include/entities/AmeliaBomb.h
+  betterserver-oss/disasterserver/entities/AmeliaBomb.c
+
+DESPUES DE EXTRAER:
+  - Cliente: abrir el .yyp y F5 (nada mas).
+  - Server: RECOMPILAR (toque Packet.h/Server.h/Game.c/CMakeLists y
+    la entidad AmeliaTrap.c es nueva). Cliente y server van JUNTOS:
+    el protocolo renombro los paquetes de la bomba
+    (CLIENT_AMELIA_TRAP / CLIENT_AMELIA_TRAP_TRIGGER /
+    SERVER_AMELIA_TRAP_STATE) — con un server viejo la trampa no
+    funciona (y con cliente viejo + server nuevo, igual).
+  - En Windows el server necesita la carpeta enet/ (submodule de
+    https://github.com/lsalzman/enet) junto al CMakeLists: si no la
+    tienes, clonala ahi antes de compilar.
+
+VALORES AJUSTABLES (scripts/scr_amelia_special/scr_amelia_special.gml):
+  AMELIA_SPEED_BOOST 16, AMELIA_SPEED_ACC 0.6, AMELIA_SPEED_SOLO 4 s,
+  recargas 18/25/35 s (demonizada 8/10/15).
+  El stun (3 s) y el slow (-40%, 3.5 s tras el stun) estan en
+  objects/obj_amelia_trap/Create_0.gml (shockedTimer / scr_player_slow).
+
+DETALLE TECNICO DEL SLOW POST-STUN: se pide scr_player_slow(3.5 + 3):
+  los primeros 3 s del debuff quedan tapados por el propio stun (no
+  hay movimiento mientras estas stuneado) y los 3.5 restantes corren
+  justo al salir de el — total exacto del pedido.
+
+Commit: 36f2554e (worklog.md y CACHE.md llevan la entrada completa).

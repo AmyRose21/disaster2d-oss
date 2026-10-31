@@ -1,0 +1,2604 @@
+From 3851e4a7442c699b012201bd3cbb6f3caae3ee04 Mon Sep 17 00:00:00 2001
+From: Z User <z@container>
+Date: Sat, 31 Oct 2026 19:41:56 +0000
+Subject: [PATCH] hudbar v2.5: barra de vida de Amelia/Metal/Blaze bugeada =
+ composites perdidos
+
+1af7dce3 dejo los PNG de los frames nuevos (56-90) caidos en
+layers/<frameGuid>/ (capas GMS2.3) en vez de la raiz del sprite
+(composite que consume la texture page) => GM renderiza basura.
+
+- 88 frames reparados en 6 sprites: playerhealth 35, redring 35,
+  hit 5, demon 5, escaped 5, tab_entry 3 (filas 12/13/14 del TAB)
+- composite <guid>.png copiado a raiz + layer interno renombrado al
+  GUID de la capa default del .yy (misma estructura que los viejos)
+- extra: remapeo SALLY_CANON->SALLY / VANILLA->CREAM en drawPing
+  (marcador TAB), que Draw_64.gml ya tenia (icono hit/demon invisible)
+- server: CERO cambios
+---
+ CACHE.md                                      |  23 ++++++++
+ objects/obj_level/Create_0.gml                |   8 +++
+ ... 56259f54-73e0-4b95-922f-a4b1e6dedabf.png} | Bin
+ ... 81d18857-b250-41da-921d-d140822d2cdd.png} | Bin
+ ... a393c62e-d5a8-4644-91de-0228b4853b21.png} | Bin
+ ... d683a99f-6d31-43ce-a143-bcb90bcaa2c2.png} | Bin
+ ... da1655cb-37bf-4e58-af27-8f76a8326e4b.png} | Bin
+ .../fbc0e46b-612c-419e-b6de-e789e20ad8b0.png} | Bin
+ .../fbc0e46b-612c-419e-b6de-e789e20ad8b0.png  | Bin 0 -> 909 bytes
+ .../fbc0e46b-612c-419e-b6de-e789e20ad8b0.png  | Bin 0 -> 902 bytes
+ .../fbc0e46b-612c-419e-b6de-e789e20ad8b0.png  | Bin 0 -> 837 bytes
+ .../fbc0e46b-612c-419e-b6de-e789e20ad8b0.png} | Bin
+ ... 0641946e-d89d-4c64-b428-9543dac15cfd.png} | Bin
+ ... 07ac4cea-ae25-42ff-ad31-7b4ba96342a7.png} | Bin
+ ... 12046259-693f-4cfb-8a56-3f061bc045d5.png} | Bin
+ ... 1458ba53-c652-4544-ab72-da2db85ab452.png} | Bin
+ ... 1822f221-b0fb-4f09-8b7e-054aece24b38.png} | Bin
+ ... 24c3564c-7b11-4822-bc7b-a8ed0004e1fa.png} | Bin
+ ... 29fcac67-105f-4e2b-8040-f8ddccf0b263.png} | Bin
+ ... 2b0de0ca-1ad6-4361-a7a5-bde525755125.png} | Bin
+ ... 376e968f-2f30-442c-8e3b-34f38380eedf.png} | Bin
+ ... 38016d0c-87a7-44dc-a198-9f3209e962a3.png} | Bin
+ ... 39b0b5d2-bd8c-4fb9-ab2e-a74e32ccc7ad.png} | Bin
+ ... 3b66d601-71c2-4bf3-8173-81b65ec40225.png} | Bin
+ ... 52156c18-c940-4c07-a631-65a8fb975d57.png} | Bin
+ ... 56b6013a-716e-4ee9-86b6-738118adf8b9.png} | Bin
+ ... 67984695-a01a-4ac1-9d3e-80b8b34e5fc1.png} | Bin
+ ... 691629b3-5e9b-4bf3-abea-4a0085e79dd1.png} | Bin
+ ... 69962c07-cd9e-4205-ad50-9102750c8859.png} | Bin
+ ... 6d6fc70d-600b-4508-8b1c-6c4644a15d15.png} | Bin
+ ... 6dcd7995-cf7c-4436-8919-8f93dbaacf7d.png} | Bin
+ ... 712691a2-e79e-4c24-83d7-80416c171514.png} | Bin
+ ... 86fcc07e-e3f2-444a-a8c5-cd7d587f8d22.png} | Bin
+ ... 89a0ddb1-5546-41fe-9a73-8a339d916067.png} | Bin
+ ... a7767024-ecba-493c-9106-d7f18bf10456.png} | Bin
+ ... aaaa0ae8-9dc8-4c3c-9482-648ac437c1e5.png} | Bin
+ ... b28a923a-c11e-4b69-99f4-0cb49faec4b7.png} | Bin
+ ... b69e6966-037c-440f-82a8-efcb19b6ae4e.png} | Bin
+ ... c166a54e-cfeb-4669-b776-e1947a1bf643.png} | Bin
+ .../ccffc5b4-e913-4437-b8f9-409867371839.png} | Bin
+ ... d8ab4ce6-01e6-4943-b6d1-1a53e5a1d037.png} | Bin
+ .../dd1189c7-4ca8-480c-9b38-03966f2cb5f6.png} | Bin
+ ... dd65e15f-f39b-4982-bdc8-7a94947f4fa9.png} | Bin
+ ... df6d4cef-9c78-4b96-97a8-a3402b985b14.png} | Bin
+ ... eacfad8e-4d0e-4aba-ad90-208f4c94feda.png} | Bin
+ ... ecfec69b-064f-45be-95b5-8978c0cc3a4c.png} | Bin
+ ... f7e9d805-64c8-4198-bd98-5323ae540d12.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 848 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 868 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 833 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 854 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 936 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 859 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 808 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 892 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 886 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 847 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 939 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 821 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 763 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 732 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} | Bin
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 943 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 738 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 941 bytes
+ .../1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png  | Bin 0 -> 750 bytes
+ ... 07a8b8f8-d98b-4637-aae3-2224745e2eb8.png} | Bin
+ ... a11aa0e5-24ed-4d95-8fa4-cc568af10116.png} | Bin
+ .../ba09a7c0-0e35-480d-9be6-c16360fbba6c.png} | Bin
+ .../d8848f8c-ed5f-4b5f-83c6-bfc106e958aa.png} | Bin
+ ... d949a3e8-4bab-4f9f-9da3-dd5ab9534978.png} | Bin
+ .../d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png  | Bin 0 -> 875 bytes
+ .../d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png  | Bin 0 -> 738 bytes
+ .../d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png  | Bin 0 -> 83 bytes
+ .../d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png  | Bin 0 -> 83 bytes
+ .../d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png  | Bin 0 -> 862 bytes
+ .../18cdbfef-61a7-4e74-9e41-d856463b4a80.png  | Bin 0 -> 83 bytes
+ ... 19d3bebf-16bc-426a-9df8-ef1fdf38c680.png} | Bin
+ ... 3eae072c-ea36-4016-8e2d-44d8ee14f366.png} | Bin
+ .../42ac1765-5ac5-451a-8aae-8a3536258210.png  | Bin 0 -> 83 bytes
+ ... 86d4a713-3b04-4cc5-9fdc-9d9048fdc578.png} | Bin
+ .../1d05ca0f-d262-4f5f-a33f-5b64694804ac.png  | Bin 0 -> 83 bytes
+ .../1d05ca0f-d262-4f5f-a33f-5b64694804ac.png  | Bin 0 -> 724 bytes
+ .../1d05ca0f-d262-4f5f-a33f-5b64694804ac.png  | Bin 0 -> 664 bytes
+ .../1d05ca0f-d262-4f5f-a33f-5b64694804ac.png  | Bin 0 -> 83 bytes
+ .../1d05ca0f-d262-4f5f-a33f-5b64694804ac.png  | Bin 0 -> 675 bytes
+ ... 0404e0ea-9853-4fc5-b686-090a409aa7bb.png} | Bin
+ .../07423719-9dbe-445a-9563-857b61f2683c.png  | Bin 0 -> 83 bytes
+ ... 0810d61b-1ed7-4c79-a1fc-7a4cb5d4c567.png} | Bin
+ ... 0a6ae400-f777-42c3-a2f2-50d90e8f1ed5.png} | Bin
+ ... 0c234645-d271-4675-a931-b22ad0046160.png} | Bin
+ ... 0e6751a5-9500-4880-9c62-2daf977a0f49.png} | Bin
+ .../128a6a0f-1e57-404a-b3f0-c97fd1da100f.png  | Bin 0 -> 83 bytes
+ ... 1608aa99-81f6-4639-a913-964709f510c5.png} | Bin
+ ... 1e5255d5-eb38-418c-b24e-b266f3b25e61.png} | Bin
+ .../20069efb-9786-4307-adec-dc653a701598.png  | Bin 0 -> 83 bytes
+ ... 2cfd3bcb-d257-4d75-b54d-a558d9145955.png} | Bin
+ ... 2f508f86-5733-46f6-8604-88185bbf5c13.png} | Bin
+ ... 34ab8704-5226-41c6-b64f-61368a7efc09.png} | Bin
+ ... 3ccc89e2-9fe7-4dec-a7c3-d7f03b9b68a5.png} | Bin
+ ... 4bdaea9e-7364-40b7-a8ab-40ca04c3857e.png} | Bin
+ .../4dafc371-be90-4bb2-9a6e-2e66eba19604.png  | Bin 0 -> 83 bytes
+ .../5b4391cf-e34d-49fa-9689-e81633367732.png  | Bin 0 -> 83 bytes
+ .../5ddc363b-d15b-40e8-a253-c6a3057dd015.png  | Bin 0 -> 83 bytes
+ .../61eca45e-e012-497e-9224-bb8fec04e01d.png  | Bin 0 -> 83 bytes
+ .../622bbe67-e649-4aef-a539-b9455851312b.png  | Bin 0 -> 699 bytes
+ .../64fc1bd5-7072-406c-a82f-6a4e28495c97.png  | Bin 0 -> 83 bytes
+ .../7e4e5a7f-7ba5-45f9-bdbb-2a9bad67048d.png  | Bin 0 -> 83 bytes
+ .../8938afeb-1e19-401d-9cb7-82bd1b687ceb.png  | Bin 0 -> 83 bytes
+ ... ac406163-806d-477c-b120-c1823ecfbcf7.png} | Bin
+ .../bd540e33-1331-4824-b4ba-493ea5ccbf69.png  | Bin 0 -> 659 bytes
+ ... c53267f4-e088-4a5b-81a7-7b39fba65c88.png} | Bin
+ .../c8d62700-317a-4969-af64-f60bbdc484a0.png  | Bin 0 -> 83 bytes
+ .../cfd332d8-5b17-4a1b-a036-cc404c6dfdc9.png  | Bin 0 -> 83 bytes
+ .../d8e9c081-42cb-4cb6-8792-368f8baa2354.png  | Bin 0 -> 715 bytes
+ .../e1c7d83e-4e0c-4992-b127-286dedcaab80.png  | Bin 0 -> 83 bytes
+ ... e3883cdf-b935-4114-8b07-bed3e789df19.png} | Bin
+ ... f6fdf4df-081c-4dfb-a496-48231745d017.png} | Bin
+ .../f768ff06-c5d9-4f5d-94cf-8e4ee1d6a3ec.png  | Bin 0 -> 83 bytes
+ ... fe53f4ab-54d7-4152-8396-028edd7972e1.png} | Bin
+ ... fe625a49-1d4f-4882-a519-0bf7ab24aa6f.png} | Bin
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 779 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 826 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 691 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 794 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 908 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 682 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 882 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 807 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 845 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 868 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 870 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 727 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 699 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 777 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 659 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 897 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 715 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 922 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 891 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 83 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 773 bytes
+ .../17b72b1b-de8c-449a-bc63-c8a2d64d6032.png  | Bin 0 -> 868 bytes
+ ... 3c0d3085-5ab2-437b-8c5a-5d1b4aaede99.png} | Bin
+ ... 7c2eff55-bad3-4aa6-8079-996f6cd9b1e5.png} | Bin
+ ... a88979c1-5dc7-48c4-bd7e-571b15b3c1c7.png} | Bin
+ .../2ecce8b7-b67f-4ee0-b03b-b6d594069075.png  | Bin 0 -> 1117 bytes
+ .../2ecce8b7-b67f-4ee0-b03b-b6d594069075.png  | Bin 0 -> 1171 bytes
+ .../2ecce8b7-b67f-4ee0-b03b-b6d594069075.png  | Bin 0 -> 1172 bytes
+ worklog.md                                    |  50 ++++++++++++++++++
+ 179 files changed, 81 insertions(+)
+ rename sprites/spr_playerescaped/{layers/56259f54-73e0-4b95-922f-a4b1e6dedabf/114923df-85fc-44a7-944c-10de47ac1d50.png => 56259f54-73e0-4b95-922f-a4b1e6dedabf.png} (100%)
+ rename sprites/spr_playerescaped/{layers/81d18857-b250-41da-921d-d140822d2cdd/907314de-8bde-4424-8c80-942a0c498628.png => 81d18857-b250-41da-921d-d140822d2cdd.png} (100%)
+ rename sprites/spr_playerescaped/{layers/a393c62e-d5a8-4644-91de-0228b4853b21/0197f14c-c1b9-47ec-abff-a6efad138f5a.png => a393c62e-d5a8-4644-91de-0228b4853b21.png} (100%)
+ rename sprites/spr_playerescaped/{layers/d683a99f-6d31-43ce-a143-bcb90bcaa2c2/83ecafcd-42e9-4e51-9d53-193537dccea7.png => d683a99f-6d31-43ce-a143-bcb90bcaa2c2.png} (100%)
+ rename sprites/spr_playerescaped/{layers/da1655cb-37bf-4e58-af27-8f76a8326e4b/0c65d046-6e31-46b0-9d79-83fcc5858ee5.png => da1655cb-37bf-4e58-af27-8f76a8326e4b.png} (100%)
+ rename sprites/{spr_playerhealth/layers/07ac4cea-ae25-42ff-ad31-7b4ba96342a7/f9ae0168-73b6-446e-966c-6ffab210ec61.png => spr_playerescaped/layers/56259f54-73e0-4b95-922f-a4b1e6dedabf/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png} (100%)
+ create mode 100644 sprites/spr_playerescaped/layers/81d18857-b250-41da-921d-d140822d2cdd/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png
+ create mode 100644 sprites/spr_playerescaped/layers/a393c62e-d5a8-4644-91de-0228b4853b21/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png
+ create mode 100644 sprites/spr_playerescaped/layers/d683a99f-6d31-43ce-a143-bcb90bcaa2c2/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png
+ rename sprites/{spr_playerhealth/layers/12046259-693f-4cfb-8a56-3f061bc045d5/cc48283c-dfbd-432d-aad5-ae946ea62d3c.png => spr_playerescaped/layers/da1655cb-37bf-4e58-af27-8f76a8326e4b/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png} (100%)
+ rename sprites/spr_playerhealth/{layers/0641946e-d89d-4c64-b428-9543dac15cfd/5533086d-e84d-44d7-8856-67d231d48b83.png => 0641946e-d89d-4c64-b428-9543dac15cfd.png} (100%)
+ rename sprites/spr_playerhealth/{layers/1458ba53-c652-4544-ab72-da2db85ab452/c4e0508c-4819-411b-a256-affe8bbdf919.png => 07ac4cea-ae25-42ff-ad31-7b4ba96342a7.png} (100%)
+ rename sprites/spr_playerhealth/{layers/1822f221-b0fb-4f09-8b7e-054aece24b38/f3bef867-d247-4d56-b49c-4e25ebcf7ba7.png => 12046259-693f-4cfb-8a56-3f061bc045d5.png} (100%)
+ rename sprites/spr_playerhealth/{layers/29fcac67-105f-4e2b-8040-f8ddccf0b263/a79a532c-0015-477a-89f0-4f09737b7d88.png => 1458ba53-c652-4544-ab72-da2db85ab452.png} (100%)
+ rename sprites/spr_playerhealth/{layers/2b0de0ca-1ad6-4361-a7a5-bde525755125/8e4c6585-2095-49a9-bb62-0f2b15a38451.png => 1822f221-b0fb-4f09-8b7e-054aece24b38.png} (100%)
+ rename sprites/spr_playerhealth/{layers/24c3564c-7b11-4822-bc7b-a8ed0004e1fa/581d4cd2-7b30-42a2-bbd8-bfd1727597a9.png => 24c3564c-7b11-4822-bc7b-a8ed0004e1fa.png} (100%)
+ rename sprites/spr_playerhealth/{layers/38016d0c-87a7-44dc-a198-9f3209e962a3/6a00e6cb-6d28-4967-a7d8-a8b41ba7f8a4.png => 29fcac67-105f-4e2b-8040-f8ddccf0b263.png} (100%)
+ rename sprites/spr_playerhealth/{layers/67984695-a01a-4ac1-9d3e-80b8b34e5fc1/8fc9f49b-cc13-4ddf-9ba2-981b55f374bd.png => 2b0de0ca-1ad6-4361-a7a5-bde525755125.png} (100%)
+ rename sprites/spr_playerhealth/{layers/376e968f-2f30-442c-8e3b-34f38380eedf/235f9e9f-d29f-469e-8272-b8ed472cd69e.png => 376e968f-2f30-442c-8e3b-34f38380eedf.png} (100%)
+ rename sprites/spr_playerhealth/{layers/69962c07-cd9e-4205-ad50-9102750c8859/cfce1795-80c5-4f66-901d-831744de7df8.png => 38016d0c-87a7-44dc-a198-9f3209e962a3.png} (100%)
+ rename sprites/spr_playerhealth/{layers/39b0b5d2-bd8c-4fb9-ab2e-a74e32ccc7ad/7943339c-4390-4397-b1e0-4b2c0b42c401.png => 39b0b5d2-bd8c-4fb9-ab2e-a74e32ccc7ad.png} (100%)
+ rename sprites/spr_playerhealth/{layers/3b66d601-71c2-4bf3-8173-81b65ec40225/7b7fc0a8-4226-47bf-a454-38ef4d36a16b.png => 3b66d601-71c2-4bf3-8173-81b65ec40225.png} (100%)
+ rename sprites/spr_playerhealth/{layers/52156c18-c940-4c07-a631-65a8fb975d57/614c75b3-0e89-4cd5-b851-3a720fec958e.png => 52156c18-c940-4c07-a631-65a8fb975d57.png} (100%)
+ rename sprites/spr_playerhealth/{layers/56b6013a-716e-4ee9-86b6-738118adf8b9/27d5ddb7-75e2-4bf9-89bd-3d426bf08c93.png => 56b6013a-716e-4ee9-86b6-738118adf8b9.png} (100%)
+ rename sprites/spr_playerhealth/{layers/6dcd7995-cf7c-4436-8919-8f93dbaacf7d/4e496f01-13b1-4250-84dd-3353db5d2261.png => 67984695-a01a-4ac1-9d3e-80b8b34e5fc1.png} (100%)
+ rename sprites/spr_playerhealth/{layers/691629b3-5e9b-4bf3-abea-4a0085e79dd1/7ef82733-4c37-4ea5-bca3-9219429ea3ba.png => 691629b3-5e9b-4bf3-abea-4a0085e79dd1.png} (100%)
+ rename sprites/spr_playerhealth/{layers/712691a2-e79e-4c24-83d7-80416c171514/1e4ddf28-4bbc-4b36-ba19-287814a37d4c.png => 69962c07-cd9e-4205-ad50-9102750c8859.png} (100%)
+ rename sprites/spr_playerhealth/{layers/6d6fc70d-600b-4508-8b1c-6c4644a15d15/7f04ba6d-606f-4666-8d9d-0f4b7ecbed50.png => 6d6fc70d-600b-4508-8b1c-6c4644a15d15.png} (100%)
+ rename sprites/spr_playerhealth/{layers/c166a54e-cfeb-4669-b776-e1947a1bf643/7bc9c6f7-3d9d-40d7-b6af-1fed89329aa7.png => 6dcd7995-cf7c-4436-8919-8f93dbaacf7d.png} (100%)
+ rename sprites/spr_playerhealth/{layers/ccffc5b4-e913-4437-b8f9-409867371839/6155dc26-7f07-4ef0-b400-114c61f9bde4.png => 712691a2-e79e-4c24-83d7-80416c171514.png} (100%)
+ rename sprites/spr_playerhealth/{layers/86fcc07e-e3f2-444a-a8c5-cd7d587f8d22/2de396b1-a03c-4eed-8014-607ee67ca244.png => 86fcc07e-e3f2-444a-a8c5-cd7d587f8d22.png} (100%)
+ rename sprites/spr_playerhealth/{layers/89a0ddb1-5546-41fe-9a73-8a339d916067/01abea16-a11b-44dd-83ab-e9017e4b7788.png => 89a0ddb1-5546-41fe-9a73-8a339d916067.png} (100%)
+ rename sprites/spr_playerhealth/{layers/a7767024-ecba-493c-9106-d7f18bf10456/a90e2c44-5136-4bef-bfdf-c342310b69d6.png => a7767024-ecba-493c-9106-d7f18bf10456.png} (100%)
+ rename sprites/spr_playerhealth/{layers/aaaa0ae8-9dc8-4c3c-9482-648ac437c1e5/5b46da28-50f0-49e1-ad5f-c726f2622d55.png => aaaa0ae8-9dc8-4c3c-9482-648ac437c1e5.png} (100%)
+ rename sprites/spr_playerhealth/{layers/b28a923a-c11e-4b69-99f4-0cb49faec4b7/b9a8882a-8696-44f4-afbc-513e9a796356.png => b28a923a-c11e-4b69-99f4-0cb49faec4b7.png} (100%)
+ rename sprites/spr_playerhealth/{layers/b69e6966-037c-440f-82a8-efcb19b6ae4e/943a0d43-e16c-41cf-ae33-d416fbcc6a62.png => b69e6966-037c-440f-82a8-efcb19b6ae4e.png} (100%)
+ rename sprites/spr_playerhealth/{layers/dd1189c7-4ca8-480c-9b38-03966f2cb5f6/1150e5a7-ae37-4309-884f-2299e6f24789.png => c166a54e-cfeb-4669-b776-e1947a1bf643.png} (100%)
+ rename sprites/{spr_playerhealth_demon/layers/ba09a7c0-0e35-480d-9be6-c16360fbba6c/f4b1e9a4-68dc-42de-acfd-a3c8a76502e7.png => spr_playerhealth/ccffc5b4-e913-4437-b8f9-409867371839.png} (100%)
+ rename sprites/spr_playerhealth/{layers/d8ab4ce6-01e6-4943-b6d1-1a53e5a1d037/bf6fc114-18ff-4fd2-a272-4637d90a02cc.png => d8ab4ce6-01e6-4943-b6d1-1a53e5a1d037.png} (100%)
+ rename sprites/{spr_playerhealth_demon/layers/d8848f8c-ed5f-4b5f-83c6-bfc106e958aa/f2f351a5-c504-412b-874d-ad56e350e045.png => spr_playerhealth/dd1189c7-4ca8-480c-9b38-03966f2cb5f6.png} (100%)
+ rename sprites/spr_playerhealth/{layers/dd65e15f-f39b-4982-bdc8-7a94947f4fa9/962c2ed0-ef33-4c58-bd5f-7969077298af.png => dd65e15f-f39b-4982-bdc8-7a94947f4fa9.png} (100%)
+ rename sprites/spr_playerhealth/{layers/df6d4cef-9c78-4b96-97a8-a3402b985b14/8c59bc8c-72a6-45c4-a2a6-539867d088dc.png => df6d4cef-9c78-4b96-97a8-a3402b985b14.png} (100%)
+ rename sprites/spr_playerhealth/{layers/eacfad8e-4d0e-4aba-ad90-208f4c94feda/d2f10116-2b79-41fb-891a-1c83c83866a3.png => eacfad8e-4d0e-4aba-ad90-208f4c94feda.png} (100%)
+ rename sprites/spr_playerhealth/{layers/ecfec69b-064f-45be-95b5-8978c0cc3a4c/0d79109d-833d-40cc-b921-2eea60cca442.png => ecfec69b-064f-45be-95b5-8978c0cc3a4c.png} (100%)
+ rename sprites/spr_playerhealth/{layers/f7e9d805-64c8-4198-bd98-5323ae540d12/bdd8c5f3-aa42-4bf2-adf1-e1ea0b6c7004.png => f7e9d805-64c8-4198-bd98-5323ae540d12.png} (100%)
+ create mode 100644 sprites/spr_playerhealth/layers/0641946e-d89d-4c64-b428-9543dac15cfd/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ rename sprites/{spr_playerhealth_hit/layers/18cdbfef-61a7-4e74-9e41-d856463b4a80/ba081e71-aa7f-4911-84c9-aaf3126116ef.png => spr_playerhealth/layers/07ac4cea-ae25-42ff-ad31-7b4ba96342a7/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ rename sprites/{spr_playerhealth_hit/layers/42ac1765-5ac5-451a-8aae-8a3536258210/68b8ffa9-f180-4e82-a7b9-92085f707b07.png => spr_playerhealth/layers/12046259-693f-4cfb-8a56-3f061bc045d5/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ rename sprites/{spr_playerhealth_redring/layers/07423719-9dbe-445a-9563-857b61f2683c/ec8b8388-2fcd-45da-bc17-f652cf2c2c40.png => spr_playerhealth/layers/1458ba53-c652-4544-ab72-da2db85ab452/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ rename sprites/{spr_playerhealth_redring/layers/128a6a0f-1e57-404a-b3f0-c97fd1da100f/aa9a481c-bb6a-47b1-874d-123bc9ef0acd.png => spr_playerhealth/layers/1822f221-b0fb-4f09-8b7e-054aece24b38/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ create mode 100644 sprites/spr_playerhealth/layers/24c3564c-7b11-4822-bc7b-a8ed0004e1fa/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ rename sprites/{spr_playerhealth_redring/layers/20069efb-9786-4307-adec-dc653a701598/5e6a1e14-731f-4e30-b879-89c307b58c04.png => spr_playerhealth/layers/29fcac67-105f-4e2b-8040-f8ddccf0b263/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ rename sprites/{spr_playerhealth_redring/layers/4dafc371-be90-4bb2-9a6e-2e66eba19604/d79be88c-3b61-408b-a2d2-e3ad1a88ea75.png => spr_playerhealth/layers/2b0de0ca-1ad6-4361-a7a5-bde525755125/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ create mode 100644 sprites/spr_playerhealth/layers/376e968f-2f30-442c-8e3b-34f38380eedf/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ rename sprites/{spr_playerhealth_redring/layers/5b4391cf-e34d-49fa-9689-e81633367732/50c29551-4efc-4fcc-a4a3-4945d74d6bac.png => spr_playerhealth/layers/38016d0c-87a7-44dc-a198-9f3209e962a3/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ create mode 100644 sprites/spr_playerhealth/layers/39b0b5d2-bd8c-4fb9-ab2e-a74e32ccc7ad/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ create mode 100644 sprites/spr_playerhealth/layers/3b66d601-71c2-4bf3-8173-81b65ec40225/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ create mode 100644 sprites/spr_playerhealth/layers/52156c18-c940-4c07-a631-65a8fb975d57/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ create mode 100644 sprites/spr_playerhealth/layers/56b6013a-716e-4ee9-86b6-738118adf8b9/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ rename sprites/{spr_playerhealth_redring/layers/5ddc363b-d15b-40e8-a253-c6a3057dd015/38b7e46d-8c3a-47ac-9828-c4ff88eec949.png => spr_playerhealth/layers/67984695-a01a-4ac1-9d3e-80b8b34e5fc1/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ create mode 100644 sprites/spr_playerhealth/layers/691629b3-5e9b-4bf3-abea-4a0085e79dd1/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ rename sprites/{spr_playerhealth_redring/layers/61eca45e-e012-497e-9224-bb8fec04e01d/23ef7b13-cccf-4f08-b6f7-155edc5daf02.png => spr_playerhealth/layers/69962c07-cd9e-4205-ad50-9102750c8859/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ create mode 100644 sprites/spr_playerhealth/layers/6d6fc70d-600b-4508-8b1c-6c4644a15d15/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ rename sprites/{spr_playerhealth_redring/layers/64fc1bd5-7072-406c-a82f-6a4e28495c97/55e32248-2426-48ab-a792-c1ab3498c056.png => spr_playerhealth/layers/6dcd7995-cf7c-4436-8919-8f93dbaacf7d/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ rename sprites/{spr_playerhealth_redring/layers/7e4e5a7f-7ba5-45f9-bdbb-2a9bad67048d/b0dced28-e17b-4e1a-bccb-e6d018e7ff31.png => spr_playerhealth/layers/712691a2-e79e-4c24-83d7-80416c171514/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ rename sprites/{spr_playerhealth_redring/layers/622bbe67-e649-4aef-a539-b9455851312b/be44869e-71b5-46a6-9e75-3ec80d54e5ff.png => spr_playerhealth/layers/86fcc07e-e3f2-444a-a8c5-cd7d587f8d22/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ rename sprites/{spr_playerhealth_redring/layers/bd540e33-1331-4824-b4ba-493ea5ccbf69/33bc0617-df85-48c9-b718-622429564976.png => spr_playerhealth/layers/89a0ddb1-5546-41fe-9a73-8a339d916067/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ create mode 100644 sprites/spr_playerhealth/layers/a7767024-ecba-493c-9106-d7f18bf10456/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ create mode 100644 sprites/spr_playerhealth/layers/aaaa0ae8-9dc8-4c3c-9482-648ac437c1e5/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ create mode 100644 sprites/spr_playerhealth/layers/b28a923a-c11e-4b69-99f4-0cb49faec4b7/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ create mode 100644 sprites/spr_playerhealth/layers/b69e6966-037c-440f-82a8-efcb19b6ae4e/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ rename sprites/{spr_playerhealth_redring/layers/8938afeb-1e19-401d-9cb7-82bd1b687ceb/e8b1e035-b4c9-47ec-98da-e5da2021338b.png => spr_playerhealth/layers/c166a54e-cfeb-4669-b776-e1947a1bf643/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ rename sprites/{spr_playerhealth_redring/layers/c8d62700-317a-4969-af64-f60bbdc484a0/b78abeca-aafb-4b38-b149-2c81701a89e8.png => spr_playerhealth/layers/ccffc5b4-e913-4437-b8f9-409867371839/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ create mode 100644 sprites/spr_playerhealth/layers/d8ab4ce6-01e6-4943-b6d1-1a53e5a1d037/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ rename sprites/{spr_playerhealth_redring/layers/cfd332d8-5b17-4a1b-a036-cc404c6dfdc9/3b31d9f3-5f8f-4ca2-b9e4-1bf36930b537.png => spr_playerhealth/layers/dd1189c7-4ca8-480c-9b38-03966f2cb5f6/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ rename sprites/{spr_playerhealth_redring/layers/d8e9c081-42cb-4cb6-8792-368f8baa2354/198a7bc7-ee0f-438d-bb3f-c1a318edb24a.png => spr_playerhealth/layers/dd65e15f-f39b-4982-bdc8-7a94947f4fa9/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png} (100%)
+ create mode 100644 sprites/spr_playerhealth/layers/df6d4cef-9c78-4b96-97a8-a3402b985b14/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ create mode 100644 sprites/spr_playerhealth/layers/eacfad8e-4d0e-4aba-ad90-208f4c94feda/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ create mode 100644 sprites/spr_playerhealth/layers/ecfec69b-064f-45be-95b5-8978c0cc3a4c/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ create mode 100644 sprites/spr_playerhealth/layers/f7e9d805-64c8-4198-bd98-5323ae540d12/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+ rename sprites/spr_playerhealth_demon/{layers/07a8b8f8-d98b-4637-aae3-2224745e2eb8/2f87bca0-f74d-439f-a7d0-de1a52a1ac0c.png => 07a8b8f8-d98b-4637-aae3-2224745e2eb8.png} (100%)
+ rename sprites/spr_playerhealth_demon/{layers/a11aa0e5-24ed-4d95-8fa4-cc568af10116/f1655d78-786f-487d-87b1-dc68cdf9dd08.png => a11aa0e5-24ed-4d95-8fa4-cc568af10116.png} (100%)
+ rename sprites/{spr_playerhealth_redring/layers/e1c7d83e-4e0c-4992-b127-286dedcaab80/f09bd189-51b7-452c-934d-70a0265431a6.png => spr_playerhealth_demon/ba09a7c0-0e35-480d-9be6-c16360fbba6c.png} (100%)
+ rename sprites/{spr_playerhealth_redring/layers/f768ff06-c5d9-4f5d-94cf-8e4ee1d6a3ec/9cb25306-fa99-4955-919c-97fc9a727978.png => spr_playerhealth_demon/d8848f8c-ed5f-4b5f-83c6-bfc106e958aa.png} (100%)
+ rename sprites/spr_playerhealth_demon/{layers/d949a3e8-4bab-4f9f-9da3-dd5ab9534978/614f96ae-bc47-4071-937b-fa19327a8f6c.png => d949a3e8-4bab-4f9f-9da3-dd5ab9534978.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_demon/layers/07a8b8f8-d98b-4637-aae3-2224745e2eb8/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png
+ create mode 100644 sprites/spr_playerhealth_demon/layers/a11aa0e5-24ed-4d95-8fa4-cc568af10116/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png
+ create mode 100644 sprites/spr_playerhealth_demon/layers/ba09a7c0-0e35-480d-9be6-c16360fbba6c/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png
+ create mode 100644 sprites/spr_playerhealth_demon/layers/d8848f8c-ed5f-4b5f-83c6-bfc106e958aa/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png
+ create mode 100644 sprites/spr_playerhealth_demon/layers/d949a3e8-4bab-4f9f-9da3-dd5ab9534978/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png
+ create mode 100644 sprites/spr_playerhealth_hit/18cdbfef-61a7-4e74-9e41-d856463b4a80.png
+ rename sprites/spr_playerhealth_hit/{layers/19d3bebf-16bc-426a-9df8-ef1fdf38c680/5e4ed8ae-241e-4ae6-a51a-6f2586a29c07.png => 19d3bebf-16bc-426a-9df8-ef1fdf38c680.png} (100%)
+ rename sprites/spr_playerhealth_hit/{layers/3eae072c-ea36-4016-8e2d-44d8ee14f366/758e070f-3b70-4e00-a398-8492bb32aa77.png => 3eae072c-ea36-4016-8e2d-44d8ee14f366.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_hit/42ac1765-5ac5-451a-8aae-8a3536258210.png
+ rename sprites/spr_playerhealth_hit/{layers/86d4a713-3b04-4cc5-9fdc-9d9048fdc578/fc69d676-247a-4d18-a448-4582a2337f9c.png => 86d4a713-3b04-4cc5-9fdc-9d9048fdc578.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_hit/layers/18cdbfef-61a7-4e74-9e41-d856463b4a80/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png
+ create mode 100644 sprites/spr_playerhealth_hit/layers/19d3bebf-16bc-426a-9df8-ef1fdf38c680/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png
+ create mode 100644 sprites/spr_playerhealth_hit/layers/3eae072c-ea36-4016-8e2d-44d8ee14f366/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png
+ create mode 100644 sprites/spr_playerhealth_hit/layers/42ac1765-5ac5-451a-8aae-8a3536258210/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png
+ create mode 100644 sprites/spr_playerhealth_hit/layers/86d4a713-3b04-4cc5-9fdc-9d9048fdc578/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png
+ rename sprites/spr_playerhealth_redring/{layers/0404e0ea-9853-4fc5-b686-090a409aa7bb/3d7ab247-cd49-4815-a831-10d0395ca8c7.png => 0404e0ea-9853-4fc5-b686-090a409aa7bb.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_redring/07423719-9dbe-445a-9563-857b61f2683c.png
+ rename sprites/spr_playerhealth_redring/{layers/0810d61b-1ed7-4c79-a1fc-7a4cb5d4c567/be17e13d-9eb9-4caf-be1e-b40fb8e367e1.png => 0810d61b-1ed7-4c79-a1fc-7a4cb5d4c567.png} (100%)
+ rename sprites/spr_playerhealth_redring/{layers/0a6ae400-f777-42c3-a2f2-50d90e8f1ed5/ff7596e1-4147-4547-98fe-f6a03ea29e7e.png => 0a6ae400-f777-42c3-a2f2-50d90e8f1ed5.png} (100%)
+ rename sprites/spr_playerhealth_redring/{layers/0c234645-d271-4675-a931-b22ad0046160/c6e010e1-6cc0-49a9-aa35-e5def93e20e7.png => 0c234645-d271-4675-a931-b22ad0046160.png} (100%)
+ rename sprites/spr_playerhealth_redring/{layers/0e6751a5-9500-4880-9c62-2daf977a0f49/ba283c7d-fc40-476e-b85e-6f9662d5890e.png => 0e6751a5-9500-4880-9c62-2daf977a0f49.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_redring/128a6a0f-1e57-404a-b3f0-c97fd1da100f.png
+ rename sprites/spr_playerhealth_redring/{layers/1608aa99-81f6-4639-a913-964709f510c5/59bb5513-8633-4195-abe8-9fdc912e67cc.png => 1608aa99-81f6-4639-a913-964709f510c5.png} (100%)
+ rename sprites/spr_playerhealth_redring/{layers/1e5255d5-eb38-418c-b24e-b266f3b25e61/0a34b8b7-5ca1-4260-9c4e-0b3a49f898b6.png => 1e5255d5-eb38-418c-b24e-b266f3b25e61.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_redring/20069efb-9786-4307-adec-dc653a701598.png
+ rename sprites/spr_playerhealth_redring/{layers/2cfd3bcb-d257-4d75-b54d-a558d9145955/a90bd928-5c90-40b9-830d-7e98f0b66eba.png => 2cfd3bcb-d257-4d75-b54d-a558d9145955.png} (100%)
+ rename sprites/spr_playerhealth_redring/{layers/2f508f86-5733-46f6-8604-88185bbf5c13/89fa94a3-88d5-4eac-83f3-75d904f699c0.png => 2f508f86-5733-46f6-8604-88185bbf5c13.png} (100%)
+ rename sprites/spr_playerhealth_redring/{layers/34ab8704-5226-41c6-b64f-61368a7efc09/33e87f6c-49df-480f-b0f5-576ff2e5aac1.png => 34ab8704-5226-41c6-b64f-61368a7efc09.png} (100%)
+ rename sprites/spr_playerhealth_redring/{layers/3ccc89e2-9fe7-4dec-a7c3-d7f03b9b68a5/ee44f073-4fef-48a5-bfce-0eb489497b66.png => 3ccc89e2-9fe7-4dec-a7c3-d7f03b9b68a5.png} (100%)
+ rename sprites/spr_playerhealth_redring/{layers/4bdaea9e-7364-40b7-a8ab-40ca04c3857e/c960921d-0cb7-4328-be3a-70892cae5cb5.png => 4bdaea9e-7364-40b7-a8ab-40ca04c3857e.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_redring/4dafc371-be90-4bb2-9a6e-2e66eba19604.png
+ create mode 100644 sprites/spr_playerhealth_redring/5b4391cf-e34d-49fa-9689-e81633367732.png
+ create mode 100644 sprites/spr_playerhealth_redring/5ddc363b-d15b-40e8-a253-c6a3057dd015.png
+ create mode 100644 sprites/spr_playerhealth_redring/61eca45e-e012-497e-9224-bb8fec04e01d.png
+ create mode 100644 sprites/spr_playerhealth_redring/622bbe67-e649-4aef-a539-b9455851312b.png
+ create mode 100644 sprites/spr_playerhealth_redring/64fc1bd5-7072-406c-a82f-6a4e28495c97.png
+ create mode 100644 sprites/spr_playerhealth_redring/7e4e5a7f-7ba5-45f9-bdbb-2a9bad67048d.png
+ create mode 100644 sprites/spr_playerhealth_redring/8938afeb-1e19-401d-9cb7-82bd1b687ceb.png
+ rename sprites/spr_playerhealth_redring/{layers/ac406163-806d-477c-b120-c1823ecfbcf7/93a44566-9705-42ab-b015-de60b2c7fd2b.png => ac406163-806d-477c-b120-c1823ecfbcf7.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_redring/bd540e33-1331-4824-b4ba-493ea5ccbf69.png
+ rename sprites/spr_playerhealth_redring/{layers/c53267f4-e088-4a5b-81a7-7b39fba65c88/1f89b415-a24e-479a-8b7a-398727b6aa56.png => c53267f4-e088-4a5b-81a7-7b39fba65c88.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_redring/c8d62700-317a-4969-af64-f60bbdc484a0.png
+ create mode 100644 sprites/spr_playerhealth_redring/cfd332d8-5b17-4a1b-a036-cc404c6dfdc9.png
+ create mode 100644 sprites/spr_playerhealth_redring/d8e9c081-42cb-4cb6-8792-368f8baa2354.png
+ create mode 100644 sprites/spr_playerhealth_redring/e1c7d83e-4e0c-4992-b127-286dedcaab80.png
+ rename sprites/spr_playerhealth_redring/{layers/e3883cdf-b935-4114-8b07-bed3e789df19/4f1b85c6-0073-4fa2-8544-ff4a37190c33.png => e3883cdf-b935-4114-8b07-bed3e789df19.png} (100%)
+ rename sprites/spr_playerhealth_redring/{layers/f6fdf4df-081c-4dfb-a496-48231745d017/6feb9cc9-08a3-414d-88b7-051c4ca97584.png => f6fdf4df-081c-4dfb-a496-48231745d017.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_redring/f768ff06-c5d9-4f5d-94cf-8e4ee1d6a3ec.png
+ rename sprites/spr_playerhealth_redring/{layers/fe53f4ab-54d7-4152-8396-028edd7972e1/e65f048c-18e3-4526-b127-55d55d2fa511.png => fe53f4ab-54d7-4152-8396-028edd7972e1.png} (100%)
+ rename sprites/spr_playerhealth_redring/{layers/fe625a49-1d4f-4882-a519-0bf7ab24aa6f/b5acc247-e7b4-47de-a5ae-a8aa0fe854db.png => fe625a49-1d4f-4882-a519-0bf7ab24aa6f.png} (100%)
+ create mode 100644 sprites/spr_playerhealth_redring/layers/0404e0ea-9853-4fc5-b686-090a409aa7bb/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/07423719-9dbe-445a-9563-857b61f2683c/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/0810d61b-1ed7-4c79-a1fc-7a4cb5d4c567/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/0a6ae400-f777-42c3-a2f2-50d90e8f1ed5/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/0c234645-d271-4675-a931-b22ad0046160/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/0e6751a5-9500-4880-9c62-2daf977a0f49/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/128a6a0f-1e57-404a-b3f0-c97fd1da100f/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/1608aa99-81f6-4639-a913-964709f510c5/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/1e5255d5-eb38-418c-b24e-b266f3b25e61/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/20069efb-9786-4307-adec-dc653a701598/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/2cfd3bcb-d257-4d75-b54d-a558d9145955/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/2f508f86-5733-46f6-8604-88185bbf5c13/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/34ab8704-5226-41c6-b64f-61368a7efc09/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/3ccc89e2-9fe7-4dec-a7c3-d7f03b9b68a5/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/4bdaea9e-7364-40b7-a8ab-40ca04c3857e/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/4dafc371-be90-4bb2-9a6e-2e66eba19604/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/5b4391cf-e34d-49fa-9689-e81633367732/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/5ddc363b-d15b-40e8-a253-c6a3057dd015/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/61eca45e-e012-497e-9224-bb8fec04e01d/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/622bbe67-e649-4aef-a539-b9455851312b/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/64fc1bd5-7072-406c-a82f-6a4e28495c97/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/7e4e5a7f-7ba5-45f9-bdbb-2a9bad67048d/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/8938afeb-1e19-401d-9cb7-82bd1b687ceb/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/ac406163-806d-477c-b120-c1823ecfbcf7/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/bd540e33-1331-4824-b4ba-493ea5ccbf69/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/c53267f4-e088-4a5b-81a7-7b39fba65c88/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/c8d62700-317a-4969-af64-f60bbdc484a0/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/cfd332d8-5b17-4a1b-a036-cc404c6dfdc9/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/d8e9c081-42cb-4cb6-8792-368f8baa2354/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/e1c7d83e-4e0c-4992-b127-286dedcaab80/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/e3883cdf-b935-4114-8b07-bed3e789df19/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/f6fdf4df-081c-4dfb-a496-48231745d017/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/f768ff06-c5d9-4f5d-94cf-8e4ee1d6a3ec/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/fe53f4ab-54d7-4152-8396-028edd7972e1/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ create mode 100644 sprites/spr_playerhealth_redring/layers/fe625a49-1d4f-4882-a519-0bf7ab24aa6f/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+ rename sprites/spr_tab_entry/{layers/3c0d3085-5ab2-437b-8c5a-5d1b4aaede99/31525684-23a7-417b-b132-6257ec18f6bb.png => 3c0d3085-5ab2-437b-8c5a-5d1b4aaede99.png} (100%)
+ rename sprites/spr_tab_entry/{layers/7c2eff55-bad3-4aa6-8079-996f6cd9b1e5/b2dbea29-ded8-4e06-a795-0f9f02ede4c8.png => 7c2eff55-bad3-4aa6-8079-996f6cd9b1e5.png} (100%)
+ rename sprites/spr_tab_entry/{layers/a88979c1-5dc7-48c4-bd7e-571b15b3c1c7/407b39bf-610c-41fc-8c37-5684bbfda91c.png => a88979c1-5dc7-48c4-bd7e-571b15b3c1c7.png} (100%)
+ create mode 100644 sprites/spr_tab_entry/layers/3c0d3085-5ab2-437b-8c5a-5d1b4aaede99/2ecce8b7-b67f-4ee0-b03b-b6d594069075.png
+ create mode 100644 sprites/spr_tab_entry/layers/7c2eff55-bad3-4aa6-8079-996f6cd9b1e5/2ecce8b7-b67f-4ee0-b03b-b6d594069075.png
+ create mode 100644 sprites/spr_tab_entry/layers/a88979c1-5dc7-48c4-bd7e-571b15b3c1c7/2ecce8b7-b67f-4ee0-b03b-b6d594069075.png
+
+diff --git a/CACHE.md b/CACHE.md
+index 1540f1f7..c935d6fc 100644
+--- a/CACHE.md
++++ b/CACHE.md
+@@ -697,6 +697,17 @@ y las pistas nuevas de 20-28s se cortaban).
+     scr_avchars_reset de scr_characters.gml. Lo mismo chars[] del lobby:
+     obj_lobby/Draw_0 ya clampa sprInd antes de indexar.
+ 
++12. SPRITES LAYERED (hudbar-v2.5): al anyadir frames a un sprite por
++    script, el composite <frameGuid>.png en la RAIZ de sprites/<spr>/ es
++    OBLIGATORIO (la texture page NO mira layers/). El PNG interno va en
++    layers/<frameGuid>/<capaDefault>.png con el GUID de la capa default
++    del .yy (no un GUID aleatorio). Sintoma de composite perdido:
++    sprite renderiza basura/nothing solo para los frames nuevos. Auditor
++    reutilizable: scripts/audit_sprite_frames.py del workspace del agente.
++    Los ~85 PNG huerfanos por carpeta (raiz+layers, GUIDs del TTB
++    original) son casi seguro el arte de Silver/Shadow/Lord X/Koloosos
++    para el port futuro: NO borrarlos.
++
+ ## 9. PENDIENTES / esperando al usuario
+ - relay-v1.3: pendiente PRUEBA REAL CON JUGADOR EXTERNO por el relay.
+   Setup listo: server v1.3 + cliente con DLL portfix IP:PUERTO +
+@@ -1049,3 +1060,15 @@ y las pistas nuevas de 20-28s se cortaban).
+   CMakeLists). OJO: disasterserver/Game.c raiz es huerfano (usa
+   game.cooldowns inexistente, fuera del build real = states/Game.c).
+   Entregable: download/amelia_v2_4.zip.
++- 2026-11-01 (hudbar-v2.5): barra de vida bugeada de Amelia = ASSETS,
++  no codigo. 1af7dce3 anyadio los frames 56-90 de spr_playerhealth (y los
++  de redring/hit/demon/escaped/tab_entry) dejando los PNG en
++  layers/<frameGuid>/ (capas GMS2.3) en vez de la raiz (composite que
++  consume la texture page) => GM renderiza basura para esos frames. 88
++  frames en 6 sprites reparados (composite a raiz + layer renombrado al
++  GUID default; scripts del agente fix_healthbar_composites.py +
++  audit_sprite_frames.py reutilizables). Slots 8/9 = placeholder
++  transparente a proposito (remapeados en el draw, jamas se renderizan).
++  Extra: remapeo SALLY_CANON/VANILLA anyadido a drawPing (marcador TAB),
++  que Draw_64 ya tenia (icono hit/demon invisible para ellos). Server: 0
++  cambios. Entregable: download/hudbar_v2_5.zip.
+diff --git a/objects/obj_level/Create_0.gml b/objects/obj_level/Create_0.gml
+index 8c4cc5dc..fb3c6b88 100644
+--- a/objects/obj_level/Create_0.gml
++++ b/objects/obj_level/Create_0.gml
+@@ -18,6 +18,14 @@ instance_create_depth(0, 0, 0, obj_playerui);
+ drawPing = function(char, exeCharacter, ping, revival, name, index)
+ {       
+         var hchar = char - 1;
++        // v2.5 (fix HUD TAB): mismo remapeo que obj_level/Draw_64.gml para el
++        // icono hit/demon. Sin esto Sally Canon/Vanilla caian en los frames
++        // 8/9 de spr_playerhealth_hit/demon (placeholders transparentes) y su
++        // icono de golpe/demonizacion quedaba invisible en el marcador TAB.
++        if(char == CHARACTER_SALLY_CANON)
++                hchar = CHARACTER_SALLY - 1;
++        else if(char == CHARACTER_VANILLA)
++                hchar = CHARACTER_CREAM - 1;
+         
+         if(char == CHARACTER_EXE)
+         {
+diff --git a/sprites/spr_playerescaped/layers/56259f54-73e0-4b95-922f-a4b1e6dedabf/114923df-85fc-44a7-944c-10de47ac1d50.png b/sprites/spr_playerescaped/56259f54-73e0-4b95-922f-a4b1e6dedabf.png
+similarity index 100%
+rename from sprites/spr_playerescaped/layers/56259f54-73e0-4b95-922f-a4b1e6dedabf/114923df-85fc-44a7-944c-10de47ac1d50.png
+rename to sprites/spr_playerescaped/56259f54-73e0-4b95-922f-a4b1e6dedabf.png
+diff --git a/sprites/spr_playerescaped/layers/81d18857-b250-41da-921d-d140822d2cdd/907314de-8bde-4424-8c80-942a0c498628.png b/sprites/spr_playerescaped/81d18857-b250-41da-921d-d140822d2cdd.png
+similarity index 100%
+rename from sprites/spr_playerescaped/layers/81d18857-b250-41da-921d-d140822d2cdd/907314de-8bde-4424-8c80-942a0c498628.png
+rename to sprites/spr_playerescaped/81d18857-b250-41da-921d-d140822d2cdd.png
+diff --git a/sprites/spr_playerescaped/layers/a393c62e-d5a8-4644-91de-0228b4853b21/0197f14c-c1b9-47ec-abff-a6efad138f5a.png b/sprites/spr_playerescaped/a393c62e-d5a8-4644-91de-0228b4853b21.png
+similarity index 100%
+rename from sprites/spr_playerescaped/layers/a393c62e-d5a8-4644-91de-0228b4853b21/0197f14c-c1b9-47ec-abff-a6efad138f5a.png
+rename to sprites/spr_playerescaped/a393c62e-d5a8-4644-91de-0228b4853b21.png
+diff --git a/sprites/spr_playerescaped/layers/d683a99f-6d31-43ce-a143-bcb90bcaa2c2/83ecafcd-42e9-4e51-9d53-193537dccea7.png b/sprites/spr_playerescaped/d683a99f-6d31-43ce-a143-bcb90bcaa2c2.png
+similarity index 100%
+rename from sprites/spr_playerescaped/layers/d683a99f-6d31-43ce-a143-bcb90bcaa2c2/83ecafcd-42e9-4e51-9d53-193537dccea7.png
+rename to sprites/spr_playerescaped/d683a99f-6d31-43ce-a143-bcb90bcaa2c2.png
+diff --git a/sprites/spr_playerescaped/layers/da1655cb-37bf-4e58-af27-8f76a8326e4b/0c65d046-6e31-46b0-9d79-83fcc5858ee5.png b/sprites/spr_playerescaped/da1655cb-37bf-4e58-af27-8f76a8326e4b.png
+similarity index 100%
+rename from sprites/spr_playerescaped/layers/da1655cb-37bf-4e58-af27-8f76a8326e4b/0c65d046-6e31-46b0-9d79-83fcc5858ee5.png
+rename to sprites/spr_playerescaped/da1655cb-37bf-4e58-af27-8f76a8326e4b.png
+diff --git a/sprites/spr_playerhealth/layers/07ac4cea-ae25-42ff-ad31-7b4ba96342a7/f9ae0168-73b6-446e-966c-6ffab210ec61.png b/sprites/spr_playerescaped/layers/56259f54-73e0-4b95-922f-a4b1e6dedabf/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/07ac4cea-ae25-42ff-ad31-7b4ba96342a7/f9ae0168-73b6-446e-966c-6ffab210ec61.png
+rename to sprites/spr_playerescaped/layers/56259f54-73e0-4b95-922f-a4b1e6dedabf/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png
+diff --git a/sprites/spr_playerescaped/layers/81d18857-b250-41da-921d-d140822d2cdd/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png b/sprites/spr_playerescaped/layers/81d18857-b250-41da-921d-d140822d2cdd/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..8ef3353a7aaa0d9010d56b05a9d3ff29bdbe53ab
+GIT binary patch
+literal 909
+zcmV;819JR{P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F000A2Nkl<Zc$|%v
+zT}YEr7{`BWqF9+-L|xRtWWLx3Gb1(D2VEo;5(A;2D3K5$FO0lcH>GF=F({&of>CR%
+zkBg$g5@BLUS}vB6G$Le;2<9-V8!3teTNm3oo%dtTKkVu}&;NIx=Y7sOv#~T~i>%v<
+z859f10<@)D8CbYx8PIF*A>;@b^((Ys0`%H@ECbc`#egMN5ch2l&I5J^7Ov52?;$n3
+z0KnIme{_Lscb9RTGcuMmq=pxWbwsj8n2{_YkV_KgsbCaOMJWK=R+Y<y{>&VrdZ9c_
+z=dXe+A)Pa8XwqB&j7BcgSXFIm!RybT=+Dey%vWK{)C41B%ac(6=2uRl9a_zbO@~=o
+zcgzH8tg2>cS3S*r&t;p1myiHu-M2lK5K#@l$uoP2Cli)10aRgm&nzgzpzc6GRK0&O
+z0zmzC7=55`;p@+zXsoK1Eu<qtOrM@DF;)}nh{%r)5Kktk-wso6%b18iV%w^6(|796
+z%t2-f&<}-B$Pu<2Z=ELMkC=$(Cau%8#kAfsF=c5UyYMTw`Ct^tO@y2_<-kdKDoS<Z
+zEUGaAgt2PgmTr|@k`;v<VN+r%7$x#!p2&}R`qo!UfG{Zp*tlsY+23Du8<wE9bSoi8
+z7-#!I+!vSUfB(V#`D(4I5P-2RAMs>@TbUFk`)aL00M7P<q=HdWK_pP!h$<E0+kb*4
+z%|$$!ptk!woNLD@9cb<DGCF5Y0N@SYw*(p?)6>%=lMugg3Hza=Ixkhan*qST;X6&5
+zi?J>ro{CaZ!KiLXRLIq<PXW+0sO>&aON$1;>Ge)iMauwN{!WsIcJq!p88Fu6<6B^u
+zkRxn@)YND?v!S6R0M|c^N-uHWna+_YdGn4sdblK^Bi<u4`yK-@JLqRJ`yY}HT%a6q
+z0l#Z5QZ>+ESrLFuw8weCj_2=9Aa^UMnjQ2rJLt#l4bWg4r@=N(<;QWh?rElTFim3J
+zNv?c7C#%VOns0CQ<`u9HZ{7h=`m;gacQM~7+};3gZ$Rey4?B2Lc}MpGs9Ms)_iFE1
+z0Pa4#hxgfiM!ZK%t?AR|3%*5GAQMd8oz+t=I-tfHA%#GYe?yGG#iRf%eV6oiOFScm
+jv>0HiARTZK74`WC=M<d&qJMnn00000NkvXXu0mjf;q;#2
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerescaped/layers/a393c62e-d5a8-4644-91de-0228b4853b21/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png b/sprites/spr_playerescaped/layers/a393c62e-d5a8-4644-91de-0228b4853b21/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..56ca7caf41dc4c9d9cb0dfb1d2e354bc6cd1849c
+GIT binary patch
+literal 902
+zcmV;119|+3P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009`Nkl<Zc$|%v
+zPiPxQ6o)@o29@*>=)t%L!I&&b8bd)Lg<@p0AptihgN`8;OA!@4lz=HX2iF)?ke*^p
+z4oS?W2=y+|Edr5DTq6Q8*2#eyr5+HNQi6}A2CLJ<?v8g?E6ESU>@e^BzIpTJk0v;u
+z=`rII;{?VzXn;a5Pr3gn(P1sMOf6F%t2b<50I-%?PIL^9j{;66LFU{gti=@N{v*~>
+z%XFK40RG-Ni8xN>(%j{~@udgdW}kMkq2sVP*+9Sx3dA3zf26a&OLq1KfcgIJ*=+#s
+z_3}o<heh<mphU=@)fa4)T6Fez6Otza`zjV6hDAUHe^%XQpKss(KxcoKCp!-SSo576
+zzpeUh*>Atk{X%y32ETs!*ueanML;H-05W+};WWK!G6|L}ZsGADCV+*rGMgco1%P#J
+z2653w$_m+84`yAP843y@wrwMv+wct9Q8zsi&*n|B!OP9}h>O1=r9@<(1Mt}wp8$}a
+z`4@nb!;b;@{N^<Og%k^+O%YfvQy<*kTcwuyjzi)WK$67UKm7whxB3EzouhWKL7Rr@
+z%gt{R0RUHSPDcQNa9F(1%QKZ*qFrp9fohrhK%jm9lIj2P>Mt)#A&kf{fLm%&X%-_B
+zGoV5*Pc2i&a=vEn=L`Pt416Us9RY+P0YGlPr~B@Z&i*cw_SIxi;OK1JVtd}}FZ_Pp
+zjK%8^hPZxRosC;(!d4XY5iwg`bOBgjud+SA$M*bQ++_e#X%?w8i>$9#jmA_iJsi}1
+zcWBmD2!WK6m4%}SEDRAsP-zxfSvc~Jf?vOQeFD&ge|jSsDWw3oQ$E199cr2S0Ayw1
+z2-|kJQ$C2qtS-9d0*GI(y3ot(LNBk~QcJs~mKH*2DV5eA&_W3P`XL(coziZprKME*
+z^+Rt=e?UvAv=BnOrIwy^myDhtGyGD$yp#2=6d|~NDmb<jQYy1NN-1nx@M%}DH>prc
+zA*JLX*Garoqc!p$IBPM*L9XN13XUyrNo-r-I5yR472EcJ$CkopM<9V#VCQ=HT<56~
+zi<?qjc3Y<#L*Jq#&;TqvyQHT)Sb?x_95M_9egWgaQ5FIu>YnTG)||UE(rFanyr2kh
+cgpJktA7&WFd~)6MqyPW_07*qoM6N<$g1u&-(EtDd
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerescaped/layers/d683a99f-6d31-43ce-a143-bcb90bcaa2c2/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png b/sprites/spr_playerescaped/layers/d683a99f-6d31-43ce-a143-bcb90bcaa2c2/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..1493ad3655d8f4afd00a4ff1ea9f73003c04c27b
+GIT binary patch
+literal 837
+zcmV-L1G@Z)P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009FNkl<Zc$|%v
+zL1@!Z7{`BI#KBIAFiW5immr>Z+R8R$6SteNqiC%l^e7D6X*Oo=CU`Fh%es5Plii?W
+zu9D%!yS0^!La2%$3<iRw9@4zMm!|7J2;}vB`TxHE_g?av;&Ra&F`pVGFe;%3kZZ59
+z*?pUsP}J5aXDTE0hD{6rirQLYqC9^Q@JbRS`|bhOvc_ijEk$jO=3W<opP&9JiIa2V
+zJmk5^r47x!F5a{Ey*MmR77z#@io{PF>muoww>VJUqxPz}@52;*8I%Zl$r+`FtBAJn
+z6QMJ)=Vh4Ex;W&+Y_&g=r_^vU&2VI5&}#LkvIhWYejUFE@C9pG!&=txB<(TTjSM;4
+zpA|{j*&_<K^XKA#Y4$G+ObiU;F<oOGzc?+{w6EDy97S#b1tP;rjq~x=R+zuB5sJ22
+zA=C>N37(<20eV;BZhpV{13=f9$2(pC5Ni~*E*`tPQ{p}+ZHg$$nabey{`U1FX+2!v
+z^~S3Z(1%2=GtJOR1V|G1UY>=;yWu*gkanB&!imUczvKJ6!lj833VBlsAQG0vbL~~J
+z`-G!%rZVtg)2-rpVbx<m8V4^}R9qwhblu_V)orC<0m`*kDQ7BJ`4zISC;HbpxSXjF
+z1a_he8PEyrQ26ehWDtOrU!mz%X}SoYT!<Vp<Yx8&&98GD*xVvH#^k}|+&H@Kpz97z
+zw@NuvQCgD((RBySuhR)^+?du-5WvL!V}Jo*5@ZbM1U8+(#wL7s(o*~6h`x0_d2vr0
+z>u7!*fI<OkwHil9M_Bn41p=_Wvjf1>Cr<!K>pB4UKF<I|MWzPcqsh5(&i3nK?ASK8
+z<FK@}gl&hFo}8QjaCmsAK;{+}`0*pfjThI3I#OIU_qzDSX)#eKoF^HEp$PcCFYar#
+z8vk<F#pf(?1F<!VK8Dt^hOzlY{9Y=l!tyl?5@{tlf+1(pcehGfcZi2&)c{1hhMh%8
+zpaGa%UD8n=bwJLILxzE%e}=??7li~!)V<W-t>_pT78e073sQg=#7Le0?Rl0M_%#;L
+P00000NkvXXu0mjfPr;9e
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth/layers/12046259-693f-4cfb-8a56-3f061bc045d5/cc48283c-dfbd-432d-aad5-ae946ea62d3c.png b/sprites/spr_playerescaped/layers/da1655cb-37bf-4e58-af27-8f76a8326e4b/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/12046259-693f-4cfb-8a56-3f061bc045d5/cc48283c-dfbd-432d-aad5-ae946ea62d3c.png
+rename to sprites/spr_playerescaped/layers/da1655cb-37bf-4e58-af27-8f76a8326e4b/fbc0e46b-612c-419e-b6de-e789e20ad8b0.png
+diff --git a/sprites/spr_playerhealth/layers/0641946e-d89d-4c64-b428-9543dac15cfd/5533086d-e84d-44d7-8856-67d231d48b83.png b/sprites/spr_playerhealth/0641946e-d89d-4c64-b428-9543dac15cfd.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/0641946e-d89d-4c64-b428-9543dac15cfd/5533086d-e84d-44d7-8856-67d231d48b83.png
+rename to sprites/spr_playerhealth/0641946e-d89d-4c64-b428-9543dac15cfd.png
+diff --git a/sprites/spr_playerhealth/layers/1458ba53-c652-4544-ab72-da2db85ab452/c4e0508c-4819-411b-a256-affe8bbdf919.png b/sprites/spr_playerhealth/07ac4cea-ae25-42ff-ad31-7b4ba96342a7.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/1458ba53-c652-4544-ab72-da2db85ab452/c4e0508c-4819-411b-a256-affe8bbdf919.png
+rename to sprites/spr_playerhealth/07ac4cea-ae25-42ff-ad31-7b4ba96342a7.png
+diff --git a/sprites/spr_playerhealth/layers/1822f221-b0fb-4f09-8b7e-054aece24b38/f3bef867-d247-4d56-b49c-4e25ebcf7ba7.png b/sprites/spr_playerhealth/12046259-693f-4cfb-8a56-3f061bc045d5.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/1822f221-b0fb-4f09-8b7e-054aece24b38/f3bef867-d247-4d56-b49c-4e25ebcf7ba7.png
+rename to sprites/spr_playerhealth/12046259-693f-4cfb-8a56-3f061bc045d5.png
+diff --git a/sprites/spr_playerhealth/layers/29fcac67-105f-4e2b-8040-f8ddccf0b263/a79a532c-0015-477a-89f0-4f09737b7d88.png b/sprites/spr_playerhealth/1458ba53-c652-4544-ab72-da2db85ab452.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/29fcac67-105f-4e2b-8040-f8ddccf0b263/a79a532c-0015-477a-89f0-4f09737b7d88.png
+rename to sprites/spr_playerhealth/1458ba53-c652-4544-ab72-da2db85ab452.png
+diff --git a/sprites/spr_playerhealth/layers/2b0de0ca-1ad6-4361-a7a5-bde525755125/8e4c6585-2095-49a9-bb62-0f2b15a38451.png b/sprites/spr_playerhealth/1822f221-b0fb-4f09-8b7e-054aece24b38.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/2b0de0ca-1ad6-4361-a7a5-bde525755125/8e4c6585-2095-49a9-bb62-0f2b15a38451.png
+rename to sprites/spr_playerhealth/1822f221-b0fb-4f09-8b7e-054aece24b38.png
+diff --git a/sprites/spr_playerhealth/layers/24c3564c-7b11-4822-bc7b-a8ed0004e1fa/581d4cd2-7b30-42a2-bbd8-bfd1727597a9.png b/sprites/spr_playerhealth/24c3564c-7b11-4822-bc7b-a8ed0004e1fa.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/24c3564c-7b11-4822-bc7b-a8ed0004e1fa/581d4cd2-7b30-42a2-bbd8-bfd1727597a9.png
+rename to sprites/spr_playerhealth/24c3564c-7b11-4822-bc7b-a8ed0004e1fa.png
+diff --git a/sprites/spr_playerhealth/layers/38016d0c-87a7-44dc-a198-9f3209e962a3/6a00e6cb-6d28-4967-a7d8-a8b41ba7f8a4.png b/sprites/spr_playerhealth/29fcac67-105f-4e2b-8040-f8ddccf0b263.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/38016d0c-87a7-44dc-a198-9f3209e962a3/6a00e6cb-6d28-4967-a7d8-a8b41ba7f8a4.png
+rename to sprites/spr_playerhealth/29fcac67-105f-4e2b-8040-f8ddccf0b263.png
+diff --git a/sprites/spr_playerhealth/layers/67984695-a01a-4ac1-9d3e-80b8b34e5fc1/8fc9f49b-cc13-4ddf-9ba2-981b55f374bd.png b/sprites/spr_playerhealth/2b0de0ca-1ad6-4361-a7a5-bde525755125.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/67984695-a01a-4ac1-9d3e-80b8b34e5fc1/8fc9f49b-cc13-4ddf-9ba2-981b55f374bd.png
+rename to sprites/spr_playerhealth/2b0de0ca-1ad6-4361-a7a5-bde525755125.png
+diff --git a/sprites/spr_playerhealth/layers/376e968f-2f30-442c-8e3b-34f38380eedf/235f9e9f-d29f-469e-8272-b8ed472cd69e.png b/sprites/spr_playerhealth/376e968f-2f30-442c-8e3b-34f38380eedf.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/376e968f-2f30-442c-8e3b-34f38380eedf/235f9e9f-d29f-469e-8272-b8ed472cd69e.png
+rename to sprites/spr_playerhealth/376e968f-2f30-442c-8e3b-34f38380eedf.png
+diff --git a/sprites/spr_playerhealth/layers/69962c07-cd9e-4205-ad50-9102750c8859/cfce1795-80c5-4f66-901d-831744de7df8.png b/sprites/spr_playerhealth/38016d0c-87a7-44dc-a198-9f3209e962a3.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/69962c07-cd9e-4205-ad50-9102750c8859/cfce1795-80c5-4f66-901d-831744de7df8.png
+rename to sprites/spr_playerhealth/38016d0c-87a7-44dc-a198-9f3209e962a3.png
+diff --git a/sprites/spr_playerhealth/layers/39b0b5d2-bd8c-4fb9-ab2e-a74e32ccc7ad/7943339c-4390-4397-b1e0-4b2c0b42c401.png b/sprites/spr_playerhealth/39b0b5d2-bd8c-4fb9-ab2e-a74e32ccc7ad.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/39b0b5d2-bd8c-4fb9-ab2e-a74e32ccc7ad/7943339c-4390-4397-b1e0-4b2c0b42c401.png
+rename to sprites/spr_playerhealth/39b0b5d2-bd8c-4fb9-ab2e-a74e32ccc7ad.png
+diff --git a/sprites/spr_playerhealth/layers/3b66d601-71c2-4bf3-8173-81b65ec40225/7b7fc0a8-4226-47bf-a454-38ef4d36a16b.png b/sprites/spr_playerhealth/3b66d601-71c2-4bf3-8173-81b65ec40225.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/3b66d601-71c2-4bf3-8173-81b65ec40225/7b7fc0a8-4226-47bf-a454-38ef4d36a16b.png
+rename to sprites/spr_playerhealth/3b66d601-71c2-4bf3-8173-81b65ec40225.png
+diff --git a/sprites/spr_playerhealth/layers/52156c18-c940-4c07-a631-65a8fb975d57/614c75b3-0e89-4cd5-b851-3a720fec958e.png b/sprites/spr_playerhealth/52156c18-c940-4c07-a631-65a8fb975d57.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/52156c18-c940-4c07-a631-65a8fb975d57/614c75b3-0e89-4cd5-b851-3a720fec958e.png
+rename to sprites/spr_playerhealth/52156c18-c940-4c07-a631-65a8fb975d57.png
+diff --git a/sprites/spr_playerhealth/layers/56b6013a-716e-4ee9-86b6-738118adf8b9/27d5ddb7-75e2-4bf9-89bd-3d426bf08c93.png b/sprites/spr_playerhealth/56b6013a-716e-4ee9-86b6-738118adf8b9.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/56b6013a-716e-4ee9-86b6-738118adf8b9/27d5ddb7-75e2-4bf9-89bd-3d426bf08c93.png
+rename to sprites/spr_playerhealth/56b6013a-716e-4ee9-86b6-738118adf8b9.png
+diff --git a/sprites/spr_playerhealth/layers/6dcd7995-cf7c-4436-8919-8f93dbaacf7d/4e496f01-13b1-4250-84dd-3353db5d2261.png b/sprites/spr_playerhealth/67984695-a01a-4ac1-9d3e-80b8b34e5fc1.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/6dcd7995-cf7c-4436-8919-8f93dbaacf7d/4e496f01-13b1-4250-84dd-3353db5d2261.png
+rename to sprites/spr_playerhealth/67984695-a01a-4ac1-9d3e-80b8b34e5fc1.png
+diff --git a/sprites/spr_playerhealth/layers/691629b3-5e9b-4bf3-abea-4a0085e79dd1/7ef82733-4c37-4ea5-bca3-9219429ea3ba.png b/sprites/spr_playerhealth/691629b3-5e9b-4bf3-abea-4a0085e79dd1.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/691629b3-5e9b-4bf3-abea-4a0085e79dd1/7ef82733-4c37-4ea5-bca3-9219429ea3ba.png
+rename to sprites/spr_playerhealth/691629b3-5e9b-4bf3-abea-4a0085e79dd1.png
+diff --git a/sprites/spr_playerhealth/layers/712691a2-e79e-4c24-83d7-80416c171514/1e4ddf28-4bbc-4b36-ba19-287814a37d4c.png b/sprites/spr_playerhealth/69962c07-cd9e-4205-ad50-9102750c8859.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/712691a2-e79e-4c24-83d7-80416c171514/1e4ddf28-4bbc-4b36-ba19-287814a37d4c.png
+rename to sprites/spr_playerhealth/69962c07-cd9e-4205-ad50-9102750c8859.png
+diff --git a/sprites/spr_playerhealth/layers/6d6fc70d-600b-4508-8b1c-6c4644a15d15/7f04ba6d-606f-4666-8d9d-0f4b7ecbed50.png b/sprites/spr_playerhealth/6d6fc70d-600b-4508-8b1c-6c4644a15d15.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/6d6fc70d-600b-4508-8b1c-6c4644a15d15/7f04ba6d-606f-4666-8d9d-0f4b7ecbed50.png
+rename to sprites/spr_playerhealth/6d6fc70d-600b-4508-8b1c-6c4644a15d15.png
+diff --git a/sprites/spr_playerhealth/layers/c166a54e-cfeb-4669-b776-e1947a1bf643/7bc9c6f7-3d9d-40d7-b6af-1fed89329aa7.png b/sprites/spr_playerhealth/6dcd7995-cf7c-4436-8919-8f93dbaacf7d.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/c166a54e-cfeb-4669-b776-e1947a1bf643/7bc9c6f7-3d9d-40d7-b6af-1fed89329aa7.png
+rename to sprites/spr_playerhealth/6dcd7995-cf7c-4436-8919-8f93dbaacf7d.png
+diff --git a/sprites/spr_playerhealth/layers/ccffc5b4-e913-4437-b8f9-409867371839/6155dc26-7f07-4ef0-b400-114c61f9bde4.png b/sprites/spr_playerhealth/712691a2-e79e-4c24-83d7-80416c171514.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/ccffc5b4-e913-4437-b8f9-409867371839/6155dc26-7f07-4ef0-b400-114c61f9bde4.png
+rename to sprites/spr_playerhealth/712691a2-e79e-4c24-83d7-80416c171514.png
+diff --git a/sprites/spr_playerhealth/layers/86fcc07e-e3f2-444a-a8c5-cd7d587f8d22/2de396b1-a03c-4eed-8014-607ee67ca244.png b/sprites/spr_playerhealth/86fcc07e-e3f2-444a-a8c5-cd7d587f8d22.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/86fcc07e-e3f2-444a-a8c5-cd7d587f8d22/2de396b1-a03c-4eed-8014-607ee67ca244.png
+rename to sprites/spr_playerhealth/86fcc07e-e3f2-444a-a8c5-cd7d587f8d22.png
+diff --git a/sprites/spr_playerhealth/layers/89a0ddb1-5546-41fe-9a73-8a339d916067/01abea16-a11b-44dd-83ab-e9017e4b7788.png b/sprites/spr_playerhealth/89a0ddb1-5546-41fe-9a73-8a339d916067.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/89a0ddb1-5546-41fe-9a73-8a339d916067/01abea16-a11b-44dd-83ab-e9017e4b7788.png
+rename to sprites/spr_playerhealth/89a0ddb1-5546-41fe-9a73-8a339d916067.png
+diff --git a/sprites/spr_playerhealth/layers/a7767024-ecba-493c-9106-d7f18bf10456/a90e2c44-5136-4bef-bfdf-c342310b69d6.png b/sprites/spr_playerhealth/a7767024-ecba-493c-9106-d7f18bf10456.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/a7767024-ecba-493c-9106-d7f18bf10456/a90e2c44-5136-4bef-bfdf-c342310b69d6.png
+rename to sprites/spr_playerhealth/a7767024-ecba-493c-9106-d7f18bf10456.png
+diff --git a/sprites/spr_playerhealth/layers/aaaa0ae8-9dc8-4c3c-9482-648ac437c1e5/5b46da28-50f0-49e1-ad5f-c726f2622d55.png b/sprites/spr_playerhealth/aaaa0ae8-9dc8-4c3c-9482-648ac437c1e5.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/aaaa0ae8-9dc8-4c3c-9482-648ac437c1e5/5b46da28-50f0-49e1-ad5f-c726f2622d55.png
+rename to sprites/spr_playerhealth/aaaa0ae8-9dc8-4c3c-9482-648ac437c1e5.png
+diff --git a/sprites/spr_playerhealth/layers/b28a923a-c11e-4b69-99f4-0cb49faec4b7/b9a8882a-8696-44f4-afbc-513e9a796356.png b/sprites/spr_playerhealth/b28a923a-c11e-4b69-99f4-0cb49faec4b7.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/b28a923a-c11e-4b69-99f4-0cb49faec4b7/b9a8882a-8696-44f4-afbc-513e9a796356.png
+rename to sprites/spr_playerhealth/b28a923a-c11e-4b69-99f4-0cb49faec4b7.png
+diff --git a/sprites/spr_playerhealth/layers/b69e6966-037c-440f-82a8-efcb19b6ae4e/943a0d43-e16c-41cf-ae33-d416fbcc6a62.png b/sprites/spr_playerhealth/b69e6966-037c-440f-82a8-efcb19b6ae4e.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/b69e6966-037c-440f-82a8-efcb19b6ae4e/943a0d43-e16c-41cf-ae33-d416fbcc6a62.png
+rename to sprites/spr_playerhealth/b69e6966-037c-440f-82a8-efcb19b6ae4e.png
+diff --git a/sprites/spr_playerhealth/layers/dd1189c7-4ca8-480c-9b38-03966f2cb5f6/1150e5a7-ae37-4309-884f-2299e6f24789.png b/sprites/spr_playerhealth/c166a54e-cfeb-4669-b776-e1947a1bf643.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/dd1189c7-4ca8-480c-9b38-03966f2cb5f6/1150e5a7-ae37-4309-884f-2299e6f24789.png
+rename to sprites/spr_playerhealth/c166a54e-cfeb-4669-b776-e1947a1bf643.png
+diff --git a/sprites/spr_playerhealth_demon/layers/ba09a7c0-0e35-480d-9be6-c16360fbba6c/f4b1e9a4-68dc-42de-acfd-a3c8a76502e7.png b/sprites/spr_playerhealth/ccffc5b4-e913-4437-b8f9-409867371839.png
+similarity index 100%
+rename from sprites/spr_playerhealth_demon/layers/ba09a7c0-0e35-480d-9be6-c16360fbba6c/f4b1e9a4-68dc-42de-acfd-a3c8a76502e7.png
+rename to sprites/spr_playerhealth/ccffc5b4-e913-4437-b8f9-409867371839.png
+diff --git a/sprites/spr_playerhealth/layers/d8ab4ce6-01e6-4943-b6d1-1a53e5a1d037/bf6fc114-18ff-4fd2-a272-4637d90a02cc.png b/sprites/spr_playerhealth/d8ab4ce6-01e6-4943-b6d1-1a53e5a1d037.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/d8ab4ce6-01e6-4943-b6d1-1a53e5a1d037/bf6fc114-18ff-4fd2-a272-4637d90a02cc.png
+rename to sprites/spr_playerhealth/d8ab4ce6-01e6-4943-b6d1-1a53e5a1d037.png
+diff --git a/sprites/spr_playerhealth_demon/layers/d8848f8c-ed5f-4b5f-83c6-bfc106e958aa/f2f351a5-c504-412b-874d-ad56e350e045.png b/sprites/spr_playerhealth/dd1189c7-4ca8-480c-9b38-03966f2cb5f6.png
+similarity index 100%
+rename from sprites/spr_playerhealth_demon/layers/d8848f8c-ed5f-4b5f-83c6-bfc106e958aa/f2f351a5-c504-412b-874d-ad56e350e045.png
+rename to sprites/spr_playerhealth/dd1189c7-4ca8-480c-9b38-03966f2cb5f6.png
+diff --git a/sprites/spr_playerhealth/layers/dd65e15f-f39b-4982-bdc8-7a94947f4fa9/962c2ed0-ef33-4c58-bd5f-7969077298af.png b/sprites/spr_playerhealth/dd65e15f-f39b-4982-bdc8-7a94947f4fa9.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/dd65e15f-f39b-4982-bdc8-7a94947f4fa9/962c2ed0-ef33-4c58-bd5f-7969077298af.png
+rename to sprites/spr_playerhealth/dd65e15f-f39b-4982-bdc8-7a94947f4fa9.png
+diff --git a/sprites/spr_playerhealth/layers/df6d4cef-9c78-4b96-97a8-a3402b985b14/8c59bc8c-72a6-45c4-a2a6-539867d088dc.png b/sprites/spr_playerhealth/df6d4cef-9c78-4b96-97a8-a3402b985b14.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/df6d4cef-9c78-4b96-97a8-a3402b985b14/8c59bc8c-72a6-45c4-a2a6-539867d088dc.png
+rename to sprites/spr_playerhealth/df6d4cef-9c78-4b96-97a8-a3402b985b14.png
+diff --git a/sprites/spr_playerhealth/layers/eacfad8e-4d0e-4aba-ad90-208f4c94feda/d2f10116-2b79-41fb-891a-1c83c83866a3.png b/sprites/spr_playerhealth/eacfad8e-4d0e-4aba-ad90-208f4c94feda.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/eacfad8e-4d0e-4aba-ad90-208f4c94feda/d2f10116-2b79-41fb-891a-1c83c83866a3.png
+rename to sprites/spr_playerhealth/eacfad8e-4d0e-4aba-ad90-208f4c94feda.png
+diff --git a/sprites/spr_playerhealth/layers/ecfec69b-064f-45be-95b5-8978c0cc3a4c/0d79109d-833d-40cc-b921-2eea60cca442.png b/sprites/spr_playerhealth/ecfec69b-064f-45be-95b5-8978c0cc3a4c.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/ecfec69b-064f-45be-95b5-8978c0cc3a4c/0d79109d-833d-40cc-b921-2eea60cca442.png
+rename to sprites/spr_playerhealth/ecfec69b-064f-45be-95b5-8978c0cc3a4c.png
+diff --git a/sprites/spr_playerhealth/layers/f7e9d805-64c8-4198-bd98-5323ae540d12/bdd8c5f3-aa42-4bf2-adf1-e1ea0b6c7004.png b/sprites/spr_playerhealth/f7e9d805-64c8-4198-bd98-5323ae540d12.png
+similarity index 100%
+rename from sprites/spr_playerhealth/layers/f7e9d805-64c8-4198-bd98-5323ae540d12/bdd8c5f3-aa42-4bf2-adf1-e1ea0b6c7004.png
+rename to sprites/spr_playerhealth/f7e9d805-64c8-4198-bd98-5323ae540d12.png
+diff --git a/sprites/spr_playerhealth/layers/0641946e-d89d-4c64-b428-9543dac15cfd/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/0641946e-d89d-4c64-b428-9543dac15cfd/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..f0383bd270a6bc2b4fcb5580d34fad7bf1401eb7
+GIT binary patch
+literal 848
+zcmV-W1F!svP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009QNkl<Zc$}5i
+zPiWIn9Ki8!*WqLrZ?5K&#1?l|gsH`rZV0-w9z+P6+py?W7!0f3pdcPRi=fz1@V4_#
+zb=5)!yKL9ZWqoy+b$TB-=<1=#ThgTM_Jfv$_j|w3`;)vj!r7wLr#;fIK)-|*K<k4}
+zeR3@{L0ugu^1Rl!Ublt-pstRGCVJa@fniW<^WH_SKfFSHat(ELoUN4u05*3|e2F&_
+z0|36<FYkUcBaQ>LJ0XbxY^@x~;xpnABgr`q%})&QH88s72OWT`@7wpa-I}ky7Yaq9
+zncIBaDFR@cIRHkIbF$N4b3$IL37x%{;g}C<Iiqrs)WUHaSWokDr${^wrBV*VC}3Ib
+zP8I@ysHg%kG+dMgz0iPnHeMum{7QC6-uXfH+O#YV5RW?_G~#Gznn6=b@$YC_=I99>
+zoCnK=<dOkC#EW^ORLW5(L?sAq)V8++eO<^mo5%aN0BC9{%=I+pdYY-_J*JlTh{wS&
+z3Y1DY>h-s%>VmJByN6-38tjyRZht4Hv^RKuXVDpHd(`gI8AbtBUBEC30c0dOM-$*r
+z(N{MBxe*mrnp%oD8bXv10(oy)_z=s2WU?S1jIi)QoiF5}`H849O2f_r5Mv2TLt@<q
+z2++FFA~JaTP!EJ9+xB+ore3o1{52=A5P{KK2%@4Y2jxXVp%b0}peUm#$|y}OMNC-&
+zKzDL(niE7tRe~<^%t69JLRa6Po?VJE>Pu>BDFDWt`!S$l=ZT7{{50%58(kUC9<`5-
+zE9i-J{vDk{FYZ^-G>v(_v0+Z|#?!gsnZW~~2E>#l8g?Evq2mpAAzQlVoI1MvS#D}J
+z3*~Z|+1Xh#nGCwB`U-qmUIyUl)D!?QMFC)FcnCN>hJ274-WRT6=gBX%_o!GZQYlwt
+zTcuL*A$QYh4i6(7H-E{TPN*lA%_5=2*NeUx2_fWlxm;%7-VY%1D-7zyhK7qw8`E@)
+zPNWwUiUHJjYw{8IMj}xL2rO485(ag}&J&$THwc{Hkn@5L5L)+4f4BO9y@0bqKCnmh
+at@9t83~izQR`%=w0000<MNUMnLSTaQo`L@W
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_hit/layers/18cdbfef-61a7-4e74-9e41-d856463b4a80/ba081e71-aa7f-4911-84c9-aaf3126116ef.png b/sprites/spr_playerhealth/layers/07ac4cea-ae25-42ff-ad31-7b4ba96342a7/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_hit/layers/18cdbfef-61a7-4e74-9e41-d856463b4a80/ba081e71-aa7f-4911-84c9-aaf3126116ef.png
+rename to sprites/spr_playerhealth/layers/07ac4cea-ae25-42ff-ad31-7b4ba96342a7/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth_hit/layers/42ac1765-5ac5-451a-8aae-8a3536258210/68b8ffa9-f180-4e82-a7b9-92085f707b07.png b/sprites/spr_playerhealth/layers/12046259-693f-4cfb-8a56-3f061bc045d5/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_hit/layers/42ac1765-5ac5-451a-8aae-8a3536258210/68b8ffa9-f180-4e82-a7b9-92085f707b07.png
+rename to sprites/spr_playerhealth/layers/12046259-693f-4cfb-8a56-3f061bc045d5/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth_redring/layers/07423719-9dbe-445a-9563-857b61f2683c/ec8b8388-2fcd-45da-bc17-f652cf2c2c40.png b/sprites/spr_playerhealth/layers/1458ba53-c652-4544-ab72-da2db85ab452/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/07423719-9dbe-445a-9563-857b61f2683c/ec8b8388-2fcd-45da-bc17-f652cf2c2c40.png
+rename to sprites/spr_playerhealth/layers/1458ba53-c652-4544-ab72-da2db85ab452/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth_redring/layers/128a6a0f-1e57-404a-b3f0-c97fd1da100f/aa9a481c-bb6a-47b1-874d-123bc9ef0acd.png b/sprites/spr_playerhealth/layers/1822f221-b0fb-4f09-8b7e-054aece24b38/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/128a6a0f-1e57-404a-b3f0-c97fd1da100f/aa9a481c-bb6a-47b1-874d-123bc9ef0acd.png
+rename to sprites/spr_playerhealth/layers/1822f221-b0fb-4f09-8b7e-054aece24b38/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth/layers/24c3564c-7b11-4822-bc7b-a8ed0004e1fa/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/24c3564c-7b11-4822-bc7b-a8ed0004e1fa/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..aed73f60eb91e2aa8c0fb8106779b72dd27a4ea4
+GIT binary patch
+literal 868
+zcmV-q1DpJbP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009kNkl<Zc$|%v
+zL2DC16vuyQih^IDF<`SHLGj?JAeh>SLhTnQ9)y?(g@ETOiq$k25VT()U}(~S2l3>s
+zrm?ZX4G4laX>Hm`3u&t-FM?o<hwM&gb~i~Mgq>yHyx;rJyqy;xC$sL5dEc-A!yLK*
+z8~d}2ca}UI_Wbk2&%GTQuiu0Vu;-umbX4aD0lh%oC$A=%o;k~SXNf)kJeAc00N!pK
+zX^yk;F#yds{rD^2R<>QSogfJTsH`5y;NMm*GZvfU$b7{JuU*;I_GbY|UjG8X?)I)0
+zUj=zW9*zXbZxsPB%>`ny98H8=^wYc{$DwGL()xraOapCLS=o?xliNK&BTjy+NF;LX
+z+-zD;3+fkj08XDNN*@(8qN-6Lzt$3RLF~!~>GLTW93T?0ei%eBFpLBpV~Rh&Q_?3K
+z4TDu!Hb`z6pg~laYUT0*xtw1Dp$BcZH(hIOkf!F%%TWM2#uR2Fj@gKlEbWji?Z|-T
+z@&c{ab3&m<S}@aG0Ps{b>Lh>P{74|!JKzUfi&mz+tnIB!Byxm8k4PkPx@xOXIsiY4
+zE=8VZA8rH#A<9&%WqI(;CK|+97+$6+a(<8iLX<gdX8;J0rD^owYGHUK*ge(7H+o#u
+zeHD4xrFI6tsMAEavTq{ri@Hoog?NJgaa&f7U)1RsQv`xp0Aj$Q1yg}Gq+vn4Oas|>
+zS1@=%bLtpV0Hmz<MmwVcZ6!rV@Y4E(9J{LS;+@a@S~~{ao2g?M1`qf^(Y(Q~;(Mql
+z$N(k~2xd8KX9z{Z@+z_w`JT;v0**ggTY+tbLV*|QeNwF!VIZu`Etg6xmr7)T3IKTm
+z!Jt%RUqdcMv+*$sYjyda&1A@Avj`!m)oSdvT5_&ds{wE~nFQc!JkHUPk6ZWuYBvoG
+zxKs;IZ_0^uy7w%Wi!44_)B*@0<hWX`a_vq>LaavU1IHOvRu7n-Icqt-m#}=kcPpn7
+zDJ`&SPKezsy%a&8p0v5LElXUrXtWC8+OEp#0oJ*DHa<_7n%$sQuKGG5{Xk&#5GQbu
+uDFDy7C;Gc(w~>A}2yjx61{`2R<NODdPKew+cw|BV0000<MNUMnLSTaDlYzJZ
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/20069efb-9786-4307-adec-dc653a701598/5e6a1e14-731f-4e30-b879-89c307b58c04.png b/sprites/spr_playerhealth/layers/29fcac67-105f-4e2b-8040-f8ddccf0b263/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/20069efb-9786-4307-adec-dc653a701598/5e6a1e14-731f-4e30-b879-89c307b58c04.png
+rename to sprites/spr_playerhealth/layers/29fcac67-105f-4e2b-8040-f8ddccf0b263/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth_redring/layers/4dafc371-be90-4bb2-9a6e-2e66eba19604/d79be88c-3b61-408b-a2d2-e3ad1a88ea75.png b/sprites/spr_playerhealth/layers/2b0de0ca-1ad6-4361-a7a5-bde525755125/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/4dafc371-be90-4bb2-9a6e-2e66eba19604/d79be88c-3b61-408b-a2d2-e3ad1a88ea75.png
+rename to sprites/spr_playerhealth/layers/2b0de0ca-1ad6-4361-a7a5-bde525755125/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth/layers/376e968f-2f30-442c-8e3b-34f38380eedf/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/376e968f-2f30-442c-8e3b-34f38380eedf/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..8d25729cf43a2552be60f6e813fef0ee738bb3a8
+GIT binary patch
+literal 833
+zcmV-H1HSx;P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009BNkl<Zc$|%v
+zKWG#|6o<dd22M~AECPa(32q@#gn)&}3R4JM3W8uPWRZg_BnZJG#TkxpND4`(sGP8B
+zVJD;zT)1M9kQ5#)3YQ`*+(Jab!Y<+!M=Y{CnYrEj^WfOoeQ$o>do#nlD>0cJj`5eq
+z35*Lk1h~I{o3;K%VZf@j%)9d+$LbAp<N&MIa$%tE9|fE)f?RLj!gejz`WviT%fvw+
+zfZtm^BXGtkbB{+VmVJnWKHHVe!$H^}SwY}vQYP-kvaq6sOINA9y2<_h+v-~iGxT*(
+zAtd%c15i(cy!7d(&+Pj{XPwB~G3M(q1C(WzK~~C-i8^hSd6DV<>0X1^&S?cp_pAgk
+zrB|avTJjpxy@mqV^K*qi9U`UV>A{BD(^T^iw8M~P0nl7{4!k!2XRn+Dpgi{vfL`|m
+z0C%_pKoaGvwOxztbUZa!&4aH?Do`xE0Z<TtWV27Q*;ntGFN+0u@O3Fy)f59}&(9I>
+zc4_T6`4j<h%OZSqq0rabafo-jYDsm=f#Th+0v4GsggSXeN$MIyLBF?p>J;hr>-&Kk
+zpR2ZLRa=F=%%V=4pN((Ex7^L}>Bmbx{Q!ca_nO<po}W{KH|}1}0pi^*ji6!*%ZsBy
+zHMdD4s8Fx_0MzRq1bN^fK##AvP1bwQ3|(XCW}LE`D1<;tK^TTe>Cp%(#@c5PDZMmC
+zAcO#*5mcCQ%ELi=$w`s`FndZ6hCXkriLrm*I&I!o6T;AE_LMN@)ZFHvth$2K^|Srt
+zFDvE8G=d7gA0h;ti3NY`gd~CZLkxhuXy<&MCl%yN?FDdr4dwP|#wio|ZKU+l3<cPU
+z%Gh4C)mVsQNRlK-=@E6>N0%#>p_?sTDQjA`YY}-nDj;2U0HhRnp2YWkq!fiQ`VFpM
+zszya|(8qQyY}aCs2tojf5JHKCVQ6HURTG9GdroAu3Ed`Yd^NeEPE-a=_kAd2RO2gz
+z>Dd*vav&Ew2pI-~w1*4=N0|mF)Sc+>R@O#_*(kuIAOkqU#_IeBF4d0o7q6V&00000
+LNkvXXu0mjfReFP#
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/5b4391cf-e34d-49fa-9689-e81633367732/50c29551-4efc-4fcc-a4a3-4945d74d6bac.png b/sprites/spr_playerhealth/layers/38016d0c-87a7-44dc-a198-9f3209e962a3/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/5b4391cf-e34d-49fa-9689-e81633367732/50c29551-4efc-4fcc-a4a3-4945d74d6bac.png
+rename to sprites/spr_playerhealth/layers/38016d0c-87a7-44dc-a198-9f3209e962a3/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth/layers/39b0b5d2-bd8c-4fb9-ab2e-a74e32ccc7ad/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/39b0b5d2-bd8c-4fb9-ab2e-a74e32ccc7ad/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..c6b6c5d3f6227030bdfca249f84192ea472857d8
+GIT binary patch
+literal 854
+zcmV-c1F8IpP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009WNkl<Zc$|%v
+z&ubGw7>1wJKt&;kfCr1<Eas#l6n{W#g#iT*BI2Q<w;U=JL_8HNdRU>5{t1mnjCky!
+zc&H%kVGG)VL;}V1RLKYd6=e?v!Gba#HZ$4HPMUr&WOv_hzh~ZWH#3`Kf1!uyxnTu{
+zC1`*sf}I`ZOehot#p3XKgM<vAP!P_<q`nu>1=7_yn4XV|6bgdnN-RX{>BQn>{F}_J
+zUWfS)+1mXe3jtWJ^on<Ki%v)5r_M1`y+Rbl=Vvc?0JOK;gN&f7bLc3FM|BQexrioi
+zqxQQ)b%!}O`u(Xz?Ug(oMQE?&X|LoNE#pX=Ss5osP6sqw4LfsJB=!960#Dz6wOZ2E
+zNU~)~$ep`B`P~HzD4q12BMFgG^727oL0-wjxXPQ0=D7e&-1-8%P63XdISjz4_XmL8
+z_QCi*rU6h*r(qi-{caBI^kyW+UjSGLfO_)}_2!>FH=4->czpSJ#?=UYQ99|dz11ez
+zm~zfc+&Dn^@PtzfHm2C#YTK6fJ4(g&R@(wyQ5S-;Q|aAfY77KL>%F%q8Q(U4+v8)i
+z0l{qG)J!y64fNmi@|f>WTJ0<W_cF6I1uxw`?F1MX%~pfe&JwwN`oEe18Q5wEt{uBa
+zv(;ey)VT~W2{2uVC+Ut<>xz@`<Z2B7->-LpOEg;zXWtFP<oSLb=+)TM(a+CU0D%w!
+z->)O3KuXDK2cA$%J@AEhGXR8PNEj-F5CAN^o5{4!gk9q*7tyuZKno#s7%HuQp@k57
+ztrGv%W&^96Yx);D43*W##>O)1UB*#y5}F$gq%5P90u-AyK~z%sM|-pOC+ZxRg3a@S
+zwa*Hr6jGLHwi=8c8qGK{&nRa$t?79<Gx5kK2mw(^0U)KIT$a@9aZ4fAx@-X6ey`f&
+z<f58dz5Dl~jh{YJN&r+@+QhO__E;%UN)d)3YwusBTnqv^VbMD5e#mr!vQqnoxIh`0
+z0YY!LefGn>JPm>j0zvmp=?6l*Re$=}wp+FX;H<l^&n>f!m{?r#cyzPP;!5iKV9$C(
+gKm3xwJz{8`|M`iciO@~Ml>h($07*qoM6N<$f{EXdPXGV_
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth/layers/3b66d601-71c2-4bf3-8173-81b65ec40225/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/3b66d601-71c2-4bf3-8173-81b65ec40225/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..782cd1254e84d9da01bea6fcd2c67e84ec9d207e
+GIT binary patch
+literal 936
+zcmV;Z16TZsP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F000ATNkl<Zc$|%v
+zZD><h7{`AxVu;psAGZ3TEtJxGX<A9D^ac8c3L>SHj)JlcT85OuptKlRK1gk`*1`NB
+z42pu(D)j{^C<`NqYpKw;EuCyJbUM<~6*31?5ta>tLKZ(H=j@)`o1_nf+}!h=|L;7{
+zdCqfUV`r8sFm5X(P{<(#&=>1rJbBsDVbtzpru;!cy<7t(z^L74>1Z6!2i$E1X`bq)
+z>V%!~<Yh+fJ~kgE0eHFmR&gw8b?_O((w7))K1#CMA4p}xvdIzx=}AJo_Wl9@buOoL
+zKL6rx`P>)lk<S^JqHhFQLay&U2Ean#B8?T5rtsIcw<Iuoz7e*|I4K)4@W+R|EBXn&
+z;{*1&yD0L0Y63M@R1$1C#8_!DtNj6)W}ziafKts<-3p}k{sK+9M>_Tnw-bs+EMWpT
+zR$9!*_x4LzMl+>EWL$yR4`J&|bF44Tap>?{76KPdsWX1Bgl0_{5+Eg-kIp=lgP~{y
+zfM0%gFnKk=@}2KZ`y_rhR#ehhQAwT4siaUuWmVqNRzkC^gwmBZ;Hk~$szhaFIYD(U
+zC*gQPmh;;7mR!9MoN>9;NiH{i@#l2!-@~gcJ*DcznGxc~Ga~?lZye0H-0X9A@kMEs
+z{0I~9KPR3Rjwl>YD4=jWL8R=k93SjI3qbPWtgOr?-9soE;p&S`>Re8KJyM-JB7l~r
+zQwlH~PvGmF;O5cv$^Yi-n`oMjrs-4<jmUxtMI%%XjVMv&1eLTpOb))@2>?ES{D8s!
+zv*>#I{l-QVT}Q&~9se)z_vb&Fv`i6QD|;=)TbfQ$Q}3mw-pksT=cSK;iRbE}5js25
+zFOB<^4YFl=lBsPNJHxXlPnn$h3V>iRil*s`Z!j1Iz(0Rm(Gva6R177p4r+FJ@i9S7
+zy%&J+Z&OeNtCvp0#v+>5F8yQE=WqfZAfa6V<RLXh1Yi@FR@DhR-Tz&Yn=I^L+wruB
+zf0_o{A`P}hiZ>QH*mj(O?_xv_^x|ATr*!a)rn!3?JMXuj{KK;+>9ers-v-u~=F+LS
+zbed-WG|m2LIqzCmIiA06F{Zy$ZUCe0=;HgK{R}tm-oihBn>qhUQ(6EMB;Unn2{W$F
+z>M9o*F#2Xga)BUohhziunE_y_yQ9BbR#jxQe1M&T6kr}JsPi8BVRKV&>!fJ_0000<
+KMNUMnLSTXvIK7|%
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth/layers/52156c18-c940-4c07-a631-65a8fb975d57/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/52156c18-c940-4c07-a631-65a8fb975d57/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..871cd6121c3f3621a46ab5098987d27767384de4
+GIT binary patch
+literal 859
+zcmV-h1El<kP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009bNkl<Zc$}4%
+z&r9227{@=gGO-|oU6jadYP)&!u*+PSMfA2q{{W#=nc#Vs!N3s<g~9%SK|!%yVCUi8
+z%Y-NlcJMIpM@=#zv)kAXg5p@09g@7}m#scf8uC8x_mk&&zweu*xL!D2##7w{x+ORO
+z&iFXi#zta7wp1duyW3Uos(~0FTPh_c2FE)AlR(b9{s)xr{l(hYAX_S-9rOaQbN(xo
+zIMIIxAeQ^|{Buk@3K9?i?VwkPzeQnCS)`?}(!=}M)3wLP0T?|y1;98oLi#~aBIM!x
+z2(|q>0J^>mz@V}yCjHQ-#dWrj<0vzb2n&H6@2Pyq^P1@bwu{vE>*VvGY0H$$RhmtA
+zQWG~PZEgY3m#GWEAgCu;&FI;wfP9b^#02HhN0#o-3vqya-uoewM@E**wB<=I&gMl<
+zu8;%ISUw1K_%}zH0o38&AxIDw3{6|6T1^WexKP{Pi_P^xPA<^fTj>!1+VUj&b`gEM
+z$Xw%yxyF$Y)U;(R>owWz%aEAAhDlYWe2^d3p}~+;p)F5dwh5Vh9??2quw1T&Duhd;
+zWWGNWW5%IDZ(^Oei`$kbY3Zx909|)Q^2jJkRaBP*Ns22$w!H^lzx{oaHpghnZiPW(
+z04Pe8CZ=$obIT#sdui$(62f25L1ht18WZ<VZIvJTG)+ul>nP;JRslkgM9@EG0g$9I
+z(Y_(60zki)<LJ|*%`E}+Ax}I=QY5x6SOvHa#D?3zPu%~etujPK<eb<lU#`TsyEf!H
+z2-|aM31nI3MeQz*KFw|Keq@Q50KNeiQiT&+B^%H*4h?#Mly_8wD+t8e+8S?`j`?I+
+zG$WApMuYW6gB`#EpvI6Sg&;sG(G0$G04l1=%*+g?X)-l4MYfQ`uq+JAV!hD-U}0_!
+zfXBrm0|WQy%k;%GLx*axh0*o_)U`S*uU0|=rfG`n&CN}Y?c-QA&|x3-W$FS}t6iST
+zLE&ITA<>Av_@c%D_gMPJY|M>?!X^N%R*FCEuc5I{FTRejn?w|H6$rd{$W4I(_g?Gc
+l<i@~Gfa`)nzz)$>=RcdUXiUNTHpKt{002ovPDHLkV1la~n#%wH
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth/layers/56b6013a-716e-4ee9-86b6-738118adf8b9/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/56b6013a-716e-4ee9-86b6-738118adf8b9/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..b9f74f074bbf7facfe8897cfdd4809c4dbd30ad9
+GIT binary patch
+literal 808
+zcmV+@1K0eCP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0008-Nkl<Zc$|%v
+zK}Z`x6o$Wa1)-;wf&`&3l2Cf-#ZwI`C5PrHcr2}^AP8OxLOt1RBRRF;J)jutz2K>8
+ziKI<gZ$gi?rcMZiSSb_=LZM4~*xhkvca!*FA+zu8|IK^zW+n-)XWaq*#2|q|0bPK(
+z)+}r8dTc<!TISu|_XG8MIU<09wHzC$`}+Zh;vkug8PYk6HFuqYwan?h3&77We~rMA
+z$zh)GLdDX8(|s3bVYeHGg~<v6-baD>pOY08bm3$pvwPZ_Rlj|hp|68tA+NZkd{Qw)
+z8^~Db!_fCS%qU$L@?m1n_v9&`R7j<~Q3^q$;kz=209dk)EC3vn&RL{$7LKNUL(fKs
+zTpmoQpv=T)7VqV+#DP@Ge-NY)2=NS8Od$*7YE6C3t`1V!00u;d=~gOPluDKY2ARfH
+z2)xo6+5CF@8vs{K;T%l^s5J@%`<a&&1SQOD%-}5Sb|dZm{o5y!quv6qoV@mD>Oq3i
+zrBblE>h^`fvGMLke5kj$9z-DJ4%O<8>Nb6?^s(NJVKXucZ%6<scj&Zj0Fo4Gh)~z{
+zm|(l~m2_@=a7J<Vplx&EWN9EHvu_}=WL-^a=+S+{9|0vti^l9+F{R#R{P#;v7E9I@
+zFn}ESkT^3yBa_3iLEhp*-XG_IPTR(kb@g=GHkCeFk*>S>_{i8tOSw8i2v#_x;$%6~
+zVmn#}HsIh@q|>$$%tSIu_-B&ZU_l0fZEkMzX0b)S*<=hD(|lXo+iY!bQv^N&P$oG#
+zs<eXhE|Ss6<S>^9bu}*9Hg>Uyl#*Jl##ytee6?B)famk`08CC#bAF!S&dXb2S@ZOs
+z^N;$|eHU4{YR$#Ps~{nSAt0qxzpK?M|K@J1Z2XHb0ik9H4#RZLLabfw>~h%@)}LOG
+zKr1dI=y50gsO%YSA6PnF1yJScbr;2fA~1b+aaVaz0X;Sh=>-D+4haMMnFff}z1H8Y
+m;2P;={Q%bm8Nfa^Q0G5@_iZGZFK>VV0000<MNUMnLSTY)c70|5
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/5ddc363b-d15b-40e8-a253-c6a3057dd015/38b7e46d-8c3a-47ac-9828-c4ff88eec949.png b/sprites/spr_playerhealth/layers/67984695-a01a-4ac1-9d3e-80b8b34e5fc1/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/5ddc363b-d15b-40e8-a253-c6a3057dd015/38b7e46d-8c3a-47ac-9828-c4ff88eec949.png
+rename to sprites/spr_playerhealth/layers/67984695-a01a-4ac1-9d3e-80b8b34e5fc1/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth/layers/691629b3-5e9b-4bf3-abea-4a0085e79dd1/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/691629b3-5e9b-4bf3-abea-4a0085e79dd1/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..129bd8feebfa9371d33d1db638afbcc8a4e9bad3
+GIT binary patch
+literal 892
+zcmV-?1B3jDP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009+Nkl<Zc$|%v
+zL1-IC6ox<9f;QylOAs{ah=@SaQV4EOb;Z=J5kBRjKmw)RgFuH;dZ@vNq(yNB$szY7
+zRHaIL^(B}jELzA|B;-&R6;r!lM76bp)j-HCP(#i1usf3-X(joASna&G|M&jU?2IxT
+zE%bzZW|F|90u9jKD|71bW@^Fi^b*CBs}uD`C58aI(@Uv^$^1BA8c2WJ_>hHCj#Gy>
+z*_~dZ<@W(tZ9jJk%f%A_PHpwd@BI05cSw5>WFY`8zi-9o|Ei=qI{(i5RPKCAd#?<@
+z7a#uyK(E_#^pl`eNZcK@xX6pI&G>4@znr_lgMaRD_t9)B%mJCM4CI?*x9Mzc*v``;
+zna>{7x%T*Pn@fVGl5Ucahx4D2J*Zni;aooTlY~eq`RS{`g7Sqt#0x8H2F;WK+?w@)
+zUmQU0z2gA9k^dKfgWj6}T;w7EVJFqFjj2I5Z~uDDCdK(50W1U{ymv@=@6g_xoT&x4
+z^2rZFuBI4>!nr)%?H<9?xzx_Yg=y5+r&Dvm(>c1^Jv*g?j-2Rj_bf0innKu>m)2xb
+zV<c#`{oJmiWb`**+3#;v1A=OhnlsVa+Ccy3Zjaf)qWjNobN?CO!_`v5c4`Day7cZ4
+zz&NP;uV3m+*4+z+rp}1hYE9~Xg}Ps%yWO*5{moYvV#ZBft=4ojMmj1NPf)K%T?rvj
+zO7ZZ!Gq%&KG@ReTj4v1WSzOs646)8K*^IMG3^_VhjM!oP)Z)qxQhF>G_noP!`xTap
+z`$*}rxU%CslXP_V(X6Ad+k0i*-Ye^~pBHqa8fYPeRw~r`1zHH9*RP|M3U#9z=tecr
+zN`-p;dX&>IqMQ)I=8YbMJ415%I?WBF^x_UfHXDMMg%G7e3YQDEdwDrz^8>;9A7OMa
+zJvv((%y?^@A?N6tsmqu{YoU~5##^%mLcq&HG$m3BJWtYWHjz>QQBH{0f-~Nl-Oggo
+z%#fp&-)EteW1*CzMGK_>Bti%)rlLU`VHmknN^x?o<s37~IMTtlJl{aXBm*=nY!u}C
+z$`eO_>`|U{3geIRWbGhi6bRy#G6)<O2|%juk^XL(V`Nl}0~{6P0LR2co&Ny`YO@S-
+SSv0-?0000<MNUMnLSTa2{<t^*
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/61eca45e-e012-497e-9224-bb8fec04e01d/23ef7b13-cccf-4f08-b6f7-155edc5daf02.png b/sprites/spr_playerhealth/layers/69962c07-cd9e-4205-ad50-9102750c8859/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/61eca45e-e012-497e-9224-bb8fec04e01d/23ef7b13-cccf-4f08-b6f7-155edc5daf02.png
+rename to sprites/spr_playerhealth/layers/69962c07-cd9e-4205-ad50-9102750c8859/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth/layers/6d6fc70d-600b-4508-8b1c-6c4644a15d15/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/6d6fc70d-600b-4508-8b1c-6c4644a15d15/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..22bd412331edb60bc53c1a9e26149a9b4d97ad52
+GIT binary patch
+literal 886
+zcmV-+1Bv{JP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009$Nkl<Zc$|%v
+zO=ufO6o5Zjp@tlE5EP3&RJ%waw_XB)Dzz%yLk=N?LUS=FcCo?GdrCzO+XaC_52esU
+zQ7^Gsl1mPTLXK;kimV}!OK(oAXk5c$H=sifg%;H9VKn3Y8CiKSNVD(F``(*3`(_Kg
+zo5XYUg?SF<8N>kNF}!^%j0UBWO}RYZ-z-HAP%7C*!=(Nqpa~TB@59}WbW$qWJn2cr
+zI7}Os8}c`4+rJH+=NBfSA@O)DNB=%??}i+(8ZR~WV_1zBAUD(+r|!f~-HFN6wUB{u
+zw<9M{dNKp+N|XMp9RR{`8-S(8re5?WT+#olb%&QPMqIn@05JMvq!}sDc$|iOeoxNB
+zLkX+Z!1uRlx4R67Qa3~ZP!t0I7BBB;hbEBDMnQfYc|3Dny(kGwiUKNVQ4EZ*1@%B}
+z8AwQ08Xx_dn*07X-ENUu4Gphh6Gcb4wEzn$8<5$2|H~%;OzdUC!zSTjleOK~tnI$m
+z4t;-{<KrIHYA5AP)$pIc*Yz`}?f}G>vgF^7o>8%6fxmk7?KDyuwc4h3yGym&q22E0
+zB4283G6DE&Czp{?RB>zA2;mb1zApT5ND86?NS?;5q%z9BkN`sXoJR6cRPY$u5}rH+
+zrU2vjVhWee54AC)C^|A0^@GUeO}N4kp|ew>PMiuV2{D5HV-*0)x=K+DnApoyEO`n)
+zoZ8$8S15{s1}ex;k(+gA2C3d<Syxj=6MGqeThsY1;52e6ih&-dk;~JW7(+(A8;?`-
+zFK-U`ZtH~i8~Z#3_7b|&$kk&L_zkF7p5DHs=+2<pPyaUj5bx`vZf!vj1Z-?<&}y}C
+zs@0T(hr7D~e6h9$K*h2ESiHOloOg!YdsJ>f@zFrfJ=ewcJcJOmK5a2NKGwQ}gM$?0
+z<7ShyvjYE4{>){hK!tKyW+hvZi}%QzMwo6#%DECD1g<A-f*?piW_IuFHKAZ~D|P@_
+zZ?ET~RgjbDB=u|-$Os#U@XhmlW&rhi0ASp%B*X;D!4weAJIBvwjxnoQkXay@Uc*@+
+zz_sh?ThstB`hBO*Ep?43d9dg3^=Bg<?4_>k3;oUg@Jj+Okhy;T2gZ4XRz6zr@&Et;
+M07*qoM6N<$f_$%>LI3~&
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/64fc1bd5-7072-406c-a82f-6a4e28495c97/55e32248-2426-48ab-a792-c1ab3498c056.png b/sprites/spr_playerhealth/layers/6dcd7995-cf7c-4436-8919-8f93dbaacf7d/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/64fc1bd5-7072-406c-a82f-6a4e28495c97/55e32248-2426-48ab-a792-c1ab3498c056.png
+rename to sprites/spr_playerhealth/layers/6dcd7995-cf7c-4436-8919-8f93dbaacf7d/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth_redring/layers/7e4e5a7f-7ba5-45f9-bdbb-2a9bad67048d/b0dced28-e17b-4e1a-bccb-e6d018e7ff31.png b/sprites/spr_playerhealth/layers/712691a2-e79e-4c24-83d7-80416c171514/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/7e4e5a7f-7ba5-45f9-bdbb-2a9bad67048d/b0dced28-e17b-4e1a-bccb-e6d018e7ff31.png
+rename to sprites/spr_playerhealth/layers/712691a2-e79e-4c24-83d7-80416c171514/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth_redring/layers/622bbe67-e649-4aef-a539-b9455851312b/be44869e-71b5-46a6-9e75-3ec80d54e5ff.png b/sprites/spr_playerhealth/layers/86fcc07e-e3f2-444a-a8c5-cd7d587f8d22/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/622bbe67-e649-4aef-a539-b9455851312b/be44869e-71b5-46a6-9e75-3ec80d54e5ff.png
+rename to sprites/spr_playerhealth/layers/86fcc07e-e3f2-444a-a8c5-cd7d587f8d22/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth_redring/layers/bd540e33-1331-4824-b4ba-493ea5ccbf69/33bc0617-df85-48c9-b718-622429564976.png b/sprites/spr_playerhealth/layers/89a0ddb1-5546-41fe-9a73-8a339d916067/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/bd540e33-1331-4824-b4ba-493ea5ccbf69/33bc0617-df85-48c9-b718-622429564976.png
+rename to sprites/spr_playerhealth/layers/89a0ddb1-5546-41fe-9a73-8a339d916067/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth/layers/a7767024-ecba-493c-9106-d7f18bf10456/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/a7767024-ecba-493c-9106-d7f18bf10456/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..5e3933611805cf20ffdc278d4c7b96bff17f67d5
+GIT binary patch
+literal 847
+zcmV-V1F-ywP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009PNkl<Zc$}4%
+zO-K}B7{`Abi?ZgfQHP){{J;cFMt3m{Od-fa2R8^ZI;=><k`f4l9y}z1dgvAeMhJx~
+z9XtpcofL&+!`;M>K{QlcrB?8gsNrG++d=1bKHlBc|7GT#=Xw9XdET!X8)s7@P285w
+zAYDQNAfYI1jg3hYa(zB*s+!g>S-=9w_4%ZU`gkg!43rpjc=6x-$JW>wxjrAkH9G(^
+z@!y8TJC4f$mfXhpoW<J=5)gpknq8R3oZA4DyBs39JGOV)QBeRWI6MF#x*j$7>p@b;
+zla>|$CP#az%qy^zAKBax!2H5|HnN;j*adwjGbHc+UH)c&r|7{YE*965UG~%hs?00k
+zOSOkCcMj3@sDPNIff9obF9nAO0upm>Q&ps#zC>#+;Z;=%(|}#>9Gdg0#k2gvd^lNH
+zqM|PME*n`+y4<^BJ~S;&kFzvAj>mh%<Y=#D==9f6cv$)(HXxxNTV*FEg4I<Gc)Ul<
+z&t(z{4^!@PNax86?vCwg)d0tHW!D<Au?>ZX35AbWT0ps#5}>b2CVR3#xy!-Aeq1c)
+z$mWKqMl&3A6&pLbifP<m;h{4F)fhP)I!($>%&=F?(#)IPg@)(-vGr4rUvn&8xrWVt
+zyn75or`N)MTvVmC)$3jn|9I~a0O3_ttjww+h489Me{7v{mjl&qJPQo_2#yzk9=Na{
+zr_J9Z%(biD+zho0sSIRRo4*Hurl}EWT!ZQNTy$k7J*a;(B+RR;8YrnKqiJe{NP9Og
+zpLZsOX)@299%MT?lad-l+PhhvUF7XRpEOUej)@^dTRZQhi=m{Vj5c~GsVD<r;l}`E
+z!?)MZ00_SMDsnyEBXK`JmkD6lton*DS5?{fLQJxz(waJPzcw+1zqJ;BYb~WUbp$^D
+zM7`?A<2|yR2*^%vz4|vpEYB_ikn!g>OVi^34A%!J1zyz$MDF|g8z?(L0wc4@?5rO?
+zS=o`!cYOF1q+?=;@s7t*BQqq`hc6}UJTgO)f#BpDa$cZrp3n4ia&BNMz*#{CU<#%6
+Z`43K;Nx5$MZM^^h002ovPDHLkV1h1HgtY(w
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth/layers/aaaa0ae8-9dc8-4c3c-9482-648ac437c1e5/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/aaaa0ae8-9dc8-4c3c-9482-648ac437c1e5/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..841a9642273e995804dd98e03478746f08fefd7d
+GIT binary patch
+literal 939
+zcmV;c162HpP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F000AWNkl<Zc$|%v
+zUr1DG6u^I@QViL&Z&6k_;k`H(GisL6&`=K&5fOwNy9?G9QV8O*;`(4pNEQ^m1Vzgt
+z{jrD;DS8+}CK5(wY3$EVgJg_@BO@w4I=e8mB-6wAectcRof*%|-1*M=&hI<-obQ}#
+zV||h-qPG=uP|P3$5S(jf*UBwRgJfwJzMUgQ{pC~S0FtF$mWD=sA)pl~(>Lg)>DV@Q
+zt=uA6+C^Y=5rC24l498G+X|rAUb-A%YABxL+YFKrfWYXYbgsWh0#NI)OXL3eW%(SO
+zYX;!l(GLJ5;t9pS5o8JZv-~0eZ(d&GK;`b7@F!+xB+yyq<k8qZOIV3<lNoY;;UNE)
+zze7L%1DjkYDfj%G13FN-8^5=XD-~Nv#1j%?76Hoi4SE%b{vt`E?v{ovzxfEqqLwfL
+zyi&1+wo0#Db5=QFwXkGFA{toBhmgtf0F&bZ>gvDp=H)d-H!(Y-{D#8AmItw6$W35$
+zk?8O5q|)1XhPwK%{PS@mq3|%Z4!dQZ%;5g{Wf2XK%~e^UO`-5Gp>Vd+F1q&=1Q?^T
+zlDwc=hn+|&Ez5agc1A`c91b~L>L!Pav#BXgZQek%5NIU0gwEPsG2R&g7;?D4;i9dg
+ziZ+Ap-h5ob-KmdczGbkLt=%5Wh$5-90*a*4M0eCneS2#U04uMCWo0(%Zo;uB_vYi&
+zI_yNt)Lx+6Bghtj5g19O>1-L`;nC9o+`jP;P1Dgdo$8KW!m;d23df>Ucl64r%%Xrq
+z?=nhf%K!ksjy<QnwFh0#u1`<L&~+rN^!VBV6H{*icr>;ze?$+qzm?9tjc2H7@KDp>
+zVd9T|X(M3bxw@m56DP8ZZ536DKLINNY*$-DfO=^Gr89hf|A{+;*8%YRV`!SL*!ul3
+z0J>j4Q2?u>!<JJF&AzSFlz8Z5fSLvm0Ff_)P!50Jya3ZdG|eaN=kE7m2i!nfy9$74
+zXGT%Fw`lc&(M2{tb8`Nd775yWxG86|kVD<~X>aYpz4Vx%z98R>hz3kK5(BR3*f#$C
+zDZ%IWp8(kK-+m^?1Bzqg|G!S|%z+4BRuMs-nG`&7mj_QD)BXAhf$kqIqcTHQ^KLo#
+zEMdme6&mG6TQejd2v%o^8CXaR0878?`rNXrBBK-ntQVvJ3rJBv-vKi4Z$Glb@3H^@
+N002ovPDHLkV1hT8!+!t(
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth/layers/b28a923a-c11e-4b69-99f4-0cb49faec4b7/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/b28a923a-c11e-4b69-99f4-0cb49faec4b7/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..cead6c95be8ba2ec706b90174839c1f21fad3677
+GIT binary patch
+literal 821
+zcmV-51Iqk~P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0008~Nkl<Zc$}4%
+zL1+^}6o$XlpoQK%DHJ+e_f$o!c&s?pLa81+NWq&ygeW57RRyCI)I-m$SZ%~}4}!G_
+z0Y?zLL|25=OCVFI)PwXUSg9Qkn;B=5Nz*<UlHK>_eeZv>dD$F0Gt<SN>z1HffB`Tw
+z5i1k#f&l|dqvWnNy5{TTXafu^jRpgK|8~F-$RuOE9J_Fkm5Fx@ERFJIVGV$!zLg0a
+zj(Y$yvGb3=b6Njs%iRic5P&ZWYcBbx{s%!t!-r3B<;fUkCIVn^I=$bhH#!NyBxAkC
+z%tXe_L?#*QHP6LfL)u1DYA)Se_S*Wdk32F_obHX{bm2WjKGE2!tdgzqHzc*Ht2|`B
+zKff`>{SPb7=d0@RTjoPfmu{2am~w!4C<-ngBBf;hM#X`mIKryR+ne@W00wV;172nT
+z2aomvurK-zz(yl2Y?4U;bP^Qotfy7Yr$euuQw%=?a1a3f>M#1$Uw3VNHWuK{nWt^4
+zdT6nDD5AdHpz?7fSeZD#2X*sM&{z35LVda6TH2~8WA){R1BR?D1cjjI{~nv8BPgkF
+zxu?jtwXeV2_x@sqO0g33xjeNhW-~h;^Q}RPtFyq>wkmDHlNXN!0ais)tFpK{OD>=N
+zt+s(IY;hIN^<O2aRT(~fq7CQ+Y!}iZ!{%ByIGxU}yW?{JluG3$aF(Q24ffqaY+R{S
+z25>oi%i+y8JEzR1p<GsIt&vh7rF04W1D|?(1puWKN@;`;6bfmq-@4|6NOSvhYOYu@
+zLI|UjHs&Wr2w~noOh4y}73a72%ukF`I^%DhcR3H_sAmrp`4#_0N{JAH<C}u@Si7nL
+zr*?l`@Hwy1TBDSruind>A5U7<<m?&ce0hGL5U?I=0HjP?Q!ba0G6k;3nkKt#uRl~X
+z)7w`CaBAd|QzZl_r89mh1zO|Oy#Meb<L?9t!T|2wokuA}p-^zuYfV#`><S5iI>L5i
+zp?}wHUru%l^v-!lFDJVOZU@*YC<ENay5{)@AFHV;;fIFz00000NkvXXu0mjfA5(d&
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth/layers/b69e6966-037c-440f-82a8-efcb19b6ae4e/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/b69e6966-037c-440f-82a8-efcb19b6ae4e/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..fe41a17602bdcd8deec842ddd388ce1842f7b70e
+GIT binary patch
+literal 763
+zcmV<X0tEeuP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0008QNkl<Zc$}4%
+zPe>F|9LGPa17#6Hw@`4#w#ynDiiZvx4H$F?w$nhDY7d4&NVhHu8W?oz7K(;j9{1#e
+zLa@RFf*qEYg!SUmj1=T458^*iwuAFt^LF0s>KB&TdB5L$Kl6M0o8N4L^Qqn<o@iyz
+zDxnTgPp8=~7PSdI*(`~Tjh23Kfe4@{o7E<U<IR9NQ2leq08ek7uw5+Dlg+ZYWdQK)
+z@UN11x8piMB=_0j_lS2RNJ0P>w+v~X$c$<$>hBw5c=iGHbQ*x(gFOJeny2`OL0ZTM
+zd;q3`q+D>!2S>5~GV_j=omqZfxu%6FAaPd$GB7evrCOGEu2VQ}98dFRZCl2|ptf)|
+zy$5>|@;aZxIG&b(WXjTh!VufGSr{uxkd?F`Xe>i4PIm2{mEE<=!q_UXr~q!HuL5w%
+zIs)L>y9|JX1At%A7A(~U)UBi?_jY_}P6o~Xj{p(^;4huxFP+MB5fiz9;vuRMTPJ_O
+zWXhtp=}}tGXz$E?+>ZO|rZ!eu&rsX+<d!y8q^P#(NuW-7)0CapC~=MOXbKWt6xN@O
+zefhn6q(o_?q>Y6=>L==WG#ZoQ+E^IgdvZG#5cXKvQD;E}luTI^3I(RW3<L0}dlbiU
+znpRLK6j=T}qvo%wIS~+m<2X1t(qQ@hOavGUh*5%|y~7GWbd81+59a}5D~7XXc)R*S
+zo_jS<jvxg#J~T(AT9)R*u)l9m>8!XMK!U^=(r#U)T4q0aM1I<ZAO9atzw;NE?En~^
+z22RS6lYu+!<nwtd)iNtPvk^~asD`V$pLvdL+t{|LTyVCQV`?g=th=s{>$-eh`y|)G
+zLseT55W2v|G)+uX7`jTH?}P70A<Zg^R3$Vyv49zn1km@zQ4eYM;%f@Kh#DbrAPC+e
+t7X=0Yt?#-1ZnXk71DqG60Gp_#&p-XIP&%e>YzqJY002ovPDHLkV1h!bUbg@M
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/8938afeb-1e19-401d-9cb7-82bd1b687ceb/e8b1e035-b4c9-47ec-98da-e5da2021338b.png b/sprites/spr_playerhealth/layers/c166a54e-cfeb-4669-b776-e1947a1bf643/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/8938afeb-1e19-401d-9cb7-82bd1b687ceb/e8b1e035-b4c9-47ec-98da-e5da2021338b.png
+rename to sprites/spr_playerhealth/layers/c166a54e-cfeb-4669-b776-e1947a1bf643/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth_redring/layers/c8d62700-317a-4969-af64-f60bbdc484a0/b78abeca-aafb-4b38-b149-2c81701a89e8.png b/sprites/spr_playerhealth/layers/ccffc5b4-e913-4437-b8f9-409867371839/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/c8d62700-317a-4969-af64-f60bbdc484a0/b78abeca-aafb-4b38-b149-2c81701a89e8.png
+rename to sprites/spr_playerhealth/layers/ccffc5b4-e913-4437-b8f9-409867371839/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth/layers/d8ab4ce6-01e6-4943-b6d1-1a53e5a1d037/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/d8ab4ce6-01e6-4943-b6d1-1a53e5a1d037/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..98bff8b7f9c9308ee57b0c44d1f84610963f38e9
+GIT binary patch
+literal 732
+zcmV<20wev2P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007`Nkl<Zc$~GC
+zF=!KE6vuxNsW`M9vZV^SlBLj;reIqP;?ybBPVFFc5TuacWZ{MmmWoq1mqv;x*y5ld
+z6zP;MRRS>-6B{uiA(thQ4jq~brCrV;{XV|C`*KMT|8QJ#@5}qW_q~_*U4ZUncd!RK
+zIq0;&1~4Lq?;@*Wb@bQH&=sH;pbljB3TOj#_;!ON#Hv`1jK+@Y0E`b@m(SMfC-Sp9
+zI5$iMIUqJ60yLy?b!d>u@USQPe61>helRUaS%gjKGNKlAHy-oARG=EHn#>g)1YoYe
+zkNwm-0UD$TViUq9L?T-tku7*Yli^`jhX%1K7FNX~NmM4Ff*ca{0LYm0q$!aiC^J-n
+z`C1i#M7F?M{e&b@Y(i{sEO$esW$TI#5T9BgHgQhj>ov^1Z5ibT$BKj2mL`d6pBoVa
+zt77?sgvJN1GZ`Kxku7LpZlws4rsSxXcI$+5^`5U)*^S3YQ<BcQfe2|qZirC6R>c^Z
+zmauk^x&A(n?W*nv#pam<RBWDccw+*qoP&DKQxBmuC5(}2#+zjhT{cff@u>v|u-H6f
+z=kx-roO5)PnuU<)vNr=Go*>%RNNDHuqAegm!_oReRyo%hl&)oYy!cE)R6vTLywa4|
+zPpx}0OAbY}0gDmj89z25Po!!SsF1rGrmUO#{}H}`fVLT05i~#<ssO(~ZUV6N{1ab(
+zwaOivI45JyGqe64hyo4mIo5WlCc|+a++PHs`12*BcV?vR$?OtOFQEXp%~w2nxWe-C
+zJvsHoM8GvvJxbTI{5bdqK;NHReE*yQ;N9#Jqn9wD&Doob9c^Jm3<>ee$di>&e&q$P
+z-)>><ZIdzQwSg^tIB<OTJNSHIy{Ma`T*Bc0znt_8{Fm1)Ezn0D{rm+G3nh%2Go{%8
+O0000<MNUMnLSTYbv`!lU
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/cfd332d8-5b17-4a1b-a036-cc404c6dfdc9/3b31d9f3-5f8f-4ca2-b9e4-1bf36930b537.png b/sprites/spr_playerhealth/layers/dd1189c7-4ca8-480c-9b38-03966f2cb5f6/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/cfd332d8-5b17-4a1b-a036-cc404c6dfdc9/3b31d9f3-5f8f-4ca2-b9e4-1bf36930b537.png
+rename to sprites/spr_playerhealth/layers/dd1189c7-4ca8-480c-9b38-03966f2cb5f6/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth_redring/layers/d8e9c081-42cb-4cb6-8792-368f8baa2354/198a7bc7-ee0f-438d-bb3f-c1a318edb24a.png b/sprites/spr_playerhealth/layers/dd65e15f-f39b-4982-bdc8-7a94947f4fa9/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/d8e9c081-42cb-4cb6-8792-368f8baa2354/198a7bc7-ee0f-438d-bb3f-c1a318edb24a.png
+rename to sprites/spr_playerhealth/layers/dd65e15f-f39b-4982-bdc8-7a94947f4fa9/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+diff --git a/sprites/spr_playerhealth/layers/df6d4cef-9c78-4b96-97a8-a3402b985b14/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/df6d4cef-9c78-4b96-97a8-a3402b985b14/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..888e5b79dafd5a921bd3cbfbd04ac27376ba3985
+GIT binary patch
+literal 943
+zcmV;g15o^lP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F000AaNkl<Zc$|%v
+zUr1D09LGPCqD<5k=4C-!m>V;L<I0S>=73_*gG7if8z=<1$ZpIcECoVthP5nfThvn_
+z^oOWO*#!eb!iB{s(4Fv#m0e_Aroj=!2VVvnf*~qqAI5X$+_~2oe=q0W`}>{m=lssU
+z-*vG&%a-uFN(qz-$O5ENkWQ~V256cWkEgWWP7WJD)4Yy>s=pY}36#Bk7J7zrBAVvq
+z(dC>Y^}-tHY0b52?CmZXj@h*fK@tM+=yG0s!K?tFL37LCUpL>$=Ts`!e%+!2kW3^k
+z`YOl~(i*-Bz_aN~w0IBN(qCL(lR(|4^Kvoi2(y61s05_UeUiqe57f7JFn)cGNFc=f
+zH-Fk-Dp2?7@|z0Uqh_N*7R(AFfspLfcjhog++<()gd?cMdyrphsu=LL$#2`xtO}A-
+z2Kn_6wlY7<%KR*iO&@qReaV)I+Qy7Y$AOd=X7ksrJj95bG&aHOSCzz!Ng6b_ZJors
+z{Jy@%bRsFIQ1|I16Ul73BYxXr#w0N#x6`7buZo3Qvf3#lM{CgBET=PaJ1?%U$x#cz
+zhg#6uNel8_dX;bXS6~(ci8CX_)iWai549j@K?Z7k3@E;vn+XXIrC*W#l*Lt^-_(v7
+zEvGXU&~iG1d7w%99~?Pu>k|otFybaRHxo2yZp?D)U0?&XMSA7V5x~K|QJb(4&rgnk
+z)Se!JpZjxJf85#`<Y|R>udRYAr2qL812sMX%8vEY*%=@n2jj*lWygADTyk~6a&SR8
+zN5Vd5CZu><q?fwpFm=sg`kznn)2Z`xkB!hhHX`E#0jNDaLT6_HKn|qP_5iLQujO9U
+zLo234*n=a-8N2&C05daj{QiI?c4j6Hz|hkPs;jH>*==7#wl(s!LR~P-AfwbZhXGjr
+z?=I|v7gxWBw{!UYhh_Z6y$iU35Rmcz20-QBO2>=<T%u_848zpwQOjZj)VFuY=R>YJ
+zo^;nz^>&W>_70*?HZZ^F!~M^Nl9wugEO0%;P}MlWze{fbsCa*fmHAm2H`x`X9=O;Q
+z1>jECmxQ*)iB2uqG7+|`!guP2zq$X%I73e-m>ueI6e@%iD}0VHHB)hO+}YCYy^26~
+z0>O3-DFi~URI63g0pO^+tKThAMuc5?taI+$Bv&3=N_J7bl0SYbu!xn^`5zEHSW1xj
+R(=7l1002ovPDHLkV1isL#!CPI
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth/layers/eacfad8e-4d0e-4aba-ad90-208f4c94feda/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/eacfad8e-4d0e-4aba-ad90-208f4c94feda/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..153dd08cbd19f2dd0e9f55607633bbb9969b691c
+GIT binary patch
+literal 738
+zcmV<80v-K{P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F00081Nkl<Zc$~GC
+zO-LI-6vuxlMG3XBHxFqciU?ZC7uFntLJt;t2!%q09#W)~&_F>D^w2{kpdNZF6jF*%
+zsnSCZf|Q;j3YC;@DjI`mvB3n|96TBdl3vn7-RXYJ?k1GJ%g)Su^Z)IeH#@T~nzM$3
+z-{mCW6wm<Z?(Mb>DwoQRdRC660IdLJphl|z3!qNh2(pCuPpSX}J#I0Us-B9rah?&T
+z1xX=Gw~_#Ctj#m*>oNKBm16<4gI$om{<$T6QGRuNq3`w;F7?Og2;4Wt4EuWc5DhWw
+z?bO!DWGcv%jsK)dq|Yz<@ySt?qoNe10%yIQBz;jacCOj5%t)<=YWrJR_P4Tx!gV&*
+z=5@Y&<yiO3DH-XDxQy9oA<@V<p>Unuopy3chM>nSt&<U)s-EiVRW6meXg4XRWXLIh
+zc3Q%J-4>wDN@kXzpvO(2b|$uSzH%(GQ3c<6`t_4M{XD20a_4dzMT4Gn>9pU9(NyuI
+zw^uiwu9p64{Mez`<rRI)r7P6VL{@6Qcr`5iOE>QVpd1y&&W!Z=QI3kFt0jUSw<#mj
+zu8T&-b-+UHjH&pX5LcgCaU;~Uq%x4vrs8t|Ol+=7{VGiR&6N*7JA=}doDh#j#u*q2
+zFtNExemcdIM^7zbsu^pi1-Yz_4pksOo#J47kC%%J(m1Wntgq<$>Uk&K3<E;}rkG=3
+zC;&j=>mqc(r{@m=Sbp(Q#D>Ck(cax@2jusdx^%j%h8G@-BC9qyGA7#J)>nv6juM|7
+zWpHGS#QX0QyW)hxb<>G})9IbA<T%*g1EB5a4feOP0Aykb27za>gou3|yN3T{nZ)Y0
+zm0WWdU;gPU-n?68W_^Y1%sr`)5n^}o*}__}X0CDpga7|?(lYR0ez&AR8*|k84Q6x*
+UrA8#EkN^Mx07*qoM6N<$f-+BMIsgCw
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth/layers/ecfec69b-064f-45be-95b5-8978c0cc3a4c/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/ecfec69b-064f-45be-95b5-8978c0cc3a4c/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..1918281ea1c4559b435e3a14b58e829f760d2c29
+GIT binary patch
+literal 941
+zcmV;e15*5nP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F000AYNkl<Zc$}4%
+zQAk@?7{`CNiZ;w$eGo=*L$6Ij(@9K5s}Isbpu)1E1IGe=u#`T8<*DG94`bGj>R=n~
+zLtj!#Su@?n5ZV!n_+VE-=jgRXZIC%)>Wy@v6k2Gd(3y?hJ;ZywH}@vd@8#y6^FQD3
+z{LeY}JCWF3=oR{<N(m|nbO1fBuo0ed6f{qTkYZZJe5E>Ufaa-?qtM)64(J5Zmrm>_
+z@X-M_!ZS2ag;>7%1c0T?e->fTy$`^mz43L9v)Q~YcQHsn0G4k)5y_L!3xa^`65=m&
+zFLwsU6#!Z<72dUsX31{`IYJJ8Fap5c<R~32tv34$*>wR_+zRWTI>Yvv2Ngq}xg+H3
+z?&A$N@P@C4y7p5xP)AEElU+fEo9fXrnt&9C0n(RF?6*LY&!N-n7sCE?$5GQMN0<Q|
+zZmK8N(k0pyw*uP-OE@yzKw&=))<}#6KLcQ8Zkm<3X@c)<aW^??0W4(KEzfy%!f_(i
+z#cnRBJ0~muKClK$i?z(F69i<JZJ&&H(Vkr=nb8b4C~gHUqv_R-c;Hc9M+ScOOz`%P
+z4MhF#mXg}sm2%`5jhDB`14G>#T;v5@Xb`hD5{}6}>mb?3>CII>e6xmBIgs(q1Y{R~
+zZMO|oHB)1n@tEub*+;C&P0Tblp34Zhe{&K2UmdA>=j(BFw7mHm25M<!3xHoo6(rN_
+z6QMo;)O1Rm%ucT#HJu`!%Mg%Vq^hm8zy|8-jEIx-Y@il^@B2rb<|C4upYdF#;QF7Z
+z7Ognmt(SIcmpKMXK-6>!HJ!3K1JG9Q+4RCup>!Mo=1KIAaC!U-x;i5qKGF_A$G5{I
+zLVY56RXD=QlU@MQX;7~eCKPLOGgty71@HW=D_Jac%2*mB5}`iM%-mw?mjsiOX*?dU
+zB~ev4g2&^fxA%~x-Kck#Ju)DNkF+zuh;Xy~=XI!q-@iEvYqNMf$Hkb(-wojc{J?9^
+zML?7uOBkCXZIcVj^wlR~iHvAF)-8VD?mfg&X_or6S=x?u6TSVI)LZ?yejBntN>*=k
+z#Iy7K@!%l<HLs4cGB*vtL{F49;CxS1Xs`9Wga7F`(OVBnrL$jrPPP|5zsilD#u>cx
+z1Ji>aJ0>cIl)L!K!uArykWwJnzC-p3H0|@Q{+#R?SPrmTkOf#KD(3kgQ@UIw7&Te{
+P00000NkvXXu0mjfOfS8r
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth/layers/f7e9d805-64c8-4198-bd98-5323ae540d12/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png b/sprites/spr_playerhealth/layers/f7e9d805-64c8-4198-bd98-5323ae540d12/1dd7c0ca-5c36-4589-bf24-7264e7e93f56.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..699db0915f7c5ad973f2d8af9f2aab5020cfe52c
+GIT binary patch
+literal 750
+zcmV<K0ulX*P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0008DNkl<Zc$~GC
+zPiq=M7>6IVB#?VircJV8CEkOVEHQ)>dg~V`NOKVU1Pv4{DiI3#20}s<p|_lJD_GJ9
+z+l%CG>auGCOVZp64On|vcf0>pN`J7d%)Ik^=A9Ye*#z@xGNV5+%V1W(1Yje(5gVir
+z^_hNA9diK|0fvDlivl8m9&bM=5~2^c0Z1z)9@PCn|GICSALa&yLTWp!G;dk}sA|Q5
+z*>XeUV9C(wPxa}oj<S74dGi2(VzB|hOIbq3dVceor^;tCqRy|M2a#SjD3FbNkPXu`
+z3)bmWkY$i%t6xS!l8TI_f@j>+a}t?R*vypeD`)9!Sf^8=SZsKJra1`BDB;g$DYeF6
+z@Qk!l;&`(L5ZEJt(dYx~>+b@FX{AKU=&`)ga@zEv&J%y&x4{>LsAH-pyiuP|TP=X1
+zG#p^1GIp{9&@?Mj!(c2G;77}C8wA-BBF9)NAR}QI9ZYlJ$;d4?<X$}iU?b~|i3HhF
+z)e1>Ik_0lM?!ayHPA3Q#A_si+w8b9ppuq(X>OL9<8iuo!iqashln^3EK7SKBHUP?q
+zy7Sv!hK#7QmCpmPmCy5_?vpZlXc&OCWGSPE5Eoqc`}2Wp*~c`klo(3|uKRtDi4Yg0
+zj2-|fqsN_Djj{qljyL?RYeM8GmqC&w4x6j2J{~$T{+Zhuo8~L-%&Mmx=|i0)kZ_fE
+zCktysEuEg8a$LUU{QNusIBT~#YqwqSCK(|-5FlX}RZmv#%5Y~^sn)H1lO&1SQH{&)
+zB>;Ob_5c`7C%Ut{%l&<V$MN?_P%Nxmw%)Byi`x5|C!^X?jf0{U+wFF_HE#nDi1{Ba
+zue2Okvx!qu48sVG_e1=e>*5;?b<eT4mCah_OQ|)_azXsX7YkcN^IYW)4F3Pe$-=;Y
+g`P>Qx#%QL`A779!p+}QX!~g&Q07*qoM6N<$f|cV`TmS$7
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_demon/layers/07a8b8f8-d98b-4637-aae3-2224745e2eb8/2f87bca0-f74d-439f-a7d0-de1a52a1ac0c.png b/sprites/spr_playerhealth_demon/07a8b8f8-d98b-4637-aae3-2224745e2eb8.png
+similarity index 100%
+rename from sprites/spr_playerhealth_demon/layers/07a8b8f8-d98b-4637-aae3-2224745e2eb8/2f87bca0-f74d-439f-a7d0-de1a52a1ac0c.png
+rename to sprites/spr_playerhealth_demon/07a8b8f8-d98b-4637-aae3-2224745e2eb8.png
+diff --git a/sprites/spr_playerhealth_demon/layers/a11aa0e5-24ed-4d95-8fa4-cc568af10116/f1655d78-786f-487d-87b1-dc68cdf9dd08.png b/sprites/spr_playerhealth_demon/a11aa0e5-24ed-4d95-8fa4-cc568af10116.png
+similarity index 100%
+rename from sprites/spr_playerhealth_demon/layers/a11aa0e5-24ed-4d95-8fa4-cc568af10116/f1655d78-786f-487d-87b1-dc68cdf9dd08.png
+rename to sprites/spr_playerhealth_demon/a11aa0e5-24ed-4d95-8fa4-cc568af10116.png
+diff --git a/sprites/spr_playerhealth_redring/layers/e1c7d83e-4e0c-4992-b127-286dedcaab80/f09bd189-51b7-452c-934d-70a0265431a6.png b/sprites/spr_playerhealth_demon/ba09a7c0-0e35-480d-9be6-c16360fbba6c.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/e1c7d83e-4e0c-4992-b127-286dedcaab80/f09bd189-51b7-452c-934d-70a0265431a6.png
+rename to sprites/spr_playerhealth_demon/ba09a7c0-0e35-480d-9be6-c16360fbba6c.png
+diff --git a/sprites/spr_playerhealth_redring/layers/f768ff06-c5d9-4f5d-94cf-8e4ee1d6a3ec/9cb25306-fa99-4955-919c-97fc9a727978.png b/sprites/spr_playerhealth_demon/d8848f8c-ed5f-4b5f-83c6-bfc106e958aa.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/f768ff06-c5d9-4f5d-94cf-8e4ee1d6a3ec/9cb25306-fa99-4955-919c-97fc9a727978.png
+rename to sprites/spr_playerhealth_demon/d8848f8c-ed5f-4b5f-83c6-bfc106e958aa.png
+diff --git a/sprites/spr_playerhealth_demon/layers/d949a3e8-4bab-4f9f-9da3-dd5ab9534978/614f96ae-bc47-4071-937b-fa19327a8f6c.png b/sprites/spr_playerhealth_demon/d949a3e8-4bab-4f9f-9da3-dd5ab9534978.png
+similarity index 100%
+rename from sprites/spr_playerhealth_demon/layers/d949a3e8-4bab-4f9f-9da3-dd5ab9534978/614f96ae-bc47-4071-937b-fa19327a8f6c.png
+rename to sprites/spr_playerhealth_demon/d949a3e8-4bab-4f9f-9da3-dd5ab9534978.png
+diff --git a/sprites/spr_playerhealth_demon/layers/07a8b8f8-d98b-4637-aae3-2224745e2eb8/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png b/sprites/spr_playerhealth_demon/layers/07a8b8f8-d98b-4637-aae3-2224745e2eb8/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..deaae23fa6ef2bf7725c749fa18aa0ca4b5fa917
+GIT binary patch
+literal 875
+zcmV-x1C;!UP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009rNkl<Zc$}S<
+zO=uHA6vuy2!LHv$N~j1O!Hc01aRmj1tl~uxK@>bD1<@9YA`0n2%;u)xNedAXOu?&y
+zRrJ_+(t{fsjP1q46vZl`)Q{FwFs_HqtUK9lQhcz7?7sQ`-h1=rO=7If+z#Jkodi~`
+z0N`c^bGWV>`D6!kzTf{u;sRs`bKEG{0E`UTk&eOdH}B?`)m;+>xp+E<(c_7X4B6Cc
+z-iOMRqd6uMCYR3GzAr$%2DcyO-BwsD*@vh_O8oHjGXOF`5fH@^rBcazm&tH#U>Jba
+zU0wjUALTXuASe<tkiAN&RASQ)H<S@TzA&mm2KFy7-IY?A`3$WYq98&DEJ~Ei4#|Y6
+zl`WYtd3@&qd-s~On$l9HK<>rUISrC8i~=BJ5zDeTms-#OK|!Mj9!`wXSOUwk{HADX
+zx)5lFU<CQXC_(@T5E;_PhDjz;Z6hw+@G?u^d=u#tBd|9rn@Q>L<i#r<-+2%!Nfboc
+z(8vHqA+Vdjvx7N*uR;fQQhFPH<@|888u;zrYDFQ)EVCwZGIVd;#=+g*K8!nKl*{36
+ztJnTL$|iQ5Aie8^niiUA2UfN3)-AnMro1jYX{H%>#`x$|LyP;2ev%23dd(~6ft2Y7
+z(H0c6U}yCi{mj&>%zyc%JH@NaI8`6m8gS4$4OPaSF=p!FYyhs;=9&NUi<x@W7q3h?
+zk^UM;MK$+zma*se061x;=`;ExK}X(Id|+eAd)HVZoH-Gt+apXSr9=0|ZCVNXjDCpg
+z<=b@VDBbb3Q2WW-&kn1nyfM@rU&}Wc&M4NLN!t0C|M7{1#=qa*sn2lg>;?bbj=4q3
+zzt?d2&pN<68k5q|f>HA>lu<Ha@^bnan~h%PzRt2?YcGu@*qPdgWmyOzu<eZR{~f3V
+z)?1c^Wo3wW>Gz=8qnMgcMvp(Ew5$}w8%@zBCD?Y+hcq?A(_8hw(F5t@=K*;C!QtcL
+zEcf%bkWwP$@(?K{)2}BqEoCdZ_*8RjU*8MpW%MAD^3w@zUAv1f5*Cau>MB<i2>P}{
+zmIFca4rv9pvj8Acx6}VIAK1>?0agmqfNiX!&R<Xugxirxq{sjO002ovPDHLkV1jfC
+BsS*GH
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_demon/layers/a11aa0e5-24ed-4d95-8fa4-cc568af10116/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png b/sprites/spr_playerhealth_demon/layers/a11aa0e5-24ed-4d95-8fa4-cc568af10116/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..db3b63a4eed1dcef7b36631e2f905631271cd668
+GIT binary patch
+literal 738
+zcmV<80v-K{P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F00081Nkl<Zc$}S<
+z&r2IY6vsbFdoUqTk7mhX2_m9Uo7kg>9xbG_e}Vmh(6gsPQAtCgr|n;0A%B5j4xU0}
+z?`nHc+9-=caHXdnM7`+tusf5P{gGYzAdsDT^ZmRx^Y+c=$Yx&3d@fBOp8??2XLj*C
+zFZNfT*_D3(6Nv{<pV{T$xB<ZYY$w)Hoj*KznW!5F@}{d6#j!~ajvLI+cDT7a1K|30
+zpgEQb6@ZBEFK0cX9R^7Vz|GxRL>%DKwIXBB{4JF0!Y~yS3#pgB)4$);L{+#7oeHg2
+zVHzknSP6OY)EBvO#_8X0N)h3sLNDDT03PUx0ug7HgJIQq(^X4@h=l+X)xS(V`Ygr4
+zKbPXzB&9-yQlY|BwSiHtk!M*JMWE@aAT3%IqQX?$*_&f$Z%zVXSR8Sh`M7KVjB<@D
+zXPhf%9Q)M5KDD%kNtTq=<FKQDxXS<>UcU<>^`jG8R~(z<^~%qYuz}mt#u7V&*uGMs
+zLf`4|<K&ynRy`~AIqp>urezf8*mpW?;78YT!6^IiFf1Hk*wT8PW*hW)?^;~n4kAH`
+zN)<t604;0L8RZ(SU`#l#xfYl1kp!keAhdOUc}7z=$~AC%JOs}VL3S-y&o&>-rGkX0
+zy3cDLo?x0LpFXa$=31JNnt_1$*+(<W1G%6l$@j!4*EFZ??QOn%o#V~LMMR+5Zc}Zy
+zX#y=^!uZXEVaR#W??kWD`dr^p@17o8%_ab*X|lAmBxm;b_W^jjx(dL;;v%+f14Q~=
+zVpCONTg{=kX_{I_=jZ40f4AGkw(Z!aI`W!Gg2h?4+vU&TRi<kq7Uq}kuq~;!uy_xE
+zbNZZ8p^^xR14UqBA&kDtRo^UExrBk=d9!rv5Fl1J?R!iDN7*PqR*(i9VW~R*0P{J5
+UV?~_8u>b%707*qoM6N<$f+jL#wg3PC
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_demon/layers/ba09a7c0-0e35-480d-9be6-c16360fbba6c/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png b/sprites/spr_playerhealth_demon/layers/ba09a7c0-0e35-480d-9be6-c16360fbba6c/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_demon/layers/d8848f8c-ed5f-4b5f-83c6-bfc106e958aa/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png b/sprites/spr_playerhealth_demon/layers/d8848f8c-ed5f-4b5f-83c6-bfc106e958aa/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_demon/layers/d949a3e8-4bab-4f9f-9da3-dd5ab9534978/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png b/sprites/spr_playerhealth_demon/layers/d949a3e8-4bab-4f9f-9da3-dd5ab9534978/d7b6eb58-671e-4b93-b971-b0ec48ef19c5.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..1b91164bc84abdc79c6d353b4e09f933ef9a4198
+GIT binary patch
+literal 862
+zcmV-k1EKthP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009eNkl<Zc$}S<
+zPe{{Y7{@=R7$$9XC`291nb4ZZbYPj263RfQ)xm2A>0pp_ljt(Mb_jw%DDYs%4pB}a
+z4Lqn7!sdvr9n5WDig^fJ#9%1D4)c9`-{0>yCw*c3{=CooeBS5zJ@50bg5$|3GhR{7
+z!HHu4jM?sX48ySf&33m-yZ>2<0WjO$PXBTYfVp6Yt)V(Tu(DRtuN}w;H#q5Zd+1+|
+zF&FG$HJb(?p37^7en$;}#dczA&*Iw*k`RE^Y?^p3&%56R0B)bI)&PKTDpDxtnPDo(
+z0-4y_Bh=DCpvhabNJiwiDq(9kUof;{FdK;og8l-dW7mkDYG$?ek_FW1_Q;6DcQP+X
+zfQ)d1(-tD50bV^DC7Mau!i4j1gOkbKVxkUx8d^kR1u8^UVrhZI(gKg}HbXL^jfr9r
+z*UFuQC8{cOG-gFJDT4lHp1<9oawmb`QDaGqc$V+8X$Dr-nC)&S+~8zlYtN`sCx{AC
+zRk@Sk#bknjqlV5lpJm)EyTyu#G^uIxJ8FpM^0J&)vuUkh0Hz&Y-GRf)y<EzYehWy2
+zs8@Bx(+)2<y!iGD`1T8OELl}8;cdBCX;7%8g9D1`5?w%m;<-Fu8~?STOzI1n!#Scd
+z0~Eh$vZ~s$K-;EzP}eH&<GFk>eO<%cb2UqdP-HzuG?RiuNMt=Gqbdnf_lzok*Kl$2
+z=7xm)YP`Tyty6<d=W|-br6W4rAAu&Xbbe6RO1;}fz1zj(p6k+d_oKd-BI_~vPW^5w
+zs6v#rsHl3k%QnjG>?Td#D*${7T;|T%bDFdBH$oCBB>J7D>V)GWY*<1)XEyNoVRUQ+
+z7~$lDr*h81crp4Y@IDw}Xy~HW&B4^Y#o!O$EdXW~=Natnlc3g~o0gOaT^*m|;r%DH
+z{d`Sf<vSo7thIZKP1u<HAm43gHvw3VSCd#;&>XAJF9%&3#M~ju9(?#hGJP|P^F-ET
+zGF4`&kfRPhTiE1o1%thPY-cx#e}1DGsz<rdagTBd1LTP*&Y#Xd-%6Nk09(K1{*Or@
+ozL4b{5;_WST#yDlLS_B@1y$XGlIc-J)&Kwi07*qoM6N<$f-|q6Pyhe`
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_hit/18cdbfef-61a7-4e74-9e41-d856463b4a80.png b/sprites/spr_playerhealth_hit/18cdbfef-61a7-4e74-9e41-d856463b4a80.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_hit/layers/19d3bebf-16bc-426a-9df8-ef1fdf38c680/5e4ed8ae-241e-4ae6-a51a-6f2586a29c07.png b/sprites/spr_playerhealth_hit/19d3bebf-16bc-426a-9df8-ef1fdf38c680.png
+similarity index 100%
+rename from sprites/spr_playerhealth_hit/layers/19d3bebf-16bc-426a-9df8-ef1fdf38c680/5e4ed8ae-241e-4ae6-a51a-6f2586a29c07.png
+rename to sprites/spr_playerhealth_hit/19d3bebf-16bc-426a-9df8-ef1fdf38c680.png
+diff --git a/sprites/spr_playerhealth_hit/layers/3eae072c-ea36-4016-8e2d-44d8ee14f366/758e070f-3b70-4e00-a398-8492bb32aa77.png b/sprites/spr_playerhealth_hit/3eae072c-ea36-4016-8e2d-44d8ee14f366.png
+similarity index 100%
+rename from sprites/spr_playerhealth_hit/layers/3eae072c-ea36-4016-8e2d-44d8ee14f366/758e070f-3b70-4e00-a398-8492bb32aa77.png
+rename to sprites/spr_playerhealth_hit/3eae072c-ea36-4016-8e2d-44d8ee14f366.png
+diff --git a/sprites/spr_playerhealth_hit/42ac1765-5ac5-451a-8aae-8a3536258210.png b/sprites/spr_playerhealth_hit/42ac1765-5ac5-451a-8aae-8a3536258210.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_hit/layers/86d4a713-3b04-4cc5-9fdc-9d9048fdc578/fc69d676-247a-4d18-a448-4582a2337f9c.png b/sprites/spr_playerhealth_hit/86d4a713-3b04-4cc5-9fdc-9d9048fdc578.png
+similarity index 100%
+rename from sprites/spr_playerhealth_hit/layers/86d4a713-3b04-4cc5-9fdc-9d9048fdc578/fc69d676-247a-4d18-a448-4582a2337f9c.png
+rename to sprites/spr_playerhealth_hit/86d4a713-3b04-4cc5-9fdc-9d9048fdc578.png
+diff --git a/sprites/spr_playerhealth_hit/layers/18cdbfef-61a7-4e74-9e41-d856463b4a80/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png b/sprites/spr_playerhealth_hit/layers/18cdbfef-61a7-4e74-9e41-d856463b4a80/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_hit/layers/19d3bebf-16bc-426a-9df8-ef1fdf38c680/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png b/sprites/spr_playerhealth_hit/layers/19d3bebf-16bc-426a-9df8-ef1fdf38c680/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..7dc301630a730aa9d1a34dc2b931a57d33a6174f
+GIT binary patch
+literal 724
+zcmV;_0xSKAP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007;Nkl<Zc%1E(
+zQAkr!7{`A`7?y1+grXEq+GP{j)XY7Y#$uv9NMI-gTSS;pNP*HGq!2-a_GAzRAtfq3
+z7z87Fniyq5Q?WTj;~HyVLOnW#(O%Yr+{3-QcUo@+{$K7r-}jyGcfNDJdk-AwUsui_
+z#-#x+9nS@z+LR|8gPU7_lw-f3bim`qB{=|?2@X?VUZD$`kH_`}9@-0{RFKMFK)P7K
+zF?$>N&MUgW`tl0iHq@jC%FOA%1qp~!4S?@X6Ja@O2vdLqW#)9i<JAF;KmwxH%4~?0
+z*$_3gznBRQYkc$ZnC3Ybp3==foTVb6upFhP7CtW>VJ<vHwJA?`PRdx=<1vEUDNRh~
+z0cyHSEhB)Dl&UhDLkChrs!e%B5=l)vD=;PDxXG@AT}`YJNhAqwr$qj&Aa(LgDal*b
+zeh6EI=NwNrzlyQr`;rEvX@-EuOM|NufJh=qB#{)pNFvF&$u1y0UHzQ8aE21%ln}=y
+zIT&-dbF=KU;X)1DTY;&8y}lvF-0c87dN_vFDp6QiMDgVt9QAmC-NuPcf7DcM2vUDD
+zYW4bt0J!$<H9cMZNYbv|J={l85!i0u6A+7e2Y_#DpESp!0iA#1&ryI%@&;EYm32-k
+z>zvHr9Rxs@VSQajmciNAC%_i-4h5wav3*%ViYn`zhE=XEF7tTw0g?n(t0Vx53Q8^5
+z+#UF*Cw2clo#FkhKw1H<E-njb<jW`kRgKL6Y+0McoQ>!A#e43~S+O&FR-_IJ%TbL_
+zfdH7-KQLlzWyID>Rbw;VZ#IY)`$*+4WTrF*0i3wrB4DeF%VMP~vmp^P)z*!jxEMcc
+zJBj1x1kHh0hS$ZumzH`fU%Z^aKRrpv-(eV=4RWCWL%#u1EaVT}48)iK0000<MNUMn
+GLSTY3(m{;?
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_hit/layers/3eae072c-ea36-4016-8e2d-44d8ee14f366/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png b/sprites/spr_playerhealth_hit/layers/3eae072c-ea36-4016-8e2d-44d8ee14f366/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..b4e120214f15cebcfd83672f678a7e895191dbf5
+GIT binary patch
+literal 664
+zcmV;J0%!e+P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007CNkl<Zc%1E(
+z&uiLX7{@==QDLxCD3x6LO1k<7^s<Ge8y>d5U>8B^U?A+^u`qC0p)e@afw#g64#9t*
+zXT=}jt-YruEM*Xs;>nYRG&@9NQls{|(JzFAH_!9^ywCeSZvs#H&y;pH)usb!CjxWV
+zvdm|XvHz9bb55_S0Q7nV05;U7_x`q*0w4m;J*<U!L{>qrPjS@O9dbKa05X{)0NyJC
+z1^2oq&4$_}E|-wyQfOsMLH?vE%rIP7tyVx$KvCTH3IZWA*g^}1g_h}uw2Q^S_{&_{
+ztEyHj1gbO)H^yDwdcZprluW*LMxzwA&^X>X1mNKw0o>etXKU;0f{7-vtfJ>1+6>ov
+zo4D+5@WGV}QYH{pJ@SBsf*o3sfr$-Z%{-TOUDWJi3yneVCxgkDzaqc<kT5L;S(Xl#
+z4nTxD0CBm5Ei@E_XFlDlsbo1h=e4lwtO;OK{TxV?<#TR(DGW>uOm8Vw^~j688&~H1
+z7Ia<O@z2Z_8d0-L-zu^tNsNFOz&Mu27Mhn8HM_hTSLguivHa?02rJ(f8d%U84oLtP
+zz^+tb-JHeTjVt^Z4%wBYIll#<`Wnm*-Iottgb*Ci<emPJ-@{?Re5#Ad_<Af)-wK|;
+zg?r>*5`eR_GmdkAXkA{iD@lP_pOnj-l*=T51OTVRWjT<)^2-3ww~7=?B><|mDgdoU
+z%e}YU`=|YV0N(8FF&M0&>+RKFhA>zzhX*?Rb{L2=P1AdBG#Yd|ojKp7pog&7^C|$@
+yOg1!j5#&*zsoZ}}dafI{w;KSV%k`vxOMd~JM(^P=lQE+J0000<MNUMnLSTXryfj(>
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_hit/layers/42ac1765-5ac5-451a-8aae-8a3536258210/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png b/sprites/spr_playerhealth_hit/layers/42ac1765-5ac5-451a-8aae-8a3536258210/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_hit/layers/86d4a713-3b04-4cc5-9fdc-9d9048fdc578/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png b/sprites/spr_playerhealth_hit/layers/86d4a713-3b04-4cc5-9fdc-9d9048fdc578/1d05ca0f-d262-4f5f-a33f-5b64694804ac.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..cd1303d8b43100b6d0291404b33b243f0d41e8b5
+GIT binary patch
+literal 675
+zcmV;U0$lxxP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007NNkl<Zc%1E&
+zKS*0a9LGOav4!B|qM?NoB?SdR2u=<M{o^7yNT`Fu8v-dfIJh_neT5V<xHuGSc!e9g
+zSa6hPxIt(Kp|r&e63Ic~b?Ov^3YF_%?wQAXiJ_B&-{s!j@5}dl-{0LkxWjG7K)*yE
+zEP&UZtLyc?G;SoVFH|hR<<TDbQjn;BJvjzoZYEFh-P5jmL%mFtC+*++d5+%|8N)C&
+zJ&|fOH<M@RqKr|#6`r4JcCVX>QT|nu9|2<+0DgXYg;*X$EDth1n_+x5L!nTJZ9wmy
+z*}jb&S<JnU)+U$MnBUyN99&`!E~EAF*$j?b@e}|-sg^KH80p<J+o(6GeO>_I@ryT1
+zF0Dm%u{?<0m`vLr`BK1#jVGxsPMlGr-ULXH=Qno%P(t7V7b!+l(-Tk%B8{Gj+%4+F
+zqi3(9?}w!twNfpb|N4HO;HPOMZb)Z;(^}xpq|=~LZ&E%i#(2h<n0CTQ2w?%X7q9*q
+zC$PO3B#b)^d|$OkkL|@E@lPdM=M0>Q6DS`RW4(7K)#^T4YortiA!3{BY2-*wB%2+<
+z_Z8LZeysQ3PL8Qo_X)!mr>DOGFvcV{+ttVzGvJ8B!=r>@3#~O_*rHHgrBQFvs5e<D
+zuf}S|T(>O^sn5mwLdBj>{Xt4eHakKXwxZFs#~72SX|2gL9`N>PE1}!<33ABgM#*MJ
+z$mK?nQs8+Kr4&*MK0aTGYB!<lYulMh2thjt02LwGGP<4YDqXKMeZlj5tCY4{8>_Xk
+zK3E}y)!NvX2&<H~p691Nq<tkyGn7(B^DmwUz#iuR65Qd|;UBe#8Zyr@ilqPm002ov
+JPDHLkV1j6UHkkkb
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/0404e0ea-9853-4fc5-b686-090a409aa7bb/3d7ab247-cd49-4815-a831-10d0395ca8c7.png b/sprites/spr_playerhealth_redring/0404e0ea-9853-4fc5-b686-090a409aa7bb.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/0404e0ea-9853-4fc5-b686-090a409aa7bb/3d7ab247-cd49-4815-a831-10d0395ca8c7.png
+rename to sprites/spr_playerhealth_redring/0404e0ea-9853-4fc5-b686-090a409aa7bb.png
+diff --git a/sprites/spr_playerhealth_redring/07423719-9dbe-445a-9563-857b61f2683c.png b/sprites/spr_playerhealth_redring/07423719-9dbe-445a-9563-857b61f2683c.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/0810d61b-1ed7-4c79-a1fc-7a4cb5d4c567/be17e13d-9eb9-4caf-be1e-b40fb8e367e1.png b/sprites/spr_playerhealth_redring/0810d61b-1ed7-4c79-a1fc-7a4cb5d4c567.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/0810d61b-1ed7-4c79-a1fc-7a4cb5d4c567/be17e13d-9eb9-4caf-be1e-b40fb8e367e1.png
+rename to sprites/spr_playerhealth_redring/0810d61b-1ed7-4c79-a1fc-7a4cb5d4c567.png
+diff --git a/sprites/spr_playerhealth_redring/layers/0a6ae400-f777-42c3-a2f2-50d90e8f1ed5/ff7596e1-4147-4547-98fe-f6a03ea29e7e.png b/sprites/spr_playerhealth_redring/0a6ae400-f777-42c3-a2f2-50d90e8f1ed5.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/0a6ae400-f777-42c3-a2f2-50d90e8f1ed5/ff7596e1-4147-4547-98fe-f6a03ea29e7e.png
+rename to sprites/spr_playerhealth_redring/0a6ae400-f777-42c3-a2f2-50d90e8f1ed5.png
+diff --git a/sprites/spr_playerhealth_redring/layers/0c234645-d271-4675-a931-b22ad0046160/c6e010e1-6cc0-49a9-aa35-e5def93e20e7.png b/sprites/spr_playerhealth_redring/0c234645-d271-4675-a931-b22ad0046160.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/0c234645-d271-4675-a931-b22ad0046160/c6e010e1-6cc0-49a9-aa35-e5def93e20e7.png
+rename to sprites/spr_playerhealth_redring/0c234645-d271-4675-a931-b22ad0046160.png
+diff --git a/sprites/spr_playerhealth_redring/layers/0e6751a5-9500-4880-9c62-2daf977a0f49/ba283c7d-fc40-476e-b85e-6f9662d5890e.png b/sprites/spr_playerhealth_redring/0e6751a5-9500-4880-9c62-2daf977a0f49.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/0e6751a5-9500-4880-9c62-2daf977a0f49/ba283c7d-fc40-476e-b85e-6f9662d5890e.png
+rename to sprites/spr_playerhealth_redring/0e6751a5-9500-4880-9c62-2daf977a0f49.png
+diff --git a/sprites/spr_playerhealth_redring/128a6a0f-1e57-404a-b3f0-c97fd1da100f.png b/sprites/spr_playerhealth_redring/128a6a0f-1e57-404a-b3f0-c97fd1da100f.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/1608aa99-81f6-4639-a913-964709f510c5/59bb5513-8633-4195-abe8-9fdc912e67cc.png b/sprites/spr_playerhealth_redring/1608aa99-81f6-4639-a913-964709f510c5.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/1608aa99-81f6-4639-a913-964709f510c5/59bb5513-8633-4195-abe8-9fdc912e67cc.png
+rename to sprites/spr_playerhealth_redring/1608aa99-81f6-4639-a913-964709f510c5.png
+diff --git a/sprites/spr_playerhealth_redring/layers/1e5255d5-eb38-418c-b24e-b266f3b25e61/0a34b8b7-5ca1-4260-9c4e-0b3a49f898b6.png b/sprites/spr_playerhealth_redring/1e5255d5-eb38-418c-b24e-b266f3b25e61.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/1e5255d5-eb38-418c-b24e-b266f3b25e61/0a34b8b7-5ca1-4260-9c4e-0b3a49f898b6.png
+rename to sprites/spr_playerhealth_redring/1e5255d5-eb38-418c-b24e-b266f3b25e61.png
+diff --git a/sprites/spr_playerhealth_redring/20069efb-9786-4307-adec-dc653a701598.png b/sprites/spr_playerhealth_redring/20069efb-9786-4307-adec-dc653a701598.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/2cfd3bcb-d257-4d75-b54d-a558d9145955/a90bd928-5c90-40b9-830d-7e98f0b66eba.png b/sprites/spr_playerhealth_redring/2cfd3bcb-d257-4d75-b54d-a558d9145955.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/2cfd3bcb-d257-4d75-b54d-a558d9145955/a90bd928-5c90-40b9-830d-7e98f0b66eba.png
+rename to sprites/spr_playerhealth_redring/2cfd3bcb-d257-4d75-b54d-a558d9145955.png
+diff --git a/sprites/spr_playerhealth_redring/layers/2f508f86-5733-46f6-8604-88185bbf5c13/89fa94a3-88d5-4eac-83f3-75d904f699c0.png b/sprites/spr_playerhealth_redring/2f508f86-5733-46f6-8604-88185bbf5c13.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/2f508f86-5733-46f6-8604-88185bbf5c13/89fa94a3-88d5-4eac-83f3-75d904f699c0.png
+rename to sprites/spr_playerhealth_redring/2f508f86-5733-46f6-8604-88185bbf5c13.png
+diff --git a/sprites/spr_playerhealth_redring/layers/34ab8704-5226-41c6-b64f-61368a7efc09/33e87f6c-49df-480f-b0f5-576ff2e5aac1.png b/sprites/spr_playerhealth_redring/34ab8704-5226-41c6-b64f-61368a7efc09.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/34ab8704-5226-41c6-b64f-61368a7efc09/33e87f6c-49df-480f-b0f5-576ff2e5aac1.png
+rename to sprites/spr_playerhealth_redring/34ab8704-5226-41c6-b64f-61368a7efc09.png
+diff --git a/sprites/spr_playerhealth_redring/layers/3ccc89e2-9fe7-4dec-a7c3-d7f03b9b68a5/ee44f073-4fef-48a5-bfce-0eb489497b66.png b/sprites/spr_playerhealth_redring/3ccc89e2-9fe7-4dec-a7c3-d7f03b9b68a5.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/3ccc89e2-9fe7-4dec-a7c3-d7f03b9b68a5/ee44f073-4fef-48a5-bfce-0eb489497b66.png
+rename to sprites/spr_playerhealth_redring/3ccc89e2-9fe7-4dec-a7c3-d7f03b9b68a5.png
+diff --git a/sprites/spr_playerhealth_redring/layers/4bdaea9e-7364-40b7-a8ab-40ca04c3857e/c960921d-0cb7-4328-be3a-70892cae5cb5.png b/sprites/spr_playerhealth_redring/4bdaea9e-7364-40b7-a8ab-40ca04c3857e.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/4bdaea9e-7364-40b7-a8ab-40ca04c3857e/c960921d-0cb7-4328-be3a-70892cae5cb5.png
+rename to sprites/spr_playerhealth_redring/4bdaea9e-7364-40b7-a8ab-40ca04c3857e.png
+diff --git a/sprites/spr_playerhealth_redring/4dafc371-be90-4bb2-9a6e-2e66eba19604.png b/sprites/spr_playerhealth_redring/4dafc371-be90-4bb2-9a6e-2e66eba19604.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/5b4391cf-e34d-49fa-9689-e81633367732.png b/sprites/spr_playerhealth_redring/5b4391cf-e34d-49fa-9689-e81633367732.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/5ddc363b-d15b-40e8-a253-c6a3057dd015.png b/sprites/spr_playerhealth_redring/5ddc363b-d15b-40e8-a253-c6a3057dd015.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/61eca45e-e012-497e-9224-bb8fec04e01d.png b/sprites/spr_playerhealth_redring/61eca45e-e012-497e-9224-bb8fec04e01d.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/622bbe67-e649-4aef-a539-b9455851312b.png b/sprites/spr_playerhealth_redring/622bbe67-e649-4aef-a539-b9455851312b.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..2e003b7804e25f976a7b3e322cd9cf458b301def
+GIT binary patch
+literal 699
+zcmV;s0!00ZP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007lNkl<Zc$~GC
+z-D(;^6vuz7A%eHLFw8}&(UL14pbIUbg+4?;k_#au&yb>$K7%3@Y7l%2OQ5iQ0Ixze
+zS=+#nP`nMKkZdn@cbxqgKPdf!=<GS1-#KT-Gi$M${3Uj4S%75@K0u{bS?J`s-qLs`
+z!%Bd4fLS1aU4Q`?i=6~1i068-iahrX042N0Z|8j~_^U*6Nth0bL3{)jQW<Ug7RNbL
+zut+*|5o{xs8o}OJVZVJukdd<+S`YYGEpu}dtR6U^WH-rAzw`76h2lVmDCLsXL=vLI
+zbssDwr)=RPLg<L$aF=Qos@1@^N||!G!E^a7p6lVc9w*dQr;HUnJszpw*L`?>JOS!-
+znawL41{F3Mw*U;o^-1UlGrC&)H<HzC=6CSq6(zfg^Wz-=wmqQd>_V7j7ElKO3Q(z4
+z@LbQglAxci$F}Go<yA(lBh`{_7%)qxY|&$aez<ZbXCd||*-dQwGeYczPY>uZQNdP$
+zL^6URInEjPvPF(j2>+&FCWsK7lr8fxm?UKjq`n_<^_UnlPd(q(vUza60PqriPN?G}
+zVi3KB(E(WrG|xUd3?n1JLegVm+%H|J))k5aHP>JiW;sh`AGPU419zFREjrxGR%#qY
+zv(AqX&|uajGu014)QYbc7aSfQs(rJN2q7pG3n~_184pA7hm)~qm0E?%@ugbtf7qve
+z-X^D#r~^_#vMNedrH`TG<KTNR9MJyMjs<9+w>fGAzO7bEP5p2pD2B13LUEvA{r-F^
+zPp8vN|M7UNrheANX}tJ!MPn(cT5Zgoykj%J!=LA0G25bxZy{_Qt#Xws82ta2leK~W
+h^177?T%e_K{sLYE32fmg(GUOt002ovPDHLkV1iR|H{}2T
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/64fc1bd5-7072-406c-a82f-6a4e28495c97.png b/sprites/spr_playerhealth_redring/64fc1bd5-7072-406c-a82f-6a4e28495c97.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/7e4e5a7f-7ba5-45f9-bdbb-2a9bad67048d.png b/sprites/spr_playerhealth_redring/7e4e5a7f-7ba5-45f9-bdbb-2a9bad67048d.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/8938afeb-1e19-401d-9cb7-82bd1b687ceb.png b/sprites/spr_playerhealth_redring/8938afeb-1e19-401d-9cb7-82bd1b687ceb.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/ac406163-806d-477c-b120-c1823ecfbcf7/93a44566-9705-42ab-b015-de60b2c7fd2b.png b/sprites/spr_playerhealth_redring/ac406163-806d-477c-b120-c1823ecfbcf7.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/ac406163-806d-477c-b120-c1823ecfbcf7/93a44566-9705-42ab-b015-de60b2c7fd2b.png
+rename to sprites/spr_playerhealth_redring/ac406163-806d-477c-b120-c1823ecfbcf7.png
+diff --git a/sprites/spr_playerhealth_redring/bd540e33-1331-4824-b4ba-493ea5ccbf69.png b/sprites/spr_playerhealth_redring/bd540e33-1331-4824-b4ba-493ea5ccbf69.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..cd293a8d9c1fa22d847ac67571a9f9ba2cedf690
+GIT binary patch
+literal 659
+zcmV;E0&M+>P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F00077Nkl<Zc$~GC
+z!E4h{9LGOf3kn`~ozO#qIkln`>aAj6f}jUa0dMPJQbEK&U<E5w@aA=6$|@dn+F_!Q
+zVT8dhg`m)$3W+G_KQLGiqaK>~)+FyGE#ePClK1=N`^oq5doNjGv6vR*SBeCR3Z?+2
+zW#$%z<FHUqmskj}3{VA{E(_2A6WVEz7IJ^RtsJk{8f@*}&A3m)=0Qq`n2v6I--^%u
+z_$<bsHed7c&#o3$R=#E&+Z%fX>jMBPwFUrQoT~`HaF(yv8r-rz@$&eGQfpP`=1XUj
+z@}x&S23S>7c?d{((!;iG_MdrDBi5X19nFeABmh@$Tmj&cc?Q5FybOSY13(mLCq_C-
+zxY^#=lh;Q59e{)YL<i?Y2j}u$<V0;+L%3Qc6;{<`JPPqnn#wmb9+vQ*UsLA1lP2R)
+zD5o^-C=ugPD1oZz8;0yW)l1H6<br~@i{|6^_fvUYX?u8WPnpZp$TWlKG9B#pqw8A0
+zyheIWWk6Qd#C2VIpSJ*bP<evmIJpj7*X8inPO|=}z!8AsI5;>`;PA~(2B-ySVg<!w
+zonLfm!Op$609wZ|Ylc@xkL7(h4&`2#SxdoiAjO4Xz1B!{maYbnAhF*mr!E){IJM5`
+z_k8$vu{fi(pJ0>#D6f@qs*c<lxLKm#?-L9MnMQz|-TO{+6Wg}2Z6oo(Y^+7M+e(c4
+zeuVG)d_8_I#}?YXFCMTl3<JXuf_|bdiXe)zkUU2jS0Y|?_Az3T07j8Gt08$GzFgQc
+tvB;-f!r=e^oGcCem)|WVFeeIi{sM*J3(6NOEx!N&002ovPDHLkV1oa9Fya6J
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/c53267f4-e088-4a5b-81a7-7b39fba65c88/1f89b415-a24e-479a-8b7a-398727b6aa56.png b/sprites/spr_playerhealth_redring/c53267f4-e088-4a5b-81a7-7b39fba65c88.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/c53267f4-e088-4a5b-81a7-7b39fba65c88/1f89b415-a24e-479a-8b7a-398727b6aa56.png
+rename to sprites/spr_playerhealth_redring/c53267f4-e088-4a5b-81a7-7b39fba65c88.png
+diff --git a/sprites/spr_playerhealth_redring/c8d62700-317a-4969-af64-f60bbdc484a0.png b/sprites/spr_playerhealth_redring/c8d62700-317a-4969-af64-f60bbdc484a0.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/cfd332d8-5b17-4a1b-a036-cc404c6dfdc9.png b/sprites/spr_playerhealth_redring/cfd332d8-5b17-4a1b-a036-cc404c6dfdc9.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/d8e9c081-42cb-4cb6-8792-368f8baa2354.png b/sprites/spr_playerhealth_redring/d8e9c081-42cb-4cb6-8792-368f8baa2354.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..12e572b8bf9b94da9b7d718dd0bc1f987f568965
+GIT binary patch
+literal 715
+zcmV;+0yO=JP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007#Nkl<Zc$~GC
+zJ!soN7=|B(>>a!WLqWoZLP7>ZMnhHXsk`Q?kYeIcvIbhH3oT>|r6jJYLtHv~PA8YB
+zVCZ5n#5fR8kqX7hlA%L}PU;}vML#Dyrt}4)<L>-D_kQ>3P8xSpFlStw7hv9m0Kh03
+zGbeejH#c6^z?}e#09Bx1Q9uST7CQ-&5YP2ujvlYnltD{t8*H|!DfdZO6cmF5<k6VO
+z!N&AyPoJGc|8{wgFITNhm=YA3L_mJJq7d4y^<u$><AHRx{O1j?`#)p<7mOtp1i<e!
+z=-4J26YAs$$P<ufvsGoYRi(IUP+T=)5YsgATo2Fn*kWB8h&qaaj-U6??|sH`9Q4u=
+z=1zev);Z)_&JhlscRv6ycM1Sm^R(q8<VEG9Z0n^X04`3ic<^WirmH;U`ZlF0z;$dP
+zM$y1?y<mxiimL|hxkvANIo5x1dPS2F0CjS*U!*kZLX1ZZq(JVuCxJ<2!J?{@qsb^$
+z?kSL{qNpy<Ze+V%>q%G^WV^hV8e2|wl-4$sK`zg3GB;eP$w-!e@|{xd(QrJ#-mhTq
+zSLk-Tm^%eod0G1b;eHLr17+G%jsPsn!os54?Q+oHO;wZtgejar#Gz$b%8aBOJ$+x5
+z?SuYq%t4);{52V&>$=jJD5$8EFRVE0l9d%Lf_AOPa6I7T*9Uyxm##G?v}--yetjlm
+z0a_+VrB26@E_~ld|9xMMi9Jk~b`q3=JuE-LG)+uXkHNw|n?}Qq^*fG_ZJYAcpPmRZ
+zYsz8(_}2d<LZj<CVmlniiOuu<(4FHr7)1juagPaQUVKr#dU-5UCV;*#o+0FRVWDPS
+xd^2H-=q^{egu(y+I9V9@FP~dV;0(=;^A`%iDXU6O<4XVl002ovPDHLkV1ioWN$das
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/e1c7d83e-4e0c-4992-b127-286dedcaab80.png b/sprites/spr_playerhealth_redring/e1c7d83e-4e0c-4992-b127-286dedcaab80.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/e3883cdf-b935-4114-8b07-bed3e789df19/4f1b85c6-0073-4fa2-8544-ff4a37190c33.png b/sprites/spr_playerhealth_redring/e3883cdf-b935-4114-8b07-bed3e789df19.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/e3883cdf-b935-4114-8b07-bed3e789df19/4f1b85c6-0073-4fa2-8544-ff4a37190c33.png
+rename to sprites/spr_playerhealth_redring/e3883cdf-b935-4114-8b07-bed3e789df19.png
+diff --git a/sprites/spr_playerhealth_redring/layers/f6fdf4df-081c-4dfb-a496-48231745d017/6feb9cc9-08a3-414d-88b7-051c4ca97584.png b/sprites/spr_playerhealth_redring/f6fdf4df-081c-4dfb-a496-48231745d017.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/f6fdf4df-081c-4dfb-a496-48231745d017/6feb9cc9-08a3-414d-88b7-051c4ca97584.png
+rename to sprites/spr_playerhealth_redring/f6fdf4df-081c-4dfb-a496-48231745d017.png
+diff --git a/sprites/spr_playerhealth_redring/f768ff06-c5d9-4f5d-94cf-8e4ee1d6a3ec.png b/sprites/spr_playerhealth_redring/f768ff06-c5d9-4f5d-94cf-8e4ee1d6a3ec.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/fe53f4ab-54d7-4152-8396-028edd7972e1/e65f048c-18e3-4526-b127-55d55d2fa511.png b/sprites/spr_playerhealth_redring/fe53f4ab-54d7-4152-8396-028edd7972e1.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/fe53f4ab-54d7-4152-8396-028edd7972e1/e65f048c-18e3-4526-b127-55d55d2fa511.png
+rename to sprites/spr_playerhealth_redring/fe53f4ab-54d7-4152-8396-028edd7972e1.png
+diff --git a/sprites/spr_playerhealth_redring/layers/fe625a49-1d4f-4882-a519-0bf7ab24aa6f/b5acc247-e7b4-47de-a5ae-a8aa0fe854db.png b/sprites/spr_playerhealth_redring/fe625a49-1d4f-4882-a519-0bf7ab24aa6f.png
+similarity index 100%
+rename from sprites/spr_playerhealth_redring/layers/fe625a49-1d4f-4882-a519-0bf7ab24aa6f/b5acc247-e7b4-47de-a5ae-a8aa0fe854db.png
+rename to sprites/spr_playerhealth_redring/fe625a49-1d4f-4882-a519-0bf7ab24aa6f.png
+diff --git a/sprites/spr_playerhealth_redring/layers/0404e0ea-9853-4fc5-b686-090a409aa7bb/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/0404e0ea-9853-4fc5-b686-090a409aa7bb/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..3d4de5fe4e9ca5eac46dfcfa781f0b555c8b068d
+GIT binary patch
+literal 779
+zcmV+m1N8ifP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0008gNkl<Zc$|%v
+zJ!n%=6vuyQRO-^f#S$DYylO3Ua<bB-8izs`Dcux_x&%5{=+LR~d=L;F3SBC1C^ocf
+z(5c|?Y-%v=<Wy`^Nx4x77NJ5H+abgudAIj{B{^`(yYHU&|DAI`&P|Notl4Ee)=i+B
+zLlfX&<%IsJ(@=-A%>i!DUhAqCH4p%tZ4QJw>f@b&VW6h{u)xI31Nx^<IoljyyRZeo
+zC;7qSI4Pz90=`*iCZO#HDG0!JVM~dBz5YTu{VAsd(S2VzQO{v89TW<Al>CW(xaJY9
+zB156?eBbLZ59pvBl?!>ZumM1MCxv~uhGA&1suvoUB>>EkQ3Y$SSqz|0&qjyr{=2C}
+z?~Q#Sd+V7J2QZ9wLtr2f;wcT0#M<9eYueUq>L3*b;DP8c-Ez4&xm;WUp#{}V*X#?+
+z2B0C5ly_2;cT!~XM`ZFxo~etnsH`se9Y0n#7))3IEF8XSN7{<oojSvS#l=QP82t6T
+z>kD_iSX={vl<PRox>|UBt@OUW8~x_V$bTRKq+DmIZc+hkEUKaf_rv@FzP|FF3BGmD
+zNVf_w3}ovj%jGmxWFYz~lDI6fR5t;*6Cd}C2SD!nxY0F45<6ijSOr)vr-{pw0_u=T
+zM6e!^Tf6+$5J?4bf0ybeaamH$g$ze%1$N!tt3N#FXm+xM5P~^Avs_LGV0wQTm`_;z
+zuA4AY2xJs%*CchoTHEu&R##VfoBhRDtro~k<nx^8^H{)R0Bi;m38m%MyFf;hVw&Ck
+zlImNgiD_9#DJd3<+^^LbYmc25ivT>&WB?dXr8qv0F@NKwUpBg^TKjuyAe+5#5<++c
+zq?GE}aU7mpp6ggt6#!aOXpW4k_qOd7)>{<B)e6f9BJL!;Ea^5h<N&DYin@!!KmnK@
+zU8k#D_wD5>S1@Q*UR|V<X@F4Op8jsR*GQCg0`v;<06SP$o&P>(c_~<?20#D+002ov
+JPDHLkV1lh+Wk&!2
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/07423719-9dbe-445a-9563-857b61f2683c/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/07423719-9dbe-445a-9563-857b61f2683c/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/0810d61b-1ed7-4c79-a1fc-7a4cb5d4c567/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/0810d61b-1ed7-4c79-a1fc-7a4cb5d4c567/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..bfa51e085016fa40eda257ad76167b0ad3bb2b0b
+GIT binary patch
+literal 826
+zcmV-A1I7G_P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F00094Nkl<Zc$|%v
+zO=uHA7>1wJf(4-mZ-olGGzZaED0(SWx+R5TFQTE~!NVR31;t2v^oOQcs25x4ArP#%
+zpx0RHAreT)7KB_Xg-S!f$gcEIPdO9<30T%cGSl77ZqgS9vh#iOJ@d}a&LqOc<n)L~
+zdKKuE-~d!oH3sHR0}~qAL9Rc!+Ou9*paamz4hAN=<K2KkASWHmFcqI>VD6Mgc96YH
+z5rCY%<4K%V9sqc9U%X53<@e`~+J2CP0PJOoviQ)@XrQC<n|D}9&rnI#0Jyht8vv_n
+zg&Dy~$1+YORdXt-nv;%YoQETi9a_uiB-_nyH}NduPbc3xYE*S9shXokRY#4gBG%!^
+z5wj9b=4Nybj`rougXE6)H`iGG{zt~#uKL_d=7wy%j?&*;lYr<AHL$rMnx^sbSzdzF
+zsETmaFFM700Z1fPflnU5(5))~Tvi(ZG_3&u=9ve;J_s}{)fePONE!bCARz$u?iu#(
+znS2&8kqhuL_P)baA3h}#t5nMt`O;+I%#{0=FrSYE#`2{}s%1+qso#-D)v^T;m<(Vj
+z3VLAVe2l0O3d-3#au>OEa#)wYhZpnY7xRHJp@XA+oPXZqvEQE*wv9!>yN^ag0qz>v
+zzus@PW9i)6R;XIG&^KdL%N8exbxscJp1xk=J3!*>a!cQgv6frl)$BHFxdqwp?$bA8
+zfzG}y{|I-qwYB1b7)u2?Q@=!?u~hKDgiCSm2~cFQ5C_gb+G^R7$<?xju~Z1$N&c97
+zoNy$LA@RmM=iFiQ7xicZUDwfdO%6;Z4HQKIz_x9YNnOSa!^AKQN~I#p!wEU*_8k=o
+zJyc8Aexhj_nx=SMwEA=p1i&<HOw(lIc&q~gzU{r2DKZtGZY5^GG)+K5Q54!n+I{D;
+z?Up+~L|m3a?#&QcEW~BPRD7C=<1xOz*~Yf*c0oU&1zBHT>43D~yIirZSGn6Mbic~o
+zxqe6(2-<guAJ|PUKw#Yq{oNARNSL|-E(-DhyQpWK|7iY^$6Los5dZ)H07*qoM6N<$
+Ef)TZbi2wiq
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/0a6ae400-f777-42c3-a2f2-50d90e8f1ed5/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/0a6ae400-f777-42c3-a2f2-50d90e8f1ed5/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca25ca62beab6ca97901d0ca59cf308ba443689d
+GIT binary patch
+literal 691
+zcmV;k0!;mhP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007dNkl<Zc$~GC
+z@k-l39LGPkGQk(H1e{kI<}(;<|8TIkC@K^B1RD$-Z9y394f==JlD8OSNGshlC<%9+
+z5bFG2a8SBGVs6PbNn6Ig5EAZk-_Lz7zg$vcHO-gwmzEhUyI~GcwX20UNnbAY%j;MP
+zunsT_G+!5x15A0Fpj?Rb4*=M4&UhRjE%fgh<4jl*lnLn^?$W#K127(+Ygnu#v<SAD
+zIsF%X`yc@coY1@L(`;Vgy63#B34-9|Cg(c<Wi{gY3AVQTnO+-tX`Y`>^tE#^r1j>6
+zAV9-vHKGGS4S^6%W}==N_u@HEf^s2ASgaV91VRK2!`sY6n`W9<<=4pYmL2De@s9?8
+zenzojtjXjHdwZW!Z9C2x&uU*UVb!i8eK{|gpouT3Sl!H-InD(T6-At?*^JuaXBMCU
+z*#7likCVR4F9yrnXC~^@5GdsmhPS%vOqq}@6;>U9QZCc5%?41hx*8svyY9J83Q_e%
+zk<vby#gHf4_IMm05ugZADL{attVY<jmpOI;RI$3L+08_qiq++?5f#Q^qrv0&h_V{#
+zrAk6>hC|bG^+YpK=Vmxenb@|cm#M5qOv84e$3oRX`aNp3KnTId-Y)x_9o=ruJWlNU
+zZ<&Ve)OI9&$p%nLZ0|ZjQkR#Pd~Mz1y6yttYB1nxFi60AR4gk60ZQ?vno5;SG!5Id
+zyU}y&yL|wzz3b?F9i2~)k9DethZ4VMKXXBauvQBV>U{2`5-FwhwdZ-<hxZE*D0q*y
+zw)+~^>;2u8lg3Gz5K}9C_~LEJRQ%4E%LT<BzCzeKTIEx&VetQdPSytg%kNeuus}<F
+Z{s4KTGAWe|#%llo002ovPDHLkV1i;pMXmq<
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/0c234645-d271-4675-a931-b22ad0046160/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/0c234645-d271-4675-a931-b22ad0046160/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..3f1526d8c223a2d937beee2fafe63393507546b1
+GIT binary patch
+literal 794
+zcmV+#1LgdQP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0008vNkl<Zc$}4%
+zF-RLx7{`CwKn1~}Q-uz9n4z>%5Id%LC4%TuS`j)FdIdpfX^PURwKRf*OXE-ogtmC4
+zT~l$12nn7bxF~{P$dGd9q*De#h){VQ%zNJDUX1?Xk=*;f_x;}g-Mf3&!PO+%#5>v*
+zXqO-WD%l!cW5?QrdZCBAuWz-j*D4SJ)C)b@#9;g~pbjK*$vi{jkLemare5e_Bfk#7
+zn!g-M95J2(gmOQ8N%80J??~-tkb(eg<kwa4-rjz#qk;PmnamAS$<_cE%?twIRlQb5
+z5V>StRI)Wu$<{<JnHSIcUI@;YQKTEqZ!~!=<8KlR!i<}ulC23dZVEGQ%2>pakh79b
+z#)fTn_qWx|bqdB~r}NBh9;jH*RcCO?f{@IoII+`t1&H4>wJiv-EQ_VLMFleBCel?*
+zcFOw#kV?$~ze0fC2i*YNH0uDIdR+iaFadzSt2M0DsdFP`4Ez945CDJW41eWJUCWrv
+z1^Af!7ID={lTxWUs%4MjRzf>7<H-%&cYWGeaVtT!?5QPfb`(;z>;Y(#0UX1?)<!PI
+z$Qms{YyPs@ML`|zov8nJriv7&irSde?*2C7U-<PHYffsljb*_{&-+^ff;9?9;b%3n
+zbir*aRV{nii%F_wkHfta4);z%eeK4FK%<#K_3jGFUQ9B-Hp%SBcjnh7Re!M0UQD)h
+z7Xhu#?67d~o>yOoLl9@Wq-Lsf58zCfLNMKChyfi_rEy^%n5@q1Fq#<*C05HG&U8sT
+zxH+cFk*^_n$3)}70$}X+6esaIwrykEmg-NZ9Sp+&!1sO9X<Nk{$Hj3Rx~p9jj&dzQ
+z5!g`TC6;AjSw?7v=Y4hv0^qtnuIsX~`7;6m&GweM7+_%-1`Q*)t{ckp{d0HCkY+^=
+zzMw0q&$CNv$t2MC<*y#neDG<HavkhC(w(lCew<tv*Z^qjUg>kI9q=;1RY4)(C2Cve
+YKh-&Dl+Q+9U;qFB07*qoM6N<$f>+dcV*mgE
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/0e6751a5-9500-4880-9c62-2daf977a0f49/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/0e6751a5-9500-4880-9c62-2daf977a0f49/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..dfe17995c2cb545e2dd0f9e966ff4561f7d0a401
+GIT binary patch
+literal 908
+zcmV;719SX|P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F000A1Nkl<Zc$|%v
+zUr19?9LGNksU*8aFFjP?!d*5C|796Sg+xSwMM*)#q=zsJF&N~7{Q;qZ9twgejHoc{
+zVK74?C9H;t(CptDQgJmm5FvaJ9Ko!J^`Pf?&fVSS_ht9&{O<R2e&^rsx>%ahdHP-X
+z4Dtn}0lwdvVdcT3W58UWf%ojXynfj_G5~XZhGU@Gp9|;&N_XxJv8SPql?Ri|^%)F?
+z!T`KXJktXA7asx8V%u-D((|J`!`lv$5P-o@Sep0z=;rY1<p5L|h4O`tsaZt!00(Yv
+z10X&g*ZftGBV?x=YRobK-t=B&NAc#2DHusi&@nZOyTna@;G-jKnfihq@^3l_z@MV`
+zm<QIf%2!WO`H2kBj^fR{sI8<iH6tN*2~fIoZ^#iMvH|d)+fBrZIl=_6F*PIG?h-dF
+zY%H0P$Oe!QRii@#j1CP@S@oMYy;rrqk;H`d>!bpwY*a<87?oA<`O^x9BS9*R!i;qi
+zZTWv<g08}KGOPG_JY8TXtGf$eI1*$yGQZQB%C=-3u{}Gdj5Mi`3Zsx{G9|b3NMb^c
+zS{Qa2KHb3Z(U|;}8>CK~Fjvov0CX8XFnly`D4|*DyE`>5;px;*Tm_4#CnKZUn&S*d
+zf<%)k4HQkLh;6KraV@9Y0r=M+lsmJ=EF)sYxH~njLBMv7RG3gSnIf7@5%6E(QQc7h
+zZe4$b$7AC0n0Q++60u^y{Kh$S`=XPj4ia~lT><|U08WK_XgS@EX@Y6a_n9UV=55s>
+z{eh3!GkO=Fp8{cCTXUS!>T*h}%NaS}A>%9y#>OlxYY`^e%^OMpv|C~s;5zfV0a!e=
+zrPbv!K)o5he)z)e``2V99*?PICfaSUx@AV<z7s2!7Ps$UD9q85MbcP6qu=iXuyxly
+z0A@YA<p3rhT$0Z%z0(9Xw#q>-)F_vjI+rL~dm8HKdGZTDF0zn-T&{28rPs?1ua`Ar
+zZ`rzQA5G6EiLLiLLd4Wbi2|p>zJB-u!17<)866tX!OHW!`b`w|{naXfswEY^&I^73
+z9zK0c+pBH{+Ky>2*{5qT6lP)F9Sff$OdVaWQm)3@A=yB%P($p%Tv7mzzDxSt5@jTt
+iasieK(ttUX*XKVjk$5i|O{EtA0000<MNUMnLSTZxzNYp7
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/128a6a0f-1e57-404a-b3f0-c97fd1da100f/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/128a6a0f-1e57-404a-b3f0-c97fd1da100f/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/1608aa99-81f6-4639-a913-964709f510c5/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/1608aa99-81f6-4639-a913-964709f510c5/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..2007719e010af39b3f4a1559518622228eb00065
+GIT binary patch
+literal 682
+zcmV;b0#*HqP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007UNkl<Zc$~G?
+zKWI}y9KiAK6A5H!3ua3Zd=d&m6B@xr4B}!Y37y(O?BEhiMu!XzmWVoJb7@Ku3q~qf
+z5Q21y2vG`B3Z_KVA^5r^;NXz75bSae?H%{>{w0V%IKsQTcc1sWyWD#QqlE})H-ZKT
+z>L38jnCaWeYFmNhc{Pj#j03tsVqCxjw2eIsDa2}9wv4Q{#ll1gfVs)AsxNhVfHV7H
+zOowcUAc{d(H8u)mKGdEtf8nAdgWZFllsY|M%oWl)A&8znQCERS`>!3C1Yd^F+3p{P
+z9P5(!)d8S(cubx+tNgZs+v%h$c5CMg0D0n6XxT6csj@H;Ql(KS3qa(F3qe#BPIji)
+zPAA36^pv{x=!fApWpdF0(y1kqm;aC{Z;>Yspt935)U(#>&6tVRwt^uUbCY38ot`T;
+z90ej&XrXVeGsB&9L~djGyD~kc=Dk2<Bt(V-@<L?jm?v`Ss-w*TrBh1)H2VXZ{eh})
+z_6L+YJvDu9Q&*uy`Q{zhhj7hEVmctVxgcso^eGfXNzEiihxG6R47yZkd9If)R5{oo
+zHIv}}@?&a;$2OoqM3o9H8ilfJX8Gxu19CkX<XJcTr1~b%ksGT;wQl<VM~(#;XT4HA
+zxuI*Ts}~oUy`BM}`s|~vK2zQT;y~B+J?43+?mk#!W3$TL+sgnne>_(Rz{6~gNAK3v
+z^|j&)tnZ)IsV`3iX?Sji`KR{)__ntXK<MZSUq96Wc$3XBdy2_e&z{GOnF{gC$dQ$v
+z9l*wBmE!wX)QgLbKDoDhwrjr^pD#8}jPfd182tZ_ld-{n`P^~^eIjt2zr<fB!w;YF
+QDF6Tf07*qoM6N<$g0gcvjQ{`u
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/1e5255d5-eb38-418c-b24e-b266f3b25e61/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/1e5255d5-eb38-418c-b24e-b266f3b25e61/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..3e78aec031ca2af3d968aa7be653f809a58debb1
+GIT binary patch
+literal 882
+zcmV-&1C9KNP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009yNkl<Zc$|%v
+zUr3Wt7{-5El#+c#H(gj@;y$*LnPM(56%mO7i;|))79nC7VPN1zSrA!JP#{QRNQHm8
+z5Hut*%1Y9VW>#xh$t)AZf-VY2Fe_qR=sBM6kK3M`?c<#9`JLzNocCP<@hK8xJRz1r
+ztO*f-@#{ZG+8wf;FxRKyJiacb-%<k>z+9hZJ5e2v2DAf3T1vVpDlaB!cZj(@jc45h
+z06d(!YnZq*Z6APT?y)E37H>01LI9q14@mQ#&mHVty#j!(TC#lM{LCyOy^tMD1=&Kj
+zZvv0*2H<J$Me@?pEn6@$HOcvzS<LUNutfC*Gvwd*E&%?dyh7i#mQ}7YQnC(PKzV8D
+z+|SSE>v)CSX5l3yK#`V`Zd-^*1K>Sbh%Xqhg$bYvTkwn+5~(W?5LIJC{frIulb!RM
+zr@a>qV<S_OhEF@sM7uPqe8B(!Z{Mt>skxWuosTTPlX%WcOJ6e8a`Vd7(*-c>>tfh9
+zf6}VlTP#V<GN%%<fK<p<Eg63(ERXZZ)TCU!Fl^IYMgz^ok<iEJAa&b>xq4>=piOgu
+z=At?^gKA~0dFGRZM?RmTh&M|o%J&>(*w=+W6gGhTp)i3BIda~K%F_V+d(b6Mrbl<<
+z3kGPO`9#jL9R^>+JyKyp{!kcyC`_%lf!oFV0cgB@8;3*3;m~o`)XM|o3kKNJRBvZ#
+z1c};ZR;{-IfTIIFoTxmFu7j@6kLfxR=B!zSn7u4p_woyz-08-nySdh0Prm0Mn{%@O
+z7|G3|?dNX*f<c&=2m<;%w5DD@SEpuJI#?o*uuzla1rx?#tPCGU-_g{1NhWbPbVD-n
+zT=%#`dWm{xNhBg~&ds8h1_||#w?YcMxKaTVgUmV#C1m>MSpbrOAQ!|XwIl*a5KXJ7
+zyqKQOU%+Bj5Xvkl1>js+6%U<Gt~#BpnHVIqpp>e6(*)Lg`PTSerdjZ`R&TZP3fPCy
+zcL1#TwT-c%ej`}<exqz7DSdwp9Y9rFjj!d57l2!L+NpcoL4Vx=%hpW3KD1;nvIALQ
+z>guAka&>Mztz5zY%)n?;0Jgqy{oS%VMXI6!;sqIiQ54hXKRc**@)G{bH2?qr07*qo
+IM6N<$f|sS2fdBvi
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/20069efb-9786-4307-adec-dc653a701598/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/20069efb-9786-4307-adec-dc653a701598/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/2cfd3bcb-d257-4d75-b54d-a558d9145955/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/2cfd3bcb-d257-4d75-b54d-a558d9145955/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..82e5ae207b2e9681f1832e9d6e5008bd136a8e8b
+GIT binary patch
+literal 807
+zcmV+?1K9kDP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0008+Nkl<Zc$|%v
+zKWGzC9LGPY0Rx2&ZUx0Vnn7w2ijEaeQYdy%v=kg1ZU__<Bb5%~A55V`2W_E4AgFkv
+zYb;$NfrO?|=~5{~8Umi&b!w*!g+dCJb4cIoUG81eFI<v)zu)_P-uK<R_Y&i5^18%h
+z-3oL|@BkXQCW-NVWkRdi$Cbwyy4H&dgaEB#pEA)OKMkk?dHGa<TNAfQjPKJb_OVu2
+z1)$_E2NK7$`v8I5m+v!t|NAXeyAvcK0BeO+S-ii0Na<+!>J8HQQ5v}>0CyIy1K`+B
+zlo7mqs^B$pO|Ow_dihkrdob|GqdkpY_V{v-FL5v8Pe$fFJ*j(*T+`E&x~C^~5eqr;
+z#HfUm@llhl?M*pymHhGe;T*H;J2K{X)#INsKV;!elKA1A1SAJ_<>iMMhQa5jWeL)g
+zI>J?4G>Yc}kjcyfUju;tYrO!R*INJ_Itc(KnFPSyQW}=(QMnP)hCcyF2!OkCgu8Mi
+z??p`H0=!Cn2)XK^Lz&DhcHN=8F`^uqcJCb3X9LPud1C~-?#L<abQF+XcL0>h0G6g<
+zDkCR-M2$#L$z7JK$gkbnf&6`Os!VyRtc(e5ZExcJ3vQ3`&ZMYiEDGLyI1~x+*C_4<
+z-__96`IoJbU3V}SQ`mKf-P!@WwSz!gxBekVV(;?HTucG*dh8=}r8L%H1%SCyTDDOF
+zYq}EYQ0ZuC>1_Za3aCaY+N|k{91uh=hS*eP0yueT?YbkA?Ye_CT~T)KjQRTsiET(c
+zvA{l8JN&~zvW01yn5H2+WwREVrUBr(F4?RpW0qCLvMhS-1jW64Bq#*ixbz#tFfa@)
+zFv5158Gry(t1i`Qm9_ORA&C4Cpw6>Mz%)%m3-Y8~x9zSIavDepE4j<ueUp|`CV;Lh
+zzPm$Ipb$&|;p8aaiv3jEi-1Id;P?#b1Va0${_*^mJhBx4W!*FV-4e%$(EQE}FD}1h
+lerKjD;H;nk@Dz2e^B)XQk|Cmqci#X2002ovPDHLkV1m}mcqae=
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/2f508f86-5733-46f6-8604-88185bbf5c13/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/2f508f86-5733-46f6-8604-88185bbf5c13/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..b28d03b21fbfd970ab5c49f66d4e914914cc28cc
+GIT binary patch
+literal 845
+zcmV-T1G4;yP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009NNkl<Zc$}4%
+zF-RLx7{`B!(n<%1F3Lg4g-c0yC#6ZP9f~fcxD`Z8g+ND<(t;%o2(_gME`<Yygp|_7
+zx+xApt#Ed6Ek+XWqHxp}IykgiNYf#?mwR_-qW|Sx^1k=~z3+P;?=Hl}RBJOIYG=?c
+zpa!t_{uf;%CxHQ{tKHmsdcCdRc@sXs>1uaipnJX*FbGuB?=5p@^e$Z^C!DT!v$ebd
+zz`C^}1>RR50{CK6g;Afk7bGA6Tgw~5{B!vqJp+>*8;gYb=-b`5_rCxbp6>&|ESZwO
+z8x#n6kT^u&&jMf=GXV4qOo~N6jUn+IiA7nP+6{zBpuNVf9LSqzAL@XeB>H|9O@n-X
+zhOx0(%H{f^G8O<G);0iFuVsay8`SB}W_Z4j=aF};TPuA1b5krB=>Gyth|B;qt?^J+
+z>!Yet#^TIs!lJP#X34App|G=Xt}@Nq)Gl+CX$d03n#$*An4RrF)0$8X727WQ)&hiq
+zTGUfpfU26n*hymSBpJ^gFrGUQhWY#qmC9=(kr$GgbB1TXC&YizSQMZZazKtMC6ity
+zLsd;Q%Y=%iA<o5pR_+X;*(le3JP~td$>dy+lhv`YDCT+wCecs@%#pV-f<T?LkOTR|
+zM~Z-M#VM=x3>|Z?obIb#sS)aIHgz~C*tUz}P!%Ok5r_jRJI#VIL>Wuky^~FcwavVp
+z29O|upnp6P07Z#YRTJn+M!<@|f-yvgwJm^dNN~>)TslRGOTVjXg1C(Yo43<Ukr6Qt
+zL|)mHuNgpY&r}LjRpps}g9T$qf(4CJN`~)tnuyEOESZFXP~)nQGH`2YX^FR~Bl;^9
+zpShaLahA)Gfkx4FdKE>20HMIrIh_NLNvBC?GFX<y;JrbJMcFKD)-&I%kB`U40l1w^
+za(o=(Z}l*+bdIDFddmlp&1ZS_@|9#@S(bP%6bc;KN4{*}oMwRf#pu9vy?If(jotD>
+zyz;&Hyo~|!ZQ)idRsaYrSF0CaOW0-Pg`5Y1#>dHJfv)bo(8tN8fvo@+1xdgbYU}eK
+XACz}mP8Q5U00000NkvXXu0mjfR~d!f
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/34ab8704-5226-41c6-b64f-61368a7efc09/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/34ab8704-5226-41c6-b64f-61368a7efc09/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..75f945997a1fa35789678fbb2178c0c5574ba99b
+GIT binary patch
+literal 868
+zcmV-q1DpJbP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009kNkl<Zc$}4%
+zUr19?9LGNku|~F{mmVr`;x1Fd|G7XiLL?SgR3!AEM1=i86o&aA7DyHr6a>;Tq@tt;
+zK_en1tfa(X%W4fNxiekFpn4D-!8C~VkoR=%A2<EJ?3{ak=l9w7oZmg?+E|&AX~u2o
+z5~K@A0!-bUW8MC^Wx&Fa1NYg@Y4a^NU;-=*IV=O^@l-%7P_n0LfIUa{vTlEzg&_y8
+z21WsR7JZ}(+?Ra_z!ZDx#Sv3(BS=61UJZ<j<bz-OIJhAbfFg%oOz4Qsqqzt0UM~e;
+zc6wHqUj|u1b~(YL6aet@@g>T$b4*JRjLy&zo5z{!WZ3u461GO3V1)en*$=?)thXrM
+zO{~wWA*=A12~?h)!_$gl>JxJUVw46-_EZhvy<Td9Xl?-NnkxyYVM~|>tWV5|zBAVe
+zONAvIb$xAN*!PaEuPp*1YjSLa$*~cNOBQ+g_>yic7@g7mTFC|^jcZ%*BPIeWJhc>;
+zEb`&~TE+wY6gljc`(y;)w~JC|c6#<dNPehQm#mclWLHK|hA~iv6gljK;t5gC!RU;D
+ziG+?keF8@w_3_W9KVWjCEt~wV7^NjYvo%-u+#j13?PTIRwhY_yjw(F0j0gG&#S=PU
+zD4rm^twh8%o@@i)&v3t}Opj7PKn>%MO$&%7-Fqa%G=<^`Lh%H?x=!xxJq*B&EBA1@
+z6kIL^cT+n7H4H#N4RfHo-EtKyK}PxNIsrI7I!NQmHWURE<=>d1AYkq$YltPtA05Y|
+z6o}*%o?7zD3dt`kBzUev#HlJoA}Xr-AExz<d#8bHOJ|Z$ep#Vt%O}I9iH~&mUKUPV
+zE=A`|>$g7d6LYll&QuIC%txnyhNgNU3*KBk0g>0tyDA0b+nw_O*a4M`$W<&m!sx2}
+z@@W9E$(nZTt_I*jO#{!|ZmzlAY>d2S$L?wxo_r&`rH*Ew*W^Y9nWVu!O?(6(^Vd!$
+z$42yEseQX<JKg@~<<gliJ}cY7wp#$)efWUZ=Y5Q{9yP@@3{L3!sV=^hu+_*2Sq=nC
+ucgSji(mt=~<7CyqRDhL&bifo!o98dWp;Z+^v2ut20000<MNUMnLSTZJ{E-L%
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/3ccc89e2-9fe7-4dec-a7c3-d7f03b9b68a5/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/3ccc89e2-9fe7-4dec-a7c3-d7f03b9b68a5/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..eff749b1997063cc5c782a6552098ee931ccc8c1
+GIT binary patch
+literal 870
+zcmV-s1DX7ZP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009mNkl<Zc$|%v
+zF=!J}7{`BUs+JBNT$CW>LLzl{YB5pkQ0yY=Rtc>j1RPrEP^eVWgMcVl=pqCxB&4{t
+zb*ebTrUtHE+(g^bvo8w4Ds<?e?GWRTyO(=+m!uzr_g>!j{=fI#`|f)e;B;2+Fdyh7
+z(8-|=u>I<go{=M8hvT(At~@^9QLoj62XMUB=j-U4ZwK@P)w8#jxqkm9JtIdPul2F9
+zybi#7v8p%@Yj*(@-zP68STUD8+HR190BkI;OYs%+9~TB6abUcri#ML#eR*{V!0q{~
+z0POGWEBa25FXT@AJK5bF0ERKk;9v$5As78NhGah+i|}shlP^pGZCkstA<w6m8i36N
+z+1(t`Xw%s=t=57DMHzr|y*cUQ1a&*3aYDBKUX}|62R;Jh3QR&xt<h>4CV~^ughgTz
+z_V@PdK%mPOvmY6tKvY=M3WZrRnIO?<6B<RMTHW!i1?cjN2B4<JF*Xwzn+eA9-x$k(
+zlY)i9ES1VL!r>W3%rIsFIQcU!|BJ*T0QGKM_SRhDVn_#IdUwv+X=B&+xg?Vr!r>W`
+z$&4Dcl_)iUUpY@izGfe86b&H?6pICU@TQ3ZaVLhKDG|9}NB|)U%vaOw09kZQtpT^i
+zTWzp@woahCnba*Ka@r2i52UJT7K|ZGglG3Af}kifUrhrj5MR(gMrGy%MVXowCmYfw
+zYzJ5{h6swX1Ue!9Ip+e|wJQ|rSDb2ETte)2zM3W|%JOGJoGaf=eUg1o*4>MCvGun(
+zemq=8(=;aez=AR4fjP(hz*I=*XEjYY7LldMjwp~S-Upg5ZB2_S@WsVNUZj37P^ow#
+z)AD&v@_BS%6o4!jLm?TFU4}dn4QqGV`dXG_J)I`4>j)tzl}g;GR2Z=4PD&*J9*&Ix
+za4nJG;2^-%r3t0dK%1hffBh^cQmICpE997aI;RK-A!NT;Eb`#Yq=Z-(p|^UwuL&pY
+zTyKu?<hc6*w1jLduVWpF2jmNTFIJVZ<g{3<2;g~KZipYq1G5)G`>WjP>xQ%ff%S3X
+w2DUQ?z*qNFpIi1d(#qNaP76|iZLFitf2}r;wQpjJ_y7O^07*qoM6N<$g7RyNw*UYD
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/4bdaea9e-7364-40b7-a8ab-40ca04c3857e/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/4bdaea9e-7364-40b7-a8ab-40ca04c3857e/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..66a92f9c3567197d717dbdc2e8f96ad7e878e4b2
+GIT binary patch
+literal 727
+zcmV;|0x127P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007>Nkl<Zc$~GC
+zJ!lhQ7{`ARX$jUKE)FWRr36w-(uCL>LJJNZ9D*Pia7Za4!GaJdv_l6Wkalnr3K1zN
+zZE?s@DB_gTf+51i(59hOsig@>hAu*b5TZjI?E8A3`9S<H_uReD{eSno&wKZtgU-}!
+zGwx_-&@Q0~FfcUGGO2uAZtG_^&=H^;pcSauEx-n-^EQHPA?4#T_b&GUFzRy3>xt?a
+zV6NT>(}FA^GyNeHw-<oz%|*ug2TeKo$_a_;SxeXj%f~;L_p}PY&%RH%?_S}OCrqF3
+zp($^ye~|YfKU4MZwq62cszyLWH2~501nN=A5+;CJ*tuuZwju%1>L8opAe+G-Xt2Gx
+zs2j^yPIN~rIgHh4n+_0CBKQLh_I7*8scA-CPRl+S!K==zI?szO?*MXYnw<J)rNz9r
+z+NIl8Wddod8Fe`+*6MOO=PM_&8ezEV^5_j*9;RxaO(4_MiT-Hc6{Cdt%=IDN^;Grv
+z@5!%I8Cp(VNQsbB(-doU9k5udQ@Rn5d2jCA2S7b4$(5<Ny{JbeJ@8zXt1hHOWL&J(
+zDc0)DMw8N99JS^~Xh$HUW}`^}rgt_h#|6v|VhKuBawu-EG!H2ehJ!w)cQ(k+C3yOH
+z!4@WD?41BPG@o|>hJ!wnL4Gd5VPT);l_lG!7MkB$m$CTX*}g}^K_9auCA9cu1^VFQ
+z^G5)zz4#z={egyz_jY?N_c1Ybx~j&Oo&d-u3yq9V%J}QnI??z9(f9--<CDbReWP?O
+zN~)4GRig!&Bw&YyeE@oX+~y#g0U#ZYF#<db$7KGi@J*IeaXY)tHopAAO8{QKU1NT0
+zoy`0LQ%-E7pgV81@wJ3?qfWMR34{OtbJ8{NUw*eNfi2Y5=QlZ;0<+Sm;#dFx002ov
+JPDHLkV1jK6RHFa@
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/4dafc371-be90-4bb2-9a6e-2e66eba19604/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/4dafc371-be90-4bb2-9a6e-2e66eba19604/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/5b4391cf-e34d-49fa-9689-e81633367732/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/5b4391cf-e34d-49fa-9689-e81633367732/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/5ddc363b-d15b-40e8-a253-c6a3057dd015/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/5ddc363b-d15b-40e8-a253-c6a3057dd015/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/61eca45e-e012-497e-9224-bb8fec04e01d/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/61eca45e-e012-497e-9224-bb8fec04e01d/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/622bbe67-e649-4aef-a539-b9455851312b/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/622bbe67-e649-4aef-a539-b9455851312b/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..2e003b7804e25f976a7b3e322cd9cf458b301def
+GIT binary patch
+literal 699
+zcmV;s0!00ZP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007lNkl<Zc$~GC
+z-D(;^6vuz7A%eHLFw8}&(UL14pbIUbg+4?;k_#au&yb>$K7%3@Y7l%2OQ5iQ0Ixze
+zS=+#nP`nMKkZdn@cbxqgKPdf!=<GS1-#KT-Gi$M${3Uj4S%75@K0u{bS?J`s-qLs`
+z!%Bd4fLS1aU4Q`?i=6~1i068-iahrX042N0Z|8j~_^U*6Nth0bL3{)jQW<Ug7RNbL
+zut+*|5o{xs8o}OJVZVJukdd<+S`YYGEpu}dtR6U^WH-rAzw`76h2lVmDCLsXL=vLI
+zbssDwr)=RPLg<L$aF=Qos@1@^N||!G!E^a7p6lVc9w*dQr;HUnJszpw*L`?>JOS!-
+znawL41{F3Mw*U;o^-1UlGrC&)H<HzC=6CSq6(zfg^Wz-=wmqQd>_V7j7ElKO3Q(z4
+z@LbQglAxci$F}Go<yA(lBh`{_7%)qxY|&$aez<ZbXCd||*-dQwGeYczPY>uZQNdP$
+zL^6URInEjPvPF(j2>+&FCWsK7lr8fxm?UKjq`n_<^_UnlPd(q(vUza60PqriPN?G}
+zVi3KB(E(WrG|xUd3?n1JLegVm+%H|J))k5aHP>JiW;sh`AGPU419zFREjrxGR%#qY
+zv(AqX&|uajGu014)QYbc7aSfQs(rJN2q7pG3n~_184pA7hm)~qm0E?%@ugbtf7qve
+z-X^D#r~^_#vMNedrH`TG<KTNR9MJyMjs<9+w>fGAzO7bEP5p2pD2B13LUEvA{r-F^
+zPp8vN|M7UNrheANX}tJ!MPn(cT5Zgoykj%J!=LA0G25bxZy{_Qt#Xws82ta2leK~W
+h^177?T%e_K{sLYE32fmg(GUOt002ovPDHLkV1iR|H{}2T
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/64fc1bd5-7072-406c-a82f-6a4e28495c97/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/64fc1bd5-7072-406c-a82f-6a4e28495c97/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/7e4e5a7f-7ba5-45f9-bdbb-2a9bad67048d/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/7e4e5a7f-7ba5-45f9-bdbb-2a9bad67048d/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/8938afeb-1e19-401d-9cb7-82bd1b687ceb/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/8938afeb-1e19-401d-9cb7-82bd1b687ceb/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/ac406163-806d-477c-b120-c1823ecfbcf7/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/ac406163-806d-477c-b120-c1823ecfbcf7/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..e9420b06544060286f6edf026176e7d4dce10a4c
+GIT binary patch
+literal 777
+zcmV+k1NQuhP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0008eNkl<Zc$}4%
+zF=!J}7{`CrfQ3Q_CkqaDG=tP4lsZOwl0s<~(Nb^_JfTofs#M&p7$HNabPxhTB`3~7
+zx<mpAy+WajQYaWQ9NcwkrwoNc3YO>4yw|(jOVWODB=`Q``+o2L^5xzQak&r!^r1lo
+z1|<l9W}(G!=2)B1u8eZ$<;{WhdI>Q=yE3Xx4D0=XI*=%)%gii1WH@t7yE4jlc?*DQ
+z@H3J)XFLXo<u2D3Vzs+L3IecQ-crTK#wN9nrtaQnsW?ls&;npSKMjEI`Mr!Fis`aw
+z7FwcNXo+IFES`)%6P$0O$ab!vbIE(Dze=qOGii!up(V_uDa@oPwU{FzS0$ZfW^MNV
+z{#Gm3MOaUq=J>R8ptP{7YvC=M&rd5z{zH<)X-)x>6Q=eGLoCapv{F+bGif4SCFJ1x
+z!8?Av{lk2In$qhU@FM~kyEg*B4YLivsXq+BB8vb7ds@RPt^vYKnhFvQW9l1#f&c`Y
+zX9SyP>RxIx7vO#ROU#wrIt3}M)bJWUwcV6<WyYiHxNpX_T5UIl*YMSrb~}oM*YE+f
+z$pDUFU~83&IkHAyknEyx9PXc}@3)t0)Rt>nEnGwVi#{F`-ATRLSQdQnbh0NPT%&Rn
+z{jbIxh1*t!*YL47(s&J@!~GKu_fH~YgXU`;b%(u?24HROE4k_t&O{x6Ty;r}Q3YqU
+z-nUN7(TmTs5r{0HTcsRxR_kg(pl^l*Fywo_==6Im(QEiPt99+<ZcUdXA4BpNi-0n>
+zmN`kbv27dMw$ykw>tGlL06`Ft&Du(H92duN81aUw92I+lVz8Oib1cikvW&<I&&TWt
+z1i*CzT-RlL=X(qSeVXB7f`wribd2D-ZX_=V&fRrGx+8Y*g<Z+`xK>hICV@d9KlPCA
+zgHL;u>tI(2-Rau*<>acs4nSM?Qm<Qsfc*fM1x0{;Vql&Bg{fq>TVptV00000NkvXX
+Hu0mjfJ$q>d
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/bd540e33-1331-4824-b4ba-493ea5ccbf69/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/bd540e33-1331-4824-b4ba-493ea5ccbf69/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..cd293a8d9c1fa22d847ac67571a9f9ba2cedf690
+GIT binary patch
+literal 659
+zcmV;E0&M+>P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F00077Nkl<Zc$~GC
+z!E4h{9LGOf3kn`~ozO#qIkln`>aAj6f}jUa0dMPJQbEK&U<E5w@aA=6$|@dn+F_!Q
+zVT8dhg`m)$3W+G_KQLGiqaK>~)+FyGE#ePClK1=N`^oq5doNjGv6vR*SBeCR3Z?+2
+zW#$%z<FHUqmskj}3{VA{E(_2A6WVEz7IJ^RtsJk{8f@*}&A3m)=0Qq`n2v6I--^%u
+z_$<bsHed7c&#o3$R=#E&+Z%fX>jMBPwFUrQoT~`HaF(yv8r-rz@$&eGQfpP`=1XUj
+z@}x&S23S>7c?d{((!;iG_MdrDBi5X19nFeABmh@$Tmj&cc?Q5FybOSY13(mLCq_C-
+zxY^#=lh;Q59e{)YL<i?Y2j}u$<V0;+L%3Qc6;{<`JPPqnn#wmb9+vQ*UsLA1lP2R)
+zD5o^-C=ugPD1oZz8;0yW)l1H6<br~@i{|6^_fvUYX?u8WPnpZp$TWlKG9B#pqw8A0
+zyheIWWk6Qd#C2VIpSJ*bP<evmIJpj7*X8inPO|=}z!8AsI5;>`;PA~(2B-ySVg<!w
+zonLfm!Op$609wZ|Ylc@xkL7(h4&`2#SxdoiAjO4Xz1B!{maYbnAhF*mr!E){IJM5`
+z_k8$vu{fi(pJ0>#D6f@qs*c<lxLKm#?-L9MnMQz|-TO{+6Wg}2Z6oo(Y^+7M+e(c4
+zeuVG)d_8_I#}?YXFCMTl3<JXuf_|bdiXe)zkUU2jS0Y|?_Az3T07j8Gt08$GzFgQc
+tvB;-f!r=e^oGcCem)|WVFeeIi{sM*J3(6NOEx!N&002ovPDHLkV1oa9Fya6J
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/c53267f4-e088-4a5b-81a7-7b39fba65c88/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/c53267f4-e088-4a5b-81a7-7b39fba65c88/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..f35d646ab3cb168fc3bb0ebf00611537a93c0e72
+GIT binary patch
+literal 897
+zcmV-{1AhF8P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009>Nkl<Zc$}4%
+zT}V@57{`ALsiZoEH(gZVVmoXVe&+)FK%`=UMMXjvN*7@*LSYwPhy{`bT{H+JGo-|%
+zi-AT&N?1vW7c;9hq+%`|giu`=j^Jn@>tepI=j<Fe{om}o=Y8J)?>x`@H5;o_GE2WL
+zn?bgKB*3?Ovur$(und?VP;gzz%j&mMhY2u0pjZa#`!fNpK*`RkK8~ENWaEhh^8*TR
+z`-TB{8GmXBJf43Vz!2Mfr-A<Oy(aH;kc0rd?HiWn{oi{zwPig3MM|z5&^j}R$R5BO
+zC<S0THf`|NgDfEj?BG!g0C@B4Cgu6NO(htMPtiIvhuvXk(Eq^_woX4F9kTd42*AJ1
+z?@_(m*yOHebK!Xts62l+FDi<u(`F?kT>_Nstm?Cbh-?6A8xIqTMl4|hSf|a(w%uWe
+zrG+Ik64?L}qSwU85ECOq6qhXU=Gjd{-&lOg@N1<Ut8DZNMI#iKz^9KJ7!3s}QgTi6
+zB--+Qe2SjjJek#WY&w~fPS&q3fYDHp(NJoo)fent@r%>5v&zUIJ)}s<C7jUYavqCM
+z$*&fMJ&N0Cptz|^e9a8fmra=K_lyAaC~i>P_;xt(>H0cmViKOzeqzg6-aV#_Dm*oe
+zhJu6>ngJ9}Xhe3F$hfN)n*mrH49b=1Q40t~BXrEf3=l}$M|zl0IH3_vX!vW}=&n2i
+zz}?&3IGrj^r;4kgg-|pCq!!M}_7*G4Wso;eD$lNT`D@z%xG>z$)r-xjDyV9zPgRjH
+zSA#VKbfwcD9o@%#c+>&{k6Wnl)Uc<l5P-3=LVErz01%DB<YW|3Q_zMM+4k*l&=LP-
+z%E)%<^;x`uQU?7W0HiS(Plhk!pK0&9B{Ok4RYPW?-SnzgjuGdbn6c#2agqA+=KIoE
+zK*Qg<0N8ivC;)TL!!rKI!)x+cJ9vXezt;p3b7Wh30YLe!%K&ncg#_e!bv-X#F7CKo
+zY@K|^zC%Z;fBu8W_F7AbD4nGQ?92FP0M`HA&&0@(5v+TDP`!)xj>eVj%om@&ghHZ}
+zkDffH=~XX7P3KH8_5I_9cBYFjBWx{7hpYsGr8{J;K;1mA>d(oVftdiS1sQ-Dl-1`y
+X^A=qN1Vo0=00000NkvXXu0mjfZAGS{
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/c8d62700-317a-4969-af64-f60bbdc484a0/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/c8d62700-317a-4969-af64-f60bbdc484a0/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/cfd332d8-5b17-4a1b-a036-cc404c6dfdc9/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/cfd332d8-5b17-4a1b-a036-cc404c6dfdc9/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/d8e9c081-42cb-4cb6-8792-368f8baa2354/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/d8e9c081-42cb-4cb6-8792-368f8baa2354/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..12e572b8bf9b94da9b7d718dd0bc1f987f568965
+GIT binary patch
+literal 715
+zcmV;+0yO=JP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0007#Nkl<Zc$~GC
+zJ!soN7=|B(>>a!WLqWoZLP7>ZMnhHXsk`Q?kYeIcvIbhH3oT>|r6jJYLtHv~PA8YB
+zVCZ5n#5fR8kqX7hlA%L}PU;}vML#Dyrt}4)<L>-D_kQ>3P8xSpFlStw7hv9m0Kh03
+zGbeejH#c6^z?}e#09Bx1Q9uST7CQ-&5YP2ujvlYnltD{t8*H|!DfdZO6cmF5<k6VO
+z!N&AyPoJGc|8{wgFITNhm=YA3L_mJJq7d4y^<u$><AHRx{O1j?`#)p<7mOtp1i<e!
+z=-4J26YAs$$P<ufvsGoYRi(IUP+T=)5YsgATo2Fn*kWB8h&qaaj-U6??|sH`9Q4u=
+z=1zev);Z)_&JhlscRv6ycM1Sm^R(q8<VEG9Z0n^X04`3ic<^WirmH;U`ZlF0z;$dP
+zM$y1?y<mxiimL|hxkvANIo5x1dPS2F0CjS*U!*kZLX1ZZq(JVuCxJ<2!J?{@qsb^$
+z?kSL{qNpy<Ze+V%>q%G^WV^hV8e2|wl-4$sK`zg3GB;eP$w-!e@|{xd(QrJ#-mhTq
+zSLk-Tm^%eod0G1b;eHLr17+G%jsPsn!os54?Q+oHO;wZtgejar#Gz$b%8aBOJ$+x5
+z?SuYq%t4);{52V&>$=jJD5$8EFRVE0l9d%Lf_AOPa6I7T*9Uyxm##G?v}--yetjlm
+z0a_+VrB26@E_~ld|9xMMi9Jk~b`q3=JuE-LG)+uXkHNw|n?}Qq^*fG_ZJYAcpPmRZ
+zYsz8(_}2d<LZj<CVmlniiOuu<(4FHr7)1juagPaQUVKr#dU-5UCV;*#o+0FRVWDPS
+xd^2H-=q^{egu(y+I9V9@FP~dV;0(=;^A`%iDXU6O<4XVl002ovPDHLkV1ioWN$das
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/e1c7d83e-4e0c-4992-b127-286dedcaab80/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/e1c7d83e-4e0c-4992-b127-286dedcaab80/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/e3883cdf-b935-4114-8b07-bed3e789df19/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/e3883cdf-b935-4114-8b07-bed3e789df19/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..46c313dbde171569d6f69ec69f13836d309d36a1
+GIT binary patch
+literal 922
+zcmV;L17-Y)P)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F000AFNkl<Zc$|%v
+zQAku-7{`CJNHt`)rI&rM$O-2%<A$SV8Aydhgn>mX8|=eKgt!=?FqDK@AX!vY5J+M~
+zg;@^+PDHE`wn@oEW9~K$VsSNRB82Eca1h3Vm>#Bcym#)=@q3v$bH4Nc-T%4YIo~)~
+zUZiu(J8}u+N=O5|zdpmNeMx1){D6k%=(?PGi%r-7^8=bP(LBEtPz6f&?Cxh*T{Wxr
+zC7B=4c-}t*z>~xSOXA+bg8-J?wkyqqKJ?kNvq2I9@VtLWiibY*abV2~07^BdT+lH+
+zi*OH6b9D;<@yWPF-waYhw!5HGF9G1$!*gsa++^E=k;D`o)3dmWTs#i^r-c1tUXTs>
+z{v`;&xBS=WHNUdjTT8z0FB@oE;U@m6Dx*F%BO%!#K<S>{{Yr>%1K@AjNyLaLVFFm6
+znvr8ykqdqnmUJZC01{%3vEf0+h6gDt|H`w6=PYw0i7CscD)Llr%n>nSl$FDq|5p-@
+z1S!>=w)Z5)^7q6Pz0P&gReUm@&dVm7s|z3;2@;NEDy^~P_eGyL+nvghCCrdg%}F$w
+zlI1*-n37K|1ba2FRY3DnpM1A8$h>Vr+<ayPpjY#P=B25ih$hoq_w=NMr&FJC<Sm>Y
+zo1?1ALxdwiqREs66iudxtuL2(#~RuI`2IL3E3;BBA!5Yno}RQoAnP2NVIrc*6wzdg
+zfWMPF)qenR?cyEWZXLH<$J5+S#E1cz!r9-|u9CEZ#NCx00e>d|hlfHOYiL8)LDw^L
+zx{ic-n$-}cqgV0F76|dG%0m=a_$aRMF><0q<{1V|Oc)r(0!)mX3W}5<$KU_f0Skw=
+zxWXqB%s0dM=v%sOo|jJCZr$Qcj9Z`f$u;7>vlWBbzTyfW0Xii#`u-;5!^=xYVB!U{
+z?wu0y>DFlgoPfbuarG#-&LNuCuDWVM_vQfPOBS(t#~uLA)Hd?O<Kc?O!`g`#Y~Hbl
+z#z&us{pP17P-Amr1_8(hXNHZBz6D^#+*Zbh2d!Y!_Zzhv=<05<IT5j}#@BPo55VpF
+zcWHgv$6)K9HlfDQsAarV<5R)}5EgEZH;(Y4Pp*P227;eGBpV2sR&DO03V>2~S%0@g
+w8xe8g<8e-Iyv&7<$8!Rf3$g&0h@3h<0NNpNJI@0_Q~&?~07*qoM6N<$g3^AwF#rGn
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/f6fdf4df-081c-4dfb-a496-48231745d017/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/f6fdf4df-081c-4dfb-a496-48231745d017/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..9571806800f69d498af80a8857e1932474dee2e1
+GIT binary patch
+literal 891
+zcmV->1BCpEP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009*Nkl<Zc$|%v
+zPiPZC6o<bwMa4r8UMhRZhK<y_rxp{n9*SN>y$PWe3V|LJL`0>ME(H987J3l^78162
+zt9q*R5ZfBu_99+HO>ynS!eSLXc+gge@sR9fC%b9-Ak0qYz2EoV%<RlY*qhb6j7Pc&
+zbaSW!e0uzo180AQI&3fWadhHPSG`UH0l@Y`U#O#hd^cbisGdJP&xwntIB@nC+Y5cH
+z%r613D4r{hBl>v&#rO83D?D@N0^02$2?1D{Uy|a_oPYEWjk9Gxp@*k|>^?mH3BZ}@
+zV*qS?-ca=Ypis!U<X7_R1psV&5`g}paT)Z(9+uCsM4Xq`-iE>y(5Gfr9_0Rwxdvc0
+zMSi`2VSr^#l1}GvoJNp?03a&L0PH_lkb-_tufG~UWbMxp889^X8W<zLULc*$0bm%-
+zK}T=2x{iZjN3>w^M4XM!8+9Pk<B54w1}G2})-ubQB$ta~7%ixQj_Xzeu>d_`)d1A=
+zB=%|wdo{&q@e8BHFH+F5CaG5M5{unZ#Jn}!`8_88izng$^<LWSg)_%t%>>}a`cyO1
+zM%LcCq|-TKv0HK){nkG;P7UCDAy84Md5deHBZNh%WXXkh92AI`fPXi(n^IBx3ke{E
+z#k8BH0^~7q^ak7$@04JDU!6#AYg30-<hm7QQ7gazka4rj*uyvoS)Hs3K~$8PcC!Eq
+zBoy?IO8{uv08vq<rYFg3ri4|18GD$hC`+Ip629l!K;GG<X#<K=O;1XQ*G{`xqM|H+
+z9z>07Szy;)FnU<~)9O!*l+ksatGr^y9uC0#{Q=;bX7bI=5^HR0rJ_itbP;I1v^71c
+zIL*$^@*uOxV6_^kOfMGMDHbuIIq7*0YnqJpj-fzBBl>yPK9*(Q%x1}&CPD~Ko<7NP
+zwaQ>~Y-f2HfXkz!031)H*xHKlxArwKbsY~?^W%FtkjXUKf>mJZ&Xgh`gpkjrQi)A>
+zGf+(c)P7C)Vfzmj7)y@@GVKJ}4HODn6wj4o$#0272_SU3cDwjOVIB}#C&#<Un~s%*
+zK{|n;`Ek+?gvM3vzePg;p}Kqe-14pw&+b*Pb2Ijkd)4b*0eb~0z+J4X&VST*m%M51
+Rz^?!R002ovPDHLkV1i^jpTGbB
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/f768ff06-c5d9-4f5d-94cf-8e4ee1d6a3ec/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/f768ff06-c5d9-4f5d-94cf-8e4ee1d6a3ec/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..17a0f78d91eaadae0a0fce9652d7697eaff30ba2
+GIT binary patch
+literal 83
+zcmeAS@N?(olHy`uVBq!ia0vp^QXtI11|(N{`J4lBJY5_^D(1XBXvhfU9a`|!KbMz(
+e0RzK>iws<=7#P*sUFQMC89ZJ6T-G@yGywq32ow|m
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/fe53f4ab-54d7-4152-8396-028edd7972e1/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/fe53f4ab-54d7-4152-8396-028edd7972e1/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..da2a941a178843122600afd0401c310c85f26c2f
+GIT binary patch
+literal 773
+zcmV+g1N!`lP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0008aNkl<Zc$|%v
+zF-RLx7{`B!0Rw`CZbAzujkH*6D|9JXJW&uFEE0r{Hw1*1rbyRHQwX$E1qVTB;h<ep
+zaS;Luo|B6Zuy{C}+<`+j2O*FQk`Bpxyvw~y@`rGj_kHjG`@XxE_mW^ZwFkr#gA4{G
+zv;i*nZb+}*Y7?4A<2-qHf1qDnAOdI}jcXItct4;H)ZSkzv5;LPy?RUYXq=PMF#zS@
+zAe6XbtOG=HH>=r*cP~gn08UEB(tKiKM%&Tc)0gD-m$}@#kz+cT3erOUUi|@}&`q+s
+zSG#)^<L~FcGdnsJny<n_AW@ZotS(#BF3x1-I;rtgt4QnmgM@Y8Spp!bcB4XmY-dQd
+ziV~2Sp45I+h-sQUUV9<mY1gw2kP?-NDgg5NufXpRU}AO*fYHe&04+Zazy=!t1hr_l
+z3)w}ecJ7n9ZiI}vUjPyU5FFkS9Nx+AA|`SHMl$yzT_x#JKK~WZ^{JfBM@s~ZHzPP7
+zA8BKi(|J7Cmyc9c1mw9sfHoPxHVnD)dL`xvk62JSIFPGIRsFmn?;mVdsBBiWF`?SU
+z8Q-oxg~n37NpZ_q7`}cx6AMs1>h<uWk32ec*$R2CkF~Re=layo8`RGmp|L^pBOQso
+zOO>^=1i<H&pA^eE?CH*WEtYd~j563;Rr+~FI@;a+5`qW=U6o?Y-m1!i#1rUM5=eCS
+zB>AKDTwf-8u8+M{)lTk>sq=)F*zY2XVZ~Udc5y}{)5NwNEX#y)CsrufV2sH7Lcx+T
+z+jg*Rn=voV?C2Cc5BtV$s;3YCVVWkUX@n+p#;guRk>dn7j>D_#XWC6Q)X_=ln1$?O
+zC$R*M;{YaxVPF`-&<O#80D>S25nGV1BZxVZ*0ysPU6KF>fw<}+{SH1YOs%fpQLg3=
+zbCgRMbar0Vq@NUk)_17CTjCgrQ$N74pb)T+2KxL5z2b3CzS@Tz00000NkvXXu0mjf
+DrrTiL
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_playerhealth_redring/layers/fe625a49-1d4f-4882-a519-0bf7ab24aa6f/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png b/sprites/spr_playerhealth_redring/layers/fe625a49-1d4f-4882-a519-0bf7ab24aa6f/17b72b1b-de8c-449a-bc63-c8a2d64d6032.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..b05765144f965eaf8bdcd3fffa780d5102eb4556
+GIT binary patch
+literal 868
+zcmV-q1DpJbP)<h;3K|Lk000e1NJLTq000^Q000^Y1^@s6sY*=F0009kNkl<Zc$}4%
+zF=!J}7{`BUiWP?rE|pty;UaPG)L<gkq0~jhO$b#e1Ue{m5R^(92#A7#E`>k~2`O$>
+zr;0<g8o0W+N>h5xi-p4~ICQA3kj5domwUNOQvVR{UEcS7zwf*6y>}PjY-$de4-5)0
+z$e;<Zz5JW=HxGRcjyFcRGIw!cyj~L?!12bYuc3RsAJ7lf%->k&+MVm1zj?^<#wefG
+zKLYSxyip9N^xFW6?UR=ecx|nDVt0ci1mM&9M;ZLJb;?+5mIHHzAzpd1`?mZWfa%;g
+z0JYtk65kE-h1`mNC%;nwz%&;C7>mtHr(foz9ET!d-pzmYg(;xzc2*AL`J=TKU@Jj>
+zr+{HVskA^cnZ>eNP8I@ypr`;aa-kptx<SM4YTS@7e=bXh*u-bxo~#VOFxmr4Z(VgA
+z3&Dx#z`~I*wcT112n;!n&Laa9hzjedR9YaL4PqD_sDX}cS3SM}Lw?l&H1s&;RswS?
+z!Ax<Fnc^OX0m)>RQfYyD{TZRqV<ni=!;_<X^1pB-4A2~=OK+_;E@>G69_=i)Gi_z<
+z^d*_h5(+&gnap}1W3gEp06z;#To1@mP*iB>aSU{XC?N#$-m*|2mIbj`RxS)bDWL8R
+zd0?&()S~3<G*uu^21`f6dL;<ZJl7;J+*#B^e#W+4Rhn7_qCm<{vt&+UAw1bz2!f(Q
+z&Q1d;5MR(KcLC6}D4G_fp~uN<840TbOXeg&QISA5#DC4XK-0N#d3I@9R55DkaS3s*
+zIXg{IROHWrsGc3k9yv!xI07d}9rL-V3c9ZIkPj@GlOCA+J_^ih8GhJlLak-3R1`>+
+z?=YPk=iU5QS%F)ttE;?7?K4rYdn(h5MNW!EGSGhLc`j+1^mUFQr(?~qD+Bk2`(dX^
+zXIlHJP%5xl-js8jo2~KvnHd1CCK4PR1o+$d-V@XpmP#Q(i%%DoYK0JTTrQW{xA#2|
+z=(Ax*E)*mzpYI%$?!az!L%QX8@rApZ2vFax$z#c_NTdwld0f!{#n%`1KkA0`0zv!Z
+u<bQ!}fN$J0eQpf`_5++1qyYP9V4Q!W*ntuX#KoNe0000<MNUMnLSTZu&xTb1
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_tab_entry/layers/3c0d3085-5ab2-437b-8c5a-5d1b4aaede99/31525684-23a7-417b-b132-6257ec18f6bb.png b/sprites/spr_tab_entry/3c0d3085-5ab2-437b-8c5a-5d1b4aaede99.png
+similarity index 100%
+rename from sprites/spr_tab_entry/layers/3c0d3085-5ab2-437b-8c5a-5d1b4aaede99/31525684-23a7-417b-b132-6257ec18f6bb.png
+rename to sprites/spr_tab_entry/3c0d3085-5ab2-437b-8c5a-5d1b4aaede99.png
+diff --git a/sprites/spr_tab_entry/layers/7c2eff55-bad3-4aa6-8079-996f6cd9b1e5/b2dbea29-ded8-4e06-a795-0f9f02ede4c8.png b/sprites/spr_tab_entry/7c2eff55-bad3-4aa6-8079-996f6cd9b1e5.png
+similarity index 100%
+rename from sprites/spr_tab_entry/layers/7c2eff55-bad3-4aa6-8079-996f6cd9b1e5/b2dbea29-ded8-4e06-a795-0f9f02ede4c8.png
+rename to sprites/spr_tab_entry/7c2eff55-bad3-4aa6-8079-996f6cd9b1e5.png
+diff --git a/sprites/spr_tab_entry/layers/a88979c1-5dc7-48c4-bd7e-571b15b3c1c7/407b39bf-610c-41fc-8c37-5684bbfda91c.png b/sprites/spr_tab_entry/a88979c1-5dc7-48c4-bd7e-571b15b3c1c7.png
+similarity index 100%
+rename from sprites/spr_tab_entry/layers/a88979c1-5dc7-48c4-bd7e-571b15b3c1c7/407b39bf-610c-41fc-8c37-5684bbfda91c.png
+rename to sprites/spr_tab_entry/a88979c1-5dc7-48c4-bd7e-571b15b3c1c7.png
+diff --git a/sprites/spr_tab_entry/layers/3c0d3085-5ab2-437b-8c5a-5d1b4aaede99/2ecce8b7-b67f-4ee0-b03b-b6d594069075.png b/sprites/spr_tab_entry/layers/3c0d3085-5ab2-437b-8c5a-5d1b4aaede99/2ecce8b7-b67f-4ee0-b03b-b6d594069075.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..27c7bba374e0bbd2adad0036e3bcdfef53c83574
+GIT binary patch
+literal 1117
+zcmV-j1fu(iP)<h;3K|Lk000e1NJLTq0080u000~a1^@s6e28Pd000CeNkl<Zc%1E=
+zKWH0Q9LGOrd9@c)a5b0<3f@XONP|u6K}&amGfCK)OwvG1h72W+D(tCK24~P<Y#~F2
+zfTwOnLWzPrSWA{d5|lhs5H=xD$SkhI={>(Yog}+)AY6VQIJmp_-tSK0zI@+*hcS4b
+z=Z(uF2*Q`)3`?*D=r}{OMU}gB89}%Vp6A8t`|>=G$%vbg0?g-ks8)ZC479cNn#YfS
+zHf21|vjw?+rEe{K@06|cIDA`W2sxq_;V=PiZM}|+w7Gf1q-#O;<I#^7hd)gCHYi(;
+z7>Dnw9B{<22=n<J(&-%c@Bc`l@YIw#K7JmElF6)4D7<2R{wAB7H<+I8(rzDeaB$Cd
+z$Fhh~5QY<|nubLPP$)b#;`?`|2s1?hKDM#|ynFM)l%JmN0+_P47zIHX&IAP8g|-OW
+z?L&@_pYz*-$IQ$gDO_{>uvj;T=D|jicKZ<U#hB0Um^9Dx?7F=m2o}Z>wHt;-_~!%d
+zcx#m3?vqOSS1DXNoqkeZj0x4GUjGCfl1}GHr*q<pf^Y#QY&U%J#IIUv5q|!hH5nHd
+zUa~&Fb}l|3mFgdTmvr3%J$H$E{gZJ<aYaEG&jdt|`Pm}WEH1nZTyJkD*xpVUL4q$z
+z8||=h8ut-|t7bx<Xy?*y2+(tvXdNxnI$CD6@}AYodn33}jB-Um5C$0-&<DRKbT;Wb
+z;={MU1CYXZJzX_TrQp${-q653cM16WD&JKQV#~y+#Dr=Besxo+Dz#db4hkU9R<y5m
+zIt-3E3W5;LfFnkUN2w~OU4Q&=mJ%H|)N2|-3z(@Zdrv`#H6tA{il4egKDM%SPyzP?
+z-whM0X+$ds!o`Rb;%u^H&J(Ih&s{S27W?<_wz4Et(+E<F@JK``2$yC+h?&evWJbU9
+z1=jl4Yrtu@NJ2HuaoR1ie}PznAOwl*HJzHO2gVWa{?f#CT^>?rzm?^KmDjF@7J(MN
+zqx$z{*g_C4f^o!ygL}aF0K9fU&F=0lf2{w*+Q|vmfNNITUZuibr9uh#3xG1S$z)*i
+zw;%|^nS{X=&zZ~$^?K7>mx@J-r4mXh8jS`YPEJf(qtO81_UbACH<y<=J9D^m=UL!E
+zGS^fPhU0+0`a%oQo^R?;;PzR!Ruj6e8wjG5GUv5gjk&p7#tk<%lJuV;3xtKMAeIY*
+zP1RI8mc5KAo1Hn&ZB5r!N(By0ScE#3xS=47W)i@097nIhu-l5hp!~U~@7}ziTrLd+
+zxPH9`z}cBYCKD8)-8K|A6olafdQG+EhsBsq=Zw3BXWq=s-2xz&%b9z&2*nKrVLTVw
+zJW9LVIKnO{n@0&>fmpT?2NnsA+D>s4Q3CA8h{K;Hd^>y}Le%`94TeJk{F0XwgrUT7
+jgW<8iMz-7+gs;zk_1ymKG=QCN00000NkvXXu0mjfC*%#6
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_tab_entry/layers/7c2eff55-bad3-4aa6-8079-996f6cd9b1e5/2ecce8b7-b67f-4ee0-b03b-b6d594069075.png b/sprites/spr_tab_entry/layers/7c2eff55-bad3-4aa6-8079-996f6cd9b1e5/2ecce8b7-b67f-4ee0-b03b-b6d594069075.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..8571f4501ead1c4fc5466710a252c5a94d20d1e6
+GIT binary patch
+literal 1171
+zcmV;E1Z?|>P)<h;3K|Lk000e1NJLTq0080u000~a1^@s6e28Pd000D9Nkl<Zc%1E=
+z&ube;7(m~;2DdcV9tsApQe7gKg2BD1&a^f)KJ`!x&ZP({a7e&C8B?&EB@sA~LugJB
+zC_&J_Ae0<b)OLLG#b9b`L4p$PAvm|(LTf{q9(HHEE3GVt*cbJCV6;DGKCR3?zS-HC
+z@fd(H#tbSW2*SJJ^*fOi(DV8h%c}R*bp+vUFvbkk{bh_{G~-~VfVJf&-`}6j477Fc
+zIqHW`TpeRfQpn}Ay=>usPBpPT4EI(QNQ-DC>?h#Xz2}*cF0Wj~tQaSxtse_n6&VHL
+zWSofI64sWR<O?}2uUzE8)!$u(JNi~Cz^dAyeYNAtYM#+<btqTolG#yY6oeCSsm~Z=
+zx+Mf?w>nO~xsMhygG^0MQ?AaTe}3kUSsCNl(nJ-`ifZB+aTxBY==VT68)ixP<jEEQ
+zL0q#Gf7atqd;EIwHdB++sru#WoIEcIXUR~C=$fWB8+J>$sy5h-GvWB;Gyu)G&UpNJ
+zeSZgtGUMoBg?4M5d?Dvz*(RzW2-%Dzdr586(n{F)@k>SzD@?@#TDiLa;8;SX6!}7q
+zcB=zK&0LEyCfVa92tv##WWV#PUV8}q0vrqY@n;_bFqZolfWyxF04%ZyK)Boc1(Fp7
+zVK5_h!)C5z=L~>9^#H(02oOGcL-^>8+qdUzSxZ({6a=A{k*tH&YY%C+IyAS7nU(x+
+z-b2SP@VjYl7iqUTE)xoZFqljcZ6@m{Q{DGn&uKSVuRR1oIGG+1@910X#=W3PUhchi
+z+vCeknu+FS@|-0rh9C&p^o%tHc>Ll%k6!?dXn%daM!t}9!hNyyDUcSh-Re+jlv8oW
+z#wO0;k_BP-$ZVRf&({D5f;vG^r_v}>x;yKdtS|RoI|<vZ4yC)ZR2pShJ{dz0gu(P=
+z#8tK7GMn%F_&%)79Pq(czYzo_)~ThQ1FeAn{P8tP`GjE<r_v~kjDm1VGBcuWQiicr
+z3pbylwPtPRAoc9`*ZvM`GY4p`S-AN$RYxQggwx|hv;(wlwp*XC5d<Z|5GF48XkDjp
+z>4?S3675!pcB{j;l_d(7j?lW!#Dypu20@9Vqa%L$^*a~K#ufx2n^EYU@w}=w*xlbj
+zsZyNbLiTDtuks;Uhvcv1fhhZ_D<ONI`)vIkM*FJ7_V%Cg$ed$jRE;3?XT(bwXlL2y
+z3pqEw6u|f4RX&W$D4$YEQLoog$_JuzzJDBaRc*L!m3Z+lvo8c8o8-h`JkN8ZV)BI?
+zv_NYODA#cV_Si9D7-dJTHN~-Fsx!yN76hR`BLK;)Sgy{cM%EO^ifnG)APmD;xM*aJ
+zQp)XzVaVp@jUEY;&xVo>1))Ew8T!z>REEXMnYB~~&{H-!J3o#qA_`~0P)-a^&422*
+zc+_bJaCc`xkx)1XhEl}T3w_V?JQHE}omhjWGGz%E#~6lxmLQxfXS%>}mw@kbU4qb;
+lVO(H%;IEM-_XXkn`46=(F4Q*I1DgN<002ovPDHLkV1j|HGj#v}
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_tab_entry/layers/a88979c1-5dc7-48c4-bd7e-571b15b3c1c7/2ecce8b7-b67f-4ee0-b03b-b6d594069075.png b/sprites/spr_tab_entry/layers/a88979c1-5dc7-48c4-bd7e-571b15b3c1c7/2ecce8b7-b67f-4ee0-b03b-b6d594069075.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..44e575382118d1d50b767abc346ca92a25eb02dc
+GIT binary patch
+literal 1172
+zcmV;F1Z(?=P)<h;3K|Lk000e1NJLTq0080u000~a1^@s6e28Pd000DANkl<Zc%1E=
+zL1-LR7=XVCfp}@Dhye{DLn3x|X_G^e0lRKk4-H76heE+iAku>s!5&H@@lbN=AqtXQ
+zB!Q|>@lwd4qJ@pZ((Nk5<lv?x(~{_VNDh@AN(i(m^m&+lFEhJuvn@?f#{WCbym{|2
+zGt9?7@6A8Yp$SSU)vS&n2rq`y=s;9J$7xv2*6z962*UHAluFd|rIe!8QfL)$3i!A|
+za9m2I7zhH>Mky5)@`HUnYvKRSOk_I=&(;hO7g0;tNWi63%Gy)^>MDv|A$9wzkTW8q
+zAnc71u~xz<Ame%TudXs35p$uY10N_kj;XttN>K^|E)a{3BBLPeK`bKHN(eCRI7YtD
+zzn|r$$s+xK{}$`SJ9CC$Zq7u^jOQ^`BcmV)jcI}SxG*YVDF|2qhO#4!j-3VI^jMaq
+zR|jLA1aos{yHp)3W;~CnNFAlr41yq7Y0(=x8rDkaTN<4n%NpTo$#`B&#%SMyAlPY*
+zM#IG>65c7!vod+z>^G88AJb9sLbXiBih^LL6`Dt^N5yNb6ys&JlQy+zi8G!D)tOWo
+zD++=gGg+g@b2=IV)~Fa2u;jV`oN9R;fZmQC0LmNd+ye-Hsf&t&Ak@=hD;&y>m~AcI
+z7p`lzk941)<hqP^W*P6y(%aEPZ$}U1jdfsGNI?*u4XcPyFJq=sq2#)hT$dl7ZZh7P
+zHOI>v>y$Uv={kSW$f(;1g3z2g5f^~B-{=M6GD0Y$ehr0P0S7N%VS8wp_V!oIv99wM
+z59pKyA$ip0ngZNjD+8gBw<41?CD(<gn?NYx*{{9>pi-%jP9Fzg@bVSz-+vI3QV@i_
+zv5E+xglWHzp|ufi6|VvC=O?qQEc_0HvR3D60GC3cfbWk2P$(2=Z_gdvSqnnKsCzZl
+zv!rRi57>Q8{r1Z|f4%!AX}^!#Yh}9MdPJd60l;-(Vqz56g(p8=BA3hY`07<_GJqfm
+z^;josbOh9V`u=ACbltpX%8q4ElFPZYE$69Jpi+Uh<vho-Cz+TS<<}mWITeIw#fYfC
+z^Xas-D0<8Ym{(H>#RE9HmFMVI-jwg`?2ymTn!e;4q9E*zPWp}&`ox99vVZfvOWZv)
+z%;V$3+&wf5geh=$iu1g)xyg;ghhz06t40tS)9N^mqw`G%f`CQOBjb7e^z|jue%?gG
+zXjBCFdHW%p>f?{<{*#Y}`DXGuL)nqo*l-|{k1Bblf?&tIn(BxZ{c~da!!Xk6kMuSf
+zx3(YB+xZ$V-&n>c%u9{_!4d6S5Cl6W+gmB6Y(EC;+|wi7Ct|5<ZRgGbFh82ZXE!f3
+z+Ai|fg+xPPznF<E9+iY=D!d-O*J!B>jgD@%r82P8jY?SUHwiaQ`1eV+h|qZPDBDb`
+zji`Xt{;2ksgc~OOH%O$2wQJTmDn##xVg*5L*$W#s0jqr^;bsZKfwHd)4A%(wBIhLt
+m4N2kx!%eS7mfRPFgXbTQd*%*@ZSY?J0000<MNUMnLSTZ3+%c~J
+
+literal 0
+HcmV?d00001
+
+diff --git a/worklog.md b/worklog.md
+index b8c9e261..8cb6c54f 100644
+--- a/worklog.md
++++ b/worklog.md
+@@ -2182,3 +2182,53 @@ Stage Summary:
+ - Cliente: 15 .gml + 2 .yy nuevos (trap) + .yyp renames.
+ - Server: AmeliaTrap.c/.h nuevos, Packet.h, Server.h, Game.c (states),
+   CMakeLists. Compilado y probado.
++
++## 2026-11-01 — hudbar-v2.5: barra de vida de Amelia bugeada (composites perdidos)
++
++SINTOMA (usuario): "aparece bugeada la barra de vida de la propia Amelia".
++
++DIAGNOSTICO: no era codigo, eran ASSETS. obj_level/Draw_64.gml dibuja la
++barra como draw_sprite(spr_playerhealth, (char-CHARACTER_TAILS)*7 +
++estado) => 91 frames = 13 slots x 7 estados. Los slots 10/11/12
++(METAL/AMELIA/BLAZE) existian en el .yy desde 1af7dce3, pero sus PNG
++composite NO estaban en la raiz del sprite: aquel commit los dejo caidos
++en sprites/<spr>/layers/<frameGuid>/<randomGuid>.png (estructura de
++CAPAS de GMS2.3) en vez de sprites/<spr>/<frameGuid>.png (el composite
++del que la texture page toma los pixeles). Frame registrado sin
++composite => GM mete basura en la textura => barra bugeada. Explica
++tambien por que Metal/Blaze nunca tuvieron barra correcta y por que el
++marcador TAB mostraba filas rotas para los 3.
++
++Alcance real (auditoria repo-wide del agente,
++scripts/audit_sprite_frames.py — reutilizable): 88 frames rotos en 6
++sprites — spr_playerhealth 35, spr_playerhealth_redring 35,
++spr_playerhealth_hit 5, spr_playerhealth_demon 5, spr_playerescaped 5 y
++spr_tab_entry 3 (filas 12/13/14 = Metal/Amelia/Blaze del TAB).
++
++FIX (scripts/fix_healthbar_composites.py, idempotente): por cada frame
++del .yy sin composite: (1) copiar layers/<g>/<x>.png -> <g>.png en la
++raiz; (2) renombrar el PNG interno al GUID de la capa default del .yy
++(misma estructura que los frames viejos que siempre funcionaron). Slots
++8/9 (SALLY_CANON/VANILLA) quedan como placeholder 100% transparente: es
++correcto, jamas se dibujan (Draw_64 los remapea a SALLY/CREAM).
++
++EXTRA (misma familia de bug, 1 archivo): drawPing (obj_level/Create_0.gml,
++marcador TAB) calculaba hchar = char-1 SIN el remapeo SALLY_CANON->SALLY
++/ VANILLA->CREAM que si hace Draw_64 => icono hit/demon invisible para
++esos dos personajes en el TAB. Remapeo anyadido (solo toca hchar; la
++fila del TAB sigue usando su propio frame 8/9).
++
++VALIDACION: re-auditoria => 0 frames sin composite en todo el repo;
++md5 sin duplicados nuevos (solo los 7 AMY==AMY_CANON preexistentes y el
++placeholder 8/9 repetido); 2 hojas de contacto (download/
++healthbar_verificacion.png y hud_aux_verificacion.png) verificadas con
++el modelo de vision: fila AMELIA == sprite idle real de Amelia (pelo
++cobrizo, ojos azules), METAL/BLAZE distintos entre si, 7 estados e0-e6
++coherentes (aro verde->amarillo->rojo->X), tab_entry 12/13/14 validas,
++cero frames corruptos; delimitadores de Create_0.gml balanceados.
++
++Server: CERO cambios (bug 100% cliente/asset). Protocolo v1101 intacto.
++
++Entregable: download/hudbar_v2_5.zip (extraer sobre la raiz con GM
++cerrado; ver LEEME_HUDBAR_V2_5.txt — lleva cleaner opcional de layers
++viejos y el .patch para usuarios de git).
+-- 
+2.47.3
+

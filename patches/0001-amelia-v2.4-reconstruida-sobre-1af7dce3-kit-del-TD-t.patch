@@ -1,0 +1,3736 @@
+From 5a68b99147f198b841650d01f66bbc92658976fa Mon Sep 17 00:00:00 2001
+From: Z User <z@container>
+Date: Sat, 31 Oct 2026 18:21:01 +0000
+Subject: [PATCH] amelia v2.4 (reconstruida sobre 1af7dce3): kit del TD =
+ trampolin + trampa 60s/stun 3s/slow 3.5s; vuelo y velocidad eliminados;
+ renombres bomb->trap cliente+server; case SONIC en scr_player_slow; server
+ compilado y probado
+
+---
+ CACHE.md                                      |  23 +
+ Sonicexe The Disaster 2D Remake.yyp           |   4 +-
+ .../disasterserver/CMakeLists.txt             |   2 +-
+ .../disasterserver/entities/AmeliaBomb.c      |  72 --
+ .../disasterserver/entities/AmeliaTrap.c      |  72 ++
+ betterserver-oss/disasterserver/states/Game.c |  61 +-
+ betterserver-oss/include/Packet.h             |   9 +-
+ betterserver-oss/include/Server.h             | 302 +++---
+ .../include/entities/AmeliaBomb.h             |  23 -
+ .../include/entities/AmeliaTrap.h             |  25 +
+ objects/obj_amelia/Create_0.gml               |  13 +-
+ objects/obj_amelia/Draw_76.gml                |  88 +-
+ objects/obj_amelia/Step_0.gml                 | 141 ++-
+ objects/obj_amelia/Step_2.gml                 |  68 +-
+ objects/obj_amelia_bomb/Create_0.gml          |  22 -
+ objects/obj_amelia_bomb/Step_0.gml            |  33 -
+ objects/obj_amelia_trap/Create_0.gml          |  40 +
+ objects/obj_amelia_trap/Step_0.gml            |  24 +
+ .../obj_amelia_trap.yy}                       |   4 +-
+ objects/obj_playerui/Draw_64.gml              | 755 ++++++++-------
+ scripts/net_amelia_bomb/net_amelia_bomb.gml   |  23 -
+ scripts/net_amelia_trap/net_amelia_trap.gml   |  27 +
+ .../net_amelia_trap.yy}                       |   6 +-
+ scripts/net_packets/net_packets.gml           |  11 +-
+ scripts/net_state_game/net_state_game.gml     |  46 +-
+ .../scr_amelia_special/scr_amelia_special.gml | 105 +--
+ scripts/scr_carry/scr_carry.gml               |   8 +-
+ .../scr_collision_objects.gml                 | 856 +++++++++---------
+ scripts/scr_player_slow/scr_player_slow.gml   | 190 ++--
+ worklog.md                                    |  89 ++
+ 30 files changed, 1611 insertions(+), 1531 deletions(-)
+ delete mode 100644 betterserver-oss/disasterserver/entities/AmeliaBomb.c
+ create mode 100644 betterserver-oss/disasterserver/entities/AmeliaTrap.c
+ delete mode 100644 betterserver-oss/include/entities/AmeliaBomb.h
+ create mode 100644 betterserver-oss/include/entities/AmeliaTrap.h
+ delete mode 100644 objects/obj_amelia_bomb/Create_0.gml
+ delete mode 100644 objects/obj_amelia_bomb/Step_0.gml
+ create mode 100644 objects/obj_amelia_trap/Create_0.gml
+ create mode 100644 objects/obj_amelia_trap/Step_0.gml
+ rename objects/{obj_amelia_bomb/obj_amelia_bomb.yy => obj_amelia_trap/obj_amelia_trap.yy} (95%)
+ delete mode 100644 scripts/net_amelia_bomb/net_amelia_bomb.gml
+ create mode 100644 scripts/net_amelia_trap/net_amelia_trap.gml
+ rename scripts/{net_amelia_bomb/net_amelia_bomb.yy => net_amelia_trap/net_amelia_trap.yy} (78%)
+
+diff --git a/CACHE.md b/CACHE.md
+index c841bac2..1540f1f7 100644
+--- a/CACHE.md
++++ b/CACHE.md
+@@ -1026,3 +1026,26 @@ y las pistas nuevas de 20-28s se cortaban).
+   formato exacto, delimitadores balanceados en los 10 .gml tocados).
+   NO toca el server (el de v2.2 sigue valiendo). Entregable:
+   download/charsafe_v2_2_3.zip (extraer sobre la raiz con GM cerrado).
++- 2026-11-01 (amelia-v2.3+v2.4 reconstruidos sobre 1af7dce3 "ok"):
++  el sandbox del agente se reciclo (commits locales perdidos) y se
++  rehizo TODO sobre el commit del usuario, que ya traia SU fix
++  v2.2.4 del acc (0.35 -> 0.046875, "salía disparada al instante")
++  — respetado tal cual. KIT FINAL: trampolin (X, sin cambios) +
++  TRAMPA (C): vida 60 s server (retiro state 1), pisada detectada
++  por el cliente de la victima (lado EXE) => stun 3 s + slow -40%
++  3.5 s tras el stun (scr_player_slow por el total 6.5 s),
++  CLIENT_AMELIA_TRAP_TRIGGER con nid y busqueda tag "atrap"+id
++  exacto (mata los 2 bugs latentes de la bomba v2.2: boom por
++  pisada jamas emitido y game_find("abomb") cruzando Amelias), max
++  1 viva POR Amelia. VUELO fuera (macros, estado defensivo, carry,
++  resortes, icono); velocidad NUNCA entra (pedido v2.4 tras el bug;
++  ademas habria pisado isBoosting de las botas con la tecla de
++  salto = carrera forzada). Renombres bomb->trap completos cliente+
++  server (mismo orden numerico, actualizar juntos). UI 2 iconos con
++  sprites ya registrados. Extra: case SONIC en scr_player_slow.
++  Validado (.yyp 1927 sin duplicados, delimitadores OK, 0 stale) y
++  server compilado+probado con gcc (v1101 en 8606, Lobby OK; enet
++  clonado a mano, build agent scripts/build_server.sh replica el
++  CMakeLists). OJO: disasterserver/Game.c raiz es huerfano (usa
++  game.cooldowns inexistente, fuera del build real = states/Game.c).
++  Entregable: download/amelia_v2_4.zip.
+diff --git a/Sonicexe The Disaster 2D Remake.yyp b/Sonicexe The Disaster 2D Remake.yyp
+index 1c89915b..08d4cd21 100644
+--- a/Sonicexe The Disaster 2D Remake.yyp	
++++ b/Sonicexe The Disaster 2D Remake.yyp	
+@@ -2134,13 +2134,13 @@
+     {"id":{"name":"obj_blaze_fireball","path":"objects/obj_blaze_fireball/obj_blaze_fireball.yy",},},
+     {"id":{"name":"obj_metal_amy_bullet","path":"objects/obj_metal_amy_bullet/obj_metal_amy_bullet.yy",},},
+     {"id":{"name":"obj_amelia_banana","path":"objects/obj_amelia_banana/obj_amelia_banana.yy",},},
+-    {"id":{"name":"obj_amelia_bomb","path":"objects/obj_amelia_bomb/obj_amelia_bomb.yy",},},
++    {"id":{"name":"obj_amelia_trap","path":"objects/obj_amelia_trap/obj_amelia_trap.yy",},},
+     {"id":{"name":"scr_metal_special","path":"scripts/scr_metal_special/scr_metal_special.yy",},},
+     {"id":{"name":"scr_amelia_special","path":"scripts/scr_amelia_special/scr_amelia_special.yy",},},
+     {"id":{"name":"scr_blaze_special","path":"scripts/scr_blaze_special/scr_blaze_special.yy",},},
+     {"id":{"name":"scr_metalamy_special","path":"scripts/scr_metalamy_special/scr_metalamy_special.yy",},},
+     {"id":{"name":"net_amelia_banana","path":"scripts/net_amelia_banana/net_amelia_banana.yy",},},
+-    {"id":{"name":"net_amelia_bomb","path":"scripts/net_amelia_bomb/net_amelia_bomb.yy",},},
++    {"id":{"name":"net_amelia_trap","path":"scripts/net_amelia_trap/net_amelia_trap.yy",},},
+     {"id":{"name":"net_blaze_fireball","path":"scripts/net_blaze_fireball/net_blaze_fireball.yy",},},
+     {"id":{"name":"net_metalamy_bullet","path":"scripts/net_metalamy_bullet/net_metalamy_bullet.yy",},},
+   ],
+diff --git a/betterserver-oss/disasterserver/CMakeLists.txt b/betterserver-oss/disasterserver/CMakeLists.txt
+index 7f06bd8f..7abca2fe 100644
+--- a/betterserver-oss/disasterserver/CMakeLists.txt
++++ b/betterserver-oss/disasterserver/CMakeLists.txt
+@@ -59,7 +59,7 @@ set(SOURCES
+         "entities/BlackRing.c"
+         "entities/ExellerClone.c"
+         "entities/AmeliaBanana.c"
+-        "entities/AmeliaBomb.c"
++        "entities/AmeliaTrap.c"
+         "entities/BlazeFireball.c"
+         "entities/MetalAmyBullet.c"
+         "entities/RMZSlug.c"
+diff --git a/betterserver-oss/disasterserver/entities/AmeliaBomb.c b/betterserver-oss/disasterserver/entities/AmeliaBomb.c
+deleted file mode 100644
+index 2010bb50..00000000
+--- a/betterserver-oss/disasterserver/entities/AmeliaBomb.c
++++ /dev/null
+@@ -1,72 +0,0 @@
+-#include <entities/AmeliaBomb.h>
+-
+-/* v2.2 (TTB): bomba de Amelia. La mecha la lleva el server; el BOOM
+-   (state 2) se reenvia a todos y cada cliente aplica su propio stun
+-   al jugador local del lado del EXE si esta en el radio. La explosion
+-   por pisada la pide el cliente del killer (CLIENT_AMELIA_BOMB_BOOM)
+-   y tambien pasa por amelia_bomb_boom. */
+-
+-bool amelia_bomb_boom(Server* server, Entity* entity)
+-{
+-	AmeliaBomb* bomb = (AmeliaBomb*)entity;
+-
+-	if (bomb->boomed)
+-		return false;
+-
+-	bomb->boomed = true;
+-
+-	Packet pack;
+-	PacketCreate(&pack, SERVER_AMELIA_BOMB_STATE);
+-	PacketWrite(&pack, packet_write8, 2);
+-	PacketWrite(&pack, packet_write16, bomb->id);
+-	PacketWrite(&pack, packet_write16, (uint16_t)bomb->pos.x);
+-	PacketWrite(&pack, packet_write16, (uint16_t)bomb->pos.y);
+-	server_broadcast(server, &pack, true);
+-
+-	return false; // despawn
+-}
+-
+-bool amelia_bomb_init(Server* server, Entity* entity)
+-{
+-	AmeliaBomb* bomb = (AmeliaBomb*)entity;
+-
+-	Packet pack;
+-	PacketCreate(&pack, SERVER_AMELIA_BOMB_STATE);
+-	PacketWrite(&pack, packet_write8, 0);
+-	PacketWrite(&pack, packet_write16, bomb->id);
+-	PacketWrite(&pack, packet_write16, (uint16_t)bomb->pos.x);
+-	PacketWrite(&pack, packet_write16, (uint16_t)bomb->pos.y);
+-	server_broadcast(server, &pack, true);
+-	return true;
+-}
+-
+-bool amelia_bomb_tick(Server* server, Entity* entity)
+-{
+-	AmeliaBomb* bomb = (AmeliaBomb*)entity;
+-
+-	bomb->timer -= server->delta;
+-
+-	if (bomb->timer <= 0)
+-		return amelia_bomb_boom(server, entity);
+-
+-	return true;
+-}
+-
+-bool amelia_bomb_uninit(Server* server, Entity* entity)
+-{
+-	AmeliaBomb* bomb = (AmeliaBomb*)entity;
+-
+-	/* solo avisar remove si NO exploto (la explosion ya mando el
+-	   state 2 y el cliente la destruyo) */
+-	if (bomb->boomed)
+-		return true;
+-
+-	Packet pack;
+-	PacketCreate(&pack, SERVER_AMELIA_BOMB_STATE);
+-	PacketWrite(&pack, packet_write8, 1);
+-	PacketWrite(&pack, packet_write16, bomb->id);
+-	PacketWrite(&pack, packet_write16, (uint16_t)bomb->pos.x);
+-	PacketWrite(&pack, packet_write16, (uint16_t)bomb->pos.y);
+-	server_broadcast(server, &pack, true);
+-	return true;
+-}
+diff --git a/betterserver-oss/disasterserver/entities/AmeliaTrap.c b/betterserver-oss/disasterserver/entities/AmeliaTrap.c
+new file mode 100644
+index 00000000..7f596fc2
+--- /dev/null
++++ b/betterserver-oss/disasterserver/entities/AmeliaTrap.c
+@@ -0,0 +1,72 @@
++#include <entities/AmeliaTrap.h>
++
++/* v2.4 (TTB): trampa de Amelia. La vida maxima (60 s) la lleva el
++   server: al agotarse se retira en silencio (state 1) y al pisarla
++   alguien del lado del EXE (CLIENT_AMELIA_TRAP_TRIGGER desde el
++   cliente de la victima) se reenvia state 2 a todos. El stun y el
++   slow los aplica el cliente de la victima. */
++
++bool amelia_trap_trigger(Server* server, Entity* entity)
++{
++        AmeliaTrap* trap = (AmeliaTrap*)entity;
++
++        if (trap->triggered)
++                return false;
++
++        trap->triggered = true;
++
++        Packet pack;
++        PacketCreate(&pack, SERVER_AMELIA_TRAP_STATE);
++        PacketWrite(&pack, packet_write8, 2);
++        PacketWrite(&pack, packet_write16, trap->id);
++        PacketWrite(&pack, packet_write16, (uint16_t)trap->pos.x);
++        PacketWrite(&pack, packet_write16, (uint16_t)trap->pos.y);
++        server_broadcast(server, &pack, true);
++
++        return false; // despawn
++}
++
++bool amelia_trap_init(Server* server, Entity* entity)
++{
++        AmeliaTrap* trap = (AmeliaTrap*)entity;
++
++        Packet pack;
++        PacketCreate(&pack, SERVER_AMELIA_TRAP_STATE);
++        PacketWrite(&pack, packet_write8, 0);
++        PacketWrite(&pack, packet_write16, trap->id);
++        PacketWrite(&pack, packet_write16, (uint16_t)trap->pos.x);
++        PacketWrite(&pack, packet_write16, (uint16_t)trap->pos.y);
++        server_broadcast(server, &pack, true);
++        return true;
++}
++
++bool amelia_trap_tick(Server* server, Entity* entity)
++{
++        AmeliaTrap* trap = (AmeliaTrap*)entity;
++
++        trap->timer -= server->delta;
++
++        if (trap->timer <= 0)
++                return false; /* 60 s agotados: retirada silenciosa (state 1) */
++
++        return true;
++}
++
++bool amelia_trap_uninit(Server* server, Entity* entity)
++{
++        AmeliaTrap* trap = (AmeliaTrap*)entity;
++
++        /* solo avisar remove si NO se activo (el trigger ya mando el
++           state 2 y el cliente la destruyo) */
++        if (trap->triggered)
++                return true;
++
++        Packet pack;
++        PacketCreate(&pack, SERVER_AMELIA_TRAP_STATE);
++        PacketWrite(&pack, packet_write8, 1);
++        PacketWrite(&pack, packet_write16, trap->id);
++        PacketWrite(&pack, packet_write16, (uint16_t)trap->pos.x);
++        PacketWrite(&pack, packet_write16, (uint16_t)trap->pos.y);
++        server_broadcast(server, &pack, true);
++        return true;
++}
+diff --git a/betterserver-oss/disasterserver/states/Game.c b/betterserver-oss/disasterserver/states/Game.c
+index 01b423e5..215f44b6 100644
+--- a/betterserver-oss/disasterserver/states/Game.c
++++ b/betterserver-oss/disasterserver/states/Game.c
+@@ -14,7 +14,7 @@
+ #include <entities/BlackRing.h>
+ #include <entities/TailsProjectile.h>
+ #include <entities/AmeliaBanana.h>
+-#include <entities/AmeliaBomb.h>
++#include <entities/AmeliaTrap.h>
+ #include <entities/BlazeFireball.h>
+ #include <entities/MetalAmyBullet.h>
+ #include <entities/EggmanTracker.h>
+@@ -495,7 +495,7 @@ bool game_demonize(Server* server, PeerData* data)
+                         case CH_BLAZE:
+                         {
+                                 data->plr_cooldowns[AMELIA_BANANA_SPAWN] = 0;
+-                                data->plr_cooldowns[AMELIA_BOMB_SPAWN] = 0;
++                                data->plr_cooldowns[AMELIA_TRAP_SPAWN] = 0;
+                                 data->plr_cooldowns[BLAZE_FIREBALL_SPAWN] = 0;
+                                 break;
+                         }
+@@ -1039,38 +1039,67 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
+                         break;
+                 }
+ 
+-                case CLIENT_AMELIA_BOMB:
++                case CLIENT_AMELIA_TRAP:
+                 {
+                         AssertOrDisconnect(v->server, v->in_game);
+                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+                         AssertOrDisconnect(v->server, v->surv_char == CH_AMELIA);
+ 
+-                        if (v->plr_cooldowns[AMELIA_BOMB_SPAWN] > 0)
++                        if (v->plr_cooldowns[AMELIA_TRAP_SPAWN] > 0)
+                                 break;
+ 
+-                        /* max 1 bomba viva a la vez (como los clons de Exeller) */
+-                        if (game_find(v->server, NULL, "abomb", 1) > 0)
++                        /* v2.4: max 1 trampa viva POR AMELIA. La vida ahora
++                           es de 60 s: con el limite global de v2.2 varias
++                           Amelias se estorbarian durante un minuto entero. */
++                        bool ownTrap = false;
++                        for (size_t it = 0; it < v->server->game.entities.capacity && !ownTrap; it++)
++                        {
++                                Entity* ent = (Entity*)v->server->game.entities.ptr[it];
++
++                                if (ent && strcmp(ent->tag, "atrap") == 0)
++                                        ownTrap = ((AmeliaTrap*)ent)->owner == v->id;
++                        }
++
++                        if (ownTrap)
+                                 break;
+ 
+                         PacketRead(x, packet, packet_read16, uint16_t);
+                         PacketRead(y, packet, packet_read16, uint16_t);
+ 
+-                        RAssert(game_spawn(v->server, (Entity*)&(MakeAmeliaBomb(x, y, v->id)), sizeof(AmeliaBomb), NULL));
+-                        v->plr_cooldowns[AMELIA_BOMB_SPAWN] = 30 * TICKSPERSEC;
++                        RAssert(game_spawn(v->server, (Entity*)&(MakeAmeliaTrap(x, y, v->id)), sizeof(AmeliaTrap), NULL));
++                        v->plr_cooldowns[AMELIA_TRAP_SPAWN] = 30 * TICKSPERSEC;
+                         break;
+                 }
+ 
+-                case CLIENT_AMELIA_BOMB_BOOM:
++                case CLIENT_AMELIA_TRAP_TRIGGER:
+                 {
+-                        /* el killer piso la bomba: reventarla YA (el
+-                           cliente del killer la detecto; el boom lo ve
+-                           todo el mundo a la vez) */
++                        /* la piso alguien del lado del EXE (killer o
++                           demonizado): su cliente ya aplico el stun (3 s) y
++                           el slow (3.5 s tras el stun) sobre su propio
++                           jugador; aqui solo queda reventarla YA con state 2
++                           para que todo el mundo vea el efecto a la vez */
+                         AssertOrDisconnect(v->server, v->in_game);
+-                        AssertOrDisconnect(v->server, v->id == v->server->game.exe);
++                        AssertOrDisconnect(v->server, v->id == v->server->game.exe || (v->plr.flags & PLAYER_DEMONIZED));
+ 
+-                        Entity* ents;
+-                        if (game_find(v->server, &ents, "abomb", 1))
+-                                game_despawn(v->server, NULL, ents->id);
++                        PacketRead(nid, packet, packet_read16, uint16_t);
++
++                        Entity* target = NULL;
++                        for (size_t it = 0; it < v->server->game.entities.capacity; it++)
++                        {
++                                Entity* ent = (Entity*)v->server->game.entities.ptr[it];
++
++                                if (ent && strcmp(ent->tag, "atrap") == 0 && ent->id == nid)
++                                {
++                                        target = ent;
++                                        break;
++                                }
++                        }
++
++                        if (target)
++                        {
++                                amelia_trap_trigger(v->server, target);
++                                game_despawn(v->server, NULL, target->id);
++                        }
+ 
+                         break;
+                 }
+diff --git a/betterserver-oss/include/Packet.h b/betterserver-oss/include/Packet.h
+index 7f6a097a..9205a1fc 100644
+--- a/betterserver-oss/include/Packet.h
++++ b/betterserver-oss/include/Packet.h
+@@ -190,14 +190,15 @@ typedef enum
+         SERVER_VANILLA_DEDEMONIZE,
+ 
+         /* v2.2 — personajes de TD2D Through the Blood (mod abandonado).
+-           Amelia: banana (resorte-trampa) y bomba (mecha 5 s / pisada).
++           Amelia: banana (trampolin resorte) y trampa (vida 60 s /
++           pisada: stun 3 s + slow -40% 3.5 s tras el stun).
+            Blaze: bola de fuego (proyectil). Metal Amy (killer): bala
+            del canon. Mismo orden en el enum del cliente. */
+         CLIENT_AMELIA_BANANA,
+-        CLIENT_AMELIA_BOMB,
+-        CLIENT_AMELIA_BOMB_BOOM,
++        CLIENT_AMELIA_TRAP,
++        CLIENT_AMELIA_TRAP_TRIGGER,
+         SERVER_AMELIA_BANANA_STATE,
+-        SERVER_AMELIA_BOMB_STATE,
++        SERVER_AMELIA_TRAP_STATE,
+         CLIENT_BLAZE_FIREBALL,
+         CLIENT_BLAZE_FIREBALL_HIT,
+         SERVER_BLAZE_FIREBALL_STATE,
+diff --git a/betterserver-oss/include/Server.h b/betterserver-oss/include/Server.h
+index cb206219..416ea4cd 100644
+--- a/betterserver-oss/include/Server.h
++++ b/betterserver-oss/include/Server.h
+@@ -43,192 +43,192 @@ struct auth_peer_data;
+ #define ETAILS_RECHARGE 5
+ /* v2.2 (TTB): habilidades de los rescatados */
+ #define AMELIA_BANANA_SPAWN 6
+-#define AMELIA_BOMB_SPAWN 7
++#define AMELIA_TRAP_SPAWN 7
+ #define BLAZE_FIREBALL_SPAWN 8
+ #define METALAMY_BULLET 9
+ 
+ typedef struct PeerData
+ {
+-	uint16_t id;
+-	String ip;
+-	ENetPeer *peer;
+-
+-	/* General info */
+-	Player plr;
+-	String nickname;
+-	String udid;
+-	uint8_t lobby_icon;
+-	int8_t pet;
+-
+-	bool verified;
+-	bool in_game;
+-	bool op;
+-	bool ready;
+-	bool mod_tool;
+-	bool is_mobile;
+-	bool can_vote;
+-	bool voted;
+-	bool disconnecting;
+-	bool amy_authed; /* Amy Canon: envio el token correcto (CLIENT_AMY_AUTH) */
+-
+-	auth_peer_data auth;
+-
+-	/* Character */
+-	enum
+-	{
+-		CH_NONE = -1,
+-
+-		CH_TAILS,
+-		CH_KNUX,
+-		CH_EGGMAN,
+-		CH_AMY,
+-		CH_CREAM,
+-		CH_SALLY,
+-
+-		/* Copia clasica de Amy (sprites v100) */
+-		CH_AMY_CANON,
+-
+-		/* Sonic (mod): sobreviviente #8, mismo orden que el cliente */
+-		CH_SONIC,
+-
+-		/* Sally Canon (mod): sobreviviente #9, mismo orden que el cliente */
+-		CH_SALLY_CANON,
+-
+-		/* Vanilla (mod): sobreviviente #10, mismo orden que el cliente.
+-		   SOLO se desbloquea con el token de Amy (amy_canon_token),
+-		   igual que Amy Canon: ni operadores ni publica. */
+-		CH_VANILLA,
+-
+-		/* v2.2 (TTB): supervivientes #11-13 rescatados de TD2D Through
+-		   the Blood, LIBRES para todos. Mismo orden que el cliente. */
+-		CH_METAL,
+-		CH_AMELIA,
+-		CH_BLAZE
+-		} surv_char;
+-
+-	enum
+-	{
+-		EX_NONE = -1,
+-
+-		EX_ORIGINAL,
+-		EX_CHAOS,
+-		EX_EXETIOR,
+-		EX_EXELLER,
+-
+-		/* v2.2 (TTB): killer #5 rescatado de TD2D Through the Blood */
+-		EX_METALAMY
+-		} exe_char;
+-
+-	bool should_timeout;
+-
+-	/* State info */
+-	uint8_t exe_chance;
+-	double timeout;
+-	double vote_cooldown;
+-
+-	/* v2.1.3: cooldowns de habilidades de ESTE jugador (indices de arriba).
+-	   Se resetean en game_init y al demonizarse (states/Game.c). */
+-	double plr_cooldowns[PLAYER_COOLCOUNT];
+-
+-	struct Server *server;
++        uint16_t id;
++        String ip;
++        ENetPeer *peer;
++
++        /* General info */
++        Player plr;
++        String nickname;
++        String udid;
++        uint8_t lobby_icon;
++        int8_t pet;
++
++        bool verified;
++        bool in_game;
++        bool op;
++        bool ready;
++        bool mod_tool;
++        bool is_mobile;
++        bool can_vote;
++        bool voted;
++        bool disconnecting;
++        bool amy_authed; /* Amy Canon: envio el token correcto (CLIENT_AMY_AUTH) */
++
++        auth_peer_data auth;
++
++        /* Character */
++        enum
++        {
++                CH_NONE = -1,
++
++                CH_TAILS,
++                CH_KNUX,
++                CH_EGGMAN,
++                CH_AMY,
++                CH_CREAM,
++                CH_SALLY,
++
++                /* Copia clasica de Amy (sprites v100) */
++                CH_AMY_CANON,
++
++                /* Sonic (mod): sobreviviente #8, mismo orden que el cliente */
++                CH_SONIC,
++
++                /* Sally Canon (mod): sobreviviente #9, mismo orden que el cliente */
++                CH_SALLY_CANON,
++
++                /* Vanilla (mod): sobreviviente #10, mismo orden que el cliente.
++                   SOLO se desbloquea con el token de Amy (amy_canon_token),
++                   igual que Amy Canon: ni operadores ni publica. */
++                CH_VANILLA,
++
++                /* v2.2 (TTB): supervivientes #11-13 rescatados de TD2D Through
++                   the Blood, LIBRES para todos. Mismo orden que el cliente. */
++                CH_METAL,
++                CH_AMELIA,
++                CH_BLAZE
++                } surv_char;
++
++        enum
++        {
++                EX_NONE = -1,
++
++                EX_ORIGINAL,
++                EX_CHAOS,
++                EX_EXETIOR,
++                EX_EXELLER,
++
++                /* v2.2 (TTB): killer #5 rescatado de TD2D Through the Blood */
++                EX_METALAMY
++                } exe_char;
++
++        bool should_timeout;
++
++        /* State info */
++        uint8_t exe_chance;
++        double timeout;
++        double vote_cooldown;
++
++        /* v2.1.3: cooldowns de habilidades de ESTE jugador (indices de arriba).
++           Se resetean en game_init y al demonizarse (states/Game.c). */
++        double plr_cooldowns[PLAYER_COOLCOUNT];
++
++        struct Server *server;
+ } PeerData;
+ 
+ typedef struct
+ {
+-	/* Lobby */
+-	double countdown;
+-	double prac_countdown;
+-	uint8_t countdown_sec;
+-	Vote vote;
+-	PeerData kick_target;
+-
+-	/* Map Vote */
+-	uint8_t maps[3];
+-	uint8_t votes[3];
+-
+-	/* Character Select */
+-	int8_t map;
+-	uint16_t exe;
+-	bool avail[CH_BLAZE + 1];
++        /* Lobby */
++        double countdown;
++        double prac_countdown;
++        uint8_t countdown_sec;
++        Vote vote;
++        PeerData kick_target;
++
++        /* Map Vote */
++        uint8_t maps[3];
++        uint8_t votes[3];
++
++        /* Character Select */
++        int8_t map;
++        uint16_t exe;
++        bool avail[CH_BLAZE + 1];
+ } Lobby;
+ 
+ typedef enum
+ {
+-	BS_NONE,
+-	BS_DEACTIVATED,
+-	BS_ACTIVATED,
++        BS_NONE,
++        BS_DEACTIVATED,
++        BS_ACTIVATED,
+ } BigRingState;
+ 
+ typedef enum
+ {
+-	ED_EXEWIN,
+-	ED_SURVWIN,
+-	ED_TIMEOVER
++        ED_EXEWIN,
++        ED_SURVWIN,
++        ED_TIMEOVER
+ } Ending;
+ 
+ typedef struct
+ {
+-	int exe;
+-	int8_t map;
+-	bool started;
+-	bool sudden_death;
++        int exe;
++        int8_t map;
++        bool started;
++        bool sudden_death;
+ 
+-	double start_timeout;
+-	double time;
+-	double elapsed;
+-	uint16_t time_sec;
+-	double end;
+-	Ending ending;
++        double start_timeout;
++        double time;
++        double elapsed;
++        uint16_t time_sec;
++        double end;
++        Ending ending;
+ 
+-	BigRingState bring_state;
+-	uint8_t bring_loc;
++        BigRingState bring_state;
++        uint8_t bring_loc;
+ 
+-	/* Entities */
+-	uint16_t entid;
+-	DyList entities;
++        /* Entities */
++        uint16_t entid;
++        DyList entities;
+ 
+-	/* Rings */
+-	bool rings[256];
+-	uint8_t ring_coff;
++        /* Rings */
++        bool rings[256];
++        uint8_t ring_coff;
+ 
+-	/* Lists */
+-	DyList left;
++        /* Lists */
++        DyList left;
+ 
+-	TimeStamp tails_last_proj;
++        TimeStamp tails_last_proj;
+ } Game;
+ 
+ typedef struct Results
+ {
+-	double countdown;
+-	bool music_synced; /* >>[endings v2]<< la espera ya se ajusto a la pista real */
++        double countdown;
++        bool music_synced; /* >>[endings v2]<< la espera ya se ajusto a la pista real */
+ } Results;
+ 
+ typedef struct Server
+ {
+-	uint16_t id;
+-	bool running;
+-
+-	enum
+-	{
+-		ST_LOBBY,
+-		ST_MAPVOTE,
+-		ST_CHARSELECT,
+-		ST_GAME,
+-		ST_RESULTS
+-	} state;
+-	Mutex state_lock;
+-
+-	/* States */
+-	Lobby lobby;
+-	Game game;
+-	Results results;
+-
+-	int8_t last_map;
+-	int16_t map_pickrates[30];
+-
+-	double delta;
+-	DyList peers;
+-	ENetHost *host;
++        uint16_t id;
++        bool running;
++
++        enum
++        {
++                ST_LOBBY,
++                ST_MAPVOTE,
++                ST_CHARSELECT,
++                ST_GAME,
++                ST_RESULTS
++        } state;
++        Mutex state_lock;
++
++        /* States */
++        Lobby lobby;
++        Game game;
++        Results results;
++
++        int8_t last_map;
++        int16_t map_pickrates[30];
++
++        double delta;
++        DyList peers;
++        ENetHost *host;
+ } Server;
+ 
+ bool server_state_joined(PeerData *v);
+diff --git a/betterserver-oss/include/entities/AmeliaBomb.h b/betterserver-oss/include/entities/AmeliaBomb.h
+deleted file mode 100644
+index 2313af08..00000000
+--- a/betterserver-oss/include/entities/AmeliaBomb.h
++++ /dev/null
+@@ -1,23 +0,0 @@
+-#ifndef AMELIA_BOMB_H
+-#define AMELIA_BOMB_H
+-#include "../States.h"
+-
+-bool amelia_bomb_init(Server* server, Entity* entity);
+-bool amelia_bomb_tick(Server* server, Entity* entity);
+-bool amelia_bomb_boom(Server* server, Entity* entity);
+-bool amelia_bomb_uninit(Server* server, Entity* entity);
+-
+-/* v2.2 (TTB): bomba de Amelia. Mecha de 5 s; explota sola (tick) o
+-   cuando el killer la pisa (CLIENT_AMELIA_BOMB_BOOM). El stun lo
+-   aplica el cliente de cada jugador (radio 90 px, lado EXE). */
+-typedef struct
+-{
+-	ENTITY_BODY
+-
+-	uint16_t owner;
+-	double	 timer;
+-	bool	 boomed;
+-} AmeliaBomb;
+-#define MakeAmeliaBomb(x, y, owner) ((AmeliaBomb) { MakeEntity("abomb", x, y) amelia_bomb_init, amelia_bomb_tick, amelia_bomb_uninit, owner, 5 * TICKSPERSEC, false })
+-
+-#endif
+diff --git a/betterserver-oss/include/entities/AmeliaTrap.h b/betterserver-oss/include/entities/AmeliaTrap.h
+new file mode 100644
+index 00000000..d576c84b
+--- /dev/null
++++ b/betterserver-oss/include/entities/AmeliaTrap.h
+@@ -0,0 +1,25 @@
++#ifndef AMELIA_TRAP_H
++#define AMELIA_TRAP_H
++#include "../States.h"
++
++bool amelia_trap_init(Server* server, Entity* entity);
++bool amelia_trap_tick(Server* server, Entity* entity);
++bool amelia_trap_trigger(Server* server, Entity* entity);
++bool amelia_trap_uninit(Server* server, Entity* entity);
++
++/* v2.4 (TTB): trampa de Amelia. Vida maxima de 60 s (la retira el
++   server en silencio); se activa cuando la pisa alguien del lado del
++   EXE (CLIENT_AMELIA_TRAP_TRIGGER desde el cliente de la victima).
++   El stun (3 s) y el slow (-40%, 3.5 s tras el stun) los aplica el
++   cliente de la victima sobre su propio jugador. */
++typedef struct
++{
++        ENTITY_BODY
++
++        uint16_t owner;
++        double   timer;
++        bool     triggered;
++} AmeliaTrap;
++#define MakeAmeliaTrap(x, y, owner) ((AmeliaTrap) { MakeEntity("atrap", x, y) amelia_trap_init, amelia_trap_tick, amelia_trap_uninit, owner, 60 * TICKSPERSEC, false })
++
++#endif
+diff --git a/objects/obj_amelia/Create_0.gml b/objects/obj_amelia/Create_0.gml
+index 1c8ea281..7d317f2e 100644
+--- a/objects/obj_amelia/Create_0.gml
++++ b/objects/obj_amelia/Create_0.gml
+@@ -1,6 +1,7 @@
+ // =====================================================================
+-//  AMELIA (v2.2, rescatada de TD2D Through the Blood).
++//  AMELIA (v2.4, rescatada de TD2D Through the Blood).
+ //  Macros en scr_amelia_special; estados propios en Step_2.
++//  (v2.4: sin vuelo ni velocidad — solo trampolin y trampa.)
+ // =====================================================================
+ 
+ //Variables
+@@ -29,14 +30,9 @@ chunkY = -1000;
+ chunkTimer = 0;
+ 
+ isColliding = false;
+-isFlying = false;
+-dashing = 0;
+-flyTimer = 0;
+-flyTimeout = 0;
+-dashTimer = 0;
+-// AMELIA: trampas
++// AMELIA: trampolin y trampa
+ bananaTimer = 0;
+-bombTimer = 0;
++trapTimer = 0;
+ 
+ //General
+ hp = 100;
+@@ -46,7 +42,6 @@ isLookingUp = false;
+ isLookingDown = false;
+ isDead = false;
+ isHurt = false;
+-isFlying = false;
+ isSpinning = false;
+ isAttacking = false;
+ isHiding = false;
+diff --git a/objects/obj_amelia/Draw_76.gml b/objects/obj_amelia/Draw_76.gml
+index 24bf1b21..5da8f9bc 100644
+--- a/objects/obj_amelia/Draw_76.gml
++++ b/objects/obj_amelia/Draw_76.gml
+@@ -3,52 +3,44 @@ sprite_index = arr[? CHARACTER_AMELIA][state];
+ 
+ switch(state)
+ {
+-	case IDLE:
+-		image_speed = 1;
+-		break;
+-
+-	case HURT:
+-		image_speed = 0;
+-		image_index = 0;
+-		break;
+-
+-	case BALANCING:
+-		image_xscale = edgeDir;
+-		image_speed = 1;
+-		break;
+-
+-	case FALL:
+-		image_speed = 0.15 + min(abs(yspd), 12) * 0.02;
+-		break;
+-
+-	case WALK:
+-		image_speed = 0.2 + (abs(xspd) / (maxHSpeed));
+-		break;
+-
+-	case RUN:
+-	case JUMP:
+-		image_speed = max(abs(xspd) / 20, 0.5);
+-		break;
+-
+-	case LOOKUP:
+-	case LOOKDOWN:
+-		image_speed = 0.2;
+-
+-		// Stop on last frame
+-		if(image_index >= 1)
+-			image_index = 1;
+-
+-		break;
+-
+-	case SPIN:
+-		image_speed = abs(xspd) / 5;
+-		break;
+-	case AMELIA_FLY:
+-		image_speed = 0.6;
+-
+-		if(xspd > 0)
+-			image_xscale = 1;
+-		else if(xspd < 0)
+-			image_xscale = -1;
+-		break;
++        case IDLE:
++                image_speed = 1;
++                break;
++
++        case HURT:
++                image_speed = 0;
++                image_index = 0;
++                break;
++
++        case BALANCING:
++                image_xscale = edgeDir;
++                image_speed = 1;
++                break;
++
++        case FALL:
++                image_speed = 0.15 + min(abs(yspd), 12) * 0.02;
++                break;
++
++        case WALK:
++                image_speed = 0.2 + (abs(xspd) / (maxHSpeed));
++                break;
++
++        case RUN:
++        case JUMP:
++                image_speed = max(abs(xspd) / 20, 0.5);
++                break;
++
++        case LOOKUP:
++        case LOOKDOWN:
++                image_speed = 0.2;
++
++                // Stop on last frame
++                if(image_index >= 1)
++                        image_index = 1;
++
++                break;
++
++        case SPIN:
++                image_speed = abs(xspd) / 5;
++                break;
+ }
+diff --git a/objects/obj_amelia/Step_0.gml b/objects/obj_amelia/Step_0.gml
+index 4cb7b52c..7aa7e51d 100644
+--- a/objects/obj_amelia/Step_0.gml
++++ b/objects/obj_amelia/Step_0.gml
+@@ -1,105 +1,104 @@
+-/// @description General movement (v2.2 TTB: Amelia)
++/// @description General movement (v2.4 TTB: Amelia)
+ if(shockedTimer <= 0)
+ {
+-	scr_move_basic();
++        scr_move_basic();
+ }
+ else
+ {
+-	isFlying = false;
+-	isBoosting = false;
+-	isLookingDown = false;
+-	isLookingUp = false;
+-	isAttacking = false;
+-	isJumping = false;
+-	gspd -= min(abs(gspd), acc) * sign(gspd);
+-	xspd -= min(abs(xspd), acc) * sign(xspd);
+-	shockedTimer--;
+-	hurttime = 60 * 2;
+-	ringsSpawn = 0;
++        isBoosting = false;
++        isLookingDown = false;
++        isLookingUp = false;
++        isAttacking = false;
++        isJumping = false;
++        gspd -= min(abs(gspd), acc) * sign(gspd);
++        xspd -= min(abs(xspd), acc) * sign(xspd);
++        shockedTimer--;
++        hurttime = 60 * 2;
++        ringsSpawn = 0;
+ }
+ 
+ scr_collision_basic();
+ 
+ if(reviveObj != noone)
+ {
+-	reviveObj.x = x;
+-	reviveObj.y = y - 40;
+-	reviveObj.master_id = obj_netclient.nid;
++        reviveObj.x = x;
++        reviveObj.y = y - 40;
++        reviveObj.master_id = obj_netclient.nid;
+ }
+ 
+ if(redRingTimer > 0)
+ {
+-	if(redRingTimer == 1)
+-	{
+-		audio_stop_sound(mus_mindfuck);
+-		instance_destroy(obj_redring_screen);
+-	}
++        if(redRingTimer == 1)
++        {
++                audio_stop_sound(mus_mindfuck);
++                instance_destroy(obj_redring_screen);
++        }
+ 
+-	redRingTimer--;
++        redRingTimer--;
+ }
+ 
+ if(hurttime > 0)
+-	hurttime--;
++        hurttime--;
+ 
+ if(hurttime > 0)
+-	return;
++        return;
+ 
+ if(hp <= 0 && revivalTimes < 2)
+-	return;
++        return;
+ 
+ if(bounceTimer > 0)
+-	return;
++        return;
+ 
+ var list = ds_list_create();
+ instance_place_list(x, y, obj_player_puppet, list, false);
+ 
+ for(var i = 0; i < ds_list_size(list); i++)
+ {
+-	var inst = list[| i];
+-	if(inst.isDemonized && inst.visible && (inst.state == JUMP || inst.state == SPIN) && !isAttacking)
+-	{
+-		if(inst.character == CHARACTER_EGGMAN || (inst.character == CHARACTER_AMY || inst.character == CHARACTER_AMY_CANON) || inst.character == CHARACTER_SALLY || inst.character == CHARACTER_SALLY_CANON)
+-			continue;
+-
+-		if(revivalTimes >= 2)
+-			continue;
+-
+-		if(inst.character == CHARACTER_EXE && inst.exeCharacter == 1 && inst.slimeMode)
+-			continue;
+-
+-		var dmg = (isJumping || isSpinning) ? 0 : 20;
+-		var dirX = -sign(inst.x - x) * 3;
+-		var dirY = dmg == 0 ? -sign(inst.y - y) * 4 : -4;
+-
+-		// exeSource=true: dano de un ataque del lado EXE (parry puede negarlo)
+-		scr_player_hurt(dmg, dirX, dirY, (isJumping || isSpinning) ? snd_buble : snd_hurt, spr_blood2, true, true);
+-
+-		if(hp <= 0 && inst.revivalTimes >= 2)
+-		{
+-			var pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
+-			buffer_write(pak, buffer_u16, inst.master_id);
+-			buffer_write(pak, buffer_u8, 4);
+-			send_server_tcp(pak);
+-		}
+-
+-		if(dmg > 0 && hurttime >= 0)
+-		{
+-			obj_level.bloodFade = 0.4;
+-
+-			if(inst.character == CHARACTER_EXE)
+-				scr_exe_checkwin();
+-
+-			var buffer = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
+-			buffer_write(buffer, buffer_u8, 2);
+-			buffer_write(buffer, buffer_u16, inst.master_id);
+-			buffer_write(buffer, buffer_u16, 20);
+-			buffer_write(buffer, buffer_u16, hp);
+-			send_server_tcp(buffer);
+-		}
+-
+-		if(dmg <= 0 && bounceTimer <= -1)
+-			bounceTimer = 6;
+-	}
++        var inst = list[| i];
++        if(inst.isDemonized && inst.visible && (inst.state == JUMP || inst.state == SPIN) && !isAttacking)
++        {
++                if(inst.character == CHARACTER_EGGMAN || (inst.character == CHARACTER_AMY || inst.character == CHARACTER_AMY_CANON) || inst.character == CHARACTER_SALLY || inst.character == CHARACTER_SALLY_CANON)
++                        continue;
++
++                if(revivalTimes >= 2)
++                        continue;
++
++                if(inst.character == CHARACTER_EXE && inst.exeCharacter == 1 && inst.slimeMode)
++                        continue;
++
++                var dmg = (isJumping || isSpinning) ? 0 : 20;
++                var dirX = -sign(inst.x - x) * 3;
++                var dirY = dmg == 0 ? -sign(inst.y - y) * 4 : -4;
++
++                // exeSource=true: dano de un ataque del lado EXE (parry puede negarlo)
++                scr_player_hurt(dmg, dirX, dirY, (isJumping || isSpinning) ? snd_buble : snd_hurt, spr_blood2, true, true);
++
++                if(hp <= 0 && inst.revivalTimes >= 2)
++                {
++                        var pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
++                        buffer_write(pak, buffer_u16, inst.master_id);
++                        buffer_write(pak, buffer_u8, 4);
++                        send_server_tcp(pak);
++                }
++
++                if(dmg > 0 && hurttime >= 0)
++                {
++                        obj_level.bloodFade = 0.4;
++
++                        if(inst.character == CHARACTER_EXE)
++                                scr_exe_checkwin();
++
++                        var buffer = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
++                        buffer_write(buffer, buffer_u8, 2);
++                        buffer_write(buffer, buffer_u16, inst.master_id);
++                        buffer_write(buffer, buffer_u16, 20);
++                        buffer_write(buffer, buffer_u16, hp);
++                        send_server_tcp(buffer);
++                }
++
++                if(dmg <= 0 && bounceTimer <= -1)
++                        bounceTimer = 6;
++        }
+ }
+ 
+ ds_list_destroy(list);
+diff --git a/objects/obj_amelia/Step_2.gml b/objects/obj_amelia/Step_2.gml
+index 54bd1576..83fe3648 100644
+--- a/objects/obj_amelia/Step_2.gml
++++ b/objects/obj_amelia/Step_2.gml
+@@ -1,81 +1,75 @@
+-#macro AMELIA_FLY BALANCING+1
++#macro AMELIA_FLY BALANCING+1     // (v2.2: sin uso; v2.4 quito el vuelo, corre normal)
+ #macro AMELIA_SRINGS BALANCING+2 // defensivo (sin uso)
+ #macro AMELIA_ZIPLINE BALANCING+3
+ 
+ if(!emotion)
+-	state = IDLE;
++        state = IDLE;
+ 
+ if(isDead)
+ {
+-	state = DEAD;
+-	return;
++        state = DEAD;
++        return;
+ }
+ 
+ if(shockedTimer > 0)
+ {
+-	state = DEAD;
+-	return;
++        state = DEAD;
++        return;
+ }
+ 
+ if(isHurt)
+ {
+-	state = HURT;
+-	return;
+-}
+-
+-if(isFlying)
+-{
+-	state = AMELIA_FLY;
+-	return;
++        state = HURT;
++        return;
+ }
+ 
+ if(isZipline)
+ {
+-	if(isGrounded)
+-		isZipline = false;
+-	else
+-	{
+-		state = AMELIA_ZIPLINE;
+-		return;
+-	}
++        if(isGrounded)
++                isZipline = false;
++        else
++        {
++                state = AMELIA_ZIPLINE;
++                return;
++        }
+ }
+ 
+ if(isLookingUp)
+ {
+-	state = LOOKUP;
+-	return;
++        state = LOOKUP;
++        return;
+ }
+ 
+ if(isLookingDown)
+ {
+-	state = LOOKDOWN;
+-	return;
++        state = LOOKDOWN;
++        return;
+ }
+ 
+ if(isSpinning)
+ {
+-	state = SPIN;
+-	return;
++        state = SPIN;
++        return;
+ }
+ 
+ if(abs(xspd) > 0 && isGrounded)
+ {
+-	if(abs(xspd) < 6)
+-		state = WALK;
+-	else
+-		state = RUN;
++        if(abs(xspd) < 6)
++                state = WALK;
++        else
++                state = RUN;
+ }
+ 
+ if(isOnEdge)
+ {
+-	state = BALANCING;
+-	return;
++        state = BALANCING;
++        return;
+ }
+ 
+ if (!isGrounded) //in air
+ {
+-	if(isJumping)
+-		state = JUMP;
+-	else
+-		state = FALL;
++        if(isJumping)
++                state = JUMP;
++        else
++                state = FALL;
+ }
+diff --git a/objects/obj_amelia_bomb/Create_0.gml b/objects/obj_amelia_bomb/Create_0.gml
+deleted file mode 100644
+index 627d3463..00000000
+--- a/objects/obj_amelia_bomb/Create_0.gml
++++ /dev/null
+@@ -1,22 +0,0 @@
+-// =====================================================================
+-//  v2.2 — AMELIA: BOMBA (cliente). La mecha (5 s) la lleva el SERVER
+-//  (entities/AmeliaBomb.c) y al agotarse (o al pisarla el killer:
+-//  CLIENT_AMELIA_BOMB_BOOM desde aqui) reenvia SERVER_AMELIA_BOMB_
+-//  STATE 2 (boom) a todos: en cada cliente se ve la explosion y, si
+-//  el jugador LOCAL es del lado del EXE y esta a menos de 90 px, se
+-//  aplica su propio stun de 2 s (cada cliente es autoridad de su
+-//  jugador; ver el handler en net_state_game).
+-//  Este objeto solo lleva el visual de la mecha y detecta el pisoton
+-//  del killer.
+-// =====================================================================
+-fuse = 60 * 5;  // mecha visual (el server manda el boom real)
+-boomSent = false;
+-
+-function amelia_bomb_boom()
+-{
+-        if(boomSent)
+-                return;
+-
+-        boomSent = true;
+-        net_amelia_bomb_boom();
+-}
+diff --git a/objects/obj_amelia_bomb/Step_0.gml b/objects/obj_amelia_bomb/Step_0.gml
+deleted file mode 100644
+index 9e9c89ac..00000000
+--- a/objects/obj_amelia_bomb/Step_0.gml
++++ /dev/null
+@@ -1,33 +0,0 @@
+-// mecha visual: parpadeo cada vez mas rapido al acercarse el final
+-fuse--;
+-
+-if(fuse <= 0)
+-{
+-        // el server habra mandado el boom; si el paquete se perdio,
+-        // desvanecer sola para no quedar colgada
+-        image_alpha -= 0.05;
+-
+-        if(image_alpha <= 0)
+-                instance_destroy();
+-
+-        return;
+-}
+-
+-var _period = 30;
+-
+-if(fuse < 60 * 2)
+-        _period = 12;
+-
+-if(fuse < 30)
+-        _period = 5;
+-
+-image_blend = (fuse div _period) mod 2 == 0 ? c_white : c_red;
+-
+-// el killer la pisa: boom inmediato (lo decide el server)
+-if(!boomSent && instance_exists(global.player))
+-{
+-        var _exeSide = (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2);
+-
+-        if(_exeSide && place_meeting(x, y, global.player))
+-                amelia_bomb_boom();
+-}
+diff --git a/objects/obj_amelia_trap/Create_0.gml b/objects/obj_amelia_trap/Create_0.gml
+new file mode 100644
+index 00000000..940765bd
+--- /dev/null
++++ b/objects/obj_amelia_trap/Create_0.gml
+@@ -0,0 +1,40 @@
++// =====================================================================
++//  v2.4 — AMELIA: TRAMPA (cliente). La vida maxima (60 s) la lleva
++//  el SERVER (entities/AmeliaTrap.c): al agotarse la retira con
++//  SERVER_AMELIA_TRAP_STATE 1 y aqui se desvanece sola por si el
++//  paquete se pierde. Cuando alguien del lado del EXE la pisa, ESTE
++//  cliente (el de la victima) aplica sobre su propio jugador el STUN
++//  de 3 s + el debuff de velocidad (-40%) de 3.5 s al salir del stun,
++//  y avisa con CLIENT_AMELIA_TRAP_TRIGGER; el server la revienta a
++//  todos con state 2 (efecto y sonido para el resto).
++// =====================================================================
++life = 60 * 60;    // vida visual (el server manda el remove real)
++triggerSent = false;
++
++function amelia_trap_trigger()
++{
++        if(triggerSent)
++                return;
++
++        triggerSent = true;
++
++        // STUN 3 s + slow 3.5 s al salir del stun: la victima es el
++        // jugador LOCAL (cada cliente es autoridad del suyo, patron
++        // de la banana). El slow se pide por el TOTAL (stun + slow)
++        // porque durante el stun no hay movimiento: los 3 primeros
++        // segundos del debuff quedan "tapados" por el propio stun y
++        // los 3.5 restantes corren justo despues, como en el TD.
++        if(instance_exists(global.player) && global.player.shockedTimer <= 0)
++        {
++                global.player.shockedTimer = 60 * 3;
++                global.player.isAttacking = false;
++                global.player.xspd = 0;
++
++                scr_player_slow(3.5 + 3);
++
++                audio_play_sound(snd_exe_stun, 0, false);
++                net_sound_emit(snd_exe_stun);
++        }
++
++        net_amelia_trap_trigger(nid);
++}
+diff --git a/objects/obj_amelia_trap/Step_0.gml b/objects/obj_amelia_trap/Step_0.gml
+new file mode 100644
+index 00000000..d7c1aad8
+--- /dev/null
++++ b/objects/obj_amelia_trap/Step_0.gml
+@@ -0,0 +1,24 @@
++// vida visual: si el server ya retiro la trampa (60 s) pero el
++// paquete se perdio, desvanecer sola para no quedar colgada
++life--;
++
++if(life <= 0)
++{
++        image_alpha -= 0.05;
++
++        if(image_alpha <= 0)
++                instance_destroy();
++
++        return;
++}
++
++// la pisa alguien del lado del EXE (jugador LOCAL de este cliente):
++// stun + slow sobre la victima y aviso al server (patron v2.2 de la
++// bomba; ahora sin radio: solo la victima que la pisa)
++if(!triggerSent && instance_exists(global.player))
++{
++        var _exeSide = !global.player.isDead && (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2);
++
++        if(_exeSide && place_meeting(x, y, global.player))
++                amelia_trap_trigger();
++}
+diff --git a/objects/obj_amelia_bomb/obj_amelia_bomb.yy b/objects/obj_amelia_trap/obj_amelia_trap.yy
+similarity index 95%
+rename from objects/obj_amelia_bomb/obj_amelia_bomb.yy
+rename to objects/obj_amelia_trap/obj_amelia_trap.yy
+index f9f8a6eb..a3861516 100644
+--- a/objects/obj_amelia_bomb/obj_amelia_bomb.yy
++++ b/objects/obj_amelia_trap/obj_amelia_trap.yy
+@@ -1,12 +1,12 @@
+ {
+   "$GMObject":"",
+-  "%Name":"obj_amelia_bomb",
++  "%Name":"obj_amelia_trap",
+   "eventList":[
+     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
+     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
+   ],
+   "managed":true,
+-  "name":"obj_amelia_bomb",
++  "name":"obj_amelia_trap",
+   "overriddenProperties":[],
+   "parent":{
+     "name":"Amelia",
+diff --git a/objects/obj_playerui/Draw_64.gml b/objects/obj_playerui/Draw_64.gml
+index c8546fc3..a8b24b83 100644
+--- a/objects/obj_playerui/Draw_64.gml
++++ b/objects/obj_playerui/Draw_64.gml
+@@ -1,384 +1,383 @@
+ if(!global.showHud)
+-	return;
+-	
++        return;
++        
+ if(instance_exists(global.player) && !global.player.isDead)
+-{			
+-	switch(global.character)
+-	{
+-		case CHARACTER_EXE: //exe
+-		{
+-			switch(global.exeCharacter)
+-			{
+-				case EXE_ORIGINAL:
+-					var prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
+-					draw_sprite_ext(spr_gui_exeattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-					
+-					var prog = global.playerControls && global.player.isJumping;
+-					draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog ? c_white : c_red, prog ? 1 : 0.5);
+-					
+-					var prog = (min(global.player.invisTimer, 0) / EXE_INVIS_RECHARGE);
+-					draw_sprite_ext(spr_gui_exeinvisability, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-					break;
+-					
+-				case EXE_CHAOS:
+-					if(global.player.stuckTimer <= 30/2)
+-					{
+-						var prog = global.player.slimeTimer > 0 ? 0 : 1.0 - (min(global.player.attackTimer, 120) / 120.0);
+-						draw_sprite_ext(spr_gui_chaosattack, !global.player.isGrounded, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-					}
+-					else
+-					{
+-						var frame = 2;
+-						
+-						if(global.player.isGrounded && global.player.stuckDir > 0)
+-							frame = 1;
+-							
+-						if(global.player.isGrounded && global.player.stuckDir < 0)
+-							frame = 0;
+-						
+-						var prog = 1;
+-						draw_sprite_ext(spr_gui_chaoswalldash, frame, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-					}
+-					
+-					var prog = global.playerControls && global.player.isJumping;
+-					draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog && global.player.slimeTimer <= 0 ? c_white : c_red, global.player.slimeTimer <= 0 ? (prog ? 1 : 0.5) : 0);
+-					
+-					var prog = global.player.slimeTimer > 0 ? 1 : (min(global.player.slimeTimer, 0) / -CHAOS_INVIS_RECHARGE);
+-					draw_sprite_ext(spr_gui_chaosslime, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-					break;
+-					
+-				case EXE_EXETIOR:
+-					var prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
+-					draw_sprite_ext(spr_gui_exetiorattack, !global.player.isGrounded, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-					
+-					var prog = global.playerControls && global.player.isJumping;
+-					draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog ? c_white : c_red, prog ? 1 : 0.5);
+-					
+-					var prog = (1.0 - (global.player.bringTimer / EXETIOR_BRING_RECHARGE));
+-					draw_sprite_ext(spr_gui_exetiorring, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 && global.player.canSpawnRings ? c_white : c_red, prog);
+-					break;
+-					
+-				case EXE_EXELLER:
+-					var prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
+-					draw_sprite_ext(spr_gui_exeattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-					
+-					var prog = global.playerControls && global.player.isJumping;
+-					draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog ? c_white : c_red, prog ? 1 : 0.5);
+-					
+-					var prog = 1.0 - (global.player.cloneTimer / EXELLER_CLONE_RECHARGE);
+-					var spr = spr_gui_exellerclone;
+-					
+-					if((keyboard_check(global.KeyDown) || keyboard_check(global.KeyUp)))
+-					{
+-						if(global.player.cloneCount > 0)
+-						{
+-							spr = spr_gui_exellerclone2;
+-							prog = 1;
+-						}
+-					}
+-					
+-					if(spr == spr_gui_exellerclone && global.player.cloneCount >= 2)
+-						prog = 0;
+-					
+-					draw_sprite_ext(spr, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-					break;
+-				
+-				case EXE_METALAMY:
+-				{
+-					// v2.2 (TTB): golpe (X) y bala del canon (C)
+-					var prog = 1.0 - (min(global.player.attackTimer, 120) / 120.0);
+-					draw_sprite_ext(spr_gui_metalamyattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-					
+-					var prog = global.playerControls && global.player.isJumping;
+-					draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog ? c_white : c_red, prog ? 1 : 0.5);
+-					
+-					var prog = 1.0 - (global.player.bulletTimer / METALAMY_BULLET_RECHARGE);
+-					draw_sprite_ext(spr_gui_metal_amy_lazer, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-					break;
+-				}
+-			}
+-			
+-			break;
+-		}
+-		
+-		case CHARACTER_TAILS: //tails
+-		{
+-			var prog = (min(global.player.flyTimer, 0) / -420.0);
+-			draw_sprite_ext(spr_gui_tailsfly, global.player.revivalTimes >= 2, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			
+-			var val = global.player.revivalTimes >= 2 ? ETAILS_ATTACK_RECHARGE : TAILS_ATTACK_RECHARGE;
+-			var prog = 1.0 - (global.player.attackTimer / val);
+-			draw_sprite_ext(spr_gui_tailsattack, 0, prog * 12, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			break;
+-		}
+-		
+-		case CHARACTER_KNUX:
+-		{
+-			var prog = 1.0 - (min(global.player.glideTimer, KNUX_GLIDE_RECHARGE) / KNUX_GLIDE_RECHARGE);
+-			draw_sprite_ext(spr_gui_knuxglide, global.player.revivalTimes >= 2, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			
+-			var val = global.player.revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
+-			var prog = 1.0 - (min(global.player.attackTimer, val) / val);
+-			draw_sprite_ext(spr_gui_knuxattack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);	
+-			break;
+-		}
+-		
+-		case CHARACTER_EGGMAN:
+-		{
+-			var prog = 1.0 - (max(global.player.djumpRecharge, 0) / EGGMAN_DJUMP_RECHARGE);
+-			draw_sprite_ext(spr_gui_eggdjump, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			
+-			var prog = 1.0 - (max(global.player.shieldRechrage, 0) / EGGMAN_SHIELD_RECHARGE);
+-			draw_sprite_ext(spr_gui_eggshield, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);	
+-			
+-			var prog = 1.0 - (max(global.player.trackerRecharge, 0) / EGGMAN_TRACKER_RECHARGE);
+-			draw_sprite_ext(spr_gui_eggtrack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, (global.player.isColliding && prog == 1.0) ? c_white : c_red, prog);	
+-			break;
+-		}
+-		
+-		case CHARACTER_AMY:
+-		{
+-			var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_BIGJUMP_RECHARGE);
+-			draw_sprite_ext(spr_gui_amyhjump, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			
+-			var val = global.player.revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
+-			var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
+-			draw_sprite_ext(spr_gui_amyattack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);	
+-			break;
+-		}
+-		
+-		case CHARACTER_AMY_CANON:
+-		{
+-				// Icono 1: SALTO DE MARTILLO (tecla Z, en el suelo). El relleno
+-				// muestra el CD; blanco = listo Y en el suelo (espejo del icono 3).
+-				var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_CANON_BIGJUMP_RECHARGE);
+-				var b1 = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
+-				draw_sprite_ext(spr_gui_amyhjump_canon, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, b1, prog);
+-			
+-				// Icono 2: IMPULSO AEREO DE TAROT (tecla X, SOLO en el aire).
+-				// El relleno muestra el CD; blanco = lista Y en el aire
+-				// (espejo del icono 3, que exige estar en el suelo).
+-				var val = global.player.revivalTimes >= 2 ? AMY_CANON_ETAROTDASH_RECHARGE : AMY_CANON_TAROTDASH_RECHARGE;
+-				var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
+-				var b2 = (prog == 1.0 && !global.player.isGrounded) ? c_white : c_red;
+-				draw_sprite_ext(spr_gui_amyattack_canon, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, b2, prog);
+-			
+-			// Icono 3: ACOMETIDA DE MARTILLO (tecla C). Muestra la letra C
+-			// (como los demas iconos de tecla C del juego). El relleno
+-			// muestra el CD; blanco = lista y en el suelo.
+-			var val = global.player.revivalTimes >= 2 ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
+-			var prog = 1.0 - (max(global.player.dashTimer, 0) / val);
+-			var b = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
+-			draw_sprite_ext(spr_gui_amydash_canon, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);	
+-			
+-			// Icono 4: PARRY (tecla V, v4.0). Mismas fijaciones que el de
+-			// Sonic (estados 60/61/64). El relleno muestra el CD que falta:
+-			// como el CD depende de COMO termino el ultimo intento
+-			// (fallo/exito), se guarda la duracion total en
+-			// parryCooldownMax al aplicarlo y asi el icono siempre arranca
+-			// lleno. Blanco = listo Y en el suelo (el parry es solo en
+-			// tierra); rojo = lo demas. Si spr_gui_amyparry_canon no
+-			// existiera en el proyecto, no se dibuja pero tampoco crashea
+-			// (mismo patron que el parry de Sonic y el spindash).
+-						// v4.1: se dibuja AL LADO del icono de la acometida (misma fila
+-			// que la C, a su derecha) y no DEBAJO: la vista mide 480x270 y una
+-			// cuarta fila apilada (y=276) caia FUERA de pantalla (por eso no
+-			// salia). C y V comparten fila, como Z X C V en el teclado; en
+-			// Android (y-200) tampoco choca con el boton G (23,81).
+-			var _sprParry = asset_get_index("spr_gui_amyparry_canon");
+-			if(_sprParry >= 0)
+-			{
+-				var _pmax = max(global.player.parryCooldownMax, 1);
+-				var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
+-				var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
+-				draw_sprite_ext(_sprParry, 0, 44 + _pprog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, _pready, _pprog);
+-			}
+-			break;
+-		}
+-		case CHARACTER_SONIC:
+-		{
+-			// Icono (tecla C): PARRY (v3.2). El relleno muestra el CD
+-			// que falta: como el CD depende de COMO termino el ultimo
+-			// intento (fallo/exito x normal/powerboost), se guarda la
+-			// duracion total en parryCooldownMax al aplicarlo y asi el
+-			// icono siempre arranca lleno. Blanco = listo Y en el
+-			// suelo (el parry es solo en tierra); rojo = lo demas.
+-			// Si spr_gui_sonicparry no existiera en el proyecto, no se
+-			// dibuja pero tampoco crashea (mismo patron que el
+-			// spindash de abajo).
+-			var _sprParry = asset_get_index("spr_gui_sonicparry");
+-			if(_sprParry >= 0)
+-			{
+-				var _pmax = max(global.player.parryCooldownMax, 1);
+-				var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
+-				var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
+-				draw_sprite_ext(_sprParry, 0, _pprog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, _pready, _pprog);
+-			}
+-			
+-			// Icono (tecla X): EL GOLPE. Reutiliza el icono generico del
+-			// ataque de Amy; cuando crees spr_gui_sonicattack, cambialo aqui.
+-			var val = global.player.revivalTimes >= 2 ? SONIC_EATTACK_RECHARGE : SONIC_ATTACK_RECHARGE;
+-			var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
+-			draw_sprite_ext(spr_gui_amyattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);	
+-			
+-			// Icono (abajo + Z): SPINDASH. Sin cooldown: su coste es el
+-			// tiempo de revolucioneo. Siempre visible: blanco = listo para
+-			// cargar; rojo = cargando la bola (brilla mas al llenarse).
+-			// Icono extraido del mod TD2DR X SONIC de Renx Diamond.
+-			// Si spr_gui_sonicspindash no existe (aun sin crear en el IDE),
+-			// no se dibuja pero tampoco crashea.
+-			var _sprSpindash = asset_get_index("spr_gui_sonicspindash");
+-			if(_sprSpindash >= 0)
+-			{
+-				if(global.player.isSpinCharging)
+-				{
+-					var charge = global.player.spinCharge / SONIC_SPINDASH_CHARGE_MAX;
+-					draw_sprite_ext(_sprSpindash, 0, charge * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, charge >= 1.0 ? c_white : c_red, 0.4 + charge * 0.6);
+-				}
+-				else
+-					draw_sprite_ext(_sprSpindash, 0, 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, c_white, 1);
+-			}
+-			
+-			// Icono (Z en el aire): DROP DASH (v3). Sin cooldown: su coste
+-			// es medio segundo de agarre en el aire. Se dibuja AL LADO del
+-			// spindash, en su misma fila (como el parry de Amy Canon v4.1:
+-			// la vista mide 480x270 y una fila mas caeria fuera de
+-			// pantalla). El relleno es el armado (dropDashTimer / HOLD);
+-			// blanco = en el aire tras saltar (se puede armar), rojo = en
+-			// tierra o vuelo sin salto; lleno y fijo = ARMADO: al aterrizar
+-			// sale disparado. Usa el sprite spr_gui_sonicdropdash (existia
+-			// en el proyecto sin usar). Si no existiera, no se dibuja pero
+-			// tampoco crashea (mismo patron que el parry y el spindash).
+-			var _sprDropdash = asset_get_index("spr_gui_sonicdropdash");
+-			if(_sprDropdash >= 0)
+-			{
+-				if(global.player.dropDashReady)
+-					draw_sprite_ext(_sprDropdash, 0, 54, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, c_white, 1);
+-				else
+-				{
+-					var _ddprog = min(global.player.dropDashTimer / SONIC_DROPDASH_HOLD, 1.0);
+-					var _ddcol = (global.player.dropDashFromJump && !global.player.isGrounded) ? c_white : c_red;
+-					draw_sprite_ext(_sprDropdash, 0, 44 + _ddprog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, _ddcol, 0.4 + _ddprog * 0.6);
+-				}
+-			}
+-			break;
+-		}
+-		case CHARACTER_CREAM:
+-		{
+-			var prog = 1.0 - (max(global.player.flyTimer, 0) / CREAM_FLY_RECHARGE);
+-			draw_sprite_ext(spr_gui_creamfly, global.player.revivalTimes >= 2, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			
+-			var prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
+-			draw_sprite_ext(spr_gui_creamdash, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			
+-			var prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
+-			draw_sprite_ext(spr_gui_creamrings, global.player.revivalTimes >= 2, prog * 10, 257 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog);
+-			break;
+-		}
++{                       
++        switch(global.character)
++        {
++                case CHARACTER_EXE: //exe
++                {
++                        switch(global.exeCharacter)
++                        {
++                                case EXE_ORIGINAL:
++                                        var prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
++                                        draw_sprite_ext(spr_gui_exeattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                                        
++                                        var prog = global.playerControls && global.player.isJumping;
++                                        draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog ? c_white : c_red, prog ? 1 : 0.5);
++                                        
++                                        var prog = (min(global.player.invisTimer, 0) / EXE_INVIS_RECHARGE);
++                                        draw_sprite_ext(spr_gui_exeinvisability, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                                        break;
++                                        
++                                case EXE_CHAOS:
++                                        if(global.player.stuckTimer <= 30/2)
++                                        {
++                                                var prog = global.player.slimeTimer > 0 ? 0 : 1.0 - (min(global.player.attackTimer, 120) / 120.0);
++                                                draw_sprite_ext(spr_gui_chaosattack, !global.player.isGrounded, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                                        }
++                                        else
++                                        {
++                                                var frame = 2;
++                                                
++                                                if(global.player.isGrounded && global.player.stuckDir > 0)
++                                                        frame = 1;
++                                                        
++                                                if(global.player.isGrounded && global.player.stuckDir < 0)
++                                                        frame = 0;
++                                                
++                                                var prog = 1;
++                                                draw_sprite_ext(spr_gui_chaoswalldash, frame, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                                        }
++                                        
++                                        var prog = global.playerControls && global.player.isJumping;
++                                        draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog && global.player.slimeTimer <= 0 ? c_white : c_red, global.player.slimeTimer <= 0 ? (prog ? 1 : 0.5) : 0);
++                                        
++                                        var prog = global.player.slimeTimer > 0 ? 1 : (min(global.player.slimeTimer, 0) / -CHAOS_INVIS_RECHARGE);
++                                        draw_sprite_ext(spr_gui_chaosslime, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                                        break;
++                                        
++                                case EXE_EXETIOR:
++                                        var prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
++                                        draw_sprite_ext(spr_gui_exetiorattack, !global.player.isGrounded, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                                        
++                                        var prog = global.playerControls && global.player.isJumping;
++                                        draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog ? c_white : c_red, prog ? 1 : 0.5);
++                                        
++                                        var prog = (1.0 - (global.player.bringTimer / EXETIOR_BRING_RECHARGE));
++                                        draw_sprite_ext(spr_gui_exetiorring, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 && global.player.canSpawnRings ? c_white : c_red, prog);
++                                        break;
++                                        
++                                case EXE_EXELLER:
++                                        var prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
++                                        draw_sprite_ext(spr_gui_exeattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                                        
++                                        var prog = global.playerControls && global.player.isJumping;
++                                        draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog ? c_white : c_red, prog ? 1 : 0.5);
++                                        
++                                        var prog = 1.0 - (global.player.cloneTimer / EXELLER_CLONE_RECHARGE);
++                                        var spr = spr_gui_exellerclone;
++                                        
++                                        if((keyboard_check(global.KeyDown) || keyboard_check(global.KeyUp)))
++                                        {
++                                                if(global.player.cloneCount > 0)
++                                                {
++                                                        spr = spr_gui_exellerclone2;
++                                                        prog = 1;
++                                                }
++                                        }
++                                        
++                                        if(spr == spr_gui_exellerclone && global.player.cloneCount >= 2)
++                                                prog = 0;
++                                        
++                                        draw_sprite_ext(spr, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                                        break;
++                                
++                                case EXE_METALAMY:
++                                {
++                                        // v2.2 (TTB): golpe (X) y bala del canon (C)
++                                        var prog = 1.0 - (min(global.player.attackTimer, 120) / 120.0);
++                                        draw_sprite_ext(spr_gui_metalamyattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                                        
++                                        var prog = global.playerControls && global.player.isJumping;
++                                        draw_sprite_ext(spr_gui_exefreejump, 0, 3, 218 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog ? c_white : c_red, prog ? 1 : 0.5);
++                                        
++                                        var prog = 1.0 - (global.player.bulletTimer / METALAMY_BULLET_RECHARGE);
++                                        draw_sprite_ext(spr_gui_metal_amy_lazer, 0, prog * 4, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                                        break;
++                                }
++                        }
++                        
++                        break;
++                }
++                
++                case CHARACTER_TAILS: //tails
++                {
++                        var prog = (min(global.player.flyTimer, 0) / -420.0);
++                        draw_sprite_ext(spr_gui_tailsfly, global.player.revivalTimes >= 2, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        
++                        var val = global.player.revivalTimes >= 2 ? ETAILS_ATTACK_RECHARGE : TAILS_ATTACK_RECHARGE;
++                        var prog = 1.0 - (global.player.attackTimer / val);
++                        draw_sprite_ext(spr_gui_tailsattack, 0, prog * 12, 250 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        break;
++                }
++                
++                case CHARACTER_KNUX:
++                {
++                        var prog = 1.0 - (min(global.player.glideTimer, KNUX_GLIDE_RECHARGE) / KNUX_GLIDE_RECHARGE);
++                        draw_sprite_ext(spr_gui_knuxglide, global.player.revivalTimes >= 2, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        
++                        var val = global.player.revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
++                        var prog = 1.0 - (min(global.player.attackTimer, val) / val);
++                        draw_sprite_ext(spr_gui_knuxattack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);       
++                        break;
++                }
++                
++                case CHARACTER_EGGMAN:
++                {
++                        var prog = 1.0 - (max(global.player.djumpRecharge, 0) / EGGMAN_DJUMP_RECHARGE);
++                        draw_sprite_ext(spr_gui_eggdjump, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        
++                        var prog = 1.0 - (max(global.player.shieldRechrage, 0) / EGGMAN_SHIELD_RECHARGE);
++                        draw_sprite_ext(spr_gui_eggshield, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);        
++                        
++                        var prog = 1.0 - (max(global.player.trackerRecharge, 0) / EGGMAN_TRACKER_RECHARGE);
++                        draw_sprite_ext(spr_gui_eggtrack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, (global.player.isColliding && prog == 1.0) ? c_white : c_red, prog);  
++                        break;
++                }
++                
++                case CHARACTER_AMY:
++                {
++                        var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_BIGJUMP_RECHARGE);
++                        draw_sprite_ext(spr_gui_amyhjump, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        
++                        var val = global.player.revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
++                        var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
++                        draw_sprite_ext(spr_gui_amyattack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);        
++                        break;
++                }
++                
++                case CHARACTER_AMY_CANON:
++                {
++                                // Icono 1: SALTO DE MARTILLO (tecla Z, en el suelo). El relleno
++                                // muestra el CD; blanco = listo Y en el suelo (espejo del icono 3).
++                                var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_CANON_BIGJUMP_RECHARGE);
++                                var b1 = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
++                                draw_sprite_ext(spr_gui_amyhjump_canon, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, b1, prog);
++                        
++                                // Icono 2: IMPULSO AEREO DE TAROT (tecla X, SOLO en el aire).
++                                // El relleno muestra el CD; blanco = lista Y en el aire
++                                // (espejo del icono 3, que exige estar en el suelo).
++                                var val = global.player.revivalTimes >= 2 ? AMY_CANON_ETAROTDASH_RECHARGE : AMY_CANON_TAROTDASH_RECHARGE;
++                                var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
++                                var b2 = (prog == 1.0 && !global.player.isGrounded) ? c_white : c_red;
++                                draw_sprite_ext(spr_gui_amyattack_canon, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, b2, prog);
++                        
++                        // Icono 3: ACOMETIDA DE MARTILLO (tecla C). Muestra la letra C
++                        // (como los demas iconos de tecla C del juego). El relleno
++                        // muestra el CD; blanco = lista y en el suelo.
++                        var val = global.player.revivalTimes >= 2 ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
++                        var prog = 1.0 - (max(global.player.dashTimer, 0) / val);
++                        var b = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
++                        draw_sprite_ext(spr_gui_amydash_canon, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);        
++                        
++                        // Icono 4: PARRY (tecla V, v4.0). Mismas fijaciones que el de
++                        // Sonic (estados 60/61/64). El relleno muestra el CD que falta:
++                        // como el CD depende de COMO termino el ultimo intento
++                        // (fallo/exito), se guarda la duracion total en
++                        // parryCooldownMax al aplicarlo y asi el icono siempre arranca
++                        // lleno. Blanco = listo Y en el suelo (el parry es solo en
++                        // tierra); rojo = lo demas. Si spr_gui_amyparry_canon no
++                        // existiera en el proyecto, no se dibuja pero tampoco crashea
++                        // (mismo patron que el parry de Sonic y el spindash).
++                                                // v4.1: se dibuja AL LADO del icono de la acometida (misma fila
++                        // que la C, a su derecha) y no DEBAJO: la vista mide 480x270 y una
++                        // cuarta fila apilada (y=276) caia FUERA de pantalla (por eso no
++                        // salia). C y V comparten fila, como Z X C V en el teclado; en
++                        // Android (y-200) tampoco choca con el boton G (23,81).
++                        var _sprParry = asset_get_index("spr_gui_amyparry_canon");
++                        if(_sprParry >= 0)
++                        {
++                                var _pmax = max(global.player.parryCooldownMax, 1);
++                                var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
++                                var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
++                                draw_sprite_ext(_sprParry, 0, 44 + _pprog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, _pready, _pprog);
++                        }
++                        break;
++                }
++                case CHARACTER_SONIC:
++                {
++                        // Icono (tecla C): PARRY (v3.2). El relleno muestra el CD
++                        // que falta: como el CD depende de COMO termino el ultimo
++                        // intento (fallo/exito x normal/powerboost), se guarda la
++                        // duracion total en parryCooldownMax al aplicarlo y asi el
++                        // icono siempre arranca lleno. Blanco = listo Y en el
++                        // suelo (el parry es solo en tierra); rojo = lo demas.
++                        // Si spr_gui_sonicparry no existiera en el proyecto, no se
++                        // dibuja pero tampoco crashea (mismo patron que el
++                        // spindash de abajo).
++                        var _sprParry = asset_get_index("spr_gui_sonicparry");
++                        if(_sprParry >= 0)
++                        {
++                                var _pmax = max(global.player.parryCooldownMax, 1);
++                                var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
++                                var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
++                                draw_sprite_ext(_sprParry, 0, _pprog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, _pready, _pprog);
++                        }
++                        
++                        // Icono (tecla X): EL GOLPE. Reutiliza el icono generico del
++                        // ataque de Amy; cuando crees spr_gui_sonicattack, cambialo aqui.
++                        var val = global.player.revivalTimes >= 2 ? SONIC_EATTACK_RECHARGE : SONIC_ATTACK_RECHARGE;
++                        var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
++                        draw_sprite_ext(spr_gui_amyattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);        
++                        
++                        // Icono (abajo + Z): SPINDASH. Sin cooldown: su coste es el
++                        // tiempo de revolucioneo. Siempre visible: blanco = listo para
++                        // cargar; rojo = cargando la bola (brilla mas al llenarse).
++                        // Icono extraido del mod TD2DR X SONIC de Renx Diamond.
++                        // Si spr_gui_sonicspindash no existe (aun sin crear en el IDE),
++                        // no se dibuja pero tampoco crashea.
++                        var _sprSpindash = asset_get_index("spr_gui_sonicspindash");
++                        if(_sprSpindash >= 0)
++                        {
++                                if(global.player.isSpinCharging)
++                                {
++                                        var charge = global.player.spinCharge / SONIC_SPINDASH_CHARGE_MAX;
++                                        draw_sprite_ext(_sprSpindash, 0, charge * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, charge >= 1.0 ? c_white : c_red, 0.4 + charge * 0.6);
++                                }
++                                else
++                                        draw_sprite_ext(_sprSpindash, 0, 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, c_white, 1);
++                        }
++                        
++                        // Icono (Z en el aire): DROP DASH (v3). Sin cooldown: su coste
++                        // es medio segundo de agarre en el aire. Se dibuja AL LADO del
++                        // spindash, en su misma fila (como el parry de Amy Canon v4.1:
++                        // la vista mide 480x270 y una fila mas caeria fuera de
++                        // pantalla). El relleno es el armado (dropDashTimer / HOLD);
++                        // blanco = en el aire tras saltar (se puede armar), rojo = en
++                        // tierra o vuelo sin salto; lleno y fijo = ARMADO: al aterrizar
++                        // sale disparado. Usa el sprite spr_gui_sonicdropdash (existia
++                        // en el proyecto sin usar). Si no existiera, no se dibuja pero
++                        // tampoco crashea (mismo patron que el parry y el spindash).
++                        var _sprDropdash = asset_get_index("spr_gui_sonicdropdash");
++                        if(_sprDropdash >= 0)
++                        {
++                                if(global.player.dropDashReady)
++                                        draw_sprite_ext(_sprDropdash, 0, 54, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, c_white, 1);
++                                else
++                                {
++                                        var _ddprog = min(global.player.dropDashTimer / SONIC_DROPDASH_HOLD, 1.0);
++                                        var _ddcol = (global.player.dropDashFromJump && !global.player.isGrounded) ? c_white : c_red;
++                                        draw_sprite_ext(_sprDropdash, 0, 44 + _ddprog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, _ddcol, 0.4 + _ddprog * 0.6);
++                                }
++                        }
++                        break;
++                }
++                case CHARACTER_CREAM:
++                {
++                        var prog = 1.0 - (max(global.player.flyTimer, 0) / CREAM_FLY_RECHARGE);
++                        draw_sprite_ext(spr_gui_creamfly, global.player.revivalTimes >= 2, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        
++                        var prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
++                        draw_sprite_ext(spr_gui_creamdash, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        
++                        var prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
++                        draw_sprite_ext(spr_gui_creamrings, global.player.revivalTimes >= 2, prog * 10, 257 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog);
++                        break;
++                }
+ 
+-		case CHARACTER_VANILLA:
+-		{
+-			// VANILLA: mismas habilidades que Cream (scr_cream_special),
+-			// reusa sus iconos del HUD (vuelo Z, dash X, anillos C)
+-			var prog = 1.0 - (max(global.player.flyTimer, 0) / CREAM_FLY_RECHARGE);
+-			draw_sprite_ext(spr_gui_creamfly, global.player.revivalTimes >= 2, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                case CHARACTER_VANILLA:
++                {
++                        // VANILLA: mismas habilidades que Cream (scr_cream_special),
++                        // reusa sus iconos del HUD (vuelo Z, dash X, anillos C)
++                        var prog = 1.0 - (max(global.player.flyTimer, 0) / CREAM_FLY_RECHARGE);
++                        draw_sprite_ext(spr_gui_creamfly, global.player.revivalTimes >= 2, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+ 
+-			var prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
+-			draw_sprite_ext(spr_gui_creamdash, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        var prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
++                        draw_sprite_ext(spr_gui_creamdash, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+ 
+-			var prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
+-			draw_sprite_ext(spr_gui_creamrings, global.player.revivalTimes >= 2, prog * 10, 257 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog);
+-			break;
+-		}
+-		
+-		// ============================================================
+-		// v2.2 (TTB) — METAL SONIC: dash (X) y electro (C)
+-		case CHARACTER_METAL:
+-		{
+-			var prog = 1.0 - (max(global.player.dashTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE));
+-			draw_sprite_ext(spr_gui_creamdash, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			
+-			var prog = 1.0 - (max(global.player.electroTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE));
+-			draw_sprite_ext(spr_gui_eggshield, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			break;
+-		}
+-		
+-		// ============================================================
+-		// v2.2 (TTB) — AMELIA: vuelo (Z), banana (X) y bomba (C)
+-		case CHARACTER_AMELIA:
+-		{
+-			var prog = 1.0 - (max(global.player.flyTimer, 0) / AMELIA_FLY_RECHARGE);
+-			draw_sprite_ext(spr_gui_creamfly, global.player.revivalTimes >= 2, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			
+-			var prog = 1.0 - (max(global.player.bananaTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_BANANA_RECHARGE : AMELIA_BANANA_RECHARGE));
+-			draw_sprite_ext(spr_gui_amelia_trap, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog);
+-			
+-			var prog = 1.0 - (max(global.player.bombTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_BOMB_RECHARGE : AMELIA_BOMB_RECHARGE));
+-			draw_sprite_ext(spr_gui_eggtrack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog);
+-			break;
+-		}
+-		
+-		// ============================================================
+-		// v2.2 (TTB) — BLAZE: salto de fuego (Z), bola (X) y ardiente (C)
+-		case CHARACTER_BLAZE:
+-		{
+-			var prog = 1.0 - (max(global.player.djumpRecharge, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_DJUMP_RECHARGE : BLAZE_DJUMP_RECHARGE));
+-			draw_sprite_ext(spr_gui_eggdjump, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			
+-			var prog = 1.0 - (max(global.player.fireballTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_FIREBALL_RECHARGE : BLAZE_FIREBALL_RECHARGE));
+-			draw_sprite_ext(spr_gui_amyattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			
+-			var prog = 1.0 - (max(global.player.burningTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_BURNING_RECHARGE : BLAZE_BURNING_RECHARGE));
+-			draw_sprite_ext(spr_gui_sallyshield, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			break;
+-		}
+-		
+-		case CHARACTER_SALLY:
+-		{
+-			var val = global.player.revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
+-			var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
+-			
+-			var b = c_red;
+-			if(prog == 1.0)
+-				b = c_white;
+-			
+-			if(global.player.isGrounded)
+-				b = c_red;
+-			
+-			draw_sprite_ext(spr_gui_sallyattack, global.player.revivalTimes >= 2, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);
+-			
+-			var val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
+-			var prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
+-			draw_sprite_ext(spr_gui_sallyshield, global.player.revivalTimes >= 2, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			break;
+-		}
+-		case CHARACTER_SALLY_CANON:
+-		{
+-			// SALLY CANON: tiene las mismas habilidades que Sally
+-			// (scr_sally_special), asi que usa sus mismos iconos del
+-			// HUD: la PATADA aerea (tecla Z) y el ESCUDO (tecla C).
+-			// El relleno de cada icono muestra el CD que le falta;
+-			// blanco = listo (la patada ademas exige estar en el
+-			// aire, igual que en el HUD de Sally).
+-			var val = global.player.revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
+-			var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
+-			
+-			var b = c_red;
+-			if(prog == 1.0)
+-				b = c_white;
+-			
+-			if(global.player.isGrounded)
+-				b = c_red;
+-			
+-			draw_sprite_ext(spr_gui_sallyattack, global.player.revivalTimes >= 2, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);
+-			
+-			var val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
+-			var prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
+-			draw_sprite_ext(spr_gui_sallyshield, global.player.revivalTimes >= 2, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
+-			break;
+-		}
+-	}
+-	
+-	if(global.character != CHARACTER_EXE && (global.player.state == IDLE || global.player.emotion))
+-		draw_sprite(spr_gui_emotions, 0, 470, 222 - (os_type == os_android ? 200 : 0));
++                        var prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
++                        draw_sprite_ext(spr_gui_creamrings, global.player.revivalTimes >= 2, prog * 10, 257 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog);
++                        break;
++                }
++                
++                // ============================================================
++                // v2.2 (TTB) — METAL SONIC: dash (X) y electro (C)
++                case CHARACTER_METAL:
++                {
++                        var prog = 1.0 - (max(global.player.dashTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE));
++                        draw_sprite_ext(spr_gui_creamdash, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        
++                        var prog = 1.0 - (max(global.player.electroTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE));
++                        draw_sprite_ext(spr_gui_eggshield, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        break;
++                }
++                
++                // ============================================================
++                // v2.4 (TTB) — AMELIA: trampolin (X) y trampa (C).
++                // (v2.2 tenia 3 iconos: el de vuelo se elimino junto a
++                // la habilidad; se reusan los sprites ya registrados)
++                case CHARACTER_AMELIA:
++                {
++                        var prog = 1.0 - (max(global.player.bananaTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_BANANA_RECHARGE : AMELIA_BANANA_RECHARGE));
++                        draw_sprite_ext(spr_gui_amelia_trap, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog);
++                        
++                        var prog = 1.0 - (max(global.player.trapTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE));
++                        draw_sprite_ext(spr_gui_eggtrack, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog);
++                        break;
++                }
++                
++                // ============================================================
++                // v2.2 (TTB) — BLAZE: salto de fuego (Z), bola (X) y ardiente (C)
++                case CHARACTER_BLAZE:
++                {
++                        var prog = 1.0 - (max(global.player.djumpRecharge, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_DJUMP_RECHARGE : BLAZE_DJUMP_RECHARGE));
++                        draw_sprite_ext(spr_gui_eggdjump, 0, prog * 10, 222 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        
++                        var prog = 1.0 - (max(global.player.fireballTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_FIREBALL_RECHARGE : BLAZE_FIREBALL_RECHARGE));
++                        draw_sprite_ext(spr_gui_amyattack, 0, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        
++                        var prog = 1.0 - (max(global.player.burningTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_BURNING_RECHARGE : BLAZE_BURNING_RECHARGE));
++                        draw_sprite_ext(spr_gui_sallyshield, 0, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        break;
++                }
++                
++                case CHARACTER_SALLY:
++                {
++                        var val = global.player.revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
++                        var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
++                        
++                        var b = c_red;
++                        if(prog == 1.0)
++                                b = c_white;
++                        
++                        if(global.player.isGrounded)
++                                b = c_red;
++                        
++                        draw_sprite_ext(spr_gui_sallyattack, global.player.revivalTimes >= 2, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);
++                        
++                        var val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
++                        var prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
++                        draw_sprite_ext(spr_gui_sallyshield, global.player.revivalTimes >= 2, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        break;
++                }
++                case CHARACTER_SALLY_CANON:
++                {
++                        // SALLY CANON: tiene las mismas habilidades que Sally
++                        // (scr_sally_special), asi que usa sus mismos iconos del
++                        // HUD: la PATADA aerea (tecla Z) y el ESCUDO (tecla C).
++                        // El relleno de cada icono muestra el CD que le falta;
++                        // blanco = listo (la patada ademas exige estar en el
++                        // aire, igual que en el HUD de Sally).
++                        var val = global.player.revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
++                        var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
++                        
++                        var b = c_red;
++                        if(prog == 1.0)
++                                b = c_white;
++                        
++                        if(global.player.isGrounded)
++                                b = c_red;
++                        
++                        draw_sprite_ext(spr_gui_sallyattack, global.player.revivalTimes >= 2, prog * 10, 240 - (os_type == os_android ? 200 : 0), 1, 1, 0, b, prog);
++                        
++                        var val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
++                        var prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
++                        draw_sprite_ext(spr_gui_sallyshield, global.player.revivalTimes >= 2, prog * 10, 258 - (os_type == os_android ? 200 : 0), 1, 1, 0, prog == 1.0 ? c_white : c_red, prog);
++                        break;
++                }
++        }
++        
++        if(global.character != CHARACTER_EXE && (global.player.state == IDLE || global.player.emotion))
++                draw_sprite(spr_gui_emotions, 0, 470, 222 - (os_type == os_android ? 200 : 0));
+ }
+\ No newline at end of file
+diff --git a/scripts/net_amelia_bomb/net_amelia_bomb.gml b/scripts/net_amelia_bomb/net_amelia_bomb.gml
+deleted file mode 100644
+index 899926a2..00000000
+--- a/scripts/net_amelia_bomb/net_amelia_bomb.gml
++++ /dev/null
+@@ -1,23 +0,0 @@
+-// =====================================================================
+-//  v2.2 — AMELIA: pide al server plantar la BOMBA en (xx, yy).
+-//  El server valida, spawnea la entidad AmeliaBomb (mecha 5 s) y la
+-//  reenvia a todos como SERVER_AMELIA_BOMB_STATE 0; explota sola
+-//  (mecha) o cuando el killer la toca (CLIENT_AMELIA_BOMB_BOOM) con
+-//  SERVER_AMELIA_BOMB_STATE 2.
+-//  (betterserver-oss: states/Game.c, entities/AmeliaBomb.c)
+-// =====================================================================
+-function net_amelia_bomb(xx, yy)
+-{
+-        var packet = cpacket_tcp(PacketType.CLIENT_AMELIA_BOMB);
+-        buffer_write(packet, buffer_u16, xx);
+-        buffer_write(packet, buffer_u16, yy);
+-        send_server_tcp(packet);
+-}
+-
+-// La bomba exploto en el cliente del killer (la toco): avisar al
+-// server para que la reviente a todos.
+-function net_amelia_bomb_boom()
+-{
+-        var packet = cpacket_tcp(PacketType.CLIENT_AMELIA_BOMB_BOOM);
+-        send_server_tcp(packet);
+-}
+diff --git a/scripts/net_amelia_trap/net_amelia_trap.gml b/scripts/net_amelia_trap/net_amelia_trap.gml
+new file mode 100644
+index 00000000..4348bdec
+--- /dev/null
++++ b/scripts/net_amelia_trap/net_amelia_trap.gml
+@@ -0,0 +1,27 @@
++// =====================================================================
++//  v2.4 — AMELIA: pide al server plantar la TRAMPA en (xx, yy).
++//  El server valida (Amelia + cooldown + max 1 viva por Amelia),
++//  spawnea la entidad AmeliaTrap (vida max 60 s) y la reenvia a
++//  todos como SERVER_AMELIA_TRAP_STATE 0; a los 60 s la retira con
++//  state 1. Cuando alguien del lado del EXE la pisa, el cliente de
++//  la victima avisa con CLIENT_AMELIA_TRAP_TRIGGER (nid = id de la
++//  entidad) y el server la revienta a todos con state 2.
++//  (betterserver-oss: states/Game.c, entities/AmeliaTrap.c)
++// =====================================================================
++function net_amelia_trap(xx, yy)
++{
++        var packet = cpacket_tcp(PacketType.CLIENT_AMELIA_TRAP);
++        buffer_write(packet, buffer_u16, xx);
++        buffer_write(packet, buffer_u16, yy);
++        send_server_tcp(packet);
++}
++
++// La trampa la piso yo (lado del EXE): avisar al server cual fue
++// (nid) para que la reviente a todos (state 2: efecto + sonido en
++// cada cliente; el stun + slow ya me los aplique en local).
++function net_amelia_trap_trigger(nid)
++{
++        var packet = cpacket_tcp(PacketType.CLIENT_AMELIA_TRAP_TRIGGER);
++        buffer_write(packet, buffer_u16, nid);
++        send_server_tcp(packet);
++}
+diff --git a/scripts/net_amelia_bomb/net_amelia_bomb.yy b/scripts/net_amelia_trap/net_amelia_trap.yy
+similarity index 78%
+rename from scripts/net_amelia_bomb/net_amelia_bomb.yy
+rename to scripts/net_amelia_trap/net_amelia_trap.yy
+index c838f694..d85272e9 100644
+--- a/scripts/net_amelia_bomb/net_amelia_bomb.yy
++++ b/scripts/net_amelia_trap/net_amelia_trap.yy
+@@ -1,13 +1,13 @@
+ {
+   "$GMScript":"v1",
+-  "%Name":"net_amelia_bomb",
++  "%Name":"net_amelia_trap",
+   "isCompatibility":false,
+   "isDnD":false,
+-  "name":"net_amelia_bomb",
++  "name":"net_amelia_trap",
+   "parent":{
+     "name":"Specific",
+     "path":"folders/Scripts/Networking/Specific.yy",
+   },
+   "resourceType":"GMScript",
+   "resourceVersion":"2.0",
+-}
+\ No newline at end of file
++}
+diff --git a/scripts/net_packets/net_packets.gml b/scripts/net_packets/net_packets.gml
+index 5cdc093e..1f54acef 100644
+--- a/scripts/net_packets/net_packets.gml
++++ b/scripts/net_packets/net_packets.gml
+@@ -189,15 +189,16 @@ enum PacketType
+ 
+         /* v2.2 — personajes de TD2D Through the Blood (rescatados del
+            mod abandonado). Mismo orden en el Packet.h del server.
+-           Amelia: banana (trampa resorte) y bomba (contigo, explota a
+-           los 5 s o al pisarla el killer). Blaze: bola de fuego
++           Amelia: banana (trampolin resorte) y trampa (dura hasta
++           60 s o hasta que la pise el lado del EXE: stun 3 s +
++           slow -40% 3.5 s tras el stun). Blaze: bola de fuego
+            (proyectil que aturde al killer 2 s). Metal Amy (killer):
+            bala (proyectil que dana a los sobrevivientes). */
+         CLIENT_AMELIA_BANANA,
+-        CLIENT_AMELIA_BOMB,
+-        CLIENT_AMELIA_BOMB_BOOM,
++        CLIENT_AMELIA_TRAP,
++        CLIENT_AMELIA_TRAP_TRIGGER,
+         SERVER_AMELIA_BANANA_STATE,
+-        SERVER_AMELIA_BOMB_STATE,
++        SERVER_AMELIA_TRAP_STATE,
+         CLIENT_BLAZE_FIREBALL,
+         CLIENT_BLAZE_FIREBALL_HIT,
+         SERVER_BLAZE_FIREBALL_STATE,
+diff --git a/scripts/net_state_game/net_state_game.gml b/scripts/net_state_game/net_state_game.gml
+index d78bdd75..cca0fa6d 100644
+--- a/scripts/net_state_game/net_state_game.gml
++++ b/scripts/net_state_game/net_state_game.gml
+@@ -86,7 +86,7 @@ function net_state_game(rbuff, nps, isPasstrough)
+                         break;
+                 }
+                 
+-                case PacketType.SERVER_AMELIA_BOMB_STATE:
++                case PacketType.SERVER_AMELIA_TRAP_STATE:
+                 {
+                         if(isPasstrough)
+                                 break;
+@@ -98,14 +98,14 @@ function net_state_game(rbuff, nps, isPasstrough)
+                         
+                         if(_state == 0)
+                         {
+-                                var inst = instance_create_depth(_x, _y, 0, obj_amelia_bomb);
++                                var inst = instance_create_depth(_x, _y, 0, obj_amelia_trap);
+                                 inst.nid = _id;
+-                                inst.fuse = 60 * 5;
++                                inst.life = 60 * 60;
+                         }
+                         else if(_state == 1)
+                         {
+-                                // retirada (fin de ronda etc.)
+-                                with(obj_amelia_bomb)
++                                // retirada (60 s agotados, fin de ronda etc.)
++                                with(obj_amelia_trap)
+                                 {
+                                         if(nid != _id)
+                                                 continue;
+@@ -116,10 +116,11 @@ function net_state_game(rbuff, nps, isPasstrough)
+                         }
+                         else if(_state == 2)
+                         {
+-                                // BOOM: explosion visual + stun al jugador LOCAL del
+-                                // lado del EXE si esta en el radio (cada cliente es
+-                                // autoridad de su propio jugador)
+-                                with(obj_amelia_bomb)
++                                // PISADA: la trampa se activo. El STUN (3 s) y el slow
++                                // (-40%, 3.5 s tras el stun) ya los aplico el cliente
++                                // de la victima al detectar la pisada; el resto solo
++                                // ve el efecto y escucha el sonido.
++                                with(obj_amelia_trap)
+                                 {
+                                         if(nid != _id)
+                                                 continue;
+@@ -131,28 +132,7 @@ function net_state_game(rbuff, nps, isPasstrough)
+                                 audio_play_sound(snd_amelia_trap_goth, 0, false);
+                                 net_sound_emit(snd_amelia_trap_goth);
+                                 net_quick_effect(_x, _y, spr_shockparticle, true, 1, 0, 0, 1.5);
+-                                scr_camera_shake(30, 1.5, 0.2);
+-                                
+-                                if(instance_exists(global.player) && (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2))
+-                                {
+-                                        if(global.character == CHARACTER_EXE && global.player.invisTimer > 0)
+-                                                break;
+-                                        
+-                                        if(global.player.shockedTimer <= 0 && point_distance(global.player.x, global.player.y, _x, _y) < 90)
+-                                        {
+-                                                global.player.shockedTimer = 60 * 2;
+-                                                global.player.xspd = sign(global.player.x - _x) * 4;
+-                                                global.player.yspd = -3;
+-                                                global.player.isGrounded = false;
+-                                                global.player.isAttacking = false;
+-                                                
+-                                                audio_play_sound(snd_exe_stun, 0, false);
+-                                                net_sound_emit(snd_exe_stun);
+-                                                
+-                                                if(global.character == CHARACTER_EXE)
+-                                                        scr_exe_stunsound();
+-                                        }
+-                                }
++                                scr_camera_shake(20, 1, 0.2);
+                         }
+                         break;
+                 }
+@@ -2656,10 +2636,8 @@ function net_state_game(rbuff, nps, isPasstrough)
+                                         break;
+                                         
+                                 case CHARACTER_AMELIA:
+-                                        global.player.flyTimer = 0;
+                                         global.player.bananaTimer = 0;
+-                                        global.player.bombTimer = 0;
+-                                        global.player.isFlying = false;
++                                        global.player.trapTimer = 0;
+                                         break;
+                                         
+                                 case CHARACTER_BLAZE:
+diff --git a/scripts/scr_amelia_special/scr_amelia_special.gml b/scripts/scr_amelia_special/scr_amelia_special.gml
+index 7fddbeaf..d7fb5f4f 100644
+--- a/scripts/scr_amelia_special/scr_amelia_special.gml
++++ b/scripts/scr_amelia_special/scr_amelia_special.gml
+@@ -1,83 +1,63 @@
+ // =====================================================================
+-//  AMELIA (v2.2, rescatada de TD2D Through the Blood).
+-//  Tres habilidades (reconstruidas de los assets del mod: obj_amelia_
+-//  banana era un resorte-trampa con parent obj_spring_parent, y
+-//  obj_amelia_bomb una bomba con mecha de 5 s):
+-//   * VUELO (tecla Z en el aire, tras saltar): sube manteniendo Z,
+-//     planea al soltar (patron Vanilla/Tails). Dura 4 s. Recarga 18 s.
+-//   * BANANA (tecla X, mirando abajo en el suelo): deja caer un
+-//     RESORTE-trampa en el suelo. Quien lo pise (incluido el killer)
++//  AMELIA (v2.4, rescatada de TD2D Through the Blood).
++//  Kit corregido al del TD original: Amelia usa SOLO TRAMPAS.
++//  (v2.4: el VUELO de v2.2 se elimina y NO se sustituye por ninguna
++//  habilidad de velocidad — pedido del usuario tras ver el bug de
++//  velocidad: la activacion con la tecla de salto y el isBoosting
++//  compartido de las botas de los Kafmonitors provocaba carrera
++//  forzada incontrolable. Desde v2.4 isBoosting es exclusivo de las
++//  botas, que funcionan para Amelia igual que para los demas.)
++//   * TRAMPOLIN (tecla X, mirando abajo en el suelo): SIN CAMBIOS
++//     desde v2.2. Resorte colocable: quien lo pise (killer incluido)
+ //     sale disparado hacia arriba en su propio cliente (la fisica del
+ //     resorte es la del juego, 100% local). Dura 12 s y se usa una
+ //     vez. Recarga 25 s.
+-//   * BOMBA (tecla C en el suelo): planta una bomba con 5 s de mecha;
+-//     explota aunque el killer la pise antes (el boom lo dispara el
+-//     server: mecha o contacto). Aturde 2 s al killer en un radio de
+-//     90 px (cada cliente se aplica su propio stun; los aliados solo
+-//     reciben empujon). Recarga 35 s.
+-//  Stats: equilibrada (11), salto estandar, con spindash.
+-//  v2.2.4: el tope ya estaba bien (11); el acc 0.35 era 7.5x el
+-//  estandar del juego (0.046875) y la hacia salir disparada al
+-//  instante. Ahora acelera exactamente como Amy (misma base del
+-//  110v para supervivientes).
++//   * TRAMPA (tecla C en el suelo): planta una trampa (spr_trap) que
++//     dura hasta 60 s (la retira el server) o hasta que la pisa
++//     alguien del lado del EXE: STUN de 3 s + debuff de velocidad
++//     (-40%) otros 3.5 s al salir del stun (stun y slow los aplica
++//     el cliente de la victima sobre su propio jugador; el resto
++//     solo ve el efecto y escucha el sonido). Recarga 35 s. Maximo
++//     1 viva por Amelia (lo lleva el server).
++//  Stats: equilibrada (11) con la aceleracion canonica de
++//  superviviente del 110v (v2.2.4), salto estandar, con spindash.
+ // =====================================================================
+ #macro AMELIA_MAXSPEED 11
+ #macro AMELIA_ACC 0.046875
+-#macro AMELIA_FLY_SOLO (60 * 4)
+-#macro AMELIA_FLY_RISE -3.5
+-#macro AMELIA_FLY_GLIDE 1
+-#macro AMELIA_FLY_RECHARGE (60 * 18)
+-#macro EAMELIA_FLY_RECHARGE (60 * 8)
+ #macro AMELIA_BANANA_RECHARGE (60 * 25)
+ #macro EAMELIA_BANANA_RECHARGE (60 * 10)
+-#macro AMELIA_BOMB_RECHARGE (60 * 35)
+-#macro EAMELIA_BOMB_RECHARGE (60 * 15)
++#macro AMELIA_TRAP_RECHARGE (60 * 35)
++#macro EAMELIA_TRAP_RECHARGE (60 * 15)
+ 
+ function scr_amelia_special()
+ {
+         // Red ring / esconderse: corta todo
+         if(redRingTimer > 0 || isHiding)
+         {
+-                if(flyTimer <= 60 * 2)
+-                        flyTimer = 60 * 2;
+-
+                 if(bananaTimer <= 60 * 2)
+                         bananaTimer = 60 * 2;
+ 
+-                if(bombTimer <= 60 * 2)
+-                        bombTimer = 60 * 2;
+-
+-                if(isFlying)
+-                        isFlying = false;
++                if(trapTimer <= 60 * 2)
++                        trapTimer = 60 * 2;
+         }
+ 
+-        // ---- VUELO (tecla Z en el aire) ----
+-        if(global.playerControls && isJumping && !justJumped && keyboard_check_pressed(global.KeyA) && flyTimer <= 0)
++        // Stats de base respetando el slow de la trampa (patron
++        // scr_metal_special). Sin boost propio desde v2.4: mientras
++        // lleva botas (isBoosting) scr_move_basic retorna antes de
++        // llamar a specialFunc, asi que aqui nunca se pisa el boost
++        // de los Kafmonitors.
++        if(isSlow)
+         {
+-                flyTimeout = 0;
+-                isFlying = true;
+-                isJumping = false;
+-                isSpinning = false;
+-                flyTimer = AMELIA_FLY_RECHARGE;
++                maxHSpeed = (AMELIA_MAXSPEED * (100-40)) / 100;
++                acc = (AMELIA_ACC * (100-40)) / 100;
+         }
+-
+-        if(isFlying)
++        else
+         {
+-                if(global.playerControls && keyboard_check(global.KeyA))
+-                        yspd = AMELIA_FLY_RISE;
+-                else
+-                        yspd = AMELIA_FLY_GLIDE;
+-
+-                flyTimeout++;
+-
+-                if(flyTimeout > AMELIA_FLY_SOLO)
+-                        isFlying = false;
+-
+-                if(isGrounded)
+-                        isFlying = false;
++                maxHSpeed = AMELIA_MAXSPEED;
++                acc = AMELIA_ACC;
+         }
+ 
+-        // ---- BANANA (tecla X, mirando abajo, en el suelo) ----
++        // ---- TRAMPOLIN (tecla X, mirando abajo, en el suelo) ----
+         // Patron del tracker de Eggman: se pide al server, que la
+         // spawnea como entidad y la reenvia a TODOS los clientes.
+         var _xx = image_xscale > 0 ? 12 : -12;
+@@ -93,24 +73,21 @@ function scr_amelia_special()
+                 bananaTimer = revivalTimes >= 2 ? EAMELIA_BANANA_RECHARGE : AMELIA_BANANA_RECHARGE;
+         }
+ 
+-        // ---- BOMBA (tecla C en el suelo) ----
+-        if(global.playerControls && keyboard_check_pressed(global.KeyC) && bombTimer <= 0 && isColliding)
++        // ---- TRAMPA (tecla C en el suelo) ----
++        if(global.playerControls && keyboard_check_pressed(global.KeyC) && trapTimer <= 0 && isColliding)
+         {
+                 audio_play_sound(snd_amelia_trap, 0, false);
+                 net_sound_emit(snd_amelia_trap);
+ 
+-                net_amelia_bomb(x + _xx, y + 18);
++                net_amelia_trap(x + _xx, y + 18);
+ 
+-                bombTimer = revivalTimes >= 2 ? EAMELIA_BOMB_RECHARGE : AMELIA_BOMB_RECHARGE;
++                trapTimer = revivalTimes >= 2 ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE;
+         }
+ 
+         // timers
+-        if(!isFlying && flyTimer > 0)
+-                flyTimer--;
+-
+         if(bananaTimer > 0)
+                 bananaTimer--;
+ 
+-        if(bombTimer > 0)
+-                bombTimer--;
++        if(trapTimer > 0)
++                trapTimer--;
+ }
+diff --git a/scripts/scr_carry/scr_carry.gml b/scripts/scr_carry/scr_carry.gml
+index 76b73834..fd6d985a 100644
+--- a/scripts/scr_carry/scr_carry.gml
++++ b/scripts/scr_carry/scr_carry.gml
+@@ -73,7 +73,7 @@ function scr_carry_zipline_state(ch)
+                 case CHARACTER_SALLY:       return SALLY_ZIPLINE;
+                 case CHARACTER_SALLY_CANON: return SALLY_ZIPLINE;
+                 case CHARACTER_VANILLA:      return CREAM_ZIPLINE; // Vanilla vuela como Cream
+-                case CHARACTER_AMELIA:       return CREAM_ZIPLINE; // v2.2: Amelia vuela como Cream
++                case CHARACTER_AMELIA:       return CREAM_ZIPLINE; // v2.4: Amelia ya no vuela, pero sigue usando la tirolina de Cream
+         }
+         
+         return -1;   // el EXE y variantes: nunca cuelgan del carry
+@@ -92,10 +92,6 @@ function scr_carry_partner_flying(p)
+ 
+         if(p.character == CHARACTER_VANILLA)
+                 return p.state == CREAM_FLY;
+-
+-        // v2.2 (TTB): Amelia vuela como Cream
+-        if(p.character == CHARACTER_AMELIA)
+-                return p.state == AMELIA_FLY;
+         
+         return false;
+ }
+@@ -345,7 +341,7 @@ function scr_carry_end(hop, quiet)
+ // =====================================================================
+ function scr_carry_carrier_step()
+ {
+-        if(global.character != CHARACTER_TAILS && global.character != CHARACTER_CREAM && global.character != CHARACTER_VANILLA && global.character != CHARACTER_AMELIA)
++        if(global.character != CHARACTER_TAILS && global.character != CHARACTER_CREAM && global.character != CHARACTER_VANILLA)
+                 return;
+         
+         // herido/muerto/stuneado: nada que hacer (el pasajero se entera
+diff --git a/scripts/scr_collision_objects/scr_collision_objects.gml b/scripts/scr_collision_objects/scr_collision_objects.gml
+index 0df41e40..21a23dc5 100644
+--- a/scripts/scr_collision_objects/scr_collision_objects.gml
++++ b/scripts/scr_collision_objects/scr_collision_objects.gml
+@@ -1,448 +1,430 @@
+ function scr_collision_objects_before()
+ {
+-	if(isDead)
+-		return;
+-		
+-	if(instance_exists(obj_nap_iceblock))
+-	{
+-		with(obj_nap_iceblock)
+-		{
+-			if(global.player.y + 19 > bbox_top && (position_meeting(obj_player_sensorBL.x, obj_player_sensorBL.y+2+global.player.yspd, self) || position_meeting(obj_player_sensorBR.x, obj_player_sensorBR.y+2+global.player.yspd, self)))
+-			{
+-				global.player.yspd = -5;
+-				global.player.isJumping = true;
+-				global.player.isGrounded = false;
+-				
+-				var pack = cpacket_tcp(PacketType.CLIENT_NAPICE_ACTIVATE);
+-				buffer_write(pack, buffer_u8, nid);
+-				send_server_tcp(pack);
+-			}
+-			
+-			if(global.player.isAttacking && place_meeting(x, y, global.player))
+-			{
+-				var pack = cpacket_tcp(PacketType.CLIENT_NAPICE_ACTIVATE);
+-				buffer_write(pack, buffer_u8, nid);
+-				send_server_tcp(pack);
+-			}
+-		}
+-	}
++        if(isDead)
++                return;
++                
++        if(instance_exists(obj_nap_iceblock))
++        {
++                with(obj_nap_iceblock)
++                {
++                        if(global.player.y + 19 > bbox_top && (position_meeting(obj_player_sensorBL.x, obj_player_sensorBL.y+2+global.player.yspd, self) || position_meeting(obj_player_sensorBR.x, obj_player_sensorBR.y+2+global.player.yspd, self)))
++                        {
++                                global.player.yspd = -5;
++                                global.player.isJumping = true;
++                                global.player.isGrounded = false;
++                                
++                                var pack = cpacket_tcp(PacketType.CLIENT_NAPICE_ACTIVATE);
++                                buffer_write(pack, buffer_u8, nid);
++                                send_server_tcp(pack);
++                        }
++                        
++                        if(global.player.isAttacking && place_meeting(x, y, global.player))
++                        {
++                                var pack = cpacket_tcp(PacketType.CLIENT_NAPICE_ACTIVATE);
++                                buffer_write(pack, buffer_u8, nid);
++                                send_server_tcp(pack);
++                        }
++                }
++        }
+ }
+ 
+ function scr_collision_objects_after()
+ {
+-	if(isDead)
+-		return;
+-	
+-	{
+-		var spring = instance_position(obj_player_sensorBL.x, obj_player_sensorBL.y, obj_spring_parent);
+-		
+-		if(spring == noone)
+-			spring = instance_position(obj_player_sensorBR.x, obj_player_sensorBR.y, obj_spring_parent);
+-		
+-		if(spring != noone && spring.image_blend == c_white && global.player.yspd > 0 && global.player.shockedTimer <= 0)
+-		{
+-			if(isHurt)
+-				isHurt = false;
+-			
+-			switch(global.character)
+-			{
+-				case CHARACTER_EXE:
+-					if(isAttacking)
+-					{
+-						attackTimer = isGrounded ?  60 : 120;
+-						isAttacking = false;
+-					}
+-					
+-					if(global.exeCharacter == EXE_CHAOS)
+-					{
+-						if(stuckTimer > 0)
+-						{
+-							canSpin = true;
+-							canMove = true;
+-							stuckTimer = 0;
+-						}
+-					}
+-					break;
+-					
+-				case CHARACTER_TAILS:
+-					if(isFlying)
+-					{
+-						flyTimer = 0;
+-						isFlying = false;
+-					}
+-					break;
+-					
+-				case CHARACTER_CREAM:
++        if(isDead)
++                return;
++        
++        {
++                var spring = instance_position(obj_player_sensorBL.x, obj_player_sensorBL.y, obj_spring_parent);
++                
++                if(spring == noone)
++                        spring = instance_position(obj_player_sensorBR.x, obj_player_sensorBR.y, obj_spring_parent);
++                
++                if(spring != noone && spring.image_blend == c_white && global.player.yspd > 0 && global.player.shockedTimer <= 0)
++                {
++                        if(isHurt)
++                                isHurt = false;
++                        
++                        switch(global.character)
++                        {
++                                case CHARACTER_EXE:
++                                        if(isAttacking)
++                                        {
++                                                attackTimer = isGrounded ?  60 : 120;
++                                                isAttacking = false;
++                                        }
++                                        
++                                        if(global.exeCharacter == EXE_CHAOS)
++                                        {
++                                                if(stuckTimer > 0)
++                                                {
++                                                        canSpin = true;
++                                                        canMove = true;
++                                                        stuckTimer = 0;
++                                                }
++                                        }
++                                        break;
++                                        
++                                case CHARACTER_TAILS:
++                                        if(isFlying)
++                                        {
++                                                flyTimer = 0;
++                                                isFlying = false;
++                                        }
++                                        break;
++                                        
++                                case CHARACTER_CREAM:
+ 
+-				case CHARACTER_VANILLA: // vuela como Cream
+-					if(isFlying)
+-					{
+-						flyTimer = CREAM_FLY_RECHARGE;
+-						isFlying = false;
+-					}
+-					break;
++                                case CHARACTER_VANILLA: // vuela como Cream
++                                        if(isFlying)
++                                        {
++                                                flyTimer = CREAM_FLY_RECHARGE;
++                                                isFlying = false;
++                                        }
++                                        break;
+ 
+-				// v2.2 (TTB): Amelia cancela el vuelo igual que Cream
+-				case CHARACTER_AMELIA:
+-					if(isFlying)
+-					{
+-						flyTimer = AMELIA_FLY_RECHARGE;
+-						isFlying = false;
+-					}
+-					break;
+-					
+-				// v2.2 (TTB): Metal corta el dash y la electro al rebotar
+-				case CHARACTER_METAL:
+-					if(metalDashing > 0)
+-					{
+-						metalDashing = 0;
+-						isAttacking = false;
+-						dashTimer = revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE;
+-					}
+-					
+-					if(isElectro > 0)
+-					{
+-						isElectro = 0;
+-						isAttacking = false;
+-						electroTimer = revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE;
+-					}
+-					break;
+-					
+-				case CHARACTER_KNUX:
+-					if(isGliding)
+-					{
+-						glideTimer = KNUX_GLIDE_RECHARGE;
+-						isGliding = false;
+-						
+-						if(isStuck)
+-						{
+-							canMove = true;
+-							isStuck = false;
+-						}
+-					}
+-					
+-					if(isAttacking)
+-					{
+-						attackTimer = revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
+-						isAttacking = false;
+-					}
+-					break;
+-					
+-				case CHARACTER_AMY:
+-					
+-				case CHARACTER_AMY_CANON:
+-					if(isAttacking)
+-					{
+-						attackTimer = revivalTimes >= 2 ? AMY_EXEATTACK_RECHARGE : AMY_ATTACK_RECHARGE;
+-						isAttacking = false;
+-					}
+-					isJumping = true;
+-					break;
+-					
+-					
+-				case CHARACTER_SALLY:
+-				
+-				case CHARACTER_SALLY_CANON:
+-					if(isAttacking)
+-					{
+-						attackTimer = revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
+-						isAttacking = false;
+-					}
+-					
+-					if(isSliding)
+-					{
+-						slideSpeed = 0;
+-						isSliding = false;
+-					}
+-					isJumping = true;
+-					break;
+-					
+-				case CHARACTER_EGGMAN:
+-					isJumping = true;
+-					break;
+-			}
+-			
+-			xspd = spring.xdir;
+-			yspd = spring.ydir;
+-			isBoosting = false;
+-			isSpinning = false;
+-			isGrounded = false;
+-			isJumping = false;
+-			spring.image_index = 1;
+-			spring.image_blend = c_grey;
+-			spring.alarm[0] = 60 * .5;
+-			spring.alarm[1] = 60 * 4;
+-			audio_play_sound(snd_spring, 0, false);
+-			net_sound_emit(snd_spring);
+-			
+-			if(room == room_hideandseek2 && global.player.revivalTimes < 2)
+-			{
+-				var pak = cpacket_tcp(PacketType.CLIENT_SPRING_USE, true);
+-				buffer_write(pak, buffer_u16, obj_netclient.nid);
+-				buffer_write(pak, buffer_u16, global.player.x);
+-				buffer_write(pak, buffer_u16, global.player.y);
+-				send_server_tcp(pak);
+-			}
+-		}
+-	}
+-	
+-	{
+-		var spring = instance_position(obj_player_sensorBL.x, obj_player_sensorBL.y, obj_hd_spring);
+-		
+-		if(spring == noone)
+-			spring = instance_position(obj_player_sensorBR.x, obj_player_sensorBR.y, obj_hd_spring);
+-		
+-		if(spring != noone && spring.image_blend == c_white && global.player.yspd > 0 && global.player.shockedTimer <= 0)
+-		{
+-			if(isHurt)
+-				isHurt = false;
+-			
+-			switch(global.character)
+-			{
+-				case CHARACTER_EXE:
+-					if(isAttacking)
+-					{
+-						attackTimer = isGrounded ?  60 : 120;
+-						isAttacking = false;
+-					}
+-					
+-					if(global.exeCharacter == EXE_CHAOS)
+-					{
+-						if(stuckTimer > 0)
+-						{
+-							canSpin = true;
+-							canMove = true;
+-							stuckTimer = 0;
+-						}
+-					}
+-					break;
+-					
+-				case CHARACTER_TAILS:
+-					if(isFlying)
+-					{
+-						flyTimer = 0;
+-						isFlying = false;
+-					}
+-					break;
+-					
+-				case CHARACTER_CREAM:
++                                // v2.2 (TTB): Metal corta el dash y la electro al rebotar
++                                case CHARACTER_METAL:
++                                        if(metalDashing > 0)
++                                        {
++                                                metalDashing = 0;
++                                                isAttacking = false;
++                                                dashTimer = revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE;
++                                        }
++                                        
++                                        if(isElectro > 0)
++                                        {
++                                                isElectro = 0;
++                                                isAttacking = false;
++                                                electroTimer = revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE;
++                                        }
++                                        break;
++                                        
++                                case CHARACTER_KNUX:
++                                        if(isGliding)
++                                        {
++                                                glideTimer = KNUX_GLIDE_RECHARGE;
++                                                isGliding = false;
++                                                
++                                                if(isStuck)
++                                                {
++                                                        canMove = true;
++                                                        isStuck = false;
++                                                }
++                                        }
++                                        
++                                        if(isAttacking)
++                                        {
++                                                attackTimer = revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
++                                                isAttacking = false;
++                                        }
++                                        break;
++                                        
++                                case CHARACTER_AMY:
++                                        
++                                case CHARACTER_AMY_CANON:
++                                        if(isAttacking)
++                                        {
++                                                attackTimer = revivalTimes >= 2 ? AMY_EXEATTACK_RECHARGE : AMY_ATTACK_RECHARGE;
++                                                isAttacking = false;
++                                        }
++                                        isJumping = true;
++                                        break;
++                                        
++                                        
++                                case CHARACTER_SALLY:
++                                
++                                case CHARACTER_SALLY_CANON:
++                                        if(isAttacking)
++                                        {
++                                                attackTimer = revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
++                                                isAttacking = false;
++                                        }
++                                        
++                                        if(isSliding)
++                                        {
++                                                slideSpeed = 0;
++                                                isSliding = false;
++                                        }
++                                        isJumping = true;
++                                        break;
++                                        
++                                case CHARACTER_EGGMAN:
++                                        isJumping = true;
++                                        break;
++                        }
++                        
++                        xspd = spring.xdir;
++                        yspd = spring.ydir;
++                        isBoosting = false;
++                        isSpinning = false;
++                        isGrounded = false;
++                        isJumping = false;
++                        spring.image_index = 1;
++                        spring.image_blend = c_grey;
++                        spring.alarm[0] = 60 * .5;
++                        spring.alarm[1] = 60 * 4;
++                        audio_play_sound(snd_spring, 0, false);
++                        net_sound_emit(snd_spring);
++                        
++                        if(room == room_hideandseek2 && global.player.revivalTimes < 2)
++                        {
++                                var pak = cpacket_tcp(PacketType.CLIENT_SPRING_USE, true);
++                                buffer_write(pak, buffer_u16, obj_netclient.nid);
++                                buffer_write(pak, buffer_u16, global.player.x);
++                                buffer_write(pak, buffer_u16, global.player.y);
++                                send_server_tcp(pak);
++                        }
++                }
++        }
++        
++        {
++                var spring = instance_position(obj_player_sensorBL.x, obj_player_sensorBL.y, obj_hd_spring);
++                
++                if(spring == noone)
++                        spring = instance_position(obj_player_sensorBR.x, obj_player_sensorBR.y, obj_hd_spring);
++                
++                if(spring != noone && spring.image_blend == c_white && global.player.yspd > 0 && global.player.shockedTimer <= 0)
++                {
++                        if(isHurt)
++                                isHurt = false;
++                        
++                        switch(global.character)
++                        {
++                                case CHARACTER_EXE:
++                                        if(isAttacking)
++                                        {
++                                                attackTimer = isGrounded ?  60 : 120;
++                                                isAttacking = false;
++                                        }
++                                        
++                                        if(global.exeCharacter == EXE_CHAOS)
++                                        {
++                                                if(stuckTimer > 0)
++                                                {
++                                                        canSpin = true;
++                                                        canMove = true;
++                                                        stuckTimer = 0;
++                                                }
++                                        }
++                                        break;
++                                        
++                                case CHARACTER_TAILS:
++                                        if(isFlying)
++                                        {
++                                                flyTimer = 0;
++                                                isFlying = false;
++                                        }
++                                        break;
++                                        
++                                case CHARACTER_CREAM:
+ 
+-				case CHARACTER_VANILLA: // vuela como Cream
+-					if(isFlying)
+-					{
+-						flyTimer = CREAM_FLY_RECHARGE;
+-						isFlying = false;
+-					}
+-					break;
++                                case CHARACTER_VANILLA: // vuela como Cream
++                                        if(isFlying)
++                                        {
++                                                flyTimer = CREAM_FLY_RECHARGE;
++                                                isFlying = false;
++                                        }
++                                        break;
+ 
+-				// v2.2 (TTB): Amelia cancela el vuelo igual que Cream
+-				case CHARACTER_AMELIA:
+-					if(isFlying)
+-					{
+-						flyTimer = AMELIA_FLY_RECHARGE;
+-						isFlying = false;
+-					}
+-					break;
+-					
+-				// v2.2 (TTB): Metal corta el dash y la electro al rebotar
+-				case CHARACTER_METAL:
+-					if(metalDashing > 0)
+-					{
+-						metalDashing = 0;
+-						isAttacking = false;
+-						dashTimer = revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE;
+-					}
+-					
+-					if(isElectro > 0)
+-					{
+-						isElectro = 0;
+-						isAttacking = false;
+-						electroTimer = revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE;
+-					}
+-					break;
+-					
+-				case CHARACTER_KNUX:
+-					if(isGliding)
+-					{
+-						glideTimer = KNUX_GLIDE_RECHARGE;
+-						isGliding = false;
+-						
+-						if(isStuck)
+-						{
+-							canMove = true;
+-							isStuck = false;
+-						}
+-					}
+-					
+-					if(isAttacking)
+-					{
+-						attackTimer = revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
+-						isAttacking = false;
+-					}
+-					break;
+-					
+-				case CHARACTER_AMY:
+-					
+-				case CHARACTER_AMY_CANON:
+-					if(isAttacking)
+-					{
+-						attackTimer = revivalTimes >= 2 ? AMY_EXEATTACK_RECHARGE : AMY_ATTACK_RECHARGE;
+-						isAttacking = false;
+-					}
+-					isJumping = true;
+-					break;
+-					
+-					
+-				case CHARACTER_SALLY:
+-				
+-				case CHARACTER_SALLY_CANON:
+-					if(isAttacking)
+-					{
+-						attackTimer = revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
+-						isAttacking = false;
+-					}
+-					
+-					if(isSliding)
+-					{
+-						slideSpeed = 0;
+-						isSliding = false;
+-					}
+-					isJumping = true;
+-					break;
+-					
+-				case CHARACTER_EGGMAN:
+-					isJumping = true;
+-					break;
+-			}
+-			
+-			xspd = 0;
+-			yspd = (keyboard_check(global.KeyA) || keyboard_check(global.KeyUp)) ? -12 : -10;
+-			isBoosting = false;
+-			isSpinning = false;
+-			isGrounded = false;
+-			isJumping = false;
+-			spring.image_index = 1;
+-			spring.image_blend = c_grey;
+-			spring.alarm[0] = 60 * .5;
+-			spring.alarm[1] = 60 * 4;
+-			audio_play_sound(snd_spring, 0, false);
+-			net_sound_emit(snd_spring);
+-		}
+-	}
+-	
+-	// Damage
+-	if(collision_rectangle(x - 12, y + yspd, x + 12, y + 20, obj_damage, false, true))
+-	{
+-		angle = 0;
+-		scr_player_hurt(20, -global.player.image_xscale * 4, -6, snd_spike, spr_blood1);
+-	}
+-	
+-	// Spikes
+-	if(collision_rectangle(x - 6, y + 19, x + 6, y + 20, obj_spike, false, true))
+-	{
+-		angle = 0;
+-		scr_player_hurt(20, -global.player.image_xscale * 4, -6, snd_spike, spr_blood1);
+-	}
+-	
+-	// Boob box
+-	var inst = collision_rectangle(x - 6, y - 20, x + 6, y + 20, obj_kaf_speedboobster, false, true);
+-	if(inst != noone && !inst.isBroken && inst.image_index == 0)
+-	{
+-		var _isAttacking = false;
+-		var ch = global.character;
+-	
+-		if(global.player.isAttacking && (ch == CHARACTER_EXE || (ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON) || ch == CHARACTER_KNUX || ch == CHARACTER_EGGMAN || ch == CHARACTER_SALLY || ch == CHARACTER_SALLY_CANON || ch == CHARACTER_SONIC))
+-			_isAttacking = true;
+-				
+-		if((ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON) && global.player.state == AMY_HJUMP)
+-			_isAttacking = true;
+-		
+-		if(global.player.isJumping || global.player.state == FALL && (ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON))
+-			 _isAttacking = true;
+-		
+-		if(global.player.isSpinning)
+-			 _isAttacking = true;
+-			
+-		if(global.player.state == SALLY_SLIDE && ch == CHARACTER_SALLY)
+-			 _isAttacking = true;
+-			 
+-		if(global.character == CHARACTER_EXE && global.player.invisTimer > 0)
+-			_isAttacking = false;
+-		
+-		if(_isAttacking || isBoosting)
+-		{
+-			inst.isBroken = true;
+-			
+-			var pack = cpacket_tcp(PacketType.CLIENT_KAFMONITOR_ACTIVATE);
+-			buffer_write(pack, buffer_u8, inst.nid);
+-			buffer_write(pack, buffer_bool, false);
+-			send_server_tcp(pack);
+-		}
+-	}
+-	
+-	if(instance_exists(obj_movingspike))
+-	{
+-		if(obj_movingspike.image_index > 0 && obj_movingspike.image_index < 5 && collision_rectangle(x - 6, y + 19, x + 6, y + 20, obj_movingspike, false, true))
+-		{
+-			angle = 0;
+-			scr_player_hurt(20, -global.player.image_xscale * 4, -6, snd_spike, spr_blood1);
+-		}
+-	}
+-	
+-	if(position_meeting(obj_player_sensorL.x, obj_player_sensorL.y, obj_angleanuller) || place_meeting(obj_player_sensorL.x, obj_player_sensorL.y, obj_angleanuller_eggsafe))
+-		angle = 0;
+-	
+-	if(position_meeting(obj_player_sensorR.x, obj_player_sensorR.y, obj_angleanuller) || place_meeting(obj_player_sensorR.x, obj_player_sensorR.y, obj_angleanuller_eggsafe))
+-		angle = 0;
+-	
+-	// Hide
+-	{
+-		isHiding = place_meeting(x, y, obj_hiding_parent) && isLookingDown && !isLookingUp;
+-		
+-		if(global.character == CHARACTER_SALLY && global.player.isSliding)
+-			isHiding = false;
+-		
+-		if(isHiding)
+-			obj_camera.look_timer = 0;
+-	}
+-	
+-	var inst = instance_place(x, y, obj_quickeffect);
+-	if(inst != noone)
+-	{
+-		if(global.character == CHARACTER_EXE || global.character == CHARACTER_SALLY)
+-			return;
+-			
+-		if(instance_exists(global.player) && global.player.revivalTimes >= 2)
+-			return;
+-			
+-		if(global.player.hurttime > 0)
+-			return;
+-			
+-		if(inst.sprite_index == spr_shieldbreak2)
+-		{
+-			scr_player_hurt(20, -global.player.image_xscale * 3);
+-			
+-			if(instance_exists(obj_player_puppet))
+-			{
+-				with(obj_player_puppet)
+-				{
+-					if(character != CHARACTER_SALLY)
+-						continue;
+-										
+-					var pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
+-					buffer_write(pak, buffer_u16, master_id);
+-					buffer_write(pak, buffer_u8, 5);
+-					send_server_tcp(pak);
+-					
+-					var buffer = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
+-					buffer_write(buffer, buffer_u8, 2);
+-					buffer_write(buffer, buffer_u16, master_id);
+-					buffer_write(buffer, buffer_u16, 20);
+-					buffer_write(buffer, buffer_u16, global.player.hp);
+-					send_server_tcp(buffer);
+-					break;
+-				}
+-			}
+-		}
+-	}
++                                // v2.2 (TTB): Metal corta el dash y la electro al rebotar
++                                case CHARACTER_METAL:
++                                        if(metalDashing > 0)
++                                        {
++                                                metalDashing = 0;
++                                                isAttacking = false;
++                                                dashTimer = revivalTimes >= 2 ? EMETAL_DASH_RECHARGE : METAL_DASH_RECHARGE;
++                                        }
++                                        
++                                        if(isElectro > 0)
++                                        {
++                                                isElectro = 0;
++                                                isAttacking = false;
++                                                electroTimer = revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE;
++                                        }
++                                        break;
++                                        
++                                case CHARACTER_KNUX:
++                                        if(isGliding)
++                                        {
++                                                glideTimer = KNUX_GLIDE_RECHARGE;
++                                                isGliding = false;
++                                                
++                                                if(isStuck)
++                                                {
++                                                        canMove = true;
++                                                        isStuck = false;
++                                                }
++                                        }
++                                        
++                                        if(isAttacking)
++                                        {
++                                                attackTimer = revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
++                                                isAttacking = false;
++                                        }
++                                        break;
++                                        
++                                case CHARACTER_AMY:
++                                        
++                                case CHARACTER_AMY_CANON:
++                                        if(isAttacking)
++                                        {
++                                                attackTimer = revivalTimes >= 2 ? AMY_EXEATTACK_RECHARGE : AMY_ATTACK_RECHARGE;
++                                                isAttacking = false;
++                                        }
++                                        isJumping = true;
++                                        break;
++                                        
++                                        
++                                case CHARACTER_SALLY:
++                                
++                                case CHARACTER_SALLY_CANON:
++                                        if(isAttacking)
++                                        {
++                                                attackTimer = revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
++                                                isAttacking = false;
++                                        }
++                                        
++                                        if(isSliding)
++                                        {
++                                                slideSpeed = 0;
++                                                isSliding = false;
++                                        }
++                                        isJumping = true;
++                                        break;
++                                        
++                                case CHARACTER_EGGMAN:
++                                        isJumping = true;
++                                        break;
++                        }
++                        
++                        xspd = 0;
++                        yspd = (keyboard_check(global.KeyA) || keyboard_check(global.KeyUp)) ? -12 : -10;
++                        isBoosting = false;
++                        isSpinning = false;
++                        isGrounded = false;
++                        isJumping = false;
++                        spring.image_index = 1;
++                        spring.image_blend = c_grey;
++                        spring.alarm[0] = 60 * .5;
++                        spring.alarm[1] = 60 * 4;
++                        audio_play_sound(snd_spring, 0, false);
++                        net_sound_emit(snd_spring);
++                }
++        }
++        
++        // Damage
++        if(collision_rectangle(x - 12, y + yspd, x + 12, y + 20, obj_damage, false, true))
++        {
++                angle = 0;
++                scr_player_hurt(20, -global.player.image_xscale * 4, -6, snd_spike, spr_blood1);
++        }
++        
++        // Spikes
++        if(collision_rectangle(x - 6, y + 19, x + 6, y + 20, obj_spike, false, true))
++        {
++                angle = 0;
++                scr_player_hurt(20, -global.player.image_xscale * 4, -6, snd_spike, spr_blood1);
++        }
++        
++        // Boob box
++        var inst = collision_rectangle(x - 6, y - 20, x + 6, y + 20, obj_kaf_speedboobster, false, true);
++        if(inst != noone && !inst.isBroken && inst.image_index == 0)
++        {
++                var _isAttacking = false;
++                var ch = global.character;
++        
++                if(global.player.isAttacking && (ch == CHARACTER_EXE || (ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON) || ch == CHARACTER_KNUX || ch == CHARACTER_EGGMAN || ch == CHARACTER_SALLY || ch == CHARACTER_SALLY_CANON || ch == CHARACTER_SONIC))
++                        _isAttacking = true;
++                                
++                if((ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON) && global.player.state == AMY_HJUMP)
++                        _isAttacking = true;
++                
++                if(global.player.isJumping || global.player.state == FALL && (ch == CHARACTER_AMY || ch == CHARACTER_AMY_CANON))
++                         _isAttacking = true;
++                
++                if(global.player.isSpinning)
++                         _isAttacking = true;
++                        
++                if(global.player.state == SALLY_SLIDE && ch == CHARACTER_SALLY)
++                         _isAttacking = true;
++                         
++                if(global.character == CHARACTER_EXE && global.player.invisTimer > 0)
++                        _isAttacking = false;
++                
++                if(_isAttacking || isBoosting)
++                {
++                        inst.isBroken = true;
++                        
++                        var pack = cpacket_tcp(PacketType.CLIENT_KAFMONITOR_ACTIVATE);
++                        buffer_write(pack, buffer_u8, inst.nid);
++                        buffer_write(pack, buffer_bool, false);
++                        send_server_tcp(pack);
++                }
++        }
++        
++        if(instance_exists(obj_movingspike))
++        {
++                if(obj_movingspike.image_index > 0 && obj_movingspike.image_index < 5 && collision_rectangle(x - 6, y + 19, x + 6, y + 20, obj_movingspike, false, true))
++                {
++                        angle = 0;
++                        scr_player_hurt(20, -global.player.image_xscale * 4, -6, snd_spike, spr_blood1);
++                }
++        }
++        
++        if(position_meeting(obj_player_sensorL.x, obj_player_sensorL.y, obj_angleanuller) || place_meeting(obj_player_sensorL.x, obj_player_sensorL.y, obj_angleanuller_eggsafe))
++                angle = 0;
++        
++        if(position_meeting(obj_player_sensorR.x, obj_player_sensorR.y, obj_angleanuller) || place_meeting(obj_player_sensorR.x, obj_player_sensorR.y, obj_angleanuller_eggsafe))
++                angle = 0;
++        
++        // Hide
++        {
++                isHiding = place_meeting(x, y, obj_hiding_parent) && isLookingDown && !isLookingUp;
++                
++                if(global.character == CHARACTER_SALLY && global.player.isSliding)
++                        isHiding = false;
++                
++                if(isHiding)
++                        obj_camera.look_timer = 0;
++        }
++        
++        var inst = instance_place(x, y, obj_quickeffect);
++        if(inst != noone)
++        {
++                if(global.character == CHARACTER_EXE || global.character == CHARACTER_SALLY)
++                        return;
++                        
++                if(instance_exists(global.player) && global.player.revivalTimes >= 2)
++                        return;
++                        
++                if(global.player.hurttime > 0)
++                        return;
++                        
++                if(inst.sprite_index == spr_shieldbreak2)
++                {
++                        scr_player_hurt(20, -global.player.image_xscale * 3);
++                        
++                        if(instance_exists(obj_player_puppet))
++                        {
++                                with(obj_player_puppet)
++                                {
++                                        if(character != CHARACTER_SALLY)
++                                                continue;
++                                                                                
++                                        var pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
++                                        buffer_write(pak, buffer_u16, master_id);
++                                        buffer_write(pak, buffer_u8, 5);
++                                        send_server_tcp(pak);
++                                        
++                                        var buffer = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
++                                        buffer_write(buffer, buffer_u8, 2);
++                                        buffer_write(buffer, buffer_u16, master_id);
++                                        buffer_write(buffer, buffer_u16, 20);
++                                        buffer_write(buffer, buffer_u16, global.player.hp);
++                                        send_server_tcp(buffer);
++                                        break;
++                                }
++                        }
++                }
++        }
+ }
+\ No newline at end of file
+diff --git a/scripts/scr_player_slow/scr_player_slow.gml b/scripts/scr_player_slow/scr_player_slow.gml
+index b52e625e..4d7eeab9 100644
+--- a/scripts/scr_player_slow/scr_player_slow.gml
++++ b/scripts/scr_player_slow/scr_player_slow.gml
+@@ -1,94 +1,104 @@
+ function scr_player_slow(time)
+ {
+-	if(!instance_exists(global.player))
+-		return;
+-		
+-	switch(global.character)
+-	{
+-		case CHARACTER_EXE:
+-			global.player.isSlow = true;
+-			global.player.acc = (EXE_ACC * (100-40)) / 100;
+-			global.player.maxHSpeed = (EXE_MAXSPEED * (100-40)) / 100;
+-			global.player.alarm[4] = 60 * time;
+-			
+-			break;
+-			
+-		case CHARACTER_TAILS:
+-			global.player.isSlow = true;
+-			global.player.acc = (TAILS_ACC * (100-40)) / 100;
+-			global.player.maxHSpeed = (TAILS_MAXSPEED * (100-40)) / 100;
+-			global.player.alarm[4] = 60 * time;
+-			
+-			break;
+-			
+-			
+-		case CHARACTER_KNUX:
+-			global.player.isSlow = true;
+-			global.player.acc = (KNUX_ACC * (100-40)) / 100;
+-			global.player.maxHSpeed = (KNUX_MAXSPEED * (100-40)) / 100;
+-			global.player.alarm[4] = 60 * time;
+-			
+-			break;
+-			
+-			
+-		case CHARACTER_EGGMAN:
+-			global.player.isSlow = true;
+-			global.player.acc = (EGGMAN_ACC * (100-40)) / 100;
+-			global.player.maxHSpeed = (EGGMAN_MAXSPEED * (100-40)) / 100;
+-			global.player.alarm[4] = 60 * time;
+-			
+-			break;
+-			
+-		case CHARACTER_AMY:
+-			
+-		case CHARACTER_AMY_CANON:
+-			global.player.isSlow = true;
+-			global.player.acc = (AMY_ACC * (100-40)) / 100;
+-			global.player.maxHSpeed = (AMY_MAXSPEED * (100-40)) / 100;
+-			global.player.alarm[4] = 60 * time;
+-			
+-			break;
+-			
+-		case CHARACTER_SALLY:
+-		
+-		case CHARACTER_SALLY_CANON:
+-			global.player.isSlow = true;
+-			global.player.acc = (SALLY_ACC * (100-40)) / 100;
+-			global.player.maxHSpeed = (SALLY_MAXSPEED * (100-40)) / 100;
+-			global.player.alarm[4] = 60 * time;
+-			
+-			break;
+-			
+-		case CHARACTER_CREAM:
++        if(!instance_exists(global.player))
++                return;
++                
++        switch(global.character)
++        {
++                case CHARACTER_EXE:
++                        global.player.isSlow = true;
++                        global.player.acc = (EXE_ACC * (100-40)) / 100;
++                        global.player.maxHSpeed = (EXE_MAXSPEED * (100-40)) / 100;
++                        global.player.alarm[4] = 60 * time;
++                        
++                        break;
++                        
++                case CHARACTER_TAILS:
++                        global.player.isSlow = true;
++                        global.player.acc = (TAILS_ACC * (100-40)) / 100;
++                        global.player.maxHSpeed = (TAILS_MAXSPEED * (100-40)) / 100;
++                        global.player.alarm[4] = 60 * time;
++                        
++                        break;
++                        
++                        
++                case CHARACTER_KNUX:
++                        global.player.isSlow = true;
++                        global.player.acc = (KNUX_ACC * (100-40)) / 100;
++                        global.player.maxHSpeed = (KNUX_MAXSPEED * (100-40)) / 100;
++                        global.player.alarm[4] = 60 * time;
++                        
++                        break;
++                        
++                        
++                case CHARACTER_EGGMAN:
++                        global.player.isSlow = true;
++                        global.player.acc = (EGGMAN_ACC * (100-40)) / 100;
++                        global.player.maxHSpeed = (EGGMAN_MAXSPEED * (100-40)) / 100;
++                        global.player.alarm[4] = 60 * time;
++                        
++                        break;
++                        
++                case CHARACTER_AMY:
++                        
++                case CHARACTER_AMY_CANON:
++                        global.player.isSlow = true;
++                        global.player.acc = (AMY_ACC * (100-40)) / 100;
++                        global.player.maxHSpeed = (AMY_MAXSPEED * (100-40)) / 100;
++                        global.player.alarm[4] = 60 * time;
++                        
++                        break;
++                        
++                case CHARACTER_SALLY:
++                
++                case CHARACTER_SALLY_CANON:
++                        global.player.isSlow = true;
++                        global.player.acc = (SALLY_ACC * (100-40)) / 100;
++                        global.player.maxHSpeed = (SALLY_MAXSPEED * (100-40)) / 100;
++                        global.player.alarm[4] = 60 * time;
++                        
++                        break;
++                        
++                case CHARACTER_CREAM:
+ 
+-		case CHARACTER_VANILLA: // mismas stats que Cream
+-			global.player.isSlow = true;
+-			global.player.acc = (CREAM_ACC * (100-40)) / 100;
+-			global.player.maxHSpeed = (CREAM_MAXSPEED * (100-40)) / 100;
+-			global.player.alarm[4] = 60 * time;
+-			
+-			break;
+-			
+-			// v2.2 (TTB): stats de los rescatados
+-			case CHARACTER_METAL:
+-				global.player.isSlow = true;
+-				global.player.acc = (METAL_ACC * (100-40)) / 100;
+-				global.player.maxHSpeed = (METAL_MAXSPEED * (100-40)) / 100;
+-				global.player.alarm[4] = 60 * time;
+-				break;
+-			
+-			case CHARACTER_AMELIA:
+-				global.player.isSlow = true;
+-				global.player.acc = (AMELIA_ACC * (100-40)) / 100;
+-				global.player.maxHSpeed = (AMELIA_MAXSPEED * (100-40)) / 100;
+-				global.player.alarm[4] = 60 * time;
+-				break;
+-			
+-			case CHARACTER_BLAZE:
+-				global.player.isSlow = true;
+-				global.player.acc = (BLAZE_ACC * (100-40)) / 100;
+-				global.player.maxHSpeed = (BLAZE_MAXSPEED * (100-40)) / 100;
+-				global.player.alarm[4] = 60 * time;
+-				break;
+-	}
++                case CHARACTER_VANILLA: // mismas stats que Cream
++                        global.player.isSlow = true;
++                        global.player.acc = (CREAM_ACC * (100-40)) / 100;
++                        global.player.maxHSpeed = (CREAM_MAXSPEED * (100-40)) / 100;
++                        global.player.alarm[4] = 60 * time;
++                        
++                        break;
++
++                // v2.4: faltaba Sonic desde siempre (la trampa de Amelia
++                // y el eggtrack no le aplicaban slow a un Sonic demonizado)
++                case CHARACTER_SONIC:
++                        global.player.isSlow = true;
++                        global.player.acc = (SONIC_ACC * (100-40)) / 100;
++                        global.player.maxHSpeed = (SONIC_MAXSPEED * (100-40)) / 100;
++                        global.player.alarm[4] = 60 * time;
++                        
++                        break;
++                        
++                        // v2.2 (TTB): stats de los rescatados
++                        case CHARACTER_METAL:
++                                global.player.isSlow = true;
++                                global.player.acc = (METAL_ACC * (100-40)) / 100;
++                                global.player.maxHSpeed = (METAL_MAXSPEED * (100-40)) / 100;
++                                global.player.alarm[4] = 60 * time;
++                                break;
++                        
++                        case CHARACTER_AMELIA:
++                                global.player.isSlow = true;
++                                global.player.acc = (AMELIA_ACC * (100-40)) / 100;
++                                global.player.maxHSpeed = (AMELIA_MAXSPEED * (100-40)) / 100;
++                                global.player.alarm[4] = 60 * time;
++                                break;
++                        
++                        case CHARACTER_BLAZE:
++                                global.player.isSlow = true;
++                                global.player.acc = (BLAZE_ACC * (100-40)) / 100;
++                                global.player.maxHSpeed = (BLAZE_MAXSPEED * (100-40)) / 100;
++                                global.player.alarm[4] = 60 * time;
++                                break;
++        }
+ }
+\ No newline at end of file
+diff --git a/worklog.md b/worklog.md
+index 62a4a412..b8c9e261 100644
+--- a/worklog.md
++++ b/worklog.md
+@@ -2093,3 +2093,92 @@ Stage Summary:
+ - El zip lleva el script nuevo (.gml + .yy) + el .yyp + 10 .gml
+   modificados + LEEME + docs. NADA de server.
+ - Entregable: download/charsafe_v2_2_3.zip.
++
++---
++
++## 2026-11-01 — amelia-v2.3+v2.4 (reconstruidos juntos): kit del TD + velocidad eliminada
++
++Contexto: el sandbox del agente se reciclo y se perdieron los commits
++locales de v2.3/v2.4 (nunca llegaron a GitHub). Se reconstruyo TODO
++encima del commit "ok" (1af7dce3) del usuario — que ya traia SU fix
++del bug de velocidad v2.2.4 (AMELIA_ACC 0.35 -> 0.046875: "la hacía
++salir disparada al instante"). Ese fix se RESPETA tal cual.
++
++Pedido v2.3 (literal): "1 que todo Amelia usa trampas la trampa dura
++hasta un max de 60 seg 2 la habilidad de vuelo es remplazada por la
++velocidad (cream) y el trmapolin este sigue igual. el stun de la
++trampa es de 3 seg. y tambien aplica debuff de vel de movimiento por
++3.5 seg (despues que salga del stun producido por la trampa)."
++Pedido v2.4 (literal): "Elimina la velocidad y hay un bug de
++velocidad en amelia" -> la velocidad pedida en v2.3 NO entra: Amelia
++queda SOLO con trampolin + trampa (kit del TD original). El bug de
++velocidad es el del acc que el propio usuario ya habia arreglado en
++v2.2.4 (y un boost con la tecla de salto pisando isBoosting de las
++botas habria sido carrera forzada: mejor fuera).
++
++RESULTADO (v2.4 final, cliente + server):
++
++1) TRAMPA (tecla C; antes "bomba" de mecha 5 s + boom radio 90):
++   - Vida maxima 60 s (la lleva el server: retiro silencioso con
++     SERVER_AMELIA_TRAP_STATE 1; el cliente ademas se desvanece solo
++     si el paquete se pierde).
++   - Pisada: la detecta el cliente de la VICTIMA (lado EXE, viva) =>
++     STUN 3 s (shockedTimer + xspd=0 + snd_exe_stun) + debuff -40%
++     otros 3.5 s AL SALIR del stun (scr_player_slow pide el TOTAL
++     3.5+3: los 3 primeros quedan tapados por el stun, no hay
++     movimiento). Patron de autoridad de la banana: cada cliente
++     manda sobre su propio jugador; el resto ve state 2 (destroy +
++     goth + shock + shake suave 20 frames).
++   - CLIENT_AMELIA_TRAP_TRIGGER lleva el NID: el server busca tag
++     "atrap" + id EXACTO. MATA 2 bugs latentes de la v2.2: (a) el boom
++     por pisada nunca se emitia (game_despawn directo sin state 2) y
++     (b) game_find("abomb") podia borrar la bomba de OTRA Amelia.
++   - Max 1 viva POR AMELIA (v2.2 era limite global: con 60 s de vida
++     varias Amelias se estorbarian un minuto entero).
++   - Renombres completos: obj_amelia_bomb -> obj_amelia_trap,
++     net_amelia_bomb -> net_amelia_trap, AmeliaBomb.c/.h ->
++     AmeliaTrap.c/.h, "abomb" -> "atrap", AMELIA_BOMB_SPAWN ->
++     AMELIA_TRAP_SPAWN, CLIENT_AMELIA_BOMB(_BOOM) ->
++     CLIENT_AMELIA_TRAP(_TRIGGER), SERVER_AMELIA_BOMB_STATE ->
++     SERVER_AMELIA_TRAP_STATE. Mismo orden numerico => protocolo
++     compatible cliente v2.4 + server v2.4 (actualizar JUNTOS).
++
++2) VUELO: FUERA por completo (isFlying/flyTimer/flyTimeout,
++   AMELIA_FLY_* macros, estado AMELIA_FLY queda defensivo, carry de
++   aliados en scr_carry_partner_flying, cases de resorte en
++   scr_collision_objects, icono spr_gui_creamfly). La tirolina de
++   Cream (CREAM_ZIPLINE) SE CONSERVA. NINGUNA habilidad nueva en Z.
++
++3) TRAMPOLIN (tecla X): SIN CAMBIOS (pedido: "este sigue igual"):
++   resorte colocable 12 s, recarga 25 s, fisica local del juego,
++   recarga demonizada 10 s.
++
++4) UI (obj_playerui): 2 iconos (trampolin 240 / trampa 258) con los
++   sprites ya registrados (spr_gui_amelia_trap y spr_gui_eggtrack,
++   los mismos que usaba la v2.2 para banana/bomba).
++
++5) Extra: case CHARACTER_SONIC en scr_player_slow (faltaba desde
++   siempre: un Sonic demonizado no recibia slow ni del eggtrack ni de
++   la trampa nueva).
++
++Validacion: .yyp JSON valido sin duplicados (1927 recursos, renames
++aplicados); delimitadores balanceados en los 15 .gml tocados; 0
++referencias stale a bomba/vuelo en codigo (script del agente
++validate_amelia_v24.py). Server COMPILADO con gcc (enet clonado a
++mano: el submodule nunca estuvo inicializado; build del agente
++build_server.sh que replica la lista exacta de fuentes del
++CMakeLists) y PROBADO: BetterServer v1101 levanta en 8606 y entra a
++Lobby sin errores. NOTA del build: disasterserver/Game.c (raiz) es un
++archivo viejo huérfano FUERA del CMakeLists (usa game.cooldowns ya
++inexistente); el real es states/Game.c — no tocar el raiz.
++
++Entregable: download/amelia_v2_4.zip (extraer sobre la raiz con GM
++cerrado + recompilar el server; ver LEEME dentro).
++
++Stage Summary:
++- Amelia v2.4 = trampolin (X) + trampa (C): vida 60 s, stun 3 s,
++  slow -40% 3.5 s tras el stun, max 1 por Amelia, trigger por nid.
++- Vuelo y velocidad: ELIMINADOS. Stats 11 / acc 0.046875 (v2.2.4).
++- Cliente: 15 .gml + 2 .yy nuevos (trap) + .yyp renames.
++- Server: AmeliaTrap.c/.h nuevos, Packet.h, Server.h, Game.c (states),
++  CMakeLists. Compilado y probado.
+-- 
+2.47.3
+

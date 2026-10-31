@@ -190,14 +190,15 @@ typedef enum
         SERVER_VANILLA_DEDEMONIZE,
 
         /* v2.2 — personajes de TD2D Through the Blood (mod abandonado).
-           Amelia: banana (resorte-trampa) y bomba (mecha 5 s / pisada).
+           Amelia: banana (trampolin resorte) y trampa (vida 60 s /
+           pisada: stun 3 s + slow -40% 3.5 s tras el stun).
            Blaze: bola de fuego (proyectil). Metal Amy (killer): bala
            del canon. Mismo orden en el enum del cliente. */
         CLIENT_AMELIA_BANANA,
-        CLIENT_AMELIA_BOMB,
-        CLIENT_AMELIA_BOMB_BOOM,
+        CLIENT_AMELIA_TRAP,
+        CLIENT_AMELIA_TRAP_TRIGGER,
         SERVER_AMELIA_BANANA_STATE,
-        SERVER_AMELIA_BOMB_STATE,
+        SERVER_AMELIA_TRAP_STATE,
         CLIENT_BLAZE_FIREBALL,
         CLIENT_BLAZE_FIREBALL_HIT,
         SERVER_BLAZE_FIREBALL_STATE,
