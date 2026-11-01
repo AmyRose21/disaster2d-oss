@@ -27,7 +27,7 @@
 
 // --- float run (3ra fase de corrida) ---
 #macro VANILLA_FLOAT_SPEED 14              // tope de la 3ra fase
-#macro VANILLA_FLOAT_RAMP_DELAY (60 * 1.5) // frames a tope (11) antes de acelerar
+#macro VANILLA_FLOAT_RAMP_DELAY (60 * 0.5) // frames a tope (11) antes de acelerar
 #macro VANILLA_FLOAT_RAMP_ACC 0.03         // cuanto sube el tope por frame
 #macro VANILLA_FLOAT_GHOST_EVERY 5         // una imagen residual cada 5 frames
 #macro VANILLA_FLOAT_GHOST_FADE 0.07       // fadeo de cada imagen residual
@@ -38,13 +38,13 @@
 #macro VANILLA_PACIENCIA_HUNT_MAX (60 * 8)    // failsafe de caza
 #macro VANILLA_PACIENCIA_EXIT (60 * 1)        // pose agotada al final
 #macro VANILLA_PACIENCIA_HEAL 100             // vida al recuperar
-#macro VANILLA_PACIENCIA_INVULN (60 * 2.5)    // i-frames al recuperar
+#macro VANILLA_PACIENCIA_INVULN (60 * 3.5)    // i-frames al recuperar
 #macro VANILLA_PACIENCIA_LEVITATE -0.35       // flota si la caida fue a un hoyo
 #macro VANILLA_CHOCOLA_PACIENCIA_STUN (60 * 5) // stun del golpe de Chocola
 
 // --- moribunda (2da caida en adelante) ---
 #macro VANILLA_MORIBUNDA_TIME (60 * 6)  // tirada en el suelo
-#macro VANILLA_MORIBUNDA_HEAL 30        // se levanta con poca vida
+#macro VANILLA_MORIBUNDA_HEAL 40        // se levanta con poca vida
 #macro VANILLA_MORIBUNDA_INVULN (60 * 3)
 
 // --- chocola: defensa y ataques ---
@@ -53,7 +53,7 @@
 #macro VANILLA_CHOCOLA_CD (60 * 2.5)            // enfriamiento compartido bloqueo/ataque
 #macro VANILLA_CHOCOLA_ATTACK_CHANCE 33         // % de atacar al exe cercano
 #macro VANILLA_CHOCOLA_ATTACK_RANGE 90          // px: "el exe se acerca mucho"
-#macro VANILLA_CHOCOLA_ATTACK_STUN (60 * 1.5)   // stun del ataque cercano
+#macro VANILLA_CHOCOLA_ATTACK_STUN (60 * 2.5)   // stun del ataque cercano
 #macro VANILLA_CHOCOLA_PROX_CHECK 30            // re-check de proximidad (0.5 s)
 #macro VANILLA_CHOCOLA_HUNT_SPEED 14            // velocidad de caza (acelerada)
 #macro VANILLA_CHOCOLA_SPEED 7                  // velocidad normal (ida a Cream)
