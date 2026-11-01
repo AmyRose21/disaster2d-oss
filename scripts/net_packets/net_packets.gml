@@ -211,7 +211,17 @@ enum PacketType
            choque reporta nid + que componentes de velocidad invertir
            + la posicion del primer solape. Mismo orden que el
            Packet.h del server. */
-        CLIENT_BLAZE_FIREBALL_BOUNCE
+        CLIENT_BLAZE_FIREBALL_BOUNCE,
+
+        /* v2.11 — Vanilla: el RESCATE DE ESBIRROS usa el mismo sistema
+           del revive de los caidos. Progreso del rescate (Vanilla
+           encima del esbirro ATURDIDO manteniendo ABAJO, 15+ anillos);
+           el server acumula el progreso (plr.dedemon_progress),
+           reenvia la MISMA barra (SERVER_REVIVAL_PROGRESS) y al
+           llenarla dispara el SERVER_VANILLA_DEDEMONIZE de siempre.
+           Mismo orden que el Packet.h del server (anadido AL FINAL en
+           los DOS lados, como el BOUNCE de la v2.9). */
+        CLIENT_VANILLA_DEDEMONIZE_PROGRESS
 }
 
 #macro STATE_PENDING -1

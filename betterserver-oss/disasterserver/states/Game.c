@@ -465,6 +465,7 @@ bool game_demonize(Server* server, PeerData* data)
                 SET_FLAG(data->plr.flags, PLAYER_DEMONIZED);
                 
                 data->plr.stats.rings = 0;
+                data->plr.dedemon_progress = 0; /* v2.11: rescate fresco al demonizarse */
 
                 // reset cooldown (v2.1.3: POR JUGADOR, en el demonizado)
                 switch (data->surv_char)
@@ -1007,6 +1008,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 
                         DEL_FLAG(target->plr.flags, PLAYER_DEMONIZED);
                         SET_FLAG(target->plr.flags, PLAYER_REVIVED);
+                        target->plr.dedemon_progress = 0;
 
                         Packet pack;
                         PacketCreate(&pack, SERVER_VANILLA_DEDEMONIZE);
@@ -1014,6 +1016,105 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         server_broadcast(v->server, &pack, true);
 
                         Info("%s (id %d) de-demonized by Vanilla!", target->nickname.value, target->id);
+                        break;
+                }
+
+                case CLIENT_VANILLA_DEDEMONIZE_PROGRESS:
+                {
+                        /* v2.11 — RESCATE DE ESBIRRO "como revivir a un
+                         * caido": Vanilla mantiene ABAJO sobre un esbirro
+                         * ATURDIDO (su estado por red es DEAD; lo valida su
+                         * cliente en scr_survivor_revive, igual que el revive
+                         * normal valida el PLAYER_DEAD) con 15+ anillos.
+                         * Mismo patron que CLIENT_REVIVAL_PROGRESS: el
+                         * progreso vive AQUI (plr.dedemon_progress y se
+                         * CONSERVA si suelta el boton a mitad, como la barra
+                         * del caido), la barra es la misma
+                         * (SERVER_REVIVAL_PROGRESS + SERVER_REVIVAL_STATUS)
+                         * y al llenarse hace exactamente lo del
+                         * CLIENT_VANILLA_DEDEMONIZE de arriba: limpiar
+                         * PLAYER_DEMONIZED + marcar PLAYER_REVIVED ("a 1
+                         * caida de re-demonizarse"). Los 15 anillos los
+                         * cobra el cliente de Vanilla al recibir el
+                         * SERVER_VANILLA_DEDEMONIZE (lock dedemonTarget). */
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->surv_char == CH_VANILLA);
+
+                        if (v->server->game.end > 0)
+                                break;
+
+                        PacketRead(pid, packet, packet_read16, uint16_t);
+                        PacketRead(rings, packet, packet_read8, uint8_t);
+
+                        PeerData* target = server_find_peer(v->server, pid);
+
+                        if (target == NULL)
+                                break;
+
+                        if (target == v || !target->in_game)
+                                break;
+
+                        if (!(target->plr.flags & PLAYER_DEMONIZED))
+                                break;
+
+                        if (rings < 15)
+                                break;
+
+                        /* misma tolerancia de distancia que el handler
+                         * instantaneo de la v2 (tocando al esbirro) */
+                        if (vector2_dist(&target->plr.pos, &v->plr.pos) > 150)
+                                break;
+
+                        Packet pack;
+
+                        if (target->plr.dedemon_progress <= 0)
+                        {
+                                /* misma senal que abre la barra del revive normal */
+                                PacketCreate(&pack, SERVER_REVIVAL_STATUS);
+                                PacketWrite(&pack, packet_write8, 1);
+                                PacketWrite(&pack, packet_write16, target->id);
+                                server_broadcast(v->server, &pack, true);
+                        }
+
+                        /* base 0.03 por paquete (30 paq/s = ~1.1 s, cabe
+                         * comodo en el stun de 3.5 s de Chocola) + bonus
+                         * por anillos de sobra (tope +25, como el revive
+                         * del caido acelera con anillos) */
+                        {
+                                int bonus = rings - 15;
+
+                                if (bonus > 25)
+                                        bonus = 25;
+
+                                target->plr.dedemon_progress += 0.03 + 0.002 * bonus;
+                        }
+
+                        if (target->plr.dedemon_progress < 1)
+                        {
+                                PacketCreate(&pack, SERVER_REVIVAL_PROGRESS);
+                                PacketWrite(&pack, packet_write16, target->id);
+                                PacketWrite(&pack, packet_writedouble, target->plr.dedemon_progress);
+                                server_broadcast(v->server, &pack, false);
+                                break;
+                        }
+
+                        /* completado: rescate! mismo efecto que el handler
+                         * instantaneo + cerrar la barra del revive */
+                        target->plr.dedemon_progress = 0;
+                        DEL_FLAG(target->plr.flags, PLAYER_DEMONIZED);
+                        SET_FLAG(target->plr.flags, PLAYER_REVIVED);
+
+                        PacketCreate(&pack, SERVER_REVIVAL_STATUS);
+                        PacketWrite(&pack, packet_write8, 0);
+                        PacketWrite(&pack, packet_write16, target->id);
+                        server_broadcast(v->server, &pack, true);
+
+                        PacketCreate(&pack, SERVER_VANILLA_DEDEMONIZE);
+                        PacketWrite(&pack, packet_write16, target->id);
+                        server_broadcast(v->server, &pack, true);
+
+                        Info("%s (id %d) rescued from demonization by Vanilla!", target->nickname.value, target->id);
                         break;
                 }
 

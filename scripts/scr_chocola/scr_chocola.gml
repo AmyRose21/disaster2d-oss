@@ -27,8 +27,9 @@
 
 // --- float run (3ra fase de corrida) ---
 #macro VANILLA_FLOAT_SPEED 14              // tope de la 3ra fase
-#macro VANILLA_FLOAT_RAMP_DELAY (60 * 0.5) // frames a tope (11) antes de acelerar
-#macro VANILLA_FLOAT_RAMP_ACC 0.03         // cuanto sube el tope por frame
+#macro VANILLA_FLOAT_RAMP_DELAY (60 * 0.5) // frames "a tope" antes de acelerar
+#macro VANILLA_FLOAT_RAMP_ACC 0.09         // v2.11: cuanto sube el tope por frame (era 0.03: la rampa tardaba 6 s impecables y NUNCA llegaba)
+#macro VANILLA_FLOAT_HOLD_SPD (CREAM_MAXSPEED - 1.5) // v2.11: cuenta como "a tope" desde 9.5 (los micro-baches del terreno ya no resetean la rampa)
 #macro VANILLA_FLOAT_GHOST_EVERY 5         // una imagen residual cada 5 frames
 #macro VANILLA_FLOAT_GHOST_FADE 0.07       // fadeo de cada imagen residual
 
@@ -53,7 +54,8 @@
 #macro VANILLA_CHOCOLA_CD (60 * 2.5)            // enfriamiento compartido bloqueo/ataque
 #macro VANILLA_CHOCOLA_ATTACK_CHANCE 33         // % de atacar al exe cercano
 #macro VANILLA_CHOCOLA_ATTACK_RANGE 90          // px: "el exe se acerca mucho"
-#macro VANILLA_CHOCOLA_ATTACK_STUN (60 * 2.5)   // stun del ataque cercano
+#macro VANILLA_CHOCOLA_ATTACK_STUN (60 * 2.5)   // stun del ataque cercano AL EXE
+#macro VANILLA_CHOCOLA_MINION_STUN (60 * 3.5)   // v2.11: stun del ataque cercano a un ESBIRRO (mas largo: abre la ventana del rescate de 15 anillos)
 #macro VANILLA_CHOCOLA_PROX_CHECK 30            // re-check de proximidad (0.5 s)
 #macro VANILLA_CHOCOLA_HUNT_SPEED 14            // velocidad de caza (acelerada)
 #macro VANILLA_CHOCOLA_SPEED 7                  // velocidad normal (ida a Cream)
@@ -65,9 +67,9 @@
 #macro VANILLA_FORTALEZA_VANILLA_PCT 15 // % de anillos que pierde Vanilla al ser golpeada
 #macro VANILLA_FORTALEZA_CREAM_PCT 30   // % que pierde Cream si Vanilla esta en la partida
 #macro VANILLA_FORTALEZA_MIN 3          // perdida minima de anillos
-#macro VANILLA_DEDEMON_COST 15          // anillos de la des-demonizacion
-#macro VANILLA_DEDEMON_RANGE 64         // px: esbirro aturdido al alcance
-#macro VANILLA_DEDEMON_CD 90            // anti-spam entre des-demonizaciones (1.5 s)
+#macro VANILLA_DEDEMON_COST 15          // anillos del RESCATE de esbirro (v2.11)
+#macro VANILLA_DEDEMON_RANGE 64         // px: esbirro aturdido al alcance (prompt)
+#macro VANILLA_DEDEMON_SEND_CD 2        // v2.11: cadencia de los paquetes de progreso (cada 2 frames = 30/s)
 #macro VANILLA_MADRE_HIJA_DIST 400      // px: distancia a la que sale la flecha madre-hija
 
 // --- modos de la mascota (obj_chocola) ---
@@ -141,6 +143,45 @@ function scr_chocola_find_exe()
     }
 
     return noone;
+}
+
+// v2.11: el ESBIRRO demonizado (minion) mas cercano a "self" sin
+// i-frames, a menos de "range" px. Chocola ahora TAMBIEN los detecta:
+// su mini-embestida los stunea 3.5 s (VANILLA_CHOCOLA_MINION_STUN) y
+// ese stun abre la ventana del RESCATE de Vanilla (scr_survivor_revive:
+// encima + ABAJO + 15 anillos, como revivir a un caido). Un esbirro
+// ATURDIDO ya no es candidato (dedup: no re-stunea al que ya cayo).
+function scr_chocola_find_minion(range)
+{
+    var best = noone;
+    var bestd = range;
+
+    if(instance_exists(obj_player_puppet))
+    {
+        for(var i = 0; i < instance_number(obj_player_puppet); i++)
+        {
+            var inst = instance_find(obj_player_puppet, i);
+
+            if(inst.isInactive || inst.character == CHARACTER_EXE || !inst.isDemonized)
+                continue;
+
+            if(inst.isHurt)                    // i-frames: no ataca
+                continue;
+
+            if(inst.state == DEAD)             // ya stuneado: fuera
+                continue;
+
+            var d = distance_to_object(inst);
+
+            if(d < bestd)
+            {
+                bestd = d;
+                best = inst;
+            }
+        }
+    }
+
+    return best;
 }
 
 // Cream: jugador local si YO soy Cream, o su puppet
@@ -322,9 +363,13 @@ function scr_vanilla_v2_step()
     // 14; al alcanzarlo Vanilla toma la pose float_run y deja imagenes
     // residuales (aqui solo el tope y el flag; la pose la elige Step_2,
     // la estela local Draw_0 y la remota el bitflag POWERBOOST).
+    // v2.11 (fix "nunca entra a la fase 3"): con el umbral viejo
+    // (|xspd| >= 10.75) hacian falta ~6 s de carrera PERFECTA y cualquier
+    // micro-bache del terreno reseteaba la rampa entera. Ahora cuenta
+    // desde 9.5 y la rampa sube 3x mas rapido: ~1.5 s a tope y despega.
     floatRunCap = CREAM_MAXSPEED;
 
-    if(isGrounded && !isSlow && global.playerControls && !isFlying && ringsSpawn <= 0 && dashing <= 0 && abs(xspd) >= CREAM_MAXSPEED - 0.25)
+    if(isGrounded && !isSlow && global.playerControls && !isFlying && ringsSpawn <= 0 && dashing <= 0 && abs(xspd) >= VANILLA_FLOAT_HOLD_SPD)
         runHold++;
     else
         runHold = 0;
@@ -370,9 +415,11 @@ function scr_vanilla_v2_step()
     }
 
     // ---------------- ATAQUE CERCANO DE CHOCOLA (33%) ----------------
-    // El exe se acerca demasiado: probabilidad de stun de 1.5 s. Chocola
-    // NO ataca si el exe tiene i-frames (isHurt en su puppet). Mismo
-    // enfriamiento de 2.5 s que el bloqueo.
+    // Un enemigo se acerca demasiado a Vanilla: el EXE (stun 2.5 s) o
+    // v2.11 un ESBIRRO demonizado (stun 3.5 s: el que abre la ventana
+    // del rescate de 15 anillos). Chocola NO ataca si el objetivo tiene
+    // i-frames (isHurt en su puppet). Mismo enfriamiento de 2.5 s que
+    // el bloqueo.
     if(chocolaCd <= 0 && instance_exists(obj_chocola))
     {
         chocolaProxTimer--;
@@ -383,16 +430,30 @@ function scr_vanilla_v2_step()
 
             var _choc = scr_chocola_get();
             var _exe2 = scr_chocola_find_exe();
+            var _tgt = noone;
 
-            if(_choc != noone && _choc.mode == CHOCOLA_FOLLOW && _exe2 != noone && !_exe2.isHurt && distance_to_object(_exe2) < VANILLA_CHOCOLA_ATTACK_RANGE)
+            // v2.11: el objetivo de la embestida es el MAS CERCANO entre
+            // el exe y los esbirros a rango (si el exe esta stuneado o
+            // fuera de rango, el esbirro manda)
+            if(_exe2 != noone && !_exe2.isHurt && distance_to_object(_exe2) < VANILLA_CHOCOLA_ATTACK_RANGE)
+                _tgt = _exe2;
+
+            var _minion = scr_chocola_find_minion(VANILLA_CHOCOLA_ATTACK_RANGE);
+
+            if(_minion != noone && (_tgt == noone || distance_to_object(_minion) < distance_to_object(_tgt)))
+                _tgt = _minion;
+
+            if(_choc != noone && _choc.mode == CHOCOLA_FOLLOW && _tgt != noone)
             {
                 if(random(100) < VANILLA_CHOCOLA_ATTACK_CHANCE)
                 {
                     // mini-embestida: al llegar manda la senal de stun
-                    // corto (snd_vasebreak) al nid del exe. v2.1: se
+                    // corto (snd_vasebreak) al nid del objetivo — exe o
+                    // esbirro: cada receptor decide su propia duracion
+                    // (2.5 / 3.5 s, ver net_state_game). v2.1: se
                     // anuncia por red (snd_chocola_dive broadcast) para
                     // que TODOS los clientes — el del EXE incluido — la
-                    // vean volar hacia el exe (antes solo la veia este
+                    // vean volar hacia el (antes solo la veia este
                     // cliente y al exe el stun le llegaba de la nada)
                     chocolaCd = VANILLA_CHOCOLA_CD;
                     _choc.mode = CHOCOLA_HUNT;
@@ -400,7 +461,7 @@ function scr_vanilla_v2_step()
                     _choc.fromGuard = false;
                     _choc.authority = true;
                     _choc.huntTimer = 0;
-                    _choc.targetInst = _exe2;
+                    _choc.targetInst = _tgt;
 
                     audio_play_sound(snd_chocola_dive, 0, false);
                     net_sound_emit(snd_chocola_dive);
@@ -409,36 +470,21 @@ function scr_vanilla_v2_step()
         }
     }
 
-    // ---------------- DES-DEMONIZACION (15 anillos) ----------------
-    // Un esbirro ATURDIDO al alcance + 15 anillos = le quita la
-    // demonizacion (queda a 1 caida de re-demonizarse). El server valida
-    // y avisa a todos (SERVER_VANILLA_DEDEMONIZE).
-    if(dedemonCd <= 0 && rings >= VANILLA_DEDEMON_COST && instance_exists(obj_player_puppet))
-    {
-        for(var i = 0; i < instance_number(obj_player_puppet); i++)
-        {
-            var inst = instance_find(obj_player_puppet, i);
-
-            // esbirro = demonizado que no es el exe (los demonizados
-            // conservan su personaje). ATURDIDO = su estado por red es
-            // DEAD (los esbirros jamas estan "caidos", solo stuneados)
-            if(inst.isInactive || inst.character == CHARACTER_EXE)
-                continue;
-
-            if(inst.revivalTimes >= 2 && inst.state == DEAD && distance_to_object(inst) < VANILLA_DEDEMON_RANGE)
-            {
-                rings -= VANILLA_DEDEMON_COST;
-                dedemonCd = VANILLA_DEDEMON_CD;
-
-                var pk = cpacket_tcp(PacketType.CLIENT_VANILLA_DEDEMONIZE, false);
-                buffer_write(pk, buffer_u16, inst.master_id);
-                send_server_tcp(pk);
-
-                audio_play_sound(snd_heal, 0, false);
-                break;
-            }
-        }
-    }
+    // ---------------- RESCATE DE ESBIRROS (15 anillos) ----------------
+    // v2.11: la des-demonizacion ya NO es el "toque instantaneo" de la
+    // v2 (requeria un esbirro ATURDIDO al alcance, y NADA del kit de
+    // Vanilla podia stunear esbirros: la pasiva era imposible de usar
+    // y nadie entendia como activarla). Ahora es EL MISMO SISTEMA que
+    // revivir a un caido por 3 anillos: Chocola stunca al esbirro
+    // (3.5 s, deteccion nueva de arriba), sobre el esbirro caido le
+    // aparece el prompt de revive a Vanilla, se pone encima MANTENIENDO
+    // ABAJO, la MISMA barra de progreso se llena (server: paquete nuevo
+    // CLIENT_VANILLA_DEDEMONIZE_PROGRESS + SERVER_REVIVAL_PROGRESS) y al
+    // completar gasta los 15 anillos y el esbirro vuelve a la normalidad.
+    // Toda la interaccion vive en scr_survivor_revive (la ejecuta el
+    // puppet del esbirro, igual que la del caido); aqui ya no queda
+    // nada del sistema viejo. El handler CLIENT_VANILLA_DEDEMONIZE se
+    // conserva en el server por compatibilidad con clientes viejos.
 }
 
 // Chocola logro golpear al exe (la llama obj_chocola desde el cliente
@@ -527,16 +573,31 @@ function scr_chocola_net_event(kind, nid)
             // Cream). Los demas clientes ven a Chocola salir volando
             // hacia el exe DESDE DONDE ESTA (junto a Vanilla o Cream):
             // sin esta senal el exe recibia el stun sin verla venir.
+            // v2.11: la embestida tambien puede ir contra un ESBIRRO
+            // demonizado (quien la lanzo eligio al objetivo mas cercano):
+            // este cliente resuelve el mismo objetivo — exe o esbirro a
+            // rango — para que todos la vean volar hacia quien va de
+            // verdad (cosmetico: el stun lo aplica siempre el cliente
+            // del objetivo con la senal dirigida a su nid).
             var _exeS = scr_chocola_find_exe();
+            var _tgtS = noone;
+
+            if(_exeS != noone && !_exeS.isHurt && distance_to_object(_exeS) < VANILLA_CHOCOLA_ATTACK_RANGE)
+                _tgtS = _exeS;
+
+            var _minS = scr_chocola_find_minion(VANILLA_CHOCOLA_ATTACK_RANGE);
+
+            if(_minS != noone && (_tgtS == noone || distance_to_object(_minS) < distance_to_object(_tgtS)))
+                _tgtS = _minS;
 
             _choc.mode = CHOCOLA_HUNT;
             _choc.huntSmall = true;
             _choc.fromGuard = false;
             _choc.authority = false;
             _choc.huntTimer = 0;
-            _choc.targetInst = _exeS;
+            _choc.targetInst = _tgtS;
 
-            if(_exeS == noone)
+            if(_tgtS == noone)
                 _choc.mode = CHOCOLA_RETURN;
 
             break;
@@ -582,16 +643,26 @@ function scr_chocola_net_event(kind, nid)
 }
 
 // =====================================================================
-//  SENAL DE STUN AL EXE (la rama shouldPlay del CLIENT_SOUND_EMIT la
-//  llama EN EL CLIENTE DEL EXE). Duracion en frames.
+//  SENAL DE STUN (la rama shouldPlay del CLIENT_SOUND_EMIT la llama EN
+//  EL CLIENTE DEL OBJETIVO: el exe en la caza grande y la mini-embestida,
+//  v2.11 tambien el ESBIRRO demonizado que Chocola acaba de embestir).
+//  Duracion en frames. Mismo modelo de confianza que el stun del parry
+//  (scr_parry_apply_stun): el receptor se aturde a si mismo.
 // =====================================================================
 function scr_chocola_stun_signal(frames)
 {
     if(!instance_exists(global.player))
         return;
 
-    // la senal viaja al nid del exe: este cliente ES el exe
-    if(global.character != CHARACTER_EXE)
+    // v2.11: la senal ya no llega solo al cliente del EXE. La
+    // mini-embestida de Chocola tambien apunta a ESBIRROS (deteccion
+    // nueva): si este cliente es un esbirro demonizado vivo, el golpe
+    // es para el (la duracion la decidio el receptor en net_state_game:
+    // 2.5 s exe / 3.5 s esbirro).
+    var _exe = global.character == CHARACTER_EXE;
+    var _esbirro = !_exe && global.player.revivalTimes >= 2 && !global.player.isDead;
+
+    if(!_exe && !_esbirro)
         return;
 
     // SONIDO DE STUN — SIEMPRE, ANTES del dedup (v2.1.4). Antes el
@@ -605,10 +676,20 @@ function scr_chocola_stun_signal(frames)
     // golpe + grito, aunque el stun en si se dedupe (el golpe fue real,
     // se tiene que oir). El net_sound_emit reenvia el golpe por red:
     // los demas clientes lo oyen en 3D desde la posicion del exe (el
-    // grito ya lo reenvia scr_exe_stunsound por su cuenta).
+    // grito ya lo reenvia scr_exe_stunsound por su cuenta). Para el
+    // ESBIRRO: golpe + chispa + shake de camara (mismo combo que el
+    // stun del parry a un atacante esbirro; el "grito" es exclusivo
+    // del lado EXE).
     audio_play_sound(snd_exe_stun, 0, false);
     net_sound_emit(snd_exe_stun);
-    scr_exe_stunsound();
+
+    if(_exe)
+        scr_exe_stunsound();
+    else
+    {
+        net_quick_effect(global.player.x, global.player.y, spr_shockparticle, false, 1, 0, 0, 1);
+        scr_camera_shake(30, 2, 0.25);
+    }
 
     // dedup: ya stuneado (auto-stun local, parry u otra senal): no se
     // re-aplica el stun ni el knockback ni el shake (igual que el dedup
@@ -626,7 +707,8 @@ function scr_chocola_stun_signal(frames)
         isGrounded = false;
     }
 
-    // shake de camara del exe (mismo paquete que usa el parry)
+    // shake de camara del golpeado (mismo paquete que usa el parry):
+    // su propia pantalla tiembla y el resto lo oye en 3D
     var _buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
     buffer_write(_buffer, buffer_u16, obj_netclient.nid);
     buffer_write(_buffer, buffer_u16, floor(global.player.x));

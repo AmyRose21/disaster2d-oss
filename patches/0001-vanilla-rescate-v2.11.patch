@@ -1,0 +1,753 @@
+From 094c8bc4f8a9deace25309c9ce490bcb38e51d94 Mon Sep 17 00:00:00 2001
+From: Z User <z@container>
+Date: Sun, 1 Nov 2026 08:52:30 +0000
+Subject: [PATCH] =?UTF-8?q?vanilla=20v2.11:=20Chocola=20detecta=20esbirros?=
+ =?UTF-8?q?=20+=20rescate=20revive-style=20+=20fase=203=20arreglada=20?=
+ =?UTF-8?q?=E2=80=94=20(1)=20la=20mini-embestida=20de=20Chocola=20ahora=20?=
+ =?UTF-8?q?apunta=20tambien=20a=20ESBIRROS=20demonizados=20(scr=5Fchocola?=
+ =?UTF-8?q?=5Ffind=5Fminion,=20objetivo=20mas=20cercano=20exe|esbirro,=20t?=
+ =?UTF-8?q?ambien=20en=20la=20custodia=20de=20Cream=20y=20en=20el=20mirror?=
+ =?UTF-8?q?=20de=20red)=20y=20su=20stun=20dura=203.5=20s=20contra=20ellos?=
+ =?UTF-8?q?=20(2.5=20s=20al=20exe,=20lo=20decide=20el=20receptor=20de=20sn?=
+ =?UTF-8?q?d=5Fvasebreak;=20scr=5Fchocola=5Fstun=5Fsignal=20generalizado?=
+ =?UTF-8?q?=20exe|esbirro=20con=20chispa+shake=20como=20el=20parry);=20(2)?=
+ =?UTF-8?q?=20el=20rescate=20de=20esbirros=20usa=20EL=20MISMO=20sistema=20?=
+ =?UTF-8?q?del=20revive=20de=20los=20caidos:=20prompt=20spr=5Frevival=20+?=
+ =?UTF-8?q?=20mantener=20ABAJO=20encima=20del=20esbirro=20stuneado=20+=20l?=
+ =?UTF-8?q?a=20MISMA=20barra=20(SERVER=5FREVIVAL=5FPROGRESS)=20via=20el=20?=
+ =?UTF-8?q?paquete=20nuevo=20CLIENT=5FVANILLA=5FDEDEMONIZE=5FPROGRESS=20(a?=
+ =?UTF-8?q?nadido=20AL=20FINAL=20del=20enum=20en=20ambos=20lados),=20el=20?=
+ =?UTF-8?q?server=20lleva=20el=20progreso=20en=20plr.dedemon=5Fprogress=20?=
+ =?UTF-8?q?(se=20conserva=20al=20soltar,=20reset=20al=20demonizarse),=2015?=
+ =?UTF-8?q?=20anillos=20se=20cobran=20al=20completar=20(lock=20dedemonTarg?=
+ =?UTF-8?q?et)=20y=20al=20llenarse=20dispara=20el=20SERVER=5FVANILLA=5FDED?=
+ =?UTF-8?q?EMONIZE=20clasico;=20el=20toque=20instantaneo=20v2=20se=20retir?=
+ =?UTF-8?q?a=20del=20cliente=20(handler=20server=20conservado=20por=20comp?=
+ =?UTF-8?q?atibilidad);=20(3)=20fix=20del=20float=20run=20que=20NUNCA=20ll?=
+ =?UTF-8?q?egaba:=20umbral=20de=20rampa=2010.75=E2=86=929.5=20(VANILLA=5FF?=
+ =?UTF-8?q?LOAT=5FHOLD=5FSPD,=20los=20micro-baches=20ya=20no=20resetean)?=
+ =?UTF-8?q?=20y=20rampa=200.03=E2=86=920.09/frame=20(~1.5=20s=20a=20tope?=
+ =?UTF-8?q?=20y=20despega;=20simulacion:=20antes=206=20s=20impecables)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ betterserver-oss/disasterserver/states/Game.c | 101 ++++++++++
+ betterserver-oss/include/Packet.h             |  13 +-
+ betterserver-oss/include/Player.h             |   1 +
+ objects/obj_chocola/Step_0.gml                |  29 ++-
+ objects/obj_cream/Create_0.gml                |   1 +
+ objects/obj_vanilla/Create_0.gml              |   3 +-
+ scripts/net_packets/net_packets.gml           |  12 +-
+ scripts/net_state_game/net_state_game.gml     |  21 +-
+ scripts/scr_chocola/scr_chocola.gml           | 188 +++++++++++++-----
+ .../scr_survivor_revive.gml                   |  75 +++++++
+ 10 files changed, 377 insertions(+), 67 deletions(-)
+
+diff --git a/betterserver-oss/disasterserver/states/Game.c b/betterserver-oss/disasterserver/states/Game.c
+index bcaac244..5ff31b1d 100644
+--- a/betterserver-oss/disasterserver/states/Game.c
++++ b/betterserver-oss/disasterserver/states/Game.c
+@@ -465,6 +465,7 @@ bool game_demonize(Server* server, PeerData* data)
+                 SET_FLAG(data->plr.flags, PLAYER_DEMONIZED);
+                 
+                 data->plr.stats.rings = 0;
++                data->plr.dedemon_progress = 0; /* v2.11: rescate fresco al demonizarse */
+ 
+                 // reset cooldown (v2.1.3: POR JUGADOR, en el demonizado)
+                 switch (data->surv_char)
+@@ -1007,6 +1008,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
+ 
+                         DEL_FLAG(target->plr.flags, PLAYER_DEMONIZED);
+                         SET_FLAG(target->plr.flags, PLAYER_REVIVED);
++                        target->plr.dedemon_progress = 0;
+ 
+                         Packet pack;
+                         PacketCreate(&pack, SERVER_VANILLA_DEDEMONIZE);
+@@ -1017,6 +1019,105 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
+                         break;
+                 }
+ 
++                case CLIENT_VANILLA_DEDEMONIZE_PROGRESS:
++                {
++                        /* v2.11 — RESCATE DE ESBIRRO "como revivir a un
++                         * caido": Vanilla mantiene ABAJO sobre un esbirro
++                         * ATURDIDO (su estado por red es DEAD; lo valida su
++                         * cliente en scr_survivor_revive, igual que el revive
++                         * normal valida el PLAYER_DEAD) con 15+ anillos.
++                         * Mismo patron que CLIENT_REVIVAL_PROGRESS: el
++                         * progreso vive AQUI (plr.dedemon_progress y se
++                         * CONSERVA si suelta el boton a mitad, como la barra
++                         * del caido), la barra es la misma
++                         * (SERVER_REVIVAL_PROGRESS + SERVER_REVIVAL_STATUS)
++                         * y al llenarse hace exactamente lo del
++                         * CLIENT_VANILLA_DEDEMONIZE de arriba: limpiar
++                         * PLAYER_DEMONIZED + marcar PLAYER_REVIVED ("a 1
++                         * caida de re-demonizarse"). Los 15 anillos los
++                         * cobra el cliente de Vanilla al recibir el
++                         * SERVER_VANILLA_DEDEMONIZE (lock dedemonTarget). */
++                        AssertOrDisconnect(v->server, v->in_game);
++                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
++                        AssertOrDisconnect(v->server, v->surv_char == CH_VANILLA);
++
++                        if (v->server->game.end > 0)
++                                break;
++
++                        PacketRead(pid, packet, packet_read16, uint16_t);
++                        PacketRead(rings, packet, packet_read8, uint8_t);
++
++                        PeerData* target = server_find_peer(v->server, pid);
++
++                        if (target == NULL)
++                                break;
++
++                        if (target == v || !target->in_game)
++                                break;
++
++                        if (!(target->plr.flags & PLAYER_DEMONIZED))
++                                break;
++
++                        if (rings < 15)
++                                break;
++
++                        /* misma tolerancia de distancia que el handler
++                         * instantaneo de la v2 (tocando al esbirro) */
++                        if (vector2_dist(&target->plr.pos, &v->plr.pos) > 150)
++                                break;
++
++                        Packet pack;
++
++                        if (target->plr.dedemon_progress <= 0)
++                        {
++                                /* misma senal que abre la barra del revive normal */
++                                PacketCreate(&pack, SERVER_REVIVAL_STATUS);
++                                PacketWrite(&pack, packet_write8, 1);
++                                PacketWrite(&pack, packet_write16, target->id);
++                                server_broadcast(v->server, &pack, true);
++                        }
++
++                        /* base 0.03 por paquete (30 paq/s = ~1.1 s, cabe
++                         * comodo en el stun de 3.5 s de Chocola) + bonus
++                         * por anillos de sobra (tope +25, como el revive
++                         * del caido acelera con anillos) */
++                        {
++                                int bonus = rings - 15;
++
++                                if (bonus > 25)
++                                        bonus = 25;
++
++                                target->plr.dedemon_progress += 0.03 + 0.002 * bonus;
++                        }
++
++                        if (target->plr.dedemon_progress < 1)
++                        {
++                                PacketCreate(&pack, SERVER_REVIVAL_PROGRESS);
++                                PacketWrite(&pack, packet_write16, target->id);
++                                PacketWrite(&pack, packet_writedouble, target->plr.dedemon_progress);
++                                server_broadcast(v->server, &pack, false);
++                                break;
++                        }
++
++                        /* completado: rescate! mismo efecto que el handler
++                         * instantaneo + cerrar la barra del revive */
++                        target->plr.dedemon_progress = 0;
++                        DEL_FLAG(target->plr.flags, PLAYER_DEMONIZED);
++                        SET_FLAG(target->plr.flags, PLAYER_REVIVED);
++
++                        PacketCreate(&pack, SERVER_REVIVAL_STATUS);
++                        PacketWrite(&pack, packet_write8, 0);
++                        PacketWrite(&pack, packet_write16, target->id);
++                        server_broadcast(v->server, &pack, true);
++
++                        PacketCreate(&pack, SERVER_VANILLA_DEDEMONIZE);
++                        PacketWrite(&pack, packet_write16, target->id);
++                        server_broadcast(v->server, &pack, true);
++
++                        Info("%s (id %d) rescued from demonization by Vanilla!", target->nickname.value, target->id);
++                        break;
++                }
++
+ 
+                 /* ============================================================
+                  *  v2.2 (TTB) — habilidades de los personajes rescatados
+diff --git a/betterserver-oss/include/Packet.h b/betterserver-oss/include/Packet.h
+index f733c00e..723af21f 100644
+--- a/betterserver-oss/include/Packet.h
++++ b/betterserver-oss/include/Packet.h
+@@ -211,7 +211,18 @@ typedef enum
+            choque reporta nid + que componentes de velocidad invertir
+            + la posicion del primer solape. Mismo orden que el enum
+            del cliente (net_packets.gml). */
+-        CLIENT_BLAZE_FIREBALL_BOUNCE
++        CLIENT_BLAZE_FIREBALL_BOUNCE,
++
++        /* v2.11 — Vanilla: progreso del RESCATE DE ESBIRRO (mismo
++           sistema que CLIENT_REVIVAL_PROGRESS pero para un esbirro
++           ATURDIDO, cuyo stun viaja como estado DEAD): Vanilla encima
++           manteniendo ABAJO con 15+ anillos. El server acumula el
++           progreso (plr.dedemon_progress), reenvia la MISMA barra
++           (SERVER_REVIVAL_PROGRESS) y al completarlo hace lo que
++           hacia CLIENT_VANILLA_DEDEMONIZE: limpiar PLAYER_DEMONIZED +
++           marcar PLAYER_REVIVED. Mismo orden que el enum del cliente
++           (net_packets.gml). */
++        CLIENT_VANILLA_DEDEMONIZE_PROGRESS
+ } PacketType;
+ 
+ typedef struct
+diff --git a/betterserver-oss/include/Player.h b/betterserver-oss/include/Player.h
+index 5ceba729..c2ab19fb 100644
+--- a/betterserver-oss/include/Player.h
++++ b/betterserver-oss/include/Player.h
+@@ -48,6 +48,7 @@ typedef struct
+ 	double		death_timer;
+ 	double		revival;
+ 	int32_t		revival_init[5];
++	double		dedemon_progress; /* v2.11: progreso del rescate de Vanilla (revive-style) */
+ 
+ 	uintptr_t	data[4]; /* Can be used as pointer/data field */
+ 	Vector2		start_pos;
+diff --git a/objects/obj_chocola/Step_0.gml b/objects/obj_chocola/Step_0.gml
+index 41a80cb6..01bd32d3 100644
+--- a/objects/obj_chocola/Step_0.gml
++++ b/objects/obj_chocola/Step_0.gml
+@@ -86,7 +86,9 @@ switch(mode)
+                 if(distance_to_object(targetInst) < 20)
+                 {
+                         // GOLPE: la autoridad manda la senal de stun al nid
+-                        // del exe (5 s en la caza grande, 1.5 s en la mini)
++                        // del OBJETIVO (5 s en la caza grande al exe; en la
++                        // mini 2.5 s al exe o 3.5 s a un esbirro: lo decide
++                        // el receptor en net_state_game — v2.11)
+                         if(authority)
+                         {
+                                 if(huntSmall)
+@@ -201,14 +203,25 @@ switch(mode)
+                 sprite_index = spr_vanilla_chocola_Idle;
+                 image_speed = 0.3;
+ 
+-                // (cliente de Cream) ataque cercano al exe: 33%, stun de
+-                // 1.5 s, no si tiene i-frames. Cumplida la mision (stun o
+-                // bloqueo), Chocola vuelve con Vanilla.
++                // (cliente de Cream) ataque cercano: 33%, stun de 2.5 s al
++                // exe (3.5 s a un ESBIRRO demonizado: v2.11, Chocola
++                // tambien los detecta mientras custodia), no si tienen
++                // i-frames. Cumplida la mision (stun o bloqueo), Chocola
++                // vuelve con Vanilla. El objetivo es el MAS CERCANO entre
++                // el exe y los esbirros a rango de embestida.
+                 if(targetInst == global.player && global.character == CHARACTER_CREAM && guardTimer <= 0)
+                 {
+-                        var _gexe = scr_chocola_find_exe();
++                        var _gtgt = scr_chocola_find_exe();
+ 
+-                        if(_gexe != noone && !_gexe.isHurt && distance_to_object(_gexe) < VANILLA_CHOCOLA_ATTACK_RANGE)
++                        if(_gtgt != noone && (_gtgt.isHurt || distance_to_object(_gtgt) >= VANILLA_CHOCOLA_ATTACK_RANGE))
++                                _gtgt = noone;
++
++                        var _gmin = scr_chocola_find_minion(VANILLA_CHOCOLA_ATTACK_RANGE);
++
++                        if(_gmin != noone && (_gtgt == noone || distance_to_object(_gmin) < distance_to_object(_gtgt)))
++                                _gtgt = _gmin;
++
++                        if(_gtgt != noone)
+                         {
+                                 if(random(100) < VANILLA_CHOCOLA_ATTACK_CHANCE)
+                                 {
+@@ -217,10 +230,10 @@ switch(mode)
+                                         fromGuard = true;
+                                         authority = true;
+                                         huntTimer = 0;
+-                                        targetInst = _gexe;
++                                        targetInst = _gtgt;
+ 
+                                         // v2.1: anuncia la embestida por
+-                                        // red (snd_chocola_dive): el exe
++                                        // red (snd_chocola_dive): el objetivo
+                                         // y los demas la ven venir
+                                         audio_play_sound(snd_chocola_dive, 0, false);
+                                         net_sound_emit(snd_chocola_dive);
+diff --git a/objects/obj_cream/Create_0.gml b/objects/obj_cream/Create_0.gml
+index 603b8ade..d09cb41d 100644
+--- a/objects/obj_cream/Create_0.gml
++++ b/objects/obj_cream/Create_0.gml
+@@ -62,6 +62,7 @@ runHold = 0;
+ floatRunCap = CREAM_MAXSPEED;
+ isFloatRunning = false;
+ floatGhostTimer = 0;
++dedemonTarget = -1;     // v2.11: lock del rescate de esbirros (defensivo: Cream no lo usa, mismo patron v2.1.2)
+ 
+ //General
+ hp = 100;
+diff --git a/objects/obj_vanilla/Create_0.gml b/objects/obj_vanilla/Create_0.gml
+index cbd7888e..756e2e87 100644
+--- a/objects/obj_vanilla/Create_0.gml
++++ b/objects/obj_vanilla/Create_0.gml
+@@ -64,7 +64,8 @@ moribundaState = 0;
+ moribundaTimer = 0;
+ chocolaCd = 0;           // enfriamiento compartido bloqueo/ataque de Chocola
+ chocolaProxTimer = 0;    // re-check del ataque cercano
+-dedemonCd = 0;           // anti-spam de la des-demonizacion
++dedemonCd = 0;           // v2.11: cadencia de los paquetes de progreso del rescate (cada 2 frames)
++dedemonTarget = -1;      // v2.11: nid del esbirro que estoy rescatando (lock: cobra los 15 anillos al completar)
+ runHold = 0;             // frames corriendo a tope (rampa del float run)
+ floatRunCap = CREAM_MAXSPEED; // tope actual de corrida (11 -> 14)
+ isFloatRunning = false;  // en la pose de float run
+diff --git a/scripts/net_packets/net_packets.gml b/scripts/net_packets/net_packets.gml
+index 4e797e09..320464ee 100644
+--- a/scripts/net_packets/net_packets.gml
++++ b/scripts/net_packets/net_packets.gml
+@@ -211,7 +211,17 @@ enum PacketType
+            choque reporta nid + que componentes de velocidad invertir
+            + la posicion del primer solape. Mismo orden que el
+            Packet.h del server. */
+-        CLIENT_BLAZE_FIREBALL_BOUNCE
++        CLIENT_BLAZE_FIREBALL_BOUNCE,
++
++        /* v2.11 — Vanilla: el RESCATE DE ESBIRROS usa el mismo sistema
++           del revive de los caidos. Progreso del rescate (Vanilla
++           encima del esbirro ATURDIDO manteniendo ABAJO, 15+ anillos);
++           el server acumula el progreso (plr.dedemon_progress),
++           reenvia la MISMA barra (SERVER_REVIVAL_PROGRESS) y al
++           llenarla dispara el SERVER_VANILLA_DEDEMONIZE de siempre.
++           Mismo orden que el Packet.h del server (anadido AL FINAL en
++           los DOS lados, como el BOUNCE de la v2.9). */
++        CLIENT_VANILLA_DEDEMONIZE_PROGRESS
+ }
+ 
+ #macro STATE_PENDING -1
+diff --git a/scripts/net_state_game/net_state_game.gml b/scripts/net_state_game/net_state_game.gml
+index c56cff34..1e476091 100644
+--- a/scripts/net_state_game/net_state_game.gml
++++ b/scripts/net_state_game/net_state_game.gml
+@@ -2024,9 +2024,13 @@ function net_state_game(rbuff, nps, isPasstrough)
+                                 else if(global.net_snds[sid] == snd_vasebreak)
+                                 {
+                                         // VANILLA V2 (CHOCOLA): senal de stun CORTO — la emite el
+-                                        // roll del ataque cercano (33% con el exe a menos de 90 px,
+-                                        // y no si tiene i-frames): 1.5 segundos de stun.
+-                                        scr_chocola_stun_signal(VANILLA_CHOCOLA_ATTACK_STUN);
++                                        // roll del ataque cercano (33% con el objetivo a menos de
++                                        // 90 px, y no si tiene i-frames). v2.11: la mini-embestida
++                                        // tambien apunta a ESBIRROS demonizados y el RECEPTOR decide
++                                        // su propia duracion: 2.5 s si este cliente es el EXE,
++                                        // 3.5 s si es un esbirro (la ventana del rescate de
++                                        // Vanilla: scr_survivor_revive + CLIENT_VANILLA_DEDEMONIZE_PROGRESS).
++                                        scr_chocola_stun_signal(global.character == CHARACTER_EXE ? VANILLA_CHOCOLA_ATTACK_STUN : VANILLA_CHOCOLA_MINION_STUN);
+                                 }
+                                 else
+                                         audio_play_sound(global.net_snds[sid], false, 0);
+@@ -2698,6 +2702,17 @@ function net_state_game(rbuff, nps, isPasstrough)
+                                 
+                         var _dnid = buffer_read_s(rbuff, buffer_u16);
+                         
++                        // v2.11: si YO soy la Vanilla que estaba rescatando a este
++                        // esbirro, pago los 15 anillos AL COMPLETAR (cobrar aqui y no
++                        // al empezar hace que soltar el ABAJO a mitad no tire el
++                        // dinero: el progreso hecho se conserva en el server, igual
++                        // que el revive del caido conserva su barra)
++                        if(global.character == CHARACTER_VANILLA && instance_exists(global.player) && global.player.dedemonTarget == _dnid)
++                        {
++                                global.player.rings = max(0, global.player.rings - VANILLA_DEDEMON_COST);
++                                global.player.dedemonTarget = -1;
++                        }
++                        
+                         // efecto + sonido en el puppet del esbirro (lo crean
+                         // TODOS los clientes al recibir este paquete)
+                         if(instance_exists(obj_player_puppet))
+diff --git a/scripts/scr_chocola/scr_chocola.gml b/scripts/scr_chocola/scr_chocola.gml
+index da3a94aa..8d9b410d 100644
+--- a/scripts/scr_chocola/scr_chocola.gml
++++ b/scripts/scr_chocola/scr_chocola.gml
+@@ -27,8 +27,9 @@
+ 
+ // --- float run (3ra fase de corrida) ---
+ #macro VANILLA_FLOAT_SPEED 14              // tope de la 3ra fase
+-#macro VANILLA_FLOAT_RAMP_DELAY (60 * 0.5) // frames a tope (11) antes de acelerar
+-#macro VANILLA_FLOAT_RAMP_ACC 0.03         // cuanto sube el tope por frame
++#macro VANILLA_FLOAT_RAMP_DELAY (60 * 0.5) // frames "a tope" antes de acelerar
++#macro VANILLA_FLOAT_RAMP_ACC 0.09         // v2.11: cuanto sube el tope por frame (era 0.03: la rampa tardaba 6 s impecables y NUNCA llegaba)
++#macro VANILLA_FLOAT_HOLD_SPD (CREAM_MAXSPEED - 1.5) // v2.11: cuenta como "a tope" desde 9.5 (los micro-baches del terreno ya no resetean la rampa)
+ #macro VANILLA_FLOAT_GHOST_EVERY 5         // una imagen residual cada 5 frames
+ #macro VANILLA_FLOAT_GHOST_FADE 0.07       // fadeo de cada imagen residual
+ 
+@@ -53,7 +54,8 @@
+ #macro VANILLA_CHOCOLA_CD (60 * 2.5)            // enfriamiento compartido bloqueo/ataque
+ #macro VANILLA_CHOCOLA_ATTACK_CHANCE 33         // % de atacar al exe cercano
+ #macro VANILLA_CHOCOLA_ATTACK_RANGE 90          // px: "el exe se acerca mucho"
+-#macro VANILLA_CHOCOLA_ATTACK_STUN (60 * 2.5)   // stun del ataque cercano
++#macro VANILLA_CHOCOLA_ATTACK_STUN (60 * 2.5)   // stun del ataque cercano AL EXE
++#macro VANILLA_CHOCOLA_MINION_STUN (60 * 3.5)   // v2.11: stun del ataque cercano a un ESBIRRO (mas largo: abre la ventana del rescate de 15 anillos)
+ #macro VANILLA_CHOCOLA_PROX_CHECK 30            // re-check de proximidad (0.5 s)
+ #macro VANILLA_CHOCOLA_HUNT_SPEED 14            // velocidad de caza (acelerada)
+ #macro VANILLA_CHOCOLA_SPEED 7                  // velocidad normal (ida a Cream)
+@@ -65,9 +67,9 @@
+ #macro VANILLA_FORTALEZA_VANILLA_PCT 15 // % de anillos que pierde Vanilla al ser golpeada
+ #macro VANILLA_FORTALEZA_CREAM_PCT 30   // % que pierde Cream si Vanilla esta en la partida
+ #macro VANILLA_FORTALEZA_MIN 3          // perdida minima de anillos
+-#macro VANILLA_DEDEMON_COST 15          // anillos de la des-demonizacion
+-#macro VANILLA_DEDEMON_RANGE 64         // px: esbirro aturdido al alcance
+-#macro VANILLA_DEDEMON_CD 90            // anti-spam entre des-demonizaciones (1.5 s)
++#macro VANILLA_DEDEMON_COST 15          // anillos del RESCATE de esbirro (v2.11)
++#macro VANILLA_DEDEMON_RANGE 64         // px: esbirro aturdido al alcance (prompt)
++#macro VANILLA_DEDEMON_SEND_CD 2        // v2.11: cadencia de los paquetes de progreso (cada 2 frames = 30/s)
+ #macro VANILLA_MADRE_HIJA_DIST 400      // px: distancia a la que sale la flecha madre-hija
+ 
+ // --- modos de la mascota (obj_chocola) ---
+@@ -143,6 +145,45 @@ function scr_chocola_find_exe()
+     return noone;
+ }
+ 
++// v2.11: el ESBIRRO demonizado (minion) mas cercano a "self" sin
++// i-frames, a menos de "range" px. Chocola ahora TAMBIEN los detecta:
++// su mini-embestida los stunea 3.5 s (VANILLA_CHOCOLA_MINION_STUN) y
++// ese stun abre la ventana del RESCATE de Vanilla (scr_survivor_revive:
++// encima + ABAJO + 15 anillos, como revivir a un caido). Un esbirro
++// ATURDIDO ya no es candidato (dedup: no re-stunea al que ya cayo).
++function scr_chocola_find_minion(range)
++{
++    var best = noone;
++    var bestd = range;
++
++    if(instance_exists(obj_player_puppet))
++    {
++        for(var i = 0; i < instance_number(obj_player_puppet); i++)
++        {
++            var inst = instance_find(obj_player_puppet, i);
++
++            if(inst.isInactive || inst.character == CHARACTER_EXE || !inst.isDemonized)
++                continue;
++
++            if(inst.isHurt)                    // i-frames: no ataca
++                continue;
++
++            if(inst.state == DEAD)             // ya stuneado: fuera
++                continue;
++
++            var d = distance_to_object(inst);
++
++            if(d < bestd)
++            {
++                bestd = d;
++                best = inst;
++            }
++        }
++    }
++
++    return best;
++}
++
+ // Cream: jugador local si YO soy Cream, o su puppet
+ function scr_chocola_find_cream()
+ {
+@@ -322,9 +363,13 @@ function scr_vanilla_v2_step()
+     // 14; al alcanzarlo Vanilla toma la pose float_run y deja imagenes
+     // residuales (aqui solo el tope y el flag; la pose la elige Step_2,
+     // la estela local Draw_0 y la remota el bitflag POWERBOOST).
++    // v2.11 (fix "nunca entra a la fase 3"): con el umbral viejo
++    // (|xspd| >= 10.75) hacian falta ~6 s de carrera PERFECTA y cualquier
++    // micro-bache del terreno reseteaba la rampa entera. Ahora cuenta
++    // desde 9.5 y la rampa sube 3x mas rapido: ~1.5 s a tope y despega.
+     floatRunCap = CREAM_MAXSPEED;
+ 
+-    if(isGrounded && !isSlow && global.playerControls && !isFlying && ringsSpawn <= 0 && dashing <= 0 && abs(xspd) >= CREAM_MAXSPEED - 0.25)
++    if(isGrounded && !isSlow && global.playerControls && !isFlying && ringsSpawn <= 0 && dashing <= 0 && abs(xspd) >= VANILLA_FLOAT_HOLD_SPD)
+         runHold++;
+     else
+         runHold = 0;
+@@ -370,9 +415,11 @@ function scr_vanilla_v2_step()
+     }
+ 
+     // ---------------- ATAQUE CERCANO DE CHOCOLA (33%) ----------------
+-    // El exe se acerca demasiado: probabilidad de stun de 1.5 s. Chocola
+-    // NO ataca si el exe tiene i-frames (isHurt en su puppet). Mismo
+-    // enfriamiento de 2.5 s que el bloqueo.
++    // Un enemigo se acerca demasiado a Vanilla: el EXE (stun 2.5 s) o
++    // v2.11 un ESBIRRO demonizado (stun 3.5 s: el que abre la ventana
++    // del rescate de 15 anillos). Chocola NO ataca si el objetivo tiene
++    // i-frames (isHurt en su puppet). Mismo enfriamiento de 2.5 s que
++    // el bloqueo.
+     if(chocolaCd <= 0 && instance_exists(obj_chocola))
+     {
+         chocolaProxTimer--;
+@@ -383,16 +430,30 @@ function scr_vanilla_v2_step()
+ 
+             var _choc = scr_chocola_get();
+             var _exe2 = scr_chocola_find_exe();
++            var _tgt = noone;
++
++            // v2.11: el objetivo de la embestida es el MAS CERCANO entre
++            // el exe y los esbirros a rango (si el exe esta stuneado o
++            // fuera de rango, el esbirro manda)
++            if(_exe2 != noone && !_exe2.isHurt && distance_to_object(_exe2) < VANILLA_CHOCOLA_ATTACK_RANGE)
++                _tgt = _exe2;
+ 
+-            if(_choc != noone && _choc.mode == CHOCOLA_FOLLOW && _exe2 != noone && !_exe2.isHurt && distance_to_object(_exe2) < VANILLA_CHOCOLA_ATTACK_RANGE)
++            var _minion = scr_chocola_find_minion(VANILLA_CHOCOLA_ATTACK_RANGE);
++
++            if(_minion != noone && (_tgt == noone || distance_to_object(_minion) < distance_to_object(_tgt)))
++                _tgt = _minion;
++
++            if(_choc != noone && _choc.mode == CHOCOLA_FOLLOW && _tgt != noone)
+             {
+                 if(random(100) < VANILLA_CHOCOLA_ATTACK_CHANCE)
+                 {
+                     // mini-embestida: al llegar manda la senal de stun
+-                    // corto (snd_vasebreak) al nid del exe. v2.1: se
++                    // corto (snd_vasebreak) al nid del objetivo — exe o
++                    // esbirro: cada receptor decide su propia duracion
++                    // (2.5 / 3.5 s, ver net_state_game). v2.1: se
+                     // anuncia por red (snd_chocola_dive broadcast) para
+                     // que TODOS los clientes — el del EXE incluido — la
+-                    // vean volar hacia el exe (antes solo la veia este
++                    // vean volar hacia el (antes solo la veia este
+                     // cliente y al exe el stun le llegaba de la nada)
+                     chocolaCd = VANILLA_CHOCOLA_CD;
+                     _choc.mode = CHOCOLA_HUNT;
+@@ -400,7 +461,7 @@ function scr_vanilla_v2_step()
+                     _choc.fromGuard = false;
+                     _choc.authority = true;
+                     _choc.huntTimer = 0;
+-                    _choc.targetInst = _exe2;
++                    _choc.targetInst = _tgt;
+ 
+                     audio_play_sound(snd_chocola_dive, 0, false);
+                     net_sound_emit(snd_chocola_dive);
+@@ -409,36 +470,21 @@ function scr_vanilla_v2_step()
+         }
+     }
+ 
+-    // ---------------- DES-DEMONIZACION (15 anillos) ----------------
+-    // Un esbirro ATURDIDO al alcance + 15 anillos = le quita la
+-    // demonizacion (queda a 1 caida de re-demonizarse). El server valida
+-    // y avisa a todos (SERVER_VANILLA_DEDEMONIZE).
+-    if(dedemonCd <= 0 && rings >= VANILLA_DEDEMON_COST && instance_exists(obj_player_puppet))
+-    {
+-        for(var i = 0; i < instance_number(obj_player_puppet); i++)
+-        {
+-            var inst = instance_find(obj_player_puppet, i);
+-
+-            // esbirro = demonizado que no es el exe (los demonizados
+-            // conservan su personaje). ATURDIDO = su estado por red es
+-            // DEAD (los esbirros jamas estan "caidos", solo stuneados)
+-            if(inst.isInactive || inst.character == CHARACTER_EXE)
+-                continue;
+-
+-            if(inst.revivalTimes >= 2 && inst.state == DEAD && distance_to_object(inst) < VANILLA_DEDEMON_RANGE)
+-            {
+-                rings -= VANILLA_DEDEMON_COST;
+-                dedemonCd = VANILLA_DEDEMON_CD;
+-
+-                var pk = cpacket_tcp(PacketType.CLIENT_VANILLA_DEDEMONIZE, false);
+-                buffer_write(pk, buffer_u16, inst.master_id);
+-                send_server_tcp(pk);
+-
+-                audio_play_sound(snd_heal, 0, false);
+-                break;
+-            }
+-        }
+-    }
++    // ---------------- RESCATE DE ESBIRROS (15 anillos) ----------------
++    // v2.11: la des-demonizacion ya NO es el "toque instantaneo" de la
++    // v2 (requeria un esbirro ATURDIDO al alcance, y NADA del kit de
++    // Vanilla podia stunear esbirros: la pasiva era imposible de usar
++    // y nadie entendia como activarla). Ahora es EL MISMO SISTEMA que
++    // revivir a un caido por 3 anillos: Chocola stunca al esbirro
++    // (3.5 s, deteccion nueva de arriba), sobre el esbirro caido le
++    // aparece el prompt de revive a Vanilla, se pone encima MANTENIENDO
++    // ABAJO, la MISMA barra de progreso se llena (server: paquete nuevo
++    // CLIENT_VANILLA_DEDEMONIZE_PROGRESS + SERVER_REVIVAL_PROGRESS) y al
++    // completar gasta los 15 anillos y el esbirro vuelve a la normalidad.
++    // Toda la interaccion vive en scr_survivor_revive (la ejecuta el
++    // puppet del esbirro, igual que la del caido); aqui ya no queda
++    // nada del sistema viejo. El handler CLIENT_VANILLA_DEDEMONIZE se
++    // conserva en el server por compatibilidad con clientes viejos.
+ }
+ 
+ // Chocola logro golpear al exe (la llama obj_chocola desde el cliente
+@@ -527,16 +573,31 @@ function scr_chocola_net_event(kind, nid)
+             // Cream). Los demas clientes ven a Chocola salir volando
+             // hacia el exe DESDE DONDE ESTA (junto a Vanilla o Cream):
+             // sin esta senal el exe recibia el stun sin verla venir.
++            // v2.11: la embestida tambien puede ir contra un ESBIRRO
++            // demonizado (quien la lanzo eligio al objetivo mas cercano):
++            // este cliente resuelve el mismo objetivo — exe o esbirro a
++            // rango — para que todos la vean volar hacia quien va de
++            // verdad (cosmetico: el stun lo aplica siempre el cliente
++            // del objetivo con la senal dirigida a su nid).
+             var _exeS = scr_chocola_find_exe();
++            var _tgtS = noone;
++
++            if(_exeS != noone && !_exeS.isHurt && distance_to_object(_exeS) < VANILLA_CHOCOLA_ATTACK_RANGE)
++                _tgtS = _exeS;
++
++            var _minS = scr_chocola_find_minion(VANILLA_CHOCOLA_ATTACK_RANGE);
++
++            if(_minS != noone && (_tgtS == noone || distance_to_object(_minS) < distance_to_object(_tgtS)))
++                _tgtS = _minS;
+ 
+             _choc.mode = CHOCOLA_HUNT;
+             _choc.huntSmall = true;
+             _choc.fromGuard = false;
+             _choc.authority = false;
+             _choc.huntTimer = 0;
+-            _choc.targetInst = _exeS;
++            _choc.targetInst = _tgtS;
+ 
+-            if(_exeS == noone)
++            if(_tgtS == noone)
+                 _choc.mode = CHOCOLA_RETURN;
+ 
+             break;
+@@ -582,16 +643,26 @@ function scr_chocola_net_event(kind, nid)
+ }
+ 
+ // =====================================================================
+-//  SENAL DE STUN AL EXE (la rama shouldPlay del CLIENT_SOUND_EMIT la
+-//  llama EN EL CLIENTE DEL EXE). Duracion en frames.
++//  SENAL DE STUN (la rama shouldPlay del CLIENT_SOUND_EMIT la llama EN
++//  EL CLIENTE DEL OBJETIVO: el exe en la caza grande y la mini-embestida,
++//  v2.11 tambien el ESBIRRO demonizado que Chocola acaba de embestir).
++//  Duracion en frames. Mismo modelo de confianza que el stun del parry
++//  (scr_parry_apply_stun): el receptor se aturde a si mismo.
+ // =====================================================================
+ function scr_chocola_stun_signal(frames)
+ {
+     if(!instance_exists(global.player))
+         return;
+ 
+-    // la senal viaja al nid del exe: este cliente ES el exe
+-    if(global.character != CHARACTER_EXE)
++    // v2.11: la senal ya no llega solo al cliente del EXE. La
++    // mini-embestida de Chocola tambien apunta a ESBIRROS (deteccion
++    // nueva): si este cliente es un esbirro demonizado vivo, el golpe
++    // es para el (la duracion la decidio el receptor en net_state_game:
++    // 2.5 s exe / 3.5 s esbirro).
++    var _exe = global.character == CHARACTER_EXE;
++    var _esbirro = !_exe && global.player.revivalTimes >= 2 && !global.player.isDead;
++
++    if(!_exe && !_esbirro)
+         return;
+ 
+     // SONIDO DE STUN — SIEMPRE, ANTES del dedup (v2.1.4). Antes el
+@@ -605,10 +676,20 @@ function scr_chocola_stun_signal(frames)
+     // golpe + grito, aunque el stun en si se dedupe (el golpe fue real,
+     // se tiene que oir). El net_sound_emit reenvia el golpe por red:
+     // los demas clientes lo oyen en 3D desde la posicion del exe (el
+-    // grito ya lo reenvia scr_exe_stunsound por su cuenta).
++    // grito ya lo reenvia scr_exe_stunsound por su cuenta). Para el
++    // ESBIRRO: golpe + chispa + shake de camara (mismo combo que el
++    // stun del parry a un atacante esbirro; el "grito" es exclusivo
++    // del lado EXE).
+     audio_play_sound(snd_exe_stun, 0, false);
+     net_sound_emit(snd_exe_stun);
+-    scr_exe_stunsound();
++
++    if(_exe)
++        scr_exe_stunsound();
++    else
++    {
++        net_quick_effect(global.player.x, global.player.y, spr_shockparticle, false, 1, 0, 0, 1);
++        scr_camera_shake(30, 2, 0.25);
++    }
+ 
+     // dedup: ya stuneado (auto-stun local, parry u otra senal): no se
+     // re-aplica el stun ni el knockback ni el shake (igual que el dedup
+@@ -626,7 +707,8 @@ function scr_chocola_stun_signal(frames)
+         isGrounded = false;
+     }
+ 
+-    // shake de camara del exe (mismo paquete que usa el parry)
++    // shake de camara del golpeado (mismo paquete que usa el parry):
++    // su propia pantalla tiembla y el resto lo oye en 3D
+     var _buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
+     buffer_write(_buffer, buffer_u16, obj_netclient.nid);
+     buffer_write(_buffer, buffer_u16, floor(global.player.x));
+diff --git a/scripts/scr_survivor_revive/scr_survivor_revive.gml b/scripts/scr_survivor_revive/scr_survivor_revive.gml
+index f89058ed..c55c67fc 100644
+--- a/scripts/scr_survivor_revive/scr_survivor_revive.gml
++++ b/scripts/scr_survivor_revive/scr_survivor_revive.gml
+@@ -29,6 +29,81 @@ function scr_survivor_revive()
+                 }
+         }
+                 
++        // === v2.11: RESCATE DE ESBIRRO (Vanilla) ======================
++        // Un esbirro demonizado ATURDIDO se revive EXACTAMENTE como un
++        // caido: Vanilla encima MANTENIENDO ABAJO, el MISMO prompt
++        // (spr_revival / spr_revival2), la MISMA barra de progreso
++        // (SERVER_REVIVAL_PROGRESS, la llena el server) y 15 anillos al
++        // completar (los cobra el handler de SERVER_VANILLA_DEDEMONIZE
++        // en net_state_game). "ATURDIDO" = su estado por red es DEAD
++        // (los esbirros jamas estan "caidos": su stun viaja como DEAD,
++        // ver Step_2 de cada personaje). El stun lo abre el propio kit:
++        // la mini-embestida de Chocola ahora detecta esbirros (3.5 s,
++        // scr_chocola_find_minion) — tambien vale cualquier otro stun
++        // (parry de Sonic, laser de Tails...).
++        // NOTA de ambito: self = el puppet del esbirro, esto corre en
++        // TODOS los clientes; el prompt solo lo ve el de Vanilla y el
++        // paquete solo lo manda ese (mismo patron que el revive de abajo).
++        if(revivalTimes >= 2 && state == DEAD && character != CHARACTER_EXE)
++        {
++                var _vanilla = instance_exists(global.player) && global.character == CHARACTER_VANILLA;
++
++                // se des-volvio normal a mitad (isDemonized se refresca
++                // en el Step_0 del puppet con el revivalTimes por red):
++                // fuera prompt y bar
++                if(isInactive || !_vanilla || global.player.hp <= 0 || global.player.isDead)
++                {
++                        if(_vanilla && global.player.dedemonTarget == master_id)
++                                global.player.dedemonTarget = -1;
++
++                        reviveObj.over = -1;
++                        reviveObj.show = false;
++                        return;
++                }
++
++                if(place_meeting(x, y, global.player))
++                {
++                        reviveObj.over = global.player.rings >= VANILLA_DEDEMON_COST ? 1 : 0;
++
++                        // envio del progreso: solo el esbirro con el LOCK
++                        // (o si no hay lock) y solo manteniendo ABAJO
++                        if(global.playerControls && global.player.isLookingDown && global.player.rings >= VANILLA_DEDEMON_COST
++                           && (global.player.dedemonTarget == -1 || global.player.dedemonTarget == master_id))
++                        {
++                                global.player.dedemonTarget = master_id;
++
++                                // cadencia de 2 frames (30 paq/s): el progreso
++                                // por paquete lo pone el server (0.03 base)
++                                if(global.player.dedemonCd <= 0)
++                                {
++                                        global.player.dedemonCd = VANILLA_DEDEMON_SEND_CD;
++
++                                        var dpak = cpacket_tcp(PacketType.CLIENT_VANILLA_DEDEMONIZE_PROGRESS, false);
++                                        buffer_write(dpak, buffer_u16, master_id);
++                                        buffer_write(dpak, buffer_u8, global.player.rings);
++                                        send_server_tcp(dpak);
++                                }
++                        }
++                        else if(global.player.dedemonTarget == master_id && !global.player.isLookingDown)
++                        {
++                                // solto el ABAJO: libera el lock. El progreso
++                                // ya hecho SE CONSERVA en el server (igual que
++                                // el revive del caido: soltar y volver a apoyar
++                                // no reinicia la barra)
++                                global.player.dedemonTarget = -1;
++                        }
++                }
++                else
++                {
++                        reviveObj.over = -1;
++
++                        if(global.player.dedemonTarget == master_id)
++                                global.player.dedemonTarget = -1;
++                }
++
++                return;
++        }
++
+         if(hp > 0)
+         {
+                 reviveObj.over = -1;
+-- 
+2.47.3
+

@@ -2024,9 +2024,13 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 else if(global.net_snds[sid] == snd_vasebreak)
                                 {
                                         // VANILLA V2 (CHOCOLA): senal de stun CORTO — la emite el
-                                        // roll del ataque cercano (33% con el exe a menos de 90 px,
-                                        // y no si tiene i-frames): 1.5 segundos de stun.
-                                        scr_chocola_stun_signal(VANILLA_CHOCOLA_ATTACK_STUN);
+                                        // roll del ataque cercano (33% con el objetivo a menos de
+                                        // 90 px, y no si tiene i-frames). v2.11: la mini-embestida
+                                        // tambien apunta a ESBIRROS demonizados y el RECEPTOR decide
+                                        // su propia duracion: 2.5 s si este cliente es el EXE,
+                                        // 3.5 s si es un esbirro (la ventana del rescate de
+                                        // Vanilla: scr_survivor_revive + CLIENT_VANILLA_DEDEMONIZE_PROGRESS).
+                                        scr_chocola_stun_signal(global.character == CHARACTER_EXE ? VANILLA_CHOCOLA_ATTACK_STUN : VANILLA_CHOCOLA_MINION_STUN);
                                 }
                                 else
                                         audio_play_sound(global.net_snds[sid], false, 0);
@@ -2697,6 +2701,17 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 break;
                                 
                         var _dnid = buffer_read_s(rbuff, buffer_u16);
+                        
+                        // v2.11: si YO soy la Vanilla que estaba rescatando a este
+                        // esbirro, pago los 15 anillos AL COMPLETAR (cobrar aqui y no
+                        // al empezar hace que soltar el ABAJO a mitad no tire el
+                        // dinero: el progreso hecho se conserva en el server, igual
+                        // que el revive del caido conserva su barra)
+                        if(global.character == CHARACTER_VANILLA && instance_exists(global.player) && global.player.dedemonTarget == _dnid)
+                        {
+                                global.player.rings = max(0, global.player.rings - VANILLA_DEDEMON_COST);
+                                global.player.dedemonTarget = -1;
+                        }
                         
                         // efecto + sonido en el puppet del esbirro (lo crean
                         // TODOS los clientes al recibir este paquete)

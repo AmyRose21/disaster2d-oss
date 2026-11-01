@@ -211,7 +211,18 @@ typedef enum
            choque reporta nid + que componentes de velocidad invertir
            + la posicion del primer solape. Mismo orden que el enum
            del cliente (net_packets.gml). */
-        CLIENT_BLAZE_FIREBALL_BOUNCE
+        CLIENT_BLAZE_FIREBALL_BOUNCE,
+
+        /* v2.11 — Vanilla: progreso del RESCATE DE ESBIRRO (mismo
+           sistema que CLIENT_REVIVAL_PROGRESS pero para un esbirro
+           ATURDIDO, cuyo stun viaja como estado DEAD): Vanilla encima
+           manteniendo ABAJO con 15+ anillos. El server acumula el
+           progreso (plr.dedemon_progress), reenvia la MISMA barra
+           (SERVER_REVIVAL_PROGRESS) y al completarlo hace lo que
+           hacia CLIENT_VANILLA_DEDEMONIZE: limpiar PLAYER_DEMONIZED +
+           marcar PLAYER_REVIVED. Mismo orden que el enum del cliente
+           (net_packets.gml). */
+        CLIENT_VANILLA_DEDEMONIZE_PROGRESS
 } PacketType;
 
 typedef struct

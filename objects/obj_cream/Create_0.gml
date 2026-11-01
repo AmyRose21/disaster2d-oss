@@ -62,6 +62,7 @@ runHold = 0;
 floatRunCap = CREAM_MAXSPEED;
 isFloatRunning = false;
 floatGhostTimer = 0;
+dedemonTarget = -1;     // v2.11: lock del rescate de esbirros (defensivo: Cream no lo usa, mismo patron v2.1.2)
 
 //General
 hp = 100;

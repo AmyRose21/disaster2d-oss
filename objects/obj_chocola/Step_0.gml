@@ -86,7 +86,9 @@ switch(mode)
                 if(distance_to_object(targetInst) < 20)
                 {
                         // GOLPE: la autoridad manda la senal de stun al nid
-                        // del exe (5 s en la caza grande, 1.5 s en la mini)
+                        // del OBJETIVO (5 s en la caza grande al exe; en la
+                        // mini 2.5 s al exe o 3.5 s a un esbirro: lo decide
+                        // el receptor en net_state_game — v2.11)
                         if(authority)
                         {
                                 if(huntSmall)
@@ -201,14 +203,25 @@ switch(mode)
                 sprite_index = spr_vanilla_chocola_Idle;
                 image_speed = 0.3;
 
-                // (cliente de Cream) ataque cercano al exe: 33%, stun de
-                // 1.5 s, no si tiene i-frames. Cumplida la mision (stun o
-                // bloqueo), Chocola vuelve con Vanilla.
+                // (cliente de Cream) ataque cercano: 33%, stun de 2.5 s al
+                // exe (3.5 s a un ESBIRRO demonizado: v2.11, Chocola
+                // tambien los detecta mientras custodia), no si tienen
+                // i-frames. Cumplida la mision (stun o bloqueo), Chocola
+                // vuelve con Vanilla. El objetivo es el MAS CERCANO entre
+                // el exe y los esbirros a rango de embestida.
                 if(targetInst == global.player && global.character == CHARACTER_CREAM && guardTimer <= 0)
                 {
-                        var _gexe = scr_chocola_find_exe();
+                        var _gtgt = scr_chocola_find_exe();
 
-                        if(_gexe != noone && !_gexe.isHurt && distance_to_object(_gexe) < VANILLA_CHOCOLA_ATTACK_RANGE)
+                        if(_gtgt != noone && (_gtgt.isHurt || distance_to_object(_gtgt) >= VANILLA_CHOCOLA_ATTACK_RANGE))
+                                _gtgt = noone;
+
+                        var _gmin = scr_chocola_find_minion(VANILLA_CHOCOLA_ATTACK_RANGE);
+
+                        if(_gmin != noone && (_gtgt == noone || distance_to_object(_gmin) < distance_to_object(_gtgt)))
+                                _gtgt = _gmin;
+
+                        if(_gtgt != noone)
                         {
                                 if(random(100) < VANILLA_CHOCOLA_ATTACK_CHANCE)
                                 {
@@ -217,10 +230,10 @@ switch(mode)
                                         fromGuard = true;
                                         authority = true;
                                         huntTimer = 0;
-                                        targetInst = _gexe;
+                                        targetInst = _gtgt;
 
                                         // v2.1: anuncia la embestida por
-                                        // red (snd_chocola_dive): el exe
+                                        // red (snd_chocola_dive): el objetivo
                                         // y los demas la ven venir
                                         audio_play_sound(snd_chocola_dive, 0, false);
                                         net_sound_emit(snd_chocola_dive);

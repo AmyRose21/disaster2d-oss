@@ -48,6 +48,7 @@ typedef struct
 	double		death_timer;
 	double		revival;
 	int32_t		revival_init[5];
+	double		dedemon_progress; /* v2.11: progreso del rescate de Vanilla (revive-style) */
 
 	uintptr_t	data[4]; /* Can be used as pointer/data field */
 	Vector2		start_pos;
