@@ -2,48 +2,31 @@
   "$GMSprite":"v2",
   "%Name":"spr_eggtrack_gold",
   "bboxMode":0,
-  "bbox_bottom":7,
+  "bbox_bottom":5,
   "bbox_left":0,
   "bbox_right":23,
-  "bbox_top":0,
+  "bbox_top":1,
   "collisionKind":1,
   "collisionTolerance":0,
   "DynamicTexturePage":false,
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {
-      "$GMSpriteFrame":"v1",
-      "%Name":"8e439337-1437-43f1-b8f2-6dbefe9a4cd0",
-      "name":"8e439337-1437-43f1-b8f2-6dbefe9a4cd0",
-      "resourceType":"GMSpriteFrame",
-      "resourceVersion":"2.0"
-    }
+    {"$GMSpriteFrame":"v1","%Name":"8e439337-1437-43f1-b8f2-6dbefe9a4cd0","name":"8e439337-1437-43f1-b8f2-6dbefe9a4cd0","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":8,
   "HTile":false,
   "layers":[
-    {
-      "$GMImageLayer":"",
-      "%Name":"5f7d5124-a946-496d-bfa3-9c67844173ee",
-      "blendMode":0,
-      "displayName":"default",
-      "isLocked":false,
-      "name":"5f7d5124-a946-496d-bfa3-9c67844173ee",
-      "opacity":100.0,
-      "resourceType":"GMImageLayer",
-      "resourceVersion":"2.0",
-      "visible":true
-    }
+    {"$GMImageLayer":"","%Name":"5f7d5124-a946-496d-bfa3-9c67844173ee","blendMode":0,"displayName":"default","isLocked":false,"name":"5f7d5124-a946-496d-bfa3-9c67844173ee","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_eggtrack_gold",
   "nineSlice":null,
   "origin":7,
   "parent":{
     "name":"Egg",
-    "path":"folders/Sprites/Player/Survivors/Egg.yy"
+    "path":"folders/Sprites/Player/Survivors/Egg.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
@@ -62,7 +45,7 @@
       "$KeyframeStore<MessageEventKeyframe>":"",
       "Keyframes":[],
       "resourceType":"KeyframeStore<MessageEventKeyframe>",
-      "resourceVersion":"2.0"
+      "resourceVersion":"2.0",
     },
     "eventStubScript":null,
     "eventToFunction":{},
@@ -72,7 +55,7 @@
       "$KeyframeStore<MomentsEventKeyframe>":"",
       "Keyframes":[],
       "resourceType":"KeyframeStore<MomentsEventKeyframe>",
-      "resourceVersion":"2.0"
+      "resourceVersion":"2.0",
     },
     "name":"spr_eggtrack_gold",
     "playback":1,
@@ -84,64 +67,24 @@
     "showBackdropImage":false,
     "timeUnits":1,
     "tracks":[
-      {
-        "$GMSpriteFramesTrack":"",
-        "builtinName":0,
-        "events":[],
-        "inheritsTrackColour":true,
-        "interpolation":1,
-        "isCreationTrack":false,
-        "keyframes":{
-          "$KeyframeStore<SpriteFrameKeyframe>":"",
-          "Keyframes":[
-            {
-              "$Keyframe<SpriteFrameKeyframe>":"",
-              "Channels":{
-                "0":{
-                  "$SpriteFrameKeyframe":"",
-                  "Id":{
-                    "name":"8e439337-1437-43f1-b8f2-6dbefe9a4cd0",
-                    "path":"sprites/spr_eggtrack_gold/spr_eggtrack_gold.yy"
-                  },
-                  "resourceType":"SpriteFrameKeyframe",
-                  "resourceVersion":"2.0"
-                }
-              },
-              "Disabled":false,
-              "id":"2067b2ee-4751-43ae-a2f8-babd909ebe83",
-              "IsCreationKey":false,
-              "Key":0.0,
-              "Length":1.0,
-              "resourceType":"Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion":"2.0",
-              "Stretch":false
-            }
-          ],
-          "resourceType":"KeyframeStore<SpriteFrameKeyframe>",
-          "resourceVersion":"2.0"
-        },
-        "modifiers":[],
-        "name":"frames",
-        "resourceType":"GMSpriteFramesTrack",
-        "resourceVersion":"2.0",
-        "spriteId":null,
-        "trackColour":0,
-        "tracks":[],
-        "traits":0
-      }
+      {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8e439337-1437-43f1-b8f2-6dbefe9a4cd0","path":"sprites/spr_eggtrack_gold/spr_eggtrack_gold.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"2067b2ee-4751-43ae-a2f8-babd909ebe83","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,
     "xorigin":12,
-    "yorigin":8
+    "yorigin":8,
   },
   "swatchColours":null,
   "swfPrecision":2.525,
   "textureGroupId":{
     "name":"Game",
-    "path":"texturegroups/Game"
+    "path":"texturegroups/Game",
   },
   "type":0,
   "VTile":false,
-  "width":24
+  "width":24,
 }
