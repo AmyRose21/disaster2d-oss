@@ -35,19 +35,46 @@ function net_udpprocess(rbuff)
                 {
                         if(passtrough)
                                  break;
-                                         
+
                         var _pid = buffer_read_s(rbuff, buffer_u16);
                         var _prog = buffer_read_s(rbuff, buffer_f64);
-                        
+
                         with(obj_revival_puppet)
                         {
                                 if(master_id != _pid)
                                         continue;
-                                        
+
                                 progress = _prog;
                                 break;
                         }
-                        
+
+                        break;
+                }
+
+                case PacketType.SERVER_EGG_UPGRADE_PROGRESS:
+                {
+                        // v3.1 («Genio Malvado» estilo rescate): progreso de
+                        // la MEJORA de una trampa (0 sensor / 1 trampa de
+                        // Amelia) — misma barra del revive, pero dibujada
+                        // por la propia trampa (upgShow/upgProg) y SOLO para
+                        // el bando superviviente (Draw_0 de cada trampa).
+                        if(passtrough)
+                                break;
+
+                        var _gtype = buffer_read_s(rbuff, buffer_u8);
+                        var _gnid = buffer_read_s(rbuff, buffer_u16);
+                        var _gprog = buffer_read_s(rbuff, buffer_f64);
+
+                        with(_gtype == 1 ? obj_amelia_trap : obj_eggtrack)
+                        {
+                                if(nid != _gnid)
+                                        continue;
+
+                                upgProg = _gprog;
+                                upgShow = true;
+                                break;
+                        }
+
                         break;
                 }
                 

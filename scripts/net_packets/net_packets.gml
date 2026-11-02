@@ -224,17 +224,33 @@ enum PacketType
         CLIENT_VANILLA_DEDEMONIZE_PROGRESS,
 
         /* v3.0 — «Genio Malvado» (Eggman) + balance de trampas:
-           CLIENT_EGG_TRAP_UPGRADE pide mejorar una entidad (0 = su
-           sensor eggtrack, 3 anillos; 1 = trampa de Amelia, 5 anillos)
-           con +25% de efectividad y contorno dorado para todos
-           (respuesta: SERVER_ETRACKER_STATE 2 / SERVER_AMELIA_TRAP_STATE 3).
-           SERVER_TRACKER_PING lo emite el server cuando cae una TRAMPA
-           MEJORADA pisada por el bando EXE: ejecuta el RASTREADOR y
-           revela la posicion de la victima a todos los supervivientes
-           (mismo obj_surv_indicator que los sensores). Mismo orden que
-           el Packet.h del server (AL FINAL en los DOS lados). */
+           CLIENT_EGG_TRAP_UPGRADE pedia mejorar una entidad al instante
+           (tecla V). v3.1: DEPRECATED — sustituido por el estilo RESCATE
+           (CLIENT_EGG_TRAP_UPGRADE_PROGRESS de abajo); el ID se conserva
+           para no mover el enum. SERVER_TRACKER_PING lo emite el server
+           cuando cae una TRAMPA MEJORADA pisada por el bando EXE: ejecuta
+           el RASTREADOR y revela la posicion de la victima a todos los
+           supervivientes (mismo obj_surv_indicator que los sensores).
+           Mismo orden que el Packet.h del server. */
         CLIENT_EGG_TRAP_UPGRADE,
-        SERVER_TRACKER_PING
+        SERVER_TRACKER_PING,
+
+        /* v3.1 — «Genio Malvado» al estilo del RESCATE de Vanilla
+           (v2.11), pero para MEJORAR TRAMPAS: Eggman encima de la
+           trampa manteniendo ABAJO con anillos de sobra (3 sensor /
+           5 trampa de Amelia). CLIENT_EGG_TRAP_UPGRADE_PROGRESS
+           (u8 type: 0 sensor / 1 trampa; u16 nid; u8 anillos actuales)
+           — el server acumula el progreso en la ENTIDAD (upg_progress),
+           reenvia la barra con SERVER_EGG_UPGRADE_PROGRESS (u8 type,
+           u16 nid, double prog) y al llenarla cobra los anillos y dora
+           la trampa (SERVER_ETRACKER_STATE 2 / SERVER_AMELIA_TRAP_STATE
+           3 de siempre). SERVER_EGG_UPGRADE_STATUS (u8 show, u8 type,
+           u16 nid) abre/cierra la barra. El contorno dorado y la barra
+           SOLO los dibuja el bando superviviente (v3.1). Mismo orden
+           que el Packet.h del server (AL FINAL en los DOS lados). */
+        CLIENT_EGG_TRAP_UPGRADE_PROGRESS,
+        SERVER_EGG_UPGRADE_PROGRESS,
+        SERVER_EGG_UPGRADE_STATUS
 }
 
 #macro STATE_PENDING -1

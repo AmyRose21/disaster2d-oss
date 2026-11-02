@@ -5,9 +5,24 @@ if(sprite_index == spr_eggtrack_destroy && image_index >= image_number - 1)
 }
 
 if(!instance_exists(global.player))
+{
+        upgOver = -1;
         return;
-        
+}
+
 depth = global.player.depth - 2;
+
+// v3.1: prompt del GENIO para el Eggman local (patron reviveObj.over del
+// rescate de Vanilla): 1 = encima de ESTE sensor con anillos, 0 = faltan
+// anillos. Solo corre en el cliente del Eggman; la barra upgShow la ven
+// todos los supervivientes (Draw_0).
+upgOver = -1;
+
+if(global.character == CHARACTER_EGGMAN
+&& global.player.revivalTimes < 2 && !global.player.isDead
+&& !upgraded && !activated
+&& global.player.geniusTarget == nid && global.player.geniusTargetType == 0)
+        upgOver = global.player.rings >= EGG_GENIUS_SENSOR_COST ? 1 : 0;
 
 if(place_meeting(x, y, global.player) && !activated)
 {

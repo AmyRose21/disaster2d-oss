@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor de Animaciones — Sonic.EXE TD2D Remake</title>
+<style>
+:root{
+  --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
+  --txt:#dfe3ea; --mut:#8b93a3; --gold:#e8b84b; --gold2:#f5d68a;
+  --green:#57c98a; --orange:#e8924b; --red:#e05d5d; --blue:#5b9ce0;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--txt);font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+button{font:inherit;color:inherit;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:var(--gold);color:var(--gold2)}
+button:disabled{opacity:.45;cursor:default}
+button.sel{border-color:var(--gold);color:var(--gold2);background:#2a2415}
+input,select{font:inherit;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+input[type=checkbox]{accent-color:var(--gold)}
+input[type=range]{accent-color:var(--gold);padding:0}
+.hidden{display:none!important}
+.muted{color:var(--mut);font-size:12px;padding:6px 4px}
+
+/* ---- cabecera ---- */
+#topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+#brand{font-weight:700;letter-spacing:.5px;font-size:16px;white-space:nowrap}
+#brand b{color:var(--gold)}
+#brand span{color:var(--mut);font-weight:400;font-size:12px;margin-left:6px}
+#topbar .spacer{flex:1}
+#proj-status{color:var(--mut);font-size:12px}
+.btn.primary{border-color:var(--gold);color:var(--gold2);background:#2a2415}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--mut)}
+.btn.limited{opacity:.5}
+
+/* ---- layout ---- */
+#layout{flex:1;display:grid;grid-template-columns:250px 1fr 360px;min-height:0}
+aside,#center{min-height:0}
+#left{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+#right{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:10px}
+#center{display:flex;flex-direction:column;overflow:hidden;padding:10px;gap:8px}
+
+/* ---- panel izquierdo ---- */
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tab{flex:1;border:none;border-radius:0;background:transparent;padding:8px;color:var(--mut)}
+.tab.active{color:var(--gold2);box-shadow:inset 0 -2px 0 var(--gold)}
+#char-list,#sprite-list,#state-list{overflow-y:auto;flex:1;padding:6px}
+.grp{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:8px 4px 4px}
+.charbtn{display:flex;justify-content:space-between;align-items:baseline;width:100%;text-align:left;margin:2px 0;background:transparent;border-color:transparent}
+.charbtn .obj{color:var(--mut);font-size:11px;font-family:var(--mono)}
+.charbtn.exe b{color:#e08;}
+.sprbtn{display:block;width:100%;text-align:left;margin:1px 0;font-family:var(--mono);font-size:12px;background:transparent;border-color:transparent}
+.sprbtn:hover{border-color:var(--line)}
+#state-block{border-top:1px solid var(--line);max-height:45%;display:flex;flex-direction:column}
+.side-head{padding:8px 10px 4px;color:var(--gold);font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.toggleline{color:var(--mut);font-weight:400;font-size:11px;display:flex;gap:4px;align-items:center}
+.stbtn{display:flex;flex-direction:column;width:100%;text-align:left;margin:2px 0;background:transparent;border-color:transparent;padding:4px 8px}
+.stbtn b{font-size:13px}
+.stbtn .spr{color:var(--mut);font-size:11px;font-family:var(--mono)}
+.stbtn .fc{color:var(--gold);font-size:11px;font-family:var(--mono)}
+.stbtn:hover{border-color:var(--line)}
+.stbtn.sel{border-color:var(--gold);background:#2a2415}
+#spr-search{margin:6px;width:calc(100% - 12px)}
+
+/* ---- visor ---- */
+#viewer-wrap{position:relative;background:#0b0c0f;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;flex:1;min-height:160px}
+#viewer{image-rendering:pixelated;max-width:100%;max-height:100%}
+#viewer-hud{position:absolute;left:10px;top:8px;font-family:var(--mono);font-size:12px;color:var(--gold2);text-shadow:0 1px 2px #000;pointer-events:none;white-space:pre}
+
+/* ---- transporte ---- */
+#transport{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+#transport .grp2{display:flex;gap:4px;align-items:center}
+#transport label{color:var(--mut);font-size:12px;display:flex;gap:4px;align-items:center}
+#frame-label{font-family:var(--mono);font-size:12px;color:var(--gold2)}
+#zoom-row{display:flex;gap:2px}
+#zoom-row button{padding:3px 8px;font-size:12px;font-family:var(--mono)}
+.preset{padding:3px 7px;font-size:12px;font-family:var(--mono)}
+#in-speed{width:150px}
+#num-speed{width:56px;font-family:var(--mono)}
+
+/* ---- barra de loop ---- */
+#loopbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.chip{font-size:12px;font-weight:600;border-radius:10px;padding:2px 10px}
+.chip.green{background:#12301f;color:var(--green);border:1px solid #2a5c3f}
+.chip.orange{background:#33230f;color:var(--orange);border:1px solid #6b4a22}
+#loopbar input[type=number]{width:64px;font-family:var(--mono)}
+#loop-writeinfo{font-family:var(--mono);font-size:11.5px;color:var(--mut);flex-basis:100%}
+
+/* ---- línea de tiempo ---- */
+#tl-wrap{position:relative;overflow-x:auto;overflow-y:hidden;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:26px 10px 6px;min-height:110px}
+#tl-inner{position:relative}
+#tl-regions,#tl-track{position:relative}
+#tl-track{display:flex}
+.cell{width:52px;height:46px;margin:0 3px;background:#101317;border-radius:4px;flex:none;cursor:pointer}
+.cell.in-intro{outline:1px solid #2c4a75;background:#0f1722}
+.cell.in-loop{outline:1px solid #2a5c3f;background:#0f2016}
+#tl-regions div{position:absolute;top:22px;height:14px;pointer-events:none}
+#rg-intro{background:rgba(91,156,224,.22);border-left:2px solid var(--blue)}
+#rg-loop{background:rgba(87,201,138,.22);border-left:2px solid var(--green);border-right:2px solid var(--green)}
+#rg-intro::after,#rg-loop::after{content:attr(data-label);position:absolute;top:-16px;left:6px;font-size:10px;font-family:var(--mono);color:var(--mut)}
+#mk-a,#mk-b,#mk-cur{position:absolute;top:18px;bottom:2px;width:4px;border-radius:2px;cursor:ew-resize;touch-action:none}
+#mk-a{background:var(--green)}
+#mk-b{background:var(--orange)}
+#mk-cur{background:#fff;opacity:.55;width:2px;pointer-events:none}
+#mk-a .lbl,#mk-b .lbl{position:absolute;top:-19px;left:-2px;font-size:10px;font-family:var(--mono);color:var(--txt);background:var(--panel2);border-radius:3px;padding:0 4px;white-space:nowrap}
+
+/* ---- panel derecho ---- */
+#right section{margin-bottom:12px}
+#right h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--gold)}
+.kv{display:flex;justify-content:space-between;gap:8px;padding:3px 2px;border-bottom:1px dashed #23272f;font-size:12.5px}
+.kv span{color:var(--mut)}
+.kv b{font-family:var(--mono);font-weight:600;text-align:right;word-break:break-all}
+.kv b.dyn{color:var(--orange)}
+.kv.warn b{color:var(--red)}
+.note{margin-top:8px;color:var(--mut);font-size:11.5px}
+.okline{color:var(--green);font-size:12.5px;padding:8px 4px}
+.editcard{border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;background:var(--panel2)}
+.edhead{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.edhead b{color:var(--gold2)}
+.edpath{color:var(--mut);font-size:10.5px;font-family:var(--mono)}
+.edtitle{color:var(--txt);font-size:12px;margin:4px 0}
+pre.diff,pre.snip{font-family:var(--mono);font-size:11.5px;line-height:1.5;background:#0b0d10;border:1px solid #20242c;border-radius:6px;padding:8px;overflow-x:auto;white-space:pre;margin:6px 0 0}
+pre.diff .del{background:#3a1717;color:#f0a0a0;display:inline-block;width:100%}
+pre.diff .add{background:#12301f;color:#9fe0bb;display:inline-block;width:100%}
+.warnline{color:var(--orange);font-size:11.5px;margin-top:4px}
+.sharedline{color:var(--blue);font-size:11.5px;margin-top:4px}
+#write-actions{display:flex;flex-wrap:wrap;gap:6px}
+#write-actions button{flex:1;min-width:120px}
+#btn-write{border-color:var(--gold);color:var(--gold2);background:#2a2415;font-weight:600}
+
+/* ---- toasts / diálogo ---- */
+#toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.toast{background:var(--panel2);border:1px solid var(--gold);border-radius:8px;padding:10px 14px;max-width:380px;font-size:13px;box-shadow:0 4px 18px #000a;transition:opacity .4s}
+.toast.err{border-color:var(--red)}
+.toast.warn{border-color:var(--orange)}
+.toast.gone{opacity:0}
+dialog{background:var(--panel);color:var(--txt);border:1px solid var(--gold);border-radius:12px;max-width:640px;width:92%;padding:18px 22px}
+dialog::backdrop{background:#000c}
+dialog h2{margin:0 0 10px;color:var(--gold2);font-size:18px}
+dialog h4{margin:14px 0 4px;color:var(--gold);font-size:13px}
+dialog p,dialog li{font-size:13px;color:var(--txt)}
+dialog code{font-family:var(--mono);background:#0b0d10;padding:1px 5px;border-radius:4px;font-size:12px}
+dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
+@media (max-width:1100px){#layout{grid-template-columns:220px 1fr 300px}}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div id="brand">TD2D <b>Editor de Animaciones</b><span>Sonic.EXE The Disaster 2D Remake</span></div>
+  <button id="btn-open" class="btn primary">Abrir carpeta del proyecto</button>
+  <button id="btn-open-ro" class="btn">Elegir carpeta (solo lectura)</button>
+  <button id="btn-demo" class="btn">Demo</button>
+  <span id="proj-status">sin proyecto</span>
+  <div class="spacer"></div>
+  <button id="btn-help" class="btn ghost">Ayuda</button>
+  <input id="dir-input" type="file" webkitdirectory multiple class="hidden">
+</header>
+
+<div id="layout">
+
+  <aside id="left">
+    <div class="tabs">
+      <button class="tab active" data-tab="chars">Personajes</button>
+      <button class="tab" data-tab="sprites">Sprites</button>
+    </div>
+    <div id="tab-chars" class="tabpane" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <div id="char-list"></div>
+      <div id="state-block" class="hidden">
+        <div class="side-head"><span id="state-title">Estados</span></div>
+        <label class="toggleline" id="demon-line" style="padding:0 10px"><input type="checkbox" id="chk-demon"> tira demonizada (eanims)</label>
+        <div id="state-list"></div>
+      </div>
+    </div>
+    <div id="tab-sprites" class="tabpane hidden" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <input id="spr-search" placeholder="Buscar sprite… (ej: amelia)">
+      <div id="sprite-list"></div>
+    </div>
+  </aside>
+
+  <main id="center">
+    <div id="viewer-wrap">
+      <canvas id="viewer" width="480" height="340"></canvas>
+      <div id="viewer-hud">elige un personaje y un estado</div>
+    </div>
+
+    <div id="transport">
+      <div class="grp2">
+        <button id="btn-first" title="primer frame (Home)">|&lt;</button>
+        <button id="btn-prev" title="frame anterior (←)">&lt;</button>
+        <button id="btn-play" class="btn primary">▶ Reproducir</button>
+        <button id="btn-next" title="frame siguiente (→)">&gt;</button>
+        <button id="btn-last" title="último frame (End)">&gt;|</button>
+      </div>
+      <div class="grp2">
+        <label>velocidad <input id="in-speed" type="range" min="0.05" max="3" step="0.05" value="1"></label>
+        <input id="num-speed" type="number" min="0.01" max="10" step="0.01" value="1">
+        <span id="frame-label"></span>
+      </div>
+      <div class="grp2" id="presets">
+        <button class="preset" data-v="0.1">.1</button>
+        <button class="preset" data-v="0.2">.2</button>
+        <button class="preset" data-v="0.3">.3</button>
+        <button class="preset" data-v="0.5">.5</button>
+        <button class="preset" data-v="1">1</button>
+        <button class="preset" data-v="1.1">1.1</button>
+        <button class="preset" data-v="2">2</button>
+      </div>
+      <div class="grp2">
+        <label>zoom</label>
+        <span id="zoom-row">
+          <button data-z="0">auto</button><button data-z="1">1×</button><button data-z="2" class="sel">2×</button>
+          <button data-z="3">3×</button><button data-z="4">4×</button><button data-z="6">6×</button><button data-z="8">8×</button>
+        </span>
+      </div>
+      <div class="grp2">
+        <label>fondo
+          <select id="sel-bg">
+            <option value="dark">oscuro</option>
+            <option value="light">claro</option>
+            <option value="checker">cuadrícula</option>
+            <option value="magenta">magenta</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="chk-onion"> estela</label>
+        <label><input type="checkbox" id="chk-once"> una pasada</label>
+      </div>
+    </div>
+
+    <div id="loopbar">
+      <span class="chip green">A · el loop EMPIEZA aquí</span>
+      <input id="in-a" type="number" min="1" value="1" title="frame donde empieza el loop">
+      <button id="btn-a-here" title="marca A en el frame actual (tecla [)">A aquí</button>
+      <span class="chip orange">B · el loop TERMINA aquí</span>
+      <input id="in-b" type="number" min="1" value="1" title="frame donde termina el loop (incluido)">
+      <button id="btn-b-here" title="marca B en el frame actual (tecla ])">B aquí</button>
+      <button id="btn-loop-clear">quitar loop</button>
+      <span id="loop-writeinfo"></span>
+    </div>
+
+    <div id="tl-wrap">
+      <div id="tl-inner">
+        <div id="tl-regions"><div id="rg-intro" class="hidden"></div><div id="rg-loop"></div></div>
+        <div id="tl-track"></div>
+        <div id="mk-a" class="hidden"><span class="lbl">A</span></div>
+        <div id="mk-b" class="hidden"><span class="lbl">B</span></div>
+        <div id="mk-cur" class="hidden"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside id="right">
+    <section>
+      <h3>En el juego ahora</h3>
+      <div id="game-panel"><div class="muted">elige un personaje</div></div>
+    </section>
+    <section>
+      <h3>Cambios a escribir</h3>
+      <div id="edits-list"><div class="muted">elige personaje y estado</div></div>
+      <div id="write-actions" class="hidden">
+        <button id="btn-write">Escribir en los archivos</button>
+        <button id="btn-undo">Deshacer último</button>
+        <button id="btn-copy-draw">Copiar Draw_76 entero</button>
+        <button id="btn-copy-other">Copiar Other_7 entero</button>
+      </div>
+    </section>
+    <section>
+      <h3>Recargas (Create_0)</h3>
+      <div id="cd-list"></div>
+    </section>
+  </aside>
+</div>
+
+<div id="toasts"></div>
+
+<dialog id="help">
+  <h2>Editor de Animaciones — cómo se usa</h2>
+  <h4>1. Abrir tu proyecto</h4>
+  <p>Botón <b>Abrir carpeta del proyecto</b> (Chrome o Edge) y elige la carpeta raíz del juego
+  (la que contiene <code>scripts/</code>, <code>objects/</code> y <code>sprites/</code>).
+  Así puedes <b>escribir</b> los cambios directo en los GML, con copia de seguridad automática.
+  En otros navegadores usa <b>Elegir carpeta (solo lectura)</b>: te dará el archivo entero para copiar y pegar en GameMaker.</p>
+  <h4>2. Elegir personaje → estado</h4>
+  <p>Cada estado usa una tira de sprites (<code>player_anims</code>). Al elegirlo se reproduce
+  con la velocidad que tiene HOY el archivo. El botón <b>Demo</b> trae un bicho de prueba para probar sin proyecto.</p>
+  <h4>3. Marcar el loop («empieza aquí y termina acá»)</h4>
+  <p>Arrastra los marcadores <b style="color:#57c98a">A</b> (inicio) y <b style="color:#e8924b">B</b> (fin) sobre la tira,
+  o usa los botones «A aquí»/«B aquí» con el vídeo parado en el frame que quieras (teclas <code>[</code> y <code>]</code>).
+  Los frames antes de A se ven UNA vez (la «entradilla»), igual que el idle del juego. Si B no es el último frame,
+  el loop se corta ahí.</p>
+  <h4>4. Velocidad</h4>
+  <p>El deslizador es el <code>image_speed</code> del juego: frames por paso a 60 pasos/s
+  (1 = 60 fps; 0.3 = 18 fps). Ojo: si el archivo usa una fórmula (depende de xspd) te aviso antes de reemplazarla.</p>
+  <h4>5. Escribir</h4>
+  <p>El panel derecho muestra el antes/después exacto de cada archivo. <b>Escribir</b> guarda una copia en
+  <code>_backups_animeditor/</code> y modifica <code>Draw_76.gml</code> (velocidad y cortes de loop) y
+  <code>Other_7.gml</code> (punto de repetición: <code>image_index = image_number - N</code>).
+  Después compila el juego (F5). No hace falta recompilar el server: el frame exacto viaja por red.</p>
+  <div class="close-row"><button id="help-close" class="btn primary">Entendido</button></div>
+</dialog>
+
+<script>
+/* =====================================================================
+   NUCLEO del Editor de Animaciones TD2D — funciones puras de analisis
+   y parcheo de los archivos del proyecto (GameMaker GML + .yy).
+   Funciona en Node (tests) y en el navegador (window.AnimCore).
+
+   Convenciones del proyecto verificadas contra el codigo real:
+   - Draw_76.gml  : switch(state) con un case por estado; pone image_speed.
+   - Other_7.gml  : Animation End; el case IDLE pone
+                    image_index = image_number - N  (punto de repeticion).
+   - Los cases pueden COMPARTIR etiqueta (case RUN: case JUMP:) y por
+     tanto compartir el image_speed: se tratan como grupo.
+   ===================================================================== */
+(function (root, factory) {
+  if (typeof module !== 'undefined' && module.exports) module.exports = factory();
+  else root.AnimCore = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var BASE_STATES = ['IDLE', 'WALK', 'RUN', 'JUMP', 'FALL', 'HURT', 'DEAD',
+    'LOOKUP', 'LOOKDOWN', 'EMOTION1', 'EMOTION2', 'EMOTION3', 'SPIN', 'BALANCING'];
+  var BASE_SEED = {};
+  BASE_STATES.forEach(function (n, i) { BASE_SEED[n] = i; });
+
+  /* ---------- .yy de GameMaker (JSON con comas colgantes) ---------- */
+
+  function stripGmJson(text) {
+    return String(text).replace(/,\s*(?=[}\]])/g, '');
+  }
+
+  // Devuelve { name, frames:[guid], layers:[guid], playbackSpeed, length }
+  function parseSpriteYy(text) {
+    var d;
+    try { d = JSON.parse(stripGmJson(text)); } catch (e) { return null; }
+    if (!d) return null;
+    var seq = d.sequence || {};
+    var frames = [];
+    var tracks = seq.tracks || [];
+    for (var i = 0; i < tracks.length; i++) {
+      var kfs = (tracks[i].keyframes || {}).Keyframes || [];
+      for (var j = 0; j < kfs.length; j++) {
+        var id = (((kfs[j].Channels || {})['0'] || {}).Id) || {};
+        if (id.name) frames.push(id.name);
+      }
+    }
+    var layers = (d.layers || []).map(function (l) {
+      return l.name || l['%Name'] || '';
+    }).filter(Boolean);
+    return {
+      name: d['%Name'] || d.name || '',
+      frames: frames,
+      layers: layers,
+      playbackSpeed: seq.playbackSpeed,
+      playbackSpeedType: seq.playbackSpeedType,
+      length: seq.length
+    };
+  }
+
+  /* ----------------------- macros #macro N valor ----------------------- */
+
+  function macroDefs(text) {
+    var defs = [];
+    var re = /#macro\s+([A-Za-z_]\w*)\s+([^\n\r]+)/g, m;
+    while ((m = re.exec(text))) defs.push([m[1], m[2].trim()]);
+    return defs;
+  }
+
+  // Resuelve la cadena de macros aritmeticas (CHARACTER_X (CHARACTER_TAILS+1)).
+  // Los valores pueden llevar comentario al final: se quita antes de evaluar.
+  function evalMacros(text, seed) {
+    var macros = {};
+    var k;
+    if (seed) for (k in seed) macros[k] = seed[k];
+    var defs = macroDefs(text);
+    var progress = true, guard = 0;
+    while (progress && guard++ < 64) {
+      progress = false;
+      for (var i = 0; i < defs.length; i++) {
+        var name = defs[i][0];
+        var raw = defs[i][1].replace(/\/\/.*$/, '').trim();
+        if (!raw || macros[name] !== undefined) continue;
+        var expr = raw.replace(/[A-Za-z_]\w*/g, function (w) {
+          return macros[w] !== undefined ? String(macros[w]) : w;
+        });
+        if (/^[\d\s+\-*/().]+$/.test(expr) && /\d/.test(expr)) {
+          try {
+            var v = Function('"use strict";return (' + expr + ')')();
+            if (typeof v === 'number' && isFinite(v)) { macros[name] = v; progress = true; }
+          } catch (e) { /* ignora */ }
+        }
+      }
+    }
+    return macros;
+  }
+
+  /* ----------------- tablas de animaciones (scr_survivors / scr_exe) ----------------- */
+
+  // Lineas "spr_x, //14 = NOMBRE ..." -> { spr, idx, label }
+  function parseArrayEntries(body) {
+    var out = [];
+    var auto = 0;
+    var lines = String(body).split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      if (/^\/\//.test(line)) continue; // comentario suelto (//Visible...)
+      var m = line.match(/^([A-Za-z_]\w*)\s*,?\s*(?:\/\/\s*(.*))?$/);
+      if (!m) continue;
+      var spr = m[1];
+      var comment = (m[2] || '').trim();
+      var idx = null, label = null;
+      var cm = comment.match(/^(\d+)\s*(?:=\s*([A-Za-z_]\w*))?/);
+      if (cm) { idx = parseInt(cm[1], 10); label = cm[2] || null; }
+      if (idx === null || idx < 0) idx = auto;
+      auto = idx + 1;
+      if (idx < BASE_STATES.length && !label) label = BASE_STATES[idx];
+      out.push({ spr: spr, idx: idx, label: label || ('ESTADO_' + idx), comment: comment });
+    }
+    return out;
+  }
+
+  // scr_survivors.gml -> { chars:[{key,name,idx,obj,anims,eanims}], objMap }
+  function parseSurvivors(text) {
+    var macros = evalMacros(text, BASE_SEED);
+    var byChar = {};
+    var arrRe = /global\.player_(anims|eanims)\[\?\s*([A-Za-z_]\w*)\s*\]\s*=\s*\[([\s\S]*?)\]\s*;/g, m;
+    while ((m = arrRe.exec(text))) {
+      var key = m[2];
+      var body = m[3];
+      var inv = body.search(/\/\/\s*Invisible/i);
+      if (inv >= 0) body = body.slice(0, inv);
+      if (!byChar[key]) byChar[key] = { key: key, idx: macros[key], anims: null, eanims: null };
+      byChar[key][m[1]] = parseArrayEntries(body);
+    }
+    var objMap = {};
+    var objRe = /case\s+(CHARACTER_\w+)\s*:\s*return\s+(obj_\w+)\s*;/g, om;
+    while ((om = objRe.exec(text))) objMap[om[1]] = om[2];
+    var chars = [];
+    for (var k in byChar) {
+      var c = byChar[k];
+      if (!c.anims && !c.eanims) continue;
+      c.obj = objMap[k] || null;
+      c.name = k.replace(/^CHARACTER_/, '');
+      chars.push(c);
+    }
+    chars.sort(function (a, b) { return (a.idx == null ? 999 : a.idx) - (b.idx == null ? 999 : b.idx); });
+    return { macros: macros, chars: chars, objMap: objMap };
+  }
+
+  // scr_exe.gml -> { exes:[{key,name,idx,obj,anims}] } (solo seccion visible)
+  function parseExeTable(text) {
+    var macros = evalMacros(text, BASE_SEED);
+    var exes = [];
+    var arrRe = /global\.player_exesanims\[\?\s*(EXE_\w+)\s*\]\s*=\s*\[([\s\S]*?)\]\s*;/g, m;
+    while ((m = arrRe.exec(text))) {
+      var body = m[2];
+      var inv = body.search(/\/\/\s*Invisible/i);
+      if (inv >= 0) body = body.slice(0, inv);
+      exes.push({ key: m[1], idx: macros[m[1]], anims: parseArrayEntries(body) });
+    }
+    var objMap = {};
+    var objRe = /case\s+(\d+)\s*:\s*return\s+(obj_\w+)\s*;/g, om;
+    while ((om = objRe.exec(text))) objMap[parseInt(om[1], 10)] = om[2];
+    for (var i = 0; i < exes.length; i++) {
+      exes[i].obj = objMap[exes[i].idx] || null;
+      exes[i].name = exes[i].key.replace(/^EXE_/, '');
+    }
+    exes.sort(function (a, b) { return (a.idx == null ? 999 : a.idx) - (b.idx == null ? 999 : b.idx); });
+    return { macros: macros, exes: exes };
+  }
+
+  // Step_2.gml de un objeto -> { 14:'EXE_ATTACK', ... } (estados propios)
+  function parseObjectStates(step2Text) {
+    var macros = evalMacros(step2Text, BASE_SEED);
+    var map = {};
+    var defs = macroDefs(step2Text);
+    for (var i = 0; i < defs.length; i++) {
+      var name = defs[i][0];
+      if (name in BASE_SEED) continue;
+      var v = macros[name];
+      if (typeof v !== 'number' || v < BASE_STATES.length) continue;
+      if (!(v in map)) map[v] = name;
+    }
+    return map;
+  }
+
+  /* ---------------- grupos de cases de un switch GML ---------------- */
+
+  // Etiquetas sueltas "case X:" en orden de aparicion.
+  function parseStateCases(gml) {
+    var re = /(^|\n)[ \t]*case\s+([A-Za-z_]\w*)\s*:/g;
+    var cases = [], m;
+    while ((m = re.exec(gml))) {
+      cases.push({
+        state: m[2],
+        labelStart: m.index + (m[1] ? 1 : 0),
+        bodyStart: m.index + m[0].length
+      });
+    }
+    return cases;
+  }
+
+  // Grupos: etiquetas consecutivas que caen juntas (case RUN: case JUMP:)
+  // comparten cuerpo. Cada grupo: { labels, labelStart, bodyStart,
+  // lastLabelEnd, end }.
+  function parseCaseGroups(gml) {
+    var cases = parseStateCases(gml);
+    var groups = [];
+    var i = 0;
+    while (i < cases.length) {
+      var grp = {
+        labels: [cases[i].state],
+        labelStart: cases[i].labelStart,
+        bodyStart: cases[i].bodyStart,
+        lastLabelEnd: cases[i].bodyStart
+      };
+      var j = i;
+      while (j + 1 < cases.length) {
+        var between = gml.slice(cases[j].bodyStart, cases[j + 1].labelStart);
+        if (/^\s*$/.test(between)) {
+          j++;
+          grp.labels.push(cases[j].state);
+          grp.lastLabelEnd = cases[j].bodyStart;
+        } else break;
+      }
+      grp.end = j + 1 < cases.length ? cases[j + 1].labelStart : gml.length;
+      groups.push(grp);
+      i = j + 1;
+    }
+    return groups;
+  }
+
+  function findGroup(gml, state) {
+    var groups = parseCaseGroups(gml);
+    for (var i = 0; i < groups.length; i++)
+      if (groups[i].labels.indexOf(state) >= 0) return groups[i];
+    return null;
+  }
+
+  // Indent de la linea "case" (tabs o espacios, segun el archivo).
+  function caseIndent(gml, grp) {
+    var head = gml.slice(grp.labelStart, grp.bodyStart);
+    var mm = head.match(/^[ \t]*/);
+    return mm ? mm[0] : '';
+  }
+
+  // Inserta una linea dentro del grupo, tras la ULTIMA etiqueta case.
+  function insertLineAfterLabels(gml, grp, text) {
+    var nl = gml.indexOf('\n', grp.lastLabelEnd);
+    if (nl < 0 || nl >= grp.end)
+      return gml.slice(0, grp.lastLabelEnd) + ' ' + text + '\n' + gml.slice(grp.lastLabelEnd);
+    return gml.slice(0, nl + 1) + text + '\n' + gml.slice(nl + 1);
+  }
+
+  // Texto del grupo completo (todas sus etiquetas + cuerpo) sin cola.
+  function caseBlockText(gml, state) {
+    var grp = findGroup(gml, state);
+    if (!grp) return null;
+    return gml.slice(grp.labelStart, grp.end).replace(/\s+$/, '');
+  }
+
+  /* --------------------------- image_speed (Draw_76) --------------------------- */
+
+  function getImageSpeed(gml, state) {
+    var grp = findGroup(gml, state);
+    if (!grp) return null;
+    var block = gml.slice(grp.bodyStart, grp.end);
+    var m = block.match(/image_speed\s*=\s*([^;\n\r]+)/);
+    if (!m) return {
+      found: false, expr: null, dynamic: false,
+      block: block, shared: grp.labels.length > 1 ? grp.labels : null
+    };
+    var expr = m[1].trim();
+    return {
+      found: true, expr: expr, dynamic: /[A-Za-z]/.test(expr),
+      block: block, shared: grp.labels.length > 1 ? grp.labels : null
+    };
+  }
+
+  function setImageSpeed(gml, state, value) {
+    var grp = findGroup(gml, state);
+    if (!grp) return { gml: gml, changed: false, error: 'sin-case' };
+    var block = gml.slice(grp.bodyStart, grp.end);
+    var re = /([ \t]*)image_speed\s*=\s*([^;\n\r]+);/;
+    var m = block.match(re);
+    var newBlock, oldExpr = null, inserted = false, dynamic = false;
+    if (m) {
+      oldExpr = m[2].trim();
+      dynamic = /[A-Za-z]/.test(oldExpr);
+      newBlock = block.replace(re, function (full, ind) {
+        return ind + 'image_speed = ' + value + ';';
+      });
+    } else {
+      var ind = caseIndent(gml, grp);
+      var bi = ind + ind;
+      var withLine = bi + 'image_speed = ' + value + ';';
+      var g2 = insertLineAfterLabels(gml, grp, withLine);
+      return {
+        gml: g2, changed: true, oldExpr: null, inserted: true, dynamic: false,
+        shared: grp.labels.length > 1 ? grp.labels : null
+      };
+    }
+    return {
+      gml: gml.slice(0, grp.bodyStart) + newBlock + gml.slice(grp.end),
+      changed: true, oldExpr: oldExpr, inserted: inserted, dynamic: dynamic,
+      shared: grp.labels.length > 1 ? grp.labels : null
+    };
+  }
+
+  /* ---------------- Other_7 (Animation End): image_number - N ---------------- */
+
+  function getIdleLoop(gml, state) {
+    var grp = findGroup(gml, state);
+    if (!grp) return null;
+    var block = gml.slice(grp.bodyStart, grp.end);
+    var m = block.match(/image_index\s*=\s*image_number\s*-\s*(\d+)\s*;/);
+    return m ? parseInt(m[1], 10) : null;
+  }
+
+  function setIdleLoop(gml, state, n) {
+    var grp = findGroup(gml, state);
+    if (!grp) {
+      // Other_7 es un switch "puro": insertar el case antes de la llave final
+      var trimmed = gml.replace(/[ \t\r\n]+$/, '');
+      if (!trimmed.endsWith('}')) return { gml: gml, changed: false, error: 'sin-switch' };
+      var cut = trimmed.length - 1;
+      var first = parseCaseGroups(gml)[0];
+      var ci = first ? caseIndent(gml, first) : '        ';
+      var bi = ci + ci;
+      var ins = '\n' + ci + 'case ' + state + ':\n' + bi +
+        'image_index = image_number - ' + n + ';\n' + bi + 'break;\n' + ci;
+      return {
+        gml: gml.slice(0, cut) + ins + '}' + gml.slice(trimmed.length),
+        changed: true, insertedCase: true, old: null
+      };
+    }
+    var block = gml.slice(grp.bodyStart, grp.end);
+    var re = /([ \t]*)image_index\s*=\s*image_number\s*-\s*(\d+)\s*;/;
+    var m = block.match(re);
+    if (m) {
+      var old = parseInt(m[2], 10);
+      var newBlock = block.replace(re, function (full, ind) {
+        return ind + 'image_index = image_number - ' + n + ';';
+      });
+      return {
+        gml: gml.slice(0, grp.bodyStart) + newBlock + gml.slice(grp.end),
+        changed: true, old: old, inserted: false,
+        shared: grp.labels.length > 1 ? grp.labels : null
+      };
+    }
+    var ind = caseIndent(gml, grp);
+    var bi2 = ind + ind;
+    var g2 = insertLineAfterLabels(gml, grp, bi2 + 'image_index = image_number - ' + n + ';');
+    return {
+      gml: g2, changed: true, old: null, inserted: true,
+      shared: grp.labels.length > 1 ? grp.labels : null
+    };
+  }
+
+  /* ---- tope de loop a mitad de tira (guard en Draw_76): if(idx>=B+1) idx=A ---- */
+
+  function makeGuard(ind, unit, a, b) {
+    return ind + 'if(image_index >= ' + (b + 1) + ')\n' + ind + unit +
+      'image_index = ' + a + ';';
+  }
+
+  function setLoopGuard(gml, state, a, b) {
+    var grp = findGroup(gml, state);
+    if (!grp) return { gml: gml, changed: false, error: 'sin-case' };
+    var block = gml.slice(grp.bodyStart, grp.end);
+    var ind = caseIndent(gml, grp);
+    var bi = ind + ind;
+    var re = /([ \t]*)if\s*\(\s*image_index\s*>=\s*(\w+)\s*\)\s*\r?\n?[ \t]*image_index\s*=\s*([^;\n\r]+);/;
+    var m = block.match(re);
+    if (m) {
+      var old = { from: m[2], to: m[3].trim() };
+      var unit = /^[ \t]*\t/.test(m[1]) || /^\t+$/.test(m[1]) ? '\t' :
+        ' '.repeat(Math.max(1, Math.floor(m[1].length / 2)));
+      var newBlock = block.replace(re, function () { return makeGuard(m[1], unit, a, b); });
+      return {
+        gml: gml.slice(0, grp.bodyStart) + newBlock + gml.slice(grp.end),
+        changed: true, old: old, inserted: false,
+        shared: grp.labels.length > 1 ? grp.labels : null
+      };
+    }
+    // insertar tras la linea de image_speed (o tras las etiquetas)
+    var guard = makeGuard(bi, ind, a, b);
+    var sp = block.match(/[ \t]*image_speed\s*=\s*[^;\n\r]+;[^\n\r]*\n/);
+    var newBlock2;
+    if (sp) {
+      var at = (sp.index || 0) + sp[0].length;
+      newBlock2 = block.slice(0, at) + guard + '\n' + block.slice(at);
+    } else {
+      var g2 = insertLineAfterLabels(gml, grp, guard);
+      return {
+        gml: g2, changed: true, old: null, inserted: true,
+        shared: grp.labels.length > 1 ? grp.labels : null
+      };
+    }
+    return {
+      gml: gml.slice(0, grp.bodyStart) + newBlock2 + gml.slice(grp.end),
+      changed: true, old: null, inserted: true,
+      shared: grp.labels.length > 1 ? grp.labels : null
+    };
+  }
+
+  /* ------------------------------- recargas (Create_0) ------------------------------- */
+
+  function parseCooldowns(text) {
+    var out = [];
+    var re = /#macro\s+(\w*RECHARGE\w*)\s+\(\s*60\s*\*\s*(\d+(?:\.\d+)?)\s*\)/g, m;
+    while ((m = re.exec(text))) out.push({ name: m[1], seconds: parseFloat(m[2]) });
+    return out;
+  }
+
+  /* ---------------------------------- utilidades ---------------------------------- */
+
+  function detectNewline(text) {
+    return /\r\n/.test(text) ? '\r\n' : '\n';
+  }
+
+  function fmtSpeed(v) {
+    var n = Math.round(v * 100) / 100;
+    return String(n);
+  }
+
+  // diff lineal simple (LCS) para el panel antes/despues
+  function lineDiff(aText, bText) {
+    var a = String(aText).split('\n');
+    var b = String(bText).split('\n');
+    var n = a.length, m = b.length;
+    var dp = [];
+    for (var i = 0; i <= n; i++) { dp.push(new Array(m + 1).fill(0)); }
+    for (i = n - 1; i >= 0; i--)
+      for (var j = m - 1; j >= 0; j--)
+        dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    var out = [], i2 = 0, j2 = 0;
+    while (i2 < n && j2 < m) {
+      if (a[i2] === b[j2]) { out.push({ t: ' ', s: a[i2] }); i2++; j2++; }
+      else if (dp[i2 + 1][j2] >= dp[i2][j2 + 1]) { out.push({ t: '-', s: a[i2] }); i2++; }
+      else { out.push({ t: '+', s: b[j2] }); j2++; }
+    }
+    while (i2 < n) { out.push({ t: '-', s: a[i2] }); i2++; }
+    while (j2 < m) { out.push({ t: '+', s: b[j2] }); j2++; }
+    return out;
+  }
+
+  return {
+    BASE_STATES: BASE_STATES,
+    stripGmJson: stripGmJson,
+    parseSpriteYy: parseSpriteYy,
+    evalMacros: evalMacros,
+    parseArrayEntries: parseArrayEntries,
+    parseSurvivors: parseSurvivors,
+    parseExeTable: parseExeTable,
+    parseObjectStates: parseObjectStates,
+    parseStateCases: parseStateCases,
+    parseCaseGroups: parseCaseGroups,
+    findCase: findGroup,
+    caseBlockText: caseBlockText,
+    getImageSpeed: getImageSpeed,
+    setImageSpeed: setImageSpeed,
+    getIdleLoop: getIdleLoop,
+    setIdleLoop: setIdleLoop,
+    setLoopGuard: setLoopGuard,
+    parseCooldowns: parseCooldowns,
+    detectNewline: detectNewline,
+    fmtSpeed: fmtSpeed,
+    lineDiff: lineDiff
+  };
+});
+
+</script>
+<script>
+/* ===== Editor de Animaciones TD2D — parte 1: estado, archivos, proyecto ===== */
+(() => {
+'use strict';
+const C = window.AnimCore;
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+const S = {
+  mode: null,            // 'fs' (carpeta con escritura) | 'files' (solo lectura) | 'demo'
+  rootHandle: null,      // FileSystemDirectoryHandle
+  files: null,           // Map rutaRelativa -> File (modo solo lectura)
+  chars: [], exes: [], spriteNames: new Set(),
+  char: null, isExe: false, table: 'anims', entries: [],
+  states: {},            // idx -> nombre de estado propio (Step_2 del objeto)
+  sel: null,             // { idx, spr, label, stateName }
+  spr: null,             // { name, n, w, h, bitmaps:[], framePaths:[] }
+  gml: { draw76: '', other7: '', step2: '', create0: '' },
+  gmlOk: { draw76: false, other7: false, step2: false, create0: false },
+  player: { idx: 0, playing: true, speed: 1, onePass: false, tPrev: 0,
+            dynamic: false, dynExpr: null },
+  markers: { a: 0, b: 0 },
+  zoom: 2, bg: 'dark', onion: false,
+  fcCache: new Map(),    // sprite -> n.º de frames (para los chips)
+  undo: [],
+  demoFiles: new Map(),
+};
+
+/* ------------------------------ acceso a archivos ------------------------------ */
+
+function normPath(p) { return String(p).replace(/\\/g, '/').replace(/^\.\//, ''); }
+
+async function fsWalkFile(rel) {
+  // .filter(Boolean) evita partes vacías por barras finales/dobles
+  // (bug v3.1.1: 'sprites/x/layers/'.split('/') -> ['', 'layers'][3] === ''
+  //  y getDirectoryHandle('') lanza, con lo que NINGÚN sprite cargaba
+  //  en modo «Abrir carpeta»).
+  const parts = normPath(rel).split('/').filter(Boolean);
+  let dh = S.rootHandle;
+  for (let i = 0; i < parts.length - 1; i++) dh = await dh.getDirectoryHandle(parts[i]);
+  return await dh.getFileHandle(parts[parts.length - 1]);
+}
+async function fsWalkDir(rel) {
+  const parts = normPath(rel).split('/').filter(Boolean);
+  let dh = S.rootHandle;
+  for (const p of parts) dh = await dh.getDirectoryHandle(p);
+  return dh;
+}
+
+async function readText(rel) {
+  try {
+    if (S.mode === 'fs') return await (await (await fsWalkFile(rel)).getFile()).text();
+    if (S.mode === 'files') { const f = S.files.get(normPath(rel)); return f ? await f.text() : null; }
+    if (S.mode === 'demo') return S.demoFiles.has(normPath(rel)) ? S.demoFiles.get(normPath(rel)) : null;
+  } catch (e) { return null; }
+  return null;
+}
+async function readBlob(rel) {
+  try {
+    if (S.mode === 'fs') return await (await (await fsWalkFile(rel)).getFile());
+    if (S.mode === 'files') { const f = S.files.get(normPath(rel)); return f || null; }
+  } catch (e) { return null; }
+  return null;
+}
+
+async function safeReadRoot(root, rel) {
+  try {
+    const parts = rel.split('/');
+    let dh = root;
+    for (let i = 0; i < parts.length - 1; i++) dh = await dh.getDirectoryHandle(parts[i]);
+    const fh = await dh.getFileHandle(parts[parts.length - 1]);
+    return await (await fh.getFile()).text();
+  } catch (e) { return null; }
+}
+
+/* ------------------------------ abrir el proyecto ------------------------------ */
+
+async function openFs() {
+  if (!window.showDirectoryPicker) {
+    toast('Este navegador no soporta abrir carpetas con escritura. Usa Chrome o Edge, o "Elegir carpeta (solo lectura)".', 'err');
+    return;
+  }
+  let root;
+  try { root = await window.showDirectoryPicker({ mode: 'readwrite' }); }
+  catch (e) { return; } // cancelado por la usuaria
+  const test = await safeReadRoot(root, 'scripts/scr_survivors/scr_survivors.gml');
+  if (test == null) {
+    toast('Esa carpeta no parece la RAÍZ del proyecto: debe contener scripts/, objects/ y sprites/ directamente.', 'err');
+    return;
+  }
+  S.mode = 'fs'; S.rootHandle = root; S.files = null;
+  await scanProject();
+}
+
+async function openFiles(fileList) {
+  const raw = new Map();
+  for (const f of fileList) {
+    const p = String(f.webkitRelativePath || f.name).replace(/\\/g, '/');
+    raw.set(p, f);
+  }
+  if (!raw.size) return;
+  // ¿la carpeta elegida es la raíz o la contiene un nivel arriba?
+  let strip = 0;
+  if (![...raw.keys()].some(p => p === 'scripts/scr_survivors/scr_survivors.gml')) strip = 1;
+  const norm = new Map();
+  for (const [p, f] of raw) {
+    const q = strip ? p.split('/').slice(1).join('/') : p;
+    if (q) norm.set(q, f);
+  }
+  if (!norm.has('scripts/scr_survivors/scr_survivors.gml')) {
+    toast('No encuentro scripts/scr_survivors/scr_survivors.gml dentro de la carpeta elegida.', 'err');
+    return;
+  }
+  S.mode = 'files'; S.files = norm; S.rootHandle = null;
+  await scanProject();
+}
+
+async function scanProject() {
+  if (S.mode !== 'demo') {
+    const surv = await readText('scripts/scr_survivors/scr_survivors.gml');
+    const exet = await readText('scripts/scr_exe/scr_exe.gml');
+    const p1 = C.parseSurvivors(surv || ''), p2 = C.parseExeTable(exet || '');
+    S.chars = p1.chars; S.exes = p2.exes;
+  } // en demo, startDemo ya puso S.chars/S.exes
+  S.fcCache = new Map();
+  S.spriteNames = new Set();
+  if (S.mode === 'fs') {
+    try {
+      const dh = await fsWalkDir('sprites');
+      for await (const [name, h] of dh.entries()) if (h.kind === 'directory') S.spriteNames.add(name);
+    } catch (e) { /* sin sprites */ }
+  } else if (S.mode === 'files') {
+    for (const p of S.files.keys()) {
+      const m = p.match(/^sprites\/([^/]+)\//);
+      if (m) S.spriteNames.add(m[1]);
+    }
+  } else if (S.mode === 'demo') {
+    S.spriteNames.add('spr_chapo_idle');
+  }
+  renderCharList(); renderSpriteList(); renderStates();
+  const st = $('#proj-status');
+  const modo = S.mode === 'fs' ? 'carpeta abierta (lectura y escritura)'
+    : S.mode === 'files' ? 'carpeta cargada (SOLO LECTURA: usa Copiar)'
+    : 'modo demo';
+  st.textContent = modo + ' · ' + (S.chars.length + S.exes.length) + ' personajes · ' + S.spriteNames.size + ' sprites';
+  $('#btn-open').classList.toggle('hidden', S.mode === 'demo');
+  $('#btn-open-ro').classList.toggle('hidden', S.mode === 'demo');
+  clearSelection();
+}
+
+/* --------------------------- carga de un sprite --------------------------- */
+
+// frameGuid -> [rutas png] dentro de layers/<frame>/
+async function buildFrameIndex(spriteName) {
+  const idx = new Map();
+  const prefix = 'sprites/' + spriteName + '/layers/';
+  if (S.mode === 'files') {
+    for (const p of S.files.keys()) {
+      if (!p.startsWith(prefix)) continue;
+      const rest = p.slice(prefix.length).split('/');
+      if (rest.length === 2 && rest[1].endsWith('.png')) {
+        if (!idx.has(rest[0])) idx.set(rest[0], []);
+        idx.get(rest[0]).push(prefix + rest[0] + '/' + rest[1]);
+      }
+    }
+  } else if (S.mode === 'fs') {
+    try {
+      // SIN barra final: fsWalkDir también es tolerante, pero mejor no
+      // pedir un directorio llamado ''.
+      const dh = await fsWalkDir('sprites/' + spriteName + '/layers');
+      for await (const [fg, h] of dh.entries()) {
+        if (h.kind !== 'directory') continue;
+        const arr = [];
+        for await (const [fn, fh] of h.entries())
+          if (fh.kind === 'file' && fn.toLowerCase().endsWith('.png')) arr.push(prefix + fg + '/' + fn);
+        if (arr.length) idx.set(fg, arr);
+      }
+    } catch (e) { /* sin layers */ }
+  }
+  return idx;
+}
+
+// Resuelve el bitmap de UN frame, con reintentos por si falta una fuente:
+//   1) capas declaradas en el .yy (si hay varias, se componen sobre un canvas)
+//   2) cualquier PNG que haya en layers/<frame>/ (p. ej. capas huérfanas)
+//   3) compuesto raíz sprites/<sprite>/<frame>.png  (formato GM 2022.3+:
+//      todos los sprites de este repo lo traen)
+//   4) tira única sprites/<sprite>/<sprite>.png (sprites de 1 frame)
+async function loadFrameBitmap(name, fg, meta, layerPaths) {
+  const declared = meta.layers
+    .map(lg => layerPaths.find(p => p.endsWith('/' + lg + '.png')))
+    .filter(Boolean);
+  if (declared.length) {
+    const bmps = [];
+    for (const p of declared) {
+      const b = await readBlob(p);
+      if (b) bmps.push(await createImageBitmap(b));
+    }
+    if (bmps.length) {
+      if (bmps.length === 1) return { bitmap: bmps[0], path: declared[0] };
+      const cv = document.createElement('canvas');
+      cv.width = bmps[0].width; cv.height = bmps[0].height;
+      const cx = cv.getContext('2d');
+      for (const b of bmps) cx.drawImage(b, 0, 0);
+      return { bitmap: await createImageBitmap(cv), path: declared[0] };
+    }
+  }
+  for (const p of layerPaths) {
+    const b = await readBlob(p);
+    if (b) return { bitmap: await createImageBitmap(b), path: p };
+  }
+  const root = 'sprites/' + name + '/' + fg + '.png';
+  const rb = await readBlob(root);
+  if (rb) return { bitmap: await createImageBitmap(rb), path: root };
+  if (meta.frames.length === 1) {
+    const flat = 'sprites/' + name + '/' + name + '.png';
+    const fb = await readBlob(flat);
+    if (fb) return { bitmap: await createImageBitmap(fb), path: flat };
+  }
+  return null;
+}
+
+async function loadSprite(name) {
+  if (S.mode === 'demo') { await loadDemoSprite(); return; }
+  const yyText = await readText('sprites/' + name + '/' + name + '.yy');
+  if (yyText == null) throw new Error('No encuentro sprites/' + name + '/' + name + '.yy');
+  const meta = C.parseSpriteYy(yyText);
+  if (!meta || !meta.frames.length) throw new Error('El .yy de ' + name + ' no tiene frames');
+  const frameIdx = await buildFrameIndex(name);
+  const bitmaps = [], framePaths = [];
+  for (const fg of meta.frames) {
+    const r = await loadFrameBitmap(name, fg, meta, frameIdx.get(fg) || []);
+    if (r) { bitmaps.push(r.bitmap); framePaths.push(r.path); }
+    else { bitmaps.push(null); framePaths.push(null); }
+  }
+  const first = bitmaps.find(b => b);
+  if (!first) throw new Error('No encuentro los PNG de los frames de ' + name +
+    ': probé sprites/' + name + '/layers/<frame>/*.png y sprites/' + name + '/<frame>.png');
+  S.spr = {
+    name: name, path: 'sprites/' + name + '/',
+    n: meta.frames.length, w: first.width, h: first.height,
+    bitmaps: bitmaps, framePaths: framePaths,
+    playbackSpeed: meta.playbackSpeed
+  };
+}
+
+// Solo para tests automatizados: engancha un handle de directorio como
+// si la usuaria hubiera hecho «Abrir carpeta» (modo fs).
+async function attachFs(rootHandle) {
+  S.mode = 'fs'; S.rootHandle = rootHandle; S.files = null;
+  await scanProject();
+}
+
+async function frameCountOf(name) {
+  if (S.fcCache.has(name)) return S.fcCache.get(name);
+  let n = null;
+  if (S.mode === 'demo' && name === 'spr_chapo_idle') n = 36;
+  else {
+    const t = await readText('sprites/' + name + '/' + name + '.yy');
+    if (t != null) { const m = C.parseSpriteYy(t); if (m) n = m.frames.length; }
+  }
+  if (n != null) S.fcCache.set(name, n);
+  return n;
+}
+
+/* ------------------------------- modo demo ------------------------------- */
+
+function drawDemoFrame(ctx, t) {
+  const cx = 32, cy = 34;
+  const bob = Math.sin((t / 36) * Math.PI * 2) * 2;
+  const squash = 1 + Math.sin((t / 18) * Math.PI) * 0.06;
+  ctx.clearRect(0, 0, 64, 64);
+  ctx.fillStyle = 'rgba(0,0,0,.28)';
+  ctx.beginPath(); ctx.ellipse(32, 58, 12 - bob * 0.6, 3, 0, 0, 7); ctx.fill();
+  const r = 16;
+  ctx.save(); ctx.translate(cx, cy + bob); ctx.scale(squash, 1 / squash);
+  ctx.fillStyle = '#2ea6a0';
+  ctx.beginPath(); ctx.arc(0, 0, r, Math.PI, 0); ctx.lineTo(r, r * 0.8);
+  for (let i = 0; i <= 6; i++) ctx.lineTo(r - (r * 2) * (i / 6), r * 0.8 + (i % 2 ? 3 : 0));
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#d8f3f1';
+  ctx.beginPath(); ctx.ellipse(0, r * 0.45, r * 0.62, r * 0.42, 0, 0, 7); ctx.fill();
+  const blink = (t >= 30 && t <= 33);
+  ctx.fillStyle = '#132b2a';
+  if (blink) { ctx.fillRect(-7.5, -4, 6, 2); ctx.fillRect(2.5, -4, 6, 2); }
+  else {
+    ctx.beginPath(); ctx.arc(-4.5, -3, 2.6, 0, 7); ctx.arc(5.5, -3, 2.6, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(-3.8, -3.9, 0.9, 0, 7); ctx.arc(6.2, -3.9, 0.9, 0, 7); ctx.fill();
+  }
+  ctx.strokeStyle = '#2ea6a0'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, -r);
+  ctx.quadraticCurveTo(4, -r - 6, 7 + Math.sin(t / 9) * 2, -r - 10); ctx.stroke();
+  ctx.fillStyle = '#ffd166';
+  ctx.beginPath(); ctx.arc(7 + Math.sin(t / 9) * 2, -r - 10, 3, 0, 7); ctx.fill();
+  ctx.restore();
+}
+
+async function loadDemoSprite() {
+  const bitmaps = [];
+  for (let i = 0; i < 36; i++) {
+    const cv = document.createElement('canvas'); cv.width = 64; cv.height = 64;
+    drawDemoFrame(cv.getContext('2d'), i);
+    bitmaps.push(await createImageBitmap(cv));
+  }
+  S.spr = { name: 'spr_chapo_idle', path: 'sprites/spr_chapo_idle/ (demo)', n: 36, w: 64, h: 64, bitmaps, framePaths: [], playbackSpeed: 30 };
+}
+
+async function startDemo() {
+  S.mode = 'demo'; S.files = null; S.rootHandle = null;
+  S.demoFiles = new Map(Object.entries({
+    'objects/obj_chapo/Draw_76.gml':
+      'var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;\n' +
+      'sprite_index = arr[? CHARACTER_CHAPO][state];\n\nswitch(state)\n{\n' +
+      '\tcase IDLE:\n\t\timage_speed = 1;\n\t\tbreak;\n\n' +
+      '\tcase WALK:\n\t\timage_speed = 0.2 + (abs(xspd) / (maxHSpeed));\n\t\tbreak;\n\n' +
+      '\tcase LOOKUP:\n\tcase LOOKDOWN:\n\t\timage_speed = 0.2;\n\n\t\tif(image_index >= 1)\n\t\t\timage_index = 1;\n\n\t\tbreak;\n}',
+    'objects/obj_chapo/Other_7.gml':
+      'switch(state)\n{\n\tcase IDLE:\n\t\timage_index = image_number - 12;\n\t\tbreak;\n}',
+    'objects/obj_chapo/Step_2.gml':
+      '#macro CHAPO_DASH BALANCING+1\n',
+    'objects/obj_chapo/Create_0.gml':
+      '#macro CHAPO_DASH_RECHARGE (60 * 12)\n#macro CHAPO_JUMP_RECHARGE (60 * 3)\n'
+  }));
+  S.chars = [{
+    key: 'CHARACTER_CHAPO', name: 'CHAPO', idx: 0, obj: 'obj_chapo',
+    anims: [
+      { spr: 'spr_chapo_idle', idx: 0, label: 'IDLE', comment: '0' },
+      { spr: 'spr_chapo_idle', idx: 1, label: 'WALK', comment: '1' },
+      { spr: 'spr_chapo_idle', idx: 7, label: 'LOOKUP', comment: '7' },
+      { spr: 'spr_chapo_idle', idx: 14, label: 'CHAPO_DASH', comment: '14 = CHAPO_DASH' }
+    ], eanims: null
+  }];
+  S.exes = [];
+  await scanProject();
+  toast('Modo demo: bicho de prueba con 36 frames. Abre tu carpeta del proyecto para editar de verdad.');
+}
+
+/* ------------------------- selección de personaje/estado ------------------------- */
+
+async function selectChar(c, isExe) {
+  S.char = c; S.isExe = !!isExe;
+  S.table = 'anims'; $('#chk-demon').checked = false;
+  S.entries = (c.anims || []);
+  const obj = c.obj;
+  S.gml.step2 = await readText('objects/' + obj + '/Step_2.gml') || '';
+  S.gml.create0 = await readText('objects/' + obj + '/Create_0.gml') || '';
+  S.gml.draw76 = await readText('objects/' + obj + '/Draw_76.gml') || '';
+  S.gml.other7 = await readText('objects/' + obj + '/Other_7.gml') || '';
+  S.gmlOk = {
+    draw76: !!S.gml.draw76, other7: !!S.gml.other7,
+    step2: !!S.gml.step2, create0: !!S.gml.create0
+  };
+  S.states = C.parseObjectStates(S.gml.step2);
+  const demonLine = $('#demon-line');
+  demonLine.classList.toggle('hidden', isExe || !c.eanims);
+  renderCharList(); renderStates(); renderGamePanel(); clearSpriteView();
+}
+
+function useTable(t) {
+  S.table = t;
+  S.entries = (t === 'eanims' ? (S.char && S.char.eanims) : (S.char && S.char.anims)) || [];
+  renderStates(); clearSpriteView();
+}
+
+function stateNameFor(e) {
+  if (e.idx < C.BASE_STATES.length) return C.BASE_STATES[e.idx];
+  return S.states[e.idx] || String(e.idx);
+}
+
+async function selectState(e) {
+  S.sel = e;
+  S.sel.stateName = stateNameFor(e);
+  try { await loadSprite(e.spr); }
+  catch (err) {
+    toast(err.message, 'err');
+    S.spr = null; renderTimeline(); computeEdits(); renderGamePanel();
+    return;
+  }
+  // valores actuales del archivo
+  const gs = S.gml.draw76 ? C.getImageSpeed(S.gml.draw76, S.sel.stateName) : null;
+  if (gs && gs.found && !gs.dynamic) {
+    const v = parseFloat(gs.expr);
+    S.player.speed = isFinite(v) && v > 0 ? v : 1;
+  } else S.player.speed = 1;
+  S.player.dynamic = !!(gs && gs.found && gs.dynamic);
+  S.player.dynExpr = gs && gs.found ? gs.expr : null;
+  const n = S.spr.n;
+  const N = S.gml.other7 ? C.getIdleLoop(S.gml.other7, S.sel.stateName) : null;
+  S.markers.a = (N != null && n > N) ? n - N : 0;
+  S.markers.b = n - 1;
+  S.player.idx = 0; S.player.playing = true;
+  S.player.onePass = /ATTACK|HJUMP|DASH|SPINDASH|FIREBALL|SECUESTRO|LAUNCH|STOMP|LAZER/.test(S.sel.stateName);
+  syncControls(); renderTimeline(); renderGamePanel(); computeEdits();
+  fillFrameCounts();
+}
+
+function clearSelection() {
+  S.char = null; S.sel = null; S.spr = null; S.entries = [];
+  renderCharList(); renderStates(); renderGamePanel(); computeEdits(); clearSpriteView();
+}
+
+function clearSpriteView() {
+  S.spr = null; renderTimeline();
+  const cv = $('#viewer'), ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  $('#viewer-hud').textContent = 'elige un personaje y un estado';
+}
+
+// fin de la parte 1 (la parte 2 sigue en el mismo <script>)
+
+/* ===== Editor de Animaciones TD2D — parte 2: interfaz, reproductor, escritura ===== */
+
+/* --------------------------------- utilidades --------------------------------- */
+
+function toast(msg, kind) {
+  const d = document.createElement('div');
+  d.className = 'toast ' + (kind || '');
+  d.textContent = msg;
+  $('#toasts').appendChild(d);
+  setTimeout(() => d.classList.add('gone'), 3200);
+  setTimeout(() => d.remove(), 3600);
+}
+
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+const CELL_W = 58;
+
+/* --------------------------- listas laterales --------------------------- */
+
+function renderCharList() {
+  const host = $('#char-list');
+  let html = '';
+  html += '<div class="grp">Supervivientes</div>';
+  for (const c of S.chars) {
+    const sel = (S.char === c && !S.isExe) ? ' sel' : '';
+    html += '<button class="charbtn' + sel + '" data-char="' + S.chars.indexOf(c) + '">' +
+      esc(c.name) + '<span class="obj">' + esc(c.obj || '?') + '</span></button>';
+  }
+  if (S.exes.length) {
+    html += '<div class="grp">Killers (exe)</div>';
+    for (const e of S.exes) {
+      const sel = (S.char === e && S.isExe) ? ' sel' : '';
+      html += '<button class="charbtn exe' + sel + '" data-exe="' + S.exes.indexOf(e) + '">' +
+        esc(e.name) + '<span class="obj">' + esc(e.obj || '?') + '</span></button>';
+    }
+  }
+  host.innerHTML = html;
+}
+
+function renderStates() {
+  const host = $('#state-list');
+  const block = $('#state-block');
+  if (!S.char) { block.classList.add('hidden'); host.innerHTML = ''; return; }
+  block.classList.remove('hidden');
+  $('#state-title').textContent = (S.isExe ? 'Estados de ' : 'Estados de ') + S.char.name +
+    (S.table === 'eanims' ? ' (demonizada)' : '');
+  let html = '';
+  S.entries.forEach((e, i) => {
+    html += '<button class="stbtn' + (S.sel === e ? ' sel' : '') + '" data-i="' + i + '">' +
+      '<b>' + esc(e.label) + '</b><span class="spr" data-spr="' + esc(e.spr) + '">' + esc(e.spr) + '</span>' +
+      '<span class="fc" data-fc="' + esc(e.spr) + '">…</span></button>';
+  });
+  host.innerHTML = html;
+  fillFrameCounts();
+}
+
+async function fillFrameCounts() {
+  const els = $$('#state-list .fc');
+  for (const el of els) {
+    const n = await frameCountOf(el.dataset.fc);
+    el.textContent = n == null ? '✕' : n + 'f';
+  }
+}
+
+function renderSpriteList() {
+  const host = $('#sprite-list');
+  const q = ($('#spr-search').value || '').toLowerCase();
+  const names = [...S.spriteNames].filter(n => !q || n.toLowerCase().includes(q)).sort();
+  const cap = 400;
+  let html = '';
+  for (const n of names.slice(0, cap)) {
+    html += '<button class="sprbtn" data-spr="' + esc(n) + '">' + esc(n) + '</button>';
+  }
+  if (names.length > cap) html += '<div class="muted">…' + (names.length - cap) + ' más (afina la búsqueda)</div>';
+  host.innerHTML = html || '<div class="muted">sin sprites</div>';
+}
+
+async function selectSpriteOnly(name) {
+  try { await loadSprite(name); }
+  catch (err) { toast(err.message, 'err'); return; }
+  S.sel = null;
+  S.markers.a = 0; S.markers.b = S.spr.n - 1;
+  S.player.idx = 0; S.player.playing = true; S.player.speed = 1;
+  S.player.dynamic = false; S.player.dynExpr = null; S.player.onePass = false;
+  syncControls(); renderTimeline(); renderGamePanel(); computeEdits();
+  toast('Vista de sprite suelto: ' + name + ' (' + S.spr.n + ' frames). Sin personaje, no se escribe nada.');
+}
+
+/* --------------------------------- reproductor --------------------------------- */
+
+function drawViewer() {
+  const cv = $('#viewer'), ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+  if (!S.spr) return;
+  // fondo
+  if (S.bg === 'dark') { ctx.fillStyle = '#15181d'; ctx.fillRect(0, 0, W, H); }
+  else if (S.bg === 'light') { ctx.fillStyle = '#e8e8e8'; ctx.fillRect(0, 0, W, H); }
+  else if (S.bg === 'magenta') { ctx.fillStyle = '#c040c0'; ctx.fillRect(0, 0, W, H); }
+  else { // checker
+    ctx.fillStyle = '#23262c'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#2b2f36';
+    for (let y = 0; y < H; y += 16)
+      for (let x = ((y / 16) % 2) * 16; x < W; x += 32) ctx.fillRect(x, y, 16, 16);
+  }
+  const spr = S.spr;
+  const fit = Math.max(1, Math.floor(Math.min((W - 20) / spr.w, (H - 20) / spr.h)));
+  const z = S.zoom === 0 ? fit : S.zoom; // 0 = auto
+  const dw = spr.w * z, dh = spr.h * z;
+  const dx = Math.floor((W - dw) / 2), dy = Math.floor((H - dh) / 2);
+  const f = Math.min(spr.n - 1, Math.floor(S.player.idx));
+  ctx.imageSmoothingEnabled = false;
+  // línea de suelo
+  ctx.strokeStyle = 'rgba(255,255,255,.12)';
+  ctx.beginPath(); ctx.moveTo(0, dy + dh); ctx.lineTo(W, dy + dh); ctx.stroke();
+  if (S.onion && f > 0 && spr.bitmaps[f - 1]) {
+    ctx.globalAlpha = 0.25;
+    ctx.drawImage(spr.bitmaps[f - 1], dx, dy, dw, dh);
+    ctx.globalAlpha = 1;
+  }
+  if (spr.bitmaps[f]) ctx.drawImage(spr.bitmaps[f], dx, dy, dw, dh);
+}
+
+function updateFrameLabel() {
+  const hud = $('#viewer-hud');
+  if (!S.spr) { return; }
+  const n = S.spr.n, f = clamp(Math.floor(S.player.idx), 0, n - 1);
+  const a = S.markers.a, b = S.markers.b;
+  const span = b - a + 1;
+  const secs = span / Math.max(0.01, S.player.speed * 60);
+  const modoLoop = S.player.onePass ? 'una pasada'
+    : (b < n - 1 ? 'loop A–B' : (a > 0 ? 'entrulla + cola' : 'bucle completo'));
+  hud.textContent = 'frame ' + (f + 1) + '/' + n +
+    '  ·  ' + modoLoop +
+    (a > 0 || b < n - 1 ? '  ·  A=' + (a + 1) + ' B=' + (b + 1) : '') +
+    '  ·  vel ' + C.fmtSpeed(S.player.speed) + ' (' + Math.round(S.player.speed * 60) + ' fps)' +
+    '  ·  loop: ' + span + 'f ≈ ' + secs.toFixed(2) + ' s';
+}
+
+function updateCursor() {
+  if (!S.spr) return;
+  const cur = $('#mk-cur');
+  const f = clamp(Math.floor(S.player.idx), 0, S.spr.n - 1);
+  cur.style.left = (f * CELL_W + CELL_W / 2 - 1) + 'px';
+  // seguir con scroll suave si corre
+  const wrap = $('#tl-wrap');
+  const x = f * CELL_W;
+  if (S.player.playing) {
+    if (x > wrap.scrollLeft + wrap.clientWidth - 3 * CELL_W) wrap.scrollLeft = x - 3 * CELL_W;
+    if (x < wrap.scrollLeft) wrap.scrollLeft = Math.max(0, x - CELL_W);
+  }
+}
+
+function tick(t) {
+  requestAnimationFrame(tick);
+  const p = S.player;
+  const dt = Math.min(0.05, ((t - p.tPrev) / 1000) || 0);
+  p.tPrev = t;
+  if (S.spr && p.playing && S.spr.n > 1) {
+    const n = S.spr.n;
+    let idx = p.idx + p.speed * dt * 60;
+    if (p.onePass) {
+      if (idx >= n) { idx = n - 1; p.playing = false; syncPlayBtn(); }
+    } else if (S.markers.b < n - 1) {
+      const span = Math.max(1, S.markers.b + 1 - S.markers.a);
+      if (idx >= S.markers.b + 1) idx = S.markers.a + ((idx - (S.markers.b + 1)) % span);
+    } else {
+      const start = S.markers.a > 0 ? S.markers.a : 0;
+      const span = Math.max(1, n - start);
+      if (idx >= n) idx = start + ((idx - n) % span);
+    }
+    p.idx = idx;
+  }
+  drawViewer(); updateFrameLabel(); updateCursor();
+}
+
+function syncPlayBtn() {
+  $('#btn-play').textContent = S.player.playing ? '❚❚ Pausa' : '▶ Reproducir';
+}
+
+/* ---------------------------------- línea de tiempo ---------------------------------- */
+
+// Los divs de región viven DENTRO de #tl-regions: si algo los borra, se recrean.
+function ensureRegions() {
+  if (!document.querySelector('#rg-intro') || !document.querySelector('#rg-loop')) {
+    $('#tl-regions').innerHTML = '<div id="rg-intro" class="hidden"></div><div id="rg-loop"></div>';
+  }
+}
+
+function renderTimeline() {
+  const track = $('#tl-track');
+  ensureRegions();
+  if (!S.spr) {
+    track.innerHTML = '';
+    $('#rg-intro').classList.add('hidden');
+    $('#rg-loop').classList.add('hidden');
+    $('#mk-a').classList.add('hidden'); $('#mk-b').classList.add('hidden'); $('#mk-cur').classList.add('hidden');
+    return;
+  }
+  const n = S.spr.n;
+  let html = '';
+  for (let i = 0; i < n; i++) {
+    html += '<canvas class="cell" width="' + (CELL_W - 6) + '" height="46" data-f="' + i + '" title="frame ' + (i + 1) + '"></canvas>';
+  }
+  track.innerHTML = html;
+  track.style.width = (n * CELL_W) + 'px';
+  $('#tl-regions').style.width = (n * CELL_W) + 'px';
+  const cells = $$('#tl-track .cell');
+  cells.forEach((cv, i) => {
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    const bm = S.spr.bitmaps[i];
+    if (bm) {
+      const sc = Math.min((cv.width - 4) / S.spr.w, (cv.height - 4) / S.spr.h);
+      const dw = S.spr.w * sc, dh = S.spr.h * sc;
+      ctx.drawImage(bm, (cv.width - dw) / 2, (cv.height - dh) / 2, dw, dh);
+    } else {
+      ctx.fillStyle = '#533'; ctx.fillRect(0, 0, cv.width, cv.height);
+    }
+  });
+  $('#mk-a').classList.remove('hidden');
+  $('#mk-b').classList.remove('hidden');
+  $('#mk-cur').classList.remove('hidden');
+  ensureRegions();
+  positionMarkers();
+}
+
+function positionMarkers() {
+  if (!S.spr) return;
+  ensureRegions();
+  const n = S.spr.n;
+  $('#mk-a').style.left = (S.markers.a * CELL_W - 1) + 'px';
+  $('#mk-b').style.left = ((S.markers.b + 1) * CELL_W - 3) + 'px';
+  $('#mk-a .lbl').textContent = 'A ' + (S.markers.a + 1);
+  $('#mk-b .lbl').textContent = 'B ' + (S.markers.b + 1);
+  // regiones + clases de celdas
+  const a = S.markers.a, b = S.markers.b;
+  const rIntro = $('#rg-intro'), rLoop = $('#rg-loop');
+  if (a > 0) {
+    rIntro.style.left = '0px'; rIntro.style.width = (a * CELL_W) + 'px';
+    rIntro.classList.remove('hidden');
+    rIntro.setAttribute('data-label', 'se ve 1 vez (' + a + 'f)');
+  } else rIntro.classList.add('hidden');
+  rLoop.style.left = (a * CELL_W) + 'px';
+  rLoop.style.width = ((b - a + 1) * CELL_W) + 'px';
+  rLoop.classList.remove('hidden');
+  rLoop.setAttribute('data-label', 'LOOP (' + (b - a + 1) + 'f)');
+  $$('#tl-track .cell').forEach((cv, i) => {
+    cv.classList.toggle('in-intro', i < a);
+    cv.classList.toggle('in-loop', i >= a && i <= b);
+  });
+  // inputs
+  $('#in-a').value = a + 1; $('#in-a').max = n;
+  $('#in-b').value = b + 1; $('#in-b').max = n;
+  // texto de lo que se escribiría
+  const info = $('#loop-writeinfo');
+  if (!S.sel) { info.textContent = 'vista de sprite suelto'; }
+  else if (b < n - 1) {
+    info.textContent = 'se escribirá en Draw_76: if(image_index >= ' + (b + 1) + ') image_index = ' + a + ';';
+  } else if (a > 0) {
+    info.textContent = 'se escribirá en Other_7: image_index = image_number - ' + (n - a) + ';';
+  } else {
+    info.textContent = 'bucle natural: no hace falta escribir nada de loop';
+  }
+}
+
+function setMarker(which, f) {
+  if (!S.spr) return;
+  const n = S.spr.n;
+  let a = S.markers.a, b = S.markers.b;
+  if (which === 'a') { a = clamp(f, 0, b); }
+  else { b = clamp(f, a, n - 1); }
+  S.markers.a = a; S.markers.b = b;
+  positionMarkers(); computeEdits();
+}
+
+/* -------------------------------- panel "en el juego" -------------------------------- */
+
+function renderGamePanel() {
+  const host = $('#game-panel');
+  if (!S.char) { host.innerHTML = '<div class="muted">elige un personaje</div>'; $('#cd-list').innerHTML = ''; return; }
+  const obj = S.char.obj;
+  let html = '';
+  html += '<div class="kv"><span>objeto</span><b>' + esc(obj) + '</b></div>';
+  if (S.sel) {
+    html += '<div class="kv"><span>estado</span><b>' + esc(S.sel.stateName) + ' (' + S.sel.idx + ')</b></div>';
+    html += '<div class="kv"><span>tira</span><b>' + esc(S.sel.spr) + (S.spr ? ' · ' + S.spr.n + 'f · ' + S.spr.w + '×' + S.spr.h : '') + '</b></div>';
+    const gs = S.gml.draw76 ? C.getImageSpeed(S.gml.draw76, S.sel.stateName) : null;
+    if (!S.gml.draw76) html += '<div class="kv warn"><span>Draw_76</span><b>no existe</b></div>';
+    else if (!gs) html += '<div class="kv"><span>image_speed</span><b>sin case (usa 1 por defecto)</b></div>';
+    else if (!gs.found) html += '<div class="kv"><span>image_speed</span><b>case sin image_speed</b></div>';
+    else html += '<div class="kv"><span>image_speed</span><b class="' + (gs.dynamic ? 'dyn' : '') + '">' +
+      esc(gs.expr) + (gs.dynamic ? '  [FÓRMULA]' : '') + '</b></div>' +
+      (gs.shared ? '<div class="kv"><span>case compartido</span><b>' + gs.shared.join(' + ') + '</b></div>' : '');
+    const N = S.gml.other7 ? C.getIdleLoop(S.gml.other7, S.sel.stateName) : null;
+    if (!S.gml.other7) html += '<div class="kv warn"><span>Other_7</span><b>no existe</b></div>';
+    else if (N != null) html += '<div class="kv"><span>Other_7 (repeticion)</span><b>image_number - ' + N + ' → repite los últimos ' + N + 'f</b></div>';
+    else html += '<div class="kv"><span>Other_7 (repeticion)</span><b>sin case (bucle completo)</b></div>';
+    if (S.spr) {
+      const a = S.markers.a, b = S.markers.b, n = S.spr.n;
+      const tail = n - a;
+      html += '<div class="kv"><span>vista previa del loop</span><b>' +
+        (b < n - 1 ? 'A–B por guard (' + (a + 1) + '→' + (b + 1) + ')'
+          : a > 0 ? 'entrulla + últimos ' + tail + 'f' : 'tira completa') + '</b></div>';
+    }
+  }
+  html += '<div class="note">El frame exacto viaja por red (CLIENT_PLAYER_DATA): si cambias la velocidad, los demás clientes lo ven sin tocar nada más. No hay que recompilar el server.</div>';
+  host.innerHTML = html;
+  // recargas
+  const cds = S.gml.create0 ? C.parseCooldowns(S.gml.create0) : [];
+  $('#cd-list').innerHTML = cds.map(c =>
+    '<div class="kv"><span>' + esc(c.name.replace(/_RECHARGE$/, '')) + '</span><b>' + c.seconds + ' s</b></div>'
+  ).join('') || '<div class="muted">sin recargas en Create_0</div>';
+}
+
+/* ----------------------------- cambios a escribir ----------------------------- */
+
+function caseSnippet(state, speed) {
+  return 'case ' + state + ':\n\timage_speed = ' + speed + ';\n\tbreak;';
+}
+
+function computeEdits() {
+  S.edits = [];
+  S.pendingFiles = {};
+  if (!S.sel || !S.spr) { renderEdits(); return; }
+  const st = S.sel.stateName, n = S.spr.n, obj = S.char.obj;
+  const a = S.markers.a, b = S.markers.b;
+  const newSpeed = C.fmtSpeed(S.player.speed);
+
+  let drawGml = S.gml.draw76 || '';
+  let otherGml = S.gml.other7 || '';
+  const origDraw = drawGml, origOther = otherGml;
+  const relDraw = 'objects/' + obj + '/Draw_76.gml';
+  const relOther = 'objects/' + obj + '/Other_7.gml';
+
+  // 1) velocidad
+  if (S.gml.draw76) {
+    const cur = C.getImageSpeed(drawGml, st);
+    if (cur && cur.found && cur.expr !== newSpeed) {
+      const r = C.setImageSpeed(drawGml, st, newSpeed);
+      if (r.changed) drawGml = r.gml;
+    } else if (cur && !cur.found) {
+      const r = C.setImageSpeed(drawGml, st, newSpeed);
+      if (r.changed) drawGml = r.gml;
+    } else if (!cur) {
+      S.edits.push({
+        kind: 'speed-nocase', file: relDraw, snippetOnly: true,
+        title: 'image_speed de ' + st + ' (el case NO existe todavía)',
+        snippet: caseSnippet(st, newSpeed)
+      });
+    }
+  }
+
+  // 2) loop
+  if (b < n - 1) {
+    if (S.gml.draw76) {
+      const r = C.setLoopGuard(drawGml, st, a, b);
+      if (r.changed) drawGml = r.gml;
+    }
+  } else if (a > 0) {
+    const N = n - a;
+    if (S.gml.other7) {
+      const r = C.setIdleLoop(otherGml, st, N);
+      if (r.changed) otherGml = r.gml;
+    } else {
+      S.edits.push({
+        kind: 'idle-noother', file: relOther, snippetOnly: true,
+        title: 'punto de repetición de ' + st + ' (Other_7 NO existe)',
+        snippet: 'switch(state)\n{\n\tcase ' + st + ':\n\t\timage_index = image_number - ' + N + ';\n\t\tbreak;\n}'
+      });
+    }
+  }
+
+  const cur = S.gml.draw76 ? C.getImageSpeed(origDraw, st) : null;
+  if (drawGml !== origDraw) {
+    S.pendingFiles[relDraw] = drawGml;
+    S.edits.push({
+      kind: 'draw76', file: relDraw, dynamic: !!(cur && cur.found && cur.dynamic),
+      oldExpr: cur && cur.found ? cur.expr : null, shared: cur && cur.shared,
+      before: C.caseBlockText(origDraw, st),
+      after: C.caseBlockText(drawGml, st), gml: drawGml
+    });
+  }
+  if (otherGml !== origOther) {
+    S.pendingFiles[relOther] = otherGml;
+    S.edits.push({
+      kind: 'other7', file: relOther,
+      before: C.caseBlockText(origOther, st) || '(case nuevo)',
+      after: C.caseBlockText(otherGml, st), gml: otherGml
+    });
+  }
+  renderEdits();
+}
+
+function diffHtml(before, after) {
+  const d = C.lineDiff(before || '', after || '');
+  let html = '';
+  for (const l of d) {
+    const cls = l.t === '-' ? 'del' : l.t === '+' ? 'add' : '';
+    html += '<span class="' + cls + '">' + esc(l.s || ' ') + '</span>\n';
+  }
+  return html;
+}
+
+function renderEdits() {
+  const host = $('#edits-list');
+  const actions = $('#write-actions');
+  if (!S.sel) {
+    host.innerHTML = '<div class="muted">' + (S.spr ? 'sprite suelto: nada que escribir' : 'elige personaje y estado') + '</div>';
+    actions.classList.add('hidden');
+    return;
+  }
+  if (!S.edits.length) {
+    host.innerHTML = '<div class="okline">Nada que escribir: lo que ves ya coincide con los archivos.</div>';
+    actions.classList.add('hidden');
+    return;
+  }
+  let html = '';
+  for (const e of S.edits) {
+    html += '<div class="editcard" data-file="' + esc(e.file) + '">';
+    html += '<div class="edhead"><b>' + esc(e.file.split('/').pop()) + '</b><span class="edpath">' + esc(e.file) + '</span></div>';
+    if (e.snippetOnly) {
+      html += '<div class="edtitle">' + esc(e.title) + ' — cópialo y pégalo dentro del switch(state) del archivo:</div>';
+      html += '<pre class="snip">' + esc(e.snippet) + '</pre>';
+    } else {
+      if (e.dynamic) html += '<div class="warnline">OJO: reemplaza la FÓRMULA «' + esc(e.oldExpr) + '» por un número fijo (pierde la variación con la velocidad del personaje).</div>';
+      if (e.shared) html += '<div class="sharedline">case compartido por ' + e.shared.join(' y ') + ': el cambio afecta a los dos estados.</div>';
+      html += '<pre class="diff">' + diffHtml(e.before, e.after) + '</pre>';
+    }
+    html += '<div class="edbtns"><button class="copyblock">Copiar bloque</button></div>';
+    html += '</div>';
+  }
+  host.innerHTML = html;
+  actions.classList.remove('hidden');
+  $('#btn-write').disabled = S.mode !== 'fs';
+  $('#btn-write').title = S.mode === 'fs' ? '' : 'solo disponible con "Abrir carpeta" (Chrome/Edge)';
+  $('#btn-undo').disabled = !S.undo.length;
+}
+
+/* --------------------------------- escribir --------------------------------- */
+
+async function ensureDir(path) {
+  const parts = normPath(path).split('/');
+  let dh = S.rootHandle;
+  for (const p of parts) dh = await dh.getDirectoryHandle(p, { create: true });
+  return dh;
+}
+
+async function writeEdits() {
+  if (S.mode !== 'fs') {
+    toast('Modo solo lectura: usa «Copiar archivo entero» y pégalo en GameMaker.', 'warn');
+    return;
+  }
+  const keys = Object.keys(S.pendingFiles || {});
+  if (!keys.length) { toast('No hay cambios que escribir.'); return; }
+  if (S.edits.some(e => e.dynamic)) {
+    if (!confirm('Vas a REEMPLAZAR una fórmula dinámica (depende de xspd, carga...) por un número fijo.\n\nEl case dejará de variar con la velocidad del personaje. ¿Continuar?')) return;
+  }
+  const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  const undoGroup = [];
+  try {
+    const bdir = await ensureDir('_backups_animeditor/' + stamp);
+    for (const rel of keys) {
+      const fh = await fsWalkFile(rel);
+      const old = await (await fh.getFile()).text();
+      const base = rel.split('/').pop();
+      const bfh = await bdir.getFileHandle(base, { create: true });
+      let w = await bfh.createWritable(); await w.write(old); await w.close();
+      const nw = await fh.createWritable();
+      await nw.write(S.pendingFiles[rel]);
+      await nw.close();
+      undoGroup.push({ rel: rel, backup: '_backups_animeditor/' + stamp + '/' + base });
+    }
+  } catch (e) {
+    toast('Error al escribir: ' + e.message, 'err');
+    return;
+  }
+  S.undo.push(undoGroup);
+  S.gml.draw76 = await readText('objects/' + S.char.obj + '/Draw_76.gml') || '';
+  S.gml.other7 = await readText('objects/' + S.char.obj + '/Other_7.gml') || '';
+  renderGamePanel(); computeEdits();
+  toast('Escrito en ' + keys.length + ' archivo(s). Copia de seguridad en _backups_animeditor/' + stamp + '/');
+}
+
+async function undoLast() {
+  const g = S.undo.pop();
+  if (!g) { toast('Nada que deshacer.'); return; }
+  try {
+    for (const it of g) {
+      const txt = await readText(it.backup);
+      if (txt == null) { toast('No encuentro la copia: ' + it.backup, 'err'); return; }
+      const fh = await fsWalkFile(it.rel);
+      const w = await fh.createWritable(); await w.write(txt); await w.close();
+    }
+  } catch (e) { toast('Error al deshacer: ' + e.message, 'err'); return; }
+  S.gml.draw76 = await readText('objects/' + S.char.obj + '/Draw_76.gml') || '';
+  S.gml.other7 = await readText('objects/' + S.char.obj + '/Other_7.gml') || '';
+  renderGamePanel(); computeEdits();
+  toast('Deshecho: archivos restaurados desde la copia.');
+}
+
+/* --------------------------------- copiar --------------------------------- */
+
+async function copyText(txt, what) {
+  if (!txt) { toast('Nada que copiar.'); return; }
+  try { await navigator.clipboard.writeText(txt); toast('Copiado: ' + what); }
+  catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); toast('Copiado: ' + what); }
+    catch (e2) { toast('No pude copiar automáticamente; selecciona el texto a mano.', 'err'); }
+    ta.remove();
+  }
+}
+
+function copyBlock(btn) {
+  const card = btn.closest('.editcard');
+  if (!card) return;
+  const e = S.edits.find(x => x.file === card.dataset.file);
+  if (!e) return;
+  copyText(e.snippetOnly ? e.snippet : e.after, 'bloque del case');
+}
+
+function copyWhole(which) {
+  if (!S.pendingFiles) { toast('Nada que copiar.'); return; }
+  if (which === 'other7') {
+    const rel = Object.keys(S.pendingFiles).find(r => r.endsWith('Other_7.gml'));
+    if (rel) return copyText(S.pendingFiles[rel], 'Other_7.gml entero');
+    toast('No hay cambios en Other_7.');
+  } else {
+    const rel = Object.keys(S.pendingFiles).find(r => r.endsWith('Draw_76.gml'));
+    if (rel) return copyText(S.pendingFiles[rel], 'Draw_76.gml entero');
+    toast('No hay cambios en Draw_76.');
+  }
+}
+
+/* --------------------------------- controles --------------------------------- */
+
+function syncControls() {
+  $('#in-speed').value = S.player.speed;
+  $('#num-speed').value = C.fmtSpeed(S.player.speed);
+  $('#chk-once').checked = S.player.onePass;
+  $('#chk-onion').checked = S.onion;
+  $('#sel-bg').value = S.bg;
+  $$('#zoom-row button').forEach(b => b.classList.toggle('sel', +b.dataset.z === S.zoom));
+  syncPlayBtn();
+}
+
+function init() {
+  $('#btn-open').addEventListener('click', openFs);
+  $('#btn-open-ro').addEventListener('click', () => $('#dir-input').click());
+  $('#dir-input').addEventListener('change', (e) => { openFiles(e.target.files); e.target.value = ''; });
+  $('#btn-demo').addEventListener('click', startDemo);
+  $('#btn-help').addEventListener('click', () => $('#help').showModal());
+  $('#help-close').addEventListener('click', () => $('#help').close());
+
+  // pestañas laterales
+  $$('.tab').forEach(t => t.addEventListener('click', () => {
+    $$('.tab').forEach(x => x.classList.toggle('active', x === t));
+    $$('.tabpane').forEach(p => p.classList.toggle('hidden', p.id !== 'tab-' + t.dataset.tab));
+  }));
+  $('#spr-search').addEventListener('input', renderSpriteList);
+
+  // listas (delegación)
+  $('#char-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.charbtn'); if (!b) return;
+    if (b.dataset.char != null) selectChar(S.chars[+b.dataset.char], false);
+    else if (b.dataset.exe != null) selectChar(S.exes[+b.dataset.exe], true);
+  });
+  $('#state-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.stbtn'); if (!b) return;
+    selectState(S.entries[+b.dataset.i]);
+  });
+  $('#sprite-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.sprbtn'); if (!b) return;
+    selectSpriteOnly(b.dataset.spr);
+  });
+  $('#chk-demon').addEventListener('change', (e) => useTable(e.target.checked ? 'eanims' : 'anims'));
+
+  // transporte
+  $('#btn-play').addEventListener('click', () => { S.player.playing = !S.player.playing; syncPlayBtn(); });
+  $('#btn-first').addEventListener('click', () => { S.player.idx = 0; });
+  $('#btn-prev').addEventListener('click', () => { S.player.playing = false; syncPlayBtn(); S.player.idx = clamp(Math.floor(S.player.idx) - 1, 0, (S.spr ? S.spr.n - 1 : 0)); });
+  $('#btn-next').addEventListener('click', () => { S.player.playing = false; syncPlayBtn(); S.player.idx = clamp(Math.floor(S.player.idx) + 1, 0, (S.spr ? S.spr.n - 1 : 0)); });
+  $('#btn-last').addEventListener('click', () => { if (S.spr) S.player.idx = S.spr.n - 1; });
+  $('#in-speed').addEventListener('input', (e) => {
+    S.player.speed = parseFloat(e.target.value) || 0.05;
+    $('#num-speed').value = C.fmtSpeed(S.player.speed);
+    computeEdits();
+  });
+  $('#num-speed').addEventListener('change', (e) => {
+    const v = clamp(parseFloat(e.target.value) || 1, 0.01, 10);
+    S.player.speed = v; syncControls(); computeEdits();
+  });
+  $$('.preset').forEach(b => b.addEventListener('click', () => {
+    S.player.speed = parseFloat(b.dataset.v); syncControls(); computeEdits();
+  }));
+  $('#chk-once').addEventListener('change', (e) => { S.player.onePass = e.target.checked; });
+  $('#chk-onion').addEventListener('change', (e) => { S.onion = e.target.checked; });
+  $('#sel-bg').addEventListener('change', (e) => { S.bg = e.target.value; });
+  $$('#zoom-row button').forEach(b => b.addEventListener('click', () => { S.zoom = +b.dataset.z; syncControls(); }));
+
+  // loop
+  $('#in-a').addEventListener('change', (e) => setMarker('a', clamp((parseInt(e.target.value, 10) || 1) - 1, 0, 1e9)));
+  $('#in-b').addEventListener('change', (e) => setMarker('b', clamp((parseInt(e.target.value, 10) || 1) - 1, 0, 1e9)));
+  $('#btn-a-here').addEventListener('click', () => setMarker('a', Math.floor(S.player.idx)));
+  $('#btn-b-here').addEventListener('click', () => setMarker('b', Math.floor(S.player.idx)));
+  $('#btn-loop-clear').addEventListener('click', () => { if (S.spr) { S.markers.a = 0; S.markers.b = S.spr.n - 1; positionMarkers(); computeEdits(); } });
+
+  // línea de tiempo: clic = saltar, arrastre de marcadores
+  $('#tl-track').addEventListener('click', (e) => {
+    const cv = e.target.closest('.cell'); if (!cv) return;
+    S.player.idx = +cv.dataset.f;
+  });
+  [['mk-a', 'a'], ['mk-b', 'b']].forEach(([id, which]) => {
+    const el = document.getElementById(id);
+    el.addEventListener('pointerdown', (ev) => {
+      ev.preventDefault();
+      el.setPointerCapture(ev.pointerId);
+      const move = (e2) => {
+        const rect = $('#tl-track').getBoundingClientRect();
+        const f = Math.round((e2.clientX - rect.left) / CELL_W - (which === 'b' ? 0.5 : 0));
+        setMarker(which, clamp(f, 0, S.spr ? S.spr.n - 1 : 0));
+      };
+      const up = () => { el.removeEventListener('pointermove', move); };
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerup', up, { once: true });
+      el.addEventListener('pointercancel', up, { once: true });
+    });
+  });
+
+  // escritura
+  $('#btn-write').addEventListener('click', writeEdits);
+  $('#btn-undo').addEventListener('click', undoLast);
+  $('#btn-copy-draw').addEventListener('click', () => copyWhole('draw'));
+  $('#btn-copy-other').addEventListener('click', () => copyWhole('other7'));
+  $('#edits-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.copyblock'); if (!b) return;
+    copyBlock(b);
+  });
+
+  // teclado
+  document.addEventListener('keydown', (e) => {
+    if (e.target.matches('input, textarea, select, dialog')) return;
+    if (!S.spr) return;
+    const n = S.spr.n;
+    if (e.code === 'Space') { e.preventDefault(); S.player.playing = !S.player.playing; syncPlayBtn(); }
+    else if (e.key === 'ArrowRight') { S.player.playing = false; syncPlayBtn(); S.player.idx = clamp(Math.floor(S.player.idx) + 1, 0, n - 1); }
+    else if (e.key === 'ArrowLeft') { S.player.playing = false; syncPlayBtn(); S.player.idx = clamp(Math.floor(S.player.idx) - 1, 0, n - 1); }
+    else if (e.key === 'Home') S.player.idx = 0;
+    else if (e.key === 'End') S.player.idx = n - 1;
+    else if (e.key === '[') setMarker('a', Math.floor(S.player.idx));
+    else if (e.key === ']') setMarker('b', Math.floor(S.player.idx));
+  });
+
+  syncControls();
+  requestAnimationFrame(tick);
+  if (!window.showDirectoryPicker) {
+    $('#btn-open').classList.add('limited');
+    $('#btn-open').title = 'Tu navegador no soporta escritura de carpetas: usa el botón de solo lectura o Chrome/Edge.';
+  }
+  if (!localStorage.getItem('animtool_seen')) {
+    $('#help').showModal();
+    try { localStorage.setItem('animtool_seen', '1'); } catch (e) { }
+  }
+}
+
+init();
+
+window.__animtool = { S: S, openFiles: openFiles, startDemo: startDemo, computeEdits: computeEdits, setMarker: setMarker, attachFs: attachFs };
+
+})();
+
+</script>
+</body>
+</html>

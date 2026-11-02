@@ -12,10 +12,13 @@ bool amelia_trap_uninit(Server* server, Entity* entity);
    EXE (CLIENT_AMELIA_TRAP_TRIGGER desde el cliente de la victima).
    El stun (3 s) y el slow (-40%, 3.5 s tras el stun) los aplica el
    cliente de la victima sobre su propio jugador.
-   v3.0: `upgraded` la marca el server con CLIENT_EGG_TRAP_UPGRADE
-   («Genio Malvado» de Eggman, 5 anillos): +25% de efectividad y
-   contorno dorado (state 3 a todos). Si la pisa el bando EXE estando
-   mejorada, el server emite SERVER_TRACKER_PING (rastreador).
+   v3.0: `upgraded` la marca el server cuando Eggman completa la MEJORA
+   («Genio Malvado» de Eggman, 5 anillos; v3.1: estilo rescate — barra
+   que llena el server con CLIENT_EGG_TRAP_UPGRADE_PROGRESS): +25% de
+   efectividad y contorno dorado (state 3, solo para el bando
+   superviviente). Si la pisa el bando EXE estando mejorada, el server
+   emite SERVER_TRACKER_PING (rastreador). `upg_progress` es esa barra
+   (0..1, se conserva al soltar el ABAJO, igual que el revive).
    `owner` sirve para saber de que bando es la duena: si Amelia se
    demonizo, la pueden pisar los SUPERVIVIENTES (sin ceguera). */
 typedef struct
@@ -26,7 +29,8 @@ typedef struct
         double   timer;
         bool     triggered;
         bool     upgraded;
+        double   upg_progress;
 } AmeliaTrap;
-#define MakeAmeliaTrap(x, y, owner) ((AmeliaTrap) { MakeEntity("atrap", x, y) amelia_trap_init, amelia_trap_tick, amelia_trap_uninit, owner, 60 * TICKSPERSEC, false, false })
+#define MakeAmeliaTrap(x, y, owner) ((AmeliaTrap) { MakeEntity("atrap", x, y) amelia_trap_init, amelia_trap_tick, amelia_trap_uninit, owner, 60 * TICKSPERSEC, false, false, 0.0 })
 
 #endif

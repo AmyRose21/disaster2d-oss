@@ -1,7 +1,7 @@
 switch(state)
 {
 	case IDLE:
-		image_index = image_number - 24;
+		image_index = image_number - 18;
 		break;
 
 	case EMOTION1:

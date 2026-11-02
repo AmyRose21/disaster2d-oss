@@ -139,15 +139,44 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 // v3.0 («GENIO MALVADO» de Eggman): la trampa esta
                                 // MEJORADA (5 anillos del Dr.): +25% de stun / slow /
                                 // ceguera (lo aplica el cliente de la victima al
-                                // pisarla) y contorno DORADO para todos (Draw_0 del
-                                // obj_amelia_trap con spr_trap_gold).
+                                // pisarla) y contorno DORADO.
+                                // v3.1 (estilo RESCATE): la mejora ahora se completa
+                                // con la BARRA (server) — aqui se cierra la barra, y si
+                                // YO soy el Eggman que tenia el lock sobre esta trampa
+                                // (patron dedemonTarget de Vanilla), pago los anillos
+                                // AL COMPLETAR (soltar el ABAJO a mitad no tira nada).
+                                // El DORADO, la barra y los efectos SOLO los ve el bando
+                                // SUPERVIVIENTE (pedido v3.1): el exe no sabe cual
+                                // trampa se mejoro.
                                 with(obj_amelia_trap)
                                 {
                                         if(nid != _id)
                                                 continue;
 
                                         upgraded = true;
+                                        upgShow = false;
+                                        upgProg = 0;
                                         break;
+                                }
+
+                                if(global.character == CHARACTER_EGGMAN && instance_exists(global.player)
+                                && global.player.geniusTarget == _id && global.player.geniusTargetType == 1)
+                                {
+                                        global.player.rings = max(0, global.player.rings - EGG_GENIUS_TRAP_COST);
+                                        global.player.geniusTarget = -1;
+                                        global.player.geniusTargetType = -1;
+                                }
+
+                                // chispas + jingle del genio SOLO para el bando
+                                // superviviente (efecto local: sin broadcast, el lado
+                                // del exe no se entera de nada)
+                                if(instance_exists(global.player) && global.character != CHARACTER_EXE
+                                && global.player.revivalTimes < 2)
+                                {
+                                        repeat(6)
+                                                scr_effect_quick(_x + random_range(-14, 14), _y - random_range(0, 20), spr_shockparticle, 1, false, 0, 0);
+
+                                        audio_play_sound(snd_heal, 0, false);
                                 }
                         }
                         break;
@@ -2455,6 +2484,10 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 // (lo aplica su Step al pisarlo) y luce el CONTORNO
                                 // DORADO (Draw_0 con spr_eggtrack_gold). Mismo
                                 // layout de campos que el spawn (id + x + y).
+                                // v3.1 (estilo RESCATE): se completa con la BARRA —
+                                // cierre de barra + pago del Eggman con el lock
+                                // (patron dedemonTarget) + efectos SOLO para el bando
+                                // superviviente (el exe no ve cual sensor se mejoro).
                                 var _id = buffer_read_s(rbuff, buffer_u16);
                                 var _x = buffer_read_s(rbuff, buffer_u16);
                                 var _y = buffer_read_s(rbuff, buffer_u16);
@@ -2465,7 +2498,26 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 continue;
 
                                         upgraded = true;
+                                        upgShow = false;
+                                        upgProg = 0;
                                         break;
+                                }
+
+                                if(global.character == CHARACTER_EGGMAN && instance_exists(global.player)
+                                && global.player.geniusTarget == _id && global.player.geniusTargetType == 0)
+                                {
+                                        global.player.rings = max(0, global.player.rings - EGG_GENIUS_SENSOR_COST);
+                                        global.player.geniusTarget = -1;
+                                        global.player.geniusTargetType = -1;
+                                }
+
+                                if(instance_exists(global.player) && global.character != CHARACTER_EXE
+                                && global.player.revivalTimes < 2)
+                                {
+                                        repeat(6)
+                                                scr_effect_quick(_x + random_range(-14, 14), _y - random_range(0, 20), spr_shockparticle, 1, false, 0, 0);
+
+                                        audio_play_sound(snd_heal, 0, false);
                                 }
                         }
                         else
@@ -3919,19 +3971,49 @@ function net_state_game(rbuff, nps, isPasstrough)
                 {
                         if(isPasstrough)
                                 break;
-                                
+
                         var _status = buffer_read_s(rbuff, buffer_bool);
                         var _pid = buffer_read_s(rbuff, buffer_u16);
-                        
+
                         with(obj_revival_puppet)
                         {
                                 if(master_id != _pid)
                                         continue;
-                                        
+
                                 show = _status;
                                 break;
                         }
-                        
+
+                        break;
+                }
+
+                case PacketType.SERVER_EGG_UPGRADE_STATUS:
+                {
+                        // v3.1 («Genio Malvado» estilo rescate): abre/cierra la
+                        // BARRA de mejora de una trampa (0 sensor / 1 trampa de
+                        // Amelia). Mismo papel que SERVER_REVIVAL_STATUS para el
+                        // revive; la barra la dibuja la propia trampa (Draw_0,
+                        // solo para el bando superviviente).
+                        if(isPasstrough)
+                                break;
+
+                        var _gshow = buffer_read_s(rbuff, buffer_bool);
+                        var _gtype = buffer_read_s(rbuff, buffer_u8);
+                        var _gnid = buffer_read_s(rbuff, buffer_u16);
+
+                        with(_gtype == 1 ? obj_amelia_trap : obj_eggtrack)
+                        {
+                                if(nid != _gnid)
+                                        continue;
+
+                                upgShow = _gshow;
+
+                                if(!_gshow)
+                                        upgProg = 0;
+
+                                break;
+                        }
+
                         break;
                 }
                 

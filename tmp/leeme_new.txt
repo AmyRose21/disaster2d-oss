@@ -1,0 +1,424 @@
+════════════════════════════════════════════════════════════════════
+  SONIC.EXE THE DISASTER 2D REMAKE — MEJORAS DE BALANCE v3.0
+  («Genio Malvado» + ajustes de supervivientes)
+════════════════════════════════════════════════════════════════════
+
+CONTENIDO DE ESTE PAQUETE
+─────────────────────────
+Esta version aplica TODAS las mejoras de balance pedidas, la pasiva
+nueva del Dr. Eggman («Genio Malvado») y un arreglo al parry de
+Sonic. Incluye cambios en el CLIENTE (GML del GameMaker) y en el
+SERVER (C, betterserver-oss): HAY QUE RECOMPILAR EL SERVER y volver
+a compilar el juego en GameMaker antes de probar.
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. AMELIA                                                        │
+└─────────────────────────────────────────────────────────────────┘
+ * TRAMPA: recarga de 35 s -> 24 s (AMELIA_TRAP_RECHARGE en
+   scr_amelia_special.gml). La demonizada sigue a 15 s.
+ * LAS TRAMPAS NO CIEGAN A LOS SUPERVIVIENTES si Amelia se vuelve
+   exe (demonizada): sus trampas CAMBIAN DE BANDO con ella — las pisa
+   un superviviente y este recibe el stun (3 s) + slow (40% otros
+   3.5 s) pero SIN la ceguera del Eclipse. Antes las trampas de una
+   Amelia demonizada solo podian pisarlas los de su propio bando
+   (no tenian sentido). El bando se lee en vivo del puppet de Amelia
+   (mismo patron que obj_eggtrack hace con su Eggman) y el server
+   acepta el trigger del superviviente porque mira al OWNER de la
+   trampa (CLIENT_AMELIA_TRAP_TRIGGER en Game.c).
+ * LOS MINIONS (esbirros) TAMBIEN ACTIVAN las trampas del bando
+   superviviente y reciben 2 s MAS de ceguera que el exe real
+   (4 s -> 6 s; 5 s -> 7 s si esta mejorada).
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 2. SUPERVIVIENTES VANILLA (ajustes generales)                    │
+└─────────────────────────────────────────────────────────────────┘
+ * DR. EGGMAN (obj_egg/Create_0.gml):
+     - Escudo electrico: 20 s -> 15 s de recarga.
+     - Jetpack (doble salto): 10 s -> 8 s.
+     - Rastreador (sensor): 30 s -> 25 s.
+ * AMY (obj_amy/Create_0.gml):
+     - Ataque de martillo: 20 s -> 15 s.
+     - Salto de martillo: 9 s -> 7 s.
+ * KNUCKLES (obj_knux/Create_0.gml):
+     - Golpe: recarga -20% (20 s -> 16 s).
+ * SALLY (scr_player_hurt.gml): el SLIDE da i-frames durante TODA la
+   animacion, tanto la Sally vanilla como la Sally Canon (la Canon ya
+   lo tenia; se le anyade la vanilla).
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 3. PASIVA «GENIO MALVADO» (Dr. Eggman)  ¡NUEVA!                  │
+└─────────────────────────────────────────────────────────────────┘
+ Los anillos de Eggman ya no son solo puntos: son PIEZAS.
+
+ A) MEJORAR TRAMPAS (v3.0: tecla V cerca de la trampa; v3.1: ver seccion 7):
+    * Sensor propio (obj_eggtrack): 3 anillos.
+    * Trampa de Amelia (obj_amelia_trap): 5 anillos.
+    * Efecto: +25% de efectividad (stun/slow/ceguera de la trampa;
+      slow del sensor) y CONTORNO DORADO alrededor del sprite para
+      TODOS los clientes (latido suave de brillo).
+    * El server valida el coste con SU contador de anillos
+      (plr.rings) y marca la entidad: CLIENT_EGG_TRAP_UPGRADE ->
+      SERVER_ETRACKER_STATE 2 / SERVER_AMELIA_TRAP_STATE 3.
+      Macros ajustables en scr_egg_special.gml (EGG_GENIUS_*).
+    * Anti-spam de 2 s entre mejoras (geniusCd).
+
+ B) RASTREADOR INTEGRADO:
+    * Si una TRAMPA MEJORADA (que no sea el sensor) — por ejemplo
+      una de Amelia — cae pisada por el bando EXE, EJECUTA EL
+      RASTREADOR (lo que suele hacer el sensor de Eggman): la
+      posicion de la victima se le da a TODOS los supervivientes
+      durante 3 s (SERVER_TRACKER_PING + obj_surv_indicator, el
+      mismo indicador de los sensores). Solo ocurre si Eggman la
+      habia mejorado.
+
+ C) REPARACION DE METAL SONIC:
+    * Metal recupera 10 de vida cada 7 s mientras este cerca del
+      DR. EGGMAN, o cada 13 s si esta cerca de TAILS.
+    * Si estan los DOS cerca NO se acumula: solo aplica la cura del
+      Dr. (la mas rapida).
+    * Corre en el cliente del propio Metal (autoridad de su hp,
+      mismo modelo que la curacion de Chocola). Macros
+      METAL_GENIUS_* en scr_metal_special.gml. Radio: 90 px.
+
+ SOBRE EL CONTORNO DORADO (la pregunta del invisible del exe):
+ ─────────────────────────────────────────────────────────────────
+ El exe invisible NO usa un efecto de GameMaker: son SPRITES
+ APARTE dibujados a mano (spr_exe_invis_idle, _walk, _run...), que
+ solo llevan los TRAZOS del personaje en rojo solido — por eso se
+ ve el contorno y no el relleno. Lo ves en scr_exe.gml: cuando
+ invisTimer > 0, el array de animacion se desplaza a la mitad
+ "Invisible" (state + EXE_ZIPLINE+1).
+ Para las trampas mejoradas se siguio la MISMA idea pero generando
+ los sprites: spr_trap_gold / spr_eggtrack_gold son siluetas de
+ anillo (dilatacion de 1 px de la silueta original, en dorado a dos
+ tonos) que se dibujan DETRAS del sprite normal (Draw_0 nuevo de
+ obj_amelia_trap y obj_eggtrack).
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 4. ARREGLO AL PARRY DE SONIC                                     │
+└─────────────────────────────────────────────────────────────────┘
+ * El parry YA NO STUNEA AL EXE DESPUES de que su ataque (spin /
+   golpe normal / bola) termino. La senal de red del parry podia
+   llegar unos frames tarde (lag) y aturdia al exe "de gratis"
+   cuando ya habia terminado de atacar; ahora esa senal se ignora
+   si el ataque ya no esta activo (scr_parry_stun_signal en
+   scr_parry.gml, mismo predicado que el auto-stun local de
+   obj_player_puppet). La negacion del dano en la victima no cambia.
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 5. ARCHIVOS TOCADOS                                              │
+└─────────────────────────────────────────────────────────────────┘
+ CLIENTE (GML):
+   scripts/scr_amelia_special/scr_amelia_special.gml   (recarga 24 s)
+   scripts/scr_egg_special/scr_egg_special.gml         (Genio Malvado + macros)
+   scripts/scr_metal_special/scr_metal_special.gml     (reparacion de Metal)
+   scripts/scr_player_hurt/scr_player_hurt.gml         (i-frames slide Sally)
+   scripts/scr_parry/scr_parry.gml                     (fix senal tardia)
+   scripts/net_packets/net_packets.gml                 (2 paquetes nuevos, AL FINAL)
+   scripts/net_state_game/net_state_game.gml           (state 3 trampa, state 2
+                                                        sensor, TRACKER_PING)
+   objects/obj_egg/Create_0.gml                        (cooldowns + geniusCd)
+   objects/obj_amy/Create_0.gml                         (martillo 15/7)
+   objects/obj_knux/Create_0.gml                        (golpe 16 s)
+   objects/obj_metal/Create_0.gml                       (geniusHealTimer)
+   objects/obj_amelia_trap/Create_0.gml                 (bandos + ceguera + mejora)
+   objects/obj_amelia_trap/Step_0.gml                   (quien la pisa)
+   objects/obj_amelia_trap/Draw_0.gml                   (NUEVO: contorno dorado)
+   objects/obj_amelia_trap/obj_amelia_trap.yy           (evento Draw)
+   objects/obj_eggtrack/Create_0.gml                    (upgraded)
+   objects/obj_eggtrack/Step_0.gml                      (slow +25%)
+   objects/obj_eggtrack/Draw_0.gml                      (NUEVO: contorno dorado)
+   objects/obj_eggtrack/obj_eggtrack.yy                 (evento Draw)
+   sprites/spr_trap_gold/*                             (NUEVO sprite)
+   sprites/spr_eggtrack_gold/*                         (NUEVO sprite)
+   Sonicexe The Disaster 2D Remake.yyp                  (registro de los 2 sprites)
+
+ SERVER (C — RECOMPILAR):
+   include/Packet.h                                    (CLIENT_EGG_TRAP_UPGRADE,
+                                                        SERVER_TRACKER_PING al final)
+   include/entities/AmeliaTrap.h                       (campo upgraded)
+   include/entities/EggmanTracker.h                    (campo upgraded)
+   disasterserver/states/Game.c                        (upgrade de trampas,
+                                                        trigger por bando del owner,
+                                                        ping del rastreador)
+
+ PROTOCOLO: los dos paquetes nuevos se anyadieron AL FINAL del enum
+ en AMBOS lados (mismo orden numerico). Cliente y server de esta
+ version NO son compatibles con la version anterior en partida
+ mixta — actualiza ambos.
+
+ Controles nuevos (v3.0): tecla V (mejorar trampa). v3.1: SIN tecla — manten
+ ABAJO sobre la trampa con anillos y espera la barra (ver seccion 7).
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 6. PAGINA HTML (docs/TierList_Mejoras_V3_0.html) · v3.0.1       │
+└─────────────────────────────────────────────────────────────────┘
+ Ajustes a las demos animadas de la pagina:
+ * Las animaciones SOLO se reproducen cuando su tarjeta esta en
+   pantalla, y solo UNA tarjeta corre a la vez (la mas visible); el
+   resto queda congelada en su ultimo frame. La pareja «exe normal /
+   exe invisible» vive en la misma tarjeta y corre junta.
+ * Los bucles CSS (slide de Sally, latido dorado del sensor y de la
+   trampa) se pausan igual cuando su tarjeta no esta activa.
+ * Las barras de cooldown ahora crecen al entrar en pantalla en vez
+   de al cargar la pagina.
+ * Frente de los sprites corregido: quien avanza mira hacia donde
+   avanza. La victima de la trampa y el exe que se aleja del parry
+   miran a la derecha; el exe de Genio Malvado y el aturdido del
+   parry miran a la izquierda (hacia su objetivo); Eggman y Tails
+   miran su direccion de paseo y Metal mira al equipo.
+ * Arreglado: faltaba la tira spr_exe_walk (el exe quedaba INVISIBLE
+   en la demo del parry cuando se alejaba). Ya esta embebida.
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 7. v3.1 — GENIO MALVADO «ESTILO RESCATE» + DORADO PRIVADO       │
+└─────────────────────────────────────────────────────────────────┘
+ Dos pedidos de la usuaria aplicados sobre la v3.0:
+
+ A) LA MEJORA DE TRAMPAS AHORA ES COMO REVIVIR/RESCATAR
+ ------------------------------------------------------
+ Antes (v3.0): acercarse y pulsar V -> mejora instantanea.
+ Ahora (v3.1): EXACTAMENTE el sistema del rescate de Vanilla (el de
+ curar esbirros), pero aplicado a trampas:
+
+   1. Eggman (superviviente) se pone ENCIMA de la trampa (su sensor
+      o una de Amelia, la mas cercana a 42 px).
+   2. MANTIENE ABAJO con anillos de sobra (3 sensor / 5 trampa).
+   3. Aparece la MISMA barra del revive (spr_revival) sobre la
+      trampa y la LLENA EL SERVER: 0.03 por paquete (30 paq/s =
+      ~1.1 s) + 0.002 extra por cada anillo de sobra (tope +25,
+      como el revive del caido acelera con anillos).
+   4. Al llenarse: el server cobra los anillos (su contador propio,
+      plr.rings) y dora la trampa (+25% de efectividad, rastreador
+      si la pisa el bando EXE).
+   5. Soltar el ABAJO a mitad NO tira el dinero: el progreso queda
+      guardado en el server, igual que la barra del revive del
+      caido o del esbirro. Con anillos justos se ve el aviso
+      (spr_revival2) de "te faltan anillos".
+
+ Paquetes nuevos (anyadidos AL FINAL del enum en los DOS lados):
+   CLIENT_EGG_TRAP_UPGRADE_PROGRESS  (u8 type, u16 nid, u8 anillos)
+   SERVER_EGG_UPGRADE_PROGRESS       (u8 type, u16 nid, double prog)
+   SERVER_EGG_UPGRADE_STATUS         (u8 show, u8 type, u16 nid)
+ El viejo CLIENT_EGG_TRAP_UPGRADE queda DEPRECATED (sin uso). El
+ enum no se movio, pero cliente y server de esta version deben
+ actualizarse JUNTOS igualmente.
+
+ B) EL BRILLO DORADO SOLO LO VE EL EQUIPO SUPERVIVIENTE
+ ------------------------------------------------------
+ Pedido: "el brillo dorado solo sera visible para los supervivientes,
+ para exes o minions no". Los Draw_0 de obj_amelia_trap y
+ obj_eggtrack dibujan el contorno dorado (y la barra de mejora, y
+ las chispas + jingle al completar) SOLO si el jugador local es del
+ bando superviviente (global.character != CHARACTER_EXE y
+ revivalTimes < 2). El EXE y los esbirros no ven cual trampa se
+ mejoro: para ellos es una trampa normal hasta que la pisan y
+ explota con el +25% y el rastreador.
+
+ ARCHIVOS TOCADOS EN v3.1
+ ------------------------
+ Cliente (GML):
+   scripts/scr_egg_special/scr_egg_special.gml   (nucleo del genio:
+                                                  lock + envio de progreso)
+   scripts/net_packets/net_packets.gml           (enum: 3 paquetes nuevos)
+   scripts/net_state_game/net_state_game.gml     (state 2/3: pago con lock,
+                                                  efectos solo supervivientes,
+                                                  handler SERVER_EGG_UPGRADE_STATUS)
+   scripts/net_udpprocess/net_udpprocess.gml     (handler SERVER_EGG_UPGRADE_PROGRESS)
+   objects/obj_egg/Create_0.gml                  (geniusTarget/-Type/-SendCd)
+   objects/obj_eggtrack/Create_0.gml, Step_0.gml, Draw_0.gml
+   objects/obj_amelia_trap/Create_0.gml, Step_0.gml, Draw_0.gml
+ Server (C):
+   betterserver-oss/include/Packet.h             (enum + comentarios)
+   betterserver-oss/include/entities/EggmanTracker.h   (+ upg_progress)
+   betterserver-oss/include/entities/AmeliaTrap.h      (+ upg_progress)
+   betterserver-oss/disasterserver/states/Game.c (handler nuevo estilo
+                                                  rescate; el instantaneo fuera)
+ Docs:
+   docs/TierList_Mejoras_V3_0.html (mecanica nueva en textos y en la
+   escena del genio: MANTEN ↓ + barra llenandose; fila VS actualizada)
+   docs/LEEME_MEJORAS_V3_0.txt (esta seccion)
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 8. COMO AJUSTAR TU MISMA LOS LOOPS DE LAS ANIMACIONES (HTML)    │
+└─────────────────────────────────────────────────────────────────┘
+ Guia rapida para retocar las demos de TierList_Mejoras_V3_0.html
+ (busca estos trozos con Ctrl+F dentro del archivo):
+
+ * DURACION DE UNA FASE: cada escena tiene su bloque
+     scene('cv-XXX',(cv,ctx)=>{ ... let ph=0, pt=0; ... const T=[...]
+   El array T son los SEGUNDOS de cada fase (ej. la del genio:
+   T=[1.5,1.4,1.15,1.85,3.1,0.75] = camina 1.5 s, barra 1.4 s,
+   brilla 1.15 s, exe corre 1.85 s, rastreador 3.1 s, fundido 0.75 s).
+   Cambia el numero que quieras y recarga la pagina. Tambien veras
+   condiciones tipo "if(pt>2.05)" en la escena de la trampa: mismo
+   truco, es el momento (en segundos) en el que esa fase salta.
+
+ * VELOCIDAD DE UNA TIRA DE SPRITES: los personajes se dibujan con
+     dr(ctx,'exe_run',Math.floor(t*10)%8,x,y,...)
+   El "10" son frames por segundo (subelo para correr mas rapido) y
+   el "%8" es cuantos frames tiene la tira (8 del exe). La pagina ya
+   lo calcula sola en la mayoria con IMG[strip].length.
+
+ * REPETIR / NO REPETIR UNA ESCENA: al final de cada update hay un
+     else if(pt>T[5]){ ph=0; pt=0; ... }
+   Ese "ph=0" es el reinicio del ciclo. Si quieres que una escena
+   se quede congelada al terminar su ultimo frame, borra esa linea
+   (o comenta con //). Si quieres que repita mas lento, sube T.
+
+ * LOS BUCLES CSS (slide de Sally, latido dorado): estan en el <style>
+   de arriba (.slide-demo, .sensor-demo, .trap-demo) con
+   "animation: nombre Xs infinite". Cambia la X de segundos.
+
+ * PAUSA AUTOMATICA: no la toques salvo que quieras que todo corra a
+   la vez: es el bloque "PLANIFICADOR DE ESCENAS" del final
+   (IntersectionObserver que solo deja correr la tarjeta mas visible).
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 9. COMO AJUSTAR TU MISMA LOS LOOPS DE LOS PERSONAJES (EL JUEGO) │
+└─────────────────────────────────────────────────────────────────┘
+ (La seccion 8 era de la pagina HTML; esta es la de los personajes
+ DENTRO del juego: que tan rapido o lento se animan, desde que frame
+ repiten, etc. Todo lo de aqui es GML del cliente: NO hay que
+ recompilar el server para nada de esta seccion.)
+
+ COMO ESTA MONTADO (4 piezas por personaje)
+ ─────────────────────────────────────────
+ Cada personaje tiene su objeto: obj_amy, obj_amelia, obj_sonic,
+ obj_egg, obj_exe, obj_tails, obj_knux, obj_cream, obj_sally,
+ obj_sally_canon, obj_amy_canon, obj_vanilla, obj_metal, obj_blaze
+ (killers: obj_chaos, obj_exetior, obj_exeller, obj_metalamy).
+ Sus loops viven en 4 sitios:
+
+  1) LA TIRA DE SPRITES (cuantos frames tiene cada animacion):
+     sprites/spr_amelia_idle, spr_amelia_walk... Se edita en el
+     editor de sprites del IDE. El numero de frames ES la longitud
+     del loop.
+
+  2) LA TABLA ESTADO -> SPRITE: scripts/scr_survivors/
+     scr_survivors.gml, arrays global.player_anims (los demonizados
+     van en global.player_eanims justo debajo; los killers en
+     scr_exe.gml). El INDICE del array es el numero de estado y los
+     comentarios de cada linea te lo dicen:
+       0 IDLE, 1 WALK, 2 RUN, 3 JUMP, 4 FALL, 5 HURT, 6 DEAD,
+       7 LOOKUP, 8 LOOKDOWN, 9-11 EMOTION1-3, 12 SPIN, 13 BALANCING.
+     Los estados propios de cada personaje siguen DESPUES del 13 y se
+     declaran arriba del todo de su Step_2.gml (AMY_ATTACK es
+     BALANCING+1 = 14, AMELIA_SPINDASH = 15, AMELIA_ZIPLINE = 16...).
+
+  3) EL VELOCIMETRO (que tan rapido corre cada animacion): el evento
+     Draw_76 del objeto (objects/obj_amy/Draw_76.gml, etc.). Empieza
+     por "var arr = revivalTimes >= 2 ? ..." y es un switch(state)
+     donde cada case pone el image_speed de ese estado. AHI se cambia
+     la velocidad de cualquier animacion.
+
+  4) EL PUNTO DE REPETICION DEL IDLE: el evento Other_7 del objeto
+     (en el IDE es «Animation End»; se dispara cada vez que la tira
+     llega a su final). Su case IDLE hace:
+         image_index = image_number - 24;      (Amelia)
+     Eso define que parte del idle se repite: la tira entera se ve
+     UNA vez y luego repite para siempre SOLO los ultimos 24 frames.
+     Amy usa 4 y el exe 25. Para cambiar donde arranca la parte que
+     se repite, cambia ese numero.
+
+ COMO SE LEE image_speed (el reloj)
+ ─────────────────────────────────
+ El juego corre a 60 pasos por segundo (option_game_speed del
+ proyecto) y image_speed son FRAMES POR PASO:
+   * image_speed 1   = 60 frames/s (una tira de 8 = 7.5 vueltas/s)
+   * image_speed 0.5 = 30 frames/s
+   * image_speed 0.2 = 12 frames/s
+ Formulas para tus cuentas:
+   segundos por vuelta = image_number / (image_speed * 60)
+   vueltas por segundo = image_speed * 60 / image_number
+ Ejemplos reales de Amelia:
+   * WALK (8 frames): 0.2 + abs(xspd)/maxHSpeed -> a paso lento
+     ~1.5 vueltas/s y a toda velocidad ~9.
+   * IDLE (67 frames): a 1, la tira tarda ~1.1 s en verse entera;
+     despues repite solo los ultimos 24 frames (0.4 s la vuelta).
+   * SPINDASH (5 frames): 0.5 + (carga/10)*1.2 -> gira mas rapido
+     cuanta mas carga llevas.
+ Regla practica: para que una animacion tarde el DOBLE parte el
+ image_speed por 2; para la mitad de tiempo, doblalo.
+
+ LOS 4 TIPOS DE LOOP QUE YA USA EL JUEGO (para copiar y pegar)
+ ─────────────────────────────────────────────────────────────
+ A) LOOP LIBRE (repite entera, sin cortes): solo fijas image_speed;
+    al llegar al final GameMaker vuelve al frame 0 solo. WALK, RUN,
+    SPIN y las EMOTION van asi.
+
+ B) LOOP CON ENTRADILLA (el idle): la tira entera UNA vez y luego
+    solo el trozo final (Other_7, case IDLE). Sube el numero para
+    repetir mas frames o bajalo para que el "bucle" sea mas corto.
+
+ C) CONGELADO EN UN FRAME:
+      * quieto total:
+            image_speed = 0;
+            image_index = 0;                            (HURT)
+      * se deja caer a un frame y ahi se queda:
+            image_speed = 0.2;
+            if(image_index >= 1)
+                image_index = 1;                    (LOOKUP/DOWN)
+      * quedarse en el ULTIMO frame:
+            if(image_index >= image_number - 1)
+                image_index = image_number - 1;         (DEAD)
+
+ D) UNA SOLA PASADA QUE TERMINA EL ESTADO (ataques): el final de la
+    tira ES el final del ataque:
+            image_speed = 0.3;
+            if(image_index >= image_number - 1)
+                isAttacking = false;               (AMY_ATTACK)
+    OJO: la DURACION del ataque es la de la tira; si subes el
+    image_speed (0.3 -> 0.5) el golpe acaba ANTES y pega antes. La
+    RECARGA va aparte, en las macros _RECHARGE del Create_0 del
+    personaje (60 * segundos), y no se toca con la animacion.
+
+ TRUCOS QUE YA ESTAN EN EL CODIGO (patrones para copiar)
+ ───────────────────────────────────────────────────────
+ * DURACION EXACTA: image_speed = image_number / PASOS reproduce
+   TODA la tira en exactamente ese numero de pasos (60 pasos = 1
+   seg), tengas los frames que tengas. Es lo que hace el parry de
+   Sonic: image_number / (SONIC_PARRY_WINDOW + SONIC_PARRY_GRACE).
+ * EMPEZAR DEL FRAME 0 AL ENTRAR EN UN ESTADO: anyade
+   image_index = 0 en el case del Draw_76. GameMaker NO resetea
+   image_index al cambiar de sprite (por eso HURT y el FALL de Amy
+   lo clavan a mano).
+ * ANIMAR SEGUN LA VELOCIDAD DEL PERSONAJE: el patron
+   0.2 + abs(xspd) / maxHSpeed — el 0.2 es lo que anima al paso
+   minimo y crece hasta la velocidad tope.
+ * QUE LA DEMONIZADA ANIME DISTINTO: el mismo Draw_76 corre para la
+   version normal y la demonizada (solo cambia la tira, la elige
+   "revivalTimes >= 2"). Si quieres otra velocidad para la
+   demonizada, parte el case:
+         case WALK:
+             image_speed = revivalTimes >= 2
+                 ? 0.4 : 0.2 + abs(xspd) / maxHSpeed;
+
+ MULTIJUGADOR (por que no hay que tocar nada mas)
+ ───────────────────────────────────────────────
+ * Cada cliente anima a SU personaje; el frame exacto (image_index)
+   viaja en el paquete CLIENT_PLAYER_DATA (~30 por segundo) y los
+   puppets de los demas lo copian tal cual (tienen image_speed = 0).
+   Consecuencia: cambies la velocidad donde sea, TODOS lo ven sin
+   tocar paquetes ni el server.
+ * Con image_speed mayor que ~0.5 los demas ven la animacion "a
+   saltitos" (muestrean tu frame 30 veces por segundo): se ve igual
+   de rapida pero menos suave.
+ * Ninguna tira puede pasar de 255 frames: el frame viaja en un u8.
+   La mas larga del juego hoy es el idle de Exeller (147 frames);
+   todas muy sobradas.
+
+ CHECKLIST: "quiero que X anime mas rapido/lento"
+ ────────────────────────────────────────────────
+ 1. Abre el objeto del personaje (obj_amy, obj_amelia, obj_sonic,
+    obj_egg, obj_exe, ...).
+ 2. Abre su evento Draw_76 (el que empieza por
+    "var arr = revivalTimes >= 2 ? ...").
+ 3. Busca el case del estado (IDLE, WALK, RUN, JUMP, AMY_ATTACK,
+    AMELIA_SPINDASH, ...).
+ 4. Cambia el numero del image_speed, guarda y corre el juego (F5).
+    No hay que recompilar el server: es GML puro del cliente.
+ Si lo que quieres es cambiar CUANTOS FRAMES tiene una animacion,
+ eso es el editor de sprites del IDE (anyadir/quitar frames); y si
+ la tira es NUEVA recuerda apuntarla en su hueco de la tabla de
+ scr_survivors.gml (punto 2 de "COMO ESTA MONTADO").

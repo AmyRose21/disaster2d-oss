@@ -1262,26 +1262,44 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         break;
                 }
 
-                case CLIENT_EGG_TRAP_UPGRADE:
+                case CLIENT_EGG_TRAP_UPGRADE_PROGRESS:
                 {
-                        /* v3.0 («Genio Malvado»): Eggman gasta anillos para
-                           mejorar una entidad — su sensor (3) o una trampa
-                           de Amelia (5). El coste se valida con el contador
-                           PROPIO del server (plr.rings, que alimentan
-                           CLIENT_RING_COLLECTED / los datos periodicos del
-                           jugador); la entidad se marca y el estado dorado
-                           (+25%) viaja a todos. Sin kick ante datos raros:
-                           se ignora en silencio (patron de los cooldowns),
+                        /* v3.1 («Genio Malvado», estilo RESCATE de Vanilla
+                           v2.11): Eggman ENCIMA de la trampa manteniendo
+                           ABAJO con anillos de sobra. Mismo patron que
+                           CLIENT_VANILLA_DEDEMONIZE_PROGRESS: el progreso
+                           vive AQUI (ent.upg_progress y se CONSERVA si
+                           suelta el boton a mitad, como la barra del
+                           caido), la barra es la misma del revive
+                           (SERVER_EGG_UPGRADE_PROGRESS + STATUS) y al
+                           llenarla hace lo que hacia el instantaneo de la
+                           v3.0: cobrar 3/5 anillos (plr.rings, contador
+                           del server) y marcar la entidad mejorada
+                           (SERVER_ETRACKER_STATE 2 / SERVER_AMELIA_TRAP_
+                           STATE 3). El pago LOCAL del cliente lo hace el
+                           handler de esos states con el lock geniusTarget
+                           (patron dedemonTarget). Sin kick ante datos
+                           raros: se ignora en silencio (patron cooldowns),
                            salvo no ser Eggman / no estar en partida. */
                         AssertOrDisconnect(v->server, v->in_game);
                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
                         AssertOrDisconnect(v->server, v->surv_char == CH_EGGMAN);
                         AssertOrDisconnect(v->server, !(v->plr.flags & PLAYER_DEMONIZED));
 
+                        if (v->server->game.end > 0)
+                                break;
+
                         PacketRead(type, packet, packet_read8, uint8_t);
                         PacketRead(nid, packet, packet_read16, uint16_t);
+                        PacketRead(rings, packet, packet_read8, uint8_t);
+
+                        AssertOrDisconnect(v->server, type <= 1);
 
                         int cost = (type == 1) ? 5 : 3;
+
+                        if (rings < (uint8_t)cost)
+                                break;
+
                         if (v->plr.rings < (uint16_t)cost)
                                 break;
 
@@ -1295,6 +1313,9 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 if (ent->id != nid)
                                         continue;
 
+                                bool* upgraded;
+                                double* progress;
+
                                 if (type == 1)
                                 {
                                         AmeliaTrap* trap = (AmeliaTrap*)ent;
@@ -1302,15 +1323,8 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                         if (trap->upgraded || trap->triggered)
                                                 break;
 
-                                        trap->upgraded = true;
-
-                                        Packet pack;
-                                        PacketCreate(&pack, SERVER_AMELIA_TRAP_STATE);
-                                        PacketWrite(&pack, packet_write8, 3);
-                                        PacketWrite(&pack, packet_write16, trap->id);
-                                        PacketWrite(&pack, packet_write16, (uint16_t)trap->pos.x);
-                                        PacketWrite(&pack, packet_write16, (uint16_t)trap->pos.y);
-                                        server_broadcast(v->server, &pack, true);
+                                        upgraded = &trap->upgraded;
+                                        progress = &trap->upg_progress;
                                 }
                                 else
                                 {
@@ -1319,18 +1333,85 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                         if (egg->upgraded)
                                                 break;
 
-                                        egg->upgraded = true;
+                                        upgraded = &egg->upgraded;
+                                        progress = &egg->upg_progress;
+                                }
 
-                                        Packet pack;
-                                        PacketCreate(&pack, SERVER_ETRACKER_STATE);
-                                        PacketWrite(&pack, packet_write8, 2);
-                                        PacketWrite(&pack, packet_write16, egg->id);
-                                        PacketWrite(&pack, packet_write16, (uint16_t)egg->pos.x);
-                                        PacketWrite(&pack, packet_write16, (uint16_t)egg->pos.y);
+                                /* misma tolerancia del rescate de Vanilla
+                                   (tocando la trampa; el cliente manda a
+                                   <= 42 px de la entidad) */
+                                if (vector2_dist(&ent->pos, &v->plr.pos) > 150)
+                                        break;
+
+                                Packet pack;
+
+                                if (*progress <= 0)
+                                {
+                                        /* misma senal que abre la barra del
+                                           revive normal */
+                                        PacketCreate(&pack, SERVER_EGG_UPGRADE_STATUS);
+                                        PacketWrite(&pack, packet_write8, 1);
+                                        PacketWrite(&pack, packet_write8, type);
+                                        PacketWrite(&pack, packet_write16, ent->id);
                                         server_broadcast(v->server, &pack, true);
                                 }
 
+                                /* base 0.03 por paquete (30 paq/s = ~1.1 s)
+                                   + bonus por anillos de sobra (tope +25,
+                                   como el revive del caido acelera con
+                                   anillos) */
+                                {
+                                        int bonus = rings - cost;
+
+                                        if (bonus > 25)
+                                                bonus = 25;
+
+                                        *progress += 0.03 + 0.002 * bonus;
+                                }
+
+                                if (*progress < 1)
+                                {
+                                        PacketCreate(&pack, SERVER_EGG_UPGRADE_PROGRESS);
+                                        PacketWrite(&pack, packet_write8, type);
+                                        PacketWrite(&pack, packet_write16, ent->id);
+                                        PacketWrite(&pack, packet_writedouble, *progress);
+                                        server_broadcast(v->server, &pack, false);
+                                        break;
+                                }
+
+                                /* completado: cobrar y DORAR (mismo efecto
+                                   que el instantaneo v3.0 + cerrar la
+                                   barra) */
+                                *progress = 0;
+                                *upgraded = true;
                                 v->plr.rings -= cost;
+
+                                PacketCreate(&pack, SERVER_EGG_UPGRADE_STATUS);
+                                PacketWrite(&pack, packet_write8, 0);
+                                PacketWrite(&pack, packet_write8, type);
+                                PacketWrite(&pack, packet_write16, ent->id);
+                                server_broadcast(v->server, &pack, true);
+
+                                if (type == 1)
+                                {
+                                        PacketCreate(&pack, SERVER_AMELIA_TRAP_STATE);
+                                        PacketWrite(&pack, packet_write8, 3);
+                                        PacketWrite(&pack, packet_write16, ent->id);
+                                        PacketWrite(&pack, packet_write16, (uint16_t)ent->pos.x);
+                                        PacketWrite(&pack, packet_write16, (uint16_t)ent->pos.y);
+                                        server_broadcast(v->server, &pack, true);
+                                }
+                                else
+                                {
+                                        PacketCreate(&pack, SERVER_ETRACKER_STATE);
+                                        PacketWrite(&pack, packet_write8, 2);
+                                        PacketWrite(&pack, packet_write16, ent->id);
+                                        PacketWrite(&pack, packet_write16, (uint16_t)ent->pos.x);
+                                        PacketWrite(&pack, packet_write16, (uint16_t)ent->pos.y);
+                                        server_broadcast(v->server, &pack, true);
+                                }
+
+                                Info("Eggman (id %d) upgraded %s %d!", v->id, type == 1 ? "Amelia trap" : "eggtrack", ent->id);
                                 break;
                         }
 

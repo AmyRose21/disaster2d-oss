@@ -1,0 +1,3192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suite TD2D — Animaciones · Recargas · Imágenes</title>
+<style>
+:root{
+  --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
+  --txt:#dfe3ea; --mut:#8b93a3; --gold:#e8b84b; --gold2:#f5d68a;
+  --green:#57c98a; --orange:#e8924b; --red:#e05d5d; --blue:#5b9ce0;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--txt);font:14px/1.45 system-ui,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+button{font:inherit;color:inherit;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:var(--gold);color:var(--gold2)}
+button:disabled{opacity:.45;cursor:default}
+button.sel{border-color:var(--gold);color:var(--gold2);background:#2a2415}
+input,select{font:inherit;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+input[type=checkbox]{accent-color:var(--gold)}
+input[type=range]{accent-color:var(--gold);padding:0}
+.hidden{display:none!important}
+.muted{color:var(--mut);font-size:12px;padding:6px 4px}
+
+/* ---- cabecera ---- */
+#topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+#brand{font-weight:700;letter-spacing:.5px;font-size:16px;white-space:nowrap}
+#brand b{color:var(--gold)}
+#brand span{color:var(--mut);font-weight:400;font-size:12px;margin-left:6px}
+#topbar .spacer{flex:1}
+#proj-status{color:var(--mut);font-size:12px}
+.btn.primary{border-color:var(--gold);color:var(--gold2);background:#2a2415}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--mut)}
+.btn.limited{opacity:.5}
+
+/* ---- layout ---- */
+#mods{flex:1;display:flex;flex-direction:column;min-height:0}
+.mod{flex:1;display:grid;grid-template-columns:250px 1fr 360px;min-height:0}
+aside,#center{min-height:0}
+#left{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden}
+#right{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:10px}
+#center{display:flex;flex-direction:column;overflow:hidden;padding:10px;gap:8px}
+
+/* ---- panel izquierdo ---- */
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tab{flex:1;border:none;border-radius:0;background:transparent;padding:8px;color:var(--mut)}
+.tab.active{color:var(--gold2);box-shadow:inset 0 -2px 0 var(--gold)}
+#char-list,#sprite-list,#state-list{overflow-y:auto;flex:1;padding:6px}
+.grp{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:8px 4px 4px}
+.charbtn{display:flex;justify-content:space-between;align-items:baseline;width:100%;text-align:left;margin:2px 0;background:transparent;border-color:transparent}
+.charbtn .obj{color:var(--mut);font-size:11px;font-family:var(--mono)}
+.charbtn.exe b{color:#e08;}
+.sprbtn{display:block;width:100%;text-align:left;margin:1px 0;font-family:var(--mono);font-size:12px;background:transparent;border-color:transparent}
+.sprbtn:hover{border-color:var(--line)}
+#state-block{border-top:1px solid var(--line);max-height:45%;display:flex;flex-direction:column}
+.side-head{padding:8px 10px 4px;color:var(--gold);font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.toggleline{color:var(--mut);font-weight:400;font-size:11px;display:flex;gap:4px;align-items:center}
+.stbtn{display:flex;flex-direction:column;width:100%;text-align:left;margin:2px 0;background:transparent;border-color:transparent;padding:4px 8px}
+.stbtn b{font-size:13px}
+.stbtn .spr{color:var(--mut);font-size:11px;font-family:var(--mono)}
+.stbtn .fc{color:var(--gold);font-size:11px;font-family:var(--mono)}
+.stbtn:hover{border-color:var(--line)}
+.stbtn.sel{border-color:var(--gold);background:#2a2415}
+#spr-search{margin:6px;width:calc(100% - 12px)}
+
+/* ---- visor ---- */
+#viewer-wrap{position:relative;background:#0b0c0f;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;flex:1;min-height:160px}
+#viewer{image-rendering:pixelated;max-width:100%;max-height:100%}
+#viewer-hud{position:absolute;left:10px;top:8px;font-family:var(--mono);font-size:12px;color:var(--gold2);text-shadow:0 1px 2px #000;pointer-events:none;white-space:pre}
+
+/* ---- transporte ---- */
+#transport{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+#transport .grp2{display:flex;gap:4px;align-items:center}
+#transport label{color:var(--mut);font-size:12px;display:flex;gap:4px;align-items:center}
+#frame-label{font-family:var(--mono);font-size:12px;color:var(--gold2)}
+#zoom-row{display:flex;gap:2px}
+#zoom-row button{padding:3px 8px;font-size:12px;font-family:var(--mono)}
+.preset{padding:3px 7px;font-size:12px;font-family:var(--mono)}
+#in-speed{width:150px}
+#num-speed{width:56px;font-family:var(--mono)}
+
+/* ---- barra de loop ---- */
+#loopbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.chip{font-size:12px;font-weight:600;border-radius:10px;padding:2px 10px}
+.chip.green{background:#12301f;color:var(--green);border:1px solid #2a5c3f}
+.chip.orange{background:#33230f;color:var(--orange);border:1px solid #6b4a22}
+#loopbar input[type=number]{width:64px;font-family:var(--mono)}
+#loop-writeinfo{font-family:var(--mono);font-size:11.5px;color:var(--mut);flex-basis:100%}
+
+/* ---- línea de tiempo ---- */
+#tl-wrap{position:relative;overflow-x:auto;overflow-y:hidden;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:26px 10px 6px;min-height:110px}
+#tl-inner{position:relative}
+#tl-regions,#tl-track{position:relative}
+#tl-track{display:flex}
+.cell{width:52px;height:46px;margin:0 3px;background:#101317;border-radius:4px;flex:none;cursor:pointer}
+.cell.in-intro{outline:1px solid #2c4a75;background:#0f1722}
+.cell.in-loop{outline:1px solid #2a5c3f;background:#0f2016}
+#tl-regions div{position:absolute;top:22px;height:14px;pointer-events:none}
+#rg-intro{background:rgba(91,156,224,.22);border-left:2px solid var(--blue)}
+#rg-loop{background:rgba(87,201,138,.22);border-left:2px solid var(--green);border-right:2px solid var(--green)}
+#rg-intro::after,#rg-loop::after{content:attr(data-label);position:absolute;top:-16px;left:6px;font-size:10px;font-family:var(--mono);color:var(--mut)}
+#mk-a,#mk-b,#mk-cur{position:absolute;top:18px;bottom:2px;width:4px;border-radius:2px;cursor:ew-resize;touch-action:none}
+#mk-a{background:var(--green)}
+#mk-b{background:var(--orange)}
+#mk-cur{background:#fff;opacity:.55;width:2px;pointer-events:none}
+#mk-a .lbl,#mk-b .lbl{position:absolute;top:-19px;left:-2px;font-size:10px;font-family:var(--mono);color:var(--txt);background:var(--panel2);border-radius:3px;padding:0 4px;white-space:nowrap}
+
+/* ---- panel derecho ---- */
+#right section{margin-bottom:12px}
+#right h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--gold)}
+.kv{display:flex;justify-content:space-between;gap:8px;padding:3px 2px;border-bottom:1px dashed #23272f;font-size:12.5px}
+.kv span{color:var(--mut)}
+.kv b{font-family:var(--mono);font-weight:600;text-align:right;word-break:break-all}
+.kv b.dyn{color:var(--orange)}
+.kv.warn b{color:var(--red)}
+.note{margin-top:8px;color:var(--mut);font-size:11.5px}
+.okline{color:var(--green);font-size:12.5px;padding:8px 4px}
+.editcard{border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;background:var(--panel2)}
+.edhead{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.edhead b{color:var(--gold2)}
+.edpath{color:var(--mut);font-size:10.5px;font-family:var(--mono)}
+.edtitle{color:var(--txt);font-size:12px;margin:4px 0}
+pre.diff,pre.snip{font-family:var(--mono);font-size:11.5px;line-height:1.5;background:#0b0d10;border:1px solid #20242c;border-radius:6px;padding:8px;overflow-x:auto;white-space:pre;margin:6px 0 0}
+pre.diff .del{background:#3a1717;color:#f0a0a0;display:inline-block;width:100%}
+pre.diff .add{background:#12301f;color:#9fe0bb;display:inline-block;width:100%}
+.warnline{color:var(--orange);font-size:11.5px;margin-top:4px}
+.sharedline{color:var(--blue);font-size:11.5px;margin-top:4px}
+#write-actions{display:flex;flex-wrap:wrap;gap:6px}
+#write-actions button{flex:1;min-width:120px}
+#btn-write{border-color:var(--gold);color:var(--gold2);background:#2a2415;font-weight:600}
+
+/* ---- toasts / diálogo ---- */
+#toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.toast{background:var(--panel2);border:1px solid var(--gold);border-radius:8px;padding:10px 14px;max-width:380px;font-size:13px;box-shadow:0 4px 18px #000a;transition:opacity .4s}
+.toast.err{border-color:var(--red)}
+.toast.warn{border-color:var(--orange)}
+.toast.gone{opacity:0}
+dialog{background:var(--panel);color:var(--txt);border:1px solid var(--gold);border-radius:12px;max-width:640px;width:92%;padding:18px 22px}
+dialog::backdrop{background:#000c}
+dialog h2{margin:0 0 10px;color:var(--gold2);font-size:18px}
+dialog h4{margin:14px 0 4px;color:var(--gold);font-size:13px}
+dialog p,dialog li{font-size:13px;color:var(--txt)}
+dialog code{font-family:var(--mono);background:#0b0d10;padding:1px 5px;border-radius:4px;font-size:12px}
+dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
+/* ---- navegación de módulos ---- */
+#modnav{display:flex;gap:6px;align-items:center;padding:6px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+#modnav .mnav{padding:6px 14px;font-weight:600}
+#modnav .mnav.sel{border-color:var(--gold);color:var(--gold2);background:#2a2415}
+#modnav-note{color:var(--mut);font-size:11.5px;margin-left:auto}
+.mod .side{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.mod .mid{display:flex;flex-direction:column;overflow:hidden;padding:10px;gap:8px;min-height:0}
+.mod .rightpane{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:10px;min-height:0}
+.rightpane section{margin-bottom:12px}
+.rightpane h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--gold)}
+
+/* ---- módulo recargas y números ---- */
+#mod-tune .mid{overflow-y:auto}
+.tunebox{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px}
+.tunebox h3{margin:2px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--gold)}
+.cdrow{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0;background:var(--panel2);cursor:pointer}
+.cdrow.sel{border-color:var(--gold)}
+.cdrow .cdtop{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.cdrow .cdtop b{font-size:13px}
+.cdrow .cur{font-family:var(--mono);color:var(--gold2);font-size:12.5px}
+.cdrow .newchip{font-family:var(--mono);color:var(--green);font-size:12px}
+.cdrow .pair{color:var(--blue);font-size:11px}
+.cdrow .cdctl{display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap}
+.cdrow input[type=range]{width:190px}
+.cdrow input[type=number]{width:70px;font-family:var(--mono)}
+.cdrow .mcode{color:var(--mut);font-size:10.5px;font-family:var(--mono);margin-top:3px;word-break:break-all}
+.numrow{padding:4px 8px;border-bottom:1px dashed #23272f}
+.numrow .nrow1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.numrow b{font-size:12.5px;font-family:var(--mono)}
+.numrow input[type=number]{width:90px;font-family:var(--mono)}
+.numrow .hint{color:var(--mut);font-size:11px;margin-top:2px}
+#tune-bar-preview{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.barline{display:flex;align-items:center;gap:8px;margin:4px 0}
+.barline .lbl{width:86px;color:var(--mut);font-size:11.5px;text-align:right;flex:none}
+.barline .lbl.gold{color:var(--gold2)}
+.barline .bar{flex:1;height:18px;background:#0b0d10;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.barline .fill{height:100%;width:0%;background:linear-gradient(90deg,#2c7a52,var(--green))}
+.barline .fill.new{background:linear-gradient(90deg,#8a6d1e,var(--gold))}
+.barline .sec{width:80px;font-family:var(--mono);font-size:12px;color:var(--txt);flex:none}
+
+/* ---- módulo imágenes ---- */
+.imgstage{position:relative;background:#0b0c0f;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;min-height:150px;flex:none;height:225px}
+.imgstage canvas{image-rendering:pixelated;max-width:100%;max-height:100%}
+#img-viewer-hud{position:absolute;left:10px;top:8px;font-family:var(--mono);font-size:12px;color:var(--gold2);text-shadow:0 1px 2px #000;pointer-events:none;white-space:pre}
+.refrow{display:flex;align-items:center;gap:10px;padding:5px 8px;border:1px solid transparent;border-radius:6px;cursor:pointer}
+.refrow:hover{border-color:var(--line)}
+.refrow.sel{border-color:var(--gold);background:#2a2415}
+.refrow .mini{width:52px;height:40px;background:#101317;border-radius:4px;flex:none;image-rendering:pixelated}
+.refrow .rinfo{flex:1;min-width:0}
+.refrow .rinfo b{font-family:var(--mono);font-size:12px;word-break:break-all}
+.refrow .rinfo .rline{color:var(--mut);font-size:10.5px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.refrow .rn{color:var(--gold);font-family:var(--mono);font-size:11px;flex:none}
+.imgnote{color:var(--mut);font-size:11.5px}
+
+/* ---- selector de sprites ---- */
+#sprpick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;max-height:56vh;overflow-y:auto;margin-top:8px}
+.sprtile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);cursor:pointer}
+.sprtile:hover{border-color:var(--gold)}
+.sprtile.cur{border-color:var(--gold);background:#2a2415}
+.sprtile canvas{width:72px;height:56px;background:#101317;border-radius:4px;image-rendering:pixelated}
+.sprtile .tname{font-family:var(--mono);font-size:10px;color:var(--txt);word-break:break-all;text-align:center}
+.sprtile .tfc{font-family:var(--mono);font-size:10px;color:var(--gold)}
+@media (max-width:1100px){.mod{grid-template-columns:220px 1fr 300px}}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes</span></div>
+  <button id="btn-open" class="btn primary">Abrir carpeta del proyecto</button>
+  <button id="btn-open-ro" class="btn">Elegir carpeta (solo lectura)</button>
+  <button id="btn-demo" class="btn">Demo</button>
+  <span id="proj-status">sin proyecto</span>
+  <div class="spacer"></div>
+  <button id="btn-help" class="btn ghost">Ayuda</button>
+  <input id="dir-input" type="file" webkitdirectory multiple class="hidden">
+</header>
+
+<nav id="modnav">
+  <button class="mnav sel" data-mod="anim">🎬 Animaciones</button>
+  <button class="mnav" data-mod="tune">⏱ Recargas y números</button>
+  <button class="mnav" data-mod="img">🖼 Imágenes de habilidades</button>
+  <span id="modnav-note">tú mueves · el código se escribe solo</span>
+</nav>
+
+<div id="mods">
+<div id="mod-anim" class="mod">
+
+  <aside id="left">
+    <div class="tabs">
+      <button class="tab active" data-tab="chars">Personajes</button>
+      <button class="tab" data-tab="sprites">Sprites</button>
+    </div>
+    <div id="tab-chars" class="tabpane" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <div id="char-list"></div>
+      <div id="state-block" class="hidden">
+        <div class="side-head"><span id="state-title">Estados</span></div>
+        <label class="toggleline" id="demon-line" style="padding:0 10px"><input type="checkbox" id="chk-demon"> tira demonizada (eanims)</label>
+        <div id="state-list"></div>
+      </div>
+    </div>
+    <div id="tab-sprites" class="tabpane hidden" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <input id="spr-search" placeholder="Buscar sprite… (ej: amelia)">
+      <div id="sprite-list"></div>
+    </div>
+  </aside>
+
+  <main id="center">
+    <div id="viewer-wrap">
+      <canvas id="viewer" width="480" height="340"></canvas>
+      <div id="viewer-hud">elige un personaje y un estado</div>
+    </div>
+
+    <div id="transport">
+      <div class="grp2">
+        <button id="btn-first" title="primer frame (Home)">|&lt;</button>
+        <button id="btn-prev" title="frame anterior (←)">&lt;</button>
+        <button id="btn-play" class="btn primary">▶ Reproducir</button>
+        <button id="btn-next" title="frame siguiente (→)">&gt;</button>
+        <button id="btn-last" title="último frame (End)">&gt;|</button>
+      </div>
+      <div class="grp2">
+        <label>velocidad <input id="in-speed" type="range" min="0.05" max="3" step="0.05" value="1"></label>
+        <input id="num-speed" type="number" min="0.01" max="10" step="0.01" value="1">
+        <span id="frame-label"></span>
+      </div>
+      <div class="grp2" id="presets">
+        <button class="preset" data-v="0.1">.1</button>
+        <button class="preset" data-v="0.2">.2</button>
+        <button class="preset" data-v="0.3">.3</button>
+        <button class="preset" data-v="0.5">.5</button>
+        <button class="preset" data-v="1">1</button>
+        <button class="preset" data-v="1.1">1.1</button>
+        <button class="preset" data-v="2">2</button>
+      </div>
+      <div class="grp2">
+        <label>zoom</label>
+        <span id="zoom-row">
+          <button data-z="0">auto</button><button data-z="1">1×</button><button data-z="2" class="sel">2×</button>
+          <button data-z="3">3×</button><button data-z="4">4×</button><button data-z="6">6×</button><button data-z="8">8×</button>
+        </span>
+      </div>
+      <div class="grp2">
+        <label>fondo
+          <select id="sel-bg">
+            <option value="dark">oscuro</option>
+            <option value="light">claro</option>
+            <option value="checker">cuadrícula</option>
+            <option value="magenta">magenta</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="chk-onion"> estela</label>
+        <label><input type="checkbox" id="chk-once"> una pasada</label>
+      </div>
+    </div>
+
+    <div id="loopbar">
+      <span class="chip green">A · el loop EMPIEZA aquí</span>
+      <input id="in-a" type="number" min="1" value="1" title="frame donde empieza el loop">
+      <button id="btn-a-here" title="marca A en el frame actual (tecla [)">A aquí</button>
+      <span class="chip orange">B · el loop TERMINA aquí</span>
+      <input id="in-b" type="number" min="1" value="1" title="frame donde termina el loop (incluido)">
+      <button id="btn-b-here" title="marca B en el frame actual (tecla ])">B aquí</button>
+      <button id="btn-loop-clear">quitar loop</button>
+      <span id="loop-writeinfo"></span>
+    </div>
+
+    <div id="tl-wrap">
+      <div id="tl-inner">
+        <div id="tl-regions"><div id="rg-intro" class="hidden"></div><div id="rg-loop"></div></div>
+        <div id="tl-track"></div>
+        <div id="mk-a" class="hidden"><span class="lbl">A</span></div>
+        <div id="mk-b" class="hidden"><span class="lbl">B</span></div>
+        <div id="mk-cur" class="hidden"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside id="right">
+    <section>
+      <h3>En el juego ahora</h3>
+      <div id="game-panel"><div class="muted">elige un personaje</div></div>
+    </section>
+    <section>
+      <h3>Cambios a escribir</h3>
+      <div id="edits-list"><div class="muted">elige personaje y estado</div></div>
+      <div id="write-actions" class="hidden">
+        <button id="btn-write">Escribir en los archivos</button>
+        <button id="btn-undo">Deshacer último</button>
+        <button id="btn-copy-draw">Copiar Draw_76 entero</button>
+        <button id="btn-copy-other">Copiar Other_7 entero</button>
+      </div>
+    </section>
+    <section>
+      <h3>Recargas (Create_0)</h3>
+      <div id="cd-list"></div>
+    </section>
+  </aside>
+</div><!-- /mod-anim -->
+
+<div id="mod-tune" class="mod hidden">
+  <aside class="side">
+    <div class="side-head">Personaje</div>
+    <div id="tune-ent-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+  </aside>
+  <main class="mid">
+    <div id="tune-head" class="muted">elige un personaje: verás sus recargas y números</div>
+    <div id="tune-cds" class="tunebox hidden">
+      <h3>⏱ Tiempos y recargas (segundos)</h3>
+      <div id="tune-cd-rows"></div>
+      <div id="tune-bar-preview" class="hidden">
+        <div class="barline"><span class="lbl">ahora</span><div class="bar"><div id="tune-bar-a" class="fill"></div></div><span class="sec" id="tune-sec-a"></span></div>
+        <div class="barline"><span class="lbl gold">propuesta</span><div class="bar"><div id="tune-bar-b" class="fill new"></div></div><span class="sec" id="tune-sec-b"></span></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+          <button id="tune-bar-restart">↺ repetir</button>
+          <span class="muted">así se siente la espera en el juego (60 pasos/s). Pulsa una recarga para verla aquí.</span>
+        </div>
+      </div>
+    </div>
+    <div id="tune-nums" class="tunebox hidden">
+      <h3>🔢 Otros números</h3>
+      <div id="tune-num-rows"></div>
+    </div>
+  </main>
+  <aside class="rightpane">
+    <section>
+      <h3>Cambios a escribir</h3>
+      <div id="tune-edits"><div class="muted">nada todavía</div></div>
+      <div id="tune-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <button id="tune-write" class="btn primary" style="flex:1;min-width:130px">Escribir en los archivos</button>
+        <button id="tune-undo">Deshacer último</button>
+      </div>
+    </section>
+    <section class="note">Las macros con <b>E</b> delante (EMETAL_…, EBLAZE_…) son la versión del personaje <b>demonizado / escapado</b>: suelen ser recargas más cortas. Se editan igual, cada una con su deslizador.</section>
+    <section class="note">Nada se toca hasta que pulsas <b>Escribir</b>: antes verás el antes/después exacto, y siempre queda copia en <code>_backups_animeditor/</code> con botón de deshacer.</section>
+  </aside>
+</div><!-- /mod-tune -->
+
+<div id="mod-img" class="mod hidden">
+  <aside class="side">
+    <div class="tabs">
+      <button class="tab active" data-itab="estados">Estados</button>
+      <button class="tab" data-itab="objetos">Objetos</button>
+    </div>
+    <div id="img-tab-estados" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <div id="img-char-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+      <div id="img-state-block" class="hidden" style="border-top:1px solid var(--line);max-height:50%;display:flex;flex-direction:column">
+        <div class="side-head"><span id="img-state-title">Estados</span></div>
+        <label class="toggleline" id="img-demon-line" style="padding:0 10px"><input type="checkbox" id="img-chk-demon"> demonizada (eanims)</label>
+        <div id="img-state-list" style="overflow-y:auto;flex:1;padding:6px"></div>
+      </div>
+    </div>
+    <div id="img-tab-objetos" class="hidden" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <input id="img-obj-search" placeholder="Buscar objeto o sprite…" style="margin:6px;width:calc(100% - 12px)">
+      <div id="img-obj-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+    </div>
+  </aside>
+  <main class="mid">
+    <div class="imgstage">
+      <canvas id="img-viewer" width="420" height="200"></canvas>
+      <div id="img-viewer-hud">elige un estado o un objeto</div>
+    </div>
+    <button id="img-btn-swap" class="btn primary hidden" style="align-self:flex-start">Cambiar este sprite…</button>
+    <div id="img-context" style="flex:1;overflow-y:auto"></div>
+  </main>
+  <aside class="rightpane">
+    <section>
+      <h3>Cambios a escribir</h3>
+      <div id="img-edits"><div class="muted">nada todavía</div></div>
+      <div id="img-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <button id="img-write" class="btn primary" style="flex:1;min-width:130px">Escribir en los archivos</button>
+        <button id="img-undo">Deshacer último</button>
+      </div>
+    </section>
+    <section class="note">Cambiar el sprite de un <b>estado</b> reescribe la tabla <code>player_anims</code>: como los puppets de los demás clientes resuelven por esa misma tabla, el cambio se ve en todas las pantallas sin tocar nada más.</section>
+  </aside>
+</div><!-- /mod-img -->
+
+</div><!-- /mods -->
+
+<div id="toasts"></div>
+
+<dialog id="sprpicker">
+  <h2>Elegir un sprite</h2>
+  <input id="sprpick-search" placeholder="Buscar… (ej: metal, trap, revival)" style="width:100%">
+  <div id="sprpick-grid"></div>
+  <div class="close-row"><button id="sprpick-cancel" class="btn">Cancelar</button></div>
+</dialog>
+
+<dialog id="help">
+  <h2>Suite TD2D — cómo se usa</h2>
+  <h4>1. Abrir tu proyecto</h4>
+  <p>Botón <b>Abrir carpeta del proyecto</b> (Chrome o Edge) y elige la carpeta raíz del juego
+  (la que contiene <code>scripts/</code>, <code>objects/</code> y <code>sprites/</code>).
+  Así puedes <b>escribir</b> los cambios directo en los GML, con copia de seguridad automática.
+  En otros navegadores usa <b>Elegir carpeta (solo lectura)</b>: te dará el archivo entero para copiar y pegar en GameMaker.</p>
+  <h4>2. Módulo 🎬 Animaciones</h4>
+  <p>Elige personaje → estado y verás la tira animada a la velocidad que tiene HOY.
+  Arrastra los marcadores <b style="color:#57c98a">A</b> (el loop EMPIEZA aquí) y <b style="color:#e8924b">B</b> (TERMINA aquí),
+  ajusta la velocidad y escribe: <code>Draw_76.gml</code> (image_speed y cortes) y <code>Other_7.gml</code> (punto de repetición del idle).</p>
+  <h4>3. Módulo ⏱ Recargas y números</h4>
+  <p>Todas las recargas (<code>*_RECHARGE</code>) y duraciones en segundos del personaje, con deslizador y
+  <b>vista previa de la barra</b> comparando «ahora» contra «propuesta» en tiempo real. También los otros números
+  (velocidad máxima, aceleración…). Se escribe en <code>Create_0.gml</code> y en <code>scr_*_special.gml</code>, con copia y deshacer.</p>
+  <h4>4. Módulo 🖼 Imágenes de habilidades</h4>
+  <p><b>Estados:</b> qué sprite usa cada estado del personaje (tabla <code>player_anims</code>): elígelo de un catálogo
+  con miniaturas y se reescribe la tabla. <b>Objetos:</b> qué sprites usan los objetos del juego (trampas, huevos, balas…):
+  pulsa uno y cámbialo igual. Ideal para descubrir mezclas de sprites sin cruzar los dedos.</p>
+  <h4>5. Escribir (todos los módulos)</h4>
+  <p>El panel derecho muestra el antes/después exacto de cada archivo. <b>Escribir</b> guarda una copia en
+  <code>_backups_animeditor/</code> y tiene botón de deshacer. Después compila el juego (F5).
+  El multijugador no necesita recompilar el server: el frame exacto viaja por red.</p>
+  <div class="close-row"><button id="help-close" class="btn primary">Entendido</button></div>
+</dialog>
+
+<script>
+/* =====================================================================
+   NUCLEO del Editor de Animaciones TD2D — funciones puras de analisis
+   y parcheo de los archivos del proyecto (GameMaker GML + .yy).
+   Funciona en Node (tests) y en el navegador (window.AnimCore).
+
+   Convenciones del proyecto verificadas contra el codigo real:
+   - Draw_76.gml  : switch(state) con un case por estado; pone image_speed.
+   - Other_7.gml  : Animation End; el case IDLE pone
+                    image_index = image_number - N  (punto de repeticion).
+   - Los cases pueden COMPARTIR etiqueta (case RUN: case JUMP:) y por
+     tanto compartir el image_speed: se tratan como grupo.
+   ===================================================================== */
+(function (root, factory) {
+  if (typeof module !== 'undefined' && module.exports) module.exports = factory();
+  else root.AnimCore = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var BASE_STATES = ['IDLE', 'WALK', 'RUN', 'JUMP', 'FALL', 'HURT', 'DEAD',
+    'LOOKUP', 'LOOKDOWN', 'EMOTION1', 'EMOTION2', 'EMOTION3', 'SPIN', 'BALANCING'];
+  var BASE_SEED = {};
+  BASE_STATES.forEach(function (n, i) { BASE_SEED[n] = i; });
+
+  /* ---------- .yy de GameMaker (JSON con comas colgantes) ---------- */
+
+  function stripGmJson(text) {
+    return String(text).replace(/,\s*(?=[}\]])/g, '');
+  }
+
+  // Devuelve { name, frames:[guid], layers:[guid], playbackSpeed, length }
+  function parseSpriteYy(text) {
+    var d;
+    try { d = JSON.parse(stripGmJson(text)); } catch (e) { return null; }
+    if (!d) return null;
+    var seq = d.sequence || {};
+    var frames = [];
+    var tracks = seq.tracks || [];
+    for (var i = 0; i < tracks.length; i++) {
+      var kfs = (tracks[i].keyframes || {}).Keyframes || [];
+      for (var j = 0; j < kfs.length; j++) {
+        var id = (((kfs[j].Channels || {})['0'] || {}).Id) || {};
+        if (id.name) frames.push(id.name);
+      }
+    }
+    var layers = (d.layers || []).map(function (l) {
+      return l.name || l['%Name'] || '';
+    }).filter(Boolean);
+    return {
+      name: d['%Name'] || d.name || '',
+      frames: frames,
+      layers: layers,
+      playbackSpeed: seq.playbackSpeed,
+      playbackSpeedType: seq.playbackSpeedType,
+      length: seq.length
+    };
+  }
+
+  /* ----------------------- macros #macro N valor ----------------------- */
+
+  function macroDefs(text) {
+    var defs = [];
+    var re = /#macro\s+([A-Za-z_]\w*)\s+([^\n\r]+)/g, m;
+    while ((m = re.exec(text))) defs.push([m[1], m[2].trim()]);
+    return defs;
+  }
+
+  // Resuelve la cadena de macros aritmeticas (CHARACTER_X (CHARACTER_TAILS+1)).
+  // Los valores pueden llevar comentario al final: se quita antes de evaluar.
+  function evalMacros(text, seed) {
+    var macros = {};
+    var k;
+    if (seed) for (k in seed) macros[k] = seed[k];
+    var defs = macroDefs(text);
+    var progress = true, guard = 0;
+    while (progress && guard++ < 64) {
+      progress = false;
+      for (var i = 0; i < defs.length; i++) {
+        var name = defs[i][0];
+        var raw = defs[i][1].replace(/\/\/.*$/, '').trim();
+        if (!raw || macros[name] !== undefined) continue;
+        var expr = raw.replace(/[A-Za-z_]\w*/g, function (w) {
+          return macros[w] !== undefined ? String(macros[w]) : w;
+        });
+        if (/^[\d\s+\-*/().]+$/.test(expr) && /\d/.test(expr)) {
+          try {
+            var v = Function('"use strict";return (' + expr + ')')();
+            if (typeof v === 'number' && isFinite(v)) { macros[name] = v; progress = true; }
+          } catch (e) { /* ignora */ }
+        }
+      }
+    }
+    return macros;
+  }
+
+  /* ----------------- tablas de animaciones (scr_survivors / scr_exe) ----------------- */
+
+  // Lineas "spr_x, //14 = NOMBRE ..." -> { spr, idx, label }
+  function parseArrayEntries(body) {
+    var out = [];
+    var auto = 0;
+    var lines = String(body).split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      if (/^\/\//.test(line)) continue; // comentario suelto (//Visible...)
+      var m = line.match(/^([A-Za-z_]\w*)\s*,?\s*(?:\/\/\s*(.*))?$/);
+      if (!m) continue;
+      var spr = m[1];
+      var comment = (m[2] || '').trim();
+      var idx = null, label = null;
+      var cm = comment.match(/^(\d+)\s*(?:=\s*([A-Za-z_]\w*))?/);
+      if (cm) { idx = parseInt(cm[1], 10); label = cm[2] || null; }
+      if (idx === null || idx < 0) idx = auto;
+      auto = idx + 1;
+      if (idx < BASE_STATES.length && !label) label = BASE_STATES[idx];
+      out.push({ spr: spr, idx: idx, label: label || ('ESTADO_' + idx), comment: comment });
+    }
+    return out;
+  }
+
+  // scr_survivors.gml -> { chars:[{key,name,idx,obj,anims,eanims}], objMap }
+  function parseSurvivors(text) {
+    var macros = evalMacros(text, BASE_SEED);
+    var byChar = {};
+    var arrRe = /global\.player_(anims|eanims)\[\?\s*([A-Za-z_]\w*)\s*\]\s*=\s*\[([\s\S]*?)\]\s*;/g, m;
+    while ((m = arrRe.exec(text))) {
+      var key = m[2];
+      var body = m[3];
+      var inv = body.search(/\/\/\s*Invisible/i);
+      if (inv >= 0) body = body.slice(0, inv);
+      if (!byChar[key]) byChar[key] = { key: key, idx: macros[key], anims: null, eanims: null };
+      byChar[key][m[1]] = parseArrayEntries(body);
+    }
+    var objMap = {};
+    var objRe = /case\s+(CHARACTER_\w+)\s*:\s*return\s+(obj_\w+)\s*;/g, om;
+    while ((om = objRe.exec(text))) objMap[om[1]] = om[2];
+    var chars = [];
+    for (var k in byChar) {
+      var c = byChar[k];
+      if (!c.anims && !c.eanims) continue;
+      c.obj = objMap[k] || null;
+      c.name = k.replace(/^CHARACTER_/, '');
+      chars.push(c);
+    }
+    chars.sort(function (a, b) { return (a.idx == null ? 999 : a.idx) - (b.idx == null ? 999 : b.idx); });
+    return { macros: macros, chars: chars, objMap: objMap };
+  }
+
+  // scr_exe.gml -> { exes:[{key,name,idx,obj,anims}] } (solo seccion visible)
+  function parseExeTable(text) {
+    var macros = evalMacros(text, BASE_SEED);
+    var exes = [];
+    var arrRe = /global\.player_exesanims\[\?\s*(EXE_\w+)\s*\]\s*=\s*\[([\s\S]*?)\]\s*;/g, m;
+    while ((m = arrRe.exec(text))) {
+      var body = m[2];
+      var inv = body.search(/\/\/\s*Invisible/i);
+      if (inv >= 0) body = body.slice(0, inv);
+      exes.push({ key: m[1], idx: macros[m[1]], anims: parseArrayEntries(body) });
+    }
+    var objMap = {};
+    var objRe = /case\s+(\d+)\s*:\s*return\s+(obj_\w+)\s*;/g, om;
+    while ((om = objRe.exec(text))) objMap[parseInt(om[1], 10)] = om[2];
+    for (var i = 0; i < exes.length; i++) {
+      exes[i].obj = objMap[exes[i].idx] || null;
+      exes[i].name = exes[i].key.replace(/^EXE_/, '');
+    }
+    exes.sort(function (a, b) { return (a.idx == null ? 999 : a.idx) - (b.idx == null ? 999 : b.idx); });
+    return { macros: macros, exes: exes };
+  }
+
+  // Step_2.gml de un objeto -> { 14:'EXE_ATTACK', ... } (estados propios)
+  function parseObjectStates(step2Text) {
+    var macros = evalMacros(step2Text, BASE_SEED);
+    var map = {};
+    var defs = macroDefs(step2Text);
+    for (var i = 0; i < defs.length; i++) {
+      var name = defs[i][0];
+      if (name in BASE_SEED) continue;
+      var v = macros[name];
+      if (typeof v !== 'number' || v < BASE_STATES.length) continue;
+      if (!(v in map)) map[v] = name;
+    }
+    return map;
+  }
+
+  /* ---------------- grupos de cases de un switch GML ---------------- */
+
+  // Etiquetas sueltas "case X:" en orden de aparicion.
+  function parseStateCases(gml) {
+    var re = /(^|\n)[ \t]*case\s+([A-Za-z_]\w*)\s*:/g;
+    var cases = [], m;
+    while ((m = re.exec(gml))) {
+      cases.push({
+        state: m[2],
+        labelStart: m.index + (m[1] ? 1 : 0),
+        bodyStart: m.index + m[0].length
+      });
+    }
+    return cases;
+  }
+
+  // Grupos: etiquetas consecutivas que caen juntas (case RUN: case JUMP:)
+  // comparten cuerpo. Cada grupo: { labels, labelStart, bodyStart,
+  // lastLabelEnd, end }.
+  function parseCaseGroups(gml) {
+    var cases = parseStateCases(gml);
+    var groups = [];
+    var i = 0;
+    while (i < cases.length) {
+      var grp = {
+        labels: [cases[i].state],
+        labelStart: cases[i].labelStart,
+        bodyStart: cases[i].bodyStart,
+        lastLabelEnd: cases[i].bodyStart
+      };
+      var j = i;
+      while (j + 1 < cases.length) {
+        var between = gml.slice(cases[j].bodyStart, cases[j + 1].labelStart);
+        if (/^\s*$/.test(between)) {
+          j++;
+          grp.labels.push(cases[j].state);
+          grp.lastLabelEnd = cases[j].bodyStart;
+        } else break;
+      }
+      grp.end = j + 1 < cases.length ? cases[j + 1].labelStart : gml.length;
+      groups.push(grp);
+      i = j + 1;
+    }
+    return groups;
+  }
+
+  function findGroup(gml, state) {
+    var groups = parseCaseGroups(gml);
+    for (var i = 0; i < groups.length; i++)
+      if (groups[i].labels.indexOf(state) >= 0) return groups[i];
+    return null;
+  }
+
+  // Indent de la linea "case" (tabs o espacios, segun el archivo).
+  function caseIndent(gml, grp) {
+    var head = gml.slice(grp.labelStart, grp.bodyStart);
+    var mm = head.match(/^[ \t]*/);
+    return mm ? mm[0] : '';
+  }
+
+  // Inserta una linea dentro del grupo, tras la ULTIMA etiqueta case.
+  function insertLineAfterLabels(gml, grp, text) {
+    var nl = gml.indexOf('\n', grp.lastLabelEnd);
+    if (nl < 0 || nl >= grp.end)
+      return gml.slice(0, grp.lastLabelEnd) + ' ' + text + '\n' + gml.slice(grp.lastLabelEnd);
+    return gml.slice(0, nl + 1) + text + '\n' + gml.slice(nl + 1);
+  }
+
+  // Texto del grupo completo (todas sus etiquetas + cuerpo) sin cola.
+  function caseBlockText(gml, state) {
+    var grp = findGroup(gml, state);
+    if (!grp) return null;
+    return gml.slice(grp.labelStart, grp.end).replace(/\s+$/, '');
+  }
+
+  /* --------------------------- image_speed (Draw_76) --------------------------- */
+
+  function getImageSpeed(gml, state) {
+    var grp = findGroup(gml, state);
+    if (!grp) return null;
+    var block = gml.slice(grp.bodyStart, grp.end);
+    var m = block.match(/image_speed\s*=\s*([^;\n\r]+)/);
+    if (!m) return {
+      found: false, expr: null, dynamic: false,
+      block: block, shared: grp.labels.length > 1 ? grp.labels : null
+    };
+    var expr = m[1].trim();
+    return {
+      found: true, expr: expr, dynamic: /[A-Za-z]/.test(expr),
+      block: block, shared: grp.labels.length > 1 ? grp.labels : null
+    };
+  }
+
+  function setImageSpeed(gml, state, value) {
+    var grp = findGroup(gml, state);
+    if (!grp) return { gml: gml, changed: false, error: 'sin-case' };
+    var block = gml.slice(grp.bodyStart, grp.end);
+    var re = /([ \t]*)image_speed\s*=\s*([^;\n\r]+);/;
+    var m = block.match(re);
+    var newBlock, oldExpr = null, inserted = false, dynamic = false;
+    if (m) {
+      oldExpr = m[2].trim();
+      dynamic = /[A-Za-z]/.test(oldExpr);
+      newBlock = block.replace(re, function (full, ind) {
+        return ind + 'image_speed = ' + value + ';';
+      });
+    } else {
+      var ind = caseIndent(gml, grp);
+      var bi = ind + ind;
+      var withLine = bi + 'image_speed = ' + value + ';';
+      var g2 = insertLineAfterLabels(gml, grp, withLine);
+      return {
+        gml: g2, changed: true, oldExpr: null, inserted: true, dynamic: false,
+        shared: grp.labels.length > 1 ? grp.labels : null
+      };
+    }
+    return {
+      gml: gml.slice(0, grp.bodyStart) + newBlock + gml.slice(grp.end),
+      changed: true, oldExpr: oldExpr, inserted: inserted, dynamic: dynamic,
+      shared: grp.labels.length > 1 ? grp.labels : null
+    };
+  }
+
+  /* ---------------- Other_7 (Animation End): image_number - N ---------------- */
+
+  function getIdleLoop(gml, state) {
+    var grp = findGroup(gml, state);
+    if (!grp) return null;
+    var block = gml.slice(grp.bodyStart, grp.end);
+    var m = block.match(/image_index\s*=\s*image_number\s*-\s*(\d+)\s*;/);
+    return m ? parseInt(m[1], 10) : null;
+  }
+
+  function setIdleLoop(gml, state, n) {
+    var grp = findGroup(gml, state);
+    if (!grp) {
+      // Other_7 es un switch "puro": insertar el case antes de la llave final
+      var trimmed = gml.replace(/[ \t\r\n]+$/, '');
+      if (!trimmed.endsWith('}')) return { gml: gml, changed: false, error: 'sin-switch' };
+      var cut = trimmed.length - 1;
+      var first = parseCaseGroups(gml)[0];
+      var ci = first ? caseIndent(gml, first) : '        ';
+      var bi = ci + ci;
+      var ins = '\n' + ci + 'case ' + state + ':\n' + bi +
+        'image_index = image_number - ' + n + ';\n' + bi + 'break;\n' + ci;
+      return {
+        gml: gml.slice(0, cut) + ins + '}' + gml.slice(trimmed.length),
+        changed: true, insertedCase: true, old: null
+      };
+    }
+    var block = gml.slice(grp.bodyStart, grp.end);
+    var re = /([ \t]*)image_index\s*=\s*image_number\s*-\s*(\d+)\s*;/;
+    var m = block.match(re);
+    if (m) {
+      var old = parseInt(m[2], 10);
+      var newBlock = block.replace(re, function (full, ind) {
+        return ind + 'image_index = image_number - ' + n + ';';
+      });
+      return {
+        gml: gml.slice(0, grp.bodyStart) + newBlock + gml.slice(grp.end),
+        changed: true, old: old, inserted: false,
+        shared: grp.labels.length > 1 ? grp.labels : null
+      };
+    }
+    var ind = caseIndent(gml, grp);
+    var bi2 = ind + ind;
+    var g2 = insertLineAfterLabels(gml, grp, bi2 + 'image_index = image_number - ' + n + ';');
+    return {
+      gml: g2, changed: true, old: null, inserted: true,
+      shared: grp.labels.length > 1 ? grp.labels : null
+    };
+  }
+
+  /* ---- tope de loop a mitad de tira (guard en Draw_76): if(idx>=B+1) idx=A ---- */
+
+  function makeGuard(ind, unit, a, b) {
+    return ind + 'if(image_index >= ' + (b + 1) + ')\n' + ind + unit +
+      'image_index = ' + a + ';';
+  }
+
+  function setLoopGuard(gml, state, a, b) {
+    var grp = findGroup(gml, state);
+    if (!grp) return { gml: gml, changed: false, error: 'sin-case' };
+    var block = gml.slice(grp.bodyStart, grp.end);
+    var ind = caseIndent(gml, grp);
+    var bi = ind + ind;
+    var re = /([ \t]*)if\s*\(\s*image_index\s*>=\s*(\w+)\s*\)\s*\r?\n?[ \t]*image_index\s*=\s*([^;\n\r]+);/;
+    var m = block.match(re);
+    if (m) {
+      var old = { from: m[2], to: m[3].trim() };
+      var unit = /^[ \t]*\t/.test(m[1]) || /^\t+$/.test(m[1]) ? '\t' :
+        ' '.repeat(Math.max(1, Math.floor(m[1].length / 2)));
+      var newBlock = block.replace(re, function () { return makeGuard(m[1], unit, a, b); });
+      return {
+        gml: gml.slice(0, grp.bodyStart) + newBlock + gml.slice(grp.end),
+        changed: true, old: old, inserted: false,
+        shared: grp.labels.length > 1 ? grp.labels : null
+      };
+    }
+    // insertar tras la linea de image_speed (o tras las etiquetas)
+    var guard = makeGuard(bi, ind, a, b);
+    var sp = block.match(/[ \t]*image_speed\s*=\s*[^;\n\r]+;[^\n\r]*\n/);
+    var newBlock2;
+    if (sp) {
+      var at = (sp.index || 0) + sp[0].length;
+      newBlock2 = block.slice(0, at) + guard + '\n' + block.slice(at);
+    } else {
+      var g2 = insertLineAfterLabels(gml, grp, guard);
+      return {
+        gml: g2, changed: true, old: null, inserted: true,
+        shared: grp.labels.length > 1 ? grp.labels : null
+      };
+    }
+    return {
+      gml: gml.slice(0, grp.bodyStart) + newBlock2 + gml.slice(grp.end),
+      changed: true, old: null, inserted: true,
+      shared: grp.labels.length > 1 ? grp.labels : null
+    };
+  }
+
+  /* ------------------------------- recargas (macros) -------------------------------
+     Los RECHARGE del juego viven en objects/<obj>/Create_0.gml y en
+     scripts/scr_<char>_special/*.gml. Tres formatos reales:
+       #macro METAL_OVERDRIVE_RECHARGE (60 * 40)
+       #macro TAILS_ATTACK_RECHARGE  (23 * 60)     <- invertido
+       #macro EXE_INVIS_RECHARGE -(60 * 20)        <- negativo (timer cuenta en negativo)
+     Puede haber comentario al final:  (60 * 9)   // CD en modo demonizada
+  */
+
+  function fmtNum(v) {
+    var n = Math.round(v * 100) / 100;
+    return String(n);
+  }
+
+  // Lista las macros #macro de valor numerico o (N * 60).
+  // -> [{ name, raw, kind:'sec'|'num', seconds, value, sign, sixtySide, comment, line }]
+  function parseMacros(text) {
+    var out = [];
+    var lines = String(text).split(/\r?\n/);
+    var re = /^#macro\s+([A-Za-z0-9_]+)\s+(.+?)\s*$/;
+    for (var i = 0; i < lines.length; i++) {
+      var m = lines[i].match(re);
+      if (!m) continue;
+      var rawFull = m[2];
+      var cm = rawFull.match(/^(.*?)(\/\/.*)$/);
+      var raw = (cm ? cm[1] : rawFull).trim();
+      if (!raw) continue;
+      var e = {
+        name: m[1], raw: raw,
+        comment: cm ? cm[2].replace(/^\/\/\s*/, '') : null,
+        line: i, kind: null, seconds: null, value: null, sign: 1, sixtySide: null
+      };
+      var pm = raw.match(/^(-?)\(\s*(\d+(?:\.\d+)?)\s*\*\s*(\d+(?:\.\d+)?)\s*\)$/);
+      if (pm && (pm[2] === '60' || pm[3] === '60')) {
+        var a = parseFloat(pm[2]), b = parseFloat(pm[3]);
+        e.kind = 'sec';
+        e.sign = pm[1] === '-' ? -1 : 1;
+        e.seconds = e.sign * (a === 60 ? b : a);
+        e.sixtySide = a === 60 ? 'left' : 'right';
+      } else if (/^-?\d+(?:\.\d+)?$/.test(raw)) {
+        e.kind = 'num';
+        e.value = parseFloat(raw);
+      } else continue; // expresion rara: no editable aqui
+      out.push(e);
+    }
+    return out;
+  }
+
+  // Reescribe el valor de una macro. patch = { seconds } (para kind 'sec',
+  // magnitud positiva: el signo original se conserva) o { value } (kind 'num').
+  // Conserva espaciado y comentario de la linea.
+  function setMacro(text, name, patch) {
+    var lines = String(text).split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var lm = lines[i].match(/^#macro\s+([A-Za-z0-9_]+)\s+(.+?)\s*$/);
+      if (!lm || lm[1] !== name) continue;
+      var rawFull = lm[2];
+      var cm = rawFull.match(/^(.*?)(\/\/.*)$/);
+      var raw = (cm ? cm[1] : rawFull).trim();
+      var newRaw = null, old = null;
+      var pm = raw.match(/^(-?)\(\s*(\d+(?:\.\d+)?)\s*\*\s*(\d+(?:\.\d+)?)\s*\)$/);
+      if (pm && (pm[2] === '60' || pm[3] === '60') && patch.seconds != null) {
+        var a = parseFloat(pm[2]);
+        var sign = pm[1] === '-' ? '-' : '';
+        var sec = Math.abs(patch.seconds);
+        newRaw = a === 60 ? sign + '(60 * ' + fmtNum(sec) + ')' : sign + '(' + fmtNum(sec) + ' * 60)';
+        old = { kind: 'sec', seconds: (pm[1] === '-' ? -1 : 1) * (a === 60 ? parseFloat(pm[3]) : a) };
+      } else if (/^-?\d+(?:\.\d+)?$/.test(raw) && patch.value != null) {
+        newRaw = fmtNum(patch.value);
+        old = { kind: 'num', value: parseFloat(raw) };
+      } else {
+        return { gml: text, changed: false, error: 'formato' };
+      }
+      var lineRe = new RegExp('^(#macro\\s+' + name + '\\s+)(.*?)(\\s*(?:\\/\\/.*)?)$');
+      lines[i] = lines[i].replace(lineRe, function (full, pre, val, tail) {
+        return pre + newRaw + tail;
+      });
+      return { gml: lines.join(detectNewline(text)), changed: true, old: old, line: i, newRaw: newRaw };
+    }
+    return { gml: text, changed: false, error: 'no-encontrado' };
+  }
+
+  /* ------------- tablas player_anims / eanims / exesanims: sprite por estado ------------- */
+
+  // Cambia el sprite de la entrada //idx de una tabla. table: 'anims' |
+  // 'eanims' (scr_survivors.gml) | 'exesanims' (scr_exe.gml). key:
+  // CHARACTER_X o EXE_X.
+  function setTableSprite(gml, table, key, idx, newSpr) {
+    var re = new RegExp('global\\.player_' + table + '\\[\\?\\s*' + key + '\\s*\\]\\s*=\\s*\\[([\\s\\S]*?)\\]\\s*;');
+    var m = re.exec(gml);
+    if (!m) return { gml: gml, changed: false, error: 'sin-tabla' };
+    var body = m[1];
+    var lines = body.split(/\r?\n/);
+    var lineRe = /^(\s*)([A-Za-z_]\w*)\s*,?\s*(\/\/\s*(\d+)\b.*)?$/;
+    for (var i = 0; i < lines.length; i++) {
+      var lm = lines[i].match(lineRe);
+      if (!lm || !lm[4] || parseInt(lm[4], 10) !== idx) continue;
+      var old = lm[2];
+      if (old === newSpr) return { gml: gml, changed: false, error: 'igual' };
+      lines[i] = lines[i].replace(/^(\s*)[A-Za-z_]\w*/, function (mm, ind) {
+        return ind + newSpr;
+      }); // solo el identificador: la coma y el comentario se quedan
+      var newBody = lines.join(detectNewline(gml));
+      // reconstruir el bloque por offsets del cuerpo (m[1]): conserva
+      // intactos el encabezado "global.player_x[? KEY] = [" y la cola "];"
+      var off = m[0].indexOf(m[1]);
+      var head = m[0].slice(0, off);
+      var tail = m[0].slice(off + m[1].length);
+      return {
+        gml: gml.slice(0, m.index) + head + newBody + tail + gml.slice(m.index + m[0].length),
+        changed: true, old: old, idx: idx, newSpr: newSpr, line: i
+      };
+    }
+    return { gml: gml, changed: false, error: 'sin-entrada' };
+  }
+
+  /* ---------------- referencias a sprites en los .gml de un objeto ---------------- */
+
+  // Todas las apariciones de spr_* con su linea. Cada aparicion es una
+  // fila editable (una misma linea puede llevar dos sprites distintos).
+  function parseSpriteRefs(text) {
+    var out = [];
+    var lines = String(text).split(/\r?\n/);
+    var re = /\bspr_[A-Za-z0-9_]+\b/g;
+    for (var i = 0; i < lines.length; i++) {
+      var m;
+      while ((m = re.exec(lines[i]))) {
+        out.push({ token: m[0], line: i, lineText: lines[i].trim() });
+      }
+    }
+    return out;
+  }
+
+  // Sustituye el token spr_x (con frontera de palabra) SOLO en la linea indicada.
+  function replaceTokenOnLine(text, lineNo, token, newToken) {
+    var lines = String(text).split(/\r?\n/);
+    if (lineNo < 0 || lineNo >= lines.length) return { gml: text, changed: false, error: 'linea' };
+    var re = new RegExp('\\b' + token + '\\b', 'g');
+    var before = lines[lineNo];
+    var after = before.replace(re, newToken);
+    if (after === before) return { gml: text, changed: false, error: 'no-esta' };
+    lines[lineNo] = after;
+    return { gml: lines.join(detectNewline(text)), changed: true, count: 1 };
+  }
+
+  /* ------------------------------- recargas (Create_0) ------------------------------- */
+
+  function parseCooldowns(text) {
+    var out = [];
+    var re = /#macro\s+(\w*RECHARGE\w*)\s+\(\s*60\s*\*\s*(\d+(?:\.\d+)?)\s*\)/g, m;
+    while ((m = re.exec(text))) out.push({ name: m[1], seconds: parseFloat(m[2]) });
+    return out;
+  }
+
+  /* ---------------------------------- utilidades ---------------------------------- */
+
+  function detectNewline(text) {
+    return /\r\n/.test(text) ? '\r\n' : '\n';
+  }
+
+  function fmtSpeed(v) {
+    var n = Math.round(v * 100) / 100;
+    return String(n);
+  }
+
+  // diff lineal simple (LCS) para el panel antes/despues
+  function lineDiff(aText, bText) {
+    var a = String(aText).split('\n');
+    var b = String(bText).split('\n');
+    var n = a.length, m = b.length;
+    var dp = [];
+    for (var i = 0; i <= n; i++) { dp.push(new Array(m + 1).fill(0)); }
+    for (i = n - 1; i >= 0; i--)
+      for (var j = m - 1; j >= 0; j--)
+        dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    var out = [], i2 = 0, j2 = 0;
+    while (i2 < n && j2 < m) {
+      if (a[i2] === b[j2]) { out.push({ t: ' ', s: a[i2] }); i2++; j2++; }
+      else if (dp[i2 + 1][j2] >= dp[i2][j2 + 1]) { out.push({ t: '-', s: a[i2] }); i2++; }
+      else { out.push({ t: '+', s: b[j2] }); j2++; }
+    }
+    while (i2 < n) { out.push({ t: '-', s: a[i2] }); i2++; }
+    while (j2 < m) { out.push({ t: '+', s: b[j2] }); j2++; }
+    return out;
+  }
+
+  return {
+    BASE_STATES: BASE_STATES,
+    stripGmJson: stripGmJson,
+    parseSpriteYy: parseSpriteYy,
+    evalMacros: evalMacros,
+    parseArrayEntries: parseArrayEntries,
+    parseSurvivors: parseSurvivors,
+    parseExeTable: parseExeTable,
+    parseObjectStates: parseObjectStates,
+    parseStateCases: parseStateCases,
+    parseCaseGroups: parseCaseGroups,
+    findCase: findGroup,
+    caseBlockText: caseBlockText,
+    getImageSpeed: getImageSpeed,
+    setImageSpeed: setImageSpeed,
+    getIdleLoop: getIdleLoop,
+    setIdleLoop: setIdleLoop,
+    setLoopGuard: setLoopGuard,
+    parseCooldowns: parseCooldowns,
+    parseMacros: parseMacros,
+    setMacro: setMacro,
+    setTableSprite: setTableSprite,
+    parseSpriteRefs: parseSpriteRefs,
+    replaceTokenOnLine: replaceTokenOnLine,
+    detectNewline: detectNewline,
+    fmtSpeed: fmtSpeed,
+    lineDiff: lineDiff
+  };
+});
+
+</script>
+<script>
+/* ===== Editor de Animaciones TD2D — parte 1: estado, archivos, proyecto ===== */
+(() => {
+'use strict';
+const C = window.AnimCore;
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+const S = {
+  mode: null,            // 'fs' (carpeta con escritura) | 'files' (solo lectura) | 'demo'
+  module: 'anim',        // 'anim' | 'tune' (recargas y números) | 'img' (imágenes)
+  onAfterWrite: null,    // hook de los otros módulos tras escribir/deshacer
+  rootHandle: null,      // FileSystemDirectoryHandle
+  files: null,           // Map rutaRelativa -> File (modo solo lectura)
+  chars: [], exes: [], spriteNames: new Set(),
+  char: null, isExe: false, table: 'anims', entries: [],
+  states: {},            // idx -> nombre de estado propio (Step_2 del objeto)
+  sel: null,             // { idx, spr, label, stateName }
+  spr: null,             // { name, n, w, h, bitmaps:[], framePaths:[] }
+  gml: { draw76: '', other7: '', step2: '', create0: '' },
+  gmlOk: { draw76: false, other7: false, step2: false, create0: false },
+  player: { idx: 0, playing: true, speed: 1, onePass: false, tPrev: 0,
+            dynamic: false, dynExpr: null },
+  markers: { a: 0, b: 0 },
+  zoom: 2, bg: 'dark', onion: false,
+  fcCache: new Map(),    // sprite -> n.º de frames (para los chips)
+  undo: [],
+  demoFiles: new Map(),
+};
+
+/* ------------------------------ acceso a archivos ------------------------------ */
+
+function normPath(p) { return String(p).replace(/\\/g, '/').replace(/^\.\//, ''); }
+
+async function fsWalkFile(rel) {
+  // .filter(Boolean) evita partes vacías por barras finales/dobles
+  // (bug v3.1.1: 'sprites/x/layers/'.split('/') -> ['', 'layers'][3] === ''
+  //  y getDirectoryHandle('') lanza, con lo que NINGÚN sprite cargaba
+  //  en modo «Abrir carpeta»).
+  const parts = normPath(rel).split('/').filter(Boolean);
+  let dh = S.rootHandle;
+  for (let i = 0; i < parts.length - 1; i++) dh = await dh.getDirectoryHandle(parts[i]);
+  return await dh.getFileHandle(parts[parts.length - 1]);
+}
+async function fsWalkDir(rel) {
+  const parts = normPath(rel).split('/').filter(Boolean);
+  let dh = S.rootHandle;
+  for (const p of parts) dh = await dh.getDirectoryHandle(p);
+  return dh;
+}
+
+async function readText(rel) {
+  try {
+    if (S.mode === 'fs') return await (await (await fsWalkFile(rel)).getFile()).text();
+    if (S.mode === 'files') { const f = S.files.get(normPath(rel)); return f ? await f.text() : null; }
+    if (S.mode === 'demo') return S.demoFiles.has(normPath(rel)) ? S.demoFiles.get(normPath(rel)) : null;
+  } catch (e) { return null; }
+  return null;
+}
+async function readBlob(rel) {
+  try {
+    if (S.mode === 'fs') return await (await (await fsWalkFile(rel)).getFile());
+    if (S.mode === 'files') { const f = S.files.get(normPath(rel)); return f || null; }
+  } catch (e) { return null; }
+  return null;
+}
+
+async function safeReadRoot(root, rel) {
+  try {
+    const parts = rel.split('/');
+    let dh = root;
+    for (let i = 0; i < parts.length - 1; i++) dh = await dh.getDirectoryHandle(parts[i]);
+    const fh = await dh.getFileHandle(parts[parts.length - 1]);
+    return await (await fh.getFile()).text();
+  } catch (e) { return null; }
+}
+
+/* ------------------------------ abrir el proyecto ------------------------------ */
+
+async function openFs() {
+  if (!window.showDirectoryPicker) {
+    toast('Este navegador no soporta abrir carpetas con escritura. Usa Chrome o Edge, o "Elegir carpeta (solo lectura)".', 'err');
+    return;
+  }
+  let root;
+  try { root = await window.showDirectoryPicker({ mode: 'readwrite' }); }
+  catch (e) { return; } // cancelado por la usuaria
+  const test = await safeReadRoot(root, 'scripts/scr_survivors/scr_survivors.gml');
+  if (test == null) {
+    toast('Esa carpeta no parece la RAÍZ del proyecto: debe contener scripts/, objects/ y sprites/ directamente.', 'err');
+    return;
+  }
+  S.mode = 'fs'; S.rootHandle = root; S.files = null;
+  await scanProject();
+}
+
+async function openFiles(fileList) {
+  const raw = new Map();
+  for (const f of fileList) {
+    const p = String(f.webkitRelativePath || f.name).replace(/\\/g, '/');
+    raw.set(p, f);
+  }
+  if (!raw.size) return;
+  // ¿la carpeta elegida es la raíz o la contiene un nivel arriba?
+  let strip = 0;
+  if (![...raw.keys()].some(p => p === 'scripts/scr_survivors/scr_survivors.gml')) strip = 1;
+  const norm = new Map();
+  for (const [p, f] of raw) {
+    const q = strip ? p.split('/').slice(1).join('/') : p;
+    if (q) norm.set(q, f);
+  }
+  if (!norm.has('scripts/scr_survivors/scr_survivors.gml')) {
+    toast('No encuentro scripts/scr_survivors/scr_survivors.gml dentro de la carpeta elegida.', 'err');
+    return;
+  }
+  S.mode = 'files'; S.files = norm; S.rootHandle = null;
+  await scanProject();
+}
+
+async function scanProject() {
+  if (S.mode !== 'demo') {
+    const surv = await readText('scripts/scr_survivors/scr_survivors.gml');
+    const exet = await readText('scripts/scr_exe/scr_exe.gml');
+    const p1 = C.parseSurvivors(surv || ''), p2 = C.parseExeTable(exet || '');
+    S.chars = p1.chars; S.exes = p2.exes;
+  } // en demo, startDemo ya puso S.chars/S.exes
+  S.fcCache = new Map();
+  S.spriteNames = new Set();
+  if (S.mode === 'fs') {
+    try {
+      const dh = await fsWalkDir('sprites');
+      for await (const [name, h] of dh.entries()) if (h.kind === 'directory') S.spriteNames.add(name);
+    } catch (e) { /* sin sprites */ }
+  } else if (S.mode === 'files') {
+    for (const p of S.files.keys()) {
+      const m = p.match(/^sprites\/([^/]+)\//);
+      if (m) S.spriteNames.add(m[1]);
+    }
+  } else if (S.mode === 'demo') {
+    S.spriteNames.add('spr_chapo_idle');
+    S.spriteNames.add('spr_chapo_walk');
+  }
+  renderCharList(); renderSpriteList(); renderStates();
+  const st = $('#proj-status');
+  const modo = S.mode === 'fs' ? 'carpeta abierta (lectura y escritura)'
+    : S.mode === 'files' ? 'carpeta cargada (SOLO LECTURA: usa Copiar)'
+    : 'modo demo';
+  st.textContent = modo + ' · ' + (S.chars.length + S.exes.length) + ' personajes · ' + S.spriteNames.size + ' sprites';
+  $('#btn-open').classList.toggle('hidden', S.mode === 'demo');
+  $('#btn-open-ro').classList.toggle('hidden', S.mode === 'demo');
+  clearSelection();
+  if (typeof window.__onProjectScan === 'function') window.__onProjectScan();
+}
+
+/* --------------------------- carga de un sprite --------------------------- */
+
+// frameGuid -> [rutas png] dentro de layers/<frame>/
+async function buildFrameIndex(spriteName) {
+  const idx = new Map();
+  const prefix = 'sprites/' + spriteName + '/layers/';
+  if (S.mode === 'files') {
+    for (const p of S.files.keys()) {
+      if (!p.startsWith(prefix)) continue;
+      const rest = p.slice(prefix.length).split('/');
+      if (rest.length === 2 && rest[1].endsWith('.png')) {
+        if (!idx.has(rest[0])) idx.set(rest[0], []);
+        idx.get(rest[0]).push(prefix + rest[0] + '/' + rest[1]);
+      }
+    }
+  } else if (S.mode === 'fs') {
+    try {
+      // SIN barra final: fsWalkDir también es tolerante, pero mejor no
+      // pedir un directorio llamado ''.
+      const dh = await fsWalkDir('sprites/' + spriteName + '/layers');
+      for await (const [fg, h] of dh.entries()) {
+        if (h.kind !== 'directory') continue;
+        const arr = [];
+        for await (const [fn, fh] of h.entries())
+          if (fh.kind === 'file' && fn.toLowerCase().endsWith('.png')) arr.push(prefix + fg + '/' + fn);
+        if (arr.length) idx.set(fg, arr);
+      }
+    } catch (e) { /* sin layers */ }
+  }
+  return idx;
+}
+
+// Resuelve el bitmap de UN frame, con reintentos por si falta una fuente:
+//   1) capas declaradas en el .yy (si hay varias, se componen sobre un canvas)
+//   2) cualquier PNG que haya en layers/<frame>/ (p. ej. capas huérfanas)
+//   3) compuesto raíz sprites/<sprite>/<frame>.png  (formato GM 2022.3+:
+//      todos los sprites de este repo lo traen)
+//   4) tira única sprites/<sprite>/<sprite>.png (sprites de 1 frame)
+async function loadFrameBitmap(name, fg, meta, layerPaths) {
+  const declared = meta.layers
+    .map(lg => layerPaths.find(p => p.endsWith('/' + lg + '.png')))
+    .filter(Boolean);
+  if (declared.length) {
+    const bmps = [];
+    for (const p of declared) {
+      const b = await readBlob(p);
+      if (b) bmps.push(await createImageBitmap(b));
+    }
+    if (bmps.length) {
+      if (bmps.length === 1) return { bitmap: bmps[0], path: declared[0] };
+      const cv = document.createElement('canvas');
+      cv.width = bmps[0].width; cv.height = bmps[0].height;
+      const cx = cv.getContext('2d');
+      for (const b of bmps) cx.drawImage(b, 0, 0);
+      return { bitmap: await createImageBitmap(cv), path: declared[0] };
+    }
+  }
+  for (const p of layerPaths) {
+    const b = await readBlob(p);
+    if (b) return { bitmap: await createImageBitmap(b), path: p };
+  }
+  const root = 'sprites/' + name + '/' + fg + '.png';
+  const rb = await readBlob(root);
+  if (rb) return { bitmap: await createImageBitmap(rb), path: root };
+  if (meta.frames.length === 1) {
+    const flat = 'sprites/' + name + '/' + name + '.png';
+    const fb = await readBlob(flat);
+    if (fb) return { bitmap: await createImageBitmap(fb), path: flat };
+  }
+  return null;
+}
+
+async function loadSprite(name) {
+  if (S.mode === 'demo') { await loadDemoSprite(); return; }
+  const yyText = await readText('sprites/' + name + '/' + name + '.yy');
+  if (yyText == null) throw new Error('No encuentro sprites/' + name + '/' + name + '.yy');
+  const meta = C.parseSpriteYy(yyText);
+  if (!meta || !meta.frames.length) throw new Error('El .yy de ' + name + ' no tiene frames');
+  const frameIdx = await buildFrameIndex(name);
+  const bitmaps = [], framePaths = [];
+  for (const fg of meta.frames) {
+    const r = await loadFrameBitmap(name, fg, meta, frameIdx.get(fg) || []);
+    if (r) { bitmaps.push(r.bitmap); framePaths.push(r.path); }
+    else { bitmaps.push(null); framePaths.push(null); }
+  }
+  const first = bitmaps.find(b => b);
+  if (!first) throw new Error('No encuentro los PNG de los frames de ' + name +
+    ': probé sprites/' + name + '/layers/<frame>/*.png y sprites/' + name + '/<frame>.png');
+  S.spr = {
+    name: name, path: 'sprites/' + name + '/',
+    n: meta.frames.length, w: first.width, h: first.height,
+    bitmaps: bitmaps, framePaths: framePaths,
+    playbackSpeed: meta.playbackSpeed
+  };
+}
+
+// Solo para tests automatizados: engancha un handle de directorio como
+// si la usuaria hubiera hecho «Abrir carpeta» (modo fs).
+async function attachFs(rootHandle) {
+  S.mode = 'fs'; S.rootHandle = rootHandle; S.files = null;
+  await scanProject();
+}
+
+async function frameCountOf(name) {
+  if (S.fcCache.has(name)) return S.fcCache.get(name);
+  let n = null;
+  if (S.mode === 'demo' && name === 'spr_chapo_idle') n = 36;
+  else {
+    const t = await readText('sprites/' + name + '/' + name + '.yy');
+    if (t != null) { const m = C.parseSpriteYy(t); if (m) n = m.frames.length; }
+  }
+  if (n != null) S.fcCache.set(name, n);
+  return n;
+}
+
+/* ------------------------------- modo demo ------------------------------- */
+
+function drawDemoFrame(ctx, t, variant) {
+  const cx = 32, cy = 34;
+  const bob = Math.sin((t / 36) * Math.PI * 2) * 2;
+  const squash = 1 + Math.sin((t / 18) * Math.PI) * 0.06;
+  ctx.clearRect(0, 0, 64, 64);
+  ctx.fillStyle = 'rgba(0,0,0,.28)';
+  ctx.beginPath(); ctx.ellipse(32, 58, 12 - bob * 0.6, 3, 0, 0, 7); ctx.fill();
+  const r = 16;
+  ctx.save(); ctx.translate(cx, cy + bob); ctx.scale(squash, 1 / squash);
+  const body = variant === 'walk' ? '#8a5ce0' : '#2ea6a0';
+  ctx.fillStyle = body;
+  ctx.beginPath(); ctx.arc(0, 0, r, Math.PI, 0); ctx.lineTo(r, r * 0.8);
+  for (let i = 0; i <= 6; i++) ctx.lineTo(r - (r * 2) * (i / 6), r * 0.8 + (i % 2 ? 3 : 0));
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#d8f3f1';
+  ctx.beginPath(); ctx.ellipse(0, r * 0.45, r * 0.62, r * 0.42, 0, 0, 7); ctx.fill();
+  const blink = (t >= 30 && t <= 33);
+  ctx.fillStyle = '#132b2a';
+  if (blink) { ctx.fillRect(-7.5, -4, 6, 2); ctx.fillRect(2.5, -4, 6, 2); }
+  else {
+    ctx.beginPath(); ctx.arc(-4.5, -3, 2.6, 0, 7); ctx.arc(5.5, -3, 2.6, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(-3.8, -3.9, 0.9, 0, 7); ctx.arc(6.2, -3.9, 0.9, 0, 7); ctx.fill();
+  }
+  ctx.strokeStyle = body; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0, -r);
+  ctx.quadraticCurveTo(4, -r - 6, 7 + Math.sin(t / 9) * 2, -r - 10); ctx.stroke();
+  ctx.fillStyle = '#ffd166';
+  ctx.beginPath(); ctx.arc(7 + Math.sin(t / 9) * 2, -r - 10, 3, 0, 7); ctx.fill();
+  ctx.restore();
+}
+
+async function loadDemoSprite(name) {
+  const variant = name === 'spr_chapo_walk' ? 'walk' : 'idle';
+  const bitmaps = [];
+  for (let i = 0; i < 36; i++) {
+    const cv = document.createElement('canvas'); cv.width = 64; cv.height = 64;
+    drawDemoFrame(cv.getContext('2d'), i, variant);
+    bitmaps.push(await createImageBitmap(cv));
+  }
+  S.spr = { name: name, path: 'sprites/' + name + '/ (demo)', n: 36, w: 64, h: 64, bitmaps, framePaths: [], playbackSpeed: 30 };
+}
+
+async function startDemo() {
+  S.mode = 'demo'; S.files = null; S.rootHandle = null;
+  S.demoFiles = new Map(Object.entries({
+    'objects/obj_chapo/Draw_76.gml':
+      'var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;\n' +
+      'sprite_index = arr[? CHARACTER_CHAPO][state];\n\nswitch(state)\n{\n' +
+      '\tcase IDLE:\n\t\timage_speed = 1;\n\t\tbreak;\n\n' +
+      '\tcase WALK:\n\t\timage_speed = 0.2 + (abs(xspd) / (maxHSpeed));\n\t\tbreak;\n\n' +
+      '\tcase LOOKUP:\n\tcase LOOKDOWN:\n\t\timage_speed = 0.2;\n\n\t\tif(image_index >= 1)\n\t\t\timage_index = 1;\n\n\t\tbreak;\n}',
+    'objects/obj_chapo/Other_7.gml':
+      'switch(state)\n{\n\tcase IDLE:\n\t\timage_index = image_number - 12;\n\t\tbreak;\n}',
+    'objects/obj_chapo/Step_2.gml':
+      '#macro CHAPO_DASH BALANCING+1\n',
+    'objects/obj_chapo/Create_0.gml':
+      '#macro CHAPO_DASH_RECHARGE (60 * 12)\n#macro CHAPO_JUMP_RECHARGE (60 * 3)\n#macro CHAPO_MAXSPEED 9\n',
+    'scripts/scr_survivors/scr_survivors.gml':
+      '#macro CHARACTER_CHAPO 0\n\n' +
+      'global.player_anims[? CHARACTER_CHAPO] =\n[\n' +
+      '        spr_chapo_idle, //0\n' +
+      '        spr_chapo_walk, //1\n' +
+      '        spr_chapo_idle, //7\n' +
+      '        spr_chapo_idle, //14 = CHAPO_DASH\n' +
+      '];\n\n' +
+      'switch(argument0)\n{\n\tcase CHARACTER_CHAPO:\n\t\treturn obj_chapo;\n}'
+  }));
+  S.chars = [{
+    key: 'CHARACTER_CHAPO', name: 'CHAPO', idx: 0, obj: 'obj_chapo',
+    anims: [
+      { spr: 'spr_chapo_idle', idx: 0, label: 'IDLE', comment: '0' },
+      { spr: 'spr_chapo_walk', idx: 1, label: 'WALK', comment: '1' },
+      { spr: 'spr_chapo_idle', idx: 7, label: 'LOOKUP', comment: '7' },
+      { spr: 'spr_chapo_idle', idx: 14, label: 'CHAPO_DASH', comment: '14 = CHAPO_DASH' }
+    ], eanims: null
+  }];
+  S.exes = [];
+  await scanProject();
+  toast('Modo demo: bicho de prueba con 36 frames. Abre tu carpeta del proyecto para editar de verdad.');
+}
+
+/* ------------------------- selección de personaje/estado ------------------------- */
+
+async function selectChar(c, isExe) {
+  S.char = c; S.isExe = !!isExe;
+  S.table = 'anims'; $('#chk-demon').checked = false;
+  S.entries = (c.anims || []);
+  const obj = c.obj;
+  S.gml.step2 = await readText('objects/' + obj + '/Step_2.gml') || '';
+  S.gml.create0 = await readText('objects/' + obj + '/Create_0.gml') || '';
+  S.gml.draw76 = await readText('objects/' + obj + '/Draw_76.gml') || '';
+  S.gml.other7 = await readText('objects/' + obj + '/Other_7.gml') || '';
+  S.gmlOk = {
+    draw76: !!S.gml.draw76, other7: !!S.gml.other7,
+    step2: !!S.gml.step2, create0: !!S.gml.create0
+  };
+  S.states = C.parseObjectStates(S.gml.step2);
+  const demonLine = $('#demon-line');
+  demonLine.classList.toggle('hidden', isExe || !c.eanims);
+  renderCharList(); renderStates(); renderGamePanel(); clearSpriteView();
+}
+
+function useTable(t) {
+  S.table = t;
+  S.entries = (t === 'eanims' ? (S.char && S.char.eanims) : (S.char && S.char.anims)) || [];
+  renderStates(); clearSpriteView();
+}
+
+function stateNameFor(e) {
+  if (e.idx < C.BASE_STATES.length) return C.BASE_STATES[e.idx];
+  return S.states[e.idx] || String(e.idx);
+}
+
+async function selectState(e) {
+  S.sel = e;
+  S.sel.stateName = stateNameFor(e);
+  try { await loadSprite(e.spr); }
+  catch (err) {
+    toast(err.message, 'err');
+    S.spr = null; renderTimeline(); computeEdits(); renderGamePanel();
+    return;
+  }
+  // valores actuales del archivo
+  const gs = S.gml.draw76 ? C.getImageSpeed(S.gml.draw76, S.sel.stateName) : null;
+  if (gs && gs.found && !gs.dynamic) {
+    const v = parseFloat(gs.expr);
+    S.player.speed = isFinite(v) && v > 0 ? v : 1;
+  } else S.player.speed = 1;
+  S.player.dynamic = !!(gs && gs.found && gs.dynamic);
+  S.player.dynExpr = gs && gs.found ? gs.expr : null;
+  const n = S.spr.n;
+  const N = S.gml.other7 ? C.getIdleLoop(S.gml.other7, S.sel.stateName) : null;
+  S.markers.a = (N != null && n > N) ? n - N : 0;
+  S.markers.b = n - 1;
+  S.player.idx = 0; S.player.playing = true;
+  S.player.onePass = /ATTACK|HJUMP|DASH|SPINDASH|FIREBALL|SECUESTRO|LAUNCH|STOMP|LAZER/.test(S.sel.stateName);
+  syncControls(); renderTimeline(); renderGamePanel(); computeEdits();
+  fillFrameCounts();
+}
+
+function clearSelection() {
+  S.char = null; S.sel = null; S.spr = null; S.entries = [];
+  renderCharList(); renderStates(); renderGamePanel(); computeEdits(); clearSpriteView();
+}
+
+function clearSpriteView() {
+  S.spr = null; renderTimeline();
+  const cv = $('#viewer'), ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  $('#viewer-hud').textContent = 'elige un personaje y un estado';
+}
+
+// fin de la parte 1 (la parte 2 sigue en el mismo <script>)
+
+/* ===== Editor de Animaciones TD2D — parte 2: interfaz, reproductor, escritura ===== */
+
+/* --------------------------------- utilidades --------------------------------- */
+
+function toast(msg, kind) {
+  const d = document.createElement('div');
+  d.className = 'toast ' + (kind || '');
+  d.textContent = msg;
+  $('#toasts').appendChild(d);
+  setTimeout(() => d.classList.add('gone'), 3200);
+  setTimeout(() => d.remove(), 3600);
+}
+
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+const CELL_W = 58;
+
+/* --------------------------- listas laterales --------------------------- */
+
+function renderCharList() {
+  const host = $('#char-list');
+  let html = '';
+  html += '<div class="grp">Supervivientes</div>';
+  for (const c of S.chars) {
+    const sel = (S.char === c && !S.isExe) ? ' sel' : '';
+    html += '<button class="charbtn' + sel + '" data-char="' + S.chars.indexOf(c) + '">' +
+      esc(c.name) + '<span class="obj">' + esc(c.obj || '?') + '</span></button>';
+  }
+  if (S.exes.length) {
+    html += '<div class="grp">Killers (exe)</div>';
+    for (const e of S.exes) {
+      const sel = (S.char === e && S.isExe) ? ' sel' : '';
+      html += '<button class="charbtn exe' + sel + '" data-exe="' + S.exes.indexOf(e) + '">' +
+        esc(e.name) + '<span class="obj">' + esc(e.obj || '?') + '</span></button>';
+    }
+  }
+  host.innerHTML = html;
+}
+
+function renderStates() {
+  const host = $('#state-list');
+  const block = $('#state-block');
+  if (!S.char) { block.classList.add('hidden'); host.innerHTML = ''; return; }
+  block.classList.remove('hidden');
+  $('#state-title').textContent = (S.isExe ? 'Estados de ' : 'Estados de ') + S.char.name +
+    (S.table === 'eanims' ? ' (demonizada)' : '');
+  let html = '';
+  S.entries.forEach((e, i) => {
+    html += '<button class="stbtn' + (S.sel === e ? ' sel' : '') + '" data-i="' + i + '">' +
+      '<b>' + esc(e.label) + '</b><span class="spr" data-spr="' + esc(e.spr) + '">' + esc(e.spr) + '</span>' +
+      '<span class="fc" data-fc="' + esc(e.spr) + '">…</span></button>';
+  });
+  host.innerHTML = html;
+  fillFrameCounts();
+}
+
+async function fillFrameCounts() {
+  const els = $$('#state-list .fc');
+  for (const el of els) {
+    const n = await frameCountOf(el.dataset.fc);
+    el.textContent = n == null ? '✕' : n + 'f';
+  }
+}
+
+function renderSpriteList() {
+  const host = $('#sprite-list');
+  const q = ($('#spr-search').value || '').toLowerCase();
+  const names = [...S.spriteNames].filter(n => !q || n.toLowerCase().includes(q)).sort();
+  const cap = 400;
+  let html = '';
+  for (const n of names.slice(0, cap)) {
+    html += '<button class="sprbtn" data-spr="' + esc(n) + '">' + esc(n) + '</button>';
+  }
+  if (names.length > cap) html += '<div class="muted">…' + (names.length - cap) + ' más (afina la búsqueda)</div>';
+  host.innerHTML = html || '<div class="muted">sin sprites</div>';
+}
+
+async function selectSpriteOnly(name) {
+  try { await loadSprite(name); }
+  catch (err) { toast(err.message, 'err'); return; }
+  S.sel = null;
+  S.markers.a = 0; S.markers.b = S.spr.n - 1;
+  S.player.idx = 0; S.player.playing = true; S.player.speed = 1;
+  S.player.dynamic = false; S.player.dynExpr = null; S.player.onePass = false;
+  syncControls(); renderTimeline(); renderGamePanel(); computeEdits();
+  toast('Vista de sprite suelto: ' + name + ' (' + S.spr.n + ' frames). Sin personaje, no se escribe nada.');
+}
+
+/* --------------------------------- reproductor --------------------------------- */
+
+function drawViewer() {
+  const cv = $('#viewer'), ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+  if (!S.spr) return;
+  // fondo
+  if (S.bg === 'dark') { ctx.fillStyle = '#15181d'; ctx.fillRect(0, 0, W, H); }
+  else if (S.bg === 'light') { ctx.fillStyle = '#e8e8e8'; ctx.fillRect(0, 0, W, H); }
+  else if (S.bg === 'magenta') { ctx.fillStyle = '#c040c0'; ctx.fillRect(0, 0, W, H); }
+  else { // checker
+    ctx.fillStyle = '#23262c'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#2b2f36';
+    for (let y = 0; y < H; y += 16)
+      for (let x = ((y / 16) % 2) * 16; x < W; x += 32) ctx.fillRect(x, y, 16, 16);
+  }
+  const spr = S.spr;
+  const fit = Math.max(1, Math.floor(Math.min((W - 20) / spr.w, (H - 20) / spr.h)));
+  const z = S.zoom === 0 ? fit : S.zoom; // 0 = auto
+  const dw = spr.w * z, dh = spr.h * z;
+  const dx = Math.floor((W - dw) / 2), dy = Math.floor((H - dh) / 2);
+  const f = Math.min(spr.n - 1, Math.floor(S.player.idx));
+  ctx.imageSmoothingEnabled = false;
+  // línea de suelo
+  ctx.strokeStyle = 'rgba(255,255,255,.12)';
+  ctx.beginPath(); ctx.moveTo(0, dy + dh); ctx.lineTo(W, dy + dh); ctx.stroke();
+  if (S.onion && f > 0 && spr.bitmaps[f - 1]) {
+    ctx.globalAlpha = 0.25;
+    ctx.drawImage(spr.bitmaps[f - 1], dx, dy, dw, dh);
+    ctx.globalAlpha = 1;
+  }
+  if (spr.bitmaps[f]) ctx.drawImage(spr.bitmaps[f], dx, dy, dw, dh);
+}
+
+function updateFrameLabel() {
+  const hud = $('#viewer-hud');
+  if (!S.spr) { return; }
+  const n = S.spr.n, f = clamp(Math.floor(S.player.idx), 0, n - 1);
+  const a = S.markers.a, b = S.markers.b;
+  const span = b - a + 1;
+  const secs = span / Math.max(0.01, S.player.speed * 60);
+  const modoLoop = S.player.onePass ? 'una pasada'
+    : (b < n - 1 ? 'loop A–B' : (a > 0 ? 'entrulla + cola' : 'bucle completo'));
+  hud.textContent = 'frame ' + (f + 1) + '/' + n +
+    '  ·  ' + modoLoop +
+    (a > 0 || b < n - 1 ? '  ·  A=' + (a + 1) + ' B=' + (b + 1) : '') +
+    '  ·  vel ' + C.fmtSpeed(S.player.speed) + ' (' + Math.round(S.player.speed * 60) + ' fps)' +
+    '  ·  loop: ' + span + 'f ≈ ' + secs.toFixed(2) + ' s';
+}
+
+function updateCursor() {
+  if (!S.spr) return;
+  const cur = $('#mk-cur');
+  const f = clamp(Math.floor(S.player.idx), 0, S.spr.n - 1);
+  cur.style.left = (f * CELL_W + CELL_W / 2 - 1) + 'px';
+  // seguir con scroll suave si corre
+  const wrap = $('#tl-wrap');
+  const x = f * CELL_W;
+  if (S.player.playing) {
+    if (x > wrap.scrollLeft + wrap.clientWidth - 3 * CELL_W) wrap.scrollLeft = x - 3 * CELL_W;
+    if (x < wrap.scrollLeft) wrap.scrollLeft = Math.max(0, x - CELL_W);
+  }
+}
+
+function tick(t) {
+  requestAnimationFrame(tick);
+  const p = S.player;
+  const dt = Math.min(0.05, ((t - p.tPrev) / 1000) || 0);
+  p.tPrev = t;
+  if (S.spr && p.playing && S.spr.n > 1) {
+    const n = S.spr.n;
+    let idx = p.idx + p.speed * dt * 60;
+    if (p.onePass) {
+      if (idx >= n) { idx = n - 1; p.playing = false; syncPlayBtn(); }
+    } else if (S.markers.b < n - 1) {
+      const span = Math.max(1, S.markers.b + 1 - S.markers.a);
+      if (idx >= S.markers.b + 1) idx = S.markers.a + ((idx - (S.markers.b + 1)) % span);
+    } else {
+      const start = S.markers.a > 0 ? S.markers.a : 0;
+      const span = Math.max(1, n - start);
+      if (idx >= n) idx = start + ((idx - n) % span);
+    }
+    p.idx = idx;
+  }
+  drawViewer(); updateFrameLabel(); updateCursor();
+}
+
+function syncPlayBtn() {
+  $('#btn-play').textContent = S.player.playing ? '❚❚ Pausa' : '▶ Reproducir';
+}
+
+/* ---------------------------------- línea de tiempo ---------------------------------- */
+
+// Los divs de región viven DENTRO de #tl-regions: si algo los borra, se recrean.
+function ensureRegions() {
+  if (!document.querySelector('#rg-intro') || !document.querySelector('#rg-loop')) {
+    $('#tl-regions').innerHTML = '<div id="rg-intro" class="hidden"></div><div id="rg-loop"></div>';
+  }
+}
+
+function renderTimeline() {
+  const track = $('#tl-track');
+  ensureRegions();
+  if (!S.spr) {
+    track.innerHTML = '';
+    $('#rg-intro').classList.add('hidden');
+    $('#rg-loop').classList.add('hidden');
+    $('#mk-a').classList.add('hidden'); $('#mk-b').classList.add('hidden'); $('#mk-cur').classList.add('hidden');
+    return;
+  }
+  const n = S.spr.n;
+  let html = '';
+  for (let i = 0; i < n; i++) {
+    html += '<canvas class="cell" width="' + (CELL_W - 6) + '" height="46" data-f="' + i + '" title="frame ' + (i + 1) + '"></canvas>';
+  }
+  track.innerHTML = html;
+  track.style.width = (n * CELL_W) + 'px';
+  $('#tl-regions').style.width = (n * CELL_W) + 'px';
+  const cells = $$('#tl-track .cell');
+  cells.forEach((cv, i) => {
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    const bm = S.spr.bitmaps[i];
+    if (bm) {
+      const sc = Math.min((cv.width - 4) / S.spr.w, (cv.height - 4) / S.spr.h);
+      const dw = S.spr.w * sc, dh = S.spr.h * sc;
+      ctx.drawImage(bm, (cv.width - dw) / 2, (cv.height - dh) / 2, dw, dh);
+    } else {
+      ctx.fillStyle = '#533'; ctx.fillRect(0, 0, cv.width, cv.height);
+    }
+  });
+  $('#mk-a').classList.remove('hidden');
+  $('#mk-b').classList.remove('hidden');
+  $('#mk-cur').classList.remove('hidden');
+  ensureRegions();
+  positionMarkers();
+}
+
+function positionMarkers() {
+  if (!S.spr) return;
+  ensureRegions();
+  const n = S.spr.n;
+  $('#mk-a').style.left = (S.markers.a * CELL_W - 1) + 'px';
+  $('#mk-b').style.left = ((S.markers.b + 1) * CELL_W - 3) + 'px';
+  $('#mk-a .lbl').textContent = 'A ' + (S.markers.a + 1);
+  $('#mk-b .lbl').textContent = 'B ' + (S.markers.b + 1);
+  // regiones + clases de celdas
+  const a = S.markers.a, b = S.markers.b;
+  const rIntro = $('#rg-intro'), rLoop = $('#rg-loop');
+  if (a > 0) {
+    rIntro.style.left = '0px'; rIntro.style.width = (a * CELL_W) + 'px';
+    rIntro.classList.remove('hidden');
+    rIntro.setAttribute('data-label', 'se ve 1 vez (' + a + 'f)');
+  } else rIntro.classList.add('hidden');
+  rLoop.style.left = (a * CELL_W) + 'px';
+  rLoop.style.width = ((b - a + 1) * CELL_W) + 'px';
+  rLoop.classList.remove('hidden');
+  rLoop.setAttribute('data-label', 'LOOP (' + (b - a + 1) + 'f)');
+  $$('#tl-track .cell').forEach((cv, i) => {
+    cv.classList.toggle('in-intro', i < a);
+    cv.classList.toggle('in-loop', i >= a && i <= b);
+  });
+  // inputs
+  $('#in-a').value = a + 1; $('#in-a').max = n;
+  $('#in-b').value = b + 1; $('#in-b').max = n;
+  // texto de lo que se escribiría
+  const info = $('#loop-writeinfo');
+  if (!S.sel) { info.textContent = 'vista de sprite suelto'; }
+  else if (b < n - 1) {
+    info.textContent = 'se escribirá en Draw_76: if(image_index >= ' + (b + 1) + ') image_index = ' + a + ';';
+  } else if (a > 0) {
+    info.textContent = 'se escribirá en Other_7: image_index = image_number - ' + (n - a) + ';';
+  } else {
+    info.textContent = 'bucle natural: no hace falta escribir nada de loop';
+  }
+}
+
+function setMarker(which, f) {
+  if (!S.spr) return;
+  const n = S.spr.n;
+  let a = S.markers.a, b = S.markers.b;
+  if (which === 'a') { a = clamp(f, 0, b); }
+  else { b = clamp(f, a, n - 1); }
+  S.markers.a = a; S.markers.b = b;
+  positionMarkers(); computeEdits();
+}
+
+/* -------------------------------- panel "en el juego" -------------------------------- */
+
+function renderGamePanel() {
+  const host = $('#game-panel');
+  if (!S.char) { host.innerHTML = '<div class="muted">elige un personaje</div>'; $('#cd-list').innerHTML = ''; return; }
+  const obj = S.char.obj;
+  let html = '';
+  html += '<div class="kv"><span>objeto</span><b>' + esc(obj) + '</b></div>';
+  if (S.sel) {
+    html += '<div class="kv"><span>estado</span><b>' + esc(S.sel.stateName) + ' (' + S.sel.idx + ')</b></div>';
+    html += '<div class="kv"><span>tira</span><b>' + esc(S.sel.spr) + (S.spr ? ' · ' + S.spr.n + 'f · ' + S.spr.w + '×' + S.spr.h : '') + '</b></div>';
+    const gs = S.gml.draw76 ? C.getImageSpeed(S.gml.draw76, S.sel.stateName) : null;
+    if (!S.gml.draw76) html += '<div class="kv warn"><span>Draw_76</span><b>no existe</b></div>';
+    else if (!gs) html += '<div class="kv"><span>image_speed</span><b>sin case (usa 1 por defecto)</b></div>';
+    else if (!gs.found) html += '<div class="kv"><span>image_speed</span><b>case sin image_speed</b></div>';
+    else html += '<div class="kv"><span>image_speed</span><b class="' + (gs.dynamic ? 'dyn' : '') + '">' +
+      esc(gs.expr) + (gs.dynamic ? '  [FÓRMULA]' : '') + '</b></div>' +
+      (gs.shared ? '<div class="kv"><span>case compartido</span><b>' + gs.shared.join(' + ') + '</b></div>' : '');
+    const N = S.gml.other7 ? C.getIdleLoop(S.gml.other7, S.sel.stateName) : null;
+    if (!S.gml.other7) html += '<div class="kv warn"><span>Other_7</span><b>no existe</b></div>';
+    else if (N != null) html += '<div class="kv"><span>Other_7 (repeticion)</span><b>image_number - ' + N + ' → repite los últimos ' + N + 'f</b></div>';
+    else html += '<div class="kv"><span>Other_7 (repeticion)</span><b>sin case (bucle completo)</b></div>';
+    if (S.spr) {
+      const a = S.markers.a, b = S.markers.b, n = S.spr.n;
+      const tail = n - a;
+      html += '<div class="kv"><span>vista previa del loop</span><b>' +
+        (b < n - 1 ? 'A–B por guard (' + (a + 1) + '→' + (b + 1) + ')'
+          : a > 0 ? 'entrulla + últimos ' + tail + 'f' : 'tira completa') + '</b></div>';
+    }
+  }
+  html += '<div class="note">El frame exacto viaja por red (CLIENT_PLAYER_DATA): si cambias la velocidad, los demás clientes lo ven sin tocar nada más. No hay que recompilar el server.</div>';
+  host.innerHTML = html;
+  // recargas
+  const cds = S.gml.create0 ? C.parseCooldowns(S.gml.create0) : [];
+  $('#cd-list').innerHTML = cds.map(c =>
+    '<div class="kv"><span>' + esc(c.name.replace(/_RECHARGE$/, '')) + '</span><b>' + c.seconds + ' s</b></div>'
+  ).join('') || '<div class="muted">sin recargas en Create_0</div>';
+}
+
+/* ----------------------------- cambios a escribir ----------------------------- */
+
+function caseSnippet(state, speed) {
+  return 'case ' + state + ':\n\timage_speed = ' + speed + ';\n\tbreak;';
+}
+
+function computeEdits() {
+  if (S.module !== 'anim') return; // cada módulo gestiona sus propios cambios
+  S.edits = [];
+  S.pendingFiles = {};
+  if (!S.sel || !S.spr) { renderEdits(); return; }
+  const st = S.sel.stateName, n = S.spr.n, obj = S.char.obj;
+  const a = S.markers.a, b = S.markers.b;
+  const newSpeed = C.fmtSpeed(S.player.speed);
+
+  let drawGml = S.gml.draw76 || '';
+  let otherGml = S.gml.other7 || '';
+  const origDraw = drawGml, origOther = otherGml;
+  const relDraw = 'objects/' + obj + '/Draw_76.gml';
+  const relOther = 'objects/' + obj + '/Other_7.gml';
+
+  // 1) velocidad
+  if (S.gml.draw76) {
+    const cur = C.getImageSpeed(drawGml, st);
+    if (cur && cur.found && cur.expr !== newSpeed) {
+      const r = C.setImageSpeed(drawGml, st, newSpeed);
+      if (r.changed) drawGml = r.gml;
+    } else if (cur && !cur.found) {
+      const r = C.setImageSpeed(drawGml, st, newSpeed);
+      if (r.changed) drawGml = r.gml;
+    } else if (!cur) {
+      S.edits.push({
+        kind: 'speed-nocase', file: relDraw, snippetOnly: true,
+        title: 'image_speed de ' + st + ' (el case NO existe todavía)',
+        snippet: caseSnippet(st, newSpeed)
+      });
+    }
+  }
+
+  // 2) loop
+  if (b < n - 1) {
+    if (S.gml.draw76) {
+      const r = C.setLoopGuard(drawGml, st, a, b);
+      if (r.changed) drawGml = r.gml;
+    }
+  } else if (a > 0) {
+    const N = n - a;
+    if (S.gml.other7) {
+      const r = C.setIdleLoop(otherGml, st, N);
+      if (r.changed) otherGml = r.gml;
+    } else {
+      S.edits.push({
+        kind: 'idle-noother', file: relOther, snippetOnly: true,
+        title: 'punto de repetición de ' + st + ' (Other_7 NO existe)',
+        snippet: 'switch(state)\n{\n\tcase ' + st + ':\n\t\timage_index = image_number - ' + N + ';\n\t\tbreak;\n}'
+      });
+    }
+  }
+
+  const cur = S.gml.draw76 ? C.getImageSpeed(origDraw, st) : null;
+  if (drawGml !== origDraw) {
+    S.pendingFiles[relDraw] = drawGml;
+    S.edits.push({
+      kind: 'draw76', file: relDraw, dynamic: !!(cur && cur.found && cur.dynamic),
+      oldExpr: cur && cur.found ? cur.expr : null, shared: cur && cur.shared,
+      before: C.caseBlockText(origDraw, st),
+      after: C.caseBlockText(drawGml, st), gml: drawGml
+    });
+  }
+  if (otherGml !== origOther) {
+    S.pendingFiles[relOther] = otherGml;
+    S.edits.push({
+      kind: 'other7', file: relOther,
+      before: C.caseBlockText(origOther, st) || '(case nuevo)',
+      after: C.caseBlockText(otherGml, st), gml: otherGml
+    });
+  }
+  renderEdits();
+}
+
+function diffHtml(before, after) {
+  const d = C.lineDiff(before || '', after || '');
+  let html = '';
+  for (const l of d) {
+    const cls = l.t === '-' ? 'del' : l.t === '+' ? 'add' : '';
+    html += '<span class="' + cls + '">' + esc(l.s || ' ') + '</span>\n';
+  }
+  return html;
+}
+
+function renderEdits() {
+  const host = $('#edits-list');
+  const actions = $('#write-actions');
+  if (!S.sel) {
+    host.innerHTML = '<div class="muted">' + (S.spr ? 'sprite suelto: nada que escribir' : 'elige personaje y estado') + '</div>';
+    actions.classList.add('hidden');
+    return;
+  }
+  if (!S.edits.length) {
+    host.innerHTML = '<div class="okline">Nada que escribir: lo que ves ya coincide con los archivos.</div>';
+    actions.classList.add('hidden');
+    return;
+  }
+  let html = '';
+  for (const e of S.edits) {
+    html += '<div class="editcard" data-file="' + esc(e.file) + '">';
+    html += '<div class="edhead"><b>' + esc(e.file.split('/').pop()) + '</b><span class="edpath">' + esc(e.file) + '</span></div>';
+    if (e.snippetOnly) {
+      html += '<div class="edtitle">' + esc(e.title) + ' — cópialo y pégalo dentro del switch(state) del archivo:</div>';
+      html += '<pre class="snip">' + esc(e.snippet) + '</pre>';
+    } else {
+      if (e.dynamic) html += '<div class="warnline">OJO: reemplaza la FÓRMULA «' + esc(e.oldExpr) + '» por un número fijo (pierde la variación con la velocidad del personaje).</div>';
+      if (e.shared) html += '<div class="sharedline">case compartido por ' + e.shared.join(' y ') + ': el cambio afecta a los dos estados.</div>';
+      html += '<pre class="diff">' + diffHtml(e.before, e.after) + '</pre>';
+    }
+    html += '<div class="edbtns"><button class="copyblock">Copiar bloque</button></div>';
+    html += '</div>';
+  }
+  host.innerHTML = html;
+  actions.classList.remove('hidden');
+  $('#btn-write').disabled = S.mode !== 'fs';
+  $('#btn-write').title = S.mode === 'fs' ? '' : 'solo disponible con "Abrir carpeta" (Chrome/Edge)';
+  $('#btn-undo').disabled = !S.undo.length;
+}
+
+/* --------------------------------- escribir --------------------------------- */
+
+async function ensureDir(path) {
+  const parts = normPath(path).split('/');
+  let dh = S.rootHandle;
+  for (const p of parts) dh = await dh.getDirectoryHandle(p, { create: true });
+  return dh;
+}
+
+async function writeEdits() {
+  if (S.mode !== 'fs') {
+    toast('Modo solo lectura: usa «Copiar archivo entero» y pégalo en GameMaker.', 'warn');
+    return;
+  }
+  const keys = Object.keys(S.pendingFiles || {});
+  if (!keys.length) { toast('No hay cambios que escribir.'); return; }
+  if (S.edits.some(e => e.dynamic)) {
+    if (!confirm('Vas a REEMPLAZAR una fórmula dinámica (depende de xspd, carga...) por un número fijo.\n\nEl case dejará de variar con la velocidad del personaje. ¿Continuar?')) return;
+  }
+  const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  const undoGroup = [];
+  try {
+    const bdir = await ensureDir('_backups_animeditor/' + stamp);
+    for (const rel of keys) {
+      const fh = await fsWalkFile(rel);
+      const old = await (await fh.getFile()).text();
+      const base = rel.split('/').pop();
+      const bfh = await bdir.getFileHandle(base, { create: true });
+      let w = await bfh.createWritable(); await w.write(old); await w.close();
+      const nw = await fh.createWritable();
+      await nw.write(S.pendingFiles[rel]);
+      await nw.close();
+      undoGroup.push({ rel: rel, backup: '_backups_animeditor/' + stamp + '/' + base });
+    }
+  } catch (e) {
+    toast('Error al escribir: ' + e.message, 'err');
+    return;
+  }
+  S.undo.push(undoGroup);
+  await refreshAfterWrite();
+  toast('Escrito en ' + keys.length + ' archivo(s). Copia de seguridad en _backups_animeditor/' + stamp + '/');
+}
+
+// Refresca la vista del módulo activo tras escribir o deshacer.
+async function refreshAfterWrite() {
+  if (S.module === 'anim') {
+    if (S.char) {
+      S.gml.draw76 = await readText('objects/' + S.char.obj + '/Draw_76.gml') || '';
+      S.gml.other7 = await readText('objects/' + S.char.obj + '/Other_7.gml') || '';
+    }
+    renderGamePanel(); computeEdits();
+  } else if (typeof S.onAfterWrite === 'function') {
+    await S.onAfterWrite();
+  }
+}
+
+async function undoLast() {
+  const g = S.undo.pop();
+  if (!g) { toast('Nada que deshacer.'); return; }
+  try {
+    for (const it of g) {
+      const txt = await readText(it.backup);
+      if (txt == null) { toast('No encuentro la copia: ' + it.backup, 'err'); return; }
+      const fh = await fsWalkFile(it.rel);
+      const w = await fh.createWritable(); await w.write(txt); await w.close();
+    }
+  } catch (e) { toast('Error al deshacer: ' + e.message, 'err'); return; }
+  await refreshAfterWrite();
+  toast('Deshecho: archivos restaurados desde la copia.');
+}
+
+/* --------------------------------- copiar --------------------------------- */
+
+async function copyText(txt, what) {
+  if (!txt) { toast('Nada que copiar.'); return; }
+  try { await navigator.clipboard.writeText(txt); toast('Copiado: ' + what); }
+  catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); toast('Copiado: ' + what); }
+    catch (e2) { toast('No pude copiar automáticamente; selecciona el texto a mano.', 'err'); }
+    ta.remove();
+  }
+}
+
+function copyBlock(btn) {
+  const card = btn.closest('.editcard');
+  if (!card) return;
+  const e = S.edits.find(x => x.file === card.dataset.file);
+  if (!e) return;
+  copyText(e.snippetOnly ? e.snippet : e.after, 'bloque del case');
+}
+
+function copyWhole(which) {
+  if (!S.pendingFiles) { toast('Nada que copiar.'); return; }
+  if (which === 'other7') {
+    const rel = Object.keys(S.pendingFiles).find(r => r.endsWith('Other_7.gml'));
+    if (rel) return copyText(S.pendingFiles[rel], 'Other_7.gml entero');
+    toast('No hay cambios en Other_7.');
+  } else {
+    const rel = Object.keys(S.pendingFiles).find(r => r.endsWith('Draw_76.gml'));
+    if (rel) return copyText(S.pendingFiles[rel], 'Draw_76.gml entero');
+    toast('No hay cambios en Draw_76.');
+  }
+}
+
+/* --------------------------------- controles --------------------------------- */
+
+function syncControls() {
+  $('#in-speed').value = S.player.speed;
+  $('#num-speed').value = C.fmtSpeed(S.player.speed);
+  $('#chk-once').checked = S.player.onePass;
+  $('#chk-onion').checked = S.onion;
+  $('#sel-bg').value = S.bg;
+  $$('#zoom-row button').forEach(b => b.classList.toggle('sel', +b.dataset.z === S.zoom));
+  syncPlayBtn();
+}
+
+function init() {
+  $('#btn-open').addEventListener('click', openFs);
+  $('#btn-open-ro').addEventListener('click', () => $('#dir-input').click());
+  $('#dir-input').addEventListener('change', (e) => { openFiles(e.target.files); e.target.value = ''; });
+  $('#btn-demo').addEventListener('click', startDemo);
+  $('#btn-help').addEventListener('click', () => $('#help').showModal());
+  $('#help-close').addEventListener('click', () => $('#help').close());
+
+  // pestañas laterales
+  $$('.tab').forEach(t => t.addEventListener('click', () => {
+    $$('.tab').forEach(x => x.classList.toggle('active', x === t));
+    $$('.tabpane').forEach(p => p.classList.toggle('hidden', p.id !== 'tab-' + t.dataset.tab));
+  }));
+  $('#spr-search').addEventListener('input', renderSpriteList);
+
+  // listas (delegación)
+  $('#char-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.charbtn'); if (!b) return;
+    if (b.dataset.char != null) selectChar(S.chars[+b.dataset.char], false);
+    else if (b.dataset.exe != null) selectChar(S.exes[+b.dataset.exe], true);
+  });
+  $('#state-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.stbtn'); if (!b) return;
+    selectState(S.entries[+b.dataset.i]);
+  });
+  $('#sprite-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.sprbtn'); if (!b) return;
+    selectSpriteOnly(b.dataset.spr);
+  });
+  $('#chk-demon').addEventListener('change', (e) => useTable(e.target.checked ? 'eanims' : 'anims'));
+
+  // transporte
+  $('#btn-play').addEventListener('click', () => { S.player.playing = !S.player.playing; syncPlayBtn(); });
+  $('#btn-first').addEventListener('click', () => { S.player.idx = 0; });
+  $('#btn-prev').addEventListener('click', () => { S.player.playing = false; syncPlayBtn(); S.player.idx = clamp(Math.floor(S.player.idx) - 1, 0, (S.spr ? S.spr.n - 1 : 0)); });
+  $('#btn-next').addEventListener('click', () => { S.player.playing = false; syncPlayBtn(); S.player.idx = clamp(Math.floor(S.player.idx) + 1, 0, (S.spr ? S.spr.n - 1 : 0)); });
+  $('#btn-last').addEventListener('click', () => { if (S.spr) S.player.idx = S.spr.n - 1; });
+  $('#in-speed').addEventListener('input', (e) => {
+    S.player.speed = parseFloat(e.target.value) || 0.05;
+    $('#num-speed').value = C.fmtSpeed(S.player.speed);
+    computeEdits();
+  });
+  $('#num-speed').addEventListener('change', (e) => {
+    const v = clamp(parseFloat(e.target.value) || 1, 0.01, 10);
+    S.player.speed = v; syncControls(); computeEdits();
+  });
+  $$('.preset').forEach(b => b.addEventListener('click', () => {
+    S.player.speed = parseFloat(b.dataset.v); syncControls(); computeEdits();
+  }));
+  $('#chk-once').addEventListener('change', (e) => { S.player.onePass = e.target.checked; });
+  $('#chk-onion').addEventListener('change', (e) => { S.onion = e.target.checked; });
+  $('#sel-bg').addEventListener('change', (e) => { S.bg = e.target.value; });
+  $$('#zoom-row button').forEach(b => b.addEventListener('click', () => { S.zoom = +b.dataset.z; syncControls(); }));
+
+  // loop
+  $('#in-a').addEventListener('change', (e) => setMarker('a', clamp((parseInt(e.target.value, 10) || 1) - 1, 0, 1e9)));
+  $('#in-b').addEventListener('change', (e) => setMarker('b', clamp((parseInt(e.target.value, 10) || 1) - 1, 0, 1e9)));
+  $('#btn-a-here').addEventListener('click', () => setMarker('a', Math.floor(S.player.idx)));
+  $('#btn-b-here').addEventListener('click', () => setMarker('b', Math.floor(S.player.idx)));
+  $('#btn-loop-clear').addEventListener('click', () => { if (S.spr) { S.markers.a = 0; S.markers.b = S.spr.n - 1; positionMarkers(); computeEdits(); } });
+
+  // línea de tiempo: clic = saltar, arrastre de marcadores
+  $('#tl-track').addEventListener('click', (e) => {
+    const cv = e.target.closest('.cell'); if (!cv) return;
+    S.player.idx = +cv.dataset.f;
+  });
+  [['mk-a', 'a'], ['mk-b', 'b']].forEach(([id, which]) => {
+    const el = document.getElementById(id);
+    el.addEventListener('pointerdown', (ev) => {
+      ev.preventDefault();
+      el.setPointerCapture(ev.pointerId);
+      const move = (e2) => {
+        const rect = $('#tl-track').getBoundingClientRect();
+        const f = Math.round((e2.clientX - rect.left) / CELL_W - (which === 'b' ? 0.5 : 0));
+        setMarker(which, clamp(f, 0, S.spr ? S.spr.n - 1 : 0));
+      };
+      const up = () => { el.removeEventListener('pointermove', move); };
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerup', up, { once: true });
+      el.addEventListener('pointercancel', up, { once: true });
+    });
+  });
+
+  // escritura
+  $('#btn-write').addEventListener('click', writeEdits);
+  $('#btn-undo').addEventListener('click', undoLast);
+  $('#btn-copy-draw').addEventListener('click', () => copyWhole('draw'));
+  $('#btn-copy-other').addEventListener('click', () => copyWhole('other7'));
+  $('#edits-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.copyblock'); if (!b) return;
+    copyBlock(b);
+  });
+
+  // teclado
+  document.addEventListener('keydown', (e) => {
+    if (e.target.matches('input, textarea, select, dialog')) return;
+    if (S.module !== 'anim') return;
+    if (!S.spr) return;
+    const n = S.spr.n;
+    if (e.code === 'Space') { e.preventDefault(); S.player.playing = !S.player.playing; syncPlayBtn(); }
+    else if (e.key === 'ArrowRight') { S.player.playing = false; syncPlayBtn(); S.player.idx = clamp(Math.floor(S.player.idx) + 1, 0, n - 1); }
+    else if (e.key === 'ArrowLeft') { S.player.playing = false; syncPlayBtn(); S.player.idx = clamp(Math.floor(S.player.idx) - 1, 0, n - 1); }
+    else if (e.key === 'Home') S.player.idx = 0;
+    else if (e.key === 'End') S.player.idx = n - 1;
+    else if (e.key === '[') setMarker('a', Math.floor(S.player.idx));
+    else if (e.key === ']') setMarker('b', Math.floor(S.player.idx));
+  });
+
+  syncControls();
+  requestAnimationFrame(tick);
+  if (!window.showDirectoryPicker) {
+    $('#btn-open').classList.add('limited');
+    $('#btn-open').title = 'Tu navegador no soporta escritura de carpetas: usa el botón de solo lectura o Chrome/Edge.';
+  }
+  if (!localStorage.getItem('animtool_seen')) {
+    $('#help').showModal();
+    try { localStorage.setItem('animtool_seen', '1'); } catch (e) { }
+  }
+}
+
+init();
+
+window.__animtool = {
+  S: S, openFiles: openFiles, startDemo: startDemo, computeEdits: computeEdits,
+  setMarker: setMarker, attachFs: attachFs, writeEdits: writeEdits, undoLast: undoLast,
+  refreshAfterWrite: refreshAfterWrite, selectState: selectState,
+  readText: readText, readBlob: readBlob, fsWalkFile: fsWalkFile, fsWalkDir: fsWalkDir,
+  loadSprite: loadSprite, frameCountOf: frameCountOf, normPath: normPath,
+  buildFrameIndex: buildFrameIndex, loadFrameBitmap: loadFrameBitmap,
+  toast: toast, esc: esc, clamp: clamp, syncControls: syncControls
+};
+
+})();
+
+</script>
+<script>
+/* ===== Suite TD2D — parte 3: módulos «⏱ Recargas y números» e «🖼 Imágenes» =====
+   Funciona sobre window.__animtool (app1+app2) y window.AnimCore. No toca el
+   estado del módulo de animaciones: cada módulo gestiona sus cambios y los
+   sincroniza con S.pendingFiles/S.edits, que writeEdits/undoLast escriben
+   con copia de seguridad y deshacer. */
+(() => {
+'use strict';
+const C = window.AnimCore;
+const T = window.__animtool;
+const S = T.S;
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const esc = T.esc, toast = T.toast;
+
+/* ================= cambio de módulo ================= */
+
+function switchModule(mod) {
+  if (S.module === mod) return;
+  S.module = mod;
+  $$('#modnav .mnav').forEach(b => b.classList.toggle('sel', b.dataset.mod === mod));
+  $('#mod-anim').classList.toggle('hidden', mod !== 'anim');
+  $('#mod-tune').classList.toggle('hidden', mod !== 'tune');
+  $('#mod-img').classList.toggle('hidden', mod !== 'img');
+  S.pendingFiles = {}; S.edits = [];
+  if (mod === 'anim') computeAnimAgain();
+  else if (mod === 'tune') enterTune();
+  else enterImg();
+}
+
+// al volver a animaciones: si el visor quedó con otro sprite (p. ej. porque
+// img cargó el suyo), re-selecciona el estado para restaurar la vista.
+function computeAnimAgain() {
+  T.computeEdits();
+  if (S.sel && S.spr && S.spr.name !== S.sel.spr) {
+    T.selectState(S.sel).catch(() => { });
+  }
+}
+
+/* ================= utilidades compartidas ================= */
+
+// primer frame de un sprite (para miniaturas), con caché
+const ffCache = new Map();
+async function firstFrameOf(name) {
+  if (ffCache.has(name)) return ffCache.get(name);
+  let out = null;
+  try {
+    const yyText = await T.readText('sprites/' + name + '/' + name + '.yy');
+    if (yyText != null) {
+      const meta = C.parseSpriteYy(yyText);
+      if (meta && meta.frames.length) {
+        const fg = meta.frames[0];
+        let blob = null;
+        const cands = [];
+        for (const lg of meta.layers) cands.push('sprites/' + name + '/layers/' + fg + '/' + lg + '.png');
+        cands.push('sprites/' + name + '/' + fg + '.png');
+        for (const p of cands) { const b = await T.readBlob(p); if (b) { blob = b; break; } }
+        if (blob) out = { bitmap: await createImageBitmap(blob), n: meta.frames.length };
+        else out = { bitmap: null, n: meta.frames.length };
+      }
+    }
+  } catch (e) { out = null; }
+  ffCache.set(name, out);
+  return out;
+}
+
+function drawThumb(cv, bitmap) {
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  if (bitmap) {
+    const sc = Math.min((cv.width - 4) / bitmap.width, (cv.height - 4) / bitmap.height);
+    ctx.drawImage(bitmap, (cv.width - bitmap.width * sc) / 2, (cv.height - bitmap.height * sc) / 2,
+      bitmap.width * sc, bitmap.height * sc);
+  } else { ctx.fillStyle = '#533'; ctx.fillRect(0, 0, cv.width, cv.height); }
+}
+
+// carga de sprite SIN pisar S.spr (independiente del módulo animaciones)
+async function loadSpriteData(name) {
+  if (S.mode === 'demo') {
+    await T.loadSprite(name); // en demo da igual pisarlo
+    return { name, bitmaps: S.spr.bitmaps, n: S.spr.n, w: S.spr.w, h: S.spr.h };
+  }
+  const yyText = await T.readText('sprites/' + name + '/' + name + '.yy');
+  if (yyText == null) throw new Error('No encuentro sprites/' + name + '/' + name + '.yy');
+  const meta = C.parseSpriteYy(yyText);
+  if (!meta || !meta.frames.length) throw new Error(name + ' no tiene frames');
+  const frameIdx = await T.buildFrameIndex(name);
+  const bitmaps = [];
+  for (const fg of meta.frames) {
+    const r = await T.loadFrameBitmap(name, fg, meta, frameIdx.get(fg) || []);
+    bitmaps.push(r ? r.bitmap : null);
+  }
+  const first = bitmaps.find(b => b);
+  if (!first) throw new Error('No encuentro los PNG de ' + name);
+  return { name, bitmaps, n: meta.frames.length, w: first.width, h: first.height };
+}
+
+/* ================= selector de sprites (diálogo) ================= */
+
+const Pick = { cb: null, current: null };
+function openSpritePicker(current, onPick) {
+  Pick.cb = onPick; Pick.current = current || null;
+  $('#sprpick-search').value = '';
+  $('#sprpicker').showModal();
+  renderPickerGrid();
+}
+async function renderPickerGrid() {
+  const q = ($('#sprpick-search').value || '').toLowerCase();
+  const names = [...S.spriteNames].filter(n => !q || n.toLowerCase().includes(q)).sort();
+  const cap = 60;
+  const host = $('#sprpick-grid');
+  if (!names.length) { host.innerHTML = '<div class="muted">sin resultados</div>'; return; }
+  let html = '';
+  for (const n of names.slice(0, cap)) {
+    html += '<div class="sprtile' + (n === Pick.current ? ' cur' : '') + '" data-spr="' + esc(n) + '">' +
+      '<canvas width="72" height="56"></canvas><span class="tname">' + esc(n) + '</span><span class="tfc">…</span></div>';
+  }
+  if (names.length > cap) html += '<div class="muted" style="grid-column:1/-1">…' + (names.length - cap) + ' más: afina la búsqueda</div>';
+  host.innerHTML = html;
+  for (const el of host.querySelectorAll('.sprtile')) {
+    const ff = await firstFrameOf(el.dataset.spr);
+    drawThumb(el.querySelector('canvas'), ff && ff.bitmap);
+    el.querySelector('.tfc').textContent = ff ? ff.n + 'f' : '✕';
+  }
+}
+
+/* =====================================================================
+   MÓDULO ⏱ RECARGAS Y NÚMEROS
+   ===================================================================== */
+
+const Tune = {
+  index: null,          // { ents:[{name,obj,isExe,files,count}], extras:[...] }
+  entity: null,
+  orig: {},             // rel -> texto en disco
+  working: {},          // rel -> texto con cambios
+  changes: [],
+  cds: [], nums: [],
+  selMac: null,         // { name, rel }
+  selSecA: 1, selSecB: 1,
+  barT0: 0,
+};
+
+async function ensureTuneOrig(rel) {
+  if (!(rel in Tune.orig)) Tune.orig[rel] = (await T.readText(rel)) || '';
+  return Tune.orig[rel];
+}
+function tuneWorking(rel) {
+  if (rel in Tune.working) return Tune.working[rel];
+  return Tune.orig[rel] != null ? Tune.orig[rel] : '';
+}
+
+async function enterTune() {
+  if (Tune.entity) { selectTuneEntity(Tune.entity); return; }
+  await ensureTuneIndex();
+  renderTuneEntities();
+  syncTunePending();
+}
+
+async function ensureTuneIndex() {
+  if (Tune.index) return Tune.index;
+  const host = $('#tune-ent-list');
+  if (!S.mode) { host.innerHTML = '<div class="muted">abre tu proyecto primero</div>'; Tune.index = { ents: [], extras: [] }; return Tune.index; }
+  host.innerHTML = '<div class="muted">escaneando personajes y objetos…</div>';
+  const ents = [], extras = [];
+  const seen = new Set();
+  const all = (S.chars || []).map(c => ({ name: c.name, obj: c.obj, isExe: false }))
+    .concat((S.exes || []).map(e => ({ name: e.name, obj: e.obj, isExe: true })));
+  for (const c of all) {
+    if (!c.obj) continue;
+    const f1 = 'objects/' + c.obj + '/Create_0.gml';
+    const base = c.obj.replace(/^obj_/, '');
+    const f2 = 'scripts/scr_' + base + '_special/scr_' + base + '_special.gml';
+    const t1 = await T.readText(f1);
+    const t2 = await T.readText(f2);
+    const m1 = t1 != null ? C.parseMacros(t1) : [];
+    const m2 = t2 != null ? C.parseMacros(t2) : [];
+    if (!m1.length && !m2.length) continue;
+    seen.add(c.obj);
+    ents.push({
+      name: c.name, obj: c.obj, isExe: c.isExe,
+      files: [].concat(m1.length ? [f1] : [], m2.length ? [f2] : []),
+      count: m1.length + m2.length
+    });
+  }
+  // extras: objetos con macros que no son personajes (p. ej. obj_amy_canon)
+  if (S.mode !== 'demo') {
+    let objs = [];
+    if (S.mode === 'files') {
+      for (const p of S.files.keys()) {
+        const m = p.match(/^objects\/([^/]+)\/Create_0\.gml$/);
+        if (m) objs.push(m[1]);
+      }
+    } else {
+      try {
+        const dh = await T.fsWalkDir('objects');
+        for await (const [n, h] of dh.entries()) if (h.kind === 'directory') objs.push(n);
+      } catch (e) { }
+    }
+    let done = 0;
+    for (const o of objs) {
+      done++;
+      if (seen.has(o)) continue;
+      if (done % 200 === 0) host.innerHTML = '<div class="muted">escaneando objetos… ' + done + '/' + objs.length + '</div>';
+      const f = 'objects/' + o + '/Create_0.gml';
+      const t = await T.readText(f);
+      if (t == null) continue;
+      const m = C.parseMacros(t);
+      if (m.length) extras.push({ name: o.replace(/^obj_/, ''), obj: o, files: [f], count: m.length, extra: true });
+    }
+  }
+  Tune.index = { ents, extras };
+  return Tune.index;
+}
+
+function renderTuneEntities() {
+  const host = $('#tune-ent-list');
+  const idx = Tune.index || { ents: [], extras: [] };
+  let html = '';
+  const btn = (e) => '<button class="charbtn' + (Tune.entity === e ? ' sel' : '') + (e.isExe ? ' exe' : '') +
+    '" data-obj="' + esc(e.obj) + '"><b>' + esc(e.name) + '</b><span class="obj">' + e.count + ' nº</span></button>';
+  if (idx.ents.length) {
+    html += '<div class="grp">Personajes</div>';
+    for (const e of idx.ents) html += btn(e);
+  }
+  if (idx.extras.length) {
+    html += '<div class="grp">Otros objetos</div>';
+    for (const e of idx.extras) html += btn(e);
+  }
+  host.innerHTML = html || '<div class="muted">sin macros editables (¿abriste la carpeta del proyecto?)</div>';
+}
+
+function findTuneEnt(obj) {
+  const idx = Tune.index || { ents: [], extras: [] };
+  return idx.ents.find(e => e.obj === obj) || idx.extras.find(e => e.obj === obj) || null;
+}
+
+async function selectTuneEntity(e) {
+  Tune.entity = e;
+  Tune.selMac = null;
+  renderTuneEntities();
+  for (const f of e.files) await ensureTuneOrig(f);
+  $('#tune-head').innerHTML = '<b style="color:var(--gold2)">' + esc(e.name) + '</b> · <span style="font-family:var(--mono);font-size:11px">' +
+    esc(e.obj) + '</span> · ' + e.files.map(f => esc(f.split('/').pop())).join(' + ');
+  renderTuneRows();
+  updateBarPreview();
+}
+
+function renderTuneRows() {
+  const e = Tune.entity;
+  if (!e) return;
+  const cds = [], nums = [];
+  for (const f of e.files) {
+    const txt = tuneWorking(f);
+    for (const m of C.parseMacros(txt)) {
+      m.file = f;
+      (m.kind === 'sec' ? cds : nums).push(m);
+    }
+  }
+  Tune.cds = cds; Tune.nums = nums;
+  const names = new Set(cds.concat(nums).map(m => m.name));
+  const pairOf = (n) => names.has('E' + n) ? 'E' + n : (n.startsWith('E') && names.has(n.slice(1)) ? n.slice(1) : null);
+
+  // --- filas de recargas ---
+  const cdHost = $('#tune-cd-rows');
+  let html = '';
+  for (const m of cds) {
+    const disp = m.name.replace(/_RECHARGE$/, '').replace(/_/g, ' ');
+    const pair = pairOf(m.name);
+    const pairMac = pair ? cds.concat(nums).find(x => x.name === pair) : null;
+    const abs = Math.abs(m.seconds);
+    const orig = C.parseMacros((Tune.orig[m.file] || '')).find(x => x.name === m.name);
+    const origAbs = orig ? Math.abs(orig.seconds) : abs;
+    html += '<div class="cdrow' + (Tune.selMac && Tune.selMac.name === m.name ? ' sel' : '') + '" data-name="' + esc(m.name) + '" data-file="' + esc(m.file) + '">' +
+      '<div class="cdtop"><b>' + esc(disp) + '</b>' +
+      (pair ? '<span class="pair">⚡ emparejada con ' + esc(pair) + (pairMac && pairMac.kind === 'sec' ? ' (' + Math.abs(pairMac.seconds) + ' s)' : '') + '</span>' : '') +
+      '<span class="cur">' + (m.sign < 0 ? '−' : '') + abs + ' s</span>' +
+      (abs !== origAbs ? '<span class="newchip">→ ' + (m.sign < 0 ? '−' : '') + abs + ' s</span>' : '') +
+      '</div>' +
+      '<div class="cdctl">' +
+      '<input type="range" min="0.25" max="60" step="0.25" value="' + Math.min(60, Math.max(0.25, abs)) + '">' +
+      '<input type="number" min="0.25" max="600" step="0.25" value="' + abs + '">' +
+      (m.sign < 0 ? '<span class="muted">cuenta en negativo (se conserva el signo)</span>' : '') +
+      '</div>' +
+      '<div class="mcode">#macro ' + esc(m.name) + ' ' + esc(m.raw) + (m.comment ? '  // ' + esc(m.comment) : '') + ' · ' + esc(m.file.split('/').pop()) + '</div>' +
+      '</div>';
+  }
+  cdHost.innerHTML = html || '<div class="muted">sin recargas</div>';
+  $('#tune-cds').classList.toggle('hidden', !cds.length);
+
+  // --- filas de otros números ---
+  const numHost = $('#tune-num-rows');
+  let nh = '';
+  for (const m of nums) {
+    nh += '<div class="numrow" data-name="' + esc(m.name) + '" data-file="' + esc(m.file) + '">' +
+      '<div class="nrow1"><b>' + esc(m.name) + '</b>' +
+      '<span class="nc"><input type="number" step="any" value="' + m.value + '"></span></div>' +
+      (m.comment ? '<div class="hint">' + esc(m.comment) + '</div>' : '') +
+      '<div class="hint" style="font-family:var(--mono);font-size:10px">' + esc(m.file.split('/').pop()) + '</div>' +
+      '</div>';
+  }
+  numHost.innerHTML = nh || '<div class="muted">sin otros números</div>';
+  $('#tune-nums').classList.toggle('hidden', !nums.length);
+}
+
+async function setTuneMacro(name, rel, newVal, kind) {
+  const cur = tuneWorking(rel);
+  const patch = kind === 'sec' ? { seconds: newVal } : { value: newVal };
+  const r = C.setMacro(cur, name, patch);
+  if (!r.changed) { toast('No pude cambiar ' + name + ' (' + (r.error || '?') + ')', 'err'); return; }
+  await ensureTuneOrig(rel);
+  Tune.working[rel] = r.gml;
+  rebuildTuneChanges();
+  updateRowChip(name, rel);
+  updateBarPreview();
+}
+
+function updateRowChip(name, rel) {
+  const row = $('#tune-cd-rows .cdrow[data-name="' + name + '"]');
+  if (!row) return;
+  const m = C.parseMacros(tuneWorking(rel)).find(x => x.name === name);
+  const orig = C.parseMacros(Tune.orig[rel] || '').find(x => x.name === name);
+  if (!m) return;
+  const abs = Math.abs(m.seconds);
+  const origAbs = orig ? Math.abs(orig.seconds) : abs;
+  let chip = row.querySelector('.newchip');
+  if (abs !== origAbs) {
+    if (!chip) {
+      chip = document.createElement('span');
+      chip.className = 'newchip';
+      row.querySelector('.cdtop').appendChild(chip);
+    }
+    chip.textContent = '→ ' + (m.sign < 0 ? '−' : '') + abs + ' s';
+  } else if (chip) chip.remove();
+  const cur = row.querySelector('.cur');
+  if (cur) cur.textContent = (orig && orig.sign < 0 ? '−' : '') + origAbs + ' s';
+}
+
+function rebuildTuneChanges() {
+  Tune.changes = [];
+  for (const rel of Object.keys(Tune.working)) {
+    const a = C.parseMacros(Tune.orig[rel] || '');
+    const b = C.parseMacros(Tune.working[rel]);
+    for (const nb of b) {
+      const na = a.find(x => x.name === nb.name);
+      if (!na || na.raw !== nb.raw) {
+        Tune.changes.push({
+          rel: rel, name: nb.name, dynamic: false,
+          before: macroLine(na), after: macroLine(nb)
+        });
+      }
+    }
+  }
+  syncTunePending();
+}
+function macroLine(m) {
+  return m ? '#macro ' + m.name + ' ' + m.raw + (m.comment ? '  // ' + m.comment : '') : '(nueva)';
+}
+function syncTunePending() {
+  S.pendingFiles = Object.assign({}, Tune.working);
+  S.edits = Tune.changes;
+  renderTuneEdits();
+}
+
+function renderTuneEdits() {
+  const host = $('#tune-edits');
+  $('#tune-write').disabled = S.mode !== 'fs';
+  $('#tune-undo').disabled = !S.undo.length;
+  if (!Tune.changes.length) {
+    host.innerHTML = '<div class="okline">Nada que escribir.</div>';
+    return;
+  }
+  let html = '';
+  for (const ch of Tune.changes) {
+    html += '<div class="editcard" data-rel="' + esc(ch.rel) + '">' +
+      '<div class="edhead"><b>' + esc(ch.rel.split('/').pop()) + '</b><span class="edpath">' + esc(ch.rel) + '</span></div>' +
+      '<pre class="diff">' + diffTwo(ch.before, ch.after) + '</pre>' +
+      '<div class="edbtns"><button class="copyfile">Copiar archivo entero</button></div>' +
+      '</div>';
+  }
+  host.innerHTML = html;
+}
+
+function diffTwo(before, after) {
+  const d = C.lineDiff(before || '', after || '');
+  let html = '';
+  for (const l of d) {
+    const cls = l.t === '-' ? 'del' : l.t === '+' ? 'add' : '';
+    html += '<span class="' + cls + '">' + esc(l.s || ' ') + '</span>\n';
+  }
+  return html;
+}
+
+function updateBarPreview() {
+  const pv = $('#tune-bar-preview');
+  if (!Tune.selMac) { pv.classList.add('hidden'); return; }
+  const om = C.parseMacros(Tune.orig[Tune.selMac.rel] || '').find(x => x.name === Tune.selMac.name);
+  const wm = C.parseMacros(tuneWorking(Tune.selMac.rel)).find(x => x.name === Tune.selMac.name);
+  Tune.selSecA = Math.max(0.05, om ? Math.abs(om.seconds) : 1);
+  Tune.selSecB = Math.max(0.05, wm ? Math.abs(wm.seconds) : 1);
+  $('#tune-sec-a').textContent = (om && om.sign < 0 ? '−' : '') + Tune.selSecA + ' s';
+  $('#tune-sec-b').textContent = (wm && wm.sign < 0 ? '−' : '') + Tune.selSecB + ' s';
+  pv.classList.remove('hidden');
+}
+
+function tuneTick(t) {
+  if (S.module !== 'tune') { Tune.barT0 = t; return; }
+  if ($('#tune-bar-preview').classList.contains('hidden') || !Tune.selMac) return;
+  const ph = Math.max(0, (t - Tune.barT0) / 1000);
+  const fa = (ph % Tune.selSecA) / Tune.selSecA;
+  const fb = (ph % Tune.selSecB) / Tune.selSecB;
+  $('#tune-bar-a').style.width = (fa * 100).toFixed(1) + '%';
+  $('#tune-bar-b').style.width = (fb * 100).toFixed(1) + '%';
+}
+
+async function tuneAfterWrite() {
+  for (const rel of Object.keys(Tune.working)) Tune.orig[rel] = (await T.readText(rel)) || '';
+  Tune.working = {};
+  rebuildTuneChanges();
+  if (Tune.entity) { const e = Tune.entity; Tune.selMac = null; await selectTuneEntity(e); }
+  renderTuneEdits();
+}
+
+/* =====================================================================
+   MÓDULO 🖼 IMÁGENES DE HABILIDADES
+   ===================================================================== */
+
+const Img = {
+  orig: {}, working: {}, changes: [],
+  char: null, isExe: false, table: 'anims',
+  states: {}, draw76: '',
+  sel: null,             // {kind:'state', e} | {kind:'ref', ref}
+  objIndex: null,        // { list:[{obj, refs, texts}] }
+  objSel: null,
+  prev: null,            // { bitmaps, n, w, h, idx, speed, playing, tPrev, label }
+};
+
+// ojo: los scripts viven en su propia carpeta (scripts/scr_survivors/scr_survivors.gml)
+const tableRel = () => Img.isExe ? 'scripts/scr_exe/scr_exe.gml' : 'scripts/scr_survivors/scr_survivors.gml';
+
+async function ensureImgOrig(rel) {
+  if (!(rel in Img.orig)) Img.orig[rel] = (await T.readText(rel)) || '';
+  return Img.orig[rel];
+}
+function imgWorking(rel) {
+  if (rel in Img.working) return Img.working[rel];
+  return Img.orig[rel] != null ? Img.orig[rel] : '';
+}
+
+async function enterImg() {
+  renderImgChars();
+  if (Img.char) renderImgStates(); else renderImgContextEmpty();
+  syncImgPending();
+}
+
+function renderImgChars() {
+  const host = $('#img-char-list');
+  let html = '<div class="grp">Supervivientes</div>';
+  for (const c of (S.chars || [])) {
+    html += '<button class="charbtn' + (Img.char === c && !Img.isExe ? ' sel' : '') + '" data-char="' + (S.chars.indexOf(c)) + '">' +
+      '<b>' + esc(c.name) + '</b><span class="obj">' + esc(c.obj || '?') + '</span></button>';
+  }
+  if ((S.exes || []).length) {
+    html += '<div class="grp">Killers (exe)</div>';
+    for (const e of S.exes) {
+      html += '<button class="charbtn exe' + (Img.char === e && Img.isExe ? ' sel' : '') + '" data-exe="' + S.exes.indexOf(e) + '">' +
+        '<b>' + esc(e.name) + '</b><span class="obj">' + esc(e.obj || '?') + '</span></button>';
+    }
+  }
+  host.innerHTML = html || '<div class="muted">abre tu proyecto primero</div>';
+}
+
+async function selectImgChar(c, isExe) {
+  Img.char = c; Img.isExe = !!isExe;
+  Img.table = isExe ? 'exesanims' : 'anims';
+  $('#img-chk-demon').checked = false;
+  Img.sel = null; Img.prev = null;
+  renderImgChars();
+  await ensureImgOrig(tableRel());
+  if (c.obj) {
+    Img.draw76 = (await T.readText('objects/' + c.obj + '/Draw_76.gml')) || '';
+    const step2 = (await T.readText('objects/' + c.obj + '/Step_2.gml')) || '';
+    Img.states = C.parseObjectStates(step2);
+  } else { Img.draw76 = ''; Img.states = {}; }
+  $('#img-demon-line').classList.toggle('hidden', isExe || !c.eanims);
+  renderImgStates();
+  renderImgContextEmpty();
+  $('#img-btn-swap').classList.add('hidden');
+  $('#img-viewer-hud').textContent = 'elige un estado';
+}
+
+function imgEntries() {
+  if (!Img.char) return [];
+  const rel = tableRel();
+  const txt = imgWorking(rel);
+  if (Img.isExe) {
+    const p = C.parseExeTable(txt);
+    const c = p.exes.find(x => x.key === Img.char.key);
+    return c ? (c.anims || []) : [];
+  }
+  const p = C.parseSurvivors(txt);
+  const c = p.chars.find(x => x.key === Img.char.key);
+  if (!c) return [];
+  return (Img.table === 'eanims' ? c.eanims : c.anims) || [];
+}
+
+function renderImgStates() {
+  const host = $('#img-state-list');
+  const block = $('#img-state-block');
+  if (!Img.char) { block.classList.add('hidden'); host.innerHTML = ''; return; }
+  block.classList.remove('hidden');
+  $('#img-state-title').textContent = 'Estados de ' + Img.char.name + (Img.table === 'eanims' ? ' (demonizada)' : '');
+  const entries = imgEntries();
+  let html = '';
+  entries.forEach((e, i) => {
+    html += '<button class="stbtn' + (Img.sel && Img.sel.kind === 'state' && Img.sel.e === e ? ' sel' : '') + '" data-i="' + i + '">' +
+      '<b>' + esc(e.label) + '</b><span class="spr">' + esc(e.spr) + '</span><span class="fc" data-fc="' + esc(e.spr) + '">…</span></button>';
+  });
+  host.innerHTML = html;
+  fillImgFrameCounts();
+}
+
+async function fillImgFrameCounts() {
+  for (const el of $$('#img-state-list .fc')) {
+    const n = await T.frameCountOf(el.dataset.fc);
+    el.textContent = n == null ? '✕' : n + 'f';
+  }
+}
+
+async function selectImgState(e) {
+  Img.sel = { kind: 'state', e };
+  renderImgStates();
+  $('#img-btn-swap').classList.remove('hidden');
+  const stateName = e.label;
+  const gs = Img.draw76 ? C.getImageSpeed(Img.draw76, stateName) : null;
+  let speed = 0.5, dyn = false;
+  if (gs && gs.found) {
+    if (gs.dynamic) dyn = true;
+    else { const v = parseFloat(gs.expr); if (isFinite(v) && v > 0) speed = v; }
+  }
+  try {
+    const data = await loadSpriteData(e.spr);
+    Img.prev = { bitmaps: data.bitmaps, n: data.n, w: data.w, h: data.h, idx: 0, speed, playing: true, tPrev: 0, label: e.spr, dyn };
+  } catch (err) {
+    Img.prev = null;
+    $('#img-viewer-hud').textContent = '✕ ' + err.message;
+  }
+  renderImgContext();
+}
+
+function renderImgContext() {
+  const host = $('#img-context');
+  if (!Img.sel) { renderImgContextEmpty(); return; }
+  if (Img.sel.kind === 'state') {
+    const e = Img.sel.e;
+    const rel = tableRel();
+    host.innerHTML =
+      '<div class="kv"><span>estado</span><b>' + esc(e.label) + ' (' + e.idx + ')</b></div>' +
+      '<div class="kv"><span>sprite actual</span><b>' + esc(e.spr) + (Img.prev ? ' · ' + Img.prev.n + 'f' : '') + '</b></div>' +
+      '<div class="kv"><span>de dónde sale</span><b>global.player_' + esc(Img.table) + '[? ' + esc(Img.char.key) + '][' + e.idx + ']</b></div>' +
+      '<div class="kv"><span>archivo</span><b>' + esc(rel) + '</b></div>' +
+      (Img.prev && Img.prev.dyn ? '<div class="kv warn"><span>velocidad</span><b>fórmula dinámica → preview a 0.5</b></div>' :
+        '<div class="kv"><span>velocidad de preview</span><b>' + (Img.prev ? C.fmtSpeed(Img.prev.speed) : '?') + ' (la del Draw_76)</b></div>') +
+      '<div class="note">La misma tabla la usan los puppets de los demás clientes: el cambio se ve en todas las pantallas.</div>';
+    return;
+  }
+  // kind === 'ref': lista de referencias del objeto
+  renderImgRefs();
+}
+
+function renderImgContextEmpty() {
+  $('#img-context').innerHTML = '<div class="muted">elige un personaje → estado (pestaña «Estados»), o un objeto de habilidad (pestaña «Objetos»)</div>';
+}
+
+/* ---- pestaña objetos ---- */
+
+async function ensureObjIndex() {
+  if (Img.objIndex) return Img.objIndex;
+  const host = $('#img-obj-list');
+  if (!S.mode || S.mode === 'demo') {
+    host.innerHTML = '<div class="muted">en demo no hay objetos: abre tu carpeta del proyecto</div>';
+    Img.objIndex = { list: [] };
+    return Img.objIndex;
+  }
+  host.innerHTML = '<div class="muted">escaneando objetos…</div>';
+  const list = [];
+  const scanObj = async (obj, files) => {
+    const refs = [], texts = {};
+    for (const rel of files) {
+      const t = await T.readText(rel);
+      if (t == null) continue;
+      texts[rel] = t;
+      for (const r of C.parseSpriteRefs(t)) refs.push(Object.assign({ file: rel }, r));
+    }
+    if (refs.length) list.push({ obj, refs, texts });
+  };
+  if (S.mode === 'files') {
+    const byObj = new Map();
+    for (const p of S.files.keys()) {
+      const m = p.match(/^objects\/([^/]+)\/([^/]+\.gml)$/);
+      if (!m) continue;
+      if (!byObj.has(m[1])) byObj.set(m[1], []);
+      byObj.get(m[1]).push(p);
+    }
+    for (const [obj, files] of byObj) await scanObj(obj, files);
+  } else {
+    try {
+      const dh = await T.fsWalkDir('objects');
+      const objs = [];
+      for await (const [n, h] of dh.entries()) if (h.kind === 'directory') objs.push(n);
+      let done = 0;
+      for (const obj of objs) {
+        done++;
+        if (done % 40 === 0) host.innerHTML = '<div class="muted">escaneando objetos… ' + done + '/' + objs.length + '</div>';
+        const files = [];
+        try {
+          const odh = await T.fsWalkDir('objects/' + obj);
+          for await (const [fn, fh] of odh.entries())
+            if (fh.kind === 'file' && /\.gml$/i.test(fn)) files.push('objects/' + obj + '/' + fn);
+        } catch (e) { continue; }
+        await scanObj(obj, files);
+      }
+    } catch (e) { }
+  }
+  list.sort((a, b) => b.refs.length - a.refs.length || a.obj.localeCompare(b.obj));
+  Img.objIndex = { list };
+  return Img.objIndex;
+}
+
+function renderImgObjects() {
+  const host = $('#img-obj-list');
+  const idx = Img.objIndex;
+  if (!idx) { host.innerHTML = '<div class="muted">escaneando…</div>'; return; }
+  const q = ($('#img-obj-search').value || '').toLowerCase();
+  const list = idx.list.filter(o => !q || o.obj.toLowerCase().includes(q) ||
+    o.refs.some(r => r.token.toLowerCase().includes(q)));
+  const cap = 300;
+  let html = '';
+  for (const o of list.slice(0, cap)) {
+    html += '<button class="charbtn' + (Img.objSel === o ? ' sel' : '') + '" data-obj="' + esc(o.obj) + '">' +
+      '<b>' + esc(o.obj) + '</b><span class="obj">' + o.refs.length + ' sprites</span></button>';
+  }
+  if (list.length > cap) html += '<div class="muted">…' + (list.length - cap) + ' más: afina la búsqueda</div>';
+  host.innerHTML = html || '<div class="muted">sin resultados</div>';
+}
+
+async function selectImgObject(o) {
+  Img.objSel = o;
+  Img.sel = null;
+  renderImgObjects();
+  renderImgRefs();
+  $('#img-btn-swap').classList.add('hidden');
+  $('#img-viewer-hud').textContent = o.obj + ': pulsa un sprite de la lista';
+  Img.prev = null;
+}
+
+function renderImgRefs() {
+  const host = $('#img-context');
+  const o = Img.objSel;
+  if (!o) { renderImgContextEmpty(); return; }
+  // dedup por (file, token) para no aburrir, pero se conservan líneas distintas
+  let html = '<div class="grp" style="margin-top:0">Sprites usados por ' + esc(o.obj) + '</div>';
+  o.refs.forEach((r, i) => {
+    html += '<div class="refrow' + (Img.sel && Img.sel.kind === 'ref' && Img.sel.ref === r ? ' sel' : '') + '" data-i="' + i + '">' +
+      '<canvas class="mini" width="52" height="40" data-spr="' + esc(r.token) + '"></canvas>' +
+      '<div class="rinfo"><b>' + esc(r.token) + '</b><div class="rline">' + esc(r.lineText) + '</div>' +
+      '<div class="rline" style="color:var(--gold)">' + esc(r.file.split('/').pop()) + ' · línea ' + (r.line + 1) + '</div></div>' +
+      '<span class="rn" data-fc="' + esc(r.token) + '">…</span></div>';
+  });
+  html += '<div class="imgnote" style="margin-top:6px">Pulsa uno para verlo grande y cambiarlo por otro sprite del catálogo.</div>';
+  host.innerHTML = html;
+  fillRefThumbs();
+}
+
+async function fillRefThumbs() {
+  for (const cv of $$('#img-context .mini')) {
+    const ff = await firstFrameOf(cv.dataset.spr);
+    drawThumb(cv, ff && ff.bitmap);
+  }
+  for (const el of $$('#img-context .rn')) {
+    const ff = await firstFrameOf(el.dataset.fc);
+    el.textContent = ff ? ff.n + 'f' : '✕';
+  }
+}
+
+async function selectImgRef(ref) {
+  Img.sel = { kind: 'ref', ref };
+  renderImgRefs();
+  $('#img-btn-swap').classList.remove('hidden');
+  try {
+    const data = await loadSpriteData(ref.token);
+    Img.prev = { bitmaps: data.bitmaps, n: data.n, w: data.w, h: data.h, idx: 0, speed: 0.5, playing: true, tPrev: 0, label: ref.token, dyn: false };
+  } catch (err) {
+    Img.prev = null;
+    $('#img-viewer-hud').textContent = '✕ ' + err.message;
+  }
+}
+
+/* ---- cambiar sprites ---- */
+
+async function applySpritePick(name) {
+  if (!Img.sel) return;
+  if (Img.sel.kind === 'state') {
+    const e = Img.sel.e;
+    const rel = tableRel();
+    await ensureImgOrig(rel);
+    const r = C.setTableSprite(imgWorking(rel), Img.table, Img.char.key, e.idx, name);
+    if (!r.changed) {
+      toast(r.error === 'igual' ? 'Ese estado ya usa ' + name : 'No pude cambiar la tabla (' + r.error + ')', r.error === 'igual' ? 'warn' : 'err');
+      return;
+    }
+    Img.working[rel] = r.gml;
+    rebuildImgChanges();
+    renderImgStates();
+    // re-seleccionar la entrada (ahora con el sprite nuevo)
+    const entries = imgEntries();
+    const ne = entries.find(x => x.idx === e.idx) || e;
+    Img.sel = { kind: 'state', e: ne };
+    await selectImgState(ne);
+    toast('Sprite de ' + e.label + ': ' + r.old + ' → ' + name + '. Pulsa «Escribir» para guardarlo.');
+  } else {
+    const ref = Img.sel.ref;
+    const rel = ref.file;
+    let cur = imgWorking(rel);
+    if (cur == null || cur === '') cur = Img.objSel.texts[rel] || '';
+    if (!(rel in Img.orig)) Img.orig[rel] = cur;
+    const r = C.replaceTokenOnLine(Img.working[rel] != null ? Img.working[rel] : cur, ref.line, ref.token, name);
+    if (!r.changed) { toast('No pude cambiar esa línea (' + r.error + ')', 'err'); return; }
+    Img.working[rel] = r.gml;
+    if (Img.objSel && Img.objSel.texts[rel] != null) Img.objSel.texts[rel] = r.gml;
+    rebuildImgChanges();
+    // refs del objeto actualizadas
+    if (Img.objSel) {
+      Img.objSel.refs = [];
+      for (const [rel2, t] of Object.entries(Img.objSel.texts))
+        for (const rr of C.parseSpriteRefs(t)) Img.objSel.refs.push(Object.assign({ file: rel2 }, rr));
+    }
+    renderImgRefs();
+    const nref = Img.objSel ? Img.objSel.refs.find(x => x.token === name && x.file === rel && x.line === ref.line) : null;
+    if (nref) { Img.sel = { kind: 'ref', ref: nref }; await selectImgRef(nref); }
+    toast(ref.token + ' → ' + name + ' en ' + rel.split('/').pop() + '. Pulsa «Escribir» para guardarlo.');
+  }
+}
+
+function rebuildImgChanges() {
+  Img.changes = [];
+  for (const rel of Object.keys(Img.working)) {
+    const a = (Img.orig[rel] || '').split(/\r?\n/);
+    const b = Img.working[rel].split(/\r?\n/);
+    for (let i = 0; i < Math.max(a.length, b.length); i++) {
+      if (a[i] !== b[i]) {
+        Img.changes.push({ rel: rel, line: i, dynamic: false, before: (a[i] || '').trim(), after: (b[i] || '').trim() });
+      }
+    }
+  }
+  syncImgPending();
+}
+function syncImgPending() {
+  S.pendingFiles = Object.assign({}, Img.working);
+  S.edits = Img.changes;
+  renderImgEdits();
+}
+function renderImgEdits() {
+  const host = $('#img-edits');
+  $('#img-write').disabled = S.mode !== 'fs';
+  $('#img-undo').disabled = !S.undo.length;
+  if (!Img.changes.length) {
+    host.innerHTML = '<div class="okline">Nada que escribir.</div>';
+    return;
+  }
+  let html = '';
+  for (const ch of Img.changes) {
+    html += '<div class="editcard" data-rel="' + esc(ch.rel) + '">' +
+      '<div class="edhead"><b>' + esc(ch.rel.split('/').pop()) + '</b><span class="edpath">' + esc(ch.rel) + ' · línea ' + (ch.line + 1) + '</span></div>' +
+      '<pre class="diff">' + diffTwo(ch.before, ch.after) + '</pre>' +
+      '<div class="edbtns"><button class="copyfile">Copiar archivo entero</button></div>' +
+      '</div>';
+  }
+  host.innerHTML = html;
+}
+
+async function imgAfterWrite() {
+  for (const rel of Object.keys(Img.working)) {
+    Img.orig[rel] = (await T.readText(rel)) || '';
+    delete Img.working[rel];
+    if (Img.objIndex) {
+      for (const o of Img.objIndex.list) {
+        if (o.texts[rel] != null) {
+          o.texts[rel] = Img.orig[rel];
+          o.refs = [];
+          for (const [rel2, t] of Object.entries(o.texts))
+            for (const rr of C.parseSpriteRefs(t)) o.refs.push(Object.assign({ file: rel2 }, rr));
+        }
+      }
+    }
+  }
+  rebuildImgChanges();
+  if (Img.char) renderImgStates();
+  if (Img.sel && Img.sel.kind === 'state') {
+    const entries = imgEntries();
+    const ne = entries.find(x => x.idx === Img.sel.e.idx);
+    if (ne) await selectImgState(ne);
+  } else if (Img.sel && Img.sel.kind === 'ref' && Img.objSel) {
+    renderImgRefs();
+  }
+}
+
+/* ---- reproductor del módulo imágenes ---- */
+
+function imgTick(t) {
+  if (S.module !== 'img') return;
+  const p = Img.prev;
+  const cv = $('#img-viewer');
+  if (!p) return;
+  const dt = Math.min(0.05, ((t - p.tPrev) / 1000) || 0);
+  p.tPrev = t;
+  if (p.playing && p.n > 1) {
+    p.idx += p.speed * dt * 60;
+    if (p.idx >= p.n) p.idx -= p.n * Math.floor(p.idx / p.n);
+  }
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+  const f = Math.min(p.n - 1, Math.floor(p.idx));
+  const bm = p.bitmaps[f];
+  ctx.imageSmoothingEnabled = false;
+  if (bm) {
+    const z = Math.max(1, Math.floor(Math.min((W - 16) / p.w, (H - 16) / p.h)));
+    const dw = p.w * z, dh = p.h * z;
+    const dx = Math.floor((W - dw) / 2), dy = Math.floor((H - dh) / 2);
+    ctx.strokeStyle = 'rgba(255,255,255,.12)';
+    ctx.beginPath(); ctx.moveTo(0, dy + dh); ctx.lineTo(W, dy + dh); ctx.stroke();
+    ctx.drawImage(bm, dx, dy, dw, dh);
+  }
+  const hud = $('#img-viewer-hud');
+  const vuelta = p.n / Math.max(0.01, p.speed * 60);
+  hud.textContent = (p.label || '') + '  ·  frame ' + (f + 1) + '/' + p.n +
+    '  ·  vel ' + C.fmtSpeed(p.speed) + ' (' + Math.round(p.speed * 60) + ' fps)' +
+    '  ·  vuelta ≈ ' + vuelta.toFixed(2) + ' s' + (p.dyn ? '  ·  FÓRMULA (preview 0.5)' : '');
+}
+
+/* ================= re-escaneo de proyecto / escritura ================= */
+
+window.__onProjectScan = function () {
+  Tune.index = null; Tune.entity = null; Tune.orig = {}; Tune.working = {}; Tune.changes = [];
+  Img.orig = {}; Img.working = {}; Img.changes = []; Img.objIndex = null; Img.objSel = null;
+  Img.char = null; Img.sel = null; Img.prev = null;
+  ffCache.clear();
+  if (S.module === 'tune') enterTune();
+  else if (S.module === 'img') enterImg();
+};
+
+S.onAfterWrite = async function () {
+  if (S.module === 'tune') await tuneAfterWrite();
+  else if (S.module === 'img') await imgAfterWrite();
+};
+
+/* ================= init ================= */
+
+async function copyWorkingFile(btn) {
+  const card = btn.closest('.editcard');
+  if (!card) return;
+  const rel = card.dataset.rel;
+  const txt = (S.module === 'tune' ? Tune.working : Img.working)[rel];
+  if (txt == null) { toast('Nada que copiar.'); return; }
+  try { await navigator.clipboard.writeText(txt); toast('Copiado: ' + rel.split('/').pop() + ' entero'); }
+  catch (e) { toast('No pude copiar automáticamente; selecciona el diff a mano.', 'err'); }
+}
+
+function init3() {
+  // navegación de módulos
+  $$('#modnav .mnav').forEach(b => b.addEventListener('click', () => switchModule(b.dataset.mod)));
+
+  // ---- recargas ----
+  $('#tune-ent-list').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-obj]');
+    if (!b) return;
+    const ent = findTuneEnt(b.dataset.obj);
+    if (ent) selectTuneEntity(ent);
+  });
+  $('#tune-cd-rows').addEventListener('click', (e) => {
+    if (e.target.matches('input')) return;
+    const row = e.target.closest('.cdrow');
+    if (!row) return;
+    Tune.selMac = { name: row.dataset.name, rel: row.dataset.file };
+    $$('#tune-cd-rows .cdrow').forEach(r => r.classList.toggle('sel', r === row));
+    Tune.barT0 = performance.now();
+    updateBarPreview();
+  });
+  $('#tune-cd-rows').addEventListener('input', (e) => {
+    const row = e.target.closest('.cdrow');
+    if (!row || !e.target.matches('input[type=range]')) return;
+    setTuneMacro(row.dataset.name, row.dataset.file, parseFloat(e.target.value) || 1, 'sec');
+  });
+  $('#tune-cd-rows').addEventListener('change', (e) => {
+    const row = e.target.closest('.cdrow');
+    if (!row || !e.target.matches('input[type=number]')) return;
+    setTuneMacro(row.dataset.name, row.dataset.file, Math.max(0.05, parseFloat(e.target.value) || 1), 'sec');
+  });
+  $('#tune-num-rows').addEventListener('change', (e) => {
+    const row = e.target.closest('.numrow');
+    if (!row || !e.target.matches('input[type=number]')) return;
+    setTuneMacro(row.dataset.name, row.dataset.file, parseFloat(e.target.value) || 0, 'num');
+  });
+  $('#tune-bar-restart').addEventListener('click', () => { Tune.barT0 = performance.now(); });
+  $('#tune-write').addEventListener('click', () => T.writeEdits());
+  $('#tune-undo').addEventListener('click', () => T.undoLast());
+  $('#tune-edits').addEventListener('click', (e) => {
+    const b = e.target.closest('.copyfile'); if (b) copyWorkingFile(b);
+  });
+
+  // ---- imágenes ----
+  $$('#mod-img .tabs .tab').forEach(t => t.addEventListener('click', async () => {
+    $$('#mod-img .tabs .tab').forEach(x => x.classList.toggle('active', x === t));
+    const itab = t.dataset.itab;
+    $('#img-tab-estados').classList.toggle('hidden', itab !== 'estados');
+    $('#img-tab-objetos').classList.toggle('hidden', itab !== 'objetos');
+    if (itab === 'objetos') { await ensureObjIndex(); renderImgObjects(); }
+  }));
+  $('#img-char-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.charbtn'); if (!b) return;
+    if (b.dataset.char != null) selectImgChar(S.chars[+b.dataset.char], false);
+    else if (b.dataset.exe != null) selectImgChar(S.exes[+b.dataset.exe], true);
+  });
+  $('#img-chk-demon').addEventListener('change', (e) => {
+    Img.table = e.target.checked ? 'eanims' : 'anims';
+    Img.sel = null; Img.prev = null;
+    renderImgStates();
+    $('#img-btn-swap').classList.add('hidden');
+  });
+  $('#img-state-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.stbtn'); if (!b) return;
+    const entries = imgEntries();
+    const ee = entries[+b.dataset.i];
+    if (ee) selectImgState(ee);
+  });
+  $('#img-obj-search').addEventListener('input', renderImgObjects);
+  $('#img-obj-list').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-obj]'); if (!b) return;
+    const o = Img.objIndex.list.find(x => x.obj === b.dataset.obj);
+    if (o) selectImgObject(o);
+  });
+  $('#img-context').addEventListener('click', (e) => {
+    const row = e.target.closest('.refrow'); if (!row || !Img.objSel) return;
+    const ref = Img.objSel.refs[+row.dataset.i];
+    if (ref) selectImgRef(ref);
+  });
+  $('#img-viewer').addEventListener('click', () => {
+    if (Img.prev) { Img.prev.playing = !Img.prev.playing; }
+  });
+  $('#img-btn-swap').addEventListener('click', () => {
+    if (!Img.sel) return;
+    const current = Img.sel.kind === 'state' ? Img.sel.e.spr : Img.sel.ref.token;
+    openSpritePicker(current, (name) => applySpritePick(name));
+  });
+  $('#img-write').addEventListener('click', () => T.writeEdits());
+  $('#img-undo').addEventListener('click', () => T.undoLast());
+  $('#img-edits').addEventListener('click', (e) => {
+    const b = e.target.closest('.copyfile'); if (b) copyWorkingFile(b);
+  });
+
+  // ---- selector de sprites ----
+  $('#sprpick-search').addEventListener('input', renderPickerGrid);
+  $('#sprpick-grid').addEventListener('click', (e) => {
+    const tile = e.target.closest('.sprtile'); if (!tile) return;
+    $('#sprpicker').close();
+    const cb = Pick.cb; Pick.cb = null;
+    if (cb) cb(tile.dataset.spr);
+  });
+  $('#sprpick-cancel').addEventListener('click', () => { $('#sprpicker').close(); Pick.cb = null; });
+
+  // bucles de animación de los módulos
+  const loopTune = (t) => { requestAnimationFrame(loopTune); tuneTick(t); };
+  const loopImg = (t) => { requestAnimationFrame(loopImg); imgTick(t); };
+  requestAnimationFrame(loopTune);
+  requestAnimationFrame(loopImg);
+}
+
+init3();
+
+})();
+
+</script>
+</body>
+</html>

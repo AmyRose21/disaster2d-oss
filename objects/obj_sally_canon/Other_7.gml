@@ -9,7 +9,7 @@ switch(state)
 		// de la Sally original: su idle de 90 frames tiene la
 		// respiracion justo en las ultimas 14; en el canon ese corte
 		// pillaba el gesto a medias y lo rebotaba sin parar.)
-		image_index = image_number - 1;
+		image_index = image_number - 2;
 		break;
 		
 	case EMOTION1:

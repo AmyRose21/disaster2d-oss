@@ -22,7 +22,13 @@ effectTime = 0;
 djumpRecharge = 0;
 trackerRecharge = 0;
 shieldRechrage = 0;
-geniusCd = 0; // v3.0 «Genio Malvado»: anti-spam de mejoras de trampas
+// v3.1 «Genio Malvado» estilo RESCATE (patron dedemonTarget de Vanilla):
+// geniusTarget/-Type = la trampa (nid + 0 sensor / 1 trampa de Amelia) sobre
+// la que esta el Dr. (para el prompt y para saber QUIEN paga al completar);
+// geniusSendCd = cadencia de los paquetes de progreso (cada 2 frames).
+geniusTarget = -1;
+geniusTargetType = -1;
+geniusSendCd = 0;
 revivalTimes = 0;
 deadTimer = 31;
 deadColor = c_white;

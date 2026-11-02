@@ -226,18 +226,37 @@ typedef enum
 
         /* v3.0 — «Genio Malvado» (Eggman) + balance de trampas:
            CLIENT_EGG_TRAP_UPGRADE (u8 type: 0 = su sensor eggtrack /
-           1 = trampa de Amelia; u16 nid): gasta anillos del propio
-           contador del server (plr.rings: 3 sensor / 5 trampa) y
-           marca la entidad como mejorada (+25% de efectividad,
-           contorno dorado); la respuesta viaja como
-           SERVER_ETRACKER_STATE 2 / SERVER_AMELIA_TRAP_STATE 3.
+           1 = trampa de Amelia; u16 nid): v3.1 DEPRECATED — mejora
+           instantanea sustituida por el estilo RESCATE (los tres IDs
+           nuevos de abajo); el valor se conserva para no mover el enum.
            SERVER_TRACKER_PING (u16 pid): lo emite el server al caer
            una TRAMPA MEJORADA pisada por el bando EXE — ejecuta el
            RASTREADOR: la posicion de la victima se revela a todos los
            supervivientes. Mismo orden que el enum del cliente
            (net_packets.gml); anadido AL FINAL en los DOS lados. */
         CLIENT_EGG_TRAP_UPGRADE,
-        SERVER_TRACKER_PING
+        SERVER_TRACKER_PING,
+
+        /* v3.1 — «Genio Malvado» al estilo del RESCATE de Vanilla
+           (v2.11), pero para MEJORAR TRAMPAS: Eggman ENCIMA de la
+           trampa manteniendo ABAJO con anillos de sobra (3 sensor /
+           5 trampa de Amelia).
+           CLIENT_EGG_TRAP_UPGRADE_PROGRESS (u8 type: 0 sensor /
+           1 trampa; u16 nid; u8 anillos actuales del cliente): el
+           server acumula el progreso en la ENTIDAD (upg_progress,
+           se conserva al soltar como la barra del revive) y reenvia
+           la barra con SERVER_EGG_UPGRADE_PROGRESS (u8 type, u16 nid,
+           double prog). Al llenarla cobra los anillos (plr.rings) y
+           marca la entidad mejorada (SERVER_ETRACKER_STATE 2 /
+           SERVER_AMELIA_TRAP_STATE 3 de siempre).
+           SERVER_EGG_UPGRADE_STATUS (u8 show, u8 type, u16 nid) abre/
+           cierra la barra. El contorno dorado y la barra SOLO los
+           dibuja el bando superviviente (Draw_0 de las trampas).
+           Mismo orden que el enum del cliente (net_packets.gml);
+           anadido AL FINAL en los DOS lados. */
+        CLIENT_EGG_TRAP_UPGRADE_PROGRESS,
+        SERVER_EGG_UPGRADE_PROGRESS,
+        SERVER_EGG_UPGRADE_STATUS
 } PacketType;
 
 typedef struct

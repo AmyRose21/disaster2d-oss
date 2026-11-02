@@ -1,17 +1,22 @@
 // =====================================================================
-//  v3.0 — PASIVA «GENIO MALVADO» (Eggman): sus anillos ya no son solo
-//  puntos — son PIEZAS. Acercandose a una trampa (la suya o una de
-//  Amelia) y pulsando V, Eggman la MEJORA gastando anillos:
+//  v3.1 — PASIVA «GENIO MALVADO» (Eggman), ahora al estilo del RESCATE
+//  de Vanilla (v2.11): sus anillos son PIEZAS. Eggman se pone ENCIMA de
+//  una trampa (la suya o una de Amelia) y MANTIENE ABAJO con anillos de
+//  sobra: la MISMA barra del revive (spr_revival) se llena del lado del
+//  server (0.03 por paquete + bonus por anillos extra, 30 paq/s) y al
+//  completarse cobra los anillos y MEJORA la trampa:
 //    * SENSOR propio (obj_eggtrack): 3 anillos.
 //    * TRAMPA de Amelia (obj_amelia_trap): 5 anillos.
+//  Soltar el ABAJO a mitad NO tira el dinero: el progreso queda en el
+//  server (igual que la barra del caido / del esbirro rescatado).
 //  Una trampa mejorada gana +25% de efectividad (duracion del stun /
-//  slow / ceguera de la trampa; slow del sensor), se dibuja con un
-//  CONTORNO DORADO alrededor del sprite (spr_trap_gold /
-//  spr_eggtrack_gold, la misma idea de los spr_exe_invis_*) y, si la
-//  que cae es una TRAMPA de Amelia mejorada pisada por el bando EXE,
-//  ejecuta el RASTREADOR: la posicion de la victima se revela a TODOS
-//  los supervivientes 3 s (SERVER_TRACKER_PING, el mismo indicador
+//  slow / ceguera de la trampa; slow del sensor) y, si la que cae es
+//  una TRAMPA de Amelia mejorada pisada por el bando EXE, ejecuta el
+//  RASTREADOR: la posicion de la victima se revela a TODOS los
+//  supervivientes 3 s (SERVER_TRACKER_PING, el mismo indicador
 //  obj_surv_indicator que usan sus sensores).
+//  v3.1 (pedido): el CONTORNO DORADO solo lo dibuja el bando
+//  SUPERVIVIENTE — exe y esbirros NO lo ven (Draw_0 de las trampas).
 //  Ademas el genio REPARA a Metal: Metal Sonic recupera vida estando
 //  cerca del Dr. Eggman (cada 7 s) o de Tails (cada 13 s); si estan
 //  los dos, solo aplica la del Dr. (ver scr_metal_special).
@@ -21,18 +26,21 @@
 #macro EGG_GENIUS_TRAP_COST 5        // anillos por mejorar una trampa de Amelia
 #macro EGG_GENIUS_BONUS 1.25         // +25% de efectividad al mejorar
 #macro EGG_GENIUS_RANGE 42           // px: distancia maxima a la trampa
-#macro EGG_GENIUS_CD (60 * 2)        // anti-spam entre mejoras
+#macro EGG_GENIUS_SEND_CD 2          // cadencia de los paquetes de progreso (cada 2 frames = 30/s)
 
-// Pide al server mejorar una entidad (0 = sensor de Eggman,
-// 1 = trampa de Amelia). El server valida anillos y marca la entidad;
-// el estado dorado llega a todos con SERVER_ETRACKER_STATE 2 /
-// SERVER_AMELIA_TRAP_STATE 3 (mismo patron de siempre: el server es
-// la autoridad de las entidades).
-function net_egg_upgrade(type, nid)
+// Progreso de la mejora de una entidad (0 = sensor de Eggman,
+// 1 = trampa de Amelia): mismo patron que CLIENT_VANILLA_DEDEMONIZE_
+// PROGRESS — el server acumula el progreso en la ENTIDAD (upg_progress),
+// reenvia la barra (SERVER_EGG_UPGRADE_PROGRESS) y al llenarla cobra
+// 3/5 anillos y marca la entidad; el estado dorado llega a todos con
+// SERVER_ETRACKER_STATE 2 / SERVER_AMELIA_TRAP_STATE 3 (mismo patron de
+// siempre: el server es la autoridad de las entidades).
+function net_egg_upgrade_progress(type, nid, ringcount)
 {
-        var packet = cpacket_tcp(PacketType.CLIENT_EGG_TRAP_UPGRADE);
+        var packet = cpacket_tcp(PacketType.CLIENT_EGG_TRAP_UPGRADE_PROGRESS);
         buffer_write(packet, buffer_u8, type);
         buffer_write(packet, buffer_u16, nid);
+        buffer_write(packet, buffer_u8, ringcount);
         send_server_tcp(packet);
 }
 
@@ -102,82 +110,110 @@ function scr_egg_special()
                 trackerRecharge = EGGMAN_TRACKER_RECHARGE;
         }
 
-        // ---- GENIO MALVADO (tecla V): mejorar trampas con anillos ----
-        // Solo el Eggman SUPERVIVIENTE (un esbirro no hereda el genio).
-        // Busca primero una TRAMPA de Amelia (5 anillos) y si no, un
-        // SENSOR suyo (3 anillos) a menos de EGG_GENIUS_RANGE px. El
-        // paquete lo valida el server con SU contador de anillos
-        // (plr.rings); el estado dorado llega de vuelta para todos.
-        if(global.playerControls && geniusCd <= 0 && revivalTimes < 2 && !isDead
-        && keyboard_check_pressed(global.KeyV))
+        // ---- GENIO MALVADO v3.1 (manten ABAJO sobre la trampa): mejora
+        // al estilo del RESCATE de Vanilla. Solo el Eggman SUPERVIVIENTE
+        // (un esbirro no hereda el genio). Prioridad v3.0: primero una
+        // TRAMPA de Amelia (5 anillos) y si no, un SENSOR suyo (3),
+        // a menos de EGG_GENIUS_RANGE px. Mientras se mantenga ABAJO con
+        // anillos de sobra salen los paquetes de progreso (30/s); la
+        // barra la llena el SERVER y al completarla cobra los anillos y
+        // dora la trampa. El progreso hecho SE CONSERVA en el server si
+        // sueltas el ABAJO o te alejas a mitad (igual que el revive).
+        if(global.playerControls && revivalTimes < 2 && !isDead)
         {
-                var _upgType = -1;
-                var _upgNid = -1;
-                var _upgCost = 0;
-
-                var _trap = noone;
-                if(instance_exists(obj_amelia_trap))
+                // 1) mantener el LOCK mientras la trampa siga valida y
+                // cerca (patron dedemonTarget de Vanilla: sin cambios de
+                // objetivo a mitad de barra)
+                if(geniusTarget != -1)
                 {
-                        var _best = EGG_GENIUS_RANGE;
-                        with(obj_amelia_trap)
+                        var _lockNid = geniusTarget;
+                        var _lockType = geniusTargetType;
+                        var _keep = noone;
+
+                        with(_lockType == 1 ? obj_amelia_trap : obj_eggtrack)
                         {
-                                if(upgraded || triggerSent)
+                                if(nid != _lockNid)
                                         continue;
 
-                                var _d = distance_to_object(global.player);
-                                if(_d <= _best)
-                                {
-                                        _best = _d;
-                                        _trap = self;
-                                }
+                                if((_lockType == 1 && (upgraded || triggerSent))
+                                || (_lockType == 0 && (upgraded || activated))
+                                || distance_to_object(global.player) > EGG_GENIUS_RANGE * 1.5)
+                                        continue;
+
+                                _keep = self;
+                                break;
+                        }
+
+                        if(!instance_exists(_keep))
+                        {
+                                // lock liberado: la barra a medio llenar se
+                                // conserva en el server, no se tira nada
+                                geniusTarget = -1;
+                                geniusTargetType = -1;
                         }
                 }
 
-                var _sensor = noone;
-                if(!instance_exists(_trap) && instance_exists(obj_eggtrack))
+                // 2) sin lock: buscar la TRAMPA de Amelia mas cercana y si
+                // no hay, un SENSOR (misma prioridad v3.0)
+                if(geniusTarget == -1)
                 {
-                        var _best2 = EGG_GENIUS_RANGE;
-                        with(obj_eggtrack)
+                        var _trap = noone;
+                        if(instance_exists(obj_amelia_trap))
                         {
-                                if(upgraded || activated)
-                                        continue;
-
-                                var _d = distance_to_object(global.player);
-                                if(_d <= _best2)
+                                var _best = EGG_GENIUS_RANGE;
+                                with(obj_amelia_trap)
                                 {
-                                        _best2 = _d;
-                                        _sensor = self;
+                                        if(upgraded || triggerSent)
+                                                continue;
+
+                                        var _d = distance_to_object(global.player);
+                                        if(_d <= _best)
+                                        {
+                                                _best = _d;
+                                                _trap = self;
+                                        }
                                 }
+                        }
+
+                        var _sensor = noone;
+                        if(!instance_exists(_trap) && instance_exists(obj_eggtrack))
+                        {
+                                var _best2 = EGG_GENIUS_RANGE;
+                                with(obj_eggtrack)
+                                {
+                                        if(upgraded || activated)
+                                                continue;
+
+                                        var _d = distance_to_object(global.player);
+                                        if(_d <= _best2)
+                                        {
+                                                _best2 = _d;
+                                                _sensor = self;
+                                        }
+                                }
+                        }
+
+                        if(instance_exists(_trap))
+                        {
+                                geniusTarget = _trap.nid;
+                                geniusTargetType = 1;
+                        }
+                        else if(instance_exists(_sensor))
+                        {
+                                geniusTarget = _sensor.nid;
+                                geniusTargetType = 0;
                         }
                 }
 
-                if(instance_exists(_trap))
+                // 3) prompt (upgOver en el Step de cada trampa) + envio
+                // del progreso mientras se mantiene ABAJO con anillos
+                if(geniusTarget != -1 && isLookingDown
+                && rings >= (geniusTargetType == 1 ? EGG_GENIUS_TRAP_COST : EGG_GENIUS_SENSOR_COST)
+                && geniusSendCd <= 0)
                 {
-                        _upgType = 1;
-                        _upgNid = _trap.nid;
-                        _upgCost = EGG_GENIUS_TRAP_COST;
-                }
-                else if(instance_exists(_sensor))
-                {
-                        _upgType = 0;
-                        _upgNid = _sensor.nid;
-                        _upgCost = EGG_GENIUS_SENSOR_COST;
-                }
+                        geniusSendCd = EGG_GENIUS_SEND_CD;
 
-                if(_upgType != -1 && rings >= _upgCost)
-                {
-                        rings -= _upgCost;
-                        geniusCd = EGG_GENIUS_CD;
-
-                        // chispas doradas sobre la trampa (efecto rapido
-                        // por red: lo ven todos) + sonido del genio
-                        repeat(6)
-                                net_quick_effect(x + random_range(-14, 14), y - random_range(0, 20), spr_shockparticle, false, 1, random_range(-0.5, 0.5), -1, 1);
-
-                        audio_play_sound(snd_heal, 0, false);
-                        net_sound_emit(snd_heal);
-
-                        net_egg_upgrade(_upgType, _upgNid);
+                        net_egg_upgrade_progress(geniusTargetType, geniusTarget, rings);
                 }
         }
         
@@ -209,6 +245,6 @@ function scr_egg_special()
         if(trackerRecharge > 0)
                 trackerRecharge--;
 
-        if(geniusCd > 0)
-                geniusCd--;
+        if(geniusSendCd > 0)
+                geniusSendCd--;
 }

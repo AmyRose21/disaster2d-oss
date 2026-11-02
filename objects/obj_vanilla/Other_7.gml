@@ -36,4 +36,8 @@ switch(state)
 			emotion = false;
 		}
 		break;
-}
+
+	case DEAD:
+		image_index = image_number - 1;
+		break;
+	}
