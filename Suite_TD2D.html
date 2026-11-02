@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Suite TD2D — Animaciones · Recargas · Imágenes</title>
+<title>Suite TD2D — Animaciones · Recargas · Imágenes · Servidor</title>
 <style>
 :root{
   --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
@@ -206,13 +206,38 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 .sprtile canvas{width:72px;height:56px;background:#101317;border-radius:4px;image-rendering:pixelated}
 .sprtile .tname{font-family:var(--mono);font-size:10px;color:var(--txt);word-break:break-all;text-align:center}
 .sprtile .tfc{font-family:var(--mono);font-size:10px;color:var(--gold)}
+/* ---- módulo servidor ---- */
+#mod-srv .mid{overflow-y:auto}
+.syncchip{display:inline-flex;align-items:center;gap:6px;margin:2px 6px 2px 0;padding:3px 9px;border:1px solid var(--line);border-radius:10px;font-family:var(--mono);font-size:10.5px;background:var(--panel2);white-space:nowrap}
+.syncchip b{color:var(--gold2);font-weight:600}
+.syncchip i{font-style:normal;opacity:.6}
+.syncchip.ok{border-color:#2f5c3f}
+.syncchip.warn{border-color:#8a4b2f;background:#2a1b12}
+.syncchip.miss{opacity:.5}
+.srvpair{display:flex;flex-wrap:wrap;align-items:center;margin-top:4px}
+.tl{position:relative;width:104px;height:8px;background:#101317;border-radius:4px;overflow:hidden;flex:none}
+.tl .okseg{position:absolute;left:0;top:0;bottom:0;background:#57c98a}
+.tl .deadseg{position:absolute;top:0;bottom:0;background:#d9534f}
+.srvnote{color:var(--mut);font-size:11px;margin-top:4px}
+.srvrow.ghost{opacity:.62}
+.srvrow .obj{font-family:var(--mono);font-size:10px;color:var(--mut);word-break:break-all}
+.mono{font-family:var(--mono)}
+.mut{color:var(--mut)}
+#srv-side .note{font-size:11.5px;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px}
+#srv-side .note.warnnote{border-color:#8a4b2f;background:#2a1b12}
+#srv-side .note.oknote{border-color:#2f5c3f}
+#srv-side .note.oknote,#srv-side .note .oktxt{color:#7fd9a4}
+#srv-side .desync{font-family:var(--mono);font-size:10.5px;padding:3px 0;border-bottom:1px dashed #3a3020}
+#srv-side .desync b{color:#e8927b}
+#srv-side .side-head{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold)}
+
 @media (max-width:1100px){.mod{grid-template-columns:220px 1fr 300px}}
 </style>
 </head>
 <body>
 
 <header id="topbar">
-  <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes</span></div>
+  <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes · server</span></div>
   <button id="btn-open" class="btn primary">Abrir carpeta del proyecto</button>
   <button id="btn-open-ro" class="btn">Elegir carpeta (solo lectura)</button>
   <button id="btn-demo" class="btn">Demo</button>
@@ -226,6 +251,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   <button class="mnav sel" data-mod="anim">🎬 Animaciones</button>
   <button class="mnav" data-mod="tune">⏱ Recargas y números</button>
   <button class="mnav" data-mod="img">🖼 Imágenes de habilidades</button>
+  <button class="mnav" data-mod="srv">🖥 Servidor</button>
   <span id="modnav-note">tú mueves · el código se escribe solo</span>
 </nav>
 
@@ -422,6 +448,32 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   </aside>
 </div><!-- /mod-img -->
 
+<div id="mod-srv" class="mod hidden">
+  <aside class="side">
+    <div class="side-head">Servidor</div>
+    <div id="srv-side" style="flex:1;overflow-y:auto;padding:8px"></div>
+  </aside>
+  <main class="mid">
+    <div id="srv-head" class="muted">recargas que el servidor impone de verdad (Game.c)</div>
+    <div class="tunebox">
+      <h3>🖥 Recargas del servidor (C)</h3>
+      <div id="srv-cd-rows"></div>
+    </div>
+  </main>
+  <aside class="rightpane">
+    <section>
+      <h3>Cambios a escribir</h3>
+      <div id="srv-edits"><div class="muted">nada todavía</div></div>
+      <div id="srv-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <button id="srv-write" class="btn primary" style="flex:1;min-width:130px">Escribir en Game.c</button>
+        <button id="srv-undo">Deshacer último</button>
+      </div>
+    </section>
+    <section class="note">El <b>server</b> es quien decide de verdad: si el cliente manda la habilidad antes de que termine SU recarga, el paquete se <b>ignora en silencio</b> (sin kick, desde tu v2.1.3) y la habilidad «no sale». Regla de oro: recarga del cliente ≥ recarga del server. El panel izquierdo te avisa de las que estén desincronizadas.</section>
+    <section class="note">Tras <b>Escribir</b> recompila el server (<code>betterserver-oss/compilar_server.bat</code>) y reinícalo: el C no se recarga solo. Las animaciones y las macros del cliente no necesitan recompilar nada (F5 y listo).</section>
+  </aside>
+</div><!-- /mod-srv -->
+
 </div><!-- /mods -->
 
 <div id="toasts"></div>
@@ -452,10 +504,16 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   <p><b>Estados:</b> qué sprite usa cada estado del personaje (tabla <code>player_anims</code>): elígelo de un catálogo
   con miniaturas y se reescribe la tabla. <b>Objetos:</b> qué sprites usan los objetos del juego (trampas, huevos, balas…):
   pulsa uno y cámbialo igual. Ideal para descubrir mezclas de sprites sin cruzar los dedos.</p>
-  <h4>5. Escribir (todos los módulos)</h4>
+  <h4>5. Módulo 🖥 Servidor</h4>
+  <p>Las recargas que de verdad impone el <b>server</b> viven en <code>betterserver-oss/disasterserver/states/Game.c</code>
+  (<code>v->plr_cooldowns[...] = N * TICKSPERSEC</code>). Edítalas aquí y verás al lado la macro del cliente emparejada:
+  si el cliente queda <b>por debajo</b> del server, la habilidad «no sale» (el server ignora el paquete) y se marca en rojo.
+  Bajar el server no requiere tocar el cliente; subirlo sí. Tras escribir: <b>recompila el server</b> y reinícalo.</p>
+  <h4>6. Escribir (todos los módulos)</h4>
   <p>El panel derecho muestra el antes/después exacto de cada archivo. <b>Escribir</b> guarda una copia en
   <code>_backups_animeditor/</code> y tiene botón de deshacer. Después compila el juego (F5).
-  El multijugador no necesita recompilar el server: el frame exacto viaja por red.</p>
+  El multijugador no necesita recompilar el server para animaciones ni macros: el frame exacto viaja por red
+  y las macros son de cliente. Solo el módulo 🖥 Servidor toca C.</p>
   <div class="close-row"><button id="help-close" class="btn primary">Entendido</button></div>
 </dialog>
 
@@ -1019,6 +1077,70 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
     return out;
   }
 
+  /* ------------- cooldowns del SERVIDOR (betterserver-oss, C) -------------
+     Game.c asigna plr_cooldowns[ID] = N * TICKSPERSEC; con TICKSPERSEC=60,
+     asi que N es directamente segundos. Dos variantes en el repo:
+       simple:   v->plr_cooldowns[AMELIA_BANANA_SPAWN] = 20 * TICKSPERSEC;
+       ternario: v->plr_cooldowns[CREAM_RING_SPAWN] =
+                     (v->surv_char == CH_AMY_CANON ? 6 : 10) * TICKSPERSEC;
+     Y una indirecta (Tails): int cooldown_id = v->plr.flags & PLAYER_DEMONIZED
+                     ? ETAILS_RECHARGE : TAILS_RECHARGE; ... [cooldown_id] = ... */
+
+  function parseServerCooldowns(text) {
+    var out = [];
+    var lines = String(text).split(/\r?\n/);
+    // variables locales que apuntan a un id u otro segun DEMONIZED
+    var varIds = {};
+    for (var i = 0; i < lines.length; i++) {
+      var vm = lines[i].match(/^\s*(?:int\s+)?([A-Za-z_]\w*)\s*=\s*v->plr\.flags\s*&\s*PLAYER_DEMONIZED\s*\?\s*([A-Z_]\w*)\s*:\s*([A-Z_]\w*)\s*;/);
+      if (vm) varIds[vm[1]] = [vm[2], vm[3]];
+    }
+    var seen = {};
+    for (var j = 0; j < lines.length; j++) {
+      var m = lines[j].match(/plr_cooldowns\s*\[\s*([A-Za-z_]\w*)\s*\]\s*=\s*([^;]+);/);
+      if (!m) continue;
+      var expr = m[2].trim();
+      // solo las formas editables: N * TICKSPERSEC o (cond ? A : B) * TICKSPERSEC.
+      // Los resets "= 0" y el bucle de update no son recargas.
+      var sm = expr.match(/^(\d+(?:\.\d+)?)\s*\*\s*TICKSPERSEC$/);
+      var tm = expr.match(/^\(\s*(.+?)\s*\?\s*(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)\s*\)\s*\*\s*TICKSPERSEC$/);
+      if (!sm && !tm) continue;
+      var ids = varIds[m[1]] || [m[1]];
+      var key = ids.slice().sort().join('|');
+      if (seen[key]) continue;   // TAILS/ETAILS comparten linea: una sola entrada
+      seen[key] = true;
+      var e = { line: j, ids: ids, expr: expr, ternary: false, secs: null, cond: null };
+      if (sm) { e.secs = [parseFloat(sm[1])]; }
+      else { e.ternary = true; e.secs = [parseFloat(tm[2]), parseFloat(tm[3])]; e.cond = tm[1].trim(); }
+      out.push(e);
+    }
+    return out;
+  }
+
+  // Reescribe el/los numeros de la linea de una entrada ya parseada.
+  // secs = [n] para la forma simple, [a, b] para la ternaria.
+  // Conserva identacion, condicion y todo lo demas de la linea.
+  function setServerCooldown(text, ent, secs) {
+    var lines = String(text).split(/\r?\n/);
+    var line = lines[ent.line];
+    if (line == null) return { text: text, changed: false, error: 'linea' };
+    var newline = null;
+    if (ent.ternary) {
+      if (!Array.isArray(secs) || secs.length !== 2 || !isFinite(secs[0]) || !isFinite(secs[1]))
+        return { text: text, changed: false, error: 'ternario' };
+      newline = line.replace(/\(\s*[^?]+?\s*\?\s*\d+(?:\.\d+)?\s*:\s*\d+(?:\.\d+)?\s*\)\s*\*\s*TICKSPERSEC/,
+        function (f) { return '(' + ent.cond + ' ? ' + fmtNum(Math.abs(secs[0])) + ' : ' + fmtNum(Math.abs(secs[1])) + ') * TICKSPERSEC'; });
+    } else {
+      if (!Array.isArray(secs) || secs.length !== 1 || !isFinite(secs[0]))
+        return { text: text, changed: false, error: 'simple' };
+      newline = line.replace(/(\d+(?:\.\d+)?)(\s*\*\s*TICKSPERSEC)/,
+        function (f, num, tail) { return fmtNum(Math.abs(secs[0])) + tail; });
+    }
+    if (newline === line) return { text: text, changed: false, error: 'formato' };
+    lines[ent.line] = newline;
+    return { text: lines.join(detectNewline(text)), changed: true, line: ent.line };
+  }
+
   /* ---------------------------------- utilidades ---------------------------------- */
 
   function detectNewline(text) {
@@ -1070,6 +1192,8 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
     setIdleLoop: setIdleLoop,
     setLoopGuard: setLoopGuard,
     parseCooldowns: parseCooldowns,
+    parseServerCooldowns: parseServerCooldowns,
+    setServerCooldown: setServerCooldown,
     parseMacros: parseMacros,
     setMacro: setMacro,
     setTableSprite: setTableSprite,
@@ -1419,7 +1543,19 @@ async function startDemo() {
       '        spr_chapo_idle, //7\n' +
       '        spr_chapo_idle, //14 = CHAPO_DASH\n' +
       '];\n\n' +
-      'switch(argument0)\n{\n\tcase CHARACTER_CHAPO:\n\t\treturn obj_chapo;\n}'
+      'switch(argument0)\n{\n\tcase CHARACTER_CHAPO:\n\t\treturn obj_chapo;\n}',
+    // demo del modulo Servidor (v3.3): Game.c + macros emparejadas
+    'betterserver-oss/disasterserver/states/Game.c':
+      'int cooldown_id = v->plr.flags & PLAYER_DEMONIZED ? ETAILS_RECHARGE : TAILS_RECHARGE;\n' +
+      'v->plr_cooldowns[cooldown_id] = 10 * TICKSPERSEC;\n' +
+      'v->plr_cooldowns[CREAM_RING_SPAWN] = (v->surv_char == CH_AMY_CANON ? 6 : 10) * TICKSPERSEC;\n' +
+      'v->plr_cooldowns[AMELIA_BANANA_SPAWN] = 20 * TICKSPERSEC;\n' +
+      'v->plr_cooldowns[AMELIA_TRAP_SPAWN] = 15 * TICKSPERSEC;\n',
+    'objects/obj_tails/Create_0.gml':
+      '#macro TAILS_ATTACK_RECHARGE  (23 * 60)\n#macro ETAILS_ATTACK_RECHARGE (12 * 60)\n',
+    'scripts/scr_amelia_special/scr_amelia_special.gml':
+      '#macro AMELIA_BANANA_RECHARGE (60 * 25)\n#macro EAMELIA_BANANA_RECHARGE (60 * 10)\n' +
+      '#macro AMELIA_TRAP_RECHARGE (60 * 24)\n#macro EAMELIA_TRAP_RECHARGE (60 * 15)\n'
   }));
   S.chars = [{
     key: 'CHARACTER_CHAPO', name: 'CHAPO', idx: 0, obj: 'obj_chapo',
@@ -2229,9 +2365,11 @@ function switchModule(mod) {
   $('#mod-anim').classList.toggle('hidden', mod !== 'anim');
   $('#mod-tune').classList.toggle('hidden', mod !== 'tune');
   $('#mod-img').classList.toggle('hidden', mod !== 'img');
+  $('#mod-srv').classList.toggle('hidden', mod !== 'srv');
   S.pendingFiles = {}; S.edits = [];
   if (mod === 'anim') computeAnimAgain();
   else if (mod === 'tune') enterTune();
+  else if (mod === 'srv' && T.enterSrv) T.enterSrv();
   else enterImg();
 }
 
@@ -3060,6 +3198,7 @@ window.__onProjectScan = function () {
 S.onAfterWrite = async function () {
   if (S.module === 'tune') await tuneAfterWrite();
   else if (S.module === 'img') await imgAfterWrite();
+  // 'srv' lo envuelve app4.js (modulo Servidor) al cargar despues
 };
 
 /* ================= init ================= */
@@ -3185,6 +3324,427 @@ function init3() {
 
 init3();
 
+})();
+
+</script>
+<script>
+/* ===== Suite TD2D — parte 4: módulo «🖥 Servidor» =====
+   Edita las recargas que el SERVIDOR impone de verdad (C, Game.c):
+       v->plr_cooldowns[ID] = N * TICKSPERSEC;      (TICKSPERSEC = 60 -> N son segundos)
+   Para cada una muestra al lado la macro del CLIENTE emparejada y avisa
+   si el cliente queda por DEBAJO del server (el paquete se ignora en
+   silencio y la habilidad «no sale»). Misma escritura segura que el
+   resto de la suite: diff, copia en _backups_animeditor/ y deshacer.
+   Tras escribir hay que recompilar el server y reiniciarlo. */
+(() => {
+'use strict';
+const C = window.AnimCore;
+const T = window.__animtool;
+const S = T.S;
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const esc = T.esc, toast = T.toast;
+
+const GAME_C = 'betterserver-oss/disasterserver/states/Game.c';
+
+/* emparejamiento: id de cooldown del server <-> macros del cliente (GML).
+   Fuente: Game.c (asserts + asignaciones) y los Create_0/scr_*_special. */
+const SRV_PAIR = {
+  TAILS_RECHARGE:       { label: 'Láser de Tails', macros: ['TAILS_ATTACK_RECHARGE', 'ETAILS_ATTACK_RECHARGE'], note: 'superviviente y demonizado comparten la misma línea del server' },
+  ETAILS_RECHARGE:      { label: 'Láser de Tails', macros: ['TAILS_ATTACK_RECHARGE', 'ETAILS_ATTACK_RECHARGE'], note: 'superviviente y demonizado comparten la misma línea del server' },
+  CREAM_RING_SPAWN:     { label: 'Anillos (Cream / Vanilla)', macros: ['CREAM_RINGS_RECHARGE', 'ECREAM_RINGS_RECHARGE', 'VANILLA_RINGS_RECHARGE', 'EVANILLA_RINGS_RECHARGE'] },
+  AMELIA_BANANA_SPAWN:  { label: 'Plátano de Amelia', macros: ['AMELIA_BANANA_RECHARGE', 'EAMELIA_BANANA_RECHARGE'] },
+  AMELIA_TRAP_SPAWN:    { label: 'Trampa de Amelia', macros: ['AMELIA_TRAP_RECHARGE', 'EAMELIA_TRAP_RECHARGE'] },
+  BLAZE_FIREBALL_SPAWN: { label: 'Bola de fuego de Blaze', macros: ['BLAZE_FIREBALL_RECHARGE', 'EBLAZE_FIREBALL_RECHARGE'] },
+  METALAMY_BULLET:      { label: 'Bala de Metal Amy', macros: ['METALAMY_BULLET_RECHARGE'] },
+  EGGTRACK_RECHARGE:    { label: 'Rastreador de Eggman', macros: ['EGGMAN_TRACKER_RECHARGE'] },
+  EXETIOR_BRING_SPAWN:  { label: 'Invocación de Exetior', macros: ['EXETIOR_BRING_RECHARGE'] },
+  EXELLER_CLONE_SPAWN:  { label: 'Clon de Exeller', macros: ['EXELLER_CLONE_RECHARGE'], note: 'definido en el enum del server pero NUNCA se comprueba: solo lo frena el cliente' },
+};
+
+/* archivos GML donde viven esas macros (relativos a la raíz del proyecto) */
+const CLI_FILES = [
+  'objects/obj_tails/Create_0.gml',
+  'objects/obj_cream/Create_0.gml',
+  'objects/obj_vanilla/Create_0.gml',
+  'objects/obj_egg/Create_0.gml',
+  'objects/obj_exetior/Create_0.gml',
+  'objects/obj_exeller/Create_0.gml',
+  'scripts/scr_amelia_special/scr_amelia_special.gml',
+  'scripts/scr_blaze_special/scr_blaze_special.gml',
+  'scripts/scr_metalamy_special/scr_metalamy_special.gml',
+];
+
+const Srv = {
+  found: false,
+  orig: '', working: '',
+  origLines: [],
+  entries: [],        // de Game.c (+ fantasmas del enum sin uso)
+  cli: {},            // macroName -> { seconds, sign, file }
+  changes: [],
+};
+
+/* --------------------------------- carga --------------------------------- */
+
+async function enterSrv() {
+  if (Srv.orig) { renderSrvAll(); return; }
+  await loadSrv();
+  renderSrvAll();
+}
+
+async function loadSrv() {
+  const txt = await T.readText(GAME_C);
+  if (txt == null) {
+    Srv.found = false; Srv.orig = ''; Srv.working = ''; Srv.origLines = [];
+    Srv.entries = []; Srv.cli = {}; Srv.changes = [];
+    S.pendingFiles = {}; S.edits = [];
+    return;
+  }
+  Srv.found = true;
+  Srv.orig = txt; Srv.working = txt;
+  Srv.origLines = txt.split(/\r?\n/);
+  Srv.entries = C.parseServerCooldowns(txt);
+  // fantasmas: ids del enum que Game.c nunca asigna (p. ej. clon de Exeller)
+  const seen = new Set();
+  for (const e of Srv.entries) for (const id of e.ids) seen.add(id);
+  const ghostKeys = new Set();
+  for (const id of Object.keys(SRV_PAIR)) {
+    if (seen.has(id)) continue;
+    const key = SRV_PAIR[id].macros.join(',');
+    if (ghostKeys.has(key)) continue;
+    ghostKeys.add(key);
+    Srv.entries.push({ line: -1, ids: [id], expr: null, ternary: false, secs: null, ghost: true });
+  }
+  // macros del cliente emparejadas
+  Srv.cli = {};
+  for (const rel of CLI_FILES) {
+    const t = await T.readText(rel);
+    if (t == null) continue;
+    for (const m of C.parseMacros(t)) {
+      if (!Srv.cli[m.name]) Srv.cli[m.name] = { seconds: m.seconds, sign: m.sign, file: rel };
+    }
+  }
+  Srv.changes = [];
+  S.pendingFiles = {}; S.edits = [];
+}
+
+/* valores actuales de una entrada (lee la línea del texto de trabajo) */
+function lineSecs(lineText) {
+  if (lineText == null) return null;
+  const sm = lineText.match(/=\s*(\d+(?:\.\d+)?)\s*\*\s*TICKSPERSEC\s*;/);
+  if (sm) return [parseFloat(sm[1])];
+  const tm = lineText.match(/=\s*\(\s*[^?]+?\s*\?\s*(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)\s*\)\s*\*\s*TICKSPERSEC\s*;/);
+  if (tm) return [parseFloat(tm[1]), parseFloat(tm[2])];
+  return null;
+}
+function curSecs(e) {
+  if (e.ghost) return null;
+  return lineSecs(Srv.working.split(/\r?\n/)[e.line]);
+}
+function origSecs(e) {
+  if (e.ghost) return null;
+  return lineSecs(Srv.origLines[e.line]);
+}
+// piso del server que aplica a las macros genéricas (rama «resto» del ternario)
+function floorOf(e, secs) {
+  if (!secs) return null;
+  return e.ternary ? secs[1] : secs[0];
+}
+
+function entryView(e) {
+  const labels = [], macros = [], notes = [];
+  for (const id of e.ids) {
+    const p = SRV_PAIR[id];
+    if (!p) continue;
+    if (!labels.includes(p.label)) labels.push(p.label);
+    for (const mn of p.macros) if (!macros.includes(mn)) macros.push(mn);
+    if (p.note && !notes.includes(p.note)) notes.push(p.note);
+  }
+  return {
+    label: labels.length ? labels.join(' / ') : e.ids.join(' / '),
+    macros: macros, note: notes.join(' · ')
+  };
+}
+
+/* --------------------------------- render --------------------------------- */
+
+function renderSrvAll() {
+  renderSrvSide();
+  renderSrvRows();
+  renderSrvEdits();
+  $('#srv-write').disabled = S.mode !== 'fs';
+  $('#srv-undo').disabled = !S.undo.length;
+}
+
+function renderSrvSide() {
+  const host = $('#srv-side');
+  if (!Srv.found) {
+    host.innerHTML =
+      '<div class="note" style="margin:0 0 8px">' +
+      (S.mode ? 'No encuentro <code>' + esc(GAME_C) + '</code>.<br><br>' +
+        'Abre la carpeta <b>raíz</b> del proyecto (la que contiene <code>objects/</code> y <code>betterserver-oss/</code>), no la del server suelta.' :
+        'abre tu proyecto primero') +
+      '</div>';
+    return;
+  }
+  // resumen de desyncs: macros del cliente por debajo del piso del server
+  let desyncs = 0, dh = '';
+  for (const e of Srv.entries) {
+    if (e.ghost) continue;
+    const secs = curSecs(e);
+    const floor = floorOf(e, secs);
+    if (floor == null) continue;
+    const v = entryView(e);
+    for (const mn of v.macros) {
+      const m = Srv.cli[mn];
+      if (!m) continue;
+      const mac = Math.abs(m.seconds);
+      if (mac < floor) {
+        desyncs++;
+        dh += '<div class="desync">' + esc(mn) + ' <b>' + mac + ' s</b> &lt; server ' + floor + ' s → <b>' + (floor - mac) + ' s muertos</b></div>';
+      }
+    }
+  }
+  host.innerHTML =
+    '<div class="note" style="margin:0 0 8px"><b>Game.c</b> del server: <span class="oktxt">' + Srv.entries.filter(e => !e.ghost).length + ' recargas impuestas</span>' +
+    (Srv.entries.some(e => e.ghost) ? '<br><span class="mut">' + Srv.entries.filter(e => e.ghost).length + ' sin uso (solo cliente)</span>' : '') + '</div>' +
+    '<div class="side-head" style="padding:4px 0 2px">Desincronizadas</div>' +
+    (desyncs
+      ? '<div class="note warnnote">' + dh + '</div><div class="note" style="margin-top:6px">Esas habilidades «no salen» en la franja marcada: el cliente ya las deja usar, pero el server tira el paquete. Baja el valor del server (o sube la macro) para cuadrarlas.</div>'
+      : '<div class="note oknote">ninguna: todas las recargas del cliente están por encima del server ✓</div>') +
+    '<div class="side-head" style="padding:10px 0 2px">Cómo funciona</div>' +
+    '<div class="note" style="margin:0"><b>TICKSPERSEC = 60</b>: el número que editas son segundos.<br><br>' +
+    'La macro del <b>cliente</b> decide cuándo VES la habilidad lista; la constante del <b>server</b> decide cuándo la deja pasar. Cliente ≥ server y todo fluye.</div>';
+}
+
+function chipHTML(mn, mac, floor, file) {
+  if (floor == null) {
+    return '<span class="syncchip" title="' + esc(file || '') + '">' + esc(mn) + ' <b>' + mac + ' s</b></span>';
+  }
+  if (mac >= floor) {
+    return '<span class="syncchip ok" title="' + esc(file || '') + '">' + esc(mn) + ' <b>' + mac + ' s</b>' +
+      '<span class="tl"><span class="okseg" style="width:100%"></span></span>✓</span>';
+  }
+  const scale = Math.max(mac, floor, 0.001);
+  const okW = (mac / scale) * 100, deadW = ((floor - mac) / scale) * 100;
+  return '<span class="syncchip warn" title="' + esc(file || '') + '">' + esc(mn) + ' <b>' + mac + ' s</b>' +
+    '<span class="tl"><span class="okseg" style="width:' + okW.toFixed(1) + '%"></span>' +
+    '<span class="deadseg" style="left:' + okW.toFixed(1) + '%;width:' + deadW.toFixed(1) + '%"></span></span>' +
+    '⚠ no sale ' + mac + '→' + floor + ' s</span>';
+}
+
+function pairHTML(e) {
+  const v = entryView(e);
+  if (!v.macros.length) return '<span class="mut">sin macro emparejada (¿habilidad nueva?)</span>';
+  const secs = curSecs(e);
+  const floor = floorOf(e, secs);
+  let html = '';
+  for (const mn of v.macros) {
+    const m = Srv.cli[mn];
+    if (!m) { html += '<span class="syncchip miss">' + esc(mn) + ' <i>no encontrada</i></span>'; continue; }
+    html += chipHTML(mn, Math.abs(m.seconds), floor, m.file);
+  }
+  return html;
+}
+
+function secText(e, secs) {
+  if (!secs) return '—';
+  if (e.ternary) return secs[0] + ' s (canon) · ' + secs[1] + ' s (resto)';
+  return secs[0] + ' s';
+}
+
+function renderSrvRows() {
+  const host = $('#srv-cd-rows');
+  if (!Srv.found) {
+    $('#srv-head').innerHTML = S.mode
+      ? 'no encuentro <span style="font-family:var(--mono)">' + esc(GAME_C) + '</span> — abre la raíz del proyecto'
+      : 'abre tu proyecto (o pulsa Demo) para probar el módulo';
+    host.innerHTML = '<div class="muted">' + (S.mode === 'demo' ? 'en la demo no hay server: abre tu carpeta real.' : '') + '</div>';
+    return;
+  }
+  $('#srv-head').innerHTML = 'recargas que el <b style="color:var(--gold2)">servidor</b> impone de verdad · <span style="font-family:var(--mono);font-size:11px">' + esc(GAME_C) + '</span>';
+  let html = '';
+  for (const e of Srv.entries) {
+    const v = entryView(e);
+    const cur = curSecs(e), orig = origSecs(e);
+    if (e.ghost) {
+      html += '<div class="cdrow srvrow ghost" data-line="-1">' +
+        '<div class="cdtop"><b>' + esc(v.label) + '</b>' +
+        '<span class="obj mono">' + esc(e.ids.join(' · ')) + '</span>' +
+        '<span class="cur">el server no la limita</span></div>' +
+        (v.note ? '<div class="srvnote">' + esc(v.note) + '</div>' : '') +
+        '<div class="srvpair">' + pairHTML(e) + '</div>' +
+        '</div>';
+      continue;
+    }
+    const editable = !!cur;
+    const changed = cur && orig && JSON.stringify(cur) !== JSON.stringify(orig);
+    html += '<div class="cdrow srvrow" data-line="' + e.line + '">' +
+      '<div class="cdtop"><b>' + esc(v.label) + '</b>' +
+      '<span class="obj mono">' + esc(e.ids.join(' · ')) + '</span>' +
+      '<span class="cur">' + secText(e, orig) + '</span>' +
+      (changed ? '<span class="newchip">→ ' + secText(e, cur) + '</span>' : '') +
+      '</div>' +
+      '<div class="cdctl">' +
+      (editable && !e.ternary
+        ? '<input type="range" min="0" max="60" step="0.5" value="' + Math.min(60, cur[0]) + '">' +
+        '<input type="number" min="0" max="600" step="0.5" value="' + cur[0] + '"><span class="mut">s</span>'
+        : '') +
+      (editable && e.ternary
+        ? '<input type="number" class="tA" min="0" max="600" step="0.5" value="' + cur[0] + '" title="rama del ternario">' +
+        '<span class="mut">s (canon)</span>' +
+        '<input type="number" class="tB" min="0" max="600" step="0.5" value="' + cur[1] + '">' +
+        '<span class="mut">s (resto)</span>'
+        : '') +
+      (!editable ? '<span class="mut">expresión no editable: <span class="mono">' + esc(e.expr) + '</span></span>' : '') +
+      '</div>' +
+      '<div class="srvpair">' + pairHTML(e) + '</div>' +
+      (v.note ? '<div class="srvnote">' + esc(v.note) + '</div>' : '') +
+      '<div class="mcode">' + esc((Srv.working.split(/\r?\n/)[e.line] || '').trim()) + '</div>' +
+      '</div>';
+  }
+  host.innerHTML = html || '<div class="muted">Game.c no tiene asignaciones plr_cooldowns[…].</div>';
+}
+
+function renderSrvEdits() {
+  const host = $('#srv-edits');
+  $('#srv-write').disabled = S.mode !== 'fs';
+  $('#srv-undo').disabled = !S.undo.length;
+  if (!Srv.changes.length) {
+    host.innerHTML = '<div class="okline">Nada que escribir.</div>';
+    return;
+  }
+  let html = '';
+  for (const ch of Srv.changes) {
+    html += '<div class="editcard" data-rel="' + esc(ch.rel) + '">' +
+      '<div class="edhead"><b>' + esc(ch.rel.split('/').pop()) + '</b><span class="edpath">' + esc(ch.rel) + '</span></div>' +
+      '<pre class="diff">' + diffTwo(ch.before, ch.after) + '</pre>' +
+      '<div class="edbtns"><button class="copyfile">Copiar archivo entero</button></div>' +
+      '</div>';
+  }
+  host.innerHTML = html;
+}
+
+function diffTwo(before, after) {
+  const d = C.lineDiff(before || '', after || '');
+  let html = '';
+  for (const l of d) {
+    const cls = l.t === '-' ? 'del' : l.t === '+' ? 'add' : '';
+    html += '<span class="' + cls + '">' + esc(l.s || ' ') + '</span>\n';
+  }
+  return html;
+}
+
+/* --------------------------------- edición --------------------------------- */
+
+async function setSrvCd(e, secs) {
+  const r = C.setServerCooldown(Srv.working, e, secs);
+  if (!r.changed) { toast('No pude cambiar la línea de Game.c (' + (r.error || '?') + ')', 'err'); return; }
+  Srv.working = r.text;
+  rebuildSrvChanges();
+  // refresco quirúrgico de la fila (para no perder el foco del deslizador)
+  const row = $('#srv-cd-rows .srvrow[data-line="' + e.line + '"]');
+  if (row) {
+    const cur = curSecs(e), orig = origSecs(e);
+    const changed = cur && orig && JSON.stringify(cur) !== JSON.stringify(orig);
+    let chip = row.querySelector('.newchip');
+    if (changed) {
+      if (!chip) { chip = document.createElement('span'); chip.className = 'newchip'; row.querySelector('.cdtop').appendChild(chip); }
+      chip.textContent = '→ ' + secText(e, cur);
+    } else if (chip) chip.remove();
+    row.querySelector('.srvpair').innerHTML = pairHTML(e);
+    const mc = row.querySelector('.mcode');
+    if (mc) mc.textContent = (Srv.working.split(/\r?\n/)[e.line] || '').trim();
+    const rg = row.querySelector('input[type=range]');
+    if (rg && cur && !e.ternary) rg.value = Math.min(60, cur[0]);
+  }
+  renderSrvEdits();
+  renderSrvSide();
+}
+
+function rebuildSrvChanges() {
+  Srv.changes = [];
+  const wl = Srv.working.split(/\r?\n/);
+  for (const e of Srv.entries) {
+    if (e.ghost || e.line < 0 || e.secs == null) continue;
+    const before = Srv.origLines[e.line], after = wl[e.line];
+    if (before !== after) {
+      const v = entryView(e);
+      Srv.changes.push({ rel: GAME_C, name: v.label, dynamic: false, before: before.trim(), after: after.trim() });
+    }
+  }
+  S.pendingFiles = Srv.changes.length ? { [GAME_C]: Srv.working } : {};
+  S.edits = Srv.changes;
+}
+
+async function srvAfterWrite() {
+  await loadSrv();   // relee Game.c del disco (tras escribir o deshacer)
+  renderSrvAll();
+}
+
+function copySrvFile() {
+  if (!Srv.working) { toast('Nada que copiar.'); return; }
+  (async () => {
+    try { await navigator.clipboard.writeText(Srv.working); toast('Copiado: Game.c entero'); }
+    catch (e) { toast('No pude copiar automáticamente; usa el diff a mano.', 'err'); }
+  })();
+}
+
+/* --------------------------------- init --------------------------------- */
+
+// expuestos para app3 (switchModule) — se cargan al evaluar este script
+T.enterSrv = enterSrv;
+
+const prevAfterWrite = S.onAfterWrite;
+S.onAfterWrite = async function () {
+  if (S.module === 'srv') { await srvAfterWrite(); return; }
+  if (prevAfterWrite) await prevAfterWrite();
+};
+
+// al (re)abrir el proyecto: resetear el módulo servidor (app3 ya resetea tune/img)
+const prevScan = window.__onProjectScan;
+window.__onProjectScan = function () {
+  Srv.found = false; Srv.orig = ''; Srv.working = ''; Srv.origLines = [];
+  Srv.entries = []; Srv.cli = {}; Srv.changes = [];
+  S.pendingFiles = {}; S.edits = [];
+  if (S.module === 'srv') enterSrv();
+  if (prevScan) prevScan();
+};
+
+function entForRow(row) {
+  const line = parseInt(row.dataset.line, 10);
+  return Srv.entries.find(e => !e.ghost && e.line === line) || null;
+}
+
+function init4() {
+  $('#srv-cd-rows').addEventListener('input', (e) => {
+    const row = e.target.closest('.srvrow');
+    if (!row || !e.target.matches('input[type=range]')) return;
+    const ent = entForRow(row);
+    if (!ent) return;
+    setSrvCd(ent, [Math.max(0, parseFloat(e.target.value) || 0)]);
+  });
+  $('#srv-cd-rows').addEventListener('change', (e) => {
+    const row = e.target.closest('.srvrow');
+    if (!row || !e.target.matches('input[type=number]')) return;
+    const ent = entForRow(row);
+    if (!ent) return;
+    if (ent.ternary) {
+      const a = parseFloat(row.querySelector('.tA').value) || 0;
+      const b = parseFloat(row.querySelector('.tB').value) || 0;
+      setSrvCd(ent, [Math.max(0, a), Math.max(0, b)]).then(() => renderSrvRows());
+    } else {
+      setSrvCd(ent, [Math.max(0, parseFloat(e.target.value) || 0)]).then(() => renderSrvRows());
+    }
+  });
+  $('#srv-write').addEventListener('click', () => T.writeEdits());
+  $('#srv-undo').addEventListener('click', () => T.undoLast());
+  $('#srv-edits').addEventListener('click', (e) => {
+    if (e.target.closest('.copyfile')) copySrvFile();
+  });
+}
+
+init4();
 })();
 
 </script>

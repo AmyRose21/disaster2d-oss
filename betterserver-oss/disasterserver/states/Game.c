@@ -1153,7 +1153,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         PacketRead(y, packet, packet_read16, uint16_t);
 
                         RAssert(game_spawn(v->server, (Entity*)&(MakeAmeliaBanana(x, y, v->id)), sizeof(AmeliaBanana), NULL));
-                        v->plr_cooldowns[AMELIA_BANANA_SPAWN] = 20 * TICKSPERSEC;
+                        v->plr_cooldowns[AMELIA_BANANA_SPAWN] = 10 * TICKSPERSEC;
                         break;
                 }
 
