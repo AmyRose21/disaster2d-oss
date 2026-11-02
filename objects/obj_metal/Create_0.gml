@@ -38,6 +38,7 @@ dashTimer = 0;
 metalDashing = 0;
 isElectro = 0;
 electroTimer = 0;
+geniusHealTimer = 0; // v3.0 «Genio Malvado»: reparacion por proximidad
 
 //General
 hp = 100;

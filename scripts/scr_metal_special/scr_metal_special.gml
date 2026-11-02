@@ -36,6 +36,18 @@
 #macro EMETAL_ELECTRO_RECHARGE (60 * 12)
 #macro METAL_ELECTRO_TIME 60         // 1 s electrificado (placa: 2 s, ver nota)
 
+// v3.0 («GENIO MALVADO», la otra mitad de la pasiva del Dr. Eggman):
+// el genio REPARA a Metal por proximidad. Valores ajustables:
+//  * HEAL_HP        = vida por tictac de reparacion
+//  * HEAL_CD_EGG    = cada 7 s cerca del DR. EGGMAN (prioridad)
+//  * HEAL_CD_TAILS  = cada 13 s cerca de TAILS (manos de mecanico)
+//  * HEAL_RANGE     = px de "estar cerca"
+// Si estan los DOS cerca NO se acumula: solo aplica la del Dr.
+#macro METAL_GENIUS_HEAL_HP 10
+#macro METAL_GENIUS_HEAL_CD_EGG (60 * 7)
+#macro METAL_GENIUS_HEAL_CD_TAILS (60 * 13)
+#macro METAL_GENIUS_HEAL_RANGE 90
+
 function scr_metal_special()
 {
         // Red ring / esconderse: cooldowns al minimo y sin atacar
@@ -159,9 +171,61 @@ function scr_metal_special()
                 }
         }
 
+        // ---- GENIO MALVADO: REPARACION por proximidad (v3.0) ----
+        // Corre en el cliente del PROPIO Metal (el es la autoridad de
+        // su hp, mismo modelo que la curacion de Chocola): busca al Dr.
+        // Eggman o a Tails entre los puppets vivos y sin demonizar.
+        // Con los DOS cerca NO se acumula: manda la del Dr. (7 s).
+        if(!isDead && revivalTimes < 2 && hp < 100)
+        {
+                var _eggNear = false;
+                var _tailsNear = false;
+
+                if(instance_exists(obj_player_puppet))
+                {
+                        with(obj_player_puppet)
+                        {
+                                if(isDemonized || isInactive || hp <= 0)
+                                        continue;
+
+                                if(character != CHARACTER_EGGMAN && character != CHARACTER_TAILS)
+                                        continue;
+
+                                if(distance_to_object(global.player) > METAL_GENIUS_HEAL_RANGE)
+                                        continue;
+
+                                if(character == CHARACTER_EGGMAN)
+                                        _eggNear = true;
+                                else
+                                        _tailsNear = true;
+                        }
+                }
+
+                if(geniusHealTimer > 0)
+                {
+                        geniusHealTimer--;
+
+                        if(geniusHealTimer <= 0 && (_eggNear || _tailsNear))
+                        {
+                                hp = min(100, hp + METAL_GENIUS_HEAL_HP);
+
+                                audio_play_sound(snd_heal, 0, false);
+                                net_sound_emit(snd_heal);
+
+                                net_quick_effect(x, y - 14, spr_shockparticle, false, 1, 0, -1, 1);
+
+                                geniusHealTimer = _eggNear ? METAL_GENIUS_HEAL_CD_EGG : METAL_GENIUS_HEAL_CD_TAILS;
+                        }
+                }
+                else if(_eggNear || _tailsNear)
+                        geniusHealTimer = _eggNear ? METAL_GENIUS_HEAL_CD_EGG : METAL_GENIUS_HEAL_CD_TAILS;
+        }
+
         if(dashTimer > 0)
                 dashTimer--;
 
         if(electroTimer > 0)
                 electroTimer--;
+        // (la reparacion del Genio Malvado se PAUSA a vida llena, muerto
+        //  o demonizado: no gasta tictacs, retoma donde iba)
 }

@@ -1199,9 +1199,14 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                            demonizado): su cliente ya aplico el stun (3 s) y
                            el slow (3.5 s tras el stun) sobre su propio
                            jugador; aqui solo queda reventarla YA con state 2
-                           para que todo el mundo vea el efecto a la vez */
+                           para que todo el mundo vea el efecto a la vez.
+                           v3.0: la trampa CAMBIA DE BANDO con su duena —
+                           si Amelia se demonizo, sus trampas las pisan los
+                           SUPERVIVIENTES (el cliente de la victima ya
+                           filtro la ceguera: ellos solo stun + slow). Se
+                           localiza la trampa ANTES del assert para conocer
+                           a su duena (owner). */
                         AssertOrDisconnect(v->server, v->in_game);
-                        AssertOrDisconnect(v->server, v->id == v->server->game.exe || (v->plr.flags & PLAYER_DEMONIZED));
 
                         PacketRead(nid, packet, packet_read16, uint16_t);
 
@@ -1217,10 +1222,116 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 }
                         }
 
+                        bool owner_demon = false;
                         if (target)
                         {
+                                PeerData* owner = server_find_peer(v->server, ((AmeliaTrap*)target)->owner);
+                                if (owner)
+                                        owner_demon = (owner->plr.flags & PLAYER_DEMONIZED) != 0;
+                        }
+
+                        AssertOrDisconnect(v->server, v->id == v->server->game.exe || (v->plr.flags & PLAYER_DEMONIZED) || owner_demon);
+
+                        if (target)
+                        {
+                                bool was_upgraded = ((AmeliaTrap*)target)->upgraded;
+                                bool victim_exe_side = (v->id == v->server->game.exe) || (v->plr.flags & PLAYER_DEMONIZED);
+
                                 amelia_trap_trigger(v->server, target);
+
+                                /* v3.0 («Genio Malvado»): si la trampa estaba
+                                   MEJORADA y la victima es del bando EXE,
+                                   ejecuta el RASTREADOR (lo que suele hacer
+                                   el sensor de Eggman): la posicion de la
+                                   victima se revela a TODOS los
+                                   supervivientes durante 3 s
+                                   (SERVER_TRACKER_PING + obj_surv_indicator
+                                   en el cliente). Solo pasa si Eggman la
+                                   mejoro. */
+                                if (was_upgraded && victim_exe_side)
+                                {
+                                        Packet pack;
+                                        PacketCreate(&pack, SERVER_TRACKER_PING);
+                                        PacketWrite(&pack, packet_write16, v->id);
+                                        server_broadcast(v->server, &pack, true);
+                                }
+
                                 game_despawn(v->server, NULL, target->id);
+                        }
+
+                        break;
+                }
+
+                case CLIENT_EGG_TRAP_UPGRADE:
+                {
+                        /* v3.0 («Genio Malvado»): Eggman gasta anillos para
+                           mejorar una entidad — su sensor (3) o una trampa
+                           de Amelia (5). El coste se valida con el contador
+                           PROPIO del server (plr.rings, que alimentan
+                           CLIENT_RING_COLLECTED / los datos periodicos del
+                           jugador); la entidad se marca y el estado dorado
+                           (+25%) viaja a todos. Sin kick ante datos raros:
+                           se ignora en silencio (patron de los cooldowns),
+                           salvo no ser Eggman / no estar en partida. */
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->surv_char == CH_EGGMAN);
+                        AssertOrDisconnect(v->server, !(v->plr.flags & PLAYER_DEMONIZED));
+
+                        PacketRead(type, packet, packet_read8, uint8_t);
+                        PacketRead(nid, packet, packet_read16, uint16_t);
+
+                        int cost = (type == 1) ? 5 : 3;
+                        if (v->plr.rings < (uint16_t)cost)
+                                break;
+
+                        Entity* ents[50];
+                        int found = game_find(v->server, ents, (char*)(type == 1 ? "atrap" : "eggtrack"), 50);
+
+                        for (int i = 0; i < found; i++)
+                        {
+                                Entity* ent = ents[i];
+
+                                if (ent->id != nid)
+                                        continue;
+
+                                if (type == 1)
+                                {
+                                        AmeliaTrap* trap = (AmeliaTrap*)ent;
+
+                                        if (trap->upgraded || trap->triggered)
+                                                break;
+
+                                        trap->upgraded = true;
+
+                                        Packet pack;
+                                        PacketCreate(&pack, SERVER_AMELIA_TRAP_STATE);
+                                        PacketWrite(&pack, packet_write8, 3);
+                                        PacketWrite(&pack, packet_write16, trap->id);
+                                        PacketWrite(&pack, packet_write16, (uint16_t)trap->pos.x);
+                                        PacketWrite(&pack, packet_write16, (uint16_t)trap->pos.y);
+                                        server_broadcast(v->server, &pack, true);
+                                }
+                                else
+                                {
+                                        EggTracker* egg = (EggTracker*)ent;
+
+                                        if (egg->upgraded)
+                                                break;
+
+                                        egg->upgraded = true;
+
+                                        Packet pack;
+                                        PacketCreate(&pack, SERVER_ETRACKER_STATE);
+                                        PacketWrite(&pack, packet_write8, 2);
+                                        PacketWrite(&pack, packet_write16, egg->id);
+                                        PacketWrite(&pack, packet_write16, (uint16_t)egg->pos.x);
+                                        PacketWrite(&pack, packet_write16, (uint16_t)egg->pos.y);
+                                        server_broadcast(v->server, &pack, true);
+                                }
+
+                                v->plr.rings -= cost;
+                                break;
                         }
 
                         break;

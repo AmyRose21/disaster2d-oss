@@ -61,7 +61,8 @@
 #macro AMELIA_ACC 0.046875
 #macro AMELIA_BANANA_RECHARGE (60 * 25)
 #macro EAMELIA_BANANA_RECHARGE (60 * 10)
-#macro AMELIA_TRAP_RECHARGE (60 * 35)
+// v3.0 (balance): recarga de la trampa 35 -> 24 s (pedido del usuario)
+#macro AMELIA_TRAP_RECHARGE (60 * 24)
 #macro EAMELIA_TRAP_RECHARGE (60 * 15)
 
 // v2.6 (SPINDASH, la habilidad firma de la fila 1 de su placa TTB):

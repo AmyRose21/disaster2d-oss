@@ -1,0 +1,150 @@
+════════════════════════════════════════════════════════════════════
+  SONIC.EXE THE DISASTER 2D REMAKE — MEJORAS DE BALANCE v3.0
+  («Genio Malvado» + ajustes de supervivientes)
+════════════════════════════════════════════════════════════════════
+
+CONTENIDO DE ESTE PAQUETE
+─────────────────────────
+Esta version aplica TODAS las mejoras de balance pedidas, la pasiva
+nueva del Dr. Eggman («Genio Malvado») y un arreglo al parry de
+Sonic. Incluye cambios en el CLIENTE (GML del GameMaker) y en el
+SERVER (C, betterserver-oss): HAY QUE RECOMPILAR EL SERVER y volver
+a compilar el juego en GameMaker antes de probar.
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. AMELIA                                                        │
+└─────────────────────────────────────────────────────────────────┘
+ * TRAMPA: recarga de 35 s -> 24 s (AMELIA_TRAP_RECHARGE en
+   scr_amelia_special.gml). La demonizada sigue a 15 s.
+ * LAS TRAMPAS NO CIEGAN A LOS SUPERVIVIENTES si Amelia se vuelve
+   exe (demonizada): sus trampas CAMBIAN DE BANDO con ella — las pisa
+   un superviviente y este recibe el stun (3 s) + slow (40% otros
+   3.5 s) pero SIN la ceguera del Eclipse. Antes las trampas de una
+   Amelia demonizada solo podian pisarlas los de su propio bando
+   (no tenian sentido). El bando se lee en vivo del puppet de Amelia
+   (mismo patron que obj_eggtrack hace con su Eggman) y el server
+   acepta el trigger del superviviente porque mira al OWNER de la
+   trampa (CLIENT_AMELIA_TRAP_TRIGGER en Game.c).
+ * LOS MINIONS (esbirros) TAMBIEN ACTIVAN las trampas del bando
+   superviviente y reciben 2 s MAS de ceguera que el exe real
+   (4 s -> 6 s; 5 s -> 7 s si esta mejorada).
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 2. SUPERVIVIENTES VANILLA (ajustes generales)                    │
+└─────────────────────────────────────────────────────────────────┘
+ * DR. EGGMAN (obj_egg/Create_0.gml):
+     - Escudo electrico: 20 s -> 15 s de recarga.
+     - Jetpack (doble salto): 10 s -> 8 s.
+     - Rastreador (sensor): 30 s -> 25 s.
+ * AMY (obj_amy/Create_0.gml):
+     - Ataque de martillo: 20 s -> 15 s.
+     - Salto de martillo: 9 s -> 7 s.
+ * KNUCKLES (obj_knux/Create_0.gml):
+     - Golpe: recarga -20% (20 s -> 16 s).
+ * SALLY (scr_player_hurt.gml): el SLIDE da i-frames durante TODA la
+   animacion, tanto la Sally vanilla como la Sally Canon (la Canon ya
+   lo tenia; se le anyade la vanilla).
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 3. PASIVA «GENIO MALVADO» (Dr. Eggman)  ¡NUEVA!                  │
+└─────────────────────────────────────────────────────────────────┘
+ Los anillos de Eggman ya no son solo puntos: son PIEZAS.
+
+ A) MEJORAR TRAMPAS (tecla V, cerca de la trampa):
+    * Sensor propio (obj_eggtrack): 3 anillos.
+    * Trampa de Amelia (obj_amelia_trap): 5 anillos.
+    * Efecto: +25% de efectividad (stun/slow/ceguera de la trampa;
+      slow del sensor) y CONTORNO DORADO alrededor del sprite para
+      TODOS los clientes (latido suave de brillo).
+    * El server valida el coste con SU contador de anillos
+      (plr.rings) y marca la entidad: CLIENT_EGG_TRAP_UPGRADE ->
+      SERVER_ETRACKER_STATE 2 / SERVER_AMELIA_TRAP_STATE 3.
+      Macros ajustables en scr_egg_special.gml (EGG_GENIUS_*).
+    * Anti-spam de 2 s entre mejoras (geniusCd).
+
+ B) RASTREADOR INTEGRADO:
+    * Si una TRAMPA MEJORADA (que no sea el sensor) — por ejemplo
+      una de Amelia — cae pisada por el bando EXE, EJECUTA EL
+      RASTREADOR (lo que suele hacer el sensor de Eggman): la
+      posicion de la victima se le da a TODOS los supervivientes
+      durante 3 s (SERVER_TRACKER_PING + obj_surv_indicator, el
+      mismo indicador de los sensores). Solo ocurre si Eggman la
+      habia mejorado.
+
+ C) REPARACION DE METAL SONIC:
+    * Metal recupera 10 de vida cada 7 s mientras este cerca del
+      DR. EGGMAN, o cada 13 s si esta cerca de TAILS.
+    * Si estan los DOS cerca NO se acumula: solo aplica la cura del
+      Dr. (la mas rapida).
+    * Corre en el cliente del propio Metal (autoridad de su hp,
+      mismo modelo que la curacion de Chocola). Macros
+      METAL_GENIUS_* en scr_metal_special.gml. Radio: 90 px.
+
+ SOBRE EL CONTORNO DORADO (la pregunta del invisible del exe):
+ ─────────────────────────────────────────────────────────────────
+ El exe invisible NO usa un efecto de GameMaker: son SPRITES
+ APARTE dibujados a mano (spr_exe_invis_idle, _walk, _run...), que
+ solo llevan los TRAZOS del personaje en rojo solido — por eso se
+ ve el contorno y no el relleno. Lo ves en scr_exe.gml: cuando
+ invisTimer > 0, el array de animacion se desplaza a la mitad
+ "Invisible" (state + EXE_ZIPLINE+1).
+ Para las trampas mejoradas se siguio la MISMA idea pero generando
+ los sprites: spr_trap_gold / spr_eggtrack_gold son siluetas de
+ anillo (dilatacion de 1 px de la silueta original, en dorado a dos
+ tonos) que se dibujan DETRAS del sprite normal (Draw_0 nuevo de
+ obj_amelia_trap y obj_eggtrack).
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 4. ARREGLO AL PARRY DE SONIC                                     │
+└─────────────────────────────────────────────────────────────────┘
+ * El parry YA NO STUNEA AL EXE DESPUES de que su ataque (spin /
+   golpe normal / bola) termino. La senal de red del parry podia
+   llegar unos frames tarde (lag) y aturdia al exe "de gratis"
+   cuando ya habia terminado de atacar; ahora esa senal se ignora
+   si el ataque ya no esta activo (scr_parry_stun_signal en
+   scr_parry.gml, mismo predicado que el auto-stun local de
+   obj_player_puppet). La negacion del dano en la victima no cambia.
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 5. ARCHIVOS TOCADOS                                              │
+└─────────────────────────────────────────────────────────────────┘
+ CLIENTE (GML):
+   scripts/scr_amelia_special/scr_amelia_special.gml   (recarga 24 s)
+   scripts/scr_egg_special/scr_egg_special.gml         (Genio Malvado + macros)
+   scripts/scr_metal_special/scr_metal_special.gml     (reparacion de Metal)
+   scripts/scr_player_hurt/scr_player_hurt.gml         (i-frames slide Sally)
+   scripts/scr_parry/scr_parry.gml                     (fix senal tardia)
+   scripts/net_packets/net_packets.gml                 (2 paquetes nuevos, AL FINAL)
+   scripts/net_state_game/net_state_game.gml           (state 3 trampa, state 2
+                                                        sensor, TRACKER_PING)
+   objects/obj_egg/Create_0.gml                        (cooldowns + geniusCd)
+   objects/obj_amy/Create_0.gml                         (martillo 15/7)
+   objects/obj_knux/Create_0.gml                        (golpe 16 s)
+   objects/obj_metal/Create_0.gml                       (geniusHealTimer)
+   objects/obj_amelia_trap/Create_0.gml                 (bandos + ceguera + mejora)
+   objects/obj_amelia_trap/Step_0.gml                   (quien la pisa)
+   objects/obj_amelia_trap/Draw_0.gml                   (NUEVO: contorno dorado)
+   objects/obj_amelia_trap/obj_amelia_trap.yy           (evento Draw)
+   objects/obj_eggtrack/Create_0.gml                    (upgraded)
+   objects/obj_eggtrack/Step_0.gml                      (slow +25%)
+   objects/obj_eggtrack/Draw_0.gml                      (NUEVO: contorno dorado)
+   objects/obj_eggtrack/obj_eggtrack.yy                 (evento Draw)
+   sprites/spr_trap_gold/*                             (NUEVO sprite)
+   sprites/spr_eggtrack_gold/*                         (NUEVO sprite)
+   Sonicexe The Disaster 2D Remake.yyp                  (registro de los 2 sprites)
+
+ SERVER (C — RECOMPILAR):
+   include/Packet.h                                    (CLIENT_EGG_TRAP_UPGRADE,
+                                                        SERVER_TRACKER_PING al final)
+   include/entities/AmeliaTrap.h                       (campo upgraded)
+   include/entities/EggmanTracker.h                    (campo upgraded)
+   disasterserver/states/Game.c                        (upgrade de trampas,
+                                                        trigger por bando del owner,
+                                                        ping del rastreador)
+
+ PROTOCOLO: los dos paquetes nuevos se anyadieron AL FINAL del enum
+ en AMBOS lados (mismo orden numerico). Cliente y server de esta
+ version NO son compatibles con la version anterior en partida
+ mixta — actualiza ambos.
+
+ Controles nuevos: tecla V (mejorar trampa, solo Eggman superviviente).

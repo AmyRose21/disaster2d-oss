@@ -229,9 +229,11 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         if(global.character == CHARACTER_SALLY_CANON && global.player.fase2State > 0)
                 return;
         
-        // SLIDE (Sally Canon): i-frames durante TODO el slide (y solo
+        // SLIDE (Sally): i-frames durante TODO el slide (y solo
         // durante el slide): mientras se desliza no puede ser herida.
-        if(global.character == CHARACTER_SALLY_CANON && global.player.isSliding)
+        // v3.0 (balance): ahora tambien la Sally VANILLA — antes solo
+        // lo tenia la Sally Canon (pedido del usuario).
+        if((global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON) && global.player.isSliding)
                 return;
 
         // === VANILLA V2 ===

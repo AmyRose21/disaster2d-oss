@@ -2665,3 +2665,77 @@ el AssertOrDisconnect del server (desconexión).
 ENTREGA: ZIP con archivos completos (el usuario no usa parches):
 amelia-sol-y-luna-v2-13-archivos.zip — cliente + server + LEEME.
 Tras este commit: 7 commits locales por empujar.
+
+## 2026-11-02 tierlist-v3 (docs)
+
+Pull previo (merge con origin/main: traía auravisión v2.12 y sol-y-luna
+v2.13, ya resueltos en remoto — conflicto solo al final de CACHE/worklog,
+lado local vacío). Regenerada la página HTML de la tier list a v3 con el
+estado real del código: Amelia B+ con las tres pasivas, Amy Canon +Sol,
+pestaña «Las pasivas de Amelia» con IMPLEMENTADA (Auravisión v2.12 y Sol
+y Luna v2.13), dúo «El Sol y la Luna», sugerencia de Auravisión marcada
+implementada (banana y mabul siguen pendientes, verificado contra
+states/Game.c). Página autónoma (sprites base64) en docs/ y en download/.
+Verificación: build (19 sprites), node --check del JS, 12 checks de DOM
+vía Playwright/evaluate, geometría de overflow de las fichas (cero) y VLM
+sobre capturas de las pestañas tiers/amelia/cards y de las fichas sueltas
+a 2x (todo legible y completo).
+
+## 2026-11-02 mejoras-v3.0 («Genio Malvado» + balance)
+
+Pull previo (Already up to date). Pedido completo del usuario:
+
+AMELIA: recarga de trampa 35→24 s; las trampas NO ciegan a
+supervivientes si Amelia se demoniza (la trampa cambia de bando con
+su dueña: la pisa el superviviente → stun+slow SIN eclipse; el server
+lo acepta mirando al owner de la entidad en CLIENT_AMELIA_TRAP_TRIGGER);
+los esbirros activan trampas con +2 s de ceguera (4→6 s, 5→7 mejorada).
+
+VANILLA GENERALES: escudo Eggman 20→15, jetpack 10→8, rastreador
+30→25; Amy martillo 20→15 y salto 9→7; Knuckles golpe -20% (16 s);
+Sally (vanilla también) i-frames en todo el slide.
+
+PASIVA «GENIO MALVADO» (Eggman): tecla V mejora trampas con anillos
+(sensor 3 / trampa de Amelia 5) → +25% efectividad, contorno dorado
+(spr_trap_gold / spr_eggtrack_gold generados por dilatación de la
+silueta, dos tonos, dibujados detrás con latido — misma idea que los
+spr_exe_invis_*, que son sprites aparte, no un efecto del engine);
+trampa mejorada pisada por el bando EXE ejecuta el RASTREADOR y
+revela a la víctima a todos los supervivientes 3 s (paquete nuevo
+SERVER_TRACKER_PING + obj_surv_indicator); y repara a Metal (+10 hp
+cada 7 s cerca del Dr. / 13 s cerca de Tails, sin acumular, manda el
+Dr.; corre en el cliente de Metal con sus puppets).
+
+SONIC: fix del parry — la señal tardía ya no aturde al exe después de
+que su ataque (spin/golpe/bola) terminó (gate de isAttacking||
+isJumping||isSpinning en scr_parry_stun_signal, mismo predicado que
+el auto-stun local).
+
+PROTOCOLO: CLIENT_EGG_TRAP_UPGRADE y SERVER_TRACKER_PING añadidos AL
+FINAL del enum en los DOS lados (net_packets.gml e include/Packet.h).
+Server: Game.c (upgrade con validación de plr.rings y coste 3/5,
+marcado de entidad y broadcast state 3 / state 2), AmeliaTrap.h/.c y
+EggmanTracker.h (campo upgraded; MakeAmeliaTrap/MakeEggTrack con el
+inicializador extendido).
+
+VERIFICACIÓN: gcc -fsyntax-only de Game.c + entidades (OK), balance
+de llaves de los 17 GML tocados (OK), sprites dorados validados por
+programa (anillo de 1 px, 0 px dentro de la silueta, .yy y .yyp
+parseables, 1932 recursos). Docs: LEEME_MEJORAS_V3_0.txt. Pendiente:
+partida real (compilar server + juego).
+
+ENTREGA: ZIP con archivos completos + página HTML nueva (mejoras +
+tier list + impresiones + cómo ayuda contra el exe, con sprites,
+sonidos y música del lobby del usuario).
+
+ENTREGA v3.0: ZIP con archivos completos —
+mejoras-v3-0-genio-malvado-archivos.zip (cliente GML + server C + sprites
+dorados + LEEME + la página HTML). Además la página suelta en download/
+(TierList_Mejoras_V3_0.html, autónoma: sprites/sonidos/música en base64,
+9 pestañas, 5 escenas canvas + batería de cooldowns + slide demo).
+Verificación de la página: node --check del JS, DOM vía Playwright (13
+chips, 18 fichas, 7 filas de cooldown, 12 filas VS, 5 cartas de EXE, 96/96
+imágenes cargadas, cero errores de consola), interacción de botones de
+variante y cambio de pestañas sin errores, y VLM sobre capturas de las
+escenas trampa/genio/metal/parry/tiers/contornos (fix aplicado: el exe del
+ciclo 2 del parry se salía del canvas). Pendiente: partida real.

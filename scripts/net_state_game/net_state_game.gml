@@ -124,15 +124,31 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 {
                                         if(nid != _id)
                                                 continue;
-                                        
+
                                         instance_destroy();
                                         break;
                                 }
-                                
+
                                 audio_play_sound(snd_amelia_trap_goth, 0, false);
                                 net_sound_emit(snd_amelia_trap_goth);
                                 net_quick_effect(_x, _y, spr_shockparticle, true, 1, 0, 0, 1.5);
                                 scr_camera_shake(20, 1, 0.2);
+                        }
+                        else if(_state == 3)
+                        {
+                                // v3.0 («GENIO MALVADO» de Eggman): la trampa esta
+                                // MEJORADA (5 anillos del Dr.): +25% de stun / slow /
+                                // ceguera (lo aplica el cliente de la victima al
+                                // pisarla) y contorno DORADO para todos (Draw_0 del
+                                // obj_amelia_trap con spr_trap_gold).
+                                with(obj_amelia_trap)
+                                {
+                                        if(nid != _id)
+                                                continue;
+
+                                        upgraded = true;
+                                        break;
+                                }
                         }
                         break;
                 }
@@ -2426,11 +2442,31 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 var _id = buffer_read_s(rbuff, buffer_u16);
                                 var _x = buffer_read_s(rbuff, buffer_u16);
                                 var _y = buffer_read_s(rbuff, buffer_u16);
-                                
+
                                 var inst = instance_create_depth(_x, _y, 0, obj_eggtrack);
                                 inst.nid = _id;
                                 inst.x = _x;
                                 inst.y = _y;
+                        }
+                        else if(_state == 2)
+                        {
+                                // v3.0 («GENIO MALVADO» de Eggman): el sensor esta
+                                // MEJORADO (3 anillos del Dr.): el slow dura +25%
+                                // (lo aplica su Step al pisarlo) y luce el CONTORNO
+                                // DORADO (Draw_0 con spr_eggtrack_gold). Mismo
+                                // layout de campos que el spawn (id + x + y).
+                                var _id = buffer_read_s(rbuff, buffer_u16);
+                                var _x = buffer_read_s(rbuff, buffer_u16);
+                                var _y = buffer_read_s(rbuff, buffer_u16);
+
+                                with(obj_eggtrack)
+                                {
+                                        if(nid != _id)
+                                                continue;
+
+                                        upgraded = true;
+                                        break;
+                                }
                         }
                         else
                         {                                               
@@ -2524,7 +2560,49 @@ function net_state_game(rbuff, nps, isPasstrough)
                         }
                         break;
                 }
-                        
+
+                case PacketType.SERVER_TRACKER_PING:
+                {
+                        // v3.0 («GENIO MALVADO»): cayo una TRAMPA DE AMELIA
+                        // MEJORADA pisada por el bando EXE — el server
+                        // ejecuta el RASTREADOR (lo que suele hacer el sensor
+                        // de Eggman): la posicion de la VICTIMA se revela a
+                        // TODOS los supervivientes 3 s. Mismo indicador
+                        // (obj_surv_indicator) y mismo filtro de bando que el
+                        // SERVER_ETRACKER_STATE de arriba; el sonido suena
+                        // local en cada cliente superviviente.
+                        if(isPasstrough)
+                                break;
+
+                        var _pid = buffer_read_s(rbuff, buffer_u16);
+
+                        // solo el bando SUPERVIVIENTE ve el rastro
+                        if(global.character == CHARACTER_EXE || (instance_exists(global.player) && global.player.revivalTimes >= 2))
+                                break;
+
+                        var _pingTarget = noone;
+                        if(instance_exists(obj_player_puppet))
+                        {
+                                with(obj_player_puppet)
+                                {
+                                        if(master_id != _pid)
+                                                continue;
+
+                                        _pingTarget = self;
+                                        break;
+                                }
+                        }
+
+                        if(_pingTarget != noone && instance_exists(obj_surv_indicator) && instance_exists(global.player))
+                        {
+                                obj_surv_indicator.target = _pingTarget;
+                                obj_surv_indicator.alarm[0] = 60 * 3;
+
+                                audio_play_sound(snd_egg_tracker_activate, 0, false);
+                        }
+                        break;
+                }
+
                 case PacketType.SERVER_GAME_TIME_SYNC:
                 {                               
                         if(isPasstrough)

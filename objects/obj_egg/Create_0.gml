@@ -1,8 +1,10 @@
 // Default player values
 
-#macro EGGMAN_DJUMP_RECHARGE (60 * 10)
-#macro EGGMAN_TRACKER_RECHARGE (60 * 30)
-#macro EGGMAN_SHIELD_RECHARGE (60 * 20)
+// v3.0 (balance): escudo 20 -> 15 s, rastreador 30 -> 25 s y
+// jetpack (doble salto) 10 -> 8 s (pedido del usuario)
+#macro EGGMAN_DJUMP_RECHARGE (60 * 8)
+#macro EGGMAN_TRACKER_RECHARGE (60 * 25)
+#macro EGGMAN_SHIELD_RECHARGE (60 * 15)
 #macro EEGGMAN_SHIELD_RECHARGE (60 * 7)
 #macro EGGMAN_MAXSPEED 9
 #macro EGGMAN_ACC 0.045835
@@ -20,6 +22,7 @@ effectTime = 0;
 djumpRecharge = 0;
 trackerRecharge = 0;
 shieldRechrage = 0;
+geniusCd = 0; // v3.0 «Genio Malvado»: anti-spam de mejoras de trampas
 revivalTimes = 0;
 deadTimer = 31;
 deadColor = c_white;

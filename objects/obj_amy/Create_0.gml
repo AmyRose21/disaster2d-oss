@@ -1,8 +1,10 @@
 // Default player values
 
-#macro AMY_ATTACK_RECHARGE (60 * 20)
+// v3.0 (balance): martillo 20 -> 15 s y salto de martillo 9 -> 7 s
+// (pedido del usuario)
+#macro AMY_ATTACK_RECHARGE (60 * 15)
 #macro AMY_EXEATTACK_RECHARGE (60 * 5)
-#macro AMY_BIGJUMP_RECHARGE (60 * 9)
+#macro AMY_BIGJUMP_RECHARGE (60 * 7)
 #macro AMY_MAXSPEED 11
 #macro AMY_ACC 0.046875
 

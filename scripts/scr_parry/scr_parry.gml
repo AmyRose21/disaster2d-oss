@@ -918,6 +918,16 @@ function scr_parry_stun_signal()
         if(global.player.isDead)
                 return;
 
+        // v3.0 (arreglos a Sonic, pedido del usuario): la senal de red
+        // puede llegar UNOS FRAMES TARDE (lag) y aturdia al exe DESPUES
+        // de que su ataque (spin / golpe normal / bola) ya habia
+        // terminado — "castigo gratis" por un ataque que ya no existe.
+        // Mismo predicado que el auto-stun local (obj_player_puppet):
+        // el parry SOLO castiga ataques ACTIVOS. La negacion del dano
+        // en la victima no cambia (eso lo resuelve su propio cliente).
+        if(!(global.player.isAttacking || global.player.isJumping || global.player.isSpinning))
+                return;
+
         // deduplicacion: el auto-stun local ya me stuneo (caso del aliado,
         // donde el contacto en MI cliente si existia) o ya estoy stuneado
         // por otra cosa -> esta senal no hace nada

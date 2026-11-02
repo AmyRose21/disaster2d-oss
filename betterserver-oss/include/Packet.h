@@ -222,7 +222,22 @@ typedef enum
            hacia CLIENT_VANILLA_DEDEMONIZE: limpiar PLAYER_DEMONIZED +
            marcar PLAYER_REVIVED. Mismo orden que el enum del cliente
            (net_packets.gml). */
-        CLIENT_VANILLA_DEDEMONIZE_PROGRESS
+        CLIENT_VANILLA_DEDEMONIZE_PROGRESS,
+
+        /* v3.0 — «Genio Malvado» (Eggman) + balance de trampas:
+           CLIENT_EGG_TRAP_UPGRADE (u8 type: 0 = su sensor eggtrack /
+           1 = trampa de Amelia; u16 nid): gasta anillos del propio
+           contador del server (plr.rings: 3 sensor / 5 trampa) y
+           marca la entidad como mejorada (+25% de efectividad,
+           contorno dorado); la respuesta viaja como
+           SERVER_ETRACKER_STATE 2 / SERVER_AMELIA_TRAP_STATE 3.
+           SERVER_TRACKER_PING (u16 pid): lo emite el server al caer
+           una TRAMPA MEJORADA pisada por el bando EXE — ejecuta el
+           RASTREADOR: la posicion de la victima se revela a todos los
+           supervivientes. Mismo orden que el enum del cliente
+           (net_packets.gml); anadido AL FINAL en los DOS lados. */
+        CLIENT_EGG_TRAP_UPGRADE,
+        SERVER_TRACKER_PING
 } PacketType;
 
 typedef struct

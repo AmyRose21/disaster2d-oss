@@ -221,7 +221,20 @@ enum PacketType
            llenarla dispara el SERVER_VANILLA_DEDEMONIZE de siempre.
            Mismo orden que el Packet.h del server (anadido AL FINAL en
            los DOS lados, como el BOUNCE de la v2.9). */
-        CLIENT_VANILLA_DEDEMONIZE_PROGRESS
+        CLIENT_VANILLA_DEDEMONIZE_PROGRESS,
+
+        /* v3.0 — «Genio Malvado» (Eggman) + balance de trampas:
+           CLIENT_EGG_TRAP_UPGRADE pide mejorar una entidad (0 = su
+           sensor eggtrack, 3 anillos; 1 = trampa de Amelia, 5 anillos)
+           con +25% de efectividad y contorno dorado para todos
+           (respuesta: SERVER_ETRACKER_STATE 2 / SERVER_AMELIA_TRAP_STATE 3).
+           SERVER_TRACKER_PING lo emite el server cuando cae una TRAMPA
+           MEJORADA pisada por el bando EXE: ejecuta el RASTREADOR y
+           revela la posicion de la victima a todos los supervivientes
+           (mismo obj_surv_indicator que los sensores). Mismo orden que
+           el Packet.h del server (AL FINAL en los DOS lados). */
+        CLIENT_EGG_TRAP_UPGRADE,
+        SERVER_TRACKER_PING
 }
 
 #macro STATE_PENDING -1
