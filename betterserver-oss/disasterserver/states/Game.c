@@ -1524,7 +1524,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, dir >= -1 && dir <= 1);
 
                         RAssert(game_spawn(v->server, (Entity*)&(MakeMetalAmyBullet(x, y, v->id, dir)), sizeof(MetalAmyBullet), NULL));
-                        v->plr_cooldowns[METALAMY_BULLET] = 7 * TICKSPERSEC;
+                        v->plr_cooldowns[METALAMY_BULLET] = 0 * TICKSPERSEC;
                         break;
                 }
 

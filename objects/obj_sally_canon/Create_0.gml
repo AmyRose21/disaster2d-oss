@@ -2,7 +2,7 @@
 
 // Escudo roto: la Sally normal queda 1 seg inmune al romperse el
 // escudo; Sally Canon son 3 seg (los 2 seg extra pedidos).
-#macro SALLY_CANON_SHIELD_BREAK_INVULN (60 * 3)
+#macro SALLY_CANON_SHIELD_BREAK_INVULN (60 * 5)
 
 //Variables
 gspd = 0;

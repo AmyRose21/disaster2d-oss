@@ -2,8 +2,8 @@
 
 #macro CHAOS_MAXSPEED 12
 #macro CHAOS_ACC 0.056875
-#macro CHAOS_INVIS_RECHARGE (60 * 20)
-#macro CHAOS_INVIS_DURATION (60 * 15)
+#macro CHAOS_INVIS_RECHARGE (60 * 14)
+#macro CHAOS_INVIS_DURATION (60 * 20)
 
 //Variables
 gspd = 0;

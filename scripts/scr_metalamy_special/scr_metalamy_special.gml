@@ -12,7 +12,7 @@
 //     desviarlo). Recarga 8 s.
 //  Stats: identicos a Exeller (12 / 0.056875).
 // =====================================================================
-#macro METALAMY_BULLET_RECHARGE (60 * 8)
+#macro METALAMY_BULLET_RECHARGE (60 * 5)
 #macro METALAMY_MAXSPEED 12
 #macro METALAMY_ACC 0.056875
 
