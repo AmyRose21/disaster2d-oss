@@ -98,6 +98,33 @@ if(character == CHARACTER_AMY_CANON)
 if(instance_exists(obj_hiding_parent))
         isHiding = place_meeting(x, y, obj_hiding_parent) && state == LOOKDOWN;
 
+// v2.13 (LUNA de «Sol y Luna»): VELO DE GRACIA de Amelia oculta. El
+// isHiding de arriba lo deriva IGUAL cada cliente (posicion + estado
+// LOOKDOWN + escondite), asi que el flanco de subida coincide en todos.
+// Al ocultarse: los primeros AMELIA_LUNA_VEIL_TIME frames (3 s) ni los
+// indicadores ni los sensores del bando EXE la marcan — «como si se
+// hubiera esfumado»; luego vuelve a ser indicable (su cuerpo sigue SIN
+// renderizar para el EXE: invisible grado EXE, ver Draw_0). Recarga de
+// AMELIA_LUNA_VEIL_CD (15 s): sin CD podria entrar/salir del escondite
+// re-frescando el velo eternamente. Corre en todos los clientes; solo
+// el bando EXE lo consulta (indicadores).
+if(character == CHARACTER_AMELIA)
+{
+        if(isHiding && !lunaWasHiding && lunaGraceCd <= 0)
+        {
+                lunaGrace = AMELIA_LUNA_VEIL_TIME;
+                lunaGraceCd = AMELIA_LUNA_VEIL_CD;
+        }
+        
+        lunaWasHiding = isHiding;
+        
+        if(lunaGrace > 0)
+                lunaGrace--;
+        
+        if(lunaGraceCd > 0)
+                lunaGraceCd--;
+}
+
 var gain = 1.0 - (min(distance_to_point(obj_camera.x + 240, obj_camera.y + 135), 700) / 700.0);
 audio_emitter_position(emitter, x, y, 0);
 audio_emitter_gain(emitter, gain);
@@ -345,21 +372,21 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         xxspd = 0;
                                 }
                                 
-				
-				// v2.2 (TTB): la ELECTRO de Metal suena con su propio golpe y
-				// tiene efecto visible; el dash usa su hit normal. La forma
-				// ardiente de Blaze tambien tiene su sonido.
-				if(character == CHARACTER_METAL && state == METAL_ELECTRO)
-				{
-					net_quick_effect(global.player.x, global.player.y, spr_shockparticle);
-					snd = snd_metal_electro;
-					xxspd = 0;
-				}
-				else if(character == CHARACTER_METAL)
-					snd = snd_metal_hiit;
-				
-				if(character == CHARACTER_BLAZE && state == BLAZE_BURNING)
-					snd = snd_blaze_go;
+                                
+                                // v2.2 (TTB): la ELECTRO de Metal suena con su propio golpe y
+                                // tiene efecto visible; el dash usa su hit normal. La forma
+                                // ardiente de Blaze tambien tiene su sonido.
+                                if(character == CHARACTER_METAL && state == METAL_ELECTRO)
+                                {
+                                        net_quick_effect(global.player.x, global.player.y, spr_shockparticle);
+                                        snd = snd_metal_electro;
+                                        xxspd = 0;
+                                }
+                                else if(character == CHARACTER_METAL)
+                                        snd = snd_metal_hiit;
+                                
+                                if(character == CHARACTER_BLAZE && state == BLAZE_BURNING)
+                                        snd = snd_blaze_go;
                                 var buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
                                 buffer_write(buffer, buffer_u16, master_id);
                                 buffer_write(buffer, buffer_u16, x);

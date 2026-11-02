@@ -14,6 +14,13 @@ if(instance_exists(obj_player_puppet))
 		if(inst.hp <= 0 || inst.revivalTimes >= 2)
 			continue;
 			
+		// v2.13 (LUNA de Sol y Luna): velo de gracia de Amelia oculta.
+		// Durante los primeros 3 s tras ocultarse, ni el indicador ni los
+		// sensores del EXE la marcan (como si se hubiera esfumado); pasado
+		// el velo vuelve a ser indicable (su cuerpo jamas: invisible EXE).
+		if(inst.character == CHARACTER_AMELIA && inst.isHiding && inst.lunaGrace > 0)
+			continue;
+		
 		if(inst.hasRedRing && (global.character != CHARACTER_EXE || global.player.invisTimer <= 0))
 		{
 			redRings = true;

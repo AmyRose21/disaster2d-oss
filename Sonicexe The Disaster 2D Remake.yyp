@@ -245,6 +245,7 @@
     {"id":{"name":"obj_amelia_banana","path":"objects/obj_amelia_banana/obj_amelia_banana.yy",},},
     {"id":{"name":"obj_amelia_trap","path":"objects/obj_amelia_trap/obj_amelia_trap.yy",},},
     {"id":{"name":"obj_amelia","path":"objects/obj_amelia/obj_amelia.yy",},},
+    {"id":{"name":"obj_amelia_auras","path":"objects/obj_amelia_auras/obj_amelia_auras.yy",},},
     {"id":{"name":"obj_amy_canon","path":"objects/obj_amy_canon/obj_amy_canon.yy",},},
     {"id":{"name":"obj_amy","path":"objects/obj_amy/obj_amy.yy",},},
     {"id":{"name":"obj_amycanon_indicators","path":"objects/obj_amycanon_indicators/obj_amycanon_indicators.yy",},},

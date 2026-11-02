@@ -7,6 +7,14 @@
 //  de 3 s + el debuff de velocidad (-40%) de 3.5 s al salir del stun,
 //  y avisa con CLIENT_AMELIA_TRAP_TRIGGER; el server la revienta a
 //  todos con state 2 (efecto y sonido para el resto).
+//  v2.13 («Sol y Luna» — ECLIPSE): el stun ARRASTRA CEGUERA. La
+//  victima (siempre del lado del EXE: el Step solo dispara con
+//  _exeSide) deja de ver a CUALQUIER superviviente durante
+//  AMELIA_ECLIPSE_TIME frames (4 s): los puppets supervivientes no se
+//  dibujan en su cliente (obj_player_puppet/Draw_0 y Draw_64) y un
+//  velo oscuro cubre su pantalla (obj_level/Draw_64). Misma autoridad
+//  que el propio stun: el cliente de la victima sobre si mismo. Cero
+//  paquetes nuevos.
 // =====================================================================
 life = 60 * 60;    // vida visual (el server manda el remove real)
 triggerSent = false;
@@ -35,6 +43,13 @@ function amelia_trap_trigger()
                 audio_play_sound(snd_exe_stun, 0, false);
                 net_sound_emit(snd_exe_stun);
         }
+
+        // ECLIPSE (v2.13): la ceguera pisa aunque el stun no aplique
+        // (shockedTimer ya > 0 por otro stun): la trampa igual CEGO.
+        // El velo se dibuja solo si ESTE cliente es del bando EXE
+        // (obj_level/Draw_64 lo filtra), y la victima de la trampa
+        // siempre lo es.
+        global.eclipseTimer = AMELIA_ECLIPSE_TIME;
 
         net_amelia_trap_trigger(nid);
 }

@@ -86,3 +86,10 @@ instance_create_depth(x, y, 0, obj_player_sensorBL);
 instance_create_depth(x, y, 0, obj_player_sensorBR);
 instance_create_depth(x, y, 0, obj_player_sensorAL);
 instance_create_depth(x, y, 0, obj_player_sensorAR);
+
+// PASIVA AURAVISIÓN (v2.12, «los ojos de Nate»): sensores de calor de
+// Amelia, solo en SU cliente (patron de los sensores de Amy Canon).
+// Ve el aura de las entidades del bando EXE en un radio de 350 px a
+// traves de las paredes; la del EXE REAL arde mas fuerte. Ver
+// obj_amelia_auras y las macros AMELIA_AURA_* en scr_amelia_special.
+instance_create_depth(x, y, 0, obj_amelia_auras);

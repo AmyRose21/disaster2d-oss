@@ -68,6 +68,18 @@
 #macro AMY_CANON_HJUMP_HITBOX_PAD 5      // px extra de hitbox del salto de martillo (~20% del sprite)
 #macro AMY_CANON_TAROTDASH_HITBOX_PAD 5  // px extra de hitbox del impulso aereo de tarot (~20% del sprite)
 
+// =====================================================================
+//  v2.13 — SOL (la cara de Amy Canon de la pasiva «Sol y Luna»):
+//  GOTEO AUTOMATICO de 1 ring cada 7 s MIENTRAS VIVA (se pausa escondida
+//  o muerta). El ring es para TODO el bando: va por el mismo camino que
+//  los anillos de Cream (CLIENT_CREAM_SPAWN_RINGS; el server lo acepta
+//  para CH_AMY_CANON desde v2.13 y spawnea 1 solo, worth 1) y lo recoge
+//  quien lo pise. «Mientras viva» es la regla: Amy caida apaga el Sol.
+//  7 s a proposito (nota de diseño de la pagina): a este ritmo curar
+//  sigue costando rings y el EXE conserva su ventana de kill.
+// =====================================================================
+#macro AMY_CANON_SOL_RING_EVERY (60 * 7)
+
 //Variables
 gspd = 0;
 xspd = 0;
@@ -94,6 +106,10 @@ chunkTimer = 0;
 attackTimer = 0;
 hjumpTimer = 0;
 isHJ = false;
+
+// v2.13 (SOL de «Sol y Luna»): contador del goteo de rings (1 cada
+// AMY_CANON_SOL_RING_EVERY frames mientras viva; ver scr_amy_canon_special)
+solRingTimer = AMY_CANON_SOL_RING_EVERY;
 
 // --- Variables del ATAQUE 3 (acometida de martillo) ---
 isDashing = false;      // true mientras dura la acometida

@@ -1,3 +1,13 @@
+// v2.13 (ECLIPSE de «Sol y Luna»): la CEGUERA que arrastra el stun de
+// una trampa de Amelia. En el cliente del bando EXE cegado, NINGUN
+// superviviente renderiza — «como si todos se hubieran esfumado».
+// Sus esbirros (isDemonized) y el propio EXE siguen visibles. Puro
+// dibujado: la logica de juego (colisiones, dano, parry) no cambia.
+if(!isDemonized && global.eclipseTimer > 0
+&& instance_exists(global.player)
+&& (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2))
+        return;
+
 if(effect)
 {
         if(character == CHARACTER_EXE)
@@ -111,8 +121,18 @@ if(character == CHARACTER_SALLY_CANON && f2Sq != 0)
         _f2yoff = (sprite_height - sprite_yoffset) * (1 - _f2ys);
 }
 
+// v2.13 (LUNA de «Sol y Luna»): Amelia OCULTA es INVISIBLE GRADO EXE —
+// el cliente del EXE jamas renderiza su cuerpo («el indicador la
+// senala, su cuerpo jamas»). El resto de clientes la ve igual que a
+// cualquier escondido: semitransparente. Su nick/HP ya no se dibujan
+// escondida para NADIE (el Draw_64 lo corta con !isHiding).
+var _hideAlpha = (isHurt || isHiding) ? 0.5 : image_alpha;
+
+if(isHiding && character == CHARACTER_AMELIA && global.character == CHARACTER_EXE)
+        _hideAlpha = 0;
+
 scr_palette_swap(fromPallete, toPallete);
-draw_sprite_ext(is_cheating ? spr_merfurmu : sprite_index, image_index, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, (isHurt || isHiding) ? 0.5 : image_alpha);
+draw_sprite_ext(is_cheating ? spr_merfurmu : sprite_index, image_index, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, _hideAlpha);
 shader_reset();
 
 if(_pb)

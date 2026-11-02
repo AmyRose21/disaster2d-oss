@@ -42,6 +42,16 @@ state = 0;
 angle = 0;
 effect = false;
 effectTimer = 0;
+
+// v2.13 (LUNA de «Sol y Luna»): velo de gracia de Amelia. Al OCULTARSE
+// (flanco de subida de isHiding, que cada cliente deriva igual), los
+// primeros 3 s ni indicadores ni sensores del EXE la marcan; CD 15 s.
+// Lo calcula el Step de este puppet en CADA cliente (solo lo consume
+// el bando EXE). Pasado el velo: indicable pero cuerpo invisible (EXE).
+lunaGrace = 0;
+lunaGraceCd = 0;
+lunaWasHiding = false;
+
 emitter = audio_emitter_create();
 audio_emitter_falloff(emitter, 250, 500, 1);
 

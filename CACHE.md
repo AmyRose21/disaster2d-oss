@@ -708,6 +708,29 @@ y las pistas nuevas de 20-28s se cortaban).
     original) son casi seguro el arte de Silver/Shadow/Lord X/Koloosos
     para el port futuro: NO borrarlos.
 
+
+14. COOLDOWN DEL SERVER vs RECARGA DEL CLIENTE (trampa-v2.8): el
+    server JAMAS debe ser mas lento que la recarga legitima MAS RAPIDA
+    del cliente (o come paquetes en silencio: el cliente ya gasto su
+    recarga y sueno el spawn). Y ojo con los "max N vivas POR jugador"
+    compuestos con entidades de vida larga: si vida > recarga, TODA
+    colocacion del hueco vida-recarga se descarta sin feedback. Sintoma
+    universal: "el cliente lo hace pero en el server no aparece".
+    REGLA: cooldown server <= recarga minima legitima (trampa 15 s,
+    bola de fuego 4 s) y sin limites de vivas: nid por entidad.
+15. FISICA DE PROYECTILES EN EL SERVER SIN COLISION DE MAPA
+    (blaze-v2.9): el server no tiene el tilemap; para que un proyectil
+    REBOTE, cualquier cliente reporta el choque (nid + componentes a
+    invertir + posicion del solape) y el server voltea la velocidad.
+    DOS sincronizaciones obligatorias: lockout por entidad (todos los
+    clientes ven el mismo choque y reportan casi a la vez: gana el
+    primero) y throttle local (no re-reportar cada frame mientras
+    llega el arreglo por TCP). Clasificar el eje del choque probando
+    POR DONDE ESCAPA la mascara (retroceder 2 ticks de velocidad por
+    eje), nunca con 1 px (el solape llega a ser de un tick entero).
+    La chispa del choque va con scr_effect_quick LOCAL (net_quick_
+    effect la reenvia a todos y se multiplica por cliente).
+
 ## 9. PENDIENTES / esperando al usuario
 - relay-v1.3: pendiente PRUEBA REAL CON JUGADOR EXTERNO por el relay.
   Setup listo: server v1.3 + cliente con DLL portfix IP:PUERTO +
@@ -1091,3 +1114,132 @@ y las pistas nuevas de 20-28s se cortaban).
   letters_placas.py / apply_amelia_spindash_v26.py /
   validate_amelia_spindash_v26.py. Entregable:
   download/amelia_spindash_v2_6.zip.
+
+- 2026-11-01 (trampa-v2.8 RE-APLICADA + blaze-v2.9 "el fuego que
+  rebota"): el sandbox se reciclo y el repo se reclono desde 7712ef6f
+  ("ewe"); el fix v2.8 (commit local 10ae6f5e nunca pusheado) se
+  volvio a aplicar a mano: identico al zip trampa_multiple_v2_8.zip.
+  v2.9 Blaze: (1) BOLA DE FUEGO = proyectil rebotante: gravedad +
+  vy en el server (BFIRE_*), rebotes reportados por los clientes con
+  CLIENT_BLAZE_FIREBALL_BOUNCE (nid+flip+pos; bfire_bounce voltea
+  elasticamente con lockout 0.12 s; throttle local 15 frames; chispa
+  local), nid por bola (varias simultaneas, HIT por nid, sin limite
+  global, cooldown 8->4 s), tick con dir+vy y cometa rotando con
+  point_direction; paquete añadido AL FINAL del enum en ambos lados
+  (cliente y server JUNTOS o nada). (2) GIRO DE FUEGO (C, spr_blaze_go
+  = tornado confirmado por VLM): mientras arde Blaze rebota en suelo
+  (BLAZE_BURN_BOUNCE 7.5) / paredes (elastico min 3, ±4, solo suelo
+  plano) / techo (0.6x tras yspd==0); TODO lo demas intacto (stun 3 s,
+  +30%, 1.5 s, recargas 9/4 y 30/12). Validador
+  validate_blaze_rebote_v29.py (102 checks) + sim de trayectoria.
+  Entregable: download/blaze_rebote_v2_9.zip (recompilar server Y
+  cliente). Pendientes mismo patron: banana (20 vs 10 s) y bala de
+  Metal Amy (limite 1 + sin nid).
+
+- 2026-11-01 (tierlist-v1 + sync v2.10/v2.11): pull con merge (4
+  commits del usuario: metal-sprites v2.10 = electro/overdrive
+  DESCRUZADOS; vanilla-rescate v2.11 = Chocola detecta esbirros con
+  stun 3,5 s + rescate con la barra del revive + CLIENT_VANILLA_
+  DEDMONIZE_PROGRESS + float run arreglado). Conflicto de enum
+  resuelto al lado remoto (superset); 157 paquetes alineados.
+  NUEVA HERRAMIENTA: tier list HTML del plantel completo (descarga
+  TierList_TD2DR.html) — extract_sprites_tierlist.py saca el frame 0
+  del compuesto RAIZ de cada sprite (los .png con GUID de frame en
+  sprites/<spr>/), build_tierlist.py inyecta los base64 sobre
+  tierlist_template.html (marcas %%SPRITE_x%%), shot_tierlist.py
+  captura las 5 pestañas con Playwright. PENDIENTE: decision del
+  usuario sobre la pasiva de Amelia (4 propuestas en la pagina;
+  recomendada "Deducción del detective", solo cliente).
+
+- 2026-11-01 (tierlist-v2 + verificación de Amelia): la lore de
+  personajes se puede verificar VÍA WAYBACK aunque Fandom esté tras
+  Cloudflare: curl y WebFetch directo fallan (WebFetch además tira la
+  query string de api.php) y agent-browser no pasa el challenge
+  interactivo; en cambio web.archive.org/cdx/search/cdx?url=... lista
+  las capturas y la captura archivada carga completa. Wiki clave:
+  exenightmare.fandom.com (universo Nightmare de Jayz): Amelia = Amy
+  alternativa CIEGA que ve AURAS DE CALOR (suero de Nate; el impostor
+  la delató con un aura MÁS FUERTE) — de ahí la pasiva recomendada
+  «Auravisión» (radio ~350 px, EXE real más brillante, marcadores
+  locales estilo Amy Canon). LECCIÓN de la v1: el array SPR de la
+  página y sprites.json deben cubrir TODAS las keys de SURV/EXES
+  (faltaba sonic: img() devolvía src="undefined" y el chip quedaba sin
+  imagen SIN error de consola — detectar con
+  Array.from(document.images).filter(i=>!i.complete||i.naturalWidth===0)).
+  Hallazgos de código al verificar a Amelia: banana del servidor
+  20 s vs 10 s demonizada (familia v2.8), mabul con tope global 1 viva
+  + HIT sin nid, comentario viejo «máximo 1 trampa» en
+  scr_amelia_special (v2.8 lo quitó) y carpetas huérfanas
+  obj_amelia_bomb/net_amelia_bomb presentes en disco pero fuera del
+  .yyp.
+
+- 2026-11-02 (amelia-page): la página de fan de Amelia existe ahora
+  como HTML AUTOCONTENIDO en docs/Amelia_La_Luna_Encarnada.html
+  (4,2 MiB con el OST «Lobby Music» incrustado en base64: doble clic
+  y suena en bucle; play/mute/volumen en el dock). Es el port del
+  Next.js del sandbox (zip amelia-la-luna-encarnada.zip): mismo
+  diseño y textos, interacciones en JS plano (pestañas Sol/Luna,
+  goteo de rings, velo gracia 3 s/CD 15 s, simulador del EXE con
+  eclipse y cuenta atrás). LEEME propio en docs/. Build: scripts/
+  amelia_page/build.py del workspace (plantillas head/body/app +
+  inyección del mp3 y de la geometría SVG de decor.tsx). LECCIONES:
+  (1) los elementos DENTRO de un <symbol> usado con <use> no reciben
+  CSS de clases externas — las animaciones internas (p. ej.
+  flame-flicker del ojo de Auravisión) deben ir con style= inline;
+  (2) revisar el z-index de badges sobre overlays opacos: el de
+  «TRAMPA DE AMY · STUN» quedó invisible tras el velo del eclipse
+  (z-30 < z-40) hasta subirlo a z-45 — mismo bug tenía el React
+  original; (3) para verificar «texto cortado» reportado por VLM,
+  confirmar con captura DEL ELEMENTO + comparación DOM: suele ser el
+  pliegue del viewport, no un recorte real.
+
+- 2026-11-02 (amelia-auravision v2.12): la pasiva de Amelia YA ESTÁ
+  EN EL CÓDIGO (antes era solo propuesta de la tierlist):
+  «Auravisión», la de su biografía — ciega, ve firmas de calor (el
+  suero de Nate). obj_amelia_auras (nuevo, patrón obj_amycanon_
+  indicators: lo crea el Create de obj_amelia, SOLO en su cliente)
+  escanea en el Step el bando EXE en 350 px (EXE real por
+  character == CHARACTER_EXE; esbirros por revivalTimes >= 2; clones
+  obj_exeller_clone en pasada aparte; isInactive fuera) y lo dibuja
+  en Draw GUI con mezcla aditiva: halo que late + silueta del
+  PROPIO sprite del puppet tintado de calor, A TRAVÉS de paredes e
+  invisibilidad. EXE real arde más fuerte (r=26 + aro + núcleo, late
+  al doble) que esbirros/clones (r=14 tenue): la diferencia de
+  tamaño ES la lectura táctica. Se apaga si Amelia se demoniza (el
+  juego ya da la flecha del exe). Macros AMELIA_AURA_* en
+  scr_amelia_special. Registro en el .yyp (+1 línea en resources).
+  LECCIONES: (1) registrar el objeto NUEVO en el .yyp o queda
+  huérfano (bug conocido de obj_amelia_bomb); (2) los clones NO
+  declaran angle — variable_instance_exists antes de leer un var de
+  instancia ajena (patrón obj_ghz_water); (3) var re-declarado en un
+  mismo evento es legal en GML y es estilo local (obj_unlockables
+  tiene 13 bucles for(var i)); (4) el puppet dibuja con
+  _f2xs=image_xscale (salvo squash de Sally fase 2) y pasa angle
+  TAL CUAL al draw_sprite_ext (obj_amelia en cambio usa
+  radtodeg(angle): convenciones cruzadas) — la silueta copia la del
+  puppet para caer sobre el sprite real que se ve en pantalla.
+
+- 2026-11-02 (sol-y-luna v2.13): el ARCANO III de la página de Amelia
+  entra al código. SOL: Amy Canon gotea 1 ring cada 7 s mientras viva
+  (pausa escondida/muerta) por el camino de Cream (CLIENT_CREAM_SPAWN_
+  RINGS): server acepta CH_AMY_CANON, spawnea 1 solo anillo worth 1 y
+  su suelo anti-spam baja a 6 s (Cream/Vanilla siguen a 10). LUNA:
+  Amelia oculta = invisible GRADO EXE (Draw_0 del puppet: alpha 0 solo
+  en el cliente del EXE; el resto la sigue viendo a 0.5; nick/HP ya
+  cortados por !isHiding para todos) + VELO DE GRACIA 3 s / CD 15 s
+  (flanco de subida de isHiding en el Step del puppet — cada cliente
+  lo deriva IGUAL: posicion + LOOKDOWN + escondite — y los 3
+  indicadores del exe la saltan durante la gracia). ECLIPSE: el stun
+  de la trampa arrastra CEGUERA de 4 s a la victima EXE-side
+  (global.eclipseTimer en obj_level: reloj en Step, velo 480x270 con
+  envelope triangular de 30 frames en Draw_64; puppets supervivientes
+  sin cuerpo NI HUD en su cliente; esbirros y el propio EXE visibles).
+  Cero paquetes nuevos; el Sol reusa el paquete de Cream. LECCIONES:
+  (1) el isHiding del puppet NO viaja por red: cada cliente lo deriva
+  de position+estado, perfecto para flancos consistentes; (2) el
+  Game.c de la RAIZ del server es legacy SIN compilar — el vivo es
+  states/Game.c (confirmado contra disasterserver/CMakeLists.txt);
+  (3) el GUI del juego es 480x270 (spr_screenoverlay) para rectángulos
+  de pantalla completa; (4) el suelo anti-spam del server debe quedar
+  POR DEBAJO del ritmo legitimo del cliente (6 < 7 s) o se come
+  paquetes sanos por jitter.

@@ -20,6 +20,27 @@ switch(room)
                 
 }
 
+// v2.13 («Sol y Luna» — ECLIPSE): velo de CEGUERA del bando EXE tras
+// pisar una trampa de Amelia. Fundido de entrada/salida de ~0,5 s
+// sobre los AMELIA_ECLIPSE_TIME frames (envelope triangulo: sube en
+// 30 frames, baja en 30). Dibujado ANTES de los GUI para que el HUD
+// del jugador (reloj/escondite/sangre) quede por ENCIMA del velo.
+// Solo en el cliente de la victima — que es quien tiene el timer
+// activo. Los supervivientes ya no se dibujan en su cliente
+// (obj_player_puppet/Draw_0 y Draw_64): «todos se esfumaron».
+if(global.eclipseTimer > 0 && instance_exists(global.player)
+&& (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2))
+{
+        var _eclT = global.eclipseTimer;
+        var _eclF = min(1, min(_eclT, AMELIA_ECLIPSE_TIME - _eclT) / 30);
+        
+        draw_set_alpha(0.72 * _eclF);
+        draw_set_color(make_color_rgb(12, 8, 24));
+        draw_rectangle(0, 0, 480, 270, false);
+        draw_set_alpha(1);
+        draw_set_color(c_white);
+}
+
 draw_sprite_ext(spr_hidegui, 0, 0, 0, 1, 1, 0, c_white, hideFade);
 draw_sprite_ext(spr_attackgui, 0, 0, 0, 1, 1, 0, c_white, bloodFade);
 

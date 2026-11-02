@@ -27,6 +27,33 @@
 //     scr_collision_basic). Sin cooldown: el coste es el tiempo de
 //     revolucioneo. (La pasiva SPINNING del pie de su placa ya estaba:
 //     canSpin = true desde v2.2.)
+//   * PASIVA AURAVISIÓN (v2.12, «los ojos de Nate»): SIEMPRE ACTIVA.
+//     En un radio de 350 px Amelia ve, A TRAVÉS de las paredes, el
+//     aura de calor de cada entidad del bando EXE (EXE real, esbirros
+//     demonizados y clones del exe); la del EXE REAL arde más
+//     fuerte — como el impostor de su historia, que se delató con un
+//     aura más brillante. SOLO CLIENTE: la dibuja obj_amelia_auras
+//     (lo crea su Create, solo existe en su pantalla), cero paquetes
+//     y cero servidor. Se apaga si Amelia se demoniza (el juego ya le
+//     da la flecha del exe a los demonizados).
+//   * PASIVA «SOL Y LUNA» (v2.13, la carta que Amelia encarna):
+//      - LUNA (Amelia): al OCULTARSE es INVISIBLE GRADO EXE — el
+//        cliente del EXE jamás renderiza su cuerpo (obj_player_puppet/
+//        Draw_0), aunque su indicador la sigue señalando. VELO DE
+//        GRACIA: los primeros AMELIA_LUNA_VEIL_TIME (3 s) tras
+//        ocultarse tampoco la marcan indicadores ni sensores (CD de
+//        AMELIA_LUNA_VEIL_CD, 15 s; lo lleva el puppet en cada
+//        cliente). Regla de oro: su invisibilidad NO neutraliza los
+//        sensores de invisibles — salvo en esos 3 s de gracia.
+//      - SOL (Amy Canon): goteo AUTOMÁTICO de 1 ring cada 7 s
+//        mientras viva (ver obj_amy_canon y scr_amy_canon_special;
+//        el server lo acepta desde v2.13).
+//      - ECLIPSE (la trampa): el STUN de una trampa de Amelia
+//        ARRASTRA CEGUERA — la víctima (lado EXE) no ve a NINGÚN
+//        superviviente durante AMELIA_ECLIPSE_TIME (4 s): ni cuerpo
+//        ni HUD (obj_player_puppet/Draw_0 y Draw_64) y un velo oscuro
+//        sobre su pantalla (obj_level/Draw_64). Local como el propio
+//        stun (cliente de la víctima): cero paquetes nuevos.
 //  Stats: equilibrada (11) con la aceleracion canonica de
 //  superviviente del 110v (v2.2.4), salto estandar, con spindash.
 // =====================================================================
@@ -48,6 +75,46 @@
 #macro AMELIA_SPINDASH_BURST_MIN 3
 #macro AMELIA_SPINDASH_BURST_MAX 8
 #macro AMELIA_ROLL_SPEED_CAP 18
+
+// v2.12 (PASIVA AURAVISIÓN, «los ojos de Nate»): la pasiva de su
+// biografia — ciega, ve firmas de CALOR (el suero de Nate). La
+// implementa obj_amelia_auras (solo en el cliente de Amelia); estos
+// son los valores ajustables:
+//  * RADIUS    = radio de vision en px (350 ~ media pantalla del
+//                mapa tipico; con 500 seria practicamente todo).
+//  * EXE_R / MINION_R = radio del aura: el EXE REAL arde MAS GRANDE
+//                que esbirros/clones — esa diferencia de tamano ES
+//                la lectura tactica de la pasiva.
+//  * PULSE     = velocidad del latido (rad/frame) y amplitud en px;
+//                el exe late al doble de rapido (ver Draw_64).
+//  * colores   = rojo-naranja para el exe, naranja apagado para
+//                esbirros/clones;CORE = nucleo brillante del exe.
+// El dibujado usa mezcla aditiva (bm_add) como el aura de parry de
+// obj_player_puppet: las auras iluminan lo que tienen detras.
+#macro AMELIA_AURA_RADIUS 350
+#macro AMELIA_AURA_EXE_R 26
+#macro AMELIA_AURA_MINION_R 14
+#macro AMELIA_AURA_PULSE_SPD 0.09
+#macro AMELIA_AURA_EXE_PULSE_AMP 3
+#macro AMELIA_AURA_MINION_PULSE_AMP 2
+#macro AMELIA_AURA_EXE_COLOR make_color_rgb(255, 80, 0)
+#macro AMELIA_AURA_EXE_CORE make_color_rgb(255, 200, 90)
+#macro AMELIA_AURA_MINION_COLOR make_color_rgb(255, 130, 30)
+
+// v2.13 (PASIVA «SOL Y LUNA», la carta que Amelia encarna): valores
+// ajustables de la LUNA y del ECLIPSE (el SOL vive en obj_amy_canon):
+//  * LUNA_VEIL_TIME = segundos de VELO DE GRACIA tras ocultarse:
+//                ni indicadores ni sensores del EXE la marcan. Pasado
+//                el velo: indicable pero cuerpo invisible (grado EXE).
+//  * LUNA_VEIL_CD  = recarga del velo (sin ella, entrar/salir del
+//                escondite re-frescaria la gracia eternamente).
+//  * ECLIPSE_TIME  = segundos de CEGUERA que arrastra el stun de la
+//                trampa: la victima (lado EXE) no ve a NINGUN
+//                superviviente (4 s: cubre el stun de 3 s + 1 s de
+//                reaccion — la ventana justa para reposicionar).
+#macro AMELIA_LUNA_VEIL_TIME (60 * 3)
+#macro AMELIA_LUNA_VEIL_CD (60 * 15)
+#macro AMELIA_ECLIPSE_TIME (60 * 4)
 
 function scr_amelia_special()
 {

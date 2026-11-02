@@ -876,8 +876,11 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, v->in_game);
                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
                         /* Vanilla usa las mismas habilidades que Cream:
-                           el paquete de anillos tambien es valido para ella */
-                        AssertOrDisconnect(v->server, v->surv_char == CH_CREAM || v->surv_char == CH_VANILLA);
+                           el paquete de anillos tambien es valido para ella.
+                           v2.13 «Sol y Luna»: tambien para Amy Canon —
+                           su SOL gotea 1 ring cada 7 s por este mismo
+                           camino (ver scr_amy_canon_special). */
+                        AssertOrDisconnect(v->server, v->surv_char == CH_CREAM || v->surv_char == CH_VANILLA || v->surv_char == CH_AMY_CANON);
                         /* v2.1.3: cooldown POR JUGADOR (antes: GLOBAL a
                          * toda la partida). Vanilla y Cream soltando
                          * anillos casi a la vez reventaban este assert y el
@@ -912,7 +915,17 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         if(PI == 0.0) 
                                 PI = acos(-1);
 
-                        if (red_ring)
+                        /* v2.13 «Sol y Luna»: el SOL de Amy Canon gotea
+                         * 1 SOLO anillo (worth 1) cada 7 s — la economia
+                         * del duo, no un flood. red_ring se ignora para
+                         * ella: nunca se demoniza (la burbuja lo fuerza),
+                         * asi que un byte true solo puede venir de un
+                         * cliente hackeado. */
+                        if (v->surv_char == CH_AMY_CANON)
+                        {
+                                RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(x, y, false, 1)), sizeof(CreamRing), NULL));
+                        }
+                        else if (red_ring)
                         {                               
                                 CreamRing* rings[128];
                                 int cnt = game_find(v->server, (Entity**)rings, "cring", 128);
@@ -971,8 +984,12 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         /* v2.1.3: POR JUGADOR y 10 s = la recarga de
                          * cliente mas corta (EVANILLA_RINGS_RECHARGE,
                          * Vanilla demonizada), para que un jugador legitimo
-                         * jamas tope con este limite: solo frena el spam. */
-                        v->plr_cooldowns[CREAM_RING_SPAWN] = 10 * TICKSPERSEC;
+                         * jamas tope con este limite: solo frena el spam.
+                         * v2.13 «Sol y Luna»: el goteo legitimo del SOL de
+                         * Amy Canon es cada 7 s — su suelo baja a 6 s
+                         * (margen de jitter de red/frame pacing); el de
+                         * Cream/Vanilla sigue en 10 s. */
+                        v->plr_cooldowns[CREAM_RING_SPAWN] = (v->surv_char == CH_AMY_CANON ? 6 : 10) * TICKSPERSEC;
                         break;
                 }
 
