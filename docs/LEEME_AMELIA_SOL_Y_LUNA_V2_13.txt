@@ -1,0 +1,132 @@
+================================================================================
+  «SOL Y LUNA» v2.13 — la carta que Amelia encarna
+  Sol: Amy Canon gotea 1 ring cada 7 s · Luna: Amelia oculta es invisible
+  grado EXE (velo de gracia 3 s / CD 15 s) · Eclipse: el stun de la
+  trampa arrastra ceguera (4 s)
+================================================================================
+
+QUÉ ES
+------
+La tercera carta del tarot de Amelia (la página de fan la listaba como
+ARCANO III). Tres piezas que juegan juntas:
+
+  ☀ SOL (lado Amy Canon): goteo AUTOMÁTICO de 1 ring cada 7 segundos
+     MIENTRAS VIVA (se pausa escondida o muerta). El ring es para todo
+     el bando: lo recoge quien lo pise. «Mientras viva» es la regla:
+     Amy caída apaga el Sol y el dúo pierde la economía. 7 s a
+     propósito (nota de diseño de la página): a este ritmo curar sigue
+     costando rings y el EXE conserva su ventana de kill.
+
+  ☾ LUNA (lado Amelia): al OCULTARSE (agachada en un escondite) Amelia
+     es INVISIBLE GRADO EXE — el cliente del EXE jamás renderiza su
+     cuerpo. No existe «ocultarse mal». El indicador del EXE sí le
+     dice que está ahí: cuerpo invisible, señal visible.
+       * VELO DE GRACIA: los primeros 3 s tras ocultarse tampoco la
+         marcan indicadores ni sensores («como si se hubiera
+         esfumado»). CD de 15 s (sin él, entrar/salir del escondite
+         re-frescaría la gracia eternamente).
+       * Regla de oro: su invisibilidad NO neutraliza los sensores de
+         invisibles ni las habilidades de indicador — SALVO en esos
+         3 s de gracia. Pasado el velo: indicable, pero jamás visible.
+
+  ✦ ECLIPSE (la trampa): el STUN de una trampa de Amelia ARRASTRA
+     CEGUERA. La víctima (siempre del lado del EXE) no ve a NINGÚN
+     superviviente durante 4 s: ni cuerpo ni HUD (nick/HP/anillos),
+     como si todos se hubieran esfumado, y un velo oscuro cubre su
+     pantalla. Sus esbirros y él mismo siguen visibles. 4 s = el stun
+     de 3 s + 1 s de reacción: la ventana justa para reposicionar.
+
+EQUILIBRIO
+----------
+El Sol es economía (información + recursos, nunca daño), la Luna es
+sigilo condicional (el EXE conserva su indicador) y el Eclipse es la
+contrapartida ofensiva de la trampa: castiga al EXE que pisa sin
+mirar. CERO paquetes nuevos: la Luna y el Eclipse son 100% locales
+(mismo modelo de autoridad que el stun de la trampa: el cliente de la
+víctima sobre sí mismo). El Sol reutiliza el camino de red de los
+anillos de Cream (CLIENT_CREAM_SPAWN_RINGS, ya existente).
+
+ARCHIVOS (CLIENTE)
+------------------
+MODIFICA objects/obj_amy_canon/Create_0.gml
+         (macro AMY_CANON_SOL_RING_EVERY + var solRingTimer)
+MODIFICA scripts/scr_amy_canon_special/scr_amy_canon_special.gml
+         (el goteo: cada 7 s pide el ring al server, en pecho y-16)
+MODIFICA objects/obj_player_puppet/Create_0.gml
+         (vars del velo: lunaGrace / lunaGraceCd / lunaWasHiding)
+MODIFICA objects/obj_player_puppet/Step_0.gml
+         (flanco de subida de isHiding → velo de gracia, CD 15 s)
+MODIFICA objects/obj_player_puppet/Draw_0.gml
+         (ECLIPSE: supervivientes no se dibujan al EXE cegado;
+          LUNA: cuerpo de Amelia oculta con alpha 0 para el EXE)
+MODIFICA objects/obj_player_puppet/Draw_64.gml
+         (ECLIPSE: tampoco HUD de supervivientes)
+MODIFICA objects/obj_exe_indicator/Step_2.gml      }
+MODIFICA objects/obj_exeller_indicator/Step_2.gml  } los 3 indicadores
+MODIFICA objects/obj_exetior_indicator/Step_2.gml  } respetan el velo
+MODIFICA objects/obj_amelia_trap/Create_0.gml
+         (ECLIPSE: el trigger de la ceguera junto al del stun)
+MODIFICA objects/obj_level/Step_0.gml   (reloj del eclipse)
+MODIFICA objects/obj_level/Draw_64.gml  (velo oscuro 480x270, fundido
+                                          de 30 frames a cada lado)
+MODIFICA scripts/scr_globals/scr_globals.gml (init global.eclipseTimer)
+MODIFICA scripts/scr_amelia_special/scr_amelia_special.gml
+         (macros AMELIA_LUNA_VEIL_TIME / _CD / AMELIA_ECLIPSE_TIME)
+
+ARCHIVOS (SERVIDOR — HAY QUE RECOMPILARLO)
+------------------------------------------
+MODIFICA betterserver-oss/disasterserver/states/Game.c
+         (case CLIENT_CREAM_SPAWN_RINGS):
+           * el assert acepta CH_AMY_CANON además de Cream/Vanilla
+           * Amy Canon spawnea 1 SOLO anillo (worth 1) en (x, y) —
+             red_ring ignorado para ella (nunca se demoniza)
+           * suelo anti-spam POR JUGADOR: 6 s para Amy Canon (su
+             goteo legítimo es de 7 s; margen de jitter), 10 s para
+             Cream/Vanilla como antes
+         (el Game.c de la raíz es legacy y NO se compila: el que vale
+          es states/Game.c, confirmado contra disasterserver/
+          CMakeLists.txt)
+
+VALORES AJUSTABLES
+------------------
+  AMY_CANON_SOL_RING_EVERY   (60 * 7)   en obj_amy_canon/Create_0.gml
+  AMELIA_LUNA_VEIL_TIME      (60 * 3)   en scr_amelia_special.gml
+  AMELIA_LUNA_VEIL_CD        (60 * 15)  en scr_amelia_special.gml
+  AMELIA_ECLIPSE_TIME        (60 * 4)   en scr_amelia_special.gml
+  alpha del velo (0.72) y color (12, 8, 24)  en obj_level/Draw_64.gml
+  (si cambias el ritmo del Sol, ajusta también el suelo del server:
+   6 s está pensado para un goteo de 7 s)
+
+VERIFICACIÓN
+------------
+  * validate_amelia_auravision.py (workspace): 101 checks — registro,
+    referencias cruzadas, macros, balance de llaves de los 13 GML
+    tocados, ediciones del server, .yyp sin cambios (no hay objetos
+    nuevos).
+  * El SERVER COMPILA: build_server.sh (gcc, misma lista de fuentes
+    que el CMakeLists) → BUILD OK.
+  * Vista previa del dibujado: docs/sol_y_luna_preview.png (antes
+    vs. eclipse con las mismas fórmulas y sprites reales).
+  * Pendiente de ver en juego real (compilar cliente y server).
+
+INSTALACIÓN (sin git / sin parches)
+-----------------------------------
+  CLIENTE: reemplaza los 13 archivos .gml listados arriba tal cual
+  (mismas carpetas). El .yyp NO cambia en esta versión: no hay
+  objetos nuevos.
+  SERVIDOR: reemplaza betterserver-oss/disasterserver/states/Game.c
+  y RECOMPILA el server (compilar_server.bat / build_server.sh).
+  Sin recompilar el server, el Sol no funciona (el server rechazaría
+  el paquete de Amy Canon y la desconectaría: AssertOrDisconnect).
+
+CÓMO PROBARLO EN PARTIDA
+------------------------
+  * SOL: elige a Amy Canon y espera: cada 7 s suena y aparece 1 ring
+    en su pecho (recógelo con quien sea). Si Amy muere, el goteo para.
+  * LUNA: con Amelia, agáchate en un escondite: en la pantalla del
+    EXE tu cuerpo DESAPARECE (el resto te ve semitransparente como
+    siempre). Los primeros 3 s ni el indicador te marca; luego el
+    indicador vuelve a señalarte (pero el cuerpo jamás).
+  * ECLIPSE: que el EXE (o un esbirro) pise tu trampa: además del
+    stun, su pantalla se oscurece 4 s y no ve a ningún superviviente.
+================================================================================
