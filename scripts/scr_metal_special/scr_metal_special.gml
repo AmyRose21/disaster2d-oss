@@ -27,12 +27,12 @@
 // =====================================================================
 #macro METAL_MAXSPEED 11
 #macro METAL_ACC 0.040
-#macro METAL_OVERDRIVE_RECHARGE (60 * 40)
+#macro METAL_OVERDRIVE_RECHARGE (60 * 28)
 #macro EMETAL_OVERDRIVE_RECHARGE (60 * 15)
 #macro METAL_OVERDRIVE_TIME (60 * 2)   // duracion maxima (placa: 2 s)
 #macro METAL_OVERDRIVE_SPEED 16       // velocidad tope del overdrive
 #macro METAL_OVERDRIVE_RAMP 24        // frames en subir de 11 a 16
-#macro METAL_ELECTRO_RECHARGE (60 * 30)
+#macro METAL_ELECTRO_RECHARGE (60 * 21)
 #macro EMETAL_ELECTRO_RECHARGE (60 * 12)
 #macro METAL_ELECTRO_TIME 60         // 1 s electrificado (placa: 2 s, ver nota)
 
@@ -44,8 +44,8 @@
 //  * HEAL_RANGE     = px de "estar cerca"
 // Si estan los DOS cerca NO se acumula: solo aplica la del Dr.
 #macro METAL_GENIUS_HEAL_HP 10
-#macro METAL_GENIUS_HEAL_CD_EGG (60 * 7)
-#macro METAL_GENIUS_HEAL_CD_TAILS (60 * 13)
+#macro METAL_GENIUS_HEAL_CD_EGG (60 * 8)
+#macro METAL_GENIUS_HEAL_CD_TAILS (60 * 14)
 #macro METAL_GENIUS_HEAL_RANGE 90
 
 function scr_metal_special()

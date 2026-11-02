@@ -1,9 +1,9 @@
 // Default player values
 
 // v3.0 (balance): golpe de Knuckles -20% de recarga (20 -> 16 s)
-#macro KNUX_ATTACK_RECHARGE (60 * 16)
+#macro KNUX_ATTACK_RECHARGE (60 * 14.75)
 #macro KNUX_EXEATTACK_RECHARGE (60 * 5)
-#macro KNUX_GLIDE_RECHARGE (60 * 15)
+#macro KNUX_GLIDE_RECHARGE (60 * 12)
 #macro KNUX_MAXSPEED 11
 #macro KNUX_ACC 0.046835
 

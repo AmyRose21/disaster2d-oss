@@ -2,7 +2,7 @@
 
 #macro EXETIOR_MAXSPEED 11
 #macro EXETIOR_ACC 0.051875
-#macro EXETIOR_BRING_RECHARGE (42 * 60)
+#macro EXETIOR_BRING_RECHARGE (30 * 60)
 
 //Variables
 gspd = 0;

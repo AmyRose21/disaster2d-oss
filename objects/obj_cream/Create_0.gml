@@ -1,10 +1,10 @@
 // Default player values
 
-#macro CREAM_FLY_RECHARGE (60 * 15)
+#macro CREAM_FLY_RECHARGE (60 * 12.5)
 #macro CREAM_FLY_SOLO (60 * 2)    // planeo SOLO: 2 seg (el original)
 #macro CREAM_FLY_CARRY (60 * 5.5) // planeo con PASAJERO colgado: max 5.5 seg
-#macro CREAM_DASH_RECHARGE (60 * 30)
-#macro CREAM_RINGS_RECHARGE (60 * 40)
+#macro CREAM_DASH_RECHARGE (60 * 20.5)
+#macro CREAM_RINGS_RECHARGE (60 * 30)
 #macro ECREAM_RINGS_RECHARGE (60 * 30)
 #macro CREAM_MAXSPEED 11
 #macro CREAM_ACC 0.046875

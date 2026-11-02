@@ -1,8 +1,8 @@
 // Default player values
 
-#macro AMY_CANON_ATTACK_RECHARGE (60 * 20)
+#macro AMY_CANON_ATTACK_RECHARGE (60 * 0)
 #macro AMY_CANON_EXEATTACK_RECHARGE (60 * 5)
-#macro AMY_CANON_BIGJUMP_RECHARGE (60 * 9)
+#macro AMY_CANON_BIGJUMP_RECHARGE (60 * 3)
 #macro AMY_CANON_MAXSPEED 11
 #macro AMY_CANON_ACC 0.046875
 
@@ -30,7 +30,7 @@
 // termine justo al acabar un golpe: 48 = 3 golpes, 64 = 4, 80 = 5.
 #macro AMY_CANON_DASH_TIME 64               // DURACION en frames (64 = 1 seg aprox = 4 golpes completos)
 #macro AMY_CANON_DASH_SPEED 14             // VELOCIDAD (mayor que 11 = mas rapida que correr)
-#macro AMY_CANON_DASH_RECHARGE (60 * 15)   // CD en modo superviviente (15 segundos)
+#macro AMY_CANON_DASH_RECHARGE (60 * 10)   // CD en modo superviviente (15 segundos)
 #macro AMY_CANON_EDASH_RECHARGE (60 * 5)   // CD en modo demonizada (5 segundos)
 #macro AMY_CANON_DASH_HITFRAME 3           // FRAME de la animacion donde cae el golpe de martillo
 #macro AMY_CANON_DASH_ANIMSPD 0.5          // VELOCIDAD de animacion (~3.7 golpes por segundo)
@@ -63,7 +63,7 @@
 #macro AMY_CANON_TAROTDASH_SPEED 14      // VELOCIDAD horizontal del impulso (igual que la acometida)
 #macro AMY_CANON_TAROTDASH_FALLSPD 2     // caida max durante el impulso (casi horizontal)
 #macro AMY_CANON_TAROTDASH_ANIMSPD 0.25  // VELOCIDAD de anim del sprite de 2 frames (1 ciclo cada 8 frames)
-#macro AMY_CANON_TAROTDASH_RECHARGE (60 * 9)   // CD del impulso en modo superviviente (9 seg)
+#macro AMY_CANON_TAROTDASH_RECHARGE (60 * 5)   // CD del impulso en modo superviviente (9 seg)
 #macro AMY_CANON_ETAROTDASH_RECHARGE (60 * 4)  // CD del impulso en modo demonizada (4 seg)
 #macro AMY_CANON_HJUMP_HITBOX_PAD 5      // px extra de hitbox del salto de martillo (~20% del sprite)
 #macro AMY_CANON_TAROTDASH_HITBOX_PAD 5  // px extra de hitbox del impulso aereo de tarot (~20% del sprite)

@@ -59,7 +59,7 @@
 // =====================================================================
 #macro AMELIA_MAXSPEED 11
 #macro AMELIA_ACC 0.046875
-#macro AMELIA_BANANA_RECHARGE (60 * 25)
+#macro AMELIA_BANANA_RECHARGE (60 * 20.5)
 #macro EAMELIA_BANANA_RECHARGE (60 * 10)
 // v3.0 (balance): recarga de la trampa 35 -> 24 s (pedido del usuario)
 #macro AMELIA_TRAP_RECHARGE (60 * 24)

@@ -37,7 +37,7 @@
 #macro BLAZE_BURNING_TIME (60 * 1.5)
 // v2.9 — GIRO DE FUEGO: fuerza del rebote contra el suelo (y 0.6x la
 // del techo, hacia abajo); altura similar a la del salto normal
-#macro BLAZE_BURN_BOUNCE 7.5
+#macro BLAZE_BURN_BOUNCE 8.5
 
 function scr_blaze_special()
 {

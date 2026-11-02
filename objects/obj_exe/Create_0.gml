@@ -1,6 +1,6 @@
 // Default player values
 
-#macro EXE_INVIS_RECHARGE -(60 * 20)
+#macro EXE_INVIS_RECHARGE -(60 * 14)
 #macro EXE_INVIS_DURATION (60 * 15)
 #macro EXE_MAXSPEED 12
 #macro EXE_ACC 0.056875

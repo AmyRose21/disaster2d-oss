@@ -1611,7 +1611,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         }
                         
                         game_spawn(v->server, (Entity*)(&(MakeBlackRing(x, y))), sizeof(BRing), NULL);
-                        v->plr_cooldowns[EXETIOR_BRING_SPAWN] = 10 * TICKSPERSEC;
+                        v->plr_cooldowns[EXETIOR_BRING_SPAWN] = 6.5 * TICKSPERSEC;
                         break;
                 }
 

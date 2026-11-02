@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Suite TD2D — Animaciones · Recargas · Imágenes · Servidor</title>
+<title>Suite TD2D — Animaciones · Recargas · Imágenes · Enfriamientos</title>
 <style>
 :root{
   --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
@@ -223,6 +223,36 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 .srvrow .obj{font-family:var(--mono);font-size:10px;color:var(--mut);word-break:break-all}
 .mono{font-family:var(--mono)}
 .mut{color:var(--mut)}
+/* v3.4 — módulo Enfriamientos (todos) */
+#cd-filters{display:flex;flex-wrap:wrap;gap:4px;padding:0 8px 8px}
+.cdfil{border:1px solid var(--line);background:var(--panel2);color:var(--mut);border-radius:10px;padding:3px 9px;font-size:11px;cursor:pointer}
+.cdfil.sel{border-color:var(--gold);color:var(--gold2);background:#2a2415}
+#cd-summary{padding:0 8px 8px}
+#cd-summary .cdsum{border:1px solid var(--line);border-radius:8px;background:var(--panel2);padding:7px 9px;font-size:11px;color:var(--txt);margin-bottom:6px}
+#cd-summary .cdsum b{color:var(--gold2)}
+#cd-summary .cdsum.warn{border-color:#8a4b2f;background:#2a1b12}
+#cd-summary .cdsum.ok{border-color:#2f5c3f}
+#cd-summary .cdsum .oktxt{color:#7fd9a4}
+#cd-group-list{flex:1;overflow-y:auto;padding:0 8px 8px}
+.cdgroup{display:flex;align-items:baseline;gap:6px;width:100%;text-align:left;border:none;background:transparent;color:var(--txt);padding:5px 8px;border-radius:7px;cursor:pointer;font-size:12.5px}
+.cdgroup:hover{background:var(--panel2)}
+.cdgroup.sel{background:#2a2415;color:var(--gold2)}
+.cdgroup .cnt{margin-left:auto;color:var(--mut);font-size:10.5px;font-family:var(--mono)}
+.cdgroup .srvtag{font-size:9.5px;font-family:var(--mono);border:1px solid var(--line);border-radius:6px;padding:0 5px;color:var(--mut)}
+.cdrow.cdrow-cli{cursor:default}
+.cdrow .who{font-size:9.5px;font-family:var(--mono);border-radius:6px;padding:1px 7px;border:1px solid var(--line);color:var(--mut)}
+.cdrow .who.srv{border-color:#6d5a22;color:var(--gold2);background:#2a2415}
+.cdrow .who.badge-e{border-color:#5a2f4a;color:#e79ad0;background:#2a1b24}
+.cdrow .who.frames{border-color:#2f4b5c;color:#8fd0e7}
+.cdrow .pairline{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.cdrow .pairline .sub{display:flex;gap:5px;align-items:center}
+.cdrow .pairline .sub input[type=number]{width:64px}
+.cdrow .sublbl{color:var(--mut);font-size:11px}
+.cdrow .rowbtns{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.cdrow .rowbtns .btn{padding:2px 10px;font-size:11px}
+#cd-scale-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:4px 0 8px}
+#cd-sub{color:var(--mut);font-size:11.5px;margin-bottom:6px}
+.cdrow.cdrow-cli .cdtop{cursor:default}
 #srv-side .note{font-size:11.5px;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px}
 #srv-side .note.warnnote{border-color:#8a4b2f;background:#2a1b12}
 #srv-side .note.oknote{border-color:#2f5c3f}
@@ -237,7 +267,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 <body>
 
 <header id="topbar">
-  <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes · server</span></div>
+  <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes · enfriamientos</span></div>
   <button id="btn-open" class="btn primary">Abrir carpeta del proyecto</button>
   <button id="btn-open-ro" class="btn">Elegir carpeta (solo lectura)</button>
   <button id="btn-demo" class="btn">Demo</button>
@@ -251,7 +281,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   <button class="mnav sel" data-mod="anim">🎬 Animaciones</button>
   <button class="mnav" data-mod="tune">⏱ Recargas y números</button>
   <button class="mnav" data-mod="img">🖼 Imágenes de habilidades</button>
-  <button class="mnav" data-mod="srv">🖥 Servidor</button>
+  <button class="mnav" data-mod="srv">❄️ Enfriamientos (todos)</button>
   <span id="modnav-note">tú mueves · el código se escribe solo</span>
 </nav>
 
@@ -450,14 +480,30 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 
 <div id="mod-srv" class="mod hidden">
   <aside class="side">
-    <div class="side-head">Servidor</div>
-    <div id="srv-side" style="flex:1;overflow-y:auto;padding:8px"></div>
+    <div class="side-head">Enfriamientos del juego</div>
+    <input id="cd-search" placeholder="Buscar… (ej: amelia, escudo, parry)" style="margin:6px;width:calc(100% - 12px)">
+    <div id="cd-filters">
+      <button class="cdfil sel" data-f="all">Todos</button>
+      <button class="cdfil" data-f="srv">🖥 Server</button>
+      <button class="cdfil" data-f="desync">⚠ Desincr.</button>
+      <button class="cdfil" data-f="demon">E Demoniz.</button>
+    </div>
+    <div id="cd-summary"></div>
+    <div id="cd-group-list"></div>
   </aside>
   <main class="mid">
-    <div id="srv-head" class="muted">recargas que el servidor impone de verdad (Game.c)</div>
+    <div id="cd-head" class="muted">todos los enfriamientos del juego — cliente y servidor</div>
     <div class="tunebox">
-      <h3>🖥 Recargas del servidor (C)</h3>
+      <h3 id="cd-title">Enfriamientos</h3>
+      <div id="cd-sub"></div>
+      <div id="cd-scale-row" class="hidden">
+        <span class="mut" style="font-size:11.5px">escala rápida de este grupo:</span>
+        <button id="cd-half" class="btn" style="padding:2px 10px">÷2</button>
+        <button id="cd-double" class="btn" style="padding:2px 10px">×2</button>
+        <button id="cd-reset" class="btn ghost" style="padding:2px 10px">deshacer cambios del grupo</button>
+      </div>
       <div id="srv-cd-rows"></div>
+      <div id="cd-rows"></div>
     </div>
   </main>
   <aside class="rightpane">
@@ -465,12 +511,12 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
       <h3>Cambios a escribir</h3>
       <div id="srv-edits"><div class="muted">nada todavía</div></div>
       <div id="srv-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-        <button id="srv-write" class="btn primary" style="flex:1;min-width:130px">Escribir en Game.c</button>
+        <button id="srv-write" class="btn primary" style="flex:1;min-width:130px">Escribir en los archivos</button>
         <button id="srv-undo">Deshacer último</button>
       </div>
     </section>
-    <section class="note">El <b>server</b> es quien decide de verdad: si el cliente manda la habilidad antes de que termine SU recarga, el paquete se <b>ignora en silencio</b> (sin kick, desde tu v2.1.3) y la habilidad «no sale». Regla de oro: recarga del cliente ≥ recarga del server. El panel izquierdo te avisa de las que estén desincronizadas.</section>
-    <section class="note">Tras <b>Escribir</b> recompila el server (<code>betterserver-oss/compilar_server.bat</code>) y reinícalo: el C no se recarga solo. Las animaciones y las macros del cliente no necesitan recompilar nada (F5 y listo).</section>
+    <section class="note">Cada fila dice quién la impone: <b>🖥 server</b> (C, se recompila) o <b>solo cliente</b> (macro GML, F5 y listo). Si el cliente manda la habilidad antes de que termine la recarga <b>del server</b>, el paquete se <b>ignora en silencio</b> y la habilidad «no sale»: eso es una fila ⚠ desincronizada, y el botón <b>«cuadrar»</b> la arregla al vuelo.</section>
+    <section class="note">Tras escribir macros del cliente basta recompilar el juego (F5). Si tocaste <b>Game.c</b>, recompila también el server (<code>betterserver-oss/compilar_server.bat</code>) y reinícalo: el C no se recarga solo. Siempre queda copia en <code>_backups_animeditor/</code> por archivo y botón de deshacer.</section>
   </aside>
 </div><!-- /mod-srv -->
 
@@ -504,11 +550,14 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   <p><b>Estados:</b> qué sprite usa cada estado del personaje (tabla <code>player_anims</code>): elígelo de un catálogo
   con miniaturas y se reescribe la tabla. <b>Objetos:</b> qué sprites usan los objetos del juego (trampas, huevos, balas…):
   pulsa uno y cámbialo igual. Ideal para descubrir mezclas de sprites sin cruzar los dedos.</p>
-  <h4>5. Módulo 🖥 Servidor</h4>
-  <p>Las recargas que de verdad impone el <b>server</b> viven en <code>betterserver-oss/disasterserver/states/Game.c</code>
-  (<code>v->plr_cooldowns[...] = N * TICKSPERSEC</code>). Edítalas aquí y verás al lado la macro del cliente emparejada:
-  si el cliente queda <b>por debajo</b> del server, la habilidad «no sale» (el server ignora el paquete) y se marca en rojo.
-  Bajar el server no requiere tocar el cliente; subirlo sí. Tras escribir: <b>recompila el server</b> y reinícalo.</p>
+  <h4>5. Módulo ❄️ Enfriamientos (todos)</h4>
+  <p><b>El inventario completo</b>: cada enfriamiento del juego en una sola lista — las ~55 macros del <b>cliente</b>
+  (<code>AMY_ATTACK_RECHARGE</code>, <code>SONIC_PARRY_CD_*</code>… en <code>objects/*/Create_0.gml</code> y <code>scripts/scr_*_special</code>)
+  <b>y</b> las que impone de verdad el <b>server</b> (<code>betterserver-oss/disasterserver/states/Game.c</code>,
+  <code>v->plr_cooldowns[...] = N * TICKSPERSEC</code>). Elige personaje a la izquierda: cada fila dice quién la impone y,
+  si es de las emparejadas, trae el chip de sincronía: cliente <b>por debajo</b> del server = habilidad «no sale» (marcada ⚠,
+  con botón <b>cuadrar</b>). Hay filtros (server / desincronizadas / demonizadas), búsqueda y escala ÷2 ×2 por personaje.
+  Las E-marcos (EXE…) son la versión demonizada. Tras escribir: macros → F5; Game.c → <b>recompila el server</b> y reinícalo.</p>
   <h4>6. Escribir (todos los módulos)</h4>
   <p>El panel derecho muestra el antes/después exacto de cada archivo. <b>Escribir</b> guarda una copia en
   <code>_backups_animeditor/</code> y tiene botón de deshacer. Después compila el juego (F5).
@@ -1544,18 +1593,71 @@ async function startDemo() {
       '        spr_chapo_idle, //14 = CHAPO_DASH\n' +
       '];\n\n' +
       'switch(argument0)\n{\n\tcase CHARACTER_CHAPO:\n\t\treturn obj_chapo;\n}',
-    // demo del modulo Servidor (v3.3): Game.c + macros emparejadas
+    // demo del modulo Enfriamientos v3.4: Game.c con las formas REALES
+    // del repo (todas simples; Tails via cooldown_id ternario)
     'betterserver-oss/disasterserver/states/Game.c':
       'int cooldown_id = v->plr.flags & PLAYER_DEMONIZED ? ETAILS_RECHARGE : TAILS_RECHARGE;\n' +
       'v->plr_cooldowns[cooldown_id] = 10 * TICKSPERSEC;\n' +
-      'v->plr_cooldowns[CREAM_RING_SPAWN] = (v->surv_char == CH_AMY_CANON ? 6 : 10) * TICKSPERSEC;\n' +
+      'v->plr_cooldowns[CREAM_RING_SPAWN] = 10 * TICKSPERSEC;\n' +
       'v->plr_cooldowns[AMELIA_BANANA_SPAWN] = 20 * TICKSPERSEC;\n' +
-      'v->plr_cooldowns[AMELIA_TRAP_SPAWN] = 15 * TICKSPERSEC;\n',
+      'v->plr_cooldowns[AMELIA_TRAP_SPAWN] = 15 * TICKSPERSEC;\n' +
+      'v->plr_cooldowns[BLAZE_FIREBALL_SPAWN] = 4 * TICKSPERSEC;\n' +
+      'v->plr_cooldowns[METALAMY_BULLET] = 7 * TICKSPERSEC;\n' +
+      'v->plr_cooldowns[EGGTRACK_RECHARGE] = 10 * TICKSPERSEC;\n' +
+      'v->plr_cooldowns[EXETIOR_BRING_SPAWN] = 10 * TICKSPERSEC;\n',
+    // demo del modulo Enfriamientos v3.4: TODAS las macros reales del repo
+    // (valores verificados contra objects/*/Create_0.gml y scripts/scr_*_special)
     'objects/obj_tails/Create_0.gml':
       '#macro TAILS_ATTACK_RECHARGE  (23 * 60)\n#macro ETAILS_ATTACK_RECHARGE (12 * 60)\n',
     'scripts/scr_amelia_special/scr_amelia_special.gml':
       '#macro AMELIA_BANANA_RECHARGE (60 * 25)\n#macro EAMELIA_BANANA_RECHARGE (60 * 10)\n' +
-      '#macro AMELIA_TRAP_RECHARGE (60 * 24)\n#macro EAMELIA_TRAP_RECHARGE (60 * 15)\n'
+      '#macro AMELIA_TRAP_RECHARGE (60 * 24)\n#macro EAMELIA_TRAP_RECHARGE (60 * 15)\n',
+    'objects/obj_amy/Create_0.gml':
+      '#macro AMY_ATTACK_RECHARGE (60 * 20)\n#macro AMY_EXEATTACK_RECHARGE (60 * 5)\n#macro AMY_BIGJUMP_RECHARGE (60 * 9)\n',
+    'objects/obj_amy_canon/Create_0.gml':
+      '#macro AMY_CANON_ATTACK_RECHARGE (60 * 20)\n#macro AMY_CANON_EXEATTACK_RECHARGE (60 * 5)\n#macro AMY_CANON_BIGJUMP_RECHARGE (60 * 9)\n' +
+      '#macro AMY_CANON_DASH_RECHARGE (60 * 15)\n#macro AMY_CANON_EDASH_RECHARGE (60 * 5)\n' +
+      '#macro AMY_CANON_TAROTDASH_RECHARGE (60 * 9)\n#macro AMY_CANON_ETAROTDASH_RECHARGE (60 * 4)\n',
+    'objects/obj_chaos/Create_0.gml':
+      '#macro CHAOS_INVIS_RECHARGE (60 * 20)\n',
+    'objects/obj_cream/Create_0.gml':
+      '#macro CREAM_FLY_RECHARGE (60 * 15)\n#macro CREAM_DASH_RECHARGE (60 * 30)\n' +
+      '#macro CREAM_RINGS_RECHARGE (60 * 40)\n#macro ECREAM_RINGS_RECHARGE (60 * 30)\n',
+    'objects/obj_egg/Create_0.gml':
+      '#macro EGGMAN_DJUMP_RECHARGE (60 * 10)\n#macro EGGMAN_TRACKER_RECHARGE (60 * 30)\n' +
+      '#macro EGGMAN_SHIELD_RECHARGE (60 * 20)\n#macro EEGGMAN_SHIELD_RECHARGE (60 * 7)\n',
+    'objects/obj_exe/Create_0.gml':
+      '#macro EXE_INVIS_RECHARGE -(60 * 20)\n',
+    'objects/obj_exeller/Create_0.gml':
+      '#macro EXELLER_CLONE_RECHARGE (60 * 30)\n',
+    'objects/obj_exetior/Create_0.gml':
+      '#macro EXETIOR_BRING_RECHARGE (42 * 60)\n',
+    'objects/obj_knux/Create_0.gml':
+      '#macro KNUX_ATTACK_RECHARGE (60 * 20)\n#macro KNUX_EXEATTACK_RECHARGE (60 * 5)\n#macro KNUX_GLIDE_RECHARGE (60 * 15)\n',
+    'objects/obj_sally/Create_0.gml':
+      '#macro SALLY_EATTACK_RECHARGE (60 * 4)\n#macro SALLY_ATTACK_RECHARGE (60 * 15)\n' +
+      '#macro SALLY_SHIELD_RECHARGE (60 * 30)\n#macro SALLY_ESHIELD_RECHARGE (60 * 15)\n',
+    'objects/obj_sonic/Create_0.gml':
+      '#macro SONIC_ATTACK_RECHARGE (60 * 20)\n#macro SONIC_EATTACK_RECHARGE (60 * 5)\n',
+    'objects/obj_vanilla/Create_0.gml':
+      '#macro VANILLA_FLY_RECHARGE (60 * 15)\n#macro VANILLA_DASH_RECHARGE (60 * 30)\n' +
+      '#macro VANILLA_RINGS_RECHARGE (60 * 15)\n#macro EVANILLA_RINGS_RECHARGE (60 * 10)\n',
+    'scripts/scr_blaze_special/scr_blaze_special.gml':
+      '#macro BLAZE_DJUMP_RECHARGE (60 * 12)\n#macro EBLAZE_DJUMP_RECHARGE (60 * 6)\n' +
+      '#macro BLAZE_FIREBALL_RECHARGE (60 * 9)\n#macro EBLAZE_FIREBALL_RECHARGE (60 * 4)\n' +
+      '#macro BLAZE_BURNING_RECHARGE (60 * 30)\n#macro EBLAZE_BURNING_RECHARGE (60 * 12)\n',
+    'scripts/scr_metal_special/scr_metal_special.gml':
+      '#macro METAL_OVERDRIVE_RECHARGE (60 * 40)\n#macro EMETAL_OVERDRIVE_RECHARGE (60 * 15)\n' +
+      '#macro METAL_ELECTRO_RECHARGE (60 * 30)\n#macro EMETAL_ELECTRO_RECHARGE (60 * 12)\n',
+    'scripts/scr_metalamy_special/scr_metalamy_special.gml':
+      '#macro METALAMY_BULLET_RECHARGE (60 * 8)\n',
+    'scripts/scr_parry/scr_parry.gml':
+      '#macro SONIC_PARRY_CD_FAIL (60 * 14)\n#macro SONIC_PARRY_CD_OK (60 * 7)\n' +
+      '#macro SONIC_PARRY_CD_FAIL_PB (60 * 10)\n#macro SONIC_PARRY_CD_OK_PB (60 * 2)\n',
+    'scripts/scr_carry/scr_carry.gml':
+      '#macro CARRY_REGRAB_CD    120   // frames sin poder re-agarrarse tras soltarse (2 seg)\n',
+    'scripts/scr_chocola/scr_chocola.gml':
+      '#macro VANILLA_CHOCOLA_CD (60 * 2.5)\n#macro VANILLA_DEDEMON_SEND_CD 2\n'
   }));
   S.chars = [{
     key: 'CHARACTER_CHAPO', name: 'CHAPO', idx: 0, obj: 'obj_chapo',
@@ -2360,6 +2462,11 @@ const esc = T.esc, toast = T.toast;
 
 function switchModule(mod) {
   if (S.module === mod) return;
+  let discarded = false;
+  if ((S.edits || []).length) {
+    if (!confirm('Hay ' + S.edits.length + ' cambio(s) sin escribir en este módulo.\nSi cambias de módulo ahora se descartan (los archivos no se han tocado).\n\n¿Cambiar de módulo?')) return;
+    discarded = true;
+  }
   S.module = mod;
   $$('#modnav .mnav').forEach(b => b.classList.toggle('sel', b.dataset.mod === mod));
   $('#mod-anim').classList.toggle('hidden', mod !== 'anim');
@@ -2367,6 +2474,7 @@ function switchModule(mod) {
   $('#mod-img').classList.toggle('hidden', mod !== 'img');
   $('#mod-srv').classList.toggle('hidden', mod !== 'srv');
   S.pendingFiles = {}; S.edits = [];
+  if (discarded && typeof T.discardModulePending === 'function') T.discardModulePending();
   if (mod === 'anim') computeAnimAgain();
   else if (mod === 'tune') enterTune();
   else if (mod === 'srv' && T.enterSrv) T.enterSrv();
@@ -3328,14 +3436,15 @@ init3();
 
 </script>
 <script>
-/* ===== Suite TD2D — parte 4: módulo «🖥 Servidor» =====
-   Edita las recargas que el SERVIDOR impone de verdad (C, Game.c):
-       v->plr_cooldowns[ID] = N * TICKSPERSEC;      (TICKSPERSEC = 60 -> N son segundos)
-   Para cada una muestra al lado la macro del CLIENTE emparejada y avisa
-   si el cliente queda por DEBAJO del server (el paquete se ignora en
-   silencio y la habilidad «no sale»). Misma escritura segura que el
-   resto de la suite: diff, copia en _backups_animeditor/ y deshacer.
-   Tras escribir hay que recompilar el server y reiniciarlo. */
+/* ===== Suite TD2D — parte 4 (v3.4): módulo «❄ Enfriamientos (todos)» =====
+   El inventario COMPLETO de enfriamientos del juego:
+     · lado SERVIDOR (C):  v->plr_cooldowns[ID] = N * TICKSPERSEC;  (Game.c)
+     · lado CLIENTE  (GML): #macro X_RECHARGE (60 * N) / (N * 60) / -(60 * N)
+                            y _CD en frames  (objects/.../Create_0.gml y scripts/scr_...)
+   Cada fila declara quién la impone; las emparejadas traen chip de sincronía
+   (cliente por debajo del server = la habilidad «no sale», con botón cuadrar).
+   Misma escritura segura que el resto de la suite: diff por archivo, copia en
+   _backups_animeditor/ y deshacer. Tras tocar Game.c: recompilar el server. */
 (() => {
 'use strict';
 const C = window.AnimCore;
@@ -3347,12 +3456,12 @@ const esc = T.esc, toast = T.toast;
 
 const GAME_C = 'betterserver-oss/disasterserver/states/Game.c';
 
-/* emparejamiento: id de cooldown del server <-> macros del cliente (GML).
-   Fuente: Game.c (asserts + asignaciones) y los Create_0/scr_*_special. */
+/* ---------- emparejamiento: id de cooldown del server <-> macros del cliente.
+   Fuente: Game.c (asserts + asignaciones) y los Create_0 / scr_*_special. */
 const SRV_PAIR = {
   TAILS_RECHARGE:       { label: 'Láser de Tails', macros: ['TAILS_ATTACK_RECHARGE', 'ETAILS_ATTACK_RECHARGE'], note: 'superviviente y demonizado comparten la misma línea del server' },
   ETAILS_RECHARGE:      { label: 'Láser de Tails', macros: ['TAILS_ATTACK_RECHARGE', 'ETAILS_ATTACK_RECHARGE'], note: 'superviviente y demonizado comparten la misma línea del server' },
-  CREAM_RING_SPAWN:     { label: 'Anillos (Cream / Vanilla)', macros: ['CREAM_RINGS_RECHARGE', 'ECREAM_RINGS_RECHARGE', 'VANILLA_RINGS_RECHARGE', 'EVANILLA_RINGS_RECHARGE'] },
+  CREAM_RING_SPAWN:     { label: 'Anillos (Cream / Vanilla)', macros: ['CREAM_RINGS_RECHARGE', 'ECREAM_RINGS_RECHARGE', 'VANILLA_RINGS_RECHARGE', 'EVANILLA_RINGS_RECHARGE'], note: 'anti-spam por jugador: 10 s = la recarga legítima más corta (Vanilla demonizada)' },
   AMELIA_BANANA_SPAWN:  { label: 'Plátano de Amelia', macros: ['AMELIA_BANANA_RECHARGE', 'EAMELIA_BANANA_RECHARGE'] },
   AMELIA_TRAP_SPAWN:    { label: 'Trampa de Amelia', macros: ['AMELIA_TRAP_RECHARGE', 'EAMELIA_TRAP_RECHARGE'] },
   BLAZE_FIREBALL_SPAWN: { label: 'Bola de fuego de Blaze', macros: ['BLAZE_FIREBALL_RECHARGE', 'EBLAZE_FIREBALL_RECHARGE'] },
@@ -3362,42 +3471,141 @@ const SRV_PAIR = {
   EXELLER_CLONE_SPAWN:  { label: 'Clon de Exeller', macros: ['EXELLER_CLONE_RECHARGE'], note: 'definido en el enum del server pero NUNCA se comprueba: solo lo frena el cliente' },
 };
 
-/* archivos GML donde viven esas macros (relativos a la raíz del proyecto) */
-const CLI_FILES = [
-  'objects/obj_tails/Create_0.gml',
+/* macro -> ids del server que la limitan */
+const MACRO_TO_IDS = {};
+for (const id of Object.keys(SRV_PAIR)) {
+  for (const mn of SRV_PAIR[id].macros) {
+    if (!MACRO_TO_IDS[mn]) MACRO_TO_IDS[mn] = [];
+    MACRO_TO_IDS[mn].push(id);
+  }
+}
+
+/* ---------- inventario de archivos del cliente con enfriamientos ---------- */
+const CD_FILES = [
+  'objects/obj_amy/Create_0.gml',
+  'objects/obj_amy_canon/Create_0.gml',
+  'objects/obj_chaos/Create_0.gml',
   'objects/obj_cream/Create_0.gml',
-  'objects/obj_vanilla/Create_0.gml',
   'objects/obj_egg/Create_0.gml',
-  'objects/obj_exetior/Create_0.gml',
+  'objects/obj_exe/Create_0.gml',
   'objects/obj_exeller/Create_0.gml',
+  'objects/obj_exetior/Create_0.gml',
+  'objects/obj_knux/Create_0.gml',
+  'objects/obj_sally/Create_0.gml',
+  'objects/obj_sonic/Create_0.gml',
+  'objects/obj_tails/Create_0.gml',
+  'objects/obj_vanilla/Create_0.gml',
   'scripts/scr_amelia_special/scr_amelia_special.gml',
   'scripts/scr_blaze_special/scr_blaze_special.gml',
+  'scripts/scr_carry/scr_carry.gml',
+  'scripts/scr_chocola/scr_chocola.gml',
+  'scripts/scr_metal_special/scr_metal_special.gml',
   'scripts/scr_metalamy_special/scr_metalamy_special.gml',
+  'scripts/scr_parry/scr_parry.gml',
 ];
+
+const CD_GROUPS = [
+  { key: 'srv',     label: '🖥 Servidor (Game.c)', isSrv: true },
+  { key: 'amy',     label: 'Amy',           files: ['objects/obj_amy/Create_0.gml'] },
+  { key: 'amyc',    label: 'Amy (canon)',   files: ['objects/obj_amy_canon/Create_0.gml'] },
+  { key: 'amelia',  label: 'Amelia',        files: ['scripts/scr_amelia_special/scr_amelia_special.gml'] },
+  { key: 'blaze',   label: 'Blaze',         files: ['scripts/scr_blaze_special/scr_blaze_special.gml'] },
+  { key: 'chaos',   label: 'Chaos',         files: ['objects/obj_chaos/Create_0.gml'] },
+  { key: 'cream',   label: 'Cream',         files: ['objects/obj_cream/Create_0.gml'] },
+  { key: 'egg',     label: 'Eggman',        files: ['objects/obj_egg/Create_0.gml'] },
+  { key: 'exe',     label: 'EXE',           files: ['objects/obj_exe/Create_0.gml'] },
+  { key: 'exeller', label: 'Exeller',       files: ['objects/obj_exeller/Create_0.gml'] },
+  { key: 'exetior', label: 'Exetior',       files: ['objects/obj_exetior/Create_0.gml'] },
+  { key: 'knux',    label: 'Knuckles',      files: ['objects/obj_knux/Create_0.gml'] },
+  { key: 'metal',   label: 'Metal',         files: ['scripts/scr_metal_special/scr_metal_special.gml'] },
+  { key: 'mamy',    label: 'Metal Amy',     files: ['scripts/scr_metalamy_special/scr_metalamy_special.gml'] },
+  { key: 'sally',   label: 'Sally',         files: ['objects/obj_sally/Create_0.gml'] },
+  { key: 'sonic',   label: 'Sonic',         files: ['objects/obj_sonic/Create_0.gml', 'scripts/scr_parry/scr_parry.gml'] },
+  { key: 'tails',   label: 'Tails',         files: ['objects/obj_tails/Create_0.gml'] },
+  { key: 'vanilla', label: 'Vanilla',       files: ['objects/obj_vanilla/Create_0.gml', 'scripts/scr_chocola/scr_chocola.gml'] },
+  { key: 'sistem',  label: 'Sistema (agarre)', files: ['scripts/scr_carry/scr_carry.gml'] },
+];
+
+/* parejas verificadas: [base, versión demonizada] */
+const DEMON_PAIRS = [
+  ['AMY_ATTACK_RECHARGE', 'AMY_EXEATTACK_RECHARGE'],
+  ['AMY_CANON_ATTACK_RECHARGE', 'AMY_CANON_EXEATTACK_RECHARGE'],
+  ['AMY_CANON_DASH_RECHARGE', 'AMY_CANON_EDASH_RECHARGE'],
+  ['AMY_CANON_TAROTDASH_RECHARGE', 'AMY_CANON_ETAROTDASH_RECHARGE'],
+  ['SALLY_ATTACK_RECHARGE', 'SALLY_EATTACK_RECHARGE'],
+  ['SALLY_SHIELD_RECHARGE', 'SALLY_ESHIELD_RECHARGE'],
+  ['SONIC_ATTACK_RECHARGE', 'SONIC_EATTACK_RECHARGE'],
+  ['KNUX_ATTACK_RECHARGE', 'KNUX_EXEATTACK_RECHARGE'],
+  ['TAILS_ATTACK_RECHARGE', 'ETAILS_ATTACK_RECHARGE'],
+  ['CREAM_RINGS_RECHARGE', 'ECREAM_RINGS_RECHARGE'],
+  ['VANILLA_RINGS_RECHARGE', 'EVANILLA_RINGS_RECHARGE'],
+  ['EGGMAN_SHIELD_RECHARGE', 'EEGGMAN_SHIELD_RECHARGE'],
+  ['AMELIA_BANANA_RECHARGE', 'EAMELIA_BANANA_RECHARGE'],
+  ['AMELIA_TRAP_RECHARGE', 'EAMELIA_TRAP_RECHARGE'],
+  ['BLAZE_DJUMP_RECHARGE', 'EBLAZE_DJUMP_RECHARGE'],
+  ['BLAZE_FIREBALL_RECHARGE', 'EBLAZE_FIREBALL_RECHARGE'],
+  ['BLAZE_BURNING_RECHARGE', 'EBLAZE_BURNING_RECHARGE'],
+  ['METAL_OVERDRIVE_RECHARGE', 'EMETAL_OVERDRIVE_RECHARGE'],
+  ['METAL_ELECTRO_RECHARGE', 'EMETAL_ELECTRO_RECHARGE'],
+];
+/* parejas verificadas: [base, versión en fase powerboost] */
+const PB_PAIRS = [
+  ['SONIC_PARRY_CD_FAIL', 'SONIC_PARRY_CD_FAIL_PB'],
+  ['SONIC_PARRY_CD_OK', 'SONIC_PARRY_CD_OK_PB'],
+];
+
+const LABEL_TOKENS = {
+  ATTACK: 'Ataque', BIGJUMP: 'Salto grande', DJUMP: 'Doble salto', JUMP: 'Salto',
+  SHIELD: 'Escudo', INVIS: 'Invisibilidad', FLY: 'Vuelo', DASH: 'Acometida',
+  TAROTDASH: 'Impulso del tarot', GLIDE: 'Planeo', RINGS: 'Anillos',
+  TRACKER: 'Rastreador', CLONE: 'Clon', BRING: 'Invocación', BANANA: 'Plátano',
+  TRAP: 'Trampa', FIREBALL: 'Bola de fuego', BURNING: 'Modo ardiente',
+  OVERDRIVE: 'Overdrive', ELECTRO: 'Electro', BULLET: 'Bala', REGRAB: 'Re-agarre',
+  CHOCOLA: 'Chocola (bloqueo/ataque)', DEDEMON_SEND: 'Cadencia de red (dedemon.)',
+};
+
+function friendlyName(name) {
+  if (name.indexOf('PARRY') >= 0) {
+    const ok = /_OK/.test(name), pb = /_PB/.test(name);
+    return 'Parry ' + (ok ? 'logrado' : 'fallado') + (pb ? ' · powerboost' : '');
+  }
+  const n = name.replace(/_RECHARGE$/, '').replace(/_CD$/, '');
+  const parts = n.split('_');
+  for (let i = 0; i < parts.length; i++) {
+    const tail = parts.slice(i).join('_');
+    if (LABEL_TOKENS[tail]) return LABEL_TOKENS[tail];
+  }
+  return n;
+}
+
+/* ------------------------------ estado ------------------------------ */
 
 const Srv = {
   found: false,
   orig: '', working: '',
   origLines: [],
   entries: [],        // de Game.c (+ fantasmas del enum sin uso)
-  cli: {},            // macroName -> { seconds, sign, file }
   changes: [],
 };
 
-/* --------------------------------- carga --------------------------------- */
+const Cd = {
+  loaded: false,
+  discovered: false,
+  files: {},          // rel -> { orig, work, found }
+  macros: [],         // entradas parseadas (con metadatos de pareja)
+  groups: [],         // CD_GROUPS + 'otros'
+  sel: 'srv',
+  filter: 'all',
+  q: '',
+};
 
-async function enterSrv() {
-  if (Srv.orig) { renderSrvAll(); return; }
-  await loadSrv();
-  renderSrvAll();
-}
+/* --------------------------- lado servidor --------------------------- */
 
 async function loadSrv() {
   const txt = await T.readText(GAME_C);
   if (txt == null) {
     Srv.found = false; Srv.orig = ''; Srv.working = ''; Srv.origLines = [];
-    Srv.entries = []; Srv.cli = {}; Srv.changes = [];
-    S.pendingFiles = {}; S.edits = [];
+    Srv.entries = []; Srv.changes = [];
     return;
   }
   Srv.found = true;
@@ -3415,20 +3623,8 @@ async function loadSrv() {
     ghostKeys.add(key);
     Srv.entries.push({ line: -1, ids: [id], expr: null, ternary: false, secs: null, ghost: true });
   }
-  // macros del cliente emparejadas
-  Srv.cli = {};
-  for (const rel of CLI_FILES) {
-    const t = await T.readText(rel);
-    if (t == null) continue;
-    for (const m of C.parseMacros(t)) {
-      if (!Srv.cli[m.name]) Srv.cli[m.name] = { seconds: m.seconds, sign: m.sign, file: rel };
-    }
-  }
-  Srv.changes = [];
-  S.pendingFiles = {}; S.edits = [];
 }
 
-/* valores actuales de una entrada (lee la línea del texto de trabajo) */
 function lineSecs(lineText) {
   if (lineText == null) return null;
   const sm = lineText.match(/=\s*(\d+(?:\.\d+)?)\s*\*\s*TICKSPERSEC\s*;/);
@@ -3445,7 +3641,6 @@ function origSecs(e) {
   if (e.ghost) return null;
   return lineSecs(Srv.origLines[e.line]);
 }
-// piso del server que aplica a las macros genéricas (rama «resto» del ternario)
 function floorOf(e, secs) {
   if (!secs) return null;
   return e.ternary ? secs[1] : secs[0];
@@ -3466,103 +3661,390 @@ function entryView(e) {
   };
 }
 
-/* --------------------------------- render --------------------------------- */
-
-function renderSrvAll() {
-  renderSrvSide();
-  renderSrvRows();
-  renderSrvEdits();
-  $('#srv-write').disabled = S.mode !== 'fs';
-  $('#srv-undo').disabled = !S.undo.length;
-}
-
-function renderSrvSide() {
-  const host = $('#srv-side');
-  if (!Srv.found) {
-    host.innerHTML =
-      '<div class="note" style="margin:0 0 8px">' +
-      (S.mode ? 'No encuentro <code>' + esc(GAME_C) + '</code>.<br><br>' +
-        'Abre la carpeta <b>raíz</b> del proyecto (la que contiene <code>objects/</code> y <code>betterserver-oss/</code>), no la del server suelta.' :
-        'abre tu proyecto primero') +
-      '</div>';
-    return;
-  }
-  // resumen de desyncs: macros del cliente por debajo del piso del server
-  let desyncs = 0, dh = '';
+/* piso del server que aplica a una macro concreta del cliente */
+function macroFloor(name) {
+  const ids = MACRO_TO_IDS[name];
+  if (!ids) return null;
   for (const e of Srv.entries) {
     if (e.ghost) continue;
-    const secs = curSecs(e);
-    const floor = floorOf(e, secs);
-    if (floor == null) continue;
-    const v = entryView(e);
-    for (const mn of v.macros) {
-      const m = Srv.cli[mn];
-      if (!m) continue;
-      const mac = Math.abs(m.seconds);
-      if (mac < floor) {
-        desyncs++;
-        dh += '<div class="desync">' + esc(mn) + ' <b>' + mac + ' s</b> &lt; server ' + floor + ' s → <b>' + (floor - mac) + ' s muertos</b></div>';
-      }
-    }
+    if (!e.ids.some(id => ids.includes(id))) continue;
+    const floor = floorOf(e, curSecs(e));
+    if (floor != null) return floor;
   }
-  host.innerHTML =
-    '<div class="note" style="margin:0 0 8px"><b>Game.c</b> del server: <span class="oktxt">' + Srv.entries.filter(e => !e.ghost).length + ' recargas impuestas</span>' +
-    (Srv.entries.some(e => e.ghost) ? '<br><span class="mut">' + Srv.entries.filter(e => e.ghost).length + ' sin uso (solo cliente)</span>' : '') + '</div>' +
-    '<div class="side-head" style="padding:4px 0 2px">Desincronizadas</div>' +
-    (desyncs
-      ? '<div class="note warnnote">' + dh + '</div><div class="note" style="margin-top:6px">Esas habilidades «no salen» en la franja marcada: el cliente ya las deja usar, pero el server tira el paquete. Baja el valor del server (o sube la macro) para cuadrarlas.</div>'
-      : '<div class="note oknote">ninguna: todas las recargas del cliente están por encima del server ✓</div>') +
-    '<div class="side-head" style="padding:10px 0 2px">Cómo funciona</div>' +
-    '<div class="note" style="margin:0"><b>TICKSPERSEC = 60</b>: el número que editas son segundos.<br><br>' +
-    'La macro del <b>cliente</b> decide cuándo VES la habilidad lista; la constante del <b>server</b> decide cuándo la deja pasar. Cliente ≥ server y todo fluye.</div>';
+  return null;
 }
 
-function chipHTML(mn, mac, floor, file) {
+/* --------------------------- lado cliente --------------------------- */
+
+function isCdMacro(name) { return /(RECHARGE|CD|COOLDOWN)/.test(name); }
+
+async function loadCd() {
+  Cd.files = {}; Cd.macros = []; Cd.groups = [];
+  for (const rel of CD_FILES) {
+    const t = await T.readText(rel);
+    Cd.files[rel] = { orig: t, work: t, found: t != null };
+  }
+  refreshRegistry();
+}
+
+/* relee las macros de los textos de trabajo y reconstruye parejas y grupos */
+function refreshRegistry() {
+  Cd.macros = [];
+  for (const rel of Object.keys(Cd.files)) {
+    const f = Cd.files[rel];
+    if (f.work == null) continue;
+    for (const m of C.parseMacros(f.work)) {
+      if (!isCdMacro(m.name)) continue;
+      m.rel = rel;
+      m.role = 'base'; m.subs = []; m.subKind = null;
+      Cd.macros.push(m);
+    }
+  }
+  const byName = new Map(Cd.macros.map(m => [m.name, m]));
+  const paired = new Set();
+  for (const pr of DEMON_PAIRS) {
+    const b = byName.get(pr[0]), d = byName.get(pr[1]);
+    if (b && d) { d.role = 'sub'; d.subKind = 'demon'; b.subs.push(d); paired.add(pr[0]); paired.add(pr[1]); }
+  }
+  for (const pr of PB_PAIRS) {
+    const b = byName.get(pr[0]), d = byName.get(pr[1]);
+    if (b && d) { d.role = 'sub'; d.subKind = 'pb'; b.subs.push(d); paired.add(pr[0]); paired.add(pr[1]); }
+  }
+  // regla automática para macros nuevas: E<nombre> es la versión demonizada
+  for (const m of Cd.macros) {
+    if (m.role !== 'base' || paired.has(m.name)) continue;
+    if (!/^E[A-Z]/.test(m.name)) continue;
+    const cand = m.name.replace(/^E(?=[A-Z])/, '');
+    const d = byName.get(cand);
+    if (d && d.role === 'base' && d.rel === m.rel && !paired.has(d.name)) {
+      d.role = 'sub'; d.subKind = 'demon'; m.subs.push(d);
+    }
+  }
+  // grupos
+  Cd.groups = CD_GROUPS.map(g => ({ ...g }));
+  const known = new Set();
+  for (const g of Cd.groups) (g.files || []).forEach(f => known.add(f));
+  const others = [];
+  for (const rel of Object.keys(Cd.files)) {
+    if (known.has(rel)) continue;
+    const has = Cd.macros.some(m => m.rel === rel);
+    if (has) others.push(rel);
+  }
+  if (others.length) Cd.groups.push({ key: 'otros', label: 'Otros (encontrados al escanear)', files: others });
+}
+
+function groupOfRel(rel) {
+  for (const g of Cd.groups) {
+    if (g.files && g.files.includes(rel)) return g;
+  }
+  return null;
+}
+
+function macroByName(name) {
+  for (const m of Cd.macros) if (m.name === name) return m;
+  return null;
+}
+
+/* --------------------------- edición cliente --------------------------- */
+
+async function setMacroVal(rel, name, patch) {
+  const f = Cd.files[rel];
+  if (!f || f.orig == null) { toast('Archivo no encontrado: ' + rel, 'err'); return false; }
+  const r = C.setMacro(f.work, name, patch);
+  if (!r.changed) { toast('No pude cambiar la macro ' + name + ' (' + (r.error || '?') + ')', 'err'); return false; }
+  f.work = r.gml;
+  refreshRegistry();
+  rebuildCdChanges();
+  return true;
+}
+
+async function setMacroSec(rel, name, secs) {
+  return setMacroVal(rel, name, { seconds: Math.max(0, secs) });
+}
+
+/* --------------------------- cambios unificados --------------------------- */
+
+function changedLinesDiff(before, after) {
+  const a = String(before).split(/\r?\n/), b = String(after).split(/\r?\n/);
+  const out = [];
+  const n = Math.max(a.length, b.length);
+  for (let i = 0; i < n; i++) {
+    if (a[i] !== b[i]) {
+      if (a[i] != null) out.push({ t: '-', s: a[i] });
+      if (b[i] != null) out.push({ t: '+', s: b[i] });
+    }
+  }
+  return out;
+}
+
+function rebuildCdChanges() {
+  const ch = [];
+  // servidor
+  Srv.changes = [];
+  if (Srv.found) {
+    const wl = Srv.working.split(/\r?\n/);
+    for (const e of Srv.entries) {
+      if (e.ghost || e.line < 0 || e.secs == null) continue;
+      const before = Srv.origLines[e.line], after = wl[e.line];
+      if (before !== after) {
+        const v = entryView(e);
+        Srv.changes.push({ rel: GAME_C, name: v.label, dynamic: false, before: before.trim(), after: after.trim() });
+      }
+    }
+    if (Srv.changes.length) {
+      ch.push({ rel: GAME_C, name: 'Game.c', before: Srv.orig, after: Srv.working, lines: changedLinesDiff(Srv.orig, Srv.working) });
+    }
+  }
+  // cliente
+  for (const rel of Object.keys(Cd.files)) {
+    const f = Cd.files[rel];
+    if (f.orig == null || f.work === f.orig) continue;
+    ch.push({ rel: rel, name: null, before: f.orig, after: f.work, lines: changedLinesDiff(f.orig, f.work) });
+  }
+  S.edits = ch;
+  S.pendingFiles = {};
+  for (const c of ch) S.pendingFiles[c.rel] = c.rel === GAME_C ? Srv.working : Cd.files[c.rel].work;
+}
+
+/* --------------------------- render: lateral --------------------------- */
+
+function macroRowModels() {
+  // filas = macros 'base' con sus subs; devuelve [{ base, subs, group, hasSrv, desync }]
+  const rows = [];
+  for (const m of Cd.macros) {
+    if (m.role !== 'base') continue;
+    const g = groupOfRel(m.rel);
+    if (!g) continue;
+    rows.push({ base: m, subs: m.subs.slice(), group: g });
+  }
+  for (const r of rows) {
+    r.hasSrv = !!(MACRO_TO_IDS[r.base.name] || r.subs.some(s => MACRO_TO_IDS[s.name]));
+    r.hasDemon = r.subs.some(s => s.subKind === 'demon');
+    r.desync = macrosOfRow(r).some(mm => {
+      if (mm.kind !== 'sec') return false;
+      const floor = macroFloor(mm.name);
+      return floor != null && Math.abs(mm.seconds || 0) < floor;
+    });
+    r.missing = false;
+  }
+  return rows;
+}
+function macrosOfRow(r) { return [r.base].concat(r.subs); }
+
+function rowMatchesFilter(r) {
+  if (Cd.filter === 'srv') return r.hasSrv;
+  if (Cd.filter === 'desync') return r.desync;
+  if (Cd.filter === 'demon') return r.hasDemon;
+  return true;
+}
+function rowMatchesSearch(r) {
+  if (!Cd.q) return true;
+  const q = Cd.q.toLowerCase();
+  const hay = macrosOfRow(r).map(m => m.name + ' ' + (m.comment || '') + ' ' + m.rel).join(' ');
+  return hay.toLowerCase().indexOf(q) >= 0 || friendlyName(r.base.name).toLowerCase().indexOf(q) >= 0;
+}
+function rowVisible(r) { return rowMatchesFilter(r) && rowMatchesSearch(r); }
+
+function renderCdSide() {
+  // resumen
+  const host = $('#cd-summary');
+  const rows = macroRowModels();
+  const nMac = Cd.macros.length;
+  const nSrv = Srv.entries.filter(e => !e.ghost).length;
+  const desyncRows = rows.filter(r => r.desync);
+  let html =
+    '<div class="cdsum"><b>' + nMac + '</b> enfriamientos de cliente en <b>' +
+    Object.keys(Cd.files).filter(k => Cd.files[k].found).length + '</b> archivos · <b>' + nSrv + '</b> impuestos por el server' +
+    (Srv.entries.some(e => e.ghost) ? ' · <span class="mut">' + Srv.entries.filter(e => e.ghost).length + ' del enum sin uso</span>' : '') + '</div>';
+  if (!S.mode) {
+    html += '<div class="cdsum">abre tu proyecto (o Demo) para ver el inventario real.</div>';
+  } else if (desyncRows.length) {
+    let dl = '';
+    for (const r of desyncRows) {
+      for (const mm of macrosOfRow(r)) {
+        if (mm.kind !== 'sec') continue;
+        const floor = macroFloor(mm.name);
+        if (floor == null) continue;
+        const mac = Math.abs(mm.seconds || 0);
+        if (mac >= floor) continue;
+        dl += '<div class="desync" data-g="' + esc(r.group.key) + '">' + esc(mm.name) + ' <b>' + mac + ' s</b> &lt; server ' + floor +
+          ' s → <b>' + (Math.round((floor - mac) * 10) / 10) + ' s muertos</b></div>';
+      }
+    }
+    html += '<div class="cdsum warn">' + desyncRows.length + ' fila(s) desincronizada(s): esas habilidades «no salen» en la franja marcada (el server tira el paquete en silencio).<div style="margin-top:4px">' + dl + '</div></div>';
+  } else {
+    html += '<div class="cdsum ok"><span class="oktxt">ninguna desincronizada ✓</span> — todas las recargas de cliente están por encima del piso del server.</div>';
+  }
+  host.innerHTML = html;
+
+  // lista de grupos
+  const list = $('#cd-group-list');
+  const rowsByGroup = {};
+  for (const r of rows) {
+    if (!rowsByGroup[r.group.key]) rowsByGroup[r.group.key] = [];
+    rowsByGroup[r.group.key].push(r);
+  }
+  let lh = '';
+  for (const g of Cd.groups) {
+    if (g.isSrv) {
+      if (Cd.filter === 'demon' || Cd.filter === 'desync') continue;
+      if (Cd.q && !'servidor game cooldown server'.toLowerCase().includes(Cd.q.toLowerCase())) {
+        // búsqueda que no casa con el grupo server: lo ocultamos
+        continue;
+      }
+      lh += groupBtn(g, Srv.entries.filter(e => !e.ghost).length, true);
+      continue;
+    }
+    const vis = (rowsByGroup[g.key] || []).filter(rowVisible);
+    if (!vis.length) continue;
+    const anySrv = vis.some(r => r.hasSrv);
+    lh += groupBtn(g, vis.length, anySrv);
+  }
+  list.innerHTML = lh || '<div class="muted">nada con este filtro</div>';
+}
+
+function groupBtn(g, count, srvTag) {
+  return '<button class="cdgroup' + (Cd.sel === g.key ? ' sel' : '') + '" data-g="' + esc(g.key) + '">' +
+    esc(g.label) + (srvTag ? ' <span class="srvtag">🖥</span>' : '') +
+    '<span class="cnt">' + count + '</span></button>';
+}
+
+/* --------------------------- render: filas cliente --------------------------- */
+
+function fmtSec(m) {
+  if (m.kind !== 'sec') return null;
+  const v = Math.abs(m.seconds);
+  return (Math.round(v * 10) / 10) + ' s' + (m.sign < 0 ? ' (neg.)' : '');
+}
+
+function chipForMacro(m) {
+  const floor = macroFloor(m.name);
+  const mac = Math.abs(m.seconds != null ? m.seconds : 0);
+  const f = Cd.files[m.rel];
   if (floor == null) {
-    return '<span class="syncchip" title="' + esc(file || '') + '">' + esc(mn) + ' <b>' + mac + ' s</b></span>';
+    return '<span class="syncchip" title="' + esc(m.rel) + '">' + esc(m.name) + ' <b>' + mac + ' s</b></span>';
+  }
+  if (m.kind !== 'sec') {
+    return '<span class="syncchip" title="' + esc(m.rel) + '">' + esc(m.name) + ' <b>' + m.value + ' frames</b></span>';
   }
   if (mac >= floor) {
-    return '<span class="syncchip ok" title="' + esc(file || '') + '">' + esc(mn) + ' <b>' + mac + ' s</b>' +
+    return '<span class="syncchip ok" title="' + esc(m.rel) + '">' + esc(m.name) + ' <b>' + mac + ' s</b>' +
       '<span class="tl"><span class="okseg" style="width:100%"></span></span>✓</span>';
   }
   const scale = Math.max(mac, floor, 0.001);
   const okW = (mac / scale) * 100, deadW = ((floor - mac) / scale) * 100;
-  return '<span class="syncchip warn" title="' + esc(file || '') + '">' + esc(mn) + ' <b>' + mac + ' s</b>' +
+  return '<span class="syncchip warn" title="' + esc(m.rel) + '">' + esc(m.name) + ' <b>' + mac + ' s</b>' +
     '<span class="tl"><span class="okseg" style="width:' + okW.toFixed(1) + '%"></span>' +
     '<span class="deadseg" style="left:' + okW.toFixed(1) + '%;width:' + deadW.toFixed(1) + '%"></span></span>' +
     '⚠ no sale ' + mac + '→' + floor + ' s</span>';
 }
 
-function pairHTML(e) {
-  const v = entryView(e);
-  if (!v.macros.length) return '<span class="mut">sin macro emparejada (¿habilidad nueva?)</span>';
-  const secs = curSecs(e);
-  const floor = floorOf(e, secs);
-  let html = '';
-  for (const mn of v.macros) {
-    const m = Srv.cli[mn];
-    if (!m) { html += '<span class="syncchip miss">' + esc(mn) + ' <i>no encontrada</i></span>'; continue; }
-    html += chipHTML(mn, Math.abs(m.seconds), floor, m.file);
+function subInputs(m, cls, lbl) {
+  const dm = ' data-m="' + esc(m.name) + '"';
+  if (m.kind === 'sec') {
+    const v = Math.abs(m.seconds);
+    return '<div class="sub"><span class="sublbl">' + lbl + '</span>' +
+      '<input type="number" class="' + cls + '"' + dm + ' min="0" max="600" step="0.5" value="' + v + '"><span class="mut">s</span></div>';
   }
-  return html;
+  return '<div class="sub"><span class="sublbl">' + lbl + '</span>' +
+    '<input type="number" class="' + cls + ' numframes"' + dm + ' min="0" max="600" step="1" value="' + m.value + '"><span class="mut">frames</span></div>';
 }
 
-function secText(e, secs) {
-  if (!secs) return '—';
-  if (e.ternary) return secs[0] + ' s (canon) · ' + secs[1] + ' s (resto)';
-  return secs[0] + ' s';
+function mcodeFor(r) {
+  const out = [];
+  for (const m of macrosOfRow(r)) {
+    const f = Cd.files[m.rel];
+    if (!f || f.work == null) continue;
+    const ln = f.work.split(/\r?\n/)[m.line];
+    if (ln != null) out.push(ln.trim());
+  }
+  return out.join('\n');
 }
 
-function renderSrvRows() {
+function renderCdRows() {
+  const host = $('#cd-rows');
+  $('#srv-cd-rows').innerHTML = '';
+  const g = Cd.groups.find(x => x.key === Cd.sel);
+  if (!g || g.isSrv) { renderSrvGroup(); return; }
+  $('#cd-scale-row').classList.remove('hidden');
+  const rows = macroRowModels().filter(r => r.group.key === g.key && rowVisible(r));
+  $('#cd-title').textContent = '❄ ' + g.label;
+  $('#cd-sub').innerHTML = (g.files || []).map(f =>
+    (Cd.files[f] && Cd.files[f].found ? '' : '<span style="color:#e8927b">⚠ no encontrado: </span>') +
+    '<span class="mono" style="font-size:10.5px">' + esc(f) + '</span>').join('<br>') +
+    '<div style="margin-top:3px">' + rows.length + ' enfriamiento(s)' +
+    (rows.some(r => r.hasSrv) ? ' · los marcados 🖥 también los impone el server' : ' · ninguno lo impone el server: solo cliente') + '</div>';
+  $('#cd-head').innerHTML = 'grupo <b>' + esc(g.label) + '</b> · macros GML del cliente (F5 al compilar)';
+  let html = '';
+  for (const r of rows) {
+    const b = r.base;
+    const who = r.hasSrv
+      ? '<span class="who srv">🖥 server también</span>'
+      : '<span class="who">solo cliente</span>';
+    const curTxt = fmtSec(b) || (b.value + ' frames');
+    const changedBase = cdChanged(b);
+    let subs = subInputs(b, 'numA', b.subs.length ? 'superviviente' : '');
+    if (b.kind === 'sec' && !b.subs.length) {
+      subs = '<div class="sub"><input type="range" min="0" max="' + Math.max(60, Math.abs(b.seconds) * 1.5) + '" step="0.5" value="' + Math.min(Math.abs(b.seconds), 600) + '">' +
+        '<input type="number" class="numA" min="0" max="600" step="0.5" value="' + Math.abs(b.seconds) + '"><span class="mut">s</span></div>';
+    }
+    let subHtml = '';
+    for (const s of b.subs) {
+      const lbl = s.subKind === 'demon' ? 'demonizada' : 'powerboost';
+      subHtml += subInputs(s, 'numD_' + s.subKind, lbl);
+    }
+    // chips de sincronía para cada macro de la fila
+    let chips = '';
+    let cuadrar = '';
+    for (const m of macrosOfRow(r)) {
+      const floor = macroFloor(m.name);
+      const mac = Math.abs(m.seconds != null ? m.seconds : 0);
+      if (floor != null && m.kind === 'sec' && mac < floor) {
+        chips += chipForMacro(m);
+        cuadrar += '<button class="btn cuadrar" data-m="' + esc(m.name) + '" data-rel="' + esc(m.rel) + '" data-floor="' + floor + '">⇅ cuadrar ' + esc(m.name) + ' a ' + floor + ' s</button>';
+      } else if (floor != null) {
+        chips += chipForMacro(m);
+      }
+    }
+    html += '<div class="cdrow cdrow-cli" data-m="' + esc(b.name) + '" data-rel="' + esc(b.rel) + '">' +
+      '<div class="cdtop"><b>' + esc(friendlyName(b.name)) + '</b>' + who +
+      '<span class="cur">' + curTxt + '</span>' +
+      (changedBase ? '<span class="newchip">→ ' + (fmtSec(b) || b.value + ' frames') + '</span>' : '') + '</div>' +
+      '<div class="pairline">' + subs + subHtml + '</div>' +
+      (chips ? '<div class="srvpair">' + chips + '</div>' : '') +
+      (cuadrar ? '<div class="rowbtns">' + cuadrar + '</div>' : '') +
+      '<div class="mcode">' + esc(mcodeFor(r)) + '</div>' +
+      '</div>';
+  }
+  host.innerHTML = html || '<div class="muted">nada que mostrar con este filtro/búsqueda.</div>';
+}
+
+function cdChanged(m) {
+  const f = Cd.files[m.rel];
+  if (!f || f.orig == null) return false;
+  return f.orig !== f.work;
+}
+
+/* --------------------------- render: grupo server --------------------------- */
+
+function renderSrvGroup() {
+  $('#cd-scale-row').classList.add('hidden');
+  $('#cd-rows').innerHTML = '';
   const host = $('#srv-cd-rows');
+  $('#cd-title').textContent = '🖥 Recargas impuestas por el servidor (C)';
   if (!Srv.found) {
-    $('#srv-head').innerHTML = S.mode
-      ? 'no encuentro <span style="font-family:var(--mono)">' + esc(GAME_C) + '</span> — abre la raíz del proyecto'
-      : 'abre tu proyecto (o pulsa Demo) para probar el módulo';
+    $('#cd-sub').innerHTML = '<span class="mut">' + (S.mode
+      ? 'no encuentro <span class="mono">' + esc(GAME_C) + '</span> — abre la carpeta RAÍZ del proyecto (la que contiene objects/ y betterserver-oss/)'
+      : 'abre tu proyecto (o pulsa Demo) para ver el server') + '</span>';
+    $('#cd-head').innerHTML = 'lado servidor';
     host.innerHTML = '<div class="muted">' + (S.mode === 'demo' ? 'en la demo no hay server: abre tu carpeta real.' : '') + '</div>';
     return;
   }
-  $('#srv-head').innerHTML = 'recargas que el <b style="color:var(--gold2)">servidor</b> impone de verdad · <span style="font-family:var(--mono);font-size:11px">' + esc(GAME_C) + '</span>';
+  $('#cd-sub').innerHTML = '<span class="mono" style="font-size:10.5px">' + esc(GAME_C) + '</span>' +
+    '<div style="margin-top:3px"><b style="color:var(--gold2)">' + Srv.entries.filter(e => !e.ghost).length + ' recargas impuestas</b>' +
+    (Srv.entries.some(e => e.ghost) ? ' · <span class="mut">' + Srv.entries.filter(e => e.ghost).length + ' del enum sin uso (solo cliente)</span>' : '') +
+    ' · TICKSPERSEC = 60 → el número que editas son segundos</div>';
+  $('#cd-head').innerHTML = 'lado <b style="color:var(--gold2)">servidor</b> · recompilar tras escribir';
   let html = '';
   for (const e of Srv.entries) {
     const v = entryView(e);
@@ -3606,43 +4088,75 @@ function renderSrvRows() {
   host.innerHTML = html || '<div class="muted">Game.c no tiene asignaciones plr_cooldowns[…].</div>';
 }
 
+function chipHTML(mn, mac, floor, file) {
+  if (floor == null) {
+    return '<span class="syncchip" title="' + esc(file || '') + '">' + esc(mn) + ' <b>' + mac + ' s</b></span>';
+  }
+  if (mac >= floor) {
+    return '<span class="syncchip ok" title="' + esc(file || '') + '">' + esc(mn) + ' <b>' + mac + ' s</b>' +
+      '<span class="tl"><span class="okseg" style="width:100%"></span></span>✓</span>';
+  }
+  const scale = Math.max(mac, floor, 0.001);
+  const okW = (mac / scale) * 100, deadW = ((floor - mac) / scale) * 100;
+  return '<span class="syncchip warn" title="' + esc(file || '') + '">' + esc(mn) + ' <b>' + mac + ' s</b>' +
+    '<span class="tl"><span class="okseg" style="width:' + okW.toFixed(1) + '%"></span>' +
+    '<span class="deadseg" style="left:' + okW.toFixed(1) + '%;width:' + deadW.toFixed(1) + '%"></span></span>' +
+    '⚠ no sale ' + mac + '→' + floor + ' s</span>';
+}
+
+function pairHTML(e) {
+  const v = entryView(e);
+  if (!v.macros.length) return '<span class="mut">sin macro emparejada (¿habilidad nueva?)</span>';
+  const secs = curSecs(e);
+  const floor = floorOf(e, secs);
+  let html = '';
+  for (const mn of v.macros) {
+    const m = macroByName(mn);
+    if (!m) { html += '<span class="syncchip miss">' + esc(mn) + ' <i>no encontrada</i></span>'; continue; }
+    html += chipHTML(mn, Math.abs(m.seconds != null ? m.seconds : 0), m.kind === 'sec' ? floor : null, m.rel);
+  }
+  return html;
+}
+
+function secText(e, secs) {
+  if (!secs) return '—';
+  if (e.ternary) return secs[0] + ' s (canon) · ' + secs[1] + ' s (resto)';
+  return secs[0] + ' s';
+}
+
+/* --------------------------- render: cambios --------------------------- */
+
 function renderSrvEdits() {
   const host = $('#srv-edits');
   $('#srv-write').disabled = S.mode !== 'fs';
   $('#srv-undo').disabled = !S.undo.length;
-  if (!Srv.changes.length) {
+  if (!S.edits.length) {
     host.innerHTML = '<div class="okline">Nada que escribir.</div>';
     return;
   }
   let html = '';
-  for (const ch of Srv.changes) {
+  for (const ch of S.edits) {
+    let dh = '';
+    for (const l of ch.lines) {
+      const cls = l.t === '-' ? 'del' : 'add';
+      dh += '<span class="' + cls + '">' + esc(l.s || ' ') + '</span>\n';
+    }
     html += '<div class="editcard" data-rel="' + esc(ch.rel) + '">' +
       '<div class="edhead"><b>' + esc(ch.rel.split('/').pop()) + '</b><span class="edpath">' + esc(ch.rel) + '</span></div>' +
-      '<pre class="diff">' + diffTwo(ch.before, ch.after) + '</pre>' +
+      '<pre class="diff">' + dh + '</pre>' +
       '<div class="edbtns"><button class="copyfile">Copiar archivo entero</button></div>' +
       '</div>';
   }
   host.innerHTML = html;
 }
 
-function diffTwo(before, after) {
-  const d = C.lineDiff(before || '', after || '');
-  let html = '';
-  for (const l of d) {
-    const cls = l.t === '-' ? 'del' : l.t === '+' ? 'add' : '';
-    html += '<span class="' + cls + '">' + esc(l.s || ' ') + '</span>\n';
-  }
-  return html;
-}
-
-/* --------------------------------- edición --------------------------------- */
+/* --------------------------- edición servidor --------------------------- */
 
 async function setSrvCd(e, secs) {
   const r = C.setServerCooldown(Srv.working, e, secs);
   if (!r.changed) { toast('No pude cambiar la línea de Game.c (' + (r.error || '?') + ')', 'err'); return; }
   Srv.working = r.text;
-  rebuildSrvChanges();
-  // refresco quirúrgico de la fila (para no perder el foco del deslizador)
+  rebuildCdChanges();
   const row = $('#srv-cd-rows .srvrow[data-line="' + e.line + '"]');
   if (row) {
     const cur = curSecs(e), orig = origSecs(e);
@@ -3659,41 +4173,174 @@ async function setSrvCd(e, secs) {
     if (rg && cur && !e.ternary) rg.value = Math.min(60, cur[0]);
   }
   renderSrvEdits();
-  renderSrvSide();
+  renderCdSide();
 }
 
-function rebuildSrvChanges() {
-  Srv.changes = [];
-  const wl = Srv.working.split(/\r?\n/);
-  for (const e of Srv.entries) {
-    if (e.ghost || e.line < 0 || e.secs == null) continue;
-    const before = Srv.origLines[e.line], after = wl[e.line];
-    if (before !== after) {
-      const v = entryView(e);
-      Srv.changes.push({ rel: GAME_C, name: v.label, dynamic: false, before: before.trim(), after: after.trim() });
+/* --------------------------- escala por grupo --------------------------- */
+
+async function scaleGroup(factor) {
+  const g = Cd.groups.find(x => x.key === Cd.sel);
+  if (!g || g.isSrv || !g.files) { toast('La escala rápida funciona en los grupos de personaje.'); return; }
+  let n = 0;
+  for (const rel of g.files) {
+    const f = Cd.files[rel];
+    if (!f || f.orig == null || f.work == null) continue;
+    let work = f.work;
+    for (const m of Cd.macros) {
+      if (m.rel !== rel) continue;
+      if (m.kind === 'sec') {
+        const nv = Math.max(0, Math.round(Math.abs(m.seconds) * factor * 10) / 10);
+        const r = C.setMacro(work, m.name, { seconds: nv });
+        if (r.changed) { work = r.gml; n++; }
+      } else if (m.kind === 'num' && m.value > 4) {
+        const nv = Math.max(1, Math.round(m.value * factor));
+        const r = C.setMacro(work, m.name, { value: nv });
+        if (r.changed) { work = r.gml; n++; }
+      }
     }
+    f.work = work;
   }
-  S.pendingFiles = Srv.changes.length ? { [GAME_C]: Srv.working } : {};
-  S.edits = Srv.changes;
+  refreshRegistry();
+  rebuildCdChanges();
+  renderCdRows(); renderCdSide(); renderSrvEdits();
+  toast('Escala ×' + factor + ' aplicada a ' + n + ' enfriamientos de ' + g.label + ' (aún sin escribir).');
+}
+
+async function resetGroup() {
+  const g = Cd.groups.find(x => x.key === Cd.sel);
+  if (!g || g.isSrv || !g.files) return;
+  for (const rel of g.files) {
+    const f = Cd.files[rel];
+    if (f && f.orig != null) f.work = f.orig;
+  }
+  refreshRegistry();
+  rebuildCdChanges();
+  renderCdRows(); renderCdSide(); renderSrvEdits();
+  toast('Cambios de ' + g.label + ' descartados (archivos intactos).');
+}
+
+/* --------------------------- descubrimiento --------------------------- */
+
+async function discoverExtraFiles() {
+  if (Cd.discovered || S.mode === 'demo' || !S.mode) return;
+  Cd.discovered = true;
+  const known = new Set(CD_FILES);
+  const hits = [];
+  const consider = (rel) => {
+    if (known.has(rel) || hits.includes(rel)) return false;
+    return true;
+  };
+  try {
+    if (S.mode === 'files') {
+      for (const p of Object.keys(S.files)) {
+        if (!consider(p)) continue;
+        if (!/^objects\/[^/]+\/Create_0\.gml$/.test(p) && !/^scripts\/[^/]+\/[^/]+\.gml$/.test(p)) continue;
+        const t = S.files.get(p);
+        if (!t) continue;
+        const txt = await t.text();
+        if (/#macro\s+\w*(RECHARGE|CD|COOLDOWN)\w*/.test(txt)) hits.push(p);
+      }
+    } else if (S.mode === 'fs') {
+      const odh = await (async () => {
+        const parts = 'objects'.split('/');
+        let dh = S.rootHandle;
+        for (const p of parts) dh = await dh.getDirectoryHandle(p);
+        return dh;
+      })();
+      for await (const [name, h] of odh.entries()) {
+        if (h.kind !== 'directory') continue;
+        const rel = 'objects/' + name + '/Create_0.gml';
+        if (!consider(rel)) continue;
+        try {
+          const fh = await h.getFileHandle('Create_0.gml');
+          const txt = await (await fh.getFile()).text();
+          if (/#macro\s+\w*(RECHARGE|CD|COOLDOWN)\w*/.test(txt)) hits.push(rel);
+        } catch (e) { /* sin Create_0 */ }
+      }
+      const sdh = await (async () => {
+        const parts = 'scripts'.split('/');
+        let dh = S.rootHandle;
+        for (const p of parts) dh = await dh.getDirectoryHandle(p);
+        return dh;
+      })();
+      for await (const [name, h] of sdh.entries()) {
+        if (h.kind !== 'directory') continue;
+        try {
+          for await (const [fn, fh] of h.entries()) {
+            if (fh.kind !== 'file' || !fn.endsWith('.gml')) continue;
+            const rel = 'scripts/' + name + '/' + fn;
+            if (!consider(rel)) continue;
+            const txt = await (await fh.getFile()).text();
+            if (/#macro\s+\w*(RECHARGE|CD|COOLDOWN)\w*/.test(txt)) hits.push(rel);
+          }
+        } catch (e) { /* sin permiso */ }
+      }
+    }
+  } catch (e) { /* escaneo best-effort */ }
+  if (!hits.length) return;
+  // añadir en caliente sin pisar los cambios en curso
+  for (const rel of hits) {
+    const t = await T.readText(rel);
+    Cd.files[rel] = { orig: t, work: t, found: t != null };
+  }
+  refreshRegistry();
+  rebuildCdChanges();   // solo añade los archivos nuevos (los en curso ya están en work)
+  renderCdSide();
+  if (Cd.groups.some(x => x.key === 'otros') && (Cd.sel === 'otros')) renderCdRows();
+  toast('Escaneo extra: ' + hits.length + ' archivo(s) con más enfriamientos añadidos al grupo «Otros».');
+}
+
+/* --------------------------- carga / entrada --------------------------- */
+
+async function enterSrv() {
+  if (!Cd.loaded) {
+    await loadCd();
+    await loadSrv();
+    Cd.loaded = true;
+    Cd.sel = 'srv';
+  }
+  renderCdAll();
+  discoverExtraFiles();   // en caliente, sin bloquear
+}
+
+function renderCdAll() {
+  renderCdSide();
+  renderCdRows();      // decide solo entre grupo server / personaje
+  renderSrvEdits();
+  $('#srv-write').disabled = S.mode !== 'fs';
+  $('#srv-undo').disabled = !S.undo.length;
 }
 
 async function srvAfterWrite() {
-  await loadSrv();   // relee Game.c del disco (tras escribir o deshacer)
-  renderSrvAll();
+  await loadSrv();
+  await loadCd();
+  renderCdAll();
 }
 
-function copySrvFile() {
-  if (!Srv.working) { toast('Nada que copiar.'); return; }
+function copyRelFile(rel) {
+  const txt = rel === GAME_C ? Srv.working : (Cd.files[rel] && Cd.files[rel].work);
+  if (txt == null) { toast('Nada que copiar.'); return; }
   (async () => {
-    try { await navigator.clipboard.writeText(Srv.working); toast('Copiado: Game.c entero'); }
+    try { await navigator.clipboard.writeText(txt); toast('Copiado: ' + rel.split('/').pop() + ' entero'); }
     catch (e) { toast('No pude copiar automáticamente; usa el diff a mano.', 'err'); }
   })();
 }
 
-/* --------------------------------- init --------------------------------- */
+/* --------------------------- init --------------------------- */
 
-// expuestos para app3 (switchModule) — se cargan al evaluar este script
 T.enterSrv = enterSrv;
+
+/* descarta las copias de trabajo al cambiar de módulo con cambios sin
+   escribir (lo llama switchModule tras el confirm): restaura orig en
+   Game.c y en todos los GML, y refresca el registro. */
+T.discardModulePending = function () {
+  if (Srv.orig) Srv.working = Srv.orig;
+  for (const rel of Object.keys(Cd.files)) {
+    const f = Cd.files[rel];
+    if (f && f.orig != null) f.work = f.orig;
+  }
+  if (Cd.loaded) refreshRegistry();
+};
 
 const prevAfterWrite = S.onAfterWrite;
 S.onAfterWrite = async function () {
@@ -3701,11 +4348,16 @@ S.onAfterWrite = async function () {
   if (prevAfterWrite) await prevAfterWrite();
 };
 
-// al (re)abrir el proyecto: resetear el módulo servidor (app3 ya resetea tune/img)
+// al (re)abrir el proyecto: resetear el módulo
 const prevScan = window.__onProjectScan;
 window.__onProjectScan = function () {
   Srv.found = false; Srv.orig = ''; Srv.working = ''; Srv.origLines = [];
-  Srv.entries = []; Srv.cli = {}; Srv.changes = [];
+  Srv.entries = []; Srv.changes = [];
+  Cd.loaded = false; Cd.discovered = false;
+  Cd.files = {}; Cd.macros = []; Cd.groups = [];
+  Cd.sel = 'srv'; Cd.filter = 'all'; Cd.q = '';
+  const inp = $('#cd-search'); if (inp) inp.value = '';
+  $$('#cd-filters .cdfil').forEach(b => b.classList.toggle('sel', b.dataset.f === 'all'));
   S.pendingFiles = {}; S.edits = [];
   if (S.module === 'srv') enterSrv();
   if (prevScan) prevScan();
@@ -3717,6 +4369,7 @@ function entForRow(row) {
 }
 
 function init4() {
+  // filas del server (igual que v3.3)
   $('#srv-cd-rows').addEventListener('input', (e) => {
     const row = e.target.closest('.srvrow');
     if (!row || !e.target.matches('input[type=range]')) return;
@@ -3732,21 +4385,124 @@ function init4() {
     if (ent.ternary) {
       const a = parseFloat(row.querySelector('.tA').value) || 0;
       const b = parseFloat(row.querySelector('.tB').value) || 0;
-      setSrvCd(ent, [Math.max(0, a), Math.max(0, b)]).then(() => renderSrvRows());
+      setSrvCd(ent, [Math.max(0, a), Math.max(0, b)]).then(() => renderSrvGroup());
     } else {
-      setSrvCd(ent, [Math.max(0, parseFloat(e.target.value) || 0)]).then(() => renderSrvRows());
+      setSrvCd(ent, [Math.max(0, parseFloat(e.target.value) || 0)]).then(() => renderSrvGroup());
     }
   });
+
+  // filas del cliente
+  $('#cd-rows').addEventListener('input', (e) => {
+    const row = e.target.closest('.cdrow-cli');
+    if (!row || !e.target.matches('input[type=range]')) return;
+    const name = row.dataset.m, rel = row.dataset.rel;
+    const m = macroByName(name);
+    if (!m || m.kind !== 'sec') return;
+    setMacroSec(rel, name, Math.max(0, parseFloat(e.target.value) || 0)).then((ok) => {
+      if (!ok) return;
+      refreshRowSurgically(row);
+      renderSrvEdits(); renderCdSide();
+    });
+  });
+  $('#cd-rows').addEventListener('change', (e) => {
+    const row = e.target.closest('.cdrow-cli');
+    if (!row || !e.target.matches('input[type=number]')) return;
+    const subName = e.target.dataset.m;          // las subs llevan su propio data-m
+    const name = subName || row.dataset.m;
+    const m = macroByName(name);
+    if (!m) return;
+    const rel = m.rel;
+    const val = Math.max(0, parseFloat(e.target.value) || 0);
+    const patch = m.kind === 'sec' ? { seconds: val } : { value: Math.round(val) };
+    setMacroVal(rel, name, patch).then(() => { renderCdRows(); renderCdSide(); renderSrvEdits(); });
+  });
+  $('#cd-rows').addEventListener('click', (e) => {
+    const btn = e.target.closest('.cuadrar');
+    if (!btn) return;
+    const name = btn.dataset.m, rel = btn.dataset.rel, floor = parseFloat(btn.dataset.floor);
+    setMacroSec(rel, name, floor).then((ok) => {
+      if (ok) { renderCdRows(); renderCdSide(); renderSrvEdits(); toast('Cuadrada: ' + name + ' = ' + floor + ' s (aún sin escribir).'); }
+    });
+  });
+
+  // escala del grupo
+  $('#cd-half').addEventListener('click', () => scaleGroup(0.5));
+  $('#cd-double').addEventListener('click', () => scaleGroup(2));
+  $('#cd-reset').addEventListener('click', () => resetGroup());
+
+  // filtros / búsqueda / grupos
+  $('#cd-filters').addEventListener('click', (e) => {
+    const b = e.target.closest('.cdfil');
+    if (!b) return;
+    Cd.filter = b.dataset.f;
+    $$('#cd-filters .cdfil').forEach(x => x.classList.toggle('sel', x === b));
+    renderCdSide();
+    // si el grupo actual queda vacío con el filtro, vuelve al server
+    renderCdRows();
+  });
+  $('#cd-search').addEventListener('input', (e) => {
+    Cd.q = e.target.value.trim();
+    renderCdSide();
+    renderCdRows();
+  });
+  $('#cd-group-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.cdgroup');
+    if (!b) return;
+    Cd.sel = b.dataset.g;
+    renderCdSide();
+    renderCdRows();
+  });
+  $('#cd-summary').addEventListener('click', (e) => {
+    const d = e.target.closest('.desync');
+    if (!d) return;
+    Cd.sel = d.dataset.g;
+    renderCdSide();
+    renderCdRows();
+  });
+
   $('#srv-write').addEventListener('click', () => T.writeEdits());
   $('#srv-undo').addEventListener('click', () => T.undoLast());
   $('#srv-edits').addEventListener('click', (e) => {
-    if (e.target.closest('.copyfile')) copySrvFile();
+    const btn = e.target.closest('.copyfile');
+    if (!btn) return;
+    const card = btn.closest('.editcard');
+    if (card) copyRelFile(card.dataset.rel);
   });
+}
+
+/* refresco quirúrgico de una fila cliente (conserva el foco del deslizador) */
+function refreshRowSurgically(row) {
+  const name = row.dataset.m;
+  const base = macroByName(name);
+  if (!base) return;
+  const r = macroRowModels().find(x => x.base.name === name);
+  const cur = row.querySelector('.cur');
+  if (cur) cur.textContent = fmtSec(base) || (base.value + ' frames');
+  let chip = row.querySelector('.newchip');
+  const changed = cdChanged(base);
+  if (changed) {
+    if (!chip) { chip = document.createElement('span'); chip.className = 'newchip'; row.querySelector('.cdtop').appendChild(chip); }
+    chip.textContent = '→ ' + (fmtSec(base) || base.value + ' frames');
+  } else if (chip) chip.remove();
+  if (r) {
+    const chipsHost = row.querySelector('.srvpair');
+    if (chipsHost) {
+      let chips = '';
+      for (const m of macrosOfRow(r)) {
+        const floor = macroFloor(m.name);
+        if (floor != null) chips += chipHTML(m.name, Math.abs(m.seconds || 0), m.kind === 'sec' ? floor : null, m.rel);
+      }
+      chipsHost.innerHTML = chips;
+    }
+    const mc = row.querySelector('.mcode');
+    if (mc) mc.textContent = mcodeFor(r);
+  }
+  const num = row.querySelector('.numA');
+  if (num && base.kind === 'sec') num.value = Math.abs(base.seconds);
 }
 
 init4();
 })();
-
 </script>
 </body>
 </html>
