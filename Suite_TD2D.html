@@ -131,6 +131,43 @@ pre.diff .add{background:#12301f;color:#9fe0bb;display:inline-block;width:100%}
 #write-actions button{flex:1;min-width:120px}
 #btn-write{border-color:var(--gold);color:var(--gold2);background:#2a2415;font-weight:600}
 
+/* ---- música del lobby ---- */
+#music-ctl{display:flex;gap:6px;align-items:center;margin-left:4px}
+#btn-music{border-color:#3d2f66;color:#b9a3ff;background:#1d1833;padding:6px 10px}
+#btn-music.playing{border-color:#7c5cff;color:#cfc2ff;background:#2a2050;box-shadow:0 0 10px #7c5cff44 inset}
+#music-vol{width:70px;accent-color:#7c5cff}
+
+/* ---- módulo 🎮 botones de habilidades ---- */
+#mod-keys .mid{overflow-y:auto}
+.kent{padding:7px 8px;border:1px solid transparent;border-radius:6px;cursor:pointer;display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+.kent:hover{background:var(--panel2)}
+.kent.sel{border-color:var(--gold);background:#2a2415}
+.kent b{font-size:13px}
+.kent .kcnt{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.kent .kcnt.dirty{color:var(--green);font-weight:700}
+.kgroup{margin:6px 0 2px;padding:2px 8px;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.abrow{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:7px 0;background:var(--panel2)}
+.abrow.dirty{border-color:#2a5c3f}
+.abrow.conflict{border-color:var(--red)}
+.abtop{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.abtop b{font-size:13.5px;color:var(--gold2)}
+.abcur{font-family:var(--mono);font-size:11.5px;color:var(--mut)}
+.abcur .kbd{display:inline-block;background:#0b0d10;border:1px solid #333a47;border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--txt);margin:0 1px}
+.abreset{margin-left:auto;padding:1px 8px;font-size:11px}
+.abctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;padding-top:6px;border-top:1px dashed #23272f}
+.abctl label{font-size:11.5px;color:var(--mut);display:flex;gap:5px;align-items:center;white-space:nowrap}
+.abctl select{background:#0b0d10;color:var(--txt);border:1px solid #333a47;border-radius:4px;padding:2px 4px;font-size:12px}
+.abmods{display:flex;gap:7px;flex-wrap:wrap}
+.abmods label{font-size:12px;color:var(--txt);cursor:pointer}
+.abstates{margin-top:5px;display:flex;gap:5px;flex-wrap:wrap}
+.stchip{font-size:10.5px;color:var(--blue);border:1px solid #22374f;border-radius:10px;padding:1px 8px;background:#0f1722}
+pre.abprev{font-family:var(--mono);font-size:10.5px;line-height:1.45;background:#0b0d10;border:1px solid #20242c;border-radius:6px;padding:6px 8px;overflow-x:auto;white-space:pre;margin:6px 0 0;color:var(--mut)}
+pre.abprev .new{color:#9fe0bb}
+pre.abprev b{color:var(--gold2);font-weight:600}
+.abwarn{color:var(--orange);font-size:11px;margin-top:4px}
+.abconf{color:var(--red);font-size:11px;margin-top:4px}
+.abmiss{color:var(--mut);font-size:11.5px;font-style:italic}
+
 /* ---- toasts / diálogo ---- */
 #toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:50}
 .toast{background:var(--panel2);border:1px solid var(--gold);border-radius:8px;padding:10px 14px;max-width:380px;font-size:13px;box-shadow:0 4px 18px #000a;transition:opacity .4s}
@@ -266,11 +303,17 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 </head>
 <body>
 
+<audio id="bgm" loop preload="none" src="https://file.garden/aoWRYc0-p1TyFbL9/Sonic.exe%20The%20Disaster%201.0%20Lobby%20Music%20(OST).mp3"></audio>
+
 <header id="topbar">
-  <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes · enfriamientos</span></div>
+  <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes · enfriamientos · botones</span></div>
   <button id="btn-open" class="btn primary">Abrir carpeta del proyecto</button>
   <button id="btn-open-ro" class="btn">Elegir carpeta (solo lectura)</button>
   <button id="btn-demo" class="btn">Demo</button>
+  <span id="music-ctl" class="hidden">
+    <button id="btn-music" class="btn" title="Música del lobby — Sonic.exe The Disaster 1.0 (OST)">🎵 Música</button>
+    <input id="music-vol" type="range" min="0" max="1" step="0.01" value="0.3" title="Volumen de la música">
+  </span>
   <span id="proj-status">sin proyecto</span>
   <div class="spacer"></div>
   <button id="btn-help" class="btn ghost">Ayuda</button>
@@ -282,6 +325,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   <button class="mnav" data-mod="tune">⏱ Recargas y números</button>
   <button class="mnav" data-mod="img">🖼 Imágenes de habilidades</button>
   <button class="mnav" data-mod="srv">❄️ Enfriamientos (todos)</button>
+  <button class="mnav" data-mod="keys">🎮 Botones de habilidades</button>
   <span id="modnav-note">tú mueves · el código se escribe solo</span>
 </nav>
 
@@ -520,6 +564,31 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   </aside>
 </div><!-- /mod-srv -->
 
+<div id="mod-keys" class="mod hidden">
+  <aside class="side">
+    <div class="side-head">Personaje</div>
+    <div id="keys-ent-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+  </aside>
+  <main class="mid">
+    <div id="keys-head" class="muted">elige un personaje: aquí decides qué botón lanza cada habilidad</div>
+    <div id="keys-conf" class="abconf hidden"></div>
+    <div id="keys-rows"></div>
+  </main>
+  <aside class="rightpane">
+    <section>
+      <h3>Cambios a escribir</h3>
+      <div id="keys-edits"><div class="muted">nada todavía</div></div>
+      <div id="keys-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <button id="keys-write" class="btn primary" style="flex:1;min-width:130px">Escribir en los archivos</button>
+        <button id="keys-undo">Deshacer último</button>
+      </div>
+    </section>
+    <section class="note"><b>Qué hace:</b> reescribe la condición de teclado de cada habilidad en su <code>scr_*_special.gml</code> y la tecla de su icono en el HUD (<code>obj_playerui/Draw_64.gml</code>). Con el sistema de letras dinámicas (v4.3), el icono mostrará la tecla nueva al instante — y si la remapeas luego en Opciones, sigue siguiendo la buena.</section>
+    <section class="note"><b>Seguro:</b> solo toca al <b>cliente</b> — la red y el server ni se enteran (ellos ya reciben «usó la habilidad X», no la tecla). En Android los botones táctiles emulan estas mismas teclas, así que el cambio aplica igual en el móvil. Las condiciones de mecánica (en el aire, en el suelo, parado…) se conservan: solo cambias teclas y combinaciones.</section>
+    <section class="note">Si quitas el «↓» a una habilidad que lo pedía, su icono del HUD pierde el «↓+» pintado (y al revés), para que el icono no mienta. Nada se escribe hasta que pulsas <b>Escribir</b>; siempre queda copia en <code>_backups_animeditor/</code> y botón de deshacer.</section>
+  </aside>
+</div><!-- /mod-keys -->
+
 </div><!-- /mods -->
 
 <div id="toasts"></div>
@@ -558,7 +627,18 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   si es de las emparejadas, trae el chip de sincronía: cliente <b>por debajo</b> del server = habilidad «no sale» (marcada ⚠,
   con botón <b>cuadrar</b>). Hay filtros (server / desincronizadas / demonizadas), búsqueda y escala ÷2 ×2 por personaje.
   Las E-marcos (EXE…) son la versión demonizada. Tras escribir: macros → F5; Game.c → <b>recompila el server</b> y reinícalo.</p>
-  <h4>6. Escribir (todos los módulos)</h4>
+  <h4>6. Módulo 🎮 Botones de habilidades</h4>
+  <p><b>El modo edición de habilidades:</b> elige un personaje y asigna qué botón lanza cada una —
+  Salto (Z), Especial 1 (X), Especial 2 (C), Especial 3 (V), con direcciones mantenidas (↓ ↑ ← →) o
+  <b>combos de dos teclas</b> (mantener una y pulsar otra). Aprovecha el sistema de letras dinámicas v4.3:
+  el icono del HUD pasa a mostrar la tecla nueva al momento. Se reescribe la condición de teclado en
+  <code>scr_*_special.gml</code> y la tecla del icono en <code>obj_playerui/Draw_64.gml</code> — nada de red ni server,
+  y en Android los botones táctiles emulan las mismas teclas, así que aplica igual.</p>
+  <h4>7. Música</h4>
+  <p>El botón <b>🎵 Música</b> de la barra de arriba pone el tema del lobby
+  (<i>Sonic.exe The Disaster 1.0 OST</i>) mientras editas, en bucle y con control de volumen.
+  Si lo dejaste encendido, vuelve solo en tu próxima visita.</p>
+  <h4>8. Escribir (todos los módulos)</h4>
   <p>El panel derecho muestra el antes/después exacto de cada archivo. <b>Escribir</b> guarda una copia en
   <code>_backups_animeditor/</code> y tiene botón de deshacer. Después compila el juego (F5).
   El multijugador no necesita recompilar el server para animaciones ni macros: el frame exacto viaja por red
@@ -2473,11 +2553,13 @@ function switchModule(mod) {
   $('#mod-tune').classList.toggle('hidden', mod !== 'tune');
   $('#mod-img').classList.toggle('hidden', mod !== 'img');
   $('#mod-srv').classList.toggle('hidden', mod !== 'srv');
+  $('#mod-keys').classList.toggle('hidden', mod !== 'keys');
   S.pendingFiles = {}; S.edits = [];
   if (discarded && typeof T.discardModulePending === 'function') T.discardModulePending();
   if (mod === 'anim') computeAnimAgain();
   else if (mod === 'tune') enterTune();
   else if (mod === 'srv' && T.enterSrv) T.enterSrv();
+  else if (mod === 'keys' && T.enterKeys) T.enterKeys();
   else enterImg();
 }
 
@@ -4502,6 +4584,917 @@ function refreshRowSurgically(row) {
 }
 
 init4();
+})();
+</script>
+<script>
+/* =====================================================================
+   Suite TD2D — parte 5: 🎵 música del lobby + módulo «🎮 Botones de
+   habilidades» (modo edición: qué tecla o combinación lanza cada una).
+
+   Aprovecha el sistema de letras dinámicas v4.3: el HUD dibuja la tecla
+   REAL de cada icono (global.KeyX consultada cada fotograma), así que al
+   reasignar una habilidad a otro slot el icono muestra la tecla nueva al
+   instante. Esto reescribe:
+     - la condición de teclado de la habilidad en su scr_*_special.gml
+     - la tecla (y el ancho de arte del «↓+») del icono en Draw_64.gml
+   En Android los botones táctiles emulan estas mismas teclas
+   (keyboard_key_press(global.KeyX)), así que aplica igual en el móvil.
+   ===================================================================== */
+(() => {
+'use strict';
+const C = window.AnimCore;
+const T = window.__animtool;
+const S = T.S;
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const esc = T.esc, toast = T.toast;
+
+/* ============================ 🎵 MÚSICA ============================ */
+
+(function initMusic() {
+  const bgm = $('#bgm'), mBtn = $('#btn-music'), mVol = $('#music-vol'), mCtl = $('#music-ctl');
+  if (!bgm || !mBtn) return;
+  mCtl.classList.remove('hidden');
+  let want = false;
+  try {
+    want = localStorage.getItem('td2d_bgm_on') === '1';
+    const v = parseFloat(localStorage.getItem('td2d_bgm_vol'));
+    if (isFinite(v) && v >= 0 && v <= 1) { bgm.volume = v; mVol.value = String(v); }
+  } catch (e) { /* localStorage capado: sin memoria entre sesiones */ }
+  function sync() {
+    mBtn.textContent = bgm.paused ? '🎵 Música' : '⏸ Música';
+    mBtn.classList.toggle('playing', !bgm.paused);
+  }
+  async function play() {
+    try { await bgm.play(); }
+    catch (e) { /* autoplay bloqueado o red caída: el botón sigue manual */ }
+    sync();
+  }
+  mBtn.addEventListener('click', () => {
+    if (bgm.paused) { want = true; try { localStorage.setItem('td2d_bgm_on', '1'); } catch (e) { } play(); }
+    else { want = false; bgm.pause(); try { localStorage.setItem('td2d_bgm_on', '0'); } catch (e) { } sync(); }
+  });
+  mVol.addEventListener('input', () => {
+    bgm.volume = Math.max(0, Math.min(1, parseFloat(mVol.value) || 0));
+    try { localStorage.setItem('td2d_bgm_vol', String(bgm.volume)); } catch (e) { }
+  });
+  bgm.addEventListener('error', () => {
+    mBtn.textContent = '🎵 ✕';
+    mBtn.title = 'No pude cargar la música (¿sin conexión a file.garden?). Pulsa para reintentar.';
+    toast('No pude cargar la música del lobby.', 'warn');
+  });
+  bgm.addEventListener('play', sync);
+  bgm.addEventListener('pause', sync);
+  // si el usuario la dejó encendida: arrancar con el primer gesto de la sesión
+  if (want) {
+    const once = () => { play(); document.removeEventListener('pointerdown', once); document.removeEventListener('keydown', once); };
+    document.addEventListener('pointerdown', once);
+    document.addEventListener('keydown', once);
+  }
+  sync();
+})();
+
+/* ==================== 🎮 BOTONES DE HABILIDADES ==================== */
+
+const DRAW_REL = 'objects/obj_playerui/Draw_64.gml';
+
+// Slots oficiales del juego (obj_menu → bindChanged): la letra es la de
+// FÁBRICA; en Opciones se remapean y el HUD las sigue mostrando bien.
+const SLOTS = [
+  { v: 'global.KeyA', lbl: 'Salto (Z)' },
+  { v: 'global.KeyB', lbl: 'Especial 1 (X)' },
+  { v: 'global.KeyC', lbl: 'Especial 2 (C)' },
+  { v: 'global.KeyV', lbl: 'Especial 3 (V)' }
+];
+const KEYLBL = {
+  'global.KeyA': 'Z', 'global.KeyB': 'X', 'global.KeyC': 'C', 'global.KeyV': 'V',
+  'global.KeyDown': '↓', 'global.KeyUp': '↑', 'global.KeyLeft': '←', 'global.KeyRight': '→'
+};
+const KEYS_RE = 'global\\.Key(?:A|B|C|V|Up|Down|Left|Right)';
+
+/* Registro de habilidades: ancla = patrón que identifica la línea de
+   activación dentro del script (la que lleva keyboard_check_pressed);
+   near = patrón que debe aparecer en las 12 líneas siguientes (para las
+   condiciones desnudas); hud = icono(s) del Draw_64.gml (case + sprite);
+   hint = anchos de arte del icono con «↓+» y sin él, para que el icono
+   no mienta al cambiar el combo. */
+const ABILS = [
+  // ---------------- SONIC ----------------
+  { id: 'sonic_atk', chKey: 'sonic', ch: 'Sonic', exe: false,
+    script: 'scripts/scr_sonic_special/scr_sonic_special.gml', name: 'Golpe',
+    desc: 'el ataque cuerpo a cuerpo',
+    anchor: /attackTimer <= 0/,
+    hud: [{ k: 'CHARACTER_SONIC', spr: 'spr_gui_amyattack' }] },
+  { id: 'sonic_spin', chKey: 'sonic', ch: 'Sonic', exe: false,
+    script: 'scripts/scr_sonic_special/scr_sonic_special.gml', name: 'Spindash',
+    desc: 'la bola cargada (abajo + salto)',
+    anchor: /gspd == 0/,
+    hud: [{ k: 'CHARACTER_SONIC', spr: '_sprSpindash', hint: { down: 33, plain: 18 } }] },
+  { id: 'sonic_parry', chKey: 'sonic', ch: 'Sonic', exe: false,
+    script: 'scripts/scr_parry/scr_parry.gml', name: 'Parry',
+    desc: 'la parada que devuelve golpes (tecla en scr_parry_key)',
+    type: 'parry', side: 'sonic',
+    hud: [{ k: 'CHARACTER_SONIC', spr: '_sprParry' }] },
+
+  // ---------------- AMELIA ----------------
+  { id: 'amelia_spin', chKey: 'amelia', ch: 'Amelia', exe: false,
+    script: 'scripts/scr_amelia_special/scr_amelia_special.gml', name: 'Spindash',
+    desc: 'la bola cargada (abajo + salto)',
+    anchor: /gspd == 0/,
+    hud: [{ k: 'CHARACTER_AMELIA', spr: '_sprSpin', hint: { down: 33, plain: 18 } }] },
+  { id: 'amelia_spring', chKey: 'amelia', ch: 'Amelia', exe: false,
+    script: 'scripts/scr_amelia_special/scr_amelia_special.gml', name: 'Trampolín (banana)',
+    desc: 'el resorte que rebota',
+    anchor: /bananaTimer <= 0/,
+    hud: [{ k: 'CHARACTER_AMELIA', spr: 'spr_gui_sonicspring', hint: { down: 33, plain: 18 } }] },
+  { id: 'amelia_trap', chKey: 'amelia', ch: 'Amelia', exe: false,
+    script: 'scripts/scr_amelia_special/scr_amelia_special.gml', name: 'Trampa',
+    desc: 'la trampa de osos',
+    anchor: /trapTimer <= 0/,
+    hud: [{ k: 'CHARACTER_AMELIA', spr: 'spr_gui_amelia_trap', hint: { down: 39, plain: 25 } }] },
+
+  // ---------------- AMY ----------------
+  { id: 'amy_hjump', chKey: 'amy', ch: 'Amy', exe: false,
+    script: 'scripts/scr_amy_special/scr_amy_special.gml', name: 'Salto de martillo',
+    desc: 'el salto elevado (agachada + salto)',
+    anchor: /hjumpTimer <= 0/,
+    hud: [{ k: 'CHARACTER_AMY', spr: 'spr_gui_amyhjump' }] },
+  { id: 'amy_atk', chKey: 'amy', ch: 'Amy', exe: false,
+    script: 'scripts/scr_amy_special/scr_amy_special.gml', name: 'Golpe de martillo',
+    desc: 'el ataque cuerpo a cuerpo',
+    anchor: /attackTimer <= 0/,
+    hud: [{ k: 'CHARACTER_AMY', spr: 'spr_gui_amyattack' }] },
+
+  // ---------------- AMY CANON ----------------
+  { id: 'amyc_hjump', chKey: 'amyc', ch: 'Amy Canon', exe: false,
+    script: 'scripts/scr_amy_canon_special/scr_amy_canon_special.gml', name: 'Salto de martillo',
+    desc: 'el salto elevado (agachada + salto)',
+    anchor: /hjumpTimer <= 0/,
+    hud: [{ k: 'CHARACTER_AMY_CANON', spr: 'spr_gui_amyhjump_canon' }] },
+  { id: 'amyc_tarot', chKey: 'amyc', ch: 'Amy Canon', exe: false,
+    script: 'scripts/scr_amy_canon_special/scr_amy_canon_special.gml', name: 'Impulso de tarot',
+    desc: 'el dash aéreo de la carta',
+    anchor: /isTarotDashing/,
+    hud: [{ k: 'CHARACTER_AMY_CANON', spr: 'spr_gui_amyattack_canon' }] },
+  { id: 'amyc_dash', chKey: 'amyc', ch: 'Amy Canon', exe: false,
+    script: 'scripts/scr_amy_canon_special/scr_amy_canon_special.gml', name: 'Acometida de martillo',
+    desc: 'la carrera embistiendo',
+    anchor: /dashTimer <= 0/,
+    hud: [{ k: 'CHARACTER_AMY_CANON', spr: 'spr_gui_amydash_canon' }] },
+  { id: 'amyc_parry', chKey: 'amyc', ch: 'Amy Canon', exe: false,
+    script: 'scripts/scr_parry/scr_parry.gml', name: 'Parry',
+    desc: 'la parada que devuelve golpes (tecla en scr_parry_key)',
+    type: 'parry', side: 'amy',
+    hud: [{ k: 'CHARACTER_AMY_CANON', spr: '_sprParry' }] },
+
+  // ---------------- TAILS ----------------
+  { id: 'tails_fly', chKey: 'tails', ch: 'Tails', exe: false,
+    script: 'scripts/scr_tails_special/scr_tails_special.gml', name: 'Vuelo',
+    desc: 'aletear en el aire',
+    anchor: /attackCharge <= 0/,
+    hud: [{ k: 'CHARACTER_TAILS', spr: 'spr_gui_tailsfly' }] },
+  { id: 'tails_atk', chKey: 'tails', ch: 'Tails', exe: false,
+    script: 'scripts/scr_tails_special/scr_tails_special.gml', name: 'Cola-látigo',
+    desc: 'el ataque manteniendo (hold)',
+    anchor: /attackTimer == 0/,
+    hud: [{ k: 'CHARACTER_TAILS', kind: 'textkey', spr: 'scr_text_spr' }] },
+
+  // ---------------- KNUX ----------------
+  { id: 'knux_glide', chKey: 'knux', ch: 'Knuckles', exe: false,
+    script: 'scripts/scr_knux_special/scr_knux_special.gml', name: 'Planeo',
+    desc: 'deslizarse por el aire',
+    anchor: /glideTimer <= 0/,
+    hud: [{ k: 'CHARACTER_KNUX', spr: 'spr_gui_knuxglide' }] },
+  { id: 'knux_atk', chKey: 'knux', ch: 'Knuckles', exe: false,
+    script: 'scripts/scr_knux_special/scr_knux_special.gml', name: 'Puño',
+    desc: 'el ataque cuerpo a cuerpo',
+    anchor: /attackTimer <= 0/,
+    hud: [{ k: 'CHARACTER_KNUX', spr: 'spr_gui_knuxattack' }] },
+
+  // ---------------- CREAM Y VANILLA (script compartido) ----------------
+  { id: 'cream_fly', chKey: 'cream', ch: 'Cream y Vanilla', exe: false,
+    script: 'scripts/scr_cream_special/scr_cream_special.gml', name: 'Vuelo',
+    desc: 'aletear en el aire',
+    anchor: /flyTimer <= 0/,
+    hud: [{ k: 'CHARACTER_CREAM', spr: 'spr_gui_creamfly' }, { k: 'CHARACTER_VANILLA', spr: 'spr_gui_creamfly' }] },
+  { id: 'cream_dash', chKey: 'cream', ch: 'Cream y Vanilla', exe: false,
+    script: 'scripts/scr_cream_special/scr_cream_special.gml', name: 'Dash',
+    desc: 'la corrida rápida',
+    anchor: /dashTimer <= 0/,
+    hud: [{ k: 'CHARACTER_CREAM', spr: 'spr_gui_creamdash' }, { k: 'CHARACTER_VANILLA', spr: 'spr_gui_creamdash' }] },
+  { id: 'cream_rings', chKey: 'cream', ch: 'Cream y Vanilla', exe: false,
+    script: 'scripts/scr_cream_special/scr_cream_special.gml', name: 'Anillos',
+    desc: 'soltar anillos para el EXE',
+    anchor: /ringsTimer <= 0/,
+    hud: [{ k: 'CHARACTER_CREAM', spr: 'spr_gui_creamrings' }, { k: 'CHARACTER_VANILLA', spr: 'spr_gui_creamrings' }] },
+
+  // ---------------- EGGMAN ----------------
+  { id: 'egg_djump', chKey: 'egg', ch: 'Eggman', exe: false,
+    script: 'scripts/scr_egg_special/scr_egg_special.gml', name: 'Doble salto',
+    desc: 'el repunte en el aire',
+    anchor: /djumpRecharge == 0/,
+    hud: [{ k: 'CHARACTER_EGGMAN', spr: 'spr_gui_eggdjump' }] },
+  { id: 'egg_shield', chKey: 'egg', ch: 'Eggman', exe: false,
+    script: 'scripts/scr_egg_special/scr_egg_special.gml', name: 'Escudo',
+    desc: 'la burbuja protectora',
+    anchor: /shieldRechrage == 0/,
+    hud: [{ k: 'CHARACTER_EGGMAN', spr: 'spr_gui_eggshield' }] },
+  { id: 'egg_track', chKey: 'egg', ch: 'Eggman', exe: false,
+    script: 'scripts/scr_egg_special/scr_egg_special.gml', name: 'Tracker',
+    desc: 'el rastreador (agachado + C)',
+    anchor: /trackerRecharge <= 0/,
+    hud: [{ k: 'CHARACTER_EGGMAN', spr: 'spr_gui_eggtrack', hint: { down: 38, plain: 23 } }] },
+
+  // ---------------- BLAZE ----------------
+  { id: 'blaze_djump', chKey: 'blaze', ch: 'Blaze', exe: false,
+    script: 'scripts/scr_blaze_special/scr_blaze_special.gml', name: 'Salto de fuego',
+    desc: 'el repunte en el aire',
+    anchor: /djumpRecharge == 0/,
+    hud: [{ k: 'CHARACTER_BLAZE', spr: 'spr_gui_eggdjump' }] },
+  { id: 'blaze_fireball', chKey: 'blaze', ch: 'Blaze', exe: false,
+    script: 'scripts/scr_blaze_special/scr_blaze_special.gml', name: 'Bola de fuego',
+    desc: 'el proyectil',
+    anchor: /fireballTimer <= 0/,
+    hud: [{ k: 'CHARACTER_BLAZE', spr: 'spr_gui_amyattack' }] },
+  { id: 'blaze_burning', chKey: 'blaze', ch: 'Blaze', exe: false,
+    script: 'scripts/scr_blaze_special/scr_blaze_special.gml', name: 'Ardiente',
+    desc: 'el modo en llamas',
+    anchor: /burningTimer <= 0/,
+    hud: [{ k: 'CHARACTER_BLAZE', spr: 'spr_gui_sallyshield' }] },
+
+  // ---------------- SALLY Y SALLY CANON (script compartido) ----------------
+  { id: 'sally_kick', chKey: 'sally', ch: 'Sally y Sally Canon', exe: false,
+    script: 'scripts/scr_sally_special/scr_sally_special.gml', name: 'Patada aérea',
+    desc: 'la patada en el aire',
+    anchor: /attackTimer <= 0/,
+    hud: [{ k: 'CHARACTER_SALLY', spr: 'spr_gui_sallyattack' }, { k: 'CHARACTER_SALLY_CANON', spr: 'spr_gui_sallyattack' }] },
+  { id: 'sally_shield', chKey: 'sally', ch: 'Sally y Sally Canon', exe: false,
+    script: 'scripts/scr_sally_special/scr_sally_special.gml', name: 'Escudo',
+    desc: 'la burbuja protectora',
+    anchor: /shieldRechrage <= 0/,
+    hud: [{ k: 'CHARACTER_SALLY', spr: 'spr_gui_sallyshield' }, { k: 'CHARACTER_SALLY_CANON', spr: 'spr_gui_sallyshield' }] },
+
+  // ---------------- METAL SONIC ----------------
+  { id: 'metal_over', chKey: 'metal', ch: 'Metal Sonic', exe: false,
+    script: 'scripts/scr_metal_special/scr_metal_special.gml', name: 'Overdrive',
+    desc: 'la aceleración automática',
+    anchor: /!isElectro/,
+    hud: [{ k: 'CHARACTER_METAL', spr: 'spr_gui_creamdash' }] },
+  { id: 'metal_electro', chKey: 'metal', ch: 'Metal Sonic', exe: false,
+    script: 'scripts/scr_metal_special/scr_metal_special.gml', name: 'Spark field',
+    desc: 'el campo eléctrico',
+    anchor: /electroTimer <= 0/,
+    hud: [{ k: 'CHARACTER_METAL', spr: 'spr_gui_eggshield' }] },
+
+  // ---------------- EXE ORIGINAL ----------------
+  { id: 'exe_jump', chKey: 'exe0', ch: 'EXE Original', exe: true,
+    script: 'scripts/scr_exe_special/scr_exe_special.gml', name: 'Salto libre',
+    desc: 'cortar el salto en el aire',
+    anchor: /isJumping/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_ORIGINAL', spr: 'spr_gui_exefreejump' }] },
+  { id: 'exe_atk', chKey: 'exe0', ch: 'EXE Original', exe: true,
+    script: 'scripts/scr_exe_special/scr_exe_special.gml', name: 'Golpe',
+    desc: 'el ataque cuerpo a cuerpo',
+    anchor: /attackTimer <= 0/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_ORIGINAL', spr: 'spr_gui_exeattack' }] },
+  { id: 'exe_invis', chKey: 'exe0', ch: 'EXE Original', exe: true,
+    script: 'scripts/scr_exe_special/scr_exe_special.gml', name: 'Invisibilidad',
+    desc: 'desaparecer (la misma tecla la cancela)',
+    near: /invisTimer <= EXE_INVIS_RECHARGE/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_ORIGINAL', spr: 'spr_gui_exeinvisability' }] },
+
+  // ---------------- EXE CHAOS ----------------
+  { id: 'chaos_jump', chKey: 'exechaos', ch: 'EXE Chaos', exe: true,
+    script: 'scripts/scr_chaos_special/scr_chaos_special.gml', name: 'Salto libre',
+    desc: 'cortar el salto en el aire',
+    anchor: /isJumping/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_CHAOS', spr: 'spr_gui_exefreejump' }] },
+  { id: 'chaos_atk', chKey: 'exechaos', ch: 'EXE Chaos', exe: true,
+    script: 'scripts/scr_chaos_special/scr_chaos_special.gml', name: 'Golpe / dash',
+    desc: 'el ataque (en el aire sale en diagonal)',
+    anchor: /stuckDashTimer <= 0/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_CHAOS', spr: 'spr_gui_chaosattack' }] },
+  { id: 'chaos_slime', chKey: 'exechaos', ch: 'EXE Chaos', exe: true,
+    script: 'scripts/scr_chaos_special/scr_chaos_special.gml', name: 'Slime (invisibilidad)',
+    desc: 'esconderse en el suelo (la C original también la cancela: esa línea no se toca)',
+    anchor: /slimeTimer <= -CHAOS_INVIS_RECHARGE/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_CHAOS', spr: 'spr_gui_chaosslime' }] },
+
+  // ---------------- EXETIOR ----------------
+  { id: 'exetior_jump', chKey: 'exetior', ch: 'Exetior', exe: true,
+    script: 'scripts/scr_exetior_special/scr_exetior_special.gml', name: 'Salto libre',
+    desc: 'cortar el salto en el aire',
+    anchor: /isJumping/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_EXETIOR', spr: 'spr_gui_exefreejump' }] },
+  { id: 'exetior_atk', chKey: 'exetior', ch: 'Exetior', exe: true,
+    script: 'scripts/scr_exetior_special/scr_exetior_special.gml', name: 'Golpe',
+    desc: 'el ataque cuerpo a cuerpo',
+    anchor: /attackTimer <= 0/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_EXETIOR', spr: 'spr_gui_exetiorattack' }] },
+  { id: 'exetior_rings', chKey: 'exetior', ch: 'Exetior', exe: true,
+    script: 'scripts/scr_exetior_special/scr_exetior_special.gml', name: 'Anillos',
+    desc: 'traer anillos al mapa',
+    anchor: /bringTimer <= 0/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_EXETIOR', spr: 'spr_gui_exetiorring' }] },
+
+  // ---------------- EXELLER ----------------
+  { id: 'exeller_jump', chKey: 'exeller', ch: 'Exeller', exe: true,
+    script: 'scripts/scr_exeller_special/scr_exeller_special.gml', name: 'Salto libre',
+    desc: 'cortar el salto en el aire',
+    anchor: /isJumping/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_EXELLER', spr: 'spr_gui_exefreejump' }] },
+  { id: 'exeller_atk', chKey: 'exeller', ch: 'Exeller', exe: true,
+    script: 'scripts/scr_exeller_special/scr_exeller_special.gml', name: 'Golpe',
+    desc: 'el ataque cuerpo a cuerpo',
+    anchor: /attackTimer <= 0/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_EXELLER', spr: 'spr_gui_exeattack' }] },
+  { id: 'exeller_clone', chKey: 'exeller', ch: 'Exeller', exe: true,
+    script: 'scripts/scr_exeller_special/scr_exeller_special.gml', name: 'Clon',
+    desc: 'mandar el clon (con ↓/↑ eliges dónde)',
+    anchor: /keyboard_check_pressed\(global\.KeyC\)/,
+    near: /clones\[0\] != -1/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_EXELLER', match: /drawKeyIcon\(spr, 0, spr == spr_gui_exellerclone/ }] },
+
+  // ---------------- METAL AMY ----------------
+  { id: 'metalamy_jump', chKey: 'exmetalamy', ch: 'Metal Amy', exe: true,
+    script: 'scripts/scr_metalamy_special/scr_metalamy_special.gml', name: 'Salto libre',
+    desc: 'cortar el salto en el aire',
+    anchor: /isJumping/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_METALAMY', spr: 'spr_gui_exefreejump' }] },
+  { id: 'metalamy_atk', chKey: 'exmetalamy', ch: 'Metal Amy', exe: true,
+    script: 'scripts/scr_metalamy_special/scr_metalamy_special.gml', name: 'Golpe',
+    desc: 'el ataque cuerpo a cuerpo',
+    anchor: /attackTimer <= 0 && invisTimer/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_METALAMY', spr: 'spr_gui_metalamyattack' }] },
+  { id: 'metalamy_bullet', chKey: 'exmetalamy', ch: 'Metal Amy', exe: true,
+    script: 'scripts/scr_metalamy_special/scr_metalamy_special.gml', name: 'Bala del cañón',
+    desc: 'el proyectil del brazo',
+    anchor: /bulletTimer <= 0/,
+    hud: [{ k: 'CHARACTER_EXE', sub: 'EXE_METALAMY', spr: 'spr_gui_metal_amy_lazer' }] }
+];
+
+const Keys = {
+  scanned: false, abils: {}, orig: {}, working: {},
+  changes: [], sel: null
+};
+
+/* ---------- análisis de una línea de activación ---------- */
+
+function parseAbilLine(line) {
+  const pm = line.match(/keyboard_check_pressed\((global\.Key[A-Za-z0-9]+)\)/);
+  if (!pm) return null;
+  const st = { base: pm[1], hold: [], down: false, downVia: null, air: false, ground: false, still: false, colliding: false };
+  const heldRe = new RegExp('keyboard_check\\((' + KEYS_RE + ')\\)', 'g');
+  let m;
+  while ((m = heldRe.exec(line))) if (m[1] !== st.base) st.hold.push(m[1]);
+  if (/isLookingDown/.test(line)) { st.down = true; st.downVia = 'look'; }
+  else if (st.hold.indexOf('global.KeyDown') >= 0) { st.down = true; st.downVia = 'check'; }
+  st.air = /isJumping/.test(line) || /!isGrounded/.test(line);
+  st.ground = !st.air && line.split('!isGrounded').join('').indexOf('isGrounded') >= 0;
+  st.still = /gspd == 0/.test(line);
+  st.colliding = /isColliding/.test(line);
+  return st;
+}
+
+function findActivation(txt, ab) {
+  const lines = String(txt).split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (!/keyboard_check_pressed\(global\.Key/.test(l)) continue;
+    if (ab.anchor && !ab.anchor.test(l)) continue;
+    if (ab.near) {
+      let ok = false;
+      for (let j = i + 1; j < Math.min(i + 13, lines.length); j++) { if (ab.near.test(lines[j])) { ok = true; break; } }
+      if (!ok) continue;
+    }
+    const p = parseAbilLine(l);
+    if (p) return { line: i, lineText: l, parsed: p };
+  }
+  return null;
+}
+
+/* el parry de Sonic y Amy Canon comparten una sola línea: la función
+   scr_parry_key() devuelve una tecla u otra según el personaje */
+function findParry(txt, side) {
+  const lines = String(txt).split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/return\s*\(global\.character == CHARACTER_AMY_CANON\)\s*\?\s*(global\.Key\w+)\s*:\s*(global\.Key\w+)/);
+    if (m) {
+      return {
+        line: i, lineText: lines[i],
+        parsed: { base: side === 'amy' ? m[1] : m[2], hold: [], down: false, downVia: null, air: false, ground: true, still: false, colliding: false }
+      };
+    }
+  }
+  return null;
+}
+
+function uiDefaults(p) {
+  return {
+    base: p.base,
+    Down: p.down,
+    Up: p.hold.indexOf('global.KeyUp') >= 0,
+    Left: p.hold.indexOf('global.KeyLeft') >= 0,
+    Right: p.hold.indexOf('global.KeyRight') >= 0,
+    key2: p.hold.find(h => /^global\.Key[ABCV]$/.test(h)) || null
+  };
+}
+
+/* spec = lo que el usuario quiere ahora (teclas); origSpec = lo que hay */
+function specOf(st) {
+  const p = st.parsed, u = st.ui;
+  const holds = [];
+  if (u.Down && p.downVia !== 'look') holds.push('global.KeyDown');
+  if (u.Up) holds.push('global.KeyUp');
+  if (u.Left) holds.push('global.KeyLeft');
+  if (u.Right) holds.push('global.KeyRight');
+  if (u.key2) holds.push(u.key2);
+  return { base: u.base, holds: holds, look: !!u.Down && p.downVia === 'look' };
+}
+function origSpecOf(p) {
+  return { base: p.base, holds: p.hold.slice().sort(), look: p.downVia === 'look' };
+}
+function sameSpec(a, b) {
+  if (a.base !== b.base || a.look !== b.look || a.holds.length !== b.holds.length) return false;
+  const x = a.holds.slice().sort(), y = b.holds.slice().sort();
+  for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return false;
+  return true;
+}
+
+/* ---------- reescritura de la línea de activación ----------
+   Solo se tocan los tokens de tecla: las teclas mantenidas se quitan y se
+   vuelven a poner (en el orden nuevo) justo antes del pressed; la tecla
+   del pressed se sustituye; isLookingDown se quita si ya no se pide. El
+   resto de la condición (timers, estados, gspd…) queda intacto. */
+function rewriteAbilLine(line, spec) {
+  let l = line;
+  l = l.replace(new RegExp('keyboard_check\\(' + KEYS_RE + '\\)\\s*&&\\s*', 'g'), '');
+  l = l.replace(new RegExp('\\s*&&\\s*keyboard_check\\(' + KEYS_RE + '\\)', 'g'), '');
+  if (!spec.look) {
+    l = l.replace(/isLookingDown\s*&&\s*/g, '');
+    l = l.replace(/\s*&&\s*isLookingDown\b/g, '');
+  }
+  l = l.replace(/keyboard_check_pressed\(global\.Key[A-Za-z0-9]+\)/, 'keyboard_check_pressed(' + spec.base + ')');
+  if (spec.holds.length) {
+    const pre = spec.holds.map(h => 'keyboard_check(' + h + ') && ').join('');
+    l = l.replace(/keyboard_check_pressed\(/, pre + 'keyboard_check_pressed(');
+  }
+  return l;
+}
+
+function rewriteParryLine(line, side, newKey) {
+  const re = /(return\s*\(global\.character == CHARACTER_AMY_CANON\)\s*\?\s*)(global\.Key\w+)(\s*:\s*)(global\.Key\w+)/;
+  const m = line.match(re);
+  if (!m) return null;
+  if (side === 'amy') return line.replace(re, '$1' + newKey + '$3' + m[4]);
+  return line.replace(re, '$1' + m[2] + '$3' + newKey);
+}
+
+/* ---------- iconos del HUD (Draw_64.gml) ---------- */
+
+function findDrawHits(lines, hud) {
+  const hits = [];
+  let k = null, sub = null;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const ck = line.match(/^\s*case\s+(CHARACTER_\w+)\s*:/);
+    if (ck) { k = ck[1]; sub = null; continue; }
+    const cs = line.match(/^\s*case\s+(EXE_\w+)\s*:/);
+    if (cs) { sub = cs[1]; continue; }
+    if (k !== hud.k) continue;
+    if (hud.sub && sub !== hud.sub) continue;
+    if (hud.kind === 'textkey') {
+      if (/scr_text_spr\(/.test(line)) {
+        const km = line.match(new RegExp('(' + KEYS_RE + ')'));
+        if (km) hits.push({ i: i, line: line, key: km[1], artW: null, isText: true });
+      }
+      continue;
+    }
+    const re = hud.match || new RegExp('drawKeyIcon\\(\\s*' + hud.spr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*,');
+    if (!re.test(line)) continue;
+    const km = line.match(/drawKeyIcon\(\s*[^,]+,\s*[^,]+,\s*([^,]+?),\s*(global\.Key[A-Za-z0-9]+)/);
+    if (km) hits.push({ i: i, line: line, key: km[2], artW: km[1].trim(), isText: false });
+  }
+  return hits;
+}
+
+/* ---------- escaneo ---------- */
+
+async function scanAbils() {
+  Keys.scanned = true;
+  const cache = {};
+  for (const ab of ABILS) {
+    if (!(ab.script in cache)) cache[ab.script] = await T.readText(ab.script);
+    const txt = cache[ab.script] || '';
+    if (!(ab.script in Keys.orig)) Keys.orig[ab.script] = txt;
+    const found = ab.type === 'parry' ? findParry(txt, ab.side) : findActivation(txt, ab);
+    Keys.abils[ab.id] = found
+      ? { line: found.line, text: found.lineText, parsed: found.parsed, ui: uiDefaults(found.parsed), dirty: false }
+      : { line: -1, text: null, parsed: null, ui: null, dirty: false };
+  }
+  if (!(DRAW_REL in Keys.orig)) Keys.orig[DRAW_REL] = (await T.readText(DRAW_REL)) || '';
+}
+
+/* ---------- reconstrucción de los archivos con cambios ---------- */
+
+function rebuildKeys() {
+  const files = {};
+  function fileOf(rel) {
+    if (!files[rel]) {
+      const t = Keys.orig[rel] || '';
+      files[rel] = { lines: String(t).split(/\r?\n/), nl: /\r\n/.test(t) ? '\r\n' : '\n' };
+    }
+    return files[rel];
+  }
+  const changes = [];
+  for (const ab of ABILS) {
+    const st = Keys.abils[ab.id];
+    if (!st || !st.parsed) continue;
+    const spec = specOf(st);
+    const dirty = !sameSpec(spec, origSpecOf(st.parsed));
+    st.dirty = dirty;
+    if (!dirty) continue;
+    const ch = { ab: ab, script: null, draws: [] };
+    // 1) línea de activación del script
+    const sc = fileOf(ab.script);
+    const oldLine = sc.lines[st.line];
+    if (oldLine != null) {
+      const newLine = ab.type === 'parry' ? rewriteParryLine(oldLine, ab.side, spec.base) : rewriteAbilLine(oldLine, spec);
+      if (newLine && newLine !== oldLine) {
+        sc.lines[st.line] = newLine;
+        ch.script = { rel: ab.script, before: oldLine, after: newLine };
+      }
+    }
+    // 2) icono(s) del HUD
+    const dc = fileOf(DRAW_REL);
+    for (const hud of ab.hud) {
+      const hits = findDrawHits(dc.lines, hud);
+      const wantDown = spec.look || spec.holds.indexOf('global.KeyDown') >= 0;
+      for (const hit of hits) {
+        let newLine = hit.line, touched = false;
+        if (hit.key !== spec.base) {
+          if (hit.isText) newLine = newLine.split(hit.key).join(spec.base);
+          else newLine = newLine.replace(/,\s*global\.Key[A-Za-z0-9]+\s*,/, ', ' + spec.base + ', ');
+          touched = true;
+        }
+        if (hud.hint && !hit.isText && /^\d+$/.test(hit.artW || '')) {
+          const target = wantDown ? hud.hint.down : hud.hint.plain;
+          if (target !== parseInt(hit.artW, 10)) {
+            newLine = newLine.replace(/(drawKeyIcon\(\s*[^,]+,\s*[^,]+,\s*)(\d+)/, '$1' + target);
+            touched = true;
+          }
+        }
+        if (touched) {
+          dc.lines[hit.i] = newLine;
+          ch.draws.push({ rel: DRAW_REL, before: hit.line, after: newLine });
+        }
+      }
+    }
+    if (ch.script || ch.draws.length) changes.push(ch);
+  }
+  // armar los archivos de trabajo (solo los que cambiaron de verdad)
+  Keys.working = {};
+  for (const rel in files) {
+    const f = files[rel];
+    const newTxt = f.lines.join(f.nl);
+    if (newTxt !== (Keys.orig[rel] || '')) Keys.working[rel] = newTxt;
+  }
+  Keys.changes = changes;
+  S.pendingFiles = Object.assign({}, Keys.working);
+  S.edits = changes.map(c => ({ file: c.ab.script, title: c.ab.name }));
+}
+
+/* ---------- interfaz ---------- */
+
+function chGroups() {
+  const out = [];
+  for (const ab of ABILS) {
+    let g = out.find(x => x.key === ab.chKey);
+    if (!g) { g = { key: ab.chKey, label: ab.ch, exe: !!ab.exe }; out.push(g); }
+  }
+  return out;
+}
+
+function keyChip(v) {
+  return '<span class="kbd">' + esc(KEYLBL[v] || v.replace('global.Key', '')) + '</span>';
+}
+function slotLabel(v) {
+  const s = SLOTS.find(x => x.v === v);
+  return s ? s.lbl : v;
+}
+function comboHTML(spec, p) {
+  let h = '';
+  for (const hold of spec.holds) h += keyChip(hold) + ' + ';
+  if (spec.look) h += 'agachado + ';
+  h += keyChip(spec.base);
+  if (p) {
+    if (p.air) h += ' <span class="stchip">en el aire</span>';
+    else if (p.ground) h += ' <span class="stchip">en el suelo</span>';
+    if (p.still) h += ' <span class="stchip">parado</span>';
+    if (p.colliding) h += ' <span class="stchip">tocando el suelo</span>';
+  }
+  return h;
+}
+
+function conflictsOf(chKey) {
+  const groups = {};
+  for (const ab of ABILS) {
+    if (ab.chKey !== chKey) continue;
+    const st = Keys.abils[ab.id];
+    if (!st || !st.parsed) continue;
+    const spec = specOf(st);
+    const combo = spec.base + '|' + (spec.look ? 'look' : '') + '|' + spec.holds.slice().sort().join(',');
+    (groups[combo] = groups[combo] || []).push(ab);
+  }
+  return Object.values(groups).filter(g => g.length > 1);
+}
+
+function rowHTML(ab) {
+  const st = Keys.abils[ab.id];
+  if (!st) return '';
+  if (!st.parsed) {
+    return '<div class="abrow"><div class="abtop"><b>' + esc(ab.name) + '</b></div>' +
+      '<div class="abmiss">no encontré su línea de activación en ' + esc(ab.script.split('/').pop()) + ' (¿la editaste a mano?)</div></div>';
+  }
+  const spec = specOf(st);
+  const orig = origSpecOf(st.parsed);
+  const dirty = !sameSpec(spec, orig);
+  const isParry = ab.type === 'parry';
+
+  let opts = '';
+  for (const s of SLOTS) opts += '<option value="' + s.v + '"' + (spec.base === s.v ? ' selected' : '') + '>' + esc(s.lbl) + '</option>';
+
+  let mods = '';
+  if (!isParry) {
+    for (const d of ['Down', 'Up', 'Left', 'Right']) {
+      const on = !!st.ui[d];
+      mods += '<label><input type="checkbox" class="abdir" data-dir="' + d + '"' + (on ? ' checked' : '') + '> ' + esc(KEYLBL['global.Key' + d]) + '</label>';
+    }
+    let k2 = '<option value="">nada</option>';
+    for (const s of SLOTS) {
+      if (s.v === spec.base) continue;
+      k2 += '<option value="' + s.v + '"' + (st.ui.key2 === s.v ? ' selected' : '') + '>' + esc(s.lbl) + '</option>';
+    }
+    mods = '<span class="abmods">' + mods + '</span>' +
+      '<label>mantener además <select class="abkey2">' + k2 + '</select></label>';
+  }
+
+  // vista previa de la línea resultante
+  const newLine = isParry ? rewriteParryLine(st.text, ab.side, spec.base) : rewriteAbilLine(st.text, spec);
+  const prev = esc(newLine || st.text).replace(/(keyboard_check(?:_pressed)?\([^)]*\))/g, '<b>$1</b>');
+
+  const conf = conflictsOf(ab.chKey).filter(g => g.indexOf(ab) >= 0);
+  let confHTML = '';
+  if (conf.length) {
+    const other = conf[0].find(x => x !== ab);
+    confHTML = '<div class="abconf">⚠ misma combinación que <b>' + esc(other.name) + '</b>: solo una podrá lanzarse con ella</div>';
+  }
+  let warn = '';
+  if (spec.base === 'global.KeyA' && !st.parsed.air) {
+    warn += '<div class="abwarn">⚠ Z es también el SALTO: en el suelo se lanzará a la vez que saltas (vale si siempre va «en el aire»)</div>';
+  }
+  if (spec.holds.indexOf('global.KeyA') >= 0) {
+    warn += '<div class="abwarn">ℹ mantener Z mientras pulsas otra tecla también te hace saltar: mejor combos sin el salto</div>';
+  }
+
+  return '<div class="abrow' + (dirty ? ' dirty' : '') + (conf.length ? ' conflict' : '') + '" data-id="' + ab.id + '">' +
+    '<div class="abtop"><b>' + esc(ab.name) + '</b>' +
+    '<span class="abcur">ahora: ' + comboHTML(orig, st.parsed) + '</span>' +
+    (dirty ? '<button class="abreset" title="volver a como está en el juego">↺ restaurar</button>' : '') +
+    '</div>' +
+    (ab.desc ? '<div class="abcur" style="font-size:11px">' + esc(ab.desc) + '</div>' : '') +
+    '<div class="abctl">' +
+    '<label>se lanza con <select class="abbase">' + opts + '</select></label>' +
+    mods +
+    '</div>' +
+    '<div class="abstates">' + comboHTML(spec, st.parsed) + '</div>' +
+    '<pre class="abprev">' + prev + '</pre>' +
+    warn + confHTML +
+    '</div>';
+}
+
+function renderKeysRows(chKey) {
+  const host = $('#keys-rows');
+  let html = '';
+  for (const ab of ABILS) if (ab.chKey === chKey) html += rowHTML(ab);
+  host.innerHTML = html || '<div class="muted">sin habilidades registradas</div>';
+  const g = chGroups().find(x => x.key === chKey);
+  $('#keys-head').innerHTML = g ? '<b>' + esc(g.label) + '</b> — elige qué botón lanza cada habilidad' : 'elige un personaje';
+  renderKeysConflicts(chKey);
+}
+
+function renderKeysConflicts(chKey) {
+  const host = $('#keys-conf');
+  const confs = conflictsOf(chKey);
+  if (!confs.length) { host.classList.add('hidden'); host.innerHTML = ''; return; }
+  let h = '';
+  for (const g of confs) {
+    h += '⚠ «' + g.map(a => esc(a.name)).join('» y «') + '» comparten la misma combinación de teclas ';
+  }
+  host.classList.remove('hidden');
+  host.innerHTML = h;
+}
+
+/* refresca las insignias de conflicto de TODAS las filas del personaje sin
+   destruir los controles (las filas ajenas a la que cambió no se re-renderizan) */
+function refreshConflictBadges(chKey) {
+  const confs = conflictsOf(chKey);
+  const rows = $$('#keys-rows .abrow');
+  for (const row of rows) {
+    const ab = ABILS.find(a => a.id === row.dataset.id);
+    if (!ab) continue;
+    const g = confs.find(gr => gr.indexOf(ab) >= 0) || null;
+    row.classList.toggle('conflict', !!g);
+    let div = row.querySelector('.abconf');
+    if (g) {
+      const other = g.find(x => x !== ab);
+      const txt = '⚠ misma combinación que <b>' + esc(other ? other.name : '?') + '</b>: solo una podrá lanzarse con ella';
+      if (!div) { div = document.createElement('div'); div.className = 'abconf'; row.appendChild(div); }
+      div.innerHTML = txt;
+    } else if (div) div.remove();
+  }
+  renderKeysConflicts(chKey);
+}
+
+function renderKeysEntities() {
+  const host = $('#keys-ent-list');
+  let html = '', lastExe = null;
+  for (const g of chGroups()) {
+    if (g.exe !== lastExe) { html += '<div class="kgroup">' + (g.exe ? 'EXEs' : 'Supervivientes') + '</div>'; lastExe = g.exe; }
+    let total = 0, dirty = 0, miss = 0;
+    for (const ab of ABILS) {
+      if (ab.chKey !== g.key) continue;
+      const st = Keys.abils[ab.id];
+      if (!st) continue;
+      if (!st.parsed) { miss++; continue; }
+      total++;
+      if (st.dirty) dirty++;
+    }
+    html += '<div class="kent' + (Keys.sel === g.key ? ' sel' : '') + '" data-ch="' + g.key + '">' +
+      '<b>' + esc(g.label) + '</b>' +
+      '<span class="kcnt' + (dirty ? ' dirty' : '') + '">' + (dirty ? dirty + '/' + total + ' ⟵' : (miss ? total + ' hab. · ' + miss + '?' : total + ' hab.')) + '</span></div>';
+  }
+  host.innerHTML = html;
+}
+
+function renderKeysEdits() {
+  const host = $('#keys-edits');
+  $('#keys-write').disabled = S.mode !== 'fs';
+  $('#keys-undo').disabled = !S.undo.length;
+  if (!Keys.changes.length) {
+    host.innerHTML = '<div class="okline">Nada que escribir.</div>';
+    return;
+  }
+  let html = '';
+  for (const ch of Keys.changes) {
+    html += '<div class="editcard">' +
+      '<div class="edhead"><b>' + esc(ch.ab.name) + ' — ' + esc(ch.ab.ch) + '</b></div>';
+    if (ch.script) {
+      html += '<div class="edtitle">' + esc(ch.script.rel.split('/').pop()) + ' (activación)</div>' +
+        '<pre class="diff"><span class="del">' + esc(ch.script.before.trim()) + '</span>\n<span class="add">' + esc(ch.script.after.trim()) + '</span></pre>';
+    }
+    if (ch.draws.length) {
+      html += '<div class="edtitle">obj_playerui/Draw_64.gml (icono del HUD)</div><pre class="diff">';
+      for (const d of ch.draws) {
+        html += '<span class="del">' + esc(d.before.trim()) + '</span>\n<span class="add">' + esc(d.after.trim()) + '</span>\n';
+      }
+      html += '</pre>';
+    }
+    html += '</div>';
+  }
+  host.innerHTML = html;
+}
+
+function syncKeysPending() {
+  rebuildKeys();
+  renderKeysEdits();
+  renderKeysEntities();
+}
+
+/* ---------- eventos ---------- */
+
+function initKeys() {
+  $('#keys-ent-list').addEventListener('click', (e) => {
+    const ent = e.target.closest('.kent');
+    if (!ent) return;
+    Keys.sel = ent.dataset.ch;
+    renderKeysEntities();
+    renderKeysRows(Keys.sel);
+  });
+
+  $('#keys-rows').addEventListener('change', (e) => {
+    const row = e.target.closest('.abrow');
+    if (!row) return;
+    const st = Keys.abils[row.dataset.id];
+    if (!st || !st.ui) return;
+    if (e.target.classList.contains('abbase')) st.ui.base = e.target.value;
+    else if (e.target.classList.contains('abkey2')) st.ui.key2 = e.target.value || null;
+    else if (e.target.classList.contains('abdir')) st.ui[e.target.dataset.dir] = e.target.checked;
+    else return;
+    // refresco quirúrgico de la fila (no se re-renderiza el <select> activo)
+    const tmp = document.createElement('div');
+    const ab = ABILS.find(a => a.id === row.dataset.id);
+    tmp.innerHTML = rowHTML(ab);
+    const fresh = tmp.firstElementChild;
+    if (fresh) row.replaceWith(fresh);
+    refreshConflictBadges(ab.chKey);
+    syncKeysPending();
+  });
+
+  $('#keys-rows').addEventListener('click', (e) => {
+    const btn = e.target.closest('.abreset');
+    if (!btn) return;
+    const row = btn.closest('.abrow');
+    if (!row) return;
+    const st = Keys.abils[row.dataset.id];
+    const ab = ABILS.find(a => a.id === row.dataset.id);
+    if (!st || !st.parsed || !ab) return;
+    st.ui = uiDefaults(st.parsed);
+    const tmp = document.createElement('div');
+    tmp.innerHTML = rowHTML(ab);
+    const fresh = tmp.firstElementChild;
+    if (fresh) row.replaceWith(fresh);
+    refreshConflictBadges(ab.chKey);
+    syncKeysPending();
+    toast('Restaurado: ' + ab.name);
+  });
+
+  $('#keys-write').addEventListener('click', () => T.writeEdits());
+  $('#keys-undo').addEventListener('click', () => T.undoLast());
+}
+
+/* ---------- entrada al módulo ---------- */
+
+async function enterKeys() {
+  const host = $('#keys-ent-list');
+  if (!S.mode) {
+    host.innerHTML = '<div class="muted" style="padding:8px">abre tu proyecto primero</div>';
+    $('#keys-rows').innerHTML = '';
+    $('#keys-head').textContent = 'música aparte, esto necesita tu proyecto';
+    return;
+  }
+  if (S.mode === 'demo') {
+    host.innerHTML = '<div class="muted" style="padding:8px">en la Demo no hay archivos reales:<br>abre la carpeta de tu juego</div>';
+    $('#keys-rows').innerHTML = '';
+    $('#keys-head').textContent = 'módulo de solo-proyecto';
+    return;
+  }
+  if (!Keys.scanned) {
+    host.innerHTML = '<div class="muted" style="padding:8px">escaneando habilidades…</div>';
+    await scanAbils();
+  }
+  renderKeysEntities();
+  if (Keys.sel) renderKeysRows(Keys.sel);
+  else $('#keys-rows').innerHTML = '';
+  syncKeysPending();
+}
+
+async function keysAfterWrite() {
+  Keys.scanned = false; Keys.abils = {}; Keys.orig = {}; Keys.working = {}; Keys.changes = [];
+  await scanAbils();
+  renderKeysEntities();
+  if (Keys.sel) renderKeysRows(Keys.sel);
+  syncKeysPending();
+}
+
+// enganches con el núcleo (mismo patrón que los módulos 3 y 4)
+T.enterKeys = enterKeys;
+
+const prevAW5 = S.onAfterWrite;
+S.onAfterWrite = async function () {
+  if (S.module === 'keys') { await keysAfterWrite(); return; }
+  if (prevAW5) await prevAW5();
+};
+
+const prevDiscard = T.discardModulePending;
+T.discardModulePending = function () {
+  for (const id in Keys.abils) {
+    const st = Keys.abils[id];
+    if (st && st.parsed) st.ui = uiDefaults(st.parsed);
+  }
+  Keys.working = {}; Keys.changes = [];
+  if (prevDiscard) prevDiscard();
+};
+
+const prevScan5 = window.__onProjectScan;
+window.__onProjectScan = function () {
+  Keys.scanned = false; Keys.abils = {}; Keys.orig = {}; Keys.working = {}; Keys.changes = []; Keys.sel = null;
+  if (S.module === 'keys') enterKeys();
+  if (prevScan5) prevScan5();
+};
+
+// gancho de pruebas automatizadas (en el navegador `module` no existe)
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    ABILS, Keys, SLOTS, DRAW_REL,
+    parseAbilLine, findActivation, findParry, uiDefaults,
+    specOf, origSpecOf, sameSpec,
+    rewriteAbilLine, rewriteParryLine, findDrawHits,
+    scanAbils, rebuildKeys, chGroups
+  };
+}
+
+initKeys();
 })();
 </script>
 </body>

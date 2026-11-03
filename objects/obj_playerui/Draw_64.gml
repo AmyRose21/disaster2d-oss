@@ -452,7 +452,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // (scr_amelia_special). Se corta en el guion y la
                         // tecla dinamica queda justo despues: "[trampa]-C".
                         var prog = 1.0 - (max(global.player.trapTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE));
-                        drawKeyIcon(spr_gui_amelia_trap, 0, 25, global.KeyC, prog * 10, 258 - _mob, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_amelia_trap, 0, 39, global.KeyC, prog * 10, 258 - _mob, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
 

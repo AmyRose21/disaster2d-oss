@@ -171,7 +171,7 @@ function scr_amelia_special()
         }
 
         // ---- TRAMPA (tecla C en el suelo) ----
-        if(global.playerControls && keyboard_check_pressed(global.KeyC) && trapTimer <= 0 && !isSpinCharging && isColliding)
+        if(global.playerControls && keyboard_check(global.KeyDown) && keyboard_check_pressed(global.KeyC) && trapTimer <= 0 && !isSpinCharging && isColliding)
         {
                 audio_play_sound(snd_amelia_trap, 0, false);
                 net_sound_emit(snd_amelia_trap);
