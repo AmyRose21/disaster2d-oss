@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mejoras v3.2 + v4.4 y Tier List · Sonic.exe The Disaster 2D Remake</title>
+<title>Mejoras v3.2 + v4.5 y Tier List · Sonic.exe The Disaster 2D Remake</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -563,12 +563,13 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
     <span class="badge">Actualizado · <b>3 de noviembre de 2026</b></span>
     <span class="badge">Novedad v3.2 · <b>La pasada del pull · 16 recortes de recarga · Amy Canon sin límite</b></span>
     <span class="badge red">Novedad v4.4 · <b>Amelia «ciega»: inmune al anillo rojo · trampas y sensores dentro del escondite</b></span>
-    <span class="badge"><a href="TierList_Comentarios_V1.html">La voz del lobby: <b>tier list con comentarios de jugadores</b></a></span>
+    <span class="badge red">Novedad v4.5 · <b>Amelia «eco de la salida»: a 700 px, la salida le responde</b></span>
+    <span class="badge"><a href="TierList_Comentarios_V2.html">La voz del lobby: <b>tier list con comentarios de jugadores</b></a></span>
   </div>
 </header>
 
 <nav class="tabs" id="tabs">
-  <button data-tab="mejoras" class="on">Mejoras v3.2 + v4.4</button>
+  <button data-tab="mejoras" class="on">Mejoras v3.2 + v4.5</button>
   <button data-tab="vsexe">VS el EXE</button>
   <button data-tab="impres">Impresiones</button>
   <button data-tab="tiers">Tier list</button>
@@ -585,16 +586,61 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
 
   <!-- ============================ MEJORAS v3.0 ============================ -->
   <section class="tab on" id="tab-mejoras">
-    <h2 class="sec"><span class="dot gold"></span>Mejoras v3.2 + v4.4 · del pull a la emboscada</h2>
+    <h2 class="sec"><span class="dot gold"></span>Mejoras v3.2 + v4.5 · del pull al eco de la salida</h2>
     <p class="lead">
       El pull entró y con él la <b>v3.2</b>: tu pasada de balance editada con la Suite TD2D, que la tabla <b>Δ</b> de abajo compara número a número contra el último tierlist. Debajo sigue la historia completa — la v3.0/v3.1 aplicada sobre el código real del juego y del servidor:
       recargas, reglas de ceguera, i-frames, el arreglo del parry de Sonic y la pasiva nueva del
       Dr. Eggman — que convierte sus anillos en piezas y sus trampas en oro. Y encabezando la
-      página, lo más reciente: la <b>v4.4</b> — Amelia, ciega de verdad, ya no sufre los anillos
+      página, lo más reciente: la <b>v4.5</b> — el <b>eco de la salida</b>: dentro de 700 px, el anillo
+      de escape le «responde» a Amelia con una flecha verde pálida que se desvanece con la distancia
+      — y detrás, la <b>v4.4</b>: Amelia, ciega de verdad, ya no sufre los anillos
       rojos, y trampas y sensores se colocan <b>desde dentro del escondite</b>. Cada escena está
       montada con los sprites y sonidos del propio juego.
     </p>
 
+
+    <!-- ============ v4.5 · EL ECO DE LA SALIDA ============ -->
+    <div class="v44banner">
+      <b>v4.5 en una línea:</b> Amelia <b>siente la salida</b>: dentro de <b>700 px</b> del anillo de
+      escape, una flecha verde pálida que <b>late y se desvanece</b> con la distancia le señala el
+      camino — la versión pobre del sensor de Amy Canon (el suyo es incondicional: cualquier
+      distancia, sólido y permanente). Coherente con su lore: sin vista, la salida no se le
+      muestra — <b>le resuena</b>, como la corriente de aire de una puerta abierta.
+    </div>
+
+    <!-- ============ J. v4.5 · ECO DE LA SALIDA ============ -->
+    <article class="demo-card">
+      <div class="demo-head">
+        <h3><span class="n goldbg">J</span>v4.5 · «Eco de la salida»: la salida le responde</h3>
+        <div class="pills">
+          <span class="pill gold">Flecha verde <b>solo en rango</b> · 700 px</span>
+          <span class="pill blue">Se <b>desvanece</b> con la distancia</span>
+          <span class="pill">Al 80 % · verde pálido · <b>late</b></span>
+          <span class="pill red">Amy Canon la ve <b>siempre</b> · esta NO</span>
+        </div>
+      </div>
+      <p class="demo-txt">
+        El gran vacío que le quedaba a Amelia era el <b>final de la partida</b>: ciega, la salida era
+        una corazonada — dar vueltas hasta tropezársela. Desde la v4.5 el anillo de escape le
+        <b>responde</b>: mientras esté a menos de <code>AMELIA_EXIT_SENSE_RADIUS</code> (700 px,
+        pantalla y media), una flecha verde pálida — la misma <code>spr_sindicator2</code> de Amy
+        Canon, pero al 80 %, tintada y <b>latiendo</b> — le señala la dirección desde su propia
+        posición. La fuerza crece con la cercanía: <b>sólida</b> pegada a la salida, apenas un
+        <b>susurro</b> en el borde del radio; fuera de rango, nada. La jerarquía queda intacta: el
+        sensor de Amy Canon sigue siendo incondicional (cualquier distancia, sólido, permanente) —
+        el de Amelia pide <b>acercarse a que la salida le responda</b>. Lo dibuja
+        <code>obj_amelia_auras</code> junto a la Auravisión: tercer sensor del mismo objeto, solo
+        en la pantalla de Amelia, cero paquetes.
+      </p>
+      <div class="variantbar" id="var-eco">
+        <button data-v="amelia" class="on">Amelia · el eco (700 px)</button>
+        <button data-v="amycanon">Amy Canon · sensor total</button>
+      </div>
+      <div class="stagewrap">
+        <canvas id="cv-eco" width="470" height="170"></canvas>
+        <div class="stagehint">fuera de rango: nada · entra en rango: el eco despierta y late · cerca: sólido</div>
+      </div>
+    </article>
 
     <!-- ============ v4.4 · EL AJUSTE DE AMELIA Y EL ESCONDITE ============ -->
     <div class="v44banner">
@@ -1016,14 +1062,17 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
       «Mejoras v3.2».
     </div>
     <div class="v44banner" style="margin-top:10px">
-      <b>v4.4 (aún sin movimiento de tier):</b> Amelia suma la pasiva «Ciega» — inmune al anillo
-      rojo — y la emboscada en el escondite: trampa y trampolín colocables OCULTA. Eggman coloca
-      su sensor escondido. ¿Sigue Amelia en A+ o esto ya huele a S?
+      <b>v4.4 + v4.5 (aún sin movimiento de tier):</b> Amelia suma la pasiva «Ciega» — inmune al anillo
+      rojo —, la emboscada en el escondite (trampa y trampolín colocables OCULTA; Eggman, su sensor)
+      y el <b>eco de la salida</b>: flecha a 700 px que se desvanece con la distancia. ¿Sigue Amelia
+      en A+ o tres buffs seguidos ya huele a S?
     </div>
-    <a class="linkcard" href="TierList_Comentarios_V1.html">
+    <a class="linkcard" href="TierList_Comentarios_V2.html">
       <span class="lc-t">La voz del lobby</span>
       <span class="lc-d">La tier list aparte con comentarios de jugadores — positivos y negativos,
-      supervivientes y exes, con sus exageraciones — debatiendo cada puesto de esta tabla.</span>
+      supervivientes y exes, con sus exageraciones — debatiendo cada puesto de esta tabla.
+      v2: chat del lobby en vivo (los comentarios siguen llegando) y los personajes MOD
+      con moderadora propia.</span>
       <span class="lc-btn">Abrir la tier list de comentarios</span>
     </a>
 
@@ -1469,8 +1518,8 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
     <div>
       <h5>Créditos</h5>
       <p>Página generada para el proyecto «Sonic.exe The Disaster 2D Remake» (cliente GameMaker + servidor dedicado en C). Los sprites son los del propio juego.</p>
-      <p>Sonic.exe The Disaster 2D Remake — plantel v2.11 · tierlist v3 (v3.2 + v4.4) · 3 de noviembre de 2026.</p>
-      <p>La v4.4 se verificó sobre net_state_game.gml (rutas SERVER_RING_COLLECTED y SERVER_RMZSLIME_RINGBONUS), scr_amelia_special.gml, scr_egg_special.gml y Draw_64.gml del 3 de noviembre de 2026. La tier list con comentarios de jugadores (simulados) vive en TierList_Comentarios_V1.html.</p>
+      <p>Sonic.exe The Disaster 2D Remake — plantel v2.11 · tierlist v3 (v3.2 + v4.5) · 3 de noviembre de 2026.</p>
+      <p>La v4.4 se verificó sobre net_state_game.gml (rutas SERVER_RING_COLLECTED y SERVER_RMZSLIME_RINGBONUS), scr_amelia_special.gml, scr_egg_special.gml y Draw_64.gml del 3 de noviembre de 2026. La v4.5 (eco de la salida) se verificó sobre scr_amelia_special.gml (macros AMELIA_EXIT_SENSE_*) y los tres eventos de obj_amelia_auras de la misma fecha. La tier list con comentarios de jugadores (simulados) vive en TierList_Comentarios_V2.html.</p>
     </div>
   </div>
 </footer>
@@ -1727,7 +1776,7 @@ const SURV = [
   key:'amelia', name:'Amelia', mod:true, tier:'A+', role:'Control de zona · Detective ciega',
   speed:'11 · 18 en espinas', acc:'0.046875',
   bars:{mov:4, util:5, sup:2, pres:4},
-  passive:{name:'Auravisión · Sol y Luna · Ciega (v2.12 → v4.4)', desc:'Auravisión: a 350 px ve el aura de calor del bando EXE a través de paredes e invisibilidad; el EXE REAL arde más fuerte que clones y esbirros. Luna: oculta = invisible grado EXE (velo de gracia 3 s, CD 15 s). Eclipse: su trampa arrastra 4 s de ceguera al lado EXE. Ciega (v4.4): los anillos rojos no le hacen nada — los recoge y el EXE pierde esa trampa.'},
+  passive:{name:'Auravisión · Sol y Luna · Ciega · Eco (v2.12 → v4.5)', desc:'Auravisión: a 350 px ve el aura de calor del bando EXE a través de paredes e invisibilidad; el EXE REAL arde más fuerte que clones y esbirros. Luna: oculta = invisible grado EXE (velo de gracia 3 s, CD 15 s). Eclipse: su trampa arrastra 4 s de ceguera al lado EXE. Ciega (v4.4): los anillos rojos no le hacen nada — los recoge y el EXE pierde esa trampa. Eco (v4.5): a menos de 700 px de la salida, una flecha verde pálida que late y se desvanece con la distancia le señala el anillo de escape.'},
   abilities:[
     {k:'X', n:'Trampolín', d:'Resorte en el suelo: quien lo pise (killer incluido) sale disparado hacia arriba. Dura 12 s, un uso. v3.2: 20,5 s. v4.4: colocable también ESCONDIDA.', cd:'20,5 s / 10 s'},
     {k:'↓+C', n:'Trampa', d:'Stun de 3 s + ralentización del 40 % durante 3,5 s más. Vive 60 s y puede haber varias (v2.8). ECLIPSE (v2.13): el EXE real queda CIEGO 4 s y los esbirros 6 s (v3.0). Si Amelia se demoniza, sus trampas aturden a los supervivientes PERO SIN ceguera. v4.4: combo mantener ↓ + pulsar C (puesto con la Suite v5) y colocable ESCONDIDA — la emboscada del matorral.', cd:'24 s / 15 s'},
@@ -1739,7 +1788,8 @@ const SURV = [
     'Auravisión gratis: la lectura del bando EXE que otros pagan con habilidades',
     'Spin dash heredado: movilidad de primera sin coste de recarga',
     'Ciega (v4.4): el anillo rojo le resbala — puede comerse la trampa del EXE sin castigo',
-    'v4.4: trampa y trampolín se colocan desde DENTRO del escondite (emboscada)'
+    'v4.4: trampa y trampolín se colocan desde DENTRO del escondite (emboscada)',
+    'Eco (v4.5): la salida le responde a 700 px — brújula gratis para la recta final'
   ],
   minus:[
     'La Luna pide un escondite cerca: en campo abierto cae como cualquier mortal',
@@ -2022,6 +2072,13 @@ const PROPS = [
   why:'La coherencia lo pedía desde el primer día: un anillo maldito que «alucina» a una ciega es un efecto que ni siquiera debería intentar funcionar. Y de regalo táctico: Amelia puede comerse el anillo-trampa del EXE sin castigo, limpiando el camino para sus compañeros.',
   tags:['v4.4','En el código','Solo cliente','Cero paquetes','Lore fiel'],
   verdict:'<b>Implementada en la v4.4.</b> Mismo patrón exacto que la pasiva 1 de Amy Canon: el chequeo vive junto al suyo en las dos rutas de anillos de net_state_game.gml.'
+},
+{
+  name:'Eco de la salida (la brújula de la recta final)', done:true,
+  desc:'Mientras el anillo de escape esté a menos de 700 px (AMELIA_EXIT_SENSE_RADIUS), una flecha verde pálida — la misma spr_sindicator2 de Amy Canon, al 80 %, tintada y LATIENDO — señala la dirección desde la propia Amelia. La fuerza crece con la cercanía: sólida pegada a la salida, apenas un susurro en el borde del radio; fuera de rango, nada. La dibuja obj_amelia_auras junto a la Auravisión, solo en su pantalla: cero paquetes.',
+  why:'El gran vacío que le quedaba era el final de la partida: sin vista, la salida era una corazonada. El eco respeta la jerarquía de Amy Canon (la suya es incondicional y permanente; el de Amelia pide acercarse a que la salida le responda) y mantiene la identidad: la salida no se le muestra — le resuena, como la corriente de aire de una puerta abierta.',
+  tags:['v4.5','En el código','Solo cliente','Cero paquetes','Jerarquía respetada'],
+  verdict:'<b>Implementada en la v4.5.</b> Tercer sensor de obj_amelia_auras: mismas matemáticas que el sensor 1 de Amy Canon (instance_nearest + point_direction), con la distancia y el desvanecido de más.'
 },
 {
   name:'Deducción del detective', rec:false,
@@ -2741,6 +2798,109 @@ document.querySelectorAll('#var-escondite button').forEach(b=>{
   });
 });
 
+/* ==================== ESCENA H · v4.5: ECO DE LA SALIDA ==================== */
+let ecoVar='amelia';
+scene('cv-eco',(cv,ctx)=>{
+  const W=cv.width, H=cv.height, G=H-18;
+  const parts=mkParts();
+  const EX=W-64;               /* el anillo de escape */
+  const RANGE=300;             /* 700 px de juego, comprimidos al lienzo */
+  /* fases: 0 camina hacia la salida · 1 la alcanza (celebra) · 2 fundido */
+  let ph=0, pt=0, woke=false, ringT=0;
+  function drawExitRing(t){
+    const ry=G-26+Math.sin(t*1.8)*5;
+    const halo=.20+.10*Math.sin(t*2.6);
+    const gr=ctx.createRadialGradient(EX,ry,4,EX,ry,42);
+    gr.addColorStop(0,'rgba(120,255,150,'+halo+')'); gr.addColorStop(1,'rgba(120,255,150,0)');
+    ctx.fillStyle=gr; ctx.fillRect(EX-44,ry-44,88,88);
+    ctx.save(); ctx.filter='sepia(.25) saturate(2.4) hue-rotate(70deg) brightness(1.08)';
+    dr(ctx,'ring',Math.floor(t*6)%IMG.ring.length,EX,ry,{scale:2.6});
+    ctx.restore();
+    return ry;
+  }
+  function arrowAt(x,y,alpha,scale,col){
+    ctx.save(); ctx.globalAlpha=alpha; ctx.translate(x,y); ctx.scale(scale,scale);
+    ctx.fillStyle=col;
+    ctx.beginPath(); ctx.moveTo(13,0); ctx.lineTo(-9,-7.5); ctx.lineTo(-4,0); ctx.lineTo(-9,7.5);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+  return {
+    update(dt,t){
+      pt+=dt; ringT+=dt;
+      if(ph===0){ if(pt>6.4){ ph=1; pt=0;
+        for(let i=0;i<9;i++) parts.add(EX,G-26,'roseheart',-26-Math.random()*36,(Math.random()-.5)*80,.85,1.2);
+        if(audioUnlocked)snd('heal',.4);
+      } }
+      else if(ph===1){ if(pt>1.35){ ph=2; pt=0; } }
+      else if(pt>0.65){ ph=0; pt=0; woke=false; }
+      parts.upd(dt);
+    },
+    draw(ctx,t){
+      ctx.fillStyle='#1d1a28'; ctx.fillRect(0,G,W,3);
+      const ry=drawExitRing(t);
+      /* Amelia entra andando de la izquierda */
+      let px=44;
+      if(ph===0) px=44+(pt/6.4)*((EX-52)-44);
+      else px=EX-52;
+      const d=Math.max(0,EX-px);
+      const k=(ecoVar==='amycanon')?1:Math.max(0,1-d/RANGE);
+      const inRange=(ecoVar==='amycanon')||(d<=RANGE);
+      if(!woke&&inRange&&ph===0){ woke=true; if(audioUnlocked)snd('tracker',.3); }
+      /* ondas de resonancia: la salida "responde" (solo la variante Amelia) */
+      if(ecoVar==='amelia'&&k>0){
+        for(let i=0;i<3;i++){
+          const rr=((ringT*.55+i/3)%1);
+          ctx.save(); ctx.globalAlpha=k*.32*(1-rr);
+          ctx.strokeStyle='#96e1aa'; ctx.lineWidth=1.5;
+          ctx.beginPath(); ctx.arc(EX,ry,10+rr*46,0,Math.PI*2); ctx.stroke(); ctx.restore();
+        }
+      }
+      /* Amelia / Amy Canon */
+      const astrip=(ecoVar==='amycanon')?'amy_attack':'amelia_run';
+      dr(ctx,astrip,Math.floor(t*8)%IMG[astrip].length,px,G,{scale:2.05});
+      label(ctx,(ecoVar==='amycanon')?'AMY CANON':'AMELIA',px,G-80,(ecoVar==='amycanon')?'#ff9ec0':'#ffd75e');
+      /* la flecha: el ECO (pálida, desvanecida, latiendo) o el sensor total */
+      if(inRange){
+        if(ecoVar==='amelia'){
+          const beat=.5+.5*Math.sin(t*5.4);
+          const alpha=Math.max(.18,Math.min(1,.3+.7*k+beat*.22*(.35+.65*k)));
+          arrowAt(px,G-58+Math.sin(t*3)*2,alpha,.8,'#96e1aa');
+          label(ctx,'EL ECO · '+(k>.66?'SÓLIDO':(k>.33?'DESPERTANDO':'SUSURRO')),px,G-92,'#96e1aa');
+        }else{
+          arrowAt(px,G-58,1,1,'#7dff9a');
+          label(ctx,'SENSOR · SIEMPRE ENCENDIDO',px,G-92,'#7dff9a');
+        }
+      }else{
+        label(ctx,'FUERA DE RANGO · nada',px,G-92,'#8d85a3');
+      }
+      /* medidor de señal (barras de cobertura) + distancia de juego */
+      const lit=Math.ceil(k*4), BX=W-104, BY=10;
+      ctx.save();
+      ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillRect(BX,BY,96,30);
+      ctx.font='700 8px Verdana,sans-serif'; ctx.textAlign='left';
+      ctx.fillStyle='#ffd75e'; ctx.fillText('SEÑAL',BX+7,BY+12);
+      ctx.fillStyle='#8d85a3'; ctx.fillText(Math.round(d*(700/RANGE))+' px',BX+7,BY+24);
+      for(let i=0;i<4;i++){
+        const bh=5+i*4;
+        ctx.fillStyle=(i<lit)?((ecoVar==='amycanon')?'#7dff9a':'#96e1aa'):'#2c2440';
+        ctx.fillRect(BX+48+i*10,BY+24-bh,7,bh);
+      }
+      ctx.restore();
+      parts.draw(ctx);
+      if(ph===1){
+        biglabel(ctx,(ecoVar==='amycanon')?'AMY CANON · siempre la vio venir':'LA SALIDA · el eco se volvió sólido','#7dff9a');
+      }
+      hud(ctx,'v4.5 · obj_amelia_auras: la salida responde solo dentro de 700 px (Amy Canon: sin condiciones)');
+    }
+  };
+});
+document.querySelectorAll('#var-eco button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    ecoVar=b.dataset.v;
+    document.querySelectorAll('#var-eco button').forEach(x=>x.classList.toggle('on',x===b));
+  });
+});
+
 /* ==================== PLANIFICADOR DE ESCENAS ====================
    Las animaciones SOLO corren cuando su tarjeta está en pantalla, y solo
    UNA tarjeta corre a la vez (la más visible). El resto queda congelada en
@@ -2840,6 +3000,7 @@ const CDS=[
 
 /* ==================== tabla VS el EXE ==================== */
 const VSDATA=[
+  {t:'La salida ya no es corazonada', chip:'Amelia v4.5', d:'Dentro de 700 px, el <b>eco</b>: una flecha verde pálida que late y se desvanece con la distancia señala el anillo de escape. La recta final de Amelia deja de ser «dar vueltas hasta tropezárselo»: la ceguera ya no la castiga cuando más duele — <b>sin llegar al radar total de Amy Canon</b> (el suyo, sin condiciones de distancia).'},
   {t:'El anillo rojo ya no es universal', chip:'Amelia v4.4', d:'La pasiva «Ciega» neutraliza el arma psicológica del EXE: Amelia recoge el anillo maldito sin música de posesión, sin velo rojo y sin silencio de habilidades — <b>el EXE pierde esa trampa</b> y ella sigue entera. Coherencia pura: un efecto visual no tiene dónde agarrarse en quien no ve.'},
   {t:'Emboscada en el escondite', chip:'Amelia / Eggman v4.4', d:'Trampa, trampolín y sensor se colocan <b>desde dentro del matorral</b>: el ↓ que te esconde es el mismo ↓ del combo. El EXE que revisa un escondite puede pisar una trampa que lo deja <b>ciego 4 s</b> (y al esbirro, 6): los escondites dejan de ser zonas muertas y se vuelven <b>zonas de caza</b>. El spindash sigue cortado: colocar no rompe el sigilo, pelear sí.'},
   {t:'Trampa a 24 s', chip:'Amelia', d:'Casi una trampa más por minuto y pueden convivir varias: los pasillos calientes se quedan <b>sembrados</b>. El EXE deja de tener rutas seguras a mitad de partida.'},

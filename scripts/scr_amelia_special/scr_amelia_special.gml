@@ -7,12 +7,14 @@
 //  compartido de las botas de los Kafmonitors provocaba carrera
 //  forzada incontrolable. Desde v2.4 isBoosting es exclusivo de las
 //  botas, que funcionan para Amelia igual que para los demas.)
-//   * TRAMPOLIN (tecla X, mirando abajo en el suelo): SIN CAMBIOS
-//     desde v2.2. Resorte colocable: quien lo pise (killer incluido)
-//     sale disparado hacia arriba en su propio cliente (la fisica del
-//     resorte es la del juego, 100% local). Dura 12 s y se usa una
-//     vez. Recarga 25 s.
-//   * TRAMPA (tecla C en el suelo): planta una trampa (spr_trap) que
+//   * TRAMPOLIN (tecla X, mirando abajo en el suelo; v4.4: colocable
+//     tambien ESCONDIDO): resorte colocable: quien lo pise (killer
+//     incluido) sale disparado hacia arriba en su propio cliente (la
+//     fisica del resorte es la del juego, 100% local). Dura 12 s y se
+//     usa una vez. Recarga 25 s.
+//   * TRAMPA (mantener ABAJO + pulsar C en el suelo; combo puesto con
+//     la Suite v5; v4.4: colocable tambien ESCONDIDA en las zonas de
+//     ocultamiento): planta una trampa (spr_trap) que
 //     dura hasta 60 s (la retira el server) o hasta que la pisa
 //     alguien del lado del EXE: STUN de 3 s + debuff de velocidad
 //     (-40%) otros 3.5 s al salir del stun (stun y slow los aplica
@@ -54,6 +56,25 @@
 //        ni HUD (obj_player_puppet/Draw_0 y Draw_64) y un velo oscuro
 //        sobre su pantalla (obj_level/Draw_64). Local como el propio
 //        stun (cliente de la víctima): cero paquetes nuevos.
+//   * PASIVA «CIEGA» (v4.4): los anillos rojos no le hacen NADA. Su
+//     efecto es puramente VISUAL (mus_mindfuck + velo rojo + silencio
+//     de habilidades) y Amelia no ve: recoge el anillo igual (contacto
+//     fisico — el EXE pierde esa trampa), pero el efecto se corta en
+//     net_state_game junto al de Amy Canon. Coherente con su lore: un
+//     anillo maldito no puede alucinar a quien ya vive sin vista.
+//   * PASIVA «ECO DE LA SALIDA» (v4.5, pedido del usuario): Amelia
+//     SIENTE la salida. Mientras el anillo de escape (obj_bigring) este
+//     a menos de AMELIA_EXIT_SENSE_RADIUS px de ella, una flecha verde
+//     tenue (la misma spr_sindicator2 de Amy Canon, pero encogida al
+//     80%, tintada de verde palido y LATIENDO como un eco) le senala
+//     la direccion. NO es tan efectiva como la de Amy Canon: la suya
+//     es incondicional (cualquier distancia, solida, permanente); la
+//     de Amelia solo aparece en rango y se DESVANECE con la distancia
+//     (solida pegada a la salida, apenas un susurro al borde del
+//     radio). Coherente con su lore: sin vista, la salida no se le
+//     «muestra» — le RESUENA (como el eco de una corriente de aire
+//     que le roza la cara y viene de la puerta abierta). La dibuja
+//     obj_amelia_auras junto a la auravision, SOLO en su cliente.
 //  Stats: equilibrada (11) con la aceleracion canonica de
 //  superviviente del 110v (v2.2.4), salto estandar, con spindash.
 // =====================================================================
@@ -117,25 +138,58 @@
 #macro AMELIA_LUNA_VEIL_CD (60 * 15)
 #macro AMELIA_ECLIPSE_TIME (60 * 4)
 
+// v4.5 (PASIVA «ECO DE LA SALIDA», pedido del usuario: Amelia podra
+// ver la marca de la salida a cierta distancia, sin llegar a ser tan
+// efectiva como la de Amy Canon): valores ajustables:
+//  * SENSE_RADIUS = alcance del eco en px (700 ~ pantalla y media del
+//                mapa tipico; la camara ve 480 de ancho). Fuera de
+//                ese radio la flecha NO aparece: a diferencia de Amy
+//                Canon (sensor incondicional, cualquier distancia),
+//                Amelia tiene que ACERCARSE a que la salida le
+//                «responda».
+//  * La fuerza de la flecha no es fija: crece con la cercania
+//                (exitK = 1 - dist/radio), de modo que pegada a la
+//                salida es solida y en el borde del radio es apenas
+//                un susurro que late (ver obj_amelia_auras/Draw_64).
+//  * EXE_SCALE   = escala de la flecha respecto a la de Amy Canon
+//                (0.8: un eco es mas tenue que la senal original).
+//  * EXE_COLOR   = verde palido (frente al verde pleno de Amy Canon:
+//                mismo sprite, lectura distinta a simple vista).
+//  * EXE_PULSE   = amplitud del latido del eco (la flecha "respira"
+//                con el mismo auraPulse de las auras).
+#macro AMELIA_EXIT_SENSE_RADIUS 700
+#macro AMELIA_EXIT_SENSE_SCALE 0.8
+#macro AMELIA_EXIT_SENSE_COLOR make_color_rgb(150, 225, 170)
+#macro AMELIA_EXIT_SENSE_PULSE 0.25
+
 function scr_amelia_special()
 {
-        // Red ring / esconderse: corta todo (tambien la carga v2.6)
-        if(redRingTimer > 0 || isHiding)
+        // v4.4 (pedido del usuario): la compuerta se PARTE en dos.
+        //  * ANILLO ROJO: corta las colocaciones y cancela la carga del
+        //    spindash (igual que antes). Para Amelia esto ya no ocurre
+        //    nunca: pasiva CIEGA (v4.4, net_state_game), inmune total.
+        //  * ESCONDERSE: ya NO corta trampolin ni trampa. Agachado dentro
+        //    del escondite mantienes ABAJO — justo lo que ambas piden — y
+        //    puedes emboscar: en los mapas con zonas de ocultamiento una
+        //    trampa DENTRO del matorral es exactamente eso, una trampa.
+        //    Solo cancela el spindash: es movimiento, no colocacion
+        //    (arrancarlo escondido romperia el sigilo).
+        if(redRingTimer > 0)
         {
                 if(bananaTimer <= 60 * 2)
                         bananaTimer = 60 * 2;
 
                 if(trapTimer <= 60 * 2)
                         trapTimer = 60 * 2;
+        }
 
-                if(isSpinCharging)
-                {
-                        isSpinCharging = false;
-                        spinCharge = 0;
+        if((redRingTimer > 0 || isHiding) && isSpinCharging)
+        {
+                isSpinCharging = false;
+                spinCharge = 0;
 
-                        if(spinRevSnd != -1)
-                                audio_stop_sound(spinRevSnd);
-                }
+                if(spinRevSnd != -1)
+                        audio_stop_sound(spinRevSnd);
         }
 
         // Stats de base respetando el slow de la trampa (patron
@@ -170,7 +224,8 @@ function scr_amelia_special()
                 bananaTimer = revivalTimes >= 2 ? EAMELIA_BANANA_RECHARGE : AMELIA_BANANA_RECHARGE;
         }
 
-        // ---- TRAMPA (tecla C en el suelo) ----
+        // ---- TRAMPA (mantener ABAJO + pulsar C, en el suelo; combo
+        // puesto con la Suite v5. Colocable tambien ESCONDIDA: v4.4) ----
         if(global.playerControls && keyboard_check(global.KeyDown) && keyboard_check_pressed(global.KeyC) && trapTimer <= 0 && !isSpinCharging && isColliding)
         {
                 audio_play_sound(snd_amelia_trap, 0, false);

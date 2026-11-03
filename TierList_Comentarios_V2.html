@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>La voz del lobby · Tier list con comentarios · Sonic.exe The Disaster 2D Remake</title>
+<title>La voz del lobby v2 · Tier list con comentarios y chat en directo · Sonic.exe The Disaster 2D Remake</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -37,10 +37,10 @@ header.hero{padding:54px 0 22px;text-align:center;position:relative}
   font-family:'Creepster','Rubik',cursive;
   font-size:clamp(32px,6.5vw,66px); letter-spacing:2px; line-height:1.05;
   color:var(--txt); text-shadow:0 0 22px rgba(160,106,232,.4);
-  position:relative; animation:flicker 6s infinite;
+  animation:flicker 7s infinite;
 }
-.glitch em{font-style:normal;color:var(--red)}
-@keyframes flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.55}94%{opacity:1}96%{opacity:.75}97%{opacity:1}}
+.glitch em{font-style:normal;color:var(--purple)}
+@keyframes flicker{0%,100%{opacity:1}91%{opacity:1}92%{opacity:.5}93%{opacity:1}95%{opacity:.72}96%{opacity:1}}
 .hero .sub{color:var(--dim);max-width:760px;margin:14px auto 0;font-size:15px}
 .hero .badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
 .badge{
@@ -49,41 +49,63 @@ header.hero{padding:54px 0 22px;text-align:center;position:relative}
 }
 .badge b{color:var(--gold);font-weight:600}
 .badge.red{border-color:var(--red2);color:#f0a5ad;background:rgba(230,34,55,.08)}
-.badge a{color:inherit;text-decoration:none}
-.badge a:hover b{color:#fff}
+.badge.purple{border-color:#5a3d8a;color:#d9c9ff;background:rgba(160,106,232,.10)}
+.badge.livebadge{border-color:#3f7a52;color:#a5e8b5;background:rgba(94,203,120,.08)}
+.badge.livebadge .ldot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;background:#5ecb78;
+  margin-right:6px;animation:ldpulse 1.6s infinite;vertical-align:1px;
+}
+@keyframes ldpulse{0%,100%{box-shadow:0 0 0 0 rgba(94,203,120,.5)}55%{box-shadow:0 0 0 6px rgba(94,203,120,0)}}
 
 /* ---------- ticker de frases ---------- */
 .ticker{
-  border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
   background:var(--bg2); overflow:hidden; white-space:nowrap; position:relative;
 }
-.ticker .track{
-  display:inline-block; padding:9px 0; animation:tick 52s linear infinite;
-  font-size:12.5px; color:var(--dim); letter-spacing:.3px;
-}
+.ticker .track{display:inline-block;padding:9px 0;animation:tick 64s linear infinite}
 .ticker:hover .track{animation-play-state:paused}
-.ticker .track b{color:var(--txt)}
-.ticker .track .q{color:var(--gold)}
-.ticker .track span.sep{color:var(--faint);margin:0 22px}
+.ticker .q{color:var(--txt);font-size:13px;font-weight:500}
+.ticker .sep{color:var(--purple);margin:0 14px;font-size:11px}
+.ticker b{color:var(--dim);font-size:12.5px;font-weight:500}
 @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* ---------- barra de controles ---------- */
 nav.controls{
-  position:sticky;top:0;z-index:50;background:rgba(11,10,16,.94);
+  position:sticky;top:0;z-index:50;background:rgba(11,10,16,.93);
   backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
-  padding:12px 16px; display:flex; gap:18px; align-items:center; flex-wrap:wrap;
+  display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:10px 18px;
 }
-.controls .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.controls .lbl{font-size:11px;font-weight:700;letter-spacing:.9px;color:var(--faint);text-transform:uppercase;margin-right:4px}
-.controls button{
-  font-family:inherit;font-size:12.5px;font-weight:500;color:var(--dim);
-  background:transparent;border:1px solid var(--line);border-radius:8px;
-  padding:6px 13px;cursor:pointer;transition:.16s;white-space:nowrap;
+nav.controls .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+nav.controls .lbl{
+  font-size:9.5px;font-weight:900;letter-spacing:1.4px;color:var(--faint);
+  text-transform:uppercase;margin-right:2px;
 }
-.controls button:hover{color:var(--txt);border-color:#514a63;background:var(--panel)}
-.controls button.on{color:#ffe9b0;border-color:var(--gold);background:linear-gradient(135deg,#4a360c,#241a06)}
-.controls .reset{margin-left:auto;color:#f0a5ad;border-color:#7a1e2b}
-.controls .reset:hover{color:#fff;background:rgba(230,34,55,.15);border-color:var(--red)}
+nav.controls button{
+  font-family:inherit;font-size:12.5px;font-weight:500;color:var(--dim);cursor:pointer;
+  background:transparent;border:1px solid var(--line);border-radius:999px;padding:4px 13px;
+  transition:.15s;
+}
+nav.controls button:hover{color:var(--txt);border-color:#514a63}
+nav.controls button.on{color:var(--txt);background:var(--panel2);border-color:#514a63}
+nav.controls button.on.bugon{color:#ffd9a8;border-color:#a06a1e;background:rgba(232,177,60,.10)}
+nav.controls .livesw{
+  margin-left:auto;display:flex;align-items:center;gap:10px;
+}
+#livebtn{
+  display:flex;align-items:center;gap:7px;
+  color:#a5e8b5 !important;border-color:#3f7a52 !important;background:rgba(94,203,120,.08) !important;
+}
+#livebtn .ldot{
+  width:7px;height:7px;border-radius:50%;background:#5ecb78;animation:ldpulse 1.6s infinite;
+}
+#livebtn.paused{color:var(--dim) !important;border-color:var(--line) !important;background:transparent !important}
+#livebtn.paused .ldot{background:var(--faint);animation:none}
+#livecount{font-size:11px;color:var(--faint);letter-spacing:.3px}
+nav.controls .reset{
+  color:var(--dim);border:1px dashed var(--line);border-radius:999px;padding:4px 13px;
+  background:transparent;font-family:inherit;font-size:12.5px;cursor:pointer;transition:.15s;
+}
+nav.controls .reset:hover{color:#f3a9a9;border-color:var(--red2);border-style:solid}
 
 /* ---------- rejilla de personajes ---------- */
 main{padding:30px 0 10px}
@@ -95,6 +117,7 @@ main{padding:30px 0 10px}
 .howto b{color:var(--txt)}
 .howto .mtr{flex:0 0 300px}
 .howto .note{flex:1;min-width:280px}
+.howto .note2{flex:1;min-width:280px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
 @media (max-width:900px){.grid{grid-template-columns:1fr}}
 
@@ -103,21 +126,43 @@ article.char{
   padding:18px 20px 16px; position:relative; overflow:hidden;
   transition:border-color .2s, transform .2s, box-shadow .2s;
 }
-article.char:hover{border-color:#514a63;transform:translateY(-2px)}
+article.char:hover{border-color:#514a63;transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.35)}
 article.char.hot{border-color:#7a1e2b}
+article.char.hot:hover{box-shadow:0 10px 26px rgba(143,15,30,.22)}
 article.char.hot::before{
   content:"TEMA CALIENTE"; position:absolute; top:12px; right:-34px; transform:rotate(38deg);
   font-size:9.5px; font-weight:900; letter-spacing:1.6px; color:#ffd9d9;
   background:linear-gradient(135deg,#8f0f1e,#5a0a13); padding:3px 38px; border-left:1px solid #b0243a;
 }
 .char-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
-.char-head img{height:52px;image-rendering:pixelated;flex:0 0 auto}
+.char-head .avwrap{
+  flex:0 0 auto;width:58px;height:58px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--line);background:var(--bg2);
+  transition:border-color .25s;
+}
+article.char:hover .avwrap{border-color:#514a63}
+article.char.hot .avwrap{border-color:#7a1e2b}
+.char-head .avwrap img{height:46px;image-rendering:pixelated}
 .char-head .inf{flex:1;min-width:0}
 .char-head h3{font-size:17px;font-weight:900;letter-spacing:.3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .modtag{
   display:inline-block;font-size:9px;font-weight:700;letter-spacing:1px;
   color:#ffd9a8;background:linear-gradient(135deg,#7a4b12,#4a2c0c);
   border:1px solid #a06a1e;border-radius:5px;padding:1px 7px;vertical-align:middle;
+}
+.livedot{
+  display:inline-flex;align-items:center;gap:5px;font-size:8.5px;font-weight:900;letter-spacing:1.2px;
+  color:#a5e8b5;border:1px solid #3f7a52;border-radius:5px;padding:1.5px 7px;
+  background:rgba(94,203,120,.07);transition:.2s;
+}
+.livedot i{
+  width:6px;height:6px;border-radius:50%;background:#5ecb78;
+  animation:ldpulse 1.6s infinite;
+}
+.livedot.ping{
+  color:#fff;border-color:#5ecb78;background:rgba(94,203,120,.35);
+  box-shadow:0 0 14px rgba(94,203,120,.55);
 }
 .char-head .role{font-size:11.5px;color:var(--dim);margin-top:2px}
 .tierb{font-weight:900;font-size:20px;flex:0 0 auto;margin-left:6px}
@@ -145,12 +190,22 @@ article.char.hot::before{
 /* ---------- comentarios ---------- */
 .cmt{
   border:1px solid var(--line); border-radius:12px; background:var(--panel2);
-  padding:11px 13px 10px; margin-bottom:10px; transition:border-color .18s;
+  padding:11px 13px 10px; margin-bottom:10px; transition:border-color .18s, transform .18s;
 }
-.cmt:hover{border-color:#514a63}
+.cmt:hover{border-color:#514a63;transform:translateX(2px)}
 .cmt.nerfline{border-left:3px solid rgba(230,34,55,.55)}
 .cmt.buffline{border-left:3px solid rgba(94,203,120,.55)}
+.cmt.bug{
+  border-left:3px solid rgba(232,177,60,.75);
+  background:linear-gradient(135deg,rgba(232,177,60,.05),var(--panel2) 55%);
+}
+.cmt.bug:hover{border-color:#a06a1e}
 .cmt-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.uav{
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+  width:22px;height:22px;border-radius:50%;font-size:8.5px;font-weight:900;letter-spacing:.5px;
+  color:#fff;background:hsl(var(--h,265) 40% 38%);border:1px solid rgba(255,255,255,.16);
+}
 .cmt-head .user{font-weight:700;font-size:12.5px;color:var(--txt)}
 .sidechip{
   font-size:8.5px;font-weight:900;letter-spacing:1px;border-radius:4px;padding:1.5px 7px;
@@ -158,6 +213,10 @@ article.char.hot::before{
 .sidechip.sup{color:#9fd6ff;background:rgba(91,141,214,.16);border:1px solid #2d5a94}
 .sidechip.exe{color:#ffb3b3;background:rgba(230,34,55,.14);border:1px solid #7a1e2b}
 .sidechip.neu{color:#d9c9ff;background:rgba(160,106,232,.14);border:1px solid #5a3d8a}
+.bugchip{
+  font-size:8.5px;font-weight:900;letter-spacing:1px;border-radius:4px;padding:1.5px 7px;
+  color:#ffd9a8;background:rgba(232,177,60,.13);border:1px solid #a06a1e;
+}
 .cmt-head .bdg{font-size:10px;color:var(--faint)}
 .cmt-head .time{font-size:10px;color:var(--faint);margin-left:auto}
 .cmt p{font-size:13px;color:#d6d0c2}
@@ -184,6 +243,78 @@ article.char.hot::before{
 .hiddencmt{display:none}
 .char.open .hiddencmt{display:block}
 
+/* ---------- chat en directo ---------- */
+.livefeed{
+  margin-top:14px;border:1px solid #2e3a2e;border-radius:12px;overflow:hidden;
+  background:#0d120e;
+}
+.livefeed .lf-head{
+  display:flex;align-items:center;gap:8px;padding:7px 12px;
+  background:linear-gradient(90deg,rgba(94,203,120,.10),rgba(94,203,120,.02));
+  border-bottom:1px solid #24301f;font-size:10.5px;font-weight:900;letter-spacing:1.2px;
+  color:#a5e8b5;
+}
+.livefeed .lf-head .lfd{
+  width:7px;height:7px;border-radius:50%;background:#5ecb78;animation:ldpulse 1.6s infinite;
+}
+.livefeed .lf-head .lf-count{margin-left:auto;font-weight:600;color:var(--faint);letter-spacing:.4px}
+.liveitems{padding:10px 12px 12px;max-height:290px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2e3a2e transparent}
+.liveitems::-webkit-scrollbar{width:8px}
+.liveitems::-webkit-scrollbar-thumb{background:#2e3a2e;border-radius:4px}
+.livecmt{
+  border:1px solid #24301f;border-radius:10px;background:rgba(255,255,255,.015);
+  padding:8px 11px 7px;margin-bottom:8px;
+}
+.livecmt p{font-size:12.5px;color:#c9d4c4}
+.livecmt .cmt-head{margin-bottom:4px}
+.livecmt.rvslide{animation:lvin .45s cubic-bezier(.2,.7,.2,1)}
+@keyframes lvin{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.liveempty{font-size:11.5px;color:var(--faint);text-align:center;padding:10px 0 6px;letter-spacing:.3px}
+.typing{
+  display:none;align-items:center;gap:7px;padding:6px 12px;
+  font-size:11px;color:var(--faint);font-style:italic;
+}
+.typing.on{display:flex}
+.typing i{
+  width:6px;height:6px;border-radius:50%;background:#5ecb78;opacity:.35;
+  animation:tb 1.2s infinite;
+}
+.typing i:nth-child(2){animation-delay:.18s}
+.typing i:nth-child(3){animation-delay:.36s}
+@keyframes tb{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+
+/* ---------- zona de moderación ---------- */
+.modzone{margin-top:46px}
+.modzone h2 .sec{
+  font-size:22px;font-weight:900;letter-spacing:.4px;
+  display:flex;align-items:center;gap:10px;
+}
+.modzone .lead{color:var(--dim);font-size:14px;max-width:860px;margin:8px 0 20px}
+.modgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+@media (max-width:960px){.modgrid{grid-template-columns:1fr}}
+.modcard{
+  border:1px dashed #5a3d8a;border-radius:16px;background:linear-gradient(160deg,rgba(160,106,232,.07),var(--panel) 60%);
+  padding:18px 18px 16px;position:relative;transition:.2s;
+}
+.modcard:hover{border-color:var(--purple);transform:translateY(-3px)}
+.modcard .locktag{
+  display:inline-flex;align-items:center;gap:5px;font-size:8.5px;font-weight:900;letter-spacing:1.2px;
+  color:#d9c9ff;background:rgba(160,106,232,.13);border:1px solid #5a3d8a;border-radius:5px;
+  padding:2px 8px;
+}
+.modcard .char-head{margin-bottom:8px}
+.modcard .avwrap{border-color:#5a3d8a !important}
+.modcard .mnote{
+  font-size:11px;color:var(--faint);margin:8px 0 12px;letter-spacing:.4px;
+}
+.modcard .staffcmt{
+  border:1px solid #3a3055;border-left:3px solid var(--purple);border-radius:10px;
+  background:var(--panel2);padding:9px 12px 8px;margin-bottom:8px;
+}
+.modcard .staffcmt p{font-size:12px;color:#cfc9dd}
+.modcard .staffcmt .cmt-head{margin-bottom:4px}
+.modcard .tierb{opacity:.75}
+
 /* aparición al hacer scroll */
 .rv{opacity:0;transform:translateY(16px)}
 .rv.in{opacity:1;transform:none;transition:opacity .55s cubic-bezier(.2,.7,.2,1),transform .55s cubic-bezier(.2,.7,.2,1)}
@@ -204,6 +335,10 @@ footer a{color:var(--gold)}
 }
 #totop.show{opacity:1;pointer-events:auto;transform:none}
 #totop:hover{color:var(--txt);border-color:var(--red2)}
+#rbar{
+  position:fixed;top:0;left:0;height:3px;width:0;z-index:70;
+  background:linear-gradient(90deg,var(--purple),var(--red));border-radius:0 3px 3px 0;
+}
 </style>
 </head>
 <body>
@@ -213,12 +348,16 @@ footer a{color:var(--gold)}
   <p class="sub">
     La otra tier list: la que se grita en el chat. Comentarios de «jugadores» — positivos y
     negativos, supervivientes y exes, con sus exageraciones — sobre cada personaje del plantel
-    de <b>Sonic.exe The Disaster 2D Remake</b>, incluida la recién estrenada <b>v4.4</b>.
+    de <b>Sonic.exe The Disaster 2D Remake</b>, incluida la <b>v4.5</b> (el eco de la salida).
+    Y desde esta versión, el lobby <b>no se calla</b>: el chat en directo suelta comentarios
+    nuevos cada cierto tiempo — y <b>reportan bugs</b> 🐛 cuando los ven.
   </p>
   <div class="badges">
-    <span class="badge"><b>18</b> personajes con expediente</span>
+    <span class="badge"><b>15</b> personajes en el debate</span>
+    <span class="badge purple"><b>3</b> apartadas · zona de moderación</span>
     <span class="badge" id="bdg-counts">…</span>
     <span class="badge red">Comentarios <b>simulados</b> · con cariño y con drama</span>
+    <span class="badge livebadge"><span class="ldot"></span>Chat <b>en directo</b> · v2</span>
     <span class="badge"><a href="TierList_Mejoras_V3_2.html">Volver a la tier list <b>oficial (datos del código)</b></a></span>
   </div>
 </header>
@@ -238,6 +377,16 @@ footer a{color:var(--gold)}
     <button data-sort="new">Recientes</button>
     <button data-sort="war">Polémicos</button>
   </div>
+  <div class="grp">
+    <span class="lbl">Tema</span>
+    <button data-topic="todos" class="on">Todos</button>
+    <button data-topic="bugs">🐛 Bugs</button>
+    <button data-topic="ops">Opiniones</button>
+  </div>
+  <div class="livesw">
+    <button id="livebtn"><span class="ldot"></span><span id="livebtn-txt">Pausar el chat</span></button>
+    <span id="livecount">0 comentarios en directo</span>
+  </div>
   <button class="reset" id="resetvotes">Restablecer mis votos</button>
 </nav>
 
@@ -249,132 +398,233 @@ footer a{color:var(--gold)}
     </div>
     <div class="note">
       <b>Cómo leer esto:</b> cada tarjeta junta las quejas y los elogios que un personaje
-      «provoca» en el lobby: los usuarios, sus bandos y sus horas de juego son inventados; los
-      <b>datos técnicos que citan son reales</b> (recargas, reglas de la v3.2 y la v4.4, tal y
-      como están en el código y en la tier list oficial). Cárgate los votos como quieras: es
-      tu lobby.
+      «provoca» en el lobby. Los usuarios, sus bandos y sus horas de juego son inventados; los
+      <b>datos técnicos que citan son reales</b> (recargas y reglas de la v3.2, la v4.4 y la v4.5,
+      tal y como viven en el código). Las exageraciones son cosa del lobby, no de la wiki.
+    </div>
+    <div class="note2">
+      <b>El chat en directo:</b> cada cierto tiempo, alguien del lobby «escribe» en la tarjeta de
+      un personaje: una opinión o, si cree que vio algo raro, un <span class="bugchip">🐛 BUG</span>
+      con pasos de reproducción y todo. Puedes <b>pausar el chat</b> arriba. Los comentarios en
+      directo no llevan votos: acaban de llegar.
     </div>
   </div>
+
   <div class="grid" id="grid"></div>
+
+  <section class="modzone rv" id="modzone">
+    <h2 class="sec">🔒 Zona de moderación · fuera del debate</h2>
+    <p class="lead">
+      <b>Vanilla, Amy Canon y Sally Canon viven apartadas del lobby</b>: son herramientas del
+      <b>staff</b> — de uso exclusivo de la administración del proyecto —, no personajes del meta
+      común. No se debaten, no reciben votos del lobby ni salen en los medidores: aquí abajo solo
+      queda su <b>bitácora interna</b>. Traducción del reglamento: se las respeta, se las teme y
+      <b>no se les toca el tier</b>.
+    </p>
+    <div class="modgrid" id="modgrid"></div>
+  </section>
 </main>
 
 <footer>
-  <div class="wrap">
-    <div class="cols">
-      <div>
-        <h5>Qué es esto</h5>
-        <p>La «voz del lobby»: una tier list paralela a la oficial, con comentarios de jugadores simulados —positivos y negativos, de supervivientes y de exes— que exageran como en cualquier chat de partida.</p>
-        <p>Ningún usuario es real; ningún dato técnico está inventado. Todo lo que citan sobre recargas, reglas y la v4.4 sale del código del juego.</p>
-      </div>
-      <div>
-        <h5>Interacciones</h5>
-        <p>Vota (▲ / ▚) cualquier comentario y verás el medidor del personaje moverse en directo; tus votos se recuerdan en este navegador. Filtra por bando, reordena (más votados, recientes o polémicos) y despliega los comentarios ocultos de cada tarjeta.</p>
-        <p>Pasa el ratón por el ticker de arriba para pausarlo.</p>
-      </div>
-      <div>
-        <h5>Enlaces</h5>
-        <p><a href="TierList_Mejoras_V3_2.html">TierList_Mejoras_V3_2</a> — la tier list oficial, con los datos leídos del código y las escenas de la v3.2 y la v4.4.</p>
-        <p><a href="Suite_TD2D.html">Suite_TD2D.html</a> — la herramienta de edición del proyecto (música del lobby y botones de habilidades).</p>
-        <p>Sonic.exe The Disaster 2D Remake · comentarios v1 · 3 de noviembre de 2026.</p>
-      </div>
+  <div class="cols">
+    <div>
+      <h5>Qué es esto</h5>
+      <p>La tier list de comentarios: el debate simulado del lobby sobre el plantel v2.11 con las reglas v3.2, v4.4 y v4.5. Los datos técnicos citados (recargas, radios, reglas) son reales y viven en los scripts del proyecto.</p>
+      <p>La v2 añade el chat en directo (comentarios periódicos por personaje, con reportes de bugs), los chips 🐛 BUG con filtro propio y la zona de moderación para los personajes de uso exclusivo del staff.</p>
+    </div>
+    <div>
+      <h5>Convenciones</h5>
+      <p>Los usuarios, sus horas de juego y sus votos iniciales son ficticios; las cifras técnicas, reales. «hace N h» cuenta desde la última versión del juego.</p>
+      <p>Los personajes con la etiqueta MOD son añadidos de este proyecto. Vanilla, Amy Canon y Sally Canon son además de uso exclusivo del staff: fuera del debate común por diseño.</p>
+    </div>
+    <div>
+      <h5>Créditos</h5>
+      <p>Página generada para «Sonic.exe The Disaster 2D Remake». Los sprites son los del propio juego. La versión anterior del archivo vive como TierList_Comentarios_V1.html (archivo histórico).</p>
+      <p><a href="TierList_Mejoras_V3_2.html">← La tier list oficial, con datos del código</a></p>
     </div>
   </div>
 </footer>
 
 <button id="totop">▲ Volver arriba</button>
+<div id="rbar"></div>
 
 <script>
 /* =====================================================================
-   AVATARES — los mismos sprites base64 de la tier list oficial.
+   SPRITES (extraídos del juego — generados por la tool de assets)
    ===================================================================== */
 const SPR = {"sonic":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAnCAYAAADzckPEAAAEHElEQVR42q2XT2gbRxTGv01SkJJcSml6zByM6LFusFpsgefgVIdeCm3clEKYmwM9ldYiLT7MwQ3BMvRqFR/2UFOHBFoIJbbR4QnkUssthpyM2MIY2tKqBxNwo4Uipgdp1rP/pJXxAyPtand+89773ntjBxntyvSejt7796e3HJzBnHFB+UIxdN1tt8begJMVZluv08DV0mLsfrfdCuC5iRUNAL5XiTEupQF7nUZs0YvXZtHrNKCqx2CL1Ri4H4U9nfSubReiwF6ngbSXep0GNuZ24E8uQFWPcdKsBuG1wRevzWaDGmAWyx3UAAAbczuhvALAY3E0EuyMIyLjKQDcefZVqrjsjfQ6jVheL42C2Qt2Adx5Not8oYh8AVjlDTDGABzhA/c6kpTeBQBviKc2MGn3tp00qyGBpT1vKzrm6TDgKj/N9ec0G4RubakIxhiUUri7HFfzSbOamFvHBuYLxZgabXGZRU+aVawtFcE5C35TCnj3y79DG17lDdxdbg3PqZ38aH2OCjdjwKt/foh/8PB08zy5OVyww5pUo0nAtHKQ0sWtwlN02y3cKjwdiGxInaZ1oJB6260gGp98k4dSUagA5xw/3n8NRC5U9AEbmgZMgpnnf1v8Aa8f10LvcC4G+VXgXEBKASFkrN4duxPZ8b8yvaejwjLPqeox/MmFoDMdvrwAE8ncQQ272/v4bMuzRKZCeXVyEys6muxog4hGYmNuBzPlKbz96Xf4+euPEkO4u70PAHh/re6MPdrS+rEBm8VnylOZgCOhWQaA6cW2pcFGQrNOnKgl1eXIIT6OZx/X38HV0iJquZuYKU/Bn1zArw929I176wAAon7JCMGd1CEezWN01yaPaUAAuHFvHVK6gxJi4JzBdUmPhBqgOecY4BO/hK3nZbxyex2H9Xn8Io9ig918Gk+ldEM9OhVqe+h7Fcf3Ks4TvwTOeay1mVAmAYkIUorhZ6RRojDAaEvdel6OlQsRgXM+gKvs0KgppWJAs+Du9j52t/eDcuGcB/CokDKpt5/bFyAiABycMxCpIFdEhEdtc2aqw3WlA/R7bv/7GUrG9yrOJlb07dKLmJdEBNeVTm7israHRBJs7Dr1vYrjegAgNREyLX5uzWGzeTkYfebAJYTUm83sa4wlJCGkXlsqhq77f8LynPS5eSqE1KZOD+tGQBxEBKUUDuvzITWfW3hpkEy7HE4/w/fO/P9ppDFooRRMIF0ALmPBEQUAmCv7UTHXKes7WYH1+T/Apt/E7288DJ11heAQ1gHMABVZjYSx0AYyCckAl9/b6/dAxpA7qIE4CyYKrAiQ28+zUqc986/vv9AK0Jk99Sov6W9X/oNI+M2E2XirhAzyrgRPfCezkJSQIM5jY4qRAqQIwcxwYKSAhF49lpBwTvY/4GE3MWoRv0wAAAAASUVORK5CYII=","tails":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAiCAYAAADYmxC7AAACRklEQVR42u1X223kMAwcJVuAS2AJKYGlsBReJyqFJaSEKWE78H3IsuSsN+tXAhxwBAR41w+Oh8OhDPzrkU3Huo7cu/Xa296HqwQgQEZLYjnSFWAOgwIAD4erlx/cnjibjvWlaoghXQLKzBBURARcHSqBCC0sztkK4BrBcl4c6dXz015dzImN4JSU2RogWbmRWJxbY6ePt70sBbWRIRsATf8HFWABxIyRGeMlTPXCVQnACGT5HlD/QrEsIR3jWjnfjtpDUNcBEYCyrVpiKQfiSPTC0jN9HQa1EHUPyEpyElBVcAJm1pXdL9bU1iAJVWsv0R2/imtA8ZmG8uL4O5M9Bao+uO/CkACFCImms75DlbtypCPEPDi4OlRlmxZVa3nTpaBmYNOoERGIbOzaIMw0XT77WoYCiuoAvgcWwWlEafr58tXBPGtIHrpwK5jTjt53Ug8yoMvrs+/OcTvafWtjJ6hQ1a9sjXuBvZ/difYbP0qeRT8MZYl8ABj88zP+/Lh5LnQlZdiudeHWrryk+xbaicIWV8fNL4Ey87GaoIgg52nUkA/d1wzTN2vr/SwgEUD1AznuE6AB9zvmxQnoMAwYBtmkrcOaqoy4t6GrVEjIvHLOiIjdujrl6NUYSUDRtsTqstiqRBARsdmz0lFN9eYoIqORMG+gyrcF4QdyJJwMERnd88IOVBVWWTTf7ezpLCBVw6Pwm13YF0/Ywlw6A6hPaOuim30q5zyz+Epft7Pls+ddsHB0M5vBVd96VtZTTF30gZHwPw7GX9QdMLN7TXXGAAAAAElFTkSuQmCC","knux":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAoCAYAAACb3CikAAADiUlEQVR42rVXIbLjOBB9TgXkGAIBBgv+ERYECCzIMRp8ILDgH8HgA4EBOoZhA4M5gsEAgQAdw2CqNECWLDtObCceVbnKttTS0+vX3VKBhUYQnp70f8AV2KEV74DYE1TxCojyIkfftuG3wRxeMcoXBoCyswlcC+F3AxLZmO48slHWNAb1nxox9QqY49qB5UXCNgzVMNAM/3W/+JSlt4HkbMxNTgAMAFnXAAB1vSZA+fgWwm/Ry2EtG3mLIOK7rGuohkfjzDsaeaaNKTtSlukJxpTAlBc5ArsLI3OgxPUKZjsCxWwSM+oFvRQ5G3Pii0BUw5jLK2U3AALr4ZWD/dX8LDaLNV/ITL4BwJGAlBOGssXHrpNQDBBJb8xXsXtCiztdM06CwWzeyyMxTKkXIAEwxkGSSGCklLPvsa11yyZGolbYuFl2Ru/GQWTjXhJrnsxMxk4u2kd6+oAr8nl2SWhm8h6jKEZVWVPKGbomvNsOcxEzF0lTMOqaQf3hUNaEFsKbF48BxzELrgCE13fsBMoNAPT5RF8kVMPQnU0hXF4k6BxcYwC0xvjN55M2+Vb4tn+IKt91ne+6zhNVvoXw3YV8KAVhTFdX4bmQ7y7k21+db38NNkSV3yTWac0BEehToTxjlM5jhOjbfVSohkMRlCWU0tA6nFOU0lhKaod5oQ50MttRgQuPhDqLxYSnVHCZ1gpLzBzm2Ihucjc7VNds8rhYXpFVwwBRYiEmuWEz8imY49wxIOQDPDTSWsHegiD1zQ3RpFViQUo52kSo0LyOEQNXLKlcawVmC3eziZUPuAJEYLaJkQgi6mtJJw9rTW/k44T2Nrgq7M7Ojh/rxSbdLIl18fBsb0B5RmIgUg8AZMzofJqDiSCWXLIKyMCKvGMh9N1fwrKd+7VsLF45084nao8T52fcU2PeugOvu9f0LthaUf/alXN6kDZwhdnhcrXaNfiG/10CRwvg/8zmO+hgtu9vMXK0r/XtB+R7kmH7byHuL9pbqu1msdKtQh6+zAyDr3DR+iGgpQCkhjiXKM8h78TQXRO2q4AQVX56j+m/PbOB1Q6KCWBG+B3A0KeKCXA1oOIZCGG+huoaaw0ARxUiEABQXCWQ4lyC/znd2XwtBMbDzqrfjcp/dh1wOkEDMCK4RcqfIzARvJqxeQbmuBoEAJxO47MJO2j8G9hAf0aZ2k1sNjEyFxF7NOceZ+U/q1gUhfjyHZoAAAAASUVORK5CYII=","egg":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAA2CAYAAACBWxqaAAADAklEQVR42u2Y/ZGjMAzFH7ktICW4FJWiUnSdqBSXcCWohHTA/kFgDbHBXyTszHlmZzNgyPvpSbacAScNZRq311j90Pt7hrOEE9Hquvf+FJCht/iVcOKnen0B6QXxVfqAAGPk2hBLmdggogVCgFEag1j1cAziJz3kVbRMDnhhkCiEHEwXiCaAW1WqOAd1LpFGAmXpEoxTUsg5N7JZRj1I0pEYRK0TQw3AS9pkADkmkHpA0w7VQDTlX64bc9r551ztJL66BpxzowDZ4pdidg4U1E5YR7W10LQKhQJiMPN9IQciD2WAdd4PaFmJWhwYasTzVmiQ5wAg3lbCfzaxSTRvc4ind5xeAzGbeQMxrTw7L3mKDeeEbpRCDK3RD13YwkRBOJivr2ClELeW6MecWLnC+/PD+57pvJ14Fs9HS2UDBJFfnilZkaqW0SPxMVeQiEB4qcaFW4/o6+Zz+McHLqRcynVhaAXQxD0FYJGWQRK9kZ9bjZ1nVWVobuYysmIRwMyY9zozwMzgyYMiqULBprbACsMMUNXnCU/GLcQXThxhx+3cBDG3FLkNoQXXiQiqlQ5oxir0+uVYObA9G8fajkVscARl5hVIEcDqxWZFEGaG3H6PiCHC8N4gwk/xBiJaxMfgi1JIwzw4Sh8VeLwWoveaPCtP/11yXpciTh0l40uLLtEND/PRqd4D+JljZoNmnOaG40J0Iz4wzCyrH8reiYkYVxxFrcS7IHKjnwUwvyxVfL/KgXe4UBL9bIDQBSK6VD38yZ34eDz+3u93Ae7PNfsOs38fjX4RwAzxeNgpEDXiq39WmfeGMJVairxWfDVACqQUokV4F4CW3bqH+G5n4lIxvcR3c2DrRExg6FJPgBtOGMwy7kU9dv8SAEeR7Rn5E8/Bbtwr6qP7l0ihSzdz/wGuDLC3jF4e4FNn5+4ptBf9Mxy6/dbUeXsRn5Vit3cLE9HrAITiiRiq/hDGe5817yMplBK3dWme1wNk6Jk64REz/CE2lWap+R8D2AqbReXWyZSGZSDfpmKiPyQS0ykAAAAASUVORK5CYII=","amy":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACcAAAAnCAYAAACMo1E1AAAEeElEQVR42s2YwWtVRxTGf08iUrooBtKFm04XRmwCgaYPMeHJpBLQP6CVkM1gsRGSjWCEWqqDFkTirgkoEjubkIZuumvIw2TwkXQRUggaitHFZKHQLCqtDW5SbhfvzWTue4kKuTftgQf3njv33u9953znnLkF/kN73n8ric8PTVws8H+w5/23Eudc8ud4OakHmZtNFfuSqWJf8rbApop9O4IsZA0M4MSVHh5cm+O3xclw7cv+W+G4srrEqfNnmb59j2M/3uDg/Sfh2sbscghv5uCaezZpL/UC8ODaHKXWTt79tCP1ciD4NmaXqawupZ5Tau3k0MTFQlNWwDQ0hPLElR6SH/5K+eqBVlaXKLV2pgVRY7yQJbCjxT6aezYBaHt2LAXkxcnDqfDFfoCD95+kQpoJuJixo8W+wEIMbCebvn0vhNGvf++L3oApk7AqwACnzp9tuLYxu0zX/CgAN1uOQ23dxuxy+COV1SWoiSS2pt0KwCvSq7Hj+jmWv7kbEr9rfhRjbLjHOcf02J00MODM4mRhqi5vMxOED8tC9xAd189thV0bAITwHoEbHKBSA/hqcACtFUKI5MziZCrN9u0W1IXxMqYO5EL3EAvdQ8G3BQyMMVhro2vCM9qQ/7sGtzG7zIXxclDdi5OH6ZofDXnWkJ9KYa3h1eAAXfOjOOc8yIZSlFlYfSk4CKmcq4zdAXkjAicBAnvWWm62HKc+pJkw96YcbO7ZxFoX/FIqAPrfX0Frw+mVxzs+Y9fgKqtLWyxFx/68vdSLlIIDD2dwrhrWX767THupF60VP7cdyQdcHIq4btXbgYczABx5OcORlzPBf/fzIqdXHm8b0szCGjfumL1SayePKmUAHlXKDcd/zL0+5TPprX5UigtrfOz7rbcY1E6sZcacf4FnsNTamWLz2UeD4Tex3vZWwDKf52IWm3s2mVhvQxid6sFbfYKCUjrZKs66kDs4gPKlz5L2Ui+PKuUUU9+3bLA2OIgRAqc0SqnQPbQ2DQCb8gYmpUQIgRCwVgMhap0iNiklxuRchD/kJ1r+GWdiva3GjEj1VgCnNM45jDHUuhdCCOIwZw7u6aX9iej6GLfwK1LKbdd4vxACKSXOuQBwz9qXECKwU506wFqHlAJtNMYYhBCpCSV3QTy9tD+E5tv1r0NuGWNQSmGMqQpjZAStdOreekHkolafO1LKwIzWWwLwg4C1dtsSkiu47eremcXJglI68VPImwpwrsxJKXkn2itc3v83Sil+H/6KUmsnM72f7D1zHlhcQqx1WGuRUiKlCD6l5Gvf35QHcx4IVBUbT72QnoT3FJy1BuUcFp3yASjncKZahN/G9uUphp0KsTC61q5sYoxN9iTnhBCJ8rspY0MhdkpihEBFrUABzjqEqBZovwuL8zAX5q4ODyNlVRBSCq4OD6Ocw9Q1WSEFH4yNhXVCCGImcwG3NjKy47lTGmFs2IivjYyEXXf9gJB5WP3WL27wXrFeGH6L6EuO/4biFexrX+Z1brude/QRp/CmdfGafwHiEUstqYv9TwAAAABJRU5ErkJggg==","amy_canon":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACcAAAAnCAYAAACMo1E1AAAEeElEQVR42s2YwWtVRxTGf08iUrooBtKFm04XRmwCgaYPMeHJpBLQP6CVkM1gsRGSjWCEWqqDFkTirgkoEjubkIZuumvIw2TwkXQRUggaitHFZKHQLCqtDW5SbhfvzWTue4kKuTftgQf3njv33u9953znnLkF/kN73n8ric8PTVws8H+w5/23Eudc8ud4OakHmZtNFfuSqWJf8rbApop9O4IsZA0M4MSVHh5cm+O3xclw7cv+W+G4srrEqfNnmb59j2M/3uDg/Sfh2sbscghv5uCaezZpL/UC8ODaHKXWTt79tCP1ciD4NmaXqawupZ5Tau3k0MTFQlNWwDQ0hPLElR6SH/5K+eqBVlaXKLV2pgVRY7yQJbCjxT6aezYBaHt2LAXkxcnDqfDFfoCD95+kQpoJuJixo8W+wEIMbCebvn0vhNGvf++L3oApk7AqwACnzp9tuLYxu0zX/CgAN1uOQ23dxuxy+COV1SWoiSS2pt0KwCvSq7Hj+jmWv7kbEr9rfhRjbLjHOcf02J00MODM4mRhqi5vMxOED8tC9xAd189thV0bAITwHoEbHKBSA/hqcACtFUKI5MziZCrN9u0W1IXxMqYO5EL3EAvdQ8G3BQyMMVhro2vCM9qQ/7sGtzG7zIXxclDdi5OH6ZofDXnWkJ9KYa3h1eAAXfOjOOc8yIZSlFlYfSk4CKmcq4zdAXkjAicBAnvWWm62HKc+pJkw96YcbO7ZxFoX/FIqAPrfX0Frw+mVxzs+Y9fgKqtLWyxFx/68vdSLlIIDD2dwrhrWX767THupF60VP7cdyQdcHIq4btXbgYczABx5OcORlzPBf/fzIqdXHm8b0szCGjfumL1SayePKmUAHlXKDcd/zL0+5TPprX5UigtrfOz7rbcY1E6sZcacf4FnsNTamWLz2UeD4Tex3vZWwDKf52IWm3s2mVhvQxid6sFbfYKCUjrZKs66kDs4gPKlz5L2Ui+PKuUUU9+3bLA2OIgRAqc0SqnQPbQ2DQCb8gYmpUQIgRCwVgMhap0iNiklxuRchD/kJ1r+GWdiva3GjEj1VgCnNM45jDHUuhdCCOIwZw7u6aX9iej6GLfwK1LKbdd4vxACKSXOuQBwz9qXECKwU506wFqHlAJtNMYYhBCpCSV3QTy9tD+E5tv1r0NuGWNQSmGMqQpjZAStdOreekHkolafO1LKwIzWWwLwg4C1dtsSkiu47eremcXJglI68VPImwpwrsxJKXkn2itc3v83Sil+H/6KUmsnM72f7D1zHlhcQqx1WGuRUiKlCD6l5Gvf35QHcx4IVBUbT72QnoT3FJy1BuUcFp3yASjncKZahN/G9uUphp0KsTC61q5sYoxN9iTnhBCJ8rspY0MhdkpihEBFrUABzjqEqBZovwuL8zAX5q4ODyNlVRBSCq4OD6Ocw9Q1WSEFH4yNhXVCCGImcwG3NjKy47lTGmFs2IivjYyEXXf9gJB5WP3WL27wXrFeGH6L6EuO/4biFexrX+Z1brude/QRp/CmdfGafwHiEUstqYv9TwAAAABJRU5ErkJggg==","cream":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAAAvCAYAAABzJ5OsAAAEiUlEQVR42u2YT2gUVxzHP+MuCAaCWKTtIeVhFksp6dRIpYeUPGiq4EEooQex0leSWnGJB4OFRQ8DFTwES6vE0xYHqgQUKQT2UN3QWZpDsSRhFQ8Nm/TRUNIS7CGwijTL9LB5rzObeIi7yQrdLyzzZt6f/f5+8/393u8NtNBCCy200EILLbTQwv8aTr0LFNL9oWn3jt52ntW3Xn+9SNZLes++vQC0uS4FCA3BaH+b6wKwsG9v2DF40Wmq5xeymRDA6UsDEOZHrQG5kyfsuO7Oim23HzxNm+tSLhZplAHJ5/G48SRLk9Wr6/J4dw8sTVrCrx94Gpv3653LLN+pGtEUzxfS/WGX+ohyscj8zCy1sqhFe+HjuAH3ttN+8HTDPL9tI4NriV8rdzE/M0u5WIyNe7y7B4Dl3uss916P9bW5rpXdlsmmkO4Pa4kbzM/MsmeV2OLIQEwyxoDFkQFePftt9dmdy1srm4VsJqwl/mnbg5h0cidPcPToY8bGdsQC1pAGWBwZYHouQXdnhTdvlp1Nl000X0c9DvBJbgqA3MkTdHdWGBvbQWVonI5L91k69ZBfDudYHBmw46fnElSGxpmeSwAghAg3XTbG67X46fxR3rswBuyCR+B5PkIIUqK6dEqkyJPjCH8CUBkaRwiBerQLIXaFWmtnSwLWeF1KucaAL1/6294b4gDnvSxBENigDoLA9tVDfMPk1yO+3oYUxQVv0LbLxeIz5286+fcffIUQAiHEGhLtB0+TO7BE4sqR2PMe2UMQ+Pbe8xRA7E1tKvne0dvO7z/ftd7VWsfyvMHSqYd0XLpPSa9E3lSV7ETyEBPJQ0ip0FpzfGrZ2VLPG+JCiJiE5mdmmUt9Tkok7a+kVyjpFS54g0wGk/TJ1Krm/ebIBrCyMAZEK8sojBFR9MkUvh9sPfnjU8uO2VyiMMSdW8Pkg5L1eD4oxcaZZ77vo5RsSG2zoUW+298edndWmJ5L0HHpPs6t4Wem1NqADoIA3/caehjZ8GJRAypD4ySuHIkFXyHdH/72zhB9MkVJr9gYWRh+qyFBWpfmowRq0+JCNhPu2bcXrST5oERKJPniD9Zov2nkTX3S3Vmx+i+k+8OFbCZsc12bOqWSdN8oce9c9fraux+8GORN8E7PJZjoOkPn2W9w+tKMP3yFa+UuFJDIZmJzfhy9jVJe2HTyxoCJrjNIKW2WMbkcoDJ4kamXfyCRzXDvnLT7QiMNeO4AUsoLlVJWzyW9gu9XNyDhe2s3N+XZDNSozLOtnsnRQEyJpC3CZKDRysMDRysP4QdIKWMVZVO/29QiH5TokymklOz/522SO56C8kIpJUIIkjffoP/YdoZuvCBfzHw/CM3Bw8jmyrGv/zuwf7YTgOuH/8L9cDsAxe+f0nP1idN08kb7Jhiliu+qUgiU1gzf3WmJ568+QQE+4NX5/w3xgBAiDFbLZJMiK4MXq2/HGBkt7rIZ2y/q4NAw8krrGEFD3F/1PusYUa/3Gxawwg/Qq2WyqWeE1uApmyaFECDMuQC078M6aXVLPV/PJ4x6DuH/Auao/tbeBQnlAAAAAElFTkSuQmCC","sally":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAwCAYAAABqkJjhAAAEkklEQVR42u2YUWhbVRjH/7lEriEEQhJ0bQO7nfSlLiWBEpLJZqaFOOh0BHwQmV4tTpxK55gPQ0ZSJxRR1glT6IMza19ERgrqgwXFi2UaSqAxGXsJa68QpMxGKjWkYcXjw/WcnnuTG0ZdTvfQDwon557T/M7/ft//nBNgL/ZiL4SGYyeTZnrdhLZf+r3ueGCBeVBriAJ37ARWcT1seqY3NoVBO/4PqDX0xmbXoVv+eTrpIxuFOgAgLDsZKFWRj3YL6Da0kzbO+mXiGXYjHHShCGCjUEexuYWw7GSwxeaWZfrmPSl/3xU+65cJAHiG3YayQZcBWG2wgVR1a/BvQUQ+O+mXUvVGUofwfe5nhIOu//5kAz7oYgtoB683NoUoLdGiokoNDfgxkjqEYrXBYA3VZagxL9SYF4dPBFh/a5q077tvwNYCKlVqWFtcghrztp1QrDbBp087e7tUazq6Csy/SiMdZLifeAMAcL3mw/WaD9XeQVR7BxGIRkx5LnoDcfIfNgp1plz01KeYevouYtF9GBrwmyaVEMHa4lJLGnRTWeYSM71uQn222NwCtbZANIKTkzdNg2fPH2TwE89/yVyiP30UAHD49W+7Dix1evjr1ScBAJlMFpqm4bZ8DuMzEwbciQDCshOeY168+t0R3JbPCfFhJ18s24XVwLUfbjLYREIBAGiagslJGaWvawb0a48CAH764CSOnJ4VAizxRUKtjb5+qjAf8Xgc+fIqAtEIc4x4PA4A+OitYSIkJXjfpJtCvryKUqWGPwrbr/rGX18BAGIhoxAD0QhuLK/jx5cl3F36TAi0RH3TavZ/V5YZnKbpAID3noviochpVnhDA34cf+U4jl77B4mECgB490pBnK3Rw06xUEfPCyEGNYQvgGXgsWYNV58BgG2bK1VqeHM0gFiogHxZ4AGeHoAAMNhTqcc7Ti5VaqydL692Xd2W8zCFznl6MHv+IOtv2Tg4UJGwtsBU5Vhon+3EfHmVtUXBdgTOeXqg67qjU9WLBLXNYQpK+0OYIqnkxZaDfW7+Asp4Rzhwx0gnfWQlfYCEMEUWpkfJwvQomRvrIwvToyQKQubG+ohoJqkTLFXUhTOs+J56cYQVYbHagGhoyQ6W3jKenXgbAPD5L1dMYwbV31hbJLRkp6wa8yKbX2f9t7L7TXZ2K7ufqcxfpYQCz431ETXmNQGkkhfRwGWTB1/68BvurmekzUr6ABEOzIMWq00Gw0PTG3UDlznXaAqDluzykF7p6WX0/bGPsba4ZFqE9bcLPv+FKEyVskLzn/k+2jb6m2JzePvLm6zYwkGXqfAm5v90WHOX30yy+XXTmK5vzXavk9/V0kkfyc1fgAtncCzpb7uYXfu5NYQpQjeORTgcdn0PxE6nKArhdzk+2vXtKrCiKMSjj7eA0UXwviw6nJ0e3lH6uR/OWp8pUAh/stuVHLaqS88MmpZgY6zq31H6IQpcupdBmQzwiL5i6uPTIpHQoKo60XWd7BowD5TJGEp79PG2Y+lBKJMBVLW70LYpYXUEuoAN5ROWFnbu0U27c3SytJ1GN/P5X+tlDkRoLoQ/AAAAAElFTkSuQmCC","sally_canon":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC0AAAA9CAYAAAA5zOABAAAENUlEQVR42u2YQWjbZhiGH2WBBIyX+VAc00J/iA/DZLSBnGofVEYJbLSDBgIJOeiWnbZTSLeToDA2ygbbLfSiQ8E79dDAStjlL1iBwUoTGGGHGFRISUwGrmcyfAh4B/tXJMVJY0uxA9ULxjaS0KPX7//932eIFStWrFixIpbWj5sIIZoAuuMAMA8UAavH+2sXDatAFazSjVuwtdEb/HA/gOc7HN/aaIGzAUCzG3BtEMB0cHymC5ahi47EeXTjFhjQ7Cv04lSiaX423lQLLgh0lv7+7ny/SKTQyqHZuQWMXINC6gApBFIIf3ZPcfjjb0XX9xwKAyuEaB5NJShMT6LAs5kkRq6BkWsghaDoAR+Rjvs+Ip2ejdJ6dVYKQSF1QDaTZPzqdQD237xmIj0GQLlSA8DaHmW1nfHTHO+29A11CzzvAVZKHL0lcfTWBQbcz0auQTEAGFZd1engYslmkoi5X+HFkuvuzl6dUvUKAIVUnWwm6bumSKs2K9d72WCGu41FEdxYAHzwYsmFLUxPMjuXZ6V9jW3bfP97hVVPPSYC10PviOVKDWt7lDVzAdu2+eHnVWZuXqNcqeH8ts9qILfzgQfoZRvXunUa4Ggq4fvZZ+cWuGs+9Z3/8PaIC94pXsX22nAcR7uw6hGEVplW0AAvuYcQx3XXMHQ3Stb2KKrT6xW26+ohxclNYGevzs5eHdu21RaOELgvKaW7KI1cA9O0kEKg60aoSJ4b2uuMAlHaf/Ma27ZxHAdv26Hruq8ESilbtdsytb6VPCkEwWZI7Yb5fB54xkvnHiDa0C1Hd7YeAfBpuohuWjTslSbAl4//6M8QoLo4KQQP7qTbsKcrqX9FXf4CwI/yQ6S0WDPv84nxU89u93Sht5vrBH7XfMqaeb/jtSr/vboceghQ8IXUQSAmLbjgw0QBHAq6U+8MRtv95yeOVHfLz755/s8Xl2oadx9CWOBICqlHeKtNmLp8YeNWIXWAkWuAY4DQWfl6icL0JNlMkgd30pGOdJFBZzNJJtJjLfB21cjn84xfvf7OCtP3hknNiBPpMbd5Akld/usuTLUAL5XTqgfZ2au7i1GB2rYdulpEDq1c9nd4RTcSpT//ivx/laGwwN4WNZtJ8vB2kcPhj3xuL04lmlFCa2GBvS57JxjVSHk7wievDrWBQXcCVlrf3PV9n7l5jfXNXfc9CvBIFmK5UvPBdgJb39wlm0lGEpWhsLDHVQOfk6XqFUrVZcqVWqC6DKhOP3l1qC0G/jAsVZfbn0zP3q5j/adTqH0eWZ5DbS4KYhGapeoyCB0c6elDjDPjMrB4CCGOgc88z2xeGujzt6yXZHMJRiDYU7emYelmO0q3tdDQwWgoUN/Juu+444SbxiOLh2UKLFN4AK0TD6KOh3U9fGvqSBA6hum88zzDGHA8wi66KMevWLFixYoV6/3U/3pj1jrGldPaAAAAAElFTkSuQmCC","vanilla":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAuCAYAAADZY2JLAAAF3ElEQVR42q2Xb0hVZxzHP8cMK8GNSmYvjOO9V90oC2v6InP3DKU/exFEuAjKTjhE+vMmsTXW4LIKgjDYshGs8Bgyaa7GhGgrZefSlNCZE4uVXu895IsMVy8kV1KXsxfX53j/nHvPlfZ7c+8953me7/P9/v5eiRTmP7TLBDB+6z+3PzDRGP2uzZPfDCBvLT8K4L1wTcLBMpKB+A/tMl2lRbhKi6j1370uDo8G+nDD86Mrp34FYOLSF6YTWMJtxCap+hAAZvcFALLXr6erod5aV+YOA1BcPgvAo/4s/sndlpKhFM+oRK1JWPRv7maWTf3BzPAw07e+tZ6varpMjn8v0952AJ6crWPNjzPOYAJoZniY4NAoAK7SIrLXr7fd+ORsHcXlszzqz6K4fJZpb7sjmOWzeKDJh4UEh0aZGR5OYClYPerPsp7n+Pc6+i5TsIoHEhYcGsU15zPBxrKmCBvhMyBGZltmrtKiBKC898dipOxqqKe4fJb2jmW0dyzjUX8WXQ31FsNVTZcBGBhfxINPs23ZZYhcimcEsP/GIABdDfWUucO0dyyjzB22IrHMHbYABVD0pyzLZoKMglW83Tmxh8pTHcByeAa+Fc8Z+OQGsiwDYBgGnN8xv+FIF7quo+sasrzcNAxDsg0QwcrtrUoA9K14bh1WrXjwyJl45MzIwSVHrSDSdR1FUcRFpJQVJB4IoPJUB75ny4UsMe9O+T6zvs8MD6MoCnK+x1ZC23KVt0lOYHbnxB5ulE9hNK6LvcjHlfj9bdZvn0+NfK54bsss046V21vFuB9gFFdpEQBTBx8gAwHjDR45ss3r3Y/f30ZP5lYAFCULYyKAOjgtJc2zVBYcGsWsabYAmAOclzEiZbcewO9vs3zmWPXjJRR5JuyE7xKAFSDRVq14aG39Pb0Wc/+XXcQHiwCSOhvp1gOoqkpvXQuTV/622Amm3XoATdNQVSV1IdY25phl7jDv1P/FZJ8Ria6nF2Mqi7DWmZIEqXRdR9N8js0z0y4ax38+TnyyC+AD2SNcOd0Vs2cR6VmMz7o/3xiRcOcZ3DvPELp722qGwaFRJh8WMvmwkHDFDipzAlTmBDj7wzEqcwJomm5erTpuOjJTB6cljYiUdha6e5ul7x7E7a0ib5OMu8/gvqJQrXh4cqwYufkBT09exO2t4iqYu3vOSGnNIIJdtEUDCanXPn5Ntx6guHyW3O/WLExGdXBaGhhfRJk7bAto1dA+AzxLaQn2cuf0Uaa97RSXz3IzfwkvPirkZv6S9HwWnfnRgLt7zkjj/h4m+wzyaj8gYLzhQPaINR4AnNw8i9TZmDIqE6JRsIvuSwLwKpgtwV4OZI9QotZQSyfnbkFtbgGuUmcZbW+hbcwx45kKqyvcYNZuKbA6+IjWmZAeycY529qYrJDWFW4wAa7cClELuKIjtuwIDJxfWFI72ZbVW+a+jREcGsXd9A15P8m06iXIanOke3Mt/fHbGShStsyaZgLGG9pXdqOqKpqmLXzWd7Kb+Uusww3DsEYFVVXRdf3/BQMsFtWKx3oW33beCiy6m6uqiqqqMe9F20lWI9MOkOgDtk+8QtO0uVYzP9bpus5hVwXjEz1vH42R2ljFuL+H7ROvcD9+TYsekfOwq4K1rgprjV1BzkiXVfyYJ34fdlVw2AJJPl4smJno4k6HisvEs8tIl1X8wXZAeZtk60J5m+SEoTcjdXjr5kJTYtzfEwP+59e3TUcwAfRy3zZEe4k+LF5Su2eTfQb3Vy9OXfXnc8kXE+6RSbkn6f+C6Mu4vVW0BHutSUxVFSkztYw+SQC+91UDL4CXczd9IcsJFSNgvOHl6sXIsswLgGBvzBwppeOHusINZuWX52KeyUnAIlUfi41j80zWx6Jt3/fXY+qhKFVG4zqr058bKgbg8tg9KS0wOyBhl8fuSdF+XdTbRaq1jkkdrthhOVlI160HIq1k7F7C2shfJ8VaK6QN67rpyKygoCAps1AoJIn3oVBIclr/H1iVs2KzAfXbAAAAAElFTkSuQmCC","metal":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAtCAYAAADsvzj/AAADe0lEQVR42u2XwWojRxCGf2n2oENgc/Sl2QJB8CMsgYEGw76FYSAXP4IuggJd9Ag6ZKHBLxEChoaBxY8gDILCczHsxZgcchGdQ0+3ZsaScaSWNZu4ROPRuNueb6rqryrg3d7t3f4XNvi3B4jYrVXeuleVF4MfDmQXzKnBPux7MKtKdGEI5C/yG/fWUHv/EyJ2AFowWVUCAJS6jPcEshWIiJ0ID07ukV3254TxZe5hiABI20sBNrUN9z0Y3mZ4sKwqwdpGmKq6hghAVK/681JunQTkNZ4JYeVDaQN0DJjkofXtVuPr6isAQNdRNZtlAIDpdB3DTRTQ4OwPyFrlmK7yqFxEiKHVa9XaplwBoqquW+rVhRHZKFoqef5wKMSzYlhd40G45SmRRo3p1J2qT8kelEs6Qf8gjKwqkVUlpP60PJMwSZKr1lrlOKONR4raO10ggSStKdk+h1R+49zHTxg+3W/eyNM93MdP8fqvR19TfgeAR4s/Hi1++llj+HQf15tX9l1JLWp7pV6rHGfgVq4AgBXG+ZFU61Wh1aziITwCULO4/XZRorwet86eAygALOtrAFgYg4Uxp6nszTDIqtK3IFuS1RiDcTYDM2FZ6+x5BwIArooCI8Bprd0IcCebR7bdD6E0Ya73EbTWm9CytgVsrU2WI0kKYteKormHGl6VCJQS4mCQl6CaMF2PpIZI7pEH4RhWIZeJbBPkaNNi0oK4MAZzZhARisLL8Go9RUFAQb7+9BIkKBkzgZliDohIDKPv5QXE+OvZeHY0mIPbeA8hWKscWSU4I4YxwFpN4545gAXgFWzV09BiFih1+WLfNAHw62eLXhsRuxHgRMTdLeDuFnBE7FR+E9fdwv9e5TduBL+nV6oFHy6u/gkSG9/8lzk/m82zqgSRRUHeQ79cpZP/g0PLWjvQWmPODCGNb7d+NR/+e3mBrCpbTWRzT6/k93PdighpGPEiMM5mEOHBhDnWk1trYQQojB30Mle01i4sY4wLIecFgVvffxgjYpfnK9f8vqsv6+2oS8ROqUuU5fhNQ2eI/4gNU3vjVCBJ3S8irh6YojSH6S+o2rE64CR/dAS4CQBbP+yttVh25vbQqkQlS/wSB6kgQnMYbLlj/7Gg0oDUw9Scn8/sjTrTmhSviiLuSzH+DlJ5o+mR5SvPb/POvh46GOQYifv3Hs/1Dw60vC71NhtRAAAAAElFTkSuQmCC","amelia":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAmCAYAAAC29NkdAAAE+klEQVR42r2YQWjbVhjHfy4L7GS04oMJhQktDFF6EInJtM6HMEQxYwcdsqBDYWEHkcMYORRjAoEeRtFCD2HsYMwOHfQQ3DJ86MEMMXLIimrk4lPRwQgPQsnBpCLHbVQ72HqxHZdWaZwPhJ4e7/H93/973/+9Txnew6pFK94/2EMf6dNVFQAvCETfJmTO6+PKeSZZEFeLVtw57E0Fp5omuqqKbwtigA1Zj9P6+uA84FaKFp3DHuZqnsZjHbXnsV6pjI1TTXPQaDRgwGZ8HjJSAVwZcWKu5lGLJUyaNB7rBI3GGLCg0RBh9oZzop6XGmAmDbg8oAOBrFP4IoPxzbfMLxu8bLk0zA0R0mnmBQEecATsp/D7zgzmp/QFB00a5sYYiIu2TBr2RDJMY2hK39GUxc2MwbeBAWhK0iCRpEGoV67JAHQOewPGZ7EHE/aOJphoShKlKOIIUGWdvShgba2CogxAhWGPK3800KaATMNgJk3mMgVkYgk4RVkYAuwC0KvuAvD6lkm97gyyOYreGWAqobaK1tje0qJIhDMBpyjK8FkgDAesJSwmcy78JLGKFlbRQl/QBDiAjiSxF51mrqIoY/MURebLnV+IvjYxDEPMuVCAyX7RFzTUgjbGonOjxL5ZwblRolfdJZc7EY+iKIRhT7zDsIslqanCmyrEakEjAQqwu+5QeuiIBDBX87RafTE+lztha8uiv/cdhmHQq+5S7XmpLw1vBVgtWnECKrHddQe1oJF/EgjgarGEWZSg06Tfz9LvZ6HTRC2WKJdXeX3LvLzbjNftnJ4mfkckwcuWO2DvsE7usH66yFWNxRed2QAU+uWPO5j8djYfDGRp0yE4aIqjsHl/n573IZNRuNCTxOt2hIOEvVEWE3Mf/UZ1VRPt//7+eGzfzjzECWsJq5Mg/b9iGo+PkJ4EAtybFnOhl4Vq0YoTJrxuRwAcFeCrP9wB4Pe1grhQzNd9/ix/L8bpCxrag8rFy8woYxsHe5nJ/ufXNRRFwXVd7vjHbKoq65WKAPsmxi/UNmQ9TpgcrS1s24nrdT+2bSe2bSfehXgXYmv4+P5xfJ5aJPUerPa8TMJEIrjd8lxclrZZ9D8HwDAMXtiOmJO1HcIwPJdAnytJRh11y3OxfHORT376B/nmImVpG4Drtcqgoksy23XplufimSbJNLNtRzgtS9vINxe5bT5Dn6iNPeBh4zN6T5+zsPNvZiY6OGn1uh8nN5cwDNlxofx0ewycqJODgNvmM34sz81OqKeBW1r6CIClpSUURWGnBrZvk8udiLGtVp95IOu67EQAlcs5ixNwAO32K/H96+pXyLKcuXdvD2fF4vjn+2KcYRhj22KmANvtVzx61AagVquJtnZNZiA39pkjbvIyOzOArusShuGZvq0tS5wmYRhS2d9Dumu9t/6m3oO1WiUDTmwYBu32q2FG27RaIa7rCsBgjLQ5s6iZy4wkSbEWRXw6IsxJ1aZFESaMifbp4i5BZiZLUMMwBFOjxb1eqzBf90cAXhKDCXvm8MYyKIxCXq4VuCtJorRMfjYV/WNyuRP6/awI9dpaITOzLBbOVZXl5Ry53AnLyzl0VUWLojOl5UHhKkelkhinKAr1uh/PFOC0v1leEIiw5yf+43hBQEOWRcU38z2YtR1eAPPDUlNRFObrPlnXhbpDdpggScGe6OBots88i99X496liP8f6Gw003wK7pAAAAAASUVORK5CYII=","blaze":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC8AAAAvCAYAAABzJ5OsAAAFwElEQVR42uWYf2hVZRjHP0fHJCz7Qej8sfluu5q7ytTQMGjzdQ00EqHBBV1Spxqa9ocliCID72pUItwo8A/F6JShxg2hkNDKek3/8MdgNtyc47q9OH/cYqQMBirq6Y/jezp3v8Tt7E7ogcu95/Ccc7/f5/0+z/u8D/zfrbo84VaXJ9xs/++YMF7SmW71SdSuPpw1EtZQHiqbucYFyM+bBUBRQZRjpw9i7hUVRKn/dpn1SIIfiED7pRYqSkq5/dSzXL2SHnECQ5bN8bbdlpFMRUkplQtnUFQQ5bfzTeTe6GLK1LxHUzbV5Qm3qCDqX1cunEGqpYOylXM4ejhN7o0uylbO4VpTD3JD8YhFP2coUjEJWlFSCkAymWT+7AVca+oh90YXANeaegZ8z3svfeoC7DyxxcoKeAM8WGEa790mFosB0NjcAMDlXZXeagDOIMDnz14AJ0ZJNsHripJScm7Vcya1jFgsRqqlo88zNbsqrSDwnFv12I6yspqw1eUJtzPd6ifq0/duAyClZGHkMMlkkki00PePRAuJRAtRn190zSqNSsIGpVM6sci/H4vFEE/uBUAphZj/ZZ9nJ5eOB2Bc4U12rD7AppqbCDtuZV02Qduz9lc3Ei1EN77DnXG1GVEPgg7ataYeUi0d1OyqHD3wBvhA1h9wE31HCOLD/H9rJEA/iMD+JXnYgMgm+CBoU1HMtf3Zy7w67V0GS0pD5PiBc14OrZzDc0vyrKyAz6jRAQsS6M9ql+7xfYIrMdwd+KEf7E0gKJ9USwf1R2qIxx2EEABorYnH7T4kjP9wkjYnLK0Hoy6E4D52hBBsLr/KYxU/E4/b1OIRMESztkk1NjeQaunwP0FzPjhK7dI9frSD9sqHbSil2Fx+1W8jGpsbkNLObnswkO6DVn+kBsdRfvSnPy4oXCD4eq3GfVGT2p/y/bTWVlZLpSHQH4nG5gZ6Ijf9lkFKj8EzKcE/EY1SOiMfbFtmF/xABAxwKWWG7vszj5iN48SzD743AWMLaxY9ELjWw496KL1NfyQGIxAW8NDAD0QkKKEwND4ic5tgy9z0dzvXx+RyfUwuFZO/4Myek6T2p5jaLrBtaTmOCm2ukxMm8ODc5tjpg7R17uP9t5cReQtuNoDjKFcMlgwjGXkDcKDR3ke7t/rAF79QBcAvF87y+uIEX31/FiEEWmscR7lhrMCQTlKrXlvP+u3zrOryhLvvj42WUtrVWiOlQGuQUlhlM9e4ZiDVmW4lP28WuUXdfp/jnbqGlwMPLZv8vFlcvZLOmN14ShDE4w5SSpTSrlHH1jcO+hO1y5z0QSulMohkJWE70620X2oBYMrUPLyoe5UkWFmMffxNFcu7LmREOwzgw6o2RQVR1m+fZ0kpLK09QAZ475yclKjjiZ8+YdqdRSilzOqglM4e+OB80kQf8HWrte4D3ACsnrCc9kstSCn9KcNwa/6QI9+Zbu1TdZRSPthgVJVS3FUx5p774b6PGlZPM+SEPd622yqbucYtnVhEU7rVP6DIDcWWbcfd3lE3MjHRz3c2hbbDhtZVRlZF4M+7OI17Mw8pTtwym5OUItR2ZMiy2Xlii2WmvI3NDZ7W544NtLvSB66U8k9XSmk3rBYhtEh4oEydV37ZdBwH27b97zCbs1BeovV/td6LvOijedMim0QOQ0ahdJVCCMuLukAI4ddwKUUf4GY/CEP/OeHJxkFrm2I7STGwr/sQKlHHXxu3QaKOU1XbACgBitV4HhnZCCHcdd3TmZSo8yWjNdi2ZF339Azf6gnLAbjoxBDCW7VRj/ykRB1CCMbKJADFgOMobFv685mSH39nX/chJiXqPHYIOsUON18PrfaHonkD7lTVm/69uypGsZ1kXfd0v3SeX7GE8yuWoJTK8Ndau51ihztK4KWn7ftaBxgrk/5v0/8YEqZlMP7fPe+ReFgCodV5s/GYymJKpwEZ7GUG832YnudfXY7gkCnHczIAAAAASUVORK5CYII=","exe":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAsCAYAAAD4rZFFAAADWUlEQVR42u2YTW6jMBiGX6L2HK0jsiDHGCkLXKlXmG4jMlmUHKAHILNIQb0HUsgiUo+BF0Qh98jimwU2MX+dEEiz6SchwDH44ft5bQf4sR/7sdZmnNuRTWIqt6XbsXFTyDqor+yawJUXs0evCDfi1aeSqPG3Mix79Cg9LDp9wKAyyGFhFF6aRKdDs/3qBMtNqxABFYXKB18zJ8uD+XYEbmdeHM4zjyrQaCcqHu/dk7X5pgapCe9+VbzXvVqbKlfzpF5ESQTfzjw02/lVMGm6R7sWVefq1gG5LRBtrOtDfgVX5zEAiDbLQojr8rML6KCN99Sg/up0rwDTwyI7tuMKYNPHtfYkm8RUlpkmveSmdYJIIqSHRZ0i5M9I8Is9eVcR6CbTBLwgM82KACbPV63uWjGun2UqbQcAj9q5iycvEvMy6O/tGG89LmZaizmbxFTxngy9b86w/xPhBaiFVG3MZGAmo6tAFqq9BOqbs2xqtF08hF4OepDHG4AXCQgAfOL0Py2WZ5nGwtosMXwNctCH0Ctc+xOGdJcawcei35zMAf9T8Wp65DbH8DXI5vK/jhT47Lenj0/jKtWtNLO8emlaeilY3fqAa799qAHcr+RSrWnV1JMNLnnIt6Mi4IjnbfvExXr6i/qEbK2TdQtevdLzF98bxrd7Um0rCoA1la7OfXrz7JW5M/VoHcYkRi7EyAW30ShJABCB3yYno02ENBFIE5GHHEmE2c7PJQcAhu8cztyFM+1nI3bXprMzd5Em2QqIjSwAJ7DZzgfes+v1ypLrThcAqIuQn+1JZ+oRtzksE+C2JQGB9cY9TZcl4bfMG0mQ2NUDpNtxtlevmaHytPhunTwvf8VtPFkOZ5qIfIOlF0mwWvb6wYO2la1CHm1EXtHO1CNn7hZCzEYWoo3A0/M3/POm9HEdxhQLInXvTD2iI+XX6zAmOlLetg7j3sTcOBe0qSB0fdTbusrOxcZMRj5AJA8fINWmvOfLdtXnJoB6WOlIFAvKQcuAsTj16wLcasZhYQz+XNy+fgLwwxip1h7IvkgEAAuWlUWejkS4N2C03Dm2kqD0eYxAbzgSHNm+lBsuABBTL8/VT0vjuZewLb16kU4GpUG/ki3VP9CfawlqtM3LPvM83aVnjf8PZUj1CcDR/sgAAAAASUVORK5CYII=","chaos":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAqCAYAAAD1T9h6AAAEeElEQVR42u1YTWgbRxT+1rWT+NBAU6dyG4gULOOokKIQJylUQZOlh6b4EsipOWh7MIYaX1pjXwxegy8phWBMDsGFrg4+FAK5FHppt7MkOdj0x/QQNXRDlYNBak0Mm4Dq2DA9rGY0+yNLIt5VD3mwWB69mf2+ee97b0bAK3tlL2VKJ87DWY35x/7cMJT/LYEwwPtZN8iEvjCRzHmAH30jHfBxtu2m3/mJJJI5Vn1yPxJyPWGD1Sf3FfmFzrYtHtnujo+IscP9A57I8ej5N6NrGvADmRrahKqqAICrK48AAMffeR8AsFPbCkQq1gg0i0qzlLk7PiI+T0+MeaIR5t+VCMiCdrZtTA1tAgCKT/OBFJqeGMNXt7/zRCIqgR9IFZLBy9Y1AvsBDwO7U9vyVCXZJ2oSPZ3uOgc0PTHmAV/dc1Ddc+Bs29ipbQm/ZtGJJALDWY35S2WzfnC4f0CA5ATw7O+6SCpIJHMiGoJkBJWoN6w5NTM5TeTU8DpVeNVyS2v/QINgN6pQWCMK7b7//OpGoE4AANguw2D6Eir2PShvvg04leg10KortxMpboeWXqC65+DQ0gvg9bciiUBbjWw4qzH/rnMShWMWitdeQ21p3AV5dLAepkHs3jyPxZFn2L15Hqk+B6lUisWeQv6qJO++fJzgdvZ0FgDw2x8bYuyTr38EABCiwTB0JTYC/u7rtzACYWaaJubMv+LtxBx8q3znR4owIqZpAkBk4ANlNKxscgEnkjnGwS4/PiGqUfFpuk7SDMyPEnhHZXRqaBNffPa5yGvTNMUhjgtZVVWcPZ3Fe4u/oHDMigV8W1UoDLxsMngA+H3uXKxXyp5OnE3TxPLjEyKFZOME+d9F9RTrOgFN05l9soBvn58J7Lwsbv6dXDrtkwUYBmVd04Cm6YwQgsJ1N9dLNnD5o0uBI4V8uVFVFVdXHuHK5Q9BCAGlFDOz81hfs+prEiUWAhz8hYt5ZKQG7CfBu7P/hvZBNoVm89/NKEosKeR/OQBk0sCNhcXAgc4tp3lRmR5slEEpFfNLNlBctQLrRdoH1tcsZNJ5z1jJbv5jViKZC5yXSra7DqUU36zMx9vIKKWBKHAwHKh8Raw3PEHiwUYZX95YAADMzLrgi6tWPFWIH7jW1ywR/pLtkvr+px/auvRwI4Rgfc3Cp+ML8YlYFrP8PwfPq498T+DCn52f80SIr3HQp9COTNN09rDEWCKZ8zxhPmy34fewxFjUvaC3HfCEEABAxb7nEaemkYDwgbzHL2rr7cSZA+JiDuqGp1xe+EWR9x0RoNRoHNyu51FctaDrGgjRPH6pVIqNGjoodFBKMWro7sUeYHWxxf/TIhfgzOx8oKN+fOUUyuWywsFPl8uB+ZPcv8Qa8/uUAyXT8jRKCIGZUYC+xmNmFOi60fKSfgtA0aCN9OtzcdfuLDMemcgJPPcJ9d87y5gMGQ+znzVdaMHMNDb9yLUpT3pFpgFKDYxKuzkpvbxd42Ifra/hTy8GsJdJqZYT90sTroFWfq1MXqdT+w+G712h8oTAUAAAAABJRU5ErkJggg==","exetior":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADUAAAA+CAYAAACLIVOzAAAD10lEQVR42u2YS2gTQRjH/5OmYMDHqQchYI09qIhtD0HPktKHfSB48VIQC7VJQ3sQeu1N0CLWJDWHgmAPPZa2waywHgpFkQhaEZtDCHsIeOiptZBAo+MhmcnOZvvKZvPA+cOS7LeT7fz6n+/7ZheQkpKSkpKSkpKSkpKSkpKSkpL6r0Vsu3G3nxpj9OsCaSooM4ijZCeg5RuTNq8I4/aWD8okDr1mhCNtXkp3Epbm5bAKRXcSRJhEJlE6dNpdmeUxer5TcJi5XPYPaqScMk4u+vAWHgz3AwAu3JsF3F4ORva2yhytu1OHuXfYcttdmRXH6lwzXboVyFmryre8FsfjN59LgeudAhh3zO0FdhJNUv1KS4stUcSXltD3dKNsGVqtjMROGKEg/FzkQLrcA70+BrK3JbplEcxhpztskvkPjwqTb/Mac68AawAyVs6aOUW6/fTIP65Lej7pTKLMLTPHsDFubW5Va7ongGMuGMG6XC5snb1RGJtJoHP/B75ls6Tm1c+sl1TaPMeyOQSyX+AA8HfnCyIAJhulT5XtLszyw+1Fl8slhBZdZxAB0Ln/A5HieUM1X9Ltp2ZLDgCiPQ7shu5iLJsTwL5ls5gExVg2hw5lG3sXL8Lj8dCGgBKqoQEs2uPAg+F+dI0GMboZ42BhEP45uhmD3z8AAOjv9dffKQHIZEPLXXkbEsD0nwAwc38A6XSaRF4/qX31MwU6pr9EH94CAO6YXjP3Cw6NPwtb3xBUDapQqslJqiGD02v8WZgEJubo0Mgg1ldjqLtTx/Ux9uixvBbn1y/dEYv2+moMwalJaJrGzysFqxkUW3YA8HH/Cny+jrLfTAVfVgXMYTcQAP7IsbwWF4Cmgi+F382HphGaD6O9vb2x+pSxEbM8Y2DrqzGoagqqmsJ8aFqAU9VUY78iM3OPLcPvv0tODI0MwufrgKqmsL4aE+KVLj9bc4q5ZJZfDG5oZJA7CAA3z2mWyzqx252jdu/+2x4hZKWM12X5CZDFRwz2vdovNh31AKJfF4jV12ANAVVLOerhEgAEJuZo00IFJuZofGmpLBacKm2TFCVJmwaKbVAB4ODXJxwkXnEATdN4rNpy2u1UqaGK/ajwOWgY0wTyeDw0DEJp8QiDUBZTlCRVlCQNF+NsTFMAKUqS5vN54WDXjEDJZI6PsQJoa051KNvo7buGFmcrP6LOViwsvBN3EgDeK9vQNA2pVB4tzlYAQKVwtkKl+q4hojv/kz9AoBh/4bnM49sTz3leqVdLb5kY3GnBatKnIoZJHldUIrqDP8qcAozYnVfVvF86nT7RfP8B7TANOZLqDosAAAAASUVORK5CYII=","exeller":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEMAAAArCAYAAAAjbTVEAAAEDklEQVR42u2ZMWgcRxSG/xEqhEG2osYBYxg16qRGXXRYg8XFWIUIcRuZQeAmYBUqdJDCTJPCV556M5xRERDGnOGELQRzIKcTBKnKNTshOKS6XFQEqfG42J3R7N6ebcje7Wmt1+zt7u3uzXf/+9/MW+AqruIqPhFkkDe/cU8Zf//f14x8UTCSAABgYmEptn921BpJMGSQEEjQBACYmZUeIKMIJZMfMjW71QPCzKyABE3US3tgy2Xcrq+mqsSHMjW7ZczMSm6AxrK4SbddJd12laSpAgA6ixv482HDDTwtjSyI57ce56aMsSxvlgYFAKbf1gDADTQJ5Jdv/3BKKoyBpvmGBbD2bruvofrpQoIm0oAOI8azhpAc6CMch9QPK85LCltaLQgfwtPZFirti/3z3Qq67Wrsups/mb7qyGtOQrIG0adSgFIaO6617gFyvltxyskDxngWqXG+W4mVVB9QP1OklOKfo1YMZLddxY0c0+h/VRMSNHsGa4/5gPrFV79zlxZpJfdSwJia3TKfUwZ92ScjmJyMAen+9Tj3NcxQ1ibRAGO+obQGS+zTISwehzbp8g3V9wwSNHGY+K70PjPGwSgF56JYC7WJhSWX/zaV6qU9TD876XvtD55CtNbFUIY/i0x6yvzOJkreZ397/PP3qN2dRO3u5OVXhlXFx0y1XtoDAKymKKSxPmfPkULA+NxFloXiR94QBtLPsAustP5GPzCjAmIgZexjIGy/gi2Xw3J6sD9SyhgbxkPqpb0eEJ3FDcw/eQUAON3ZNI31OZM3jPFB3NTvR9hBTiwsAX/HGz6dxQ2nELZcRgMweapkbBggHh7eT/2u7YBZIHmny8DSpLE+Z2xKdNtVcnbUwqOvj51PWAAv3j8AALctJAy2XI792yRo4uyohbV321AH+1AH+64V2LkTbjkXplAwpFQ9ZuhXGBI0sfrshKSlDmMsVyCZw6CUYv7JK2zsX08ttWnNXqUUGGNQSkFKUQwD5VwYrXX0maNzZ7vv64M0IHmCyHTSxbkwnHNQCiil3QAB4OWv/8F/U8a5MMljhZl0cS4MYwx2Jc4YBWPUKSQOLIT23TfXQIImpFRmVGCMZ+kVyRCCQwiJ3978GPUqOKSU0FqH5wBEWVUsGMnQGk4pWoevBmzaKKVAKY8dK0yaSCmIlDIGIlSA615BKQWlpCuh1miFFNBaG6117umSqXlZ7/DNU4gLz5CUQlIK7uUGUxqURkqKfIbm1BTO/KECMDpq7AoZbmU0aABQLO4tVCpQSh2I2LkhQ8l0nqEBwwHUyqeolU8vFONBoFJBRmZioWmtY91yAJje2YQGzKVUhoh+OE/zFAuLC+cbXGsHI4QkYvD8a8WQFJLZQyilA/sX83x98MXGB8F/ExEJTx7mAAAAAElFTkSuQmCC","metalamy":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADUAAAA+CAYAAACLIVOzAAAEdElEQVR42u2Zb2gbZRzHP1cFX5VWYyHFMjqFLG1yUByjL+wSSKdvVBBru85XvhilXa26ykChktQGFES3WTLLQNg7azfxjYLgWk26vuiLStklbQw4Z2lJoAtu+kKk6Pmifa53+TPUPJekcF8Id3mSu9znvr/7Pr+7gCNHjhw5cuTIkSNHjhw5cuTof2jWd1yv1W8/aBeQz90FqUXLuNY7pgMc8hw1xpo+eUU5EFA+d9fugc9XF0aoQXapab1juvngxftqAUmBMgMVXkeFgNUAqrj8BITP3cUs7F5HJhUCVUsNMneWyq0CsJFZsSyr6VJFTpldEstUbtUAq6VTiiwos1Mlk3BPG5kV1PlpBeDeyBXdDheVSsPBfPCp3CrrA30EelS2X4uwZJqnRveWMSA6cqXsvmXANci+ngBCoRAtH0d4vv20BYgyQBuZFeNldq/mk+9SapGnfMcBWFhYAOCBT08RvdazWxKtbcZ39exmUZCIkhQTds2hlgraocQNDYDxXLMFRjnbjX5+uXSQzMsLCqmR7nN38VLiJ8ZzzYznmi2uAOjnl9Gzm0VRXxgaNU8/4dJQ75hx9pXWNg5fPMnWuS/585dbPD73pmXbmLvTkoobmRVjXUZQSIEa6h2zlJIoucMXTxpj+Xy+sGMvinpZYBWXn3BIwPwboL1gKCrDUmVZVajB1GLZs6mc7ebn1z/n1sCHJT/v1venAQFyyHMUdX5akQFWsVPmfk/Pbu6+TAlXSstvNYkTU8pBpa7Sz3w9idT7vutlXC6X1an37xnrp69PSys7KVCiBM3dhHBLuHct8ARzc3NWp/a8CE9eMNZr3vuV6wMLm9eP3HcJ9Kj33T5xQ2NtPUNnh4fJ8BtKXUCVanBF5/5uy190dngI9KiEQiGjfTIDyQKR3iYNphYVM5gox74cfFHGHYC19Ux93U/9l9sSgPWBPgvI1dlLtt0FS99xePKC3vLoY5axYMALQDyRNsZeHe2v70dkZqBAj8r2na39m8PRfgD8qsqJ3t3QiC9+R//gGf1AQBUqGPCS1DT8qsqP6TQ7OzuGa50dHtvAbIUSDiU1jSNeb/0/eClUI5Gis/5ezGc4IxRPpNm+s8Xaesa2sGiQDdRImEbCFohy6h88o9tRglLLzwzTSJi3R1MWMLG0a36S/uClnG62DhFsa+bmH/DwMYhv3gVOGZ/bUYK2QwXbmovexwc+4/KLvx6Meep3JqkHSXPqt6kIANmJiDF2RInslZvJJdP7uo50fQpLgmUn9tfzJ8ZQ56cV8V9VNf75kAbVGnNbxn7I5miNQuyRqySTt/H72wkGvMQTaVv7Pmnlp7yDok/lrPNNFJIvaCQvfWMAASSTtw9OR2HW8MgHut/fzlejl2nCw3XXLMfyT/I0w8Z3Hor9bZtjih0wwYCXqDrDhDZMVJ0BsIA9m/bxtTdlbPeM5tl/mqSqSl2UXyEQYAEy61tmwDtcEqhuJ994Im0BO6eOlwYDnosN3bc3rHn5uVwuKY1pPp+v+Jj+AXSs5q0vR3DXAAAAAElFTkSuQmCC","chocola":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAZCAYAAAA8CX6UAAABdElEQVR42tWUv0vDQBTHv41iA4lQdVCQ3KLFTbeQ4OLmkKU4CS79B1QcxEXEfyF1EkS6CJ0kS4fikq3BsWtDh7RDB61VG2gteA6lR/ojaVKL4BdueO/ufXj3fdwB/0Z2QaZ2QaZhz3PjkrpGaCLZAb/1iLAwzm+jWY6D/9Z+fzVdI1TXCJ2ZV7pGInkVaPpLZYfaBTmww1gQ5HB7maqSCIUILGc5LgDgNO/EQoHGQbyyHHcAxk0DAQCFCPBelQvr1frFU2DMhYVcXt/5xpE6mqRIZq+kFgEAr8bniNm+oLZh0vTVAQBAlURoJ2tIJDvs+WzuP/uPv22YvSlkTdx276EQAZbjsq42zhfQLMcBYAQ04BGf2oshayJdybDiYrUFy3FhOS4ejt8AAPlMfbJHfW+K1RZUSWQwr3Klxkjd3DDkbHcVtfcuah9fbE2CjB1//y0NF/W789O8N1AlEUc3Sz1DM3XkSg02MQAsN/WHNvNP7k/0A83Ho6YwkcgYAAAAAElFTkSuQmCC"};
 
 /* =====================================================================
-   EL LOBBY — 18 personajes, comentarios simulados.
-   lean: 'nerf' (pide nerf) · 'buff' (defiende/pide buff) · 'neutral'
-   ts:  antigüedad en horas (para «recientes»).
+   EL PLANTEL EN DEBATE (15) · Vanilla, Amy Canon y Sally Canon viven
+   apartadas en la zona de moderación: uso exclusivo del staff.
+   tag:'bug' = comentario que reporta algo raro (con repro de calidad)
    ===================================================================== */
 const CHARS=[
 {key:'amelia', name:'Amelia', side:'sup', tier:'A+', tcls:'tA', role:'Control de zona · Detective ciega', mod:true, hot:true, comments:[
+ {u:'escondite_pro', side:'sup', ts:1, badge:'main Amelia · 240 h', lean:'nerf', up:201, dn:38, txt:'Tercera mejora seguida: auras, Ciega, emboscada… y AHORA el eco de la salida. Sí, es la versión pobre de la de Amy Canon (solo a 700 px, desvanecida, latiendo). Sí, hay que acercarse a que la salida te «responda». Pero es que ya no sé si la juego yo o me juega ella. Que alguien frene al dev: lo dice su propio main.'},
+ {u:'lore_master99', side:'sup', ts:1, badge:'wiki del universo Nightmare, otra vez', lean:'buff', up:166, dn:44, txt:'El eco es lo más elegante que han hecho con su ceguera: la salida no se le MUESTRA (eso sería regalarle vista), le RESUENA — la corriente de aire de una puerta abierta. Diferencia entre darle ojos y darle brújula. Diez puntos al departamento de lore, que es una persona y una wiki.'},
+ {u:'qa_del_lobby', side:'neu', ts:2, badge:'tester · reporta desde la v2', lean:'neutral', tag:'bug', up:93, dn:12, txt:'Bug reportado del eco (v4.5): con DOS anillos de escape en el mapa, la flecha apunta SIEMPRE al más cercano (instance_nearest) aunque el lejano esté más despejado. No es un bug técnico: es que la física no negocia con la estrategia. Repro: ravinemist, doble salida, tres intentos, misma flecha.'},
  {u:'escondite_pro', side:'sup', ts:2, badge:'main Amelia · 240 h', lean:'nerf', up:318, dn:54, txt:'La v4.4 me parece un chiste. Una detective que ve auras a través de las paredes, planta trampas que te ciegan 6 segundos, es invisible cuando se agacha… y AHORA los anillos rojos tampoco le hacen nada. ¿Cuál es la contra? ¿Rezar? Se lo digo con cariño: la quieren demasiado.'},
  {u:'slime_puro', side:'exe', ts:5, badge:'main Chaos · desde la v1', lean:'nerf', up:203, dn:41, txt:'Revisé un matorral porque me sonaba raro. Trampa. Ciego 4 segundos. Cuando volví a ver la pantalla, ya estaba muerto. Antes los escondites eran MI territorio; el dev me acaba de quitar el mapa. Nerf urgente o dejo el juego (no lo voy a dejar, pero exijo compensación).', reply:{u:'amelia_no_ve_pero_yo_si', side:'sup', ts:4, badge:'superviviente · casual', lean:'buff', up:96, dn:12, txt:'Eso es, literalmente, el punto de una trampa. Bien jugado por ella; mal jugado por ti.'}},
  {u:'lore_master99', side:'sup', ts:26, badge:'leyó la wiki del universo Nightmare entera', lean:'buff', up:187, dn:66, txt:'Gente: es LORE. Amelia es CIEGA. ¿Cómo va a sufrir alucinaciones VISUALES un anillo rojo? La inmunidad es lo más coherente que ha hecho el dev en meses. ¿El siguiente paso? Que el Eclipse dure menos contra ella «porque no ve a sus amigos»… vale, eso ya sería pasarse.'},
  {u:'chaos_lake', side:'exe', ts:30, badge:'main Chaos', lean:'nerf', up:77, dn:95, txt:'La inmunidad al anillo me parece digna (rolleo el lore), pero ¿las trampas DENTRO del escondite? Con la Luna haciéndola invisible grado exe… ¿cómo la saco de un matorral? Respuesta: no la sacas. Esperas fuera. Y esperar no es jugar.'},
- {u:'ring_runner99', side:'sup', ts:72, badge:'superviviente · 500 anillos recogidos', lean:'buff', up:142, dn:38, txt:'Juego a Amelia desde la v2.2 y siempre dije que era «fuerte en teoría». Con la emboscada del matorral y la pasiva Ciega por fin se siente como la imaginé: una cazadora que prepara el terreno mientras el resto corre. A+ está bien. S sería regalar demasiado… aunque tampoco me opondría, eh.'}
-]},
-{key:'amy_canon', name:'Amy Canon', side:'sup', tier:'S', tcls:'tS', role:'Todo terreno · Sin límite · Economía', mod:true, hot:true, comments:[
- {u:'exe_original_2011', side:'exe', ts:3, badge:'main EXE · del juego original', lean:'nerf', up:289, dn:47, txt:'La subieron a S y AÚN no le bajan el goteo de anillos del Sol. Entre eso y el martillo a 0 segundos, la partida se ha convertido en «quién llega primero a Amy Canon». Spoiler: no llegas.'},
- {u:'rosa_martillo', side:'sup', ts:7, badge:'main Amy Canon · 190 h', lean:'buff', up:156, dn:33, txt:'Después de meses siendo el bocadillo de Metal Amy, tener ciclo ofensivo se siente DIVINO. No está rota: está pagada. A los exes de mi lobby: aprender a esquivar no es nerf, es la lección.', reply:{u:'exe_original_2011', side:'exe', ts:6, badge:'main EXE · del juego original', lean:'nerf', up:88, dn:19, txt:'«Aprender a esquivar» dice la señora con salto de martillo a 3 s y empuje de tarot a 5. Sí. Claro. Anoto.'}},
- {u:'moderador_de_discord', side:'neu', ts:9, badge:'espectador · solo mira la tabla', lean:'neutral', up:88, dn:25, txt:'Datos: S con el martillo a 0 s. Opinión: ese 0 es deliberadamente provocador. Yo le pondría 1 segundo, no por balance, sino para que el chat deje de arder.'}
+ {u:'ring_runner99', side:'sup', ts:72, badge:'superviviente · 500 anillos recogidos', lean:'buff', up:142, dn:38, txt:'Juego a Amelia desde la v2.2 y siempre dije que era «fuerte en teoría». Con la emboscada del matorral, la pasiva Ciega y ahora el eco por fin se siente como la imaginé: una cazadora que prepara el terreno mientras el resto corre. A+ está bien. S sería regalar demasiado… aunque tampoco me opondría, eh.'}
+], live:[
+ {u:'ravinemist_runner', side:'sup', tag:'bug', txt:'¿Alguien más vio el eco apuntando AL VACÍO cuando el anillo grande cae del techo en ravinemist? Dos segundos señalando nada y luego se corrige solo. Más que bug es un eco con reverb.'},
+ {u:'escondite_pro', side:'sup', tag:'op', txt:'Cuatro pasivas: Auravisión, Luna, Ciega y el eco. Yo pedí nerf y me dieron una brújula. El dev me está tomando el pelo, pero con cariño.'},
+ {u:'slime_puro', side:'exe', tag:'op', txt:'Confirmado por ciencia: el eco NO me detecta. La flecha verde de Amelia me atravesó el slime como si fuera humo. Literalmente. Soy humo. Duele.'},
+ {u:'qa_del_lobby', side:'neu', tag:'bug', txt:'Repro del día: dos salidas en el mapa y el eco apunta SOLO al anillo más cercano. instance_nearest no negocia. Alguien debería avisarle al segundo anillo de que no cuenta.'}
 ]},
 {key:'sonic', name:'Sonic', side:'sup', tier:'A+', tcls:'tA', role:'Velocista · Contragolpe', mod:false, comments:[
- {u:'parry_king', side:'sup', ts:4, badge:'main Sonic · 150 h', lean:'buff', up:122, dn:19, txt:'El fix del parry fue justicia pura: antes stuneabas ataques que ya ni existían y la mitad de las veces ni sabías por qué te había salido bien. Ahora el duelo es limpio: si parreas el golpe en caliente, castea; si no, a correr. Sonic volvió a ser EL contragolpe.'},
- {u:'exetior_golpe', side:'exe', ts:12, badge:'main Exetior', lean:'neutral', up:71, dn:44, txt:'Mi bola era castigo seguro y ahora me la devuelven como si jugara al tenis. No digo que esté mal (está bien), digo que duele y que lo digo.'},
+ {u:'frame_perfect', side:'sup', ts:3, badge:'tester · cuenta frames', lean:'neutral', tag:'bug', up:121, dn:9, txt:'Bug fino del parry: si el golpe del EXE muere a mitad de animación (jugador desconectado), el parry se queda «en caliente» DOS frames extra y desvía aire. Repro: 1v1 con ping alto y un timing imposible. Es tan puntual que casi es una feature. Casi.'},
+ {u:'parry_king', side:'sup', ts:4, badge:'main Sonic · 150 h', lean:'buff', up:122, dn:19, txt:'El fix del parry fue justicia pura: antes stuneabas ataques que ya ni existían y la mitad de las veces ni sabías por qué te había salido bien. Ahora el duelo es limpio: si parreas el golpe en caliente, castiga; si no, a correr. Sonic volvió a ser EL contragolpe.'},
+ {u:'exetior_golpe', side:'exe', ts:12, badge:'main Exetior', lean:'neutral', up:71, dn:44, txt:'Mi bola era castigo seguro y ahora me la devuelven como si jugáramos al tenis. No digo que esté mal (está bien), digo que duele y que lo digo.'},
  {u:'velocista_puro', side:'sup', ts:31, badge:'superviviente · solo corre', lean:'buff', up:95, dn:12, txt:'A+ solo con el spindash y el parry: cero daño gratis, todo timing. El personaje más honesto del plantel y ni una queja en meses. Récord.'}
+], live:[
+ {u:'frame_perfect', side:'sup', tag:'bug', txt:'Conté el frame de gracia del parry: DOS exactos tras morir el golpe. Lo grabé a 60 f/s y lo repasé frame a frame. Mi familia está orgullosa. Y preocupada.'},
+ {u:'parry_king', side:'sup', tag:'op', txt:'Mientras el lobby discute el eco de Amelia, yo sigo aquí con el contragolpe más limpio del juego. La paz del que no necesita buffs.'},
+ {u:'exetior_golpe', side:'exe', tag:'bug', txt:'Me devolvieron la bola con parry DENTRO de mi invisibilidad. Golpeé al aire y el aire respondió. Filosóficamente hermoso; técnicamente, ya reportado.'},
+ {u:'velocista_puro', side:'sup', tag:'op', txt:'Nadie habla de Sonic en el chat y eso ES la noticia: el personaje más estable del plantel. Cero tickets, cero drama. Aburridamente perfecto.'}
 ]},
 {key:'blaze', name:'Blaze', side:'sup', tier:'A', tcls:'tA', role:'Agilidad · Presión ardiente', mod:true, comments:[
  {u:'blaze_quemada', side:'sup', ts:6, badge:'main Blaze · 120 h', lean:'buff', up:88, dn:21, txt:'El rebote del giro de fuego a 8,5 me deja encadenar pinball ardiente por media pantalla. Subir de B+ a A costó, pero se nota: presión sin ser injusta.'},
+ {u:'blaze_quemada', side:'sup', ts:4, badge:'main Blaze · 120 h', lean:'neutral', tag:'bug', up:64, dn:8, txt:'Bug visual del rebote: encaiño dos rebotes seguidos sobre el trampolín de Amelia y mi bola capó a 18 como manda la física… pero el sprite se quedó en modo «pinball» medio segundo más. Físicamente una mentira; visualmente, una obra de arte. Reportado con cariño.'},
  {u:'slime_puro', side:'exe', ts:14, badge:'main Chaos', lean:'nerf', up:54, dn:61, txt:'Su salto de fuego atraviesa mi slime como si nada. No es fair. Es FUEGO. Y sí, sé cómo suena esto.'}
-]},
-{key:'sally_canon', name:'Sally Canon', side:'sup', tier:'A+', tcls:'tA', role:'Defensa mejorada · Segunda vida', mod:true, comments:[
- {u:'defensa_solida', side:'sup', ts:8, badge:'main Sally Canon', lean:'nerf', up:84, dn:26, txt:'5 segundos de intocable tras perder el escudo la convirtieron en la segunda vida más barata del juego. Contra ella tienes que ganar DOS veces y con margen. Lo digo jugándola: a veces ni yo me lo creo.'},
- {u:'moderador_de_discord', side:'neu', ts:20, badge:'espectador', lean:'neutral', up:76, dn:18, txt:'A+ porque su poder es reactivo: si el escudo la pilla en frío, muere como todas. Está bien donde está. El problema es el suelo, no la muñeca.'}
+], live:[
+ {u:'blaze_quemada', side:'sup', tag:'bug', txt:'Rebote + trampolín de Amelia: la velocidad capa a 18 pero las partículas de fuego siguen chispeando como si no hubiera tope. El motor dice no y el sprite dice sí.'},
+ {u:'slime_puro', side:'exe', tag:'op', txt:'El salto de fuego atraviesa mi slime y el eco de Amelia ni me huele. Los dos sentidos del juego me ignoran. El agua lo pasa fatal en este parche.'},
+ {u:'qa_del_lobby', side:'neu', tag:'bug', txt:'Bug estético del giro: las brasas se dibujan UN frame después del aterrizaje. Parece que quemo el suelo al irme. Bueno… en realidad mola. Lo dejo pasar, que conste en acta.'}
 ]},
 {key:'cream', name:'Cream', side:'sup', tier:'A', tcls:'tA', role:'Soporte de curación · Evacuación', mod:false, comments:[
+ {u:'flor_de_cream', side:'sup', ts:3, badge:'soporte de equipo · tester casual', lean:'neutral', tag:'bug', up:102, dn:14, txt:'BUG confirmado: con lag alto, el anillo de curación flota UN segundo en el aire antes de caer (la gravedad llega tarde, pero llega). Lo gordo fue el otro día: nos curó DESPUÉS de perder la partida. La medicina más amarga del mundo. Repro: ping 120+, soltar anillo en pendiente.'},
  {u:'flor_de_cream', side:'sup', ts:11, badge:'soporte de equipo', lean:'buff', up:101, dn:24, txt:'Farmacia abierta cada 30 segundos: mi equipo se cura un tercio más que antes. A y ni una queja: los anillos caen donde los pisas, no donde QUISIERAS que cayeran. Curar bien también es habilidad.'},
  {u:'exeller_clones', side:'exe', ts:27, badge:'main Exeller', lean:'nerf', up:92, dn:40, txt:'Sus anillos de curación más el goteo del Sol de Amy Canon: equipo imposible de desangrar. Alguien que lea la economía del juego, por favor, antes de que curemos al EXE por aburrimiento.'}
+], live:[
+ {u:'flor_de_cream', side:'sup', tag:'bug', txt:'El anillo de curación sobre pendiente rueda 3 px antes de detenerse. ¿Feature? ¿Física? ¿Destino? Reportado con respeto y con flor.'},
+ {u:'exeller_clones', side:'exe', tag:'op', txt:'La economía de este juego ya no es economía: es banca central. Cream cura, el Sol gotea anillos… y yo con mis clones huerfanos. Piensen en los clones.'},
+ {u:'qa_del_lobby', side:'neu', tag:'bug', txt:'Repro del anillo flotante: solo pasa al soltarlo JUSTO al aterrizar. El frame de contacto pelea con el spawn del anillo. Un frame. Los peores bugs caben en un frame.'}
 ]},
 {key:'metal', name:'Metal Sonic', side:'sup', tier:'A', tcls:'tA', role:'Velocista defensivo · Sostenido', mod:true, comments:[
+ {u:'metalero_sonic', side:'sup', ts:5, badge:'main Metal · 300 h · tester', lean:'neutral', tag:'bug', up:131, dn:11, txt:'Bug divertido: Overdrive activado JUSTO al pisar el trampolín de Amelia suma la velocidad de la bola al impulso del resorte y salto tres pantallas de alto. ¿Bug o coherencia física? En el lobby ya lo llamamos «el cohete» y lo reportamos con vídeo para que no lo arreglen pronto.'},
  {u:'metalero_sonic', side:'sup', ts:13, badge:'main Metal · 300 h', lean:'buff', up:119, dn:26, txt:'Overdrive a 28 s y chispas a 21: dejé de ser «el velocista que se apaga a los diez segundos». Con la reparación del Genio encima, aguanto intercambios que antes perdía sí o sí. A con orgullo.'},
  {u:'metalamy_real', side:'exe', ts:29, badge:'main Metal Amy', lean:'neutral', up:67, dn:29, txt:'Mi contraparte superviviente por fin pelea como yo. Irónico: la que tiene que tener miedo SOY YO… hasta que se le acaban los anillos. Siempre se le acaban.'}
+], live:[
+ {u:'metalero_sonic', side:'sup', tag:'bug', txt:'Las chispas a 21 s: si las activo pegado a un muro, la primera chispa se dibuja DENTRO del muro. El muro no se quema. Reportado dos veces, con dibujo incluido.'},
+ {u:'metalamy_real', side:'exe', tag:'op', txt:'Mi contraparte cada vez pelea mejor. Orgullo de familia con puños de lata. La rivalidad Metal contra Metal Amy es lo mejor de este parche emocional.'},
+ {u:'qa_del_lobby', side:'neu', tag:'bug', txt:'Repro del cohorte… del cohete: Overdrive + trampolín dentro del mismo frame. Dos velocidades, un salto. La física dice que no, el juego dice que sí, el vídeo dice que sí también.'}
 ]},
 {key:'tails', name:'Tails', side:'sup', tier:'B', tcls:'tB', role:'Movilidad aérea · Puntería', mod:false, comments:[
+ {u:'el_que_siempre_muere', side:'sup', ts:2, badge:'superviviente · casual · testea su mala suerte', lean:'neutral', tag:'bug', up:137, dn:17, txt:'BUG de hitbox: en la torre, la cola de Tails sobresale 2 frames del borde de la plataforma al aterrizar. Me dispararon «al aire»… y el aire era yo. Repro: torre, aterrizando en el borde, mira abajo. Casual de nacimiento, víctima por profesión.'},
  {u:'laser_de_tails', side:'sup', ts:16, badge:'main Tails', lean:'neutral', up:64, dn:18, txt:'El láser a 23 s sigue siendo eterno, pero con el vuelo y el daño de repuesto me conformo. B está bien: ni flojo ni gratis.'},
  {u:'el_que_siempre_muere', side:'sup', ts:34, badge:'superviviente · casual', lean:'buff', up:140, dn:22, txt:'Mi primera caída es mortal y el lobby entero lo sabe: el EXE me caza primero SIEMPRE. Le pido al dev una pasiva de «feo», solo para que me elijan a otro. Una. Vez.'},
  {u:'chaos_lake', side:'exe', ts:48, badge:'main Chaos', lean:'neutral', up:58, dn:61, txt:'A Tails lo cazo con lástima. Ni el vuelo me detiene con el slime activado. Buen niño. Peor suerte.'}
+], live:[
+ {u:'el_que_siempre_muere', side:'sup', tag:'bug', txt:'Confirmo lo de la cola en el borde: son DOS frames, no uno. Hice la prueba 40 veces. Mi familia está orgullosa. Y preocupada.'},
+ {u:'laser_de_tails', side:'sup', tag:'op', txt:'Láser a 23 s y sin quejas: he adoptado la filosofía del láser paciente. Disparo poco, acierto menos, sobrevivo por milagro. B con honores.'},
+ {u:'chaos_lake', side:'exe', tag:'op', txt:'Sigo cazando a Tails con lástima, pero con el vuelo me hace correr un 15 % más. El niño creció. Crecer también es ganarse un poco de respeto.'}
 ]},
 {key:'sally', name:'Sally', side:'sup', tier:'B+', tcls:'tB', role:'Defensa · Utilidad clásica', mod:false, comments:[
+ {u:'sally_slide_pro', side:'sup', ts:4, badge:'main Sally · 160 h · mide frames', lean:'neutral', tag:'bug', up:111, dn:13, txt:'Bug de precisión: si corto el slide con el ataque en el frame justo, los i-frames me duran TRES frames extra. Frame-perfect, casi imposible de hacer a propósito. Casi. (Lo estoy practicando. Lo comento por transparencia y porque quiero que lo arreglen antes de que me salga bien.)'},
  {u:'sally_slide_pro', side:'sup', ts:10, badge:'main Sally · 160 h', lean:'buff', up:132, dn:27, txt:'I-frames durante TODO el slide me dejó armando jugadas que ni yo me creía. B+ se me queda corta, pero entiendo el miedo a subir a la ninja: el día que la entiendas, la partida se vuelve tuya.'},
  {u:'chaos_lake', side:'exe', ts:18, badge:'main Chaos', lean:'nerf', up:118, dn:33, txt:'Mi agarre atravesando su deslizamiento sin tocarla fue el momento más humillante de mi carrera como slime. Hay clips. No pienso compartirlos.'}
+], live:[
+ {u:'sally_slide_pro', side:'sup', tag:'bug', txt:'Repro del slide en pendiente de 45°: la animación se desliza 4 px más de lo que dice el hitbox. En llano, perfecto. En escaleras, mentira piadosa.'},
+ {u:'chaos_lake', side:'exe', tag:'op', txt:'Su slide atravesó mi agarre OTRA VEZ. Sigo sin compartir los clips. La dignidad es lo último que pierde un lago.'},
+ {u:'qa_del_lobby', side:'neu', tag:'bug', txt:'Dato del medidor: el slide perfecto dura 21 frames y el input de cancelación tiene ventana de 3. Lo mido con cámara lenta. Necesito vacaciones.'}
 ]},
 {key:'knux', name:'Knuckles', side:'sup', tier:'B', tcls:'tB', role:'Movilidad horizontal', mod:true, comments:[
- {u:'knux_nation', side:'sup', ts:15, badge:'main Knuckles · el puño', lean:'buff', up:118, dn:20, txt:'Golpe a 14,75 y planeo a 12: por fin compite en cadencia. Que nos tengan en C+ era un insulto a los puños. B con dignidad y subiendo.'},
+ {u:'knux_nation', side:'sup', ts:5, badge:'main Knuckles · el puño · reporta muros', lean:'neutral', tag:'bug', up:98, dn:9, txt:'Bug cariñoso: si el planeo termina JUSTO al agarrarme a un muro, me quedo «colgado» 2 frames sin poder saltar. El muro me abraza y me suelta tarde. Repro: planeo de 12 s agotándose contra pared alta. Duele poco, ocurre poco, se reporta igual.'},
+ {u:'knux_nation', side:'sup', ts:15, badge:'main Knuckles · el puño', lean:'buff', up:118, dn:20, txt:'Golpe a 14,75 y planeo a 12: por fin compite en cadencia. Que nos tuvieran en C+ era un insulto a los puños. B con dignidad y subiendo.'},
  {u:'admin_del_server', side:'neu', ts:36, badge:'administra tres servidores', lean:'neutral', up:90, dn:31, txt:'Knuckles es el termómetro del balance: cuando él sube de tier, es que al meta se le fueron las manos a los EXE. Ahora está en B. Saquen sus conclusiones.'}
+], live:[
+ {u:'knux_nation', side:'sup', tag:'bug', txt:'El «abrazo del muro» vuelve a pasar en el templo: 2 frames colgado tras el planeo. Es tan corto que el juego casi pide perdón.'},
+ {u:'admin_del_server', side:'neu', tag:'op', txt:'Dato de mis tres servidores: Knuckles es el personaje con MENOS reportes de bugs del plantel. El puño compila limpio. Respeto puro.'},
+ {u:'exetior_golpe', side:'exe', tag:'bug', txt:'Golpe de Knuckles contra mi bola aérea: ganó la bola, pero su sprite hizo el gesto de victoria 1 frame. El frame más humillante de mi carrera.'}
 ]},
 {key:'amy', name:'Amy', side:'sup', tier:'B', tcls:'tB', role:'Cuerpo a cuerpo', mod:false, comments:[
+ {u:'rosa_martillo', side:'sup', ts:3, badge:'también main de la original · oído fino', lean:'neutral', tag:'bug', up:84, dn:7, txt:'Bug de latencia con ping 100+: el GOLPE del martillo suena ANTES que el frame del golpe. Golpe fantasma auditivo: esquivo el sonido, me golpea el frame. Mi oído es mejor jugador que yo y lo sabe. Repro: martillo contra EXE con ping alto, auriculares puestos.'},
  {u:'rosa_martillo', side:'sup', ts:21, badge:'también main de la original', lean:'neutral', up:73, dn:16, txt:'La Amy original con el martillo a 15 s sigue siendo el personaje más honesto del juego: o te pego o me pegan. B justo y merecido.'},
  {u:'exe_original_2011', side:'exe', ts:33, badge:'main EXE', lean:'neutral', up:65, dn:21, txt:'Contra Amy es un duelo de nervios. Su martillo demonizado a 5 segundos me ha roto rachas enteras. Respétensla, aunque use un martillo.'}
+], live:[
+ {u:'rosa_martillo', side:'sup', tag:'bug', txt:'El martillo sobre el trampolín de Amelia NO se amplifica: el resorte rechaza el golpe y te lanza «limpio». Interacción ausente, no rota. Lo reporto por completitud del universo.'},
+ {u:'exe_original_2011', side:'exe', tag:'op', txt:'La Amy demonizada con martillo a 5 s me rompió una racha de 8 partidas. Respeten el martillo. Témanle al martillo.'},
+ {u:'qa_del_lobby', side:'neu', tag:'bug', txt:'Confirmado el golpe fantasma auditivo: el sonido viaja ANTES que el frame con ping alto. La física se ríe de la luz. Reportado con auriculares.'}
 ]},
-{key:'egg', name:'Eggman', side:'sup', tier:'B', tcls:'tB', role:'Soporte de información', mod:false, comments:[
+{key:'egg', name:'Eggman', side:'sup', tier:'B', tcls:'tB', role:'Soporte de información', mod:false, hot:true, comments:[
  {u:'doctor_gloton', side:'sup', ts:1, badge:'main Eggman · 200 h', lean:'buff', up:173, dn:29, txt:'El Genio Malvado convirtió mis anillos en piezas de control de mapa y NADIE me lo agradece. ¿Saben lo que es dorar la trampa de una Amelia mientras el EXE la busca a ciegas? Arte. Y desde la v4.4 siembro el sensor DESDE EL MATORRAL: el doctor ya no camina, administra.', reply:{u:'exe_main_2011', side:'exe', ts:1, badge:'main EXE · desde la v1', lean:'nerf', up:64, dn:15, txt:'«Administra», dice. Siembra radar en los arbustos y encima lo narra. El dev le dio el mapa al señor de los 9 de velocidad y a mí me dio una factura.'}},
+ {u:'doctor_gloton', side:'sup', ts:2, badge:'main Eggman · 200 h · ojo clínico', lean:'neutral', tag:'bug', up:88, dn:6, txt:'Bug estético del sensor (v4.4): al colocarlo justo en el BORDE del matorral, el icono del HUD parpadea un frame «colocado» y otro «recargando». Pelea interna entre el combo ↓+C y la validación del servidor. Funciona, pero parpadea. Y me guiña. Repro: borde exacto del matorral, tres veces de cada diez.'},
  {u:'metalero_sonic', side:'sup', ts:9, badge:'main Metal · 300 h', lean:'buff', up:84, dn:15, txt:'La reparación (+10 cada 8 s junto al Dr.) me mantiene en peleas que antes perdía sí o sí. Dúo Eggman + Metal Sonic: recomendadísimo, casi familia.'},
- {u:'vanilla_mama', side:'sup', ts:24, badge:'main Vanilla', lean:'neutral', up:71, dn:26, txt:'Corre a 9 y TODOS los EXE lo alcanzan en línea recta… y aun así decide partidas con un escudo y una flecha roja. B es el precio de las piernas, no del cerebro.'}
-]},
-{key:'vanilla', name:'Vanilla', side:'sup', tier:'S', tcls:'tS', role:'Soporte total · Madre del grupo', mod:true, comments:[
- {u:'vanilla_mama', side:'sup', ts:5, badge:'main Vanilla · madre del lobby', lean:'buff', up:210, dn:38, txt:'S merecidísimo: el juego trata de NO morir y morir con una Vanilla cerca es casi imposible. Reanimas, curas, y Chocola vigila. El problema es que todos la conocen: si el EXE tiene dos neuronas, la caza primero. No importa: la rezada de revive más rápida del lobby se respeta.'},
- {u:'exetior_golpe', side:'exe', ts:19, badge:'main Exetior', lean:'nerf', up:145, dn:52, txt:'La cola de reanimación de Vanilla me ha hecho perder partidas que tenía GANADAS. A los exes: prohibido pelearle en la cara, esa zona es desmilitarizada. Y sí, es frustrante y lo seguiré diciendo.'}
+ {u:'vanilla_mama', side:'sup', ts:24, badge:'superviviente · juega con el staff de vez en cuando', lean:'neutral', up:71, dn:26, txt:'Corre a 9 y TODOS los EXE lo alcanzan en línea recta… y aun así decide partidas con un escudo y una flecha roja. B es el precio de las piernas, no del cerebro.'}
+], live:[
+ {u:'doctor_gloton', side:'sup', tag:'bug', txt:'Reparación: el +10 llega UN frame tarde si el receptor está en el aire. Cura «aterrizada». Todo es local, como el propio stun, pero un frame es un frame: reportado.'},
+ {u:'exe_main_2011', side:'exe', tag:'op', txt:'El doctor siembra radar en los matorrales, Amelia tiene eco a 700 px y la moderadora vigila con Vanilla. ¿Yo qué tengo? Una factura de velocidad de 9.'},
+ {u:'metalero_sonic', side:'sup', tag:'bug', txt:'Bug del escudo a 15 s: si lo activo en el frame exacto del golpe, el sonido del golpe suena igual. El escudo bloquea el daño pero no la vergüenza.'}
 ]},
 {key:'exe', name:'Sonic.exe', side:'exe', tier:'A+', tcls:'tA', role:'Depredador clásico', mod:false, comments:[
+ {u:'cazador_de_anillos', side:'sup', ts:2, badge:'superviviente · nervioso · filósofo del parche', lean:'nerf', up:118, dn:31, txt:'El eco le dice a Amelia dónde está la salida a 700 px. ¿A mí quién me dice dónde está ELLA? Nadie: ese es el parche. La asimetría informativa de este juego es un crimen del que soy víctima, testigo y parte.'},
  {u:'el_asesino_original', side:'exe', ts:3, badge:'main EXE · el primero', lean:'buff', up:128, dn:42, txt:'Invisibilidad con recarga a 14 s: el terror clásico, siempre presente. A+ porque asusta, no porque mate solo. Seguiría jugándolo aunque me bajaran a C, pero no se lo digan al dev.'},
- {u:'cazador_de_anillos', side:'sup', ts:17, badge:'superviviente · nervioso', lean:'nerf', up:103, dn:35, txt:'El problema del EXE original no es él: son las trampas de Amelia. Pisas una EN invisible y sales del armario con velo rojo y 10 segundos de alucinaciones. ¿Le pidamos al menos luces de emergencia?'}
+ {u:'el_asesino_original', side:'exe', ts:1, badge:'main EXE · el primero · estoico', lean:'neutral', tag:'bug', up:97, dn:9, txt:'BUG existencial: si activo la invisibilidad JUSTO al pisar una trampa de Amelia, el STUN me saca del invisible… pero el icono del HUD se queda ENCENDIDO. Soy visible e «invisible» a la vez. Devastador. Repro: invisible + pisar trampa en el mismo frame (sí, lo logré a propósito, sí me dolió).'},
+ {u:'cazador_de_anillos', side:'sup', ts:17, badge:'superviviente · nervioso', lean:'nerf', up:103, dn:35, txt:'El problema del EXE original no es él: son las trampas de Amelia. Pisas una EN invisible y sales del armario con velo rojo y 10 segundos de alucinaciones. ¿Le pedimos al menos luces de emergencia?'}
+], live:[
+ {u:'el_asesino_original', side:'exe', tag:'bug', txt:'El icono fantasma del invisible volvió a pasar: trampa + invisible en el mismo frame. HUD mintiendo con total tranquilidad. Ya está en el reporte número 4.'},
+ {u:'cazador_de_anillos', side:'sup', tag:'op', txt:'Pensándolo bien: el eco de Amelia a 700 px es lo más parecido a un «detector de salidas» que tendrá este juego. Todavía mola sufrirlo. Todavía.'},
+ {u:'qa_del_lobby', side:'neu', tag:'bug', txt:'Repro raro: al salir del slime de Chaos JUSTO invisible, el contorno se dibuja 1 frame. Un frame. Lo vi. Nadie me cree. Está grabado.'}
 ]},
 {key:'chaos', name:'Chaos', side:'exe', tier:'S', tcls:'tS', role:'Cazador invisible · Velocidad', mod:true, hot:true, comments:[
  {u:'slime_puro', side:'exe', ts:2, badge:'main Chaos · el lago', lean:'buff', up:168, dn:71, txt:'20 s de slime con recarga de 14: el lago creció. S natural: si no revisas los pasillos, te atrapo en cualquier esquina, y en slime corro más que nadie. Que hablen de Amelia todo lo que quieran: la tabla la tengo yo.'},
+ {u:'slime_puro', side:'exe', ts:3, badge:'main Chaos · el lago · con regla', lean:'neutral', tag:'bug', up:106, dn:14, txt:'BUG de física: activar el slime en pendiente me acelera CUESTA ABAJO durante 2 frames extra. En el lago no se nota; en las escaleras del templo soy un tren de carga sin frenos. Repro: templo, escalera, slime al inicio de la bajada. Reportado con cariño de lago.'},
  {u:'escondite_profesional', side:'sup', ts:6, badge:'superviviente · 400 h', lean:'nerf', up:96, dn:58, txt:'Chaos en S y ni medio nerf. Uno ya no puede NI esconderse tranquilo: el slime ve todo y encima corre un 20 % más. ¿Y mi refugio? Ah, cierto: ahora tiene una trampa de Amelia dentro. Genial. Todo genial.'},
  {u:'lore_master99', side:'sup', ts:23, badge:'wiki entera, otra vez', lean:'neutral', up:87, dn:30, txt:'Recordatorio de que en el original Chaos era agua en calma y aquí es un tren de carga invisible. La fidelidad histórica manda, pero el susto también.'}
+], live:[
+ {u:'slime_puro', side:'exe', tag:'bug', txt:'Confirmo la aceleración cuesta abajo: 2 frames de ventaja extra. En las escaleras del templo soy un tren. En el lago, justicia. Los reportes siguen abiertos.'},
+ {u:'escondite_profesional', side:'sup', tag:'op', txt:'Entre el slime que lo ve todo y el eco que le señala la salida a Amelia, mi matorral favorito es ahora un centro comercial un sábado. Todo el mundo pasa por él.'},
+ {u:'lore_master99', side:'sup', tag:'bug', txt:'Detalle invisible para el 99 %: el slime se dibuja por ENCIMA del eco de Amelia un frame de cada 60. Z-fighting del alma. Hola, 1 % restante.'}
 ]},
 {key:'exetior', name:'Exetior', side:'exe', tier:'B+', tcls:'tB', role:'Bruto aéreo · Reuniones forzosas', mod:false, comments:[
+ {u:'exetior_golpe', side:'exe', ts:4, badge:'main Exetior · convoca y padece', lean:'neutral', tag:'bug', up:92, dn:10, txt:'BUG coreográfico: el anillo negro arrastra a los esbirros hacia la reunión… y si un esbirro pisa la trampa del Eclipse justo antes, llega CIEGO. Una reunión de ciegos. Tan hermoso de ver como confuso de jugar. Repro: anillo negro + esbirro pisando trampa en el segundo previo. Reportado con una sonrisa.'},
  {u:'exetior_golpe', side:'exe', ts:12, badge:'main Exetior', lean:'neutral', up:87, dn:30, txt:'El anillo negro a 30 s me deja reunir al equipo cuando QUIERO. B+ solo porque el parry corregido me cerró la puerta del spam: ahora hay que pensar antes de lanzar bolas. Pensar. En este juego. Con este ping.'},
  {u:'parry_king', side:'sup', ts:25, badge:'main Sonic · 150 h', lean:'neutral', up:79, dn:41, txt:'Sus bolas por proyectil más mi parry: pinball con su cara. B+ generoso después del fix, pero el anillo negro sigue siendo de las mejores herramientas del bando EXE.'}
+], live:[
+ {u:'exetior_golpe', side:'exe', tag:'bug', txt:'La reunión de ciegos vuelve: esbirro + Eclipse + anillo negro en cadena. Llega al círculo a tientas. Es teatro. Es bugs. Es arte.'},
+ {u:'parry_king', side:'sup', tag:'op', txt:'El fix del parry me dio el mini-juego favorito del parche: devolverle las bolas a Exetior. Él lanza, yo devuelvo, el chat grita. Deporte.'},
+ {u:'qa_del_lobby', side:'neu', tag:'bug', txt:'Repro de precisión: bola lanzada a 60 f/s exactos sobre pendiente se desvía 1 px del retículo. El único bug que exige cronómetro para verse. Mis ojos ya lo ven solos.'}
 ]},
 {key:'exeller', name:'Exeller', side:'exe', tier:'A+', tcls:'tA', role:'Control de mapa · Clones', mod:false, comments:[
  {u:'exeller_clones', side:'exe', ts:4, badge:'main Exeller · el ejército', lean:'nerf', up:154, dn:49, txt:'Mis clones y esbirros son un ejército… contra enemigos que VEN. Amelia les pintó el mapa de trampas y el Eclipse los deja ciegos 6 segundos. SEIS. Un ejército ciego no es un ejército, es un desfile. Pido nerf al Eclipse y lo pido con lágrimas.'},
+ {u:'exeller_clones', side:'exe', ts:5, badge:'main Exeller · el ejército · con lupa', lean:'neutral', tag:'bug', up:101, dn:8, txt:'El bug más pequeño del juego, reportado con orgullo: la silueta de calor de Amelia dibuja a mi clone UN frame después de morir (la referencia del aura aguanta ese frame de más). Un frame: suficiente para que su radar «parpadee» en mi contra. Respeto infinito a quien lo programó y a quien lo sufre.'},
  {u:'lore_master99', side:'sup', ts:14, badge:'defensor del balance', lean:'neutral', up:88, dn:27, txt:'A+ está bien: presión de mapa pura. Aprende a no mandar a tus bebés a pisar trampas y vuelve a ganarme, anda.'}
+], live:[
+ {u:'exeller_clones', side:'exe', tag:'bug', txt:'Confirmado el frame fantasma del clone en la auravisión: muere y su silueta arde 1 frame más. Es el parpadeo más caro del juego. En sentido emocional.'},
+ {u:'lore_master99', side:'sup', tag:'op', txt:'A+ y sigue quejándose. Exeller: clones, anillo negro y velocidad de EXE. La definición de «presión de mapa» con síndrome de impostor.'},
+ {u:'senor_anillos', side:'sup', tag:'bug', txt:'BUG visual: tres clones + Eclipse dibujan el velo oscuro EN CADENA con 1 frame de diferencia entre cada uno. Parece coreografía. Lo era. Se filtró el vídeo.'}
 ]},
 {key:'metalamy', name:'Metal Amy', side:'exe', tier:'A', tcls:'tA', role:'Asesino a distancia · Fuego continuo', mod:true, hot:true, comments:[
  {u:'metalamy_real', side:'exe', ts:7, badge:'main Metal Amy · la asesina', lean:'buff', up:176, dn:82, txt:'Bala a 3 s y velocidad 13: MÁS RÁPIDA que el EXE base. El dev me construyó para cazar cazadores y se nota en cada esquina. A y subiendo. Los que se quejan: la distancia es mi arma, acérquense y verán.'},
- {u:'senor_anillos', side:'sup', ts:8, badge:'superviviente · recolector', lean:'nerf', up:149, dn:57, txt:'20 de daño casi continuo a distancia es un error de tipeo, seguro. Nadie firma eso en serio y menos a 3 segundos de recarga. Nerf. NERF con mayúscula y subrayado.'},
- {u:'moderador_de_discord', side:'neu', ts:22, badge:'espectador · pacificador', lean:'neutral', up:110, dn:45, txt:'La contramedida existe (parry de Sonic, escudo de Eggman, slide de Sally), pero exige jugar coordinado. ¿Es OP o es que su lobby no coordina? El eterno debate del chat, del que salgo ahora mismo.'}
+ {u:'senor_anillos', side:'sup', ts:8, badge:'superviviente · recolector', lean:'nerf', up:149, dn:57, txt:'20 de daño casi continuo a distancia es un error de tipeo, seguro. Nadie firma eso en serio y menos a 3 segundos de recarga. Nerf. NERF con mayúsculas y subrayado.'},
+ {u:'moderador_de_discord', side:'neu', ts:22, badge:'espectador · pacificador', lean:'neutral', up:110, dn:45, txt:'La contramedida existe (parry de Sonic, escudo de Eggman, slide de Sally), pero exige jugar coordinado. ¿Es OP o es que su lobby no coordina? El eterno debate del chat, del que salgo ahora mismo.'},
+ {u:'metalamy_real', side:'exe', ts:3, badge:'main Metal Amy · honesta a su manera', lean:'neutral', tag:'bug', up:118, dn:13, txt:'BUG de mi propia arma, reportado por MÍ: con ping alto, la PRIMERA bala tras recargar sale DOBLE — una visual, una real. Solo la real hace daño; la visual solo asusta. Ambas duelen en la moral. Repro: recargar completa + disparar con ping 100+. Con la primera va; las demás, limpias.'}
+], live:[
+ {u:'metalamy_real', side:'exe', tag:'bug', txt:'La bala doble es tan consistente que casi es documentación: primera bala tras recarga + ping alto = dos balas, un daño. Lo reporto desde la v1 del bug y la v4 del cariño.'},
+ {u:'senor_anillos', side:'sup', tag:'op', txt:'Entre la bala a 3 s y el eco de Amelia a 700 px, la información de este juego va en un solo sentido. Y no es el mío. Lo digo con datos y con miedo.'},
+ {u:'moderador_de_discord', side:'neu', tag:'bug', txt:'Verifiqué la bala doble desde la barricada: solo la primera tras recargar. Frame de reactivación. La consistencia del bug es, en sí misma, admirable.'}
+]}
+];
+
+/* =====================================================================
+   ZONA DE MODERACIÓN · uso exclusivo del staff (fuera del debate)
+   ===================================================================== */
+const MODS=[
+{key:'vanilla', name:'Vanilla', tier:'S', tcls:'tS', role:'Soporte total · Madre del grupo', use:'Vigilancia de partidas públicas · contención y reanimación del staff', notes:[
+ {u:'AmyRose21', role:'ADMINISTRACIÓN', txt:'Reservada para moderación: reanima, cura y vigila las partidas públicas cuando el lobby se descontrola. Su ratio de reanimación es administración, no meta. Fuera del debate por decreto (y porque si entrara al debate común, no se hablararía de otra cosa).'},
+ {u:'moderador_de_discord', role:'STAFF · ESPECTADOR', txt:'Confirmado desde la barricada: cuando Vanilla entra al servidor, el chat se comporta mejor. Efecto no documentado, 100 % real. La madre del grupo es una herramienta de paz.'}
+]},
+{key:'amy_canon', name:'Amy Canon', tier:'S', tcls:'tS', role:'Todo terreno · Sin límite · Economía', use:'Moderación de mapa completo: el Sol y su sensor incondicional como herramientas de administración', notes:[
+ {u:'AmyRose21', role:'ADMINISTRACIÓN', txt:'Uso exclusivo de moderación. El Sol (goteo de anillos) y su sensor incondicional —la flecha SIEMPRE encendida, a cualquier distancia— me dejan vigilar el mapa entero sin tocar el meta. El eco de Amelia (v4.5) es exactamente su versión pública y limitada: 700 px, desvanecida. La jerarquía se respeta.'},
+ {u:'qa_del_lobby', role:'TESTER', txt:'La comparé en el mismo mapa: la flecha de la administración no tiene radio; la de Amelia, 700 px exactos. La física de la moderación es literal. Diez puntos de transparencia al parche.'}
+]},
+{key:'sally_canon', name:'Sally Canon', tier:'A+', tcls:'tA', role:'Defensa mejorada · Segunda vida', use:'Contención de partidas caóticas: la segunda vida como cinturón de seguridad del staff', notes:[
+ {u:'AmyRose21', role:'ADMINISTRACIÓN', txt:'Su segunda vida es demasiada herramienta para el meta común: en mis manos es un cinturón de seguridad para partidas públicas que se tuercen. El lobby juega con la Sally clásica, que ya tiene su slide con i-frames y su dignidad.'},
+ {u:'admin_del_server', role:'STAFF · 3 SERVIDORES', txt:'Cada vez que Sally Canon entra a vigilar, los reportes bajan a la mitad. Coincidencia repetida 40 veces. Estadística aplicada al cuidado. El anillo interior de la defensa.'}
 ]}
 ];
 
@@ -382,57 +632,70 @@ const CHARS=[
    TICKER
    ===================================================================== */
 const TICKS=[
- ['Amelia a S, no me cambien de opinión','escondite_pro'],
- ['El 0 s del martillo de Amy Canon fue un error de tipeo, seguro','senor_anillos'],
- ['Chaos con 20 s de slime: el lago creció y no avisa','slime_puro'],
- ['Nadie habla de Vanilla y es la S más dura del plantel','vanilla_mama'],
- ['Mis clones NO nacieron ciegos, la trampa de Amelia los CEGÓ','exeller_clones'],
- ['El sensor del doctor ahora se siembra en MATORRALES. En matorrales.','exe_main_2011'],
+ ['El eco a 700 px: la salida no se le muestra, le RESUENA','lore_master99'],
+ ['Tercera mejora de Amelia en un parche. TERCERA','escondite_pro'],
+ ['La flecha del eco atravesó mi slime. Literalmente. Soy humo','slime_puro'],
+ ['instance_nearest elige por distancia, no por estrategia','qa_del_lobby'],
+ ['El sensor del doctor ahora se siembra en MATORRALES. En matorrales','exe_main_2011'],
+ ['Mis clones NO nacieron ciegos: la trampa de Amelia los CEGÓ','exeller_clones'],
  ['El fix del parry fue lo más justo que hizo la v3.0','parry_king'],
- ['La bala de Metal Amy a 3 s. TRES. SEGUNDOS.','senor_anillos'],
+ ['La bala de Metal Amy a 3 s. TRES. SEGUNDOS','senor_anillos'],
+ ['Vanilla ya no se discute: es de la administración. El lobby respeta y teme','lore_master99'],
  ['Revisé un matorral y perdí la partida. 10/10 volvería a hacerlo','slime_puro'],
- ['El EXE que revisa escondites ciega 4 segundos es lore, no bug','lore_master99']
+ ['El EXE que revisa escondites ciega 4 segundos es lore, no bug','lore_master99'],
+ ['Chaos con 20 s de slime: el lago creció y no avisa','slime_puro']
 ];
 (function(){
   const t=document.getElementById('ticker');
   const one=TICKS.map(q=>'<span class="sep">◆</span><span class="q">«'+q[0]+'»</span> <b>— '+q[1]+'</b>').join('');
-  t.innerHTML=one+one; /* duplicado para el bucle infinito */
+  t.innerHTML=one+one;
 })();
 
 /* =====================================================================
-   ESTADO + VOTOS (recuerdos en localStorage)
+   VOTOS (localStorage) — mismos botones, misma cirugía sin refrescos
    ===================================================================== */
-const LS='tlcom_votes_v1';
+const LS='tlcom_votes_v2';
 let votes={};
-try{ votes=JSON.parse(localStorage.getItem(LS)||'{}')||{}; }catch(e){ votes={}; }
+try{ votes=JSON.parse(localStorage.getItem(LS)||'{}'); }catch(e){ votes={}; }
 function vkey(k,i){ return k+':'+i; }
 function effVotes(k,i,lean){
-  const ch=CHARS.find(c=>c.key===k); const c=ch.comments[i];
+  const c=CHARS.find(ch=>ch.key===k).comments[i];
   const v=votes[vkey(k,i)];
-  return [c.up+(v==='up'?1:0), c.dn+(v==='dn'?1:0), v||null];
+  let up=c.up, dn=c.dn;
+  if(v==='up') up+=1;
+  if(v==='dn') dn+=1;
+  return [up,dn,v||null];
 }
 function saveVotes(){ try{ localStorage.setItem(LS, JSON.stringify(votes)); }catch(e){} }
-
-/* medidor: -100 (buff) … +100 (nerf) */
 function meterOf(ch){
-  let bal=0, tot=0;
+  let tot=0, w=0;
   ch.comments.forEach((c,i)=>{
     const [up,dn]=effVotes(ch.key,i);
-    const w=up-dn; tot+=up+dn;
-    bal+=(c.lean==='nerf')?w:(c.lean==='buff')?-w:0;
+    const dir=(c.lean==='nerf')?1:(c.lean==='buff'?-1:0);
+    tot+=up+dn; w+=(up-dn)*dir;
   });
-  if(tot<=0) return 0;
-  return Math.max(-100, Math.min(100, Math.round(bal/tot*100)));
+  return tot? Math.round(w/tot*100) : 0;
 }
 
 /* =====================================================================
    RENDER
    ===================================================================== */
-let sideFilter='todos', sortBy='top';
+let sideFilter='todos', sortBy='top', topicFilter='todos';
 let openCards=new Set();
 const fmt=n=>n.toLocaleString('es');
+function uav(u){
+  const h=[...u].reduce((a,c)=>a+c.charCodeAt(0),0)%360;
+  const ini=u.replace(/[^a-z_]/gi,'').slice(0,2).toUpperCase()||'??';
+  return '<span class="uav" style="--h:'+h+'">'+ini+'</span>';
+}
+function visibleComments(ch){
+  let arr=ch.comments.map((c,i)=>({c,i}));
+  if(topicFilter==='bugs')      arr=arr.filter(x=>x.c.tag==='bug');
+  else if(topicFilter==='ops')  arr=arr.filter(x=>!x.c.tag);
+  return arr;
+}
 function sortComments(ch){
-  const arr=ch.comments.map((c,i)=>({c,i}));
+  const arr=visibleComments(ch);
   if(sortBy==='new')      arr.sort((a,b)=>a.c.ts-b.c.ts);
   else if(sortBy==='war') arr.sort((a,b)=>{
     const A=effVotes(ch.key,a.i)[0], Ad=effVotes(ch.key,a.i)[1];
@@ -449,10 +712,11 @@ function sortComments(ch){
 function cmtHtml(ch,i,c){
   const [up,dn,my]=effVotes(ch.key,i,c.lean);
   const leanTxt=c.lean==='nerf'?'pide nerf':(c.lean==='buff'?'la defiende':'opinión');
-  const cls=c.lean==='nerf'?'nerfline':(c.lean==='buff'?'buffline':'');
+  const cls=(c.lean==='nerf'?'nerfline':(c.lean==='buff'?'buffline':''))+(c.tag==='bug'?' bug':'');
   const t=c.ts<24? 'hace '+c.ts+' h' : (c.ts<48? 'hace 1 d' : 'hace '+Math.round(c.ts/24)+' d');
   const sc=c.side==='sup'?'sup':(c.side==='exe'?'exe':'neu');
   const scTxt=c.side==='sup'?'SUPERVIVIENTE':(c.side==='exe'?'EXE':'ESPECTADOR');
+  const bug=c.tag==='bug'?'<span class="bugchip">🐛 BUG</span>':'';
   let rep='';
   if(c.reply){
     const r=c.reply;
@@ -460,7 +724,7 @@ function cmtHtml(ch,i,c){
     const rsc=r.side==='sup'?'sup':(r.side==='exe'?'exe':'neu');
     const rscTxt=r.side==='sup'?'SUPERVIVIENTE':(r.side==='exe'?'EXE':'ESPECTADOR');
     rep='<div class="reply"><div class="cmt" style="margin-bottom:0">'+
-      '<div class="cmt-head"><span class="user">@'+r.u+'</span>'+
+      '<div class="cmt-head">'+uav(r.u)+'<span class="user">@'+r.u+'</span>'+
       '<span class="sidechip '+rsc+'">'+rscTxt+'</span>'+
       '<span class="bdg">'+r.badge+'</span><span class="time">'+rt+'</span></div>'+
       '<p>'+r.txt+'</p>'+
@@ -469,8 +733,8 @@ function cmtHtml(ch,i,c){
       (r.lean==='nerf'?'pide nerf':(r.lean==='buff'?'la defiende':'opinión'))+'</span></div></div></div>';
   }
   return '<div class="cmt '+cls+'">'+
-    '<div class="cmt-head"><span class="user">@'+c.u+'</span>'+
-    '<span class="sidechip '+sc+'">'+scTxt+'</span>'+
+    '<div class="cmt-head">'+uav(c.u)+'<span class="user">'+c.u.replace(/^/,'@')+'</span>'+
+    '<span class="sidechip '+sc+'">'+scTxt+'</span>'+bug+
     '<span class="bdg">'+c.badge+'</span><span class="time">'+t+'</span></div>'+
     '<p>'+c.txt+'</p>'+
     '<div class="cmt-foot">'+
@@ -479,34 +743,65 @@ function cmtHtml(ch,i,c){
     '<span class="lean-tag '+(c.lean==='nerf'?'nerf':(c.lean==='buff'?'buff':'neutral'))+'">'+leanTxt+'</span></div>'+
     rep+'</div>';
 }
+function liveHtml(){
+  return '<div class="livefeed">'+
+    '<div class="lf-head"><span class="lfd"></span>CHAT DEL LOBBY · EN DIRECTO<span class="lf-count"></span></div>'+
+    '<div class="liveitems"></div>'+
+    '<div class="typing"><i></i><i></i><i></i><span>alguien del lobby está escribiendo…</span></div>'+
+    '</div>';
+}
 function charHtml(ch){
+  const sorted=sortComments(ch);
+  if(!sorted.length) return '';
   const m=meterOf(ch);
   const needle=50+m/2;
   const verdict=m>15? '<b>'+m+' % pide nerf</b>' : (m<-15? '<b>'+(-m)+' % pide buff</b>' : 'opinión dividida');
-  const sorted=sortComments(ch);
-  const total=ch.comments.length;
-  const shown=sorted.map((x,idx)=>({html:cmtHtml(ch,x.i,x.c),idx}))
-    .map((o,idx)=> total>2 && idx>=2 ? '<div class="hiddencmt">'+o.html+'</div>' : o.html).join('');
+  const total=sorted.length;
+  const nbugs=ch.comments.filter(c=>c.tag==='bug').length;
+  const shown=sorted.map((o,idx)=>{
+    const html=cmtHtml(ch,o.i,o.c);
+    return (total>2 && idx>=2)? '<div class="hiddencmt">'+html+'</div>' : html;
+  }).join('');
   const more= total>2 ? '<button class="morebtn" data-k="'+ch.key+'">'+(openCards.has(ch.key)?'Contraer ▴':'Ver los otros '+(total-2)+' comentarios ▾')+'</button>' : '';
-  return '<article class="char rv'+(ch.hot?' hot':'')+(openCards.has(ch.key)?' open':'')+'" data-side="'+ch.side+'">'+
-    '<div class="char-head"><img src="'+SPR[ch.key]+'" alt="">'+
-    '<div class="inf"><h3>'+ch.name+(ch.mod?' <span class="modtag">MOD</span>':'')+'</h3>'+
+  return '<article class="char rv'+(ch.hot?' hot':'')+(openCards.has(ch.key)?' open':'')+'" data-key="'+ch.key+'" data-side="'+ch.side+'">'+
+    '<div class="char-head"><div class="avwrap"><img src="'+SPR[ch.key]+'" alt=""></div>'+
+    '<div class="inf"><h3>'+ch.name+(ch.mod?' <span class="modtag">MOD</span>':'')+' <span class="livedot"><i></i>EN DIRECTO</span></h3>'+
     '<div class="role">'+ch.role+'</div></div>'+
     '<div class="tierb '+ch.tcls+'">'+ch.tier+'<small>TIER</small></div></div>'+
     '<div class="meterwrap"><div class="meterlbls"><span class="bf">piden buff</span><span class="mid">la comunidad opina</span><span class="nf">piden nerf</span></div>'+
     '<div class="meter"><span class="zone"></span><span class="needle" style="left:'+needle+'%"></span></div>'+
-    '<div class="meterverdict">'+verdict+' · '+total+' comentarios</div></div>'+
-    shown+more+'</article>';
+    '<div class="meterverdict">'+verdict+' · '+total+' comentarios'+(nbugs?' · '+nbugs+' 🐛':'')+'</div></div>'+
+    shown+more+liveHtml()+'</article>';
+}
+function modHtml(m){
+  return '<article class="modcard rv">'+
+    '<div class="char-head"><div class="avwrap"><img src="'+SPR[m.key]+'" alt=""></div>'+
+    '<div class="inf"><h3>'+m.name+' <span class="locktag">🔒 STAFF</span></h3>'+
+    '<div class="role">'+m.role+'</div>'+
+    '<div class="mnote">'+m.use+'</div></div>'+
+    '<div class="tierb '+m.tcls+'">'+m.tier+'<small>INFORMATIVO</small></div></div>'+
+    m.notes.map(n=>'<div class="staffcmt">'+
+      '<div class="cmt-head">'+uav(n.u)+'<span class="user">@'+n.u+'</span>'+
+      '<span class="sidechip neu">'+n.role+'</span></div>'+
+      '<p>'+n.txt+'</p></div>').join('')+
+    '<div class="mnote" style="margin:10px 0 0">Sin votos del lobby, sin medidor, sin debate: bitácora interna del staff.</div>'+
+    '</article>';
 }
 function render(){
   const grid=document.getElementById('grid');
   const list=CHARS.filter(c=>sideFilter==='todos'||c.side===sideFilter);
-  grid.innerHTML=list.map(charHtml).join('');
+  grid.innerHTML=list.map(charHtml).filter(Boolean).join('');
+  document.getElementById('modgrid').innerHTML=MODS.map(modHtml).join('');
+  CHARS.forEach(c=>paintLive(c.key));
   observeReveals();
-  /* contadores de cabecera */
+  updateCounts();
+}
+function updateCounts(){
   let nc=0, nv=0;
   CHARS.forEach(ch=>ch.comments.forEach((c,i)=>{ nc++; const [u,d]=effVotes(ch.key,i); nv+=u+d; }));
-  document.getElementById('bdg-counts').innerHTML='<b>'+nc+'</b> comentarios · <b>'+fmt(nv)+'</b> votos';
+  const lb=liveDropped;
+  document.getElementById('bdg-counts').innerHTML=
+    '<b>'+nc+'</b> comentarios · <b>'+fmt(nv)+'</b> votos'+(lb?' · <b>'+lb+'</b> en directo':'');
 }
 
 /* ---- votos: actualización quirúrgica (sin reconstruir la rejilla) ---- */
@@ -514,27 +809,22 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('button.vote[data-k]');
   if(!b) return;
   const k=b.dataset.k, i=+b.dataset.i, v=b.dataset.v, key=vkey(k,i);
-  if(votes[key]===v) delete votes[key]; else votes[key]=v;
+  votes[key]=(votes[key]===v)?null:v;
   saveVotes();
   const ch=CHARS.find(c=>c.key===k);
   const c=ch.comments[i];
-  const [up,dn,my]=effVotes(k,i);
-  /* actualizar los dos botones de ESTE comentario */
+  const [up,dn,my]=effVotes(k,i,c.lean);
   const foot=b.closest('.cmt-foot');
   const bu=foot.querySelector('button.vote.up'), bd=foot.querySelector('button.vote.dn');
   bu.textContent='▲ '+fmt(up); bd.textContent='▼ '+fmt(dn);
   bu.classList.toggle('on',my==='up'); bd.classList.toggle('on',my==='dn');
-  /* reponer el medidor de la tarjeta */
   const card=b.closest('article.char');
   const m=meterOf(ch);
   const needle=50+m/2;
+  card.querySelector('.needle').style.left=needle+'%';
   const verdict=m>15? '<b>'+m+' % pide nerf</b>' : (m<-15? '<b>'+(-m)+' % pide buff</b>' : 'opinión dividida');
-  card.querySelector('.meter .needle').style.left=needle+'%';
-  card.querySelector('.meterverdict').innerHTML=verdict+' · '+ch.comments.length+' comentarios';
-  /* contadores de cabecera */
-  let nc=0, nv=0;
-  CHARS.forEach(x=>x.comments.forEach((cc,j)=>{ nc++; const [u,d]=effVotes(x.key,j); nv+=u+d; }));
-  document.getElementById('bdg-counts').innerHTML='<b>'+nc+'</b> comentarios · <b>'+fmt(nv)+'</b> votos';
+  card.querySelector('.meterverdict').innerHTML=verdict;
+  updateCounts();
 });
 
 /* ---- desplegar comentarios ---- */
@@ -547,17 +837,27 @@ document.addEventListener('click',e=>{
 });
 
 /* ---- controles ---- */
-document.querySelectorAll('.controls [data-side]').forEach(b=>{
+document.querySelectorAll('nav.controls [data-side]').forEach(b=>{
   b.addEventListener('click',()=>{
     sideFilter=b.dataset.side;
-    document.querySelectorAll('.controls [data-side]').forEach(x=>x.classList.toggle('on',x===b));
+    document.querySelectorAll('nav.controls [data-side]').forEach(x=>x.classList.toggle('on',x===b));
     render();
   });
 });
-document.querySelectorAll('.controls [data-sort]').forEach(b=>{
+document.querySelectorAll('nav.controls [data-sort]').forEach(b=>{
   b.addEventListener('click',()=>{
     sortBy=b.dataset.sort;
-    document.querySelectorAll('.controls [data-sort]').forEach(x=>x.classList.toggle('on',x===b));
+    document.querySelectorAll('nav.controls [data-sort]').forEach(x=>x.classList.toggle('on',x===b));
+    render();
+  });
+});
+document.querySelectorAll('nav.controls [data-topic]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    topicFilter=b.dataset.topic;
+    document.querySelectorAll('nav.controls [data-topic]').forEach(x=>{
+      x.classList.toggle('on',x===b);
+      x.classList.toggle('bugon',x===b&&b.dataset.topic==='bugs');
+    });
     render();
   });
 });
@@ -565,24 +865,113 @@ document.getElementById('resetvotes').addEventListener('click',()=>{
   votes={}; saveVotes(); render();
 });
 
+/* =====================================================================
+   EL CHAT EN DIRECTO · el lobby no se calla
+   Cada cierto tiempo (aleatorio, ~8–15 s) alguien «escribe» en la tarjeta
+   de un personaje visible: una opinión o un 🐛 BUG con repro. Los
+   comentarios viven en liveLog[k]; paintLive repinta sin tocar el resto.
+   ===================================================================== */
+let liveOn=true, liveDropped=0;
+const liveLog={};                 /* k -> [{u,side,tag,txt,at}] */
+const liveQueue={};               /* k -> índices pendientes del pool */
+CHARS.forEach(c=>{ liveQueue[c.key]=c.live.map((_,i)=>i); });
+
+function paintLive(k){
+  const feed=document.querySelector('article.char[data-key="'+k+'"] .livefeed');
+  if(!feed) return;
+  const items=liveLog[k]||[];
+  feed.querySelector('.liveitems').innerHTML=items.length
+    ? items.map(c=>{
+        const sc=c.side==='sup'?'sup':(c.side==='exe'?'exe':'neu');
+        const scTxt=c.side==='sup'?'SUPERVIVIENTE':(c.side==='exe'?'EXE':'ESPECTADOR');
+        return '<div class="livecmt rvslide">'+
+          '<div class="cmt-head">'+uav(c.u)+'<span class="user">'+c.u.replace(/^/,'@')+'</span>'+
+          '<span class="sidechip '+sc+'">'+scTxt+'</span>'+
+          (c.tag==='bug'?'<span class="bugchip">🐛 BUG</span>':'')+
+          '<span class="time lv-time" data-at="'+c.at+'">ahora mismo</span></div>'+
+          '<p>'+c.txt+'</p></div>';
+      }).join('')
+    : '<div class="liveempty">el lobby aún no ha soltado nada aquí…</div>';
+  const lc=feed.querySelector('.lf-count');
+  if(lc) lc.textContent=items.length?('· '+items.length+' comentario'+(items.length>1?'s':'')):'';
+}
+function refreshLiveTimes(){
+  document.querySelectorAll('.lv-time').forEach(el=>{
+    const at=+el.dataset.at, mins=Math.floor((Date.now()-at)/60000);
+    el.textContent=(mins<1)?'ahora mismo':('hace '+mins+' min');
+  });
+}
+setInterval(refreshLiveTimes,20000);
+
+function dropOne(){
+  const rendered=[...document.querySelectorAll('#grid article.char')].map(el=>el.dataset.key);
+  const pool=rendered.filter(k=>liveQueue[k]&&liveQueue[k].length);
+  if(!pool.length) return;
+  const k=pool[Math.floor(Math.random()*pool.length)];
+  const cardEl=()=>document.querySelector('article.char[data-key="'+k+'"]');
+  const card=cardEl();
+  if(!card) return;
+  const typing=card.querySelector('.typing');
+  if(typing) typing.classList.add('on');
+  setTimeout(()=>{
+    if(typing) typing.classList.remove('on');
+    if(!liveOn) return;
+    const idx=liveQueue[k].shift();
+    const c=CHARS.find(x=>x.key===k).live[idx];
+    if(!c) return;
+    (liveLog[k]=liveLog[k]||[]).unshift({u:c.u,side:c.side,tag:c.tag,txt:c.txt,at:Date.now()});
+    if(liveLog[k].length>5) liveLog[k].pop();
+    paintLive(k);
+    liveDropped++;
+    document.getElementById('livecount').textContent=liveDropped+' comentario'+(liveDropped>1?'s':'')+' en directo';
+    updateCounts();
+    const card2=cardEl();
+    if(card2){
+      const dot=card2.querySelector('.livedot');
+      if(dot){ dot.classList.add('ping'); setTimeout(()=>dot.classList.remove('ping'),2200); }
+      const items=card2.querySelector('.liveitems');
+      if(items) items.scrollTop=0;
+    }
+  },1300+Math.random()*900);
+}
+(function schedule(){
+  setTimeout(()=>{
+    if(liveOn) dropOne();
+    schedule();
+  },8500+Math.random()*6500);
+})();
+document.getElementById('livebtn').addEventListener('click',()=>{
+  liveOn=!liveOn;
+  const btn=document.getElementById('livebtn');
+  btn.classList.toggle('paused',!liveOn);
+  document.getElementById('livebtn-txt').textContent=liveOn?'Pausar el chat':'Reanudar el chat';
+  if(!liveOn) document.querySelectorAll('.typing.on').forEach(t=>t.classList.remove('on'));
+});
+
 /* ---- aparición al hacer scroll ---- */
-let revIO=null;
 function observeReveals(){
-  const els=document.querySelectorAll('.rv:not(.in)');
-  if(!('IntersectionObserver' in window)){ els.forEach(el=>el.classList.add('in')); return; }
-  if(!revIO){
-    revIO=new IntersectionObserver(es=>{
-      es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); revIO.unobserve(e.target); } });
-    },{threshold:.08});
+  if(!('IntersectionObserver' in window)){
+    document.querySelectorAll('.rv').forEach(el=>el.classList.add('in'));
+    return;
   }
-  els.forEach(el=>revIO.observe(el));
+  const els=document.querySelectorAll('.rv:not(.in)');
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:.10});
+  els.forEach(el=>io.observe(el));
 }
 
-/* ---- volver arriba ---- */
+/* ---- volver arriba + barra de progreso ---- */
 (function(){
   const top=document.getElementById('totop');
   top.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-  addEventListener('scroll',()=>{ top.classList.toggle('show',scrollY>640); },{passive:true});
+  const bar=document.getElementById('rbar');
+  function upd(){
+    const max=document.documentElement.scrollHeight-innerHeight;
+    bar.style.width=(max>0?(scrollY/max*100):0)+'%';
+    top.classList.toggle('show',scrollY>560);
+  }
+  addEventListener('scroll',upd,{passive:true}); upd();
 })();
 
 render();
