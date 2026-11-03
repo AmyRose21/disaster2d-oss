@@ -2850,3 +2850,69 @@ net_snds = 118 entradas (0..117, ultima snd_metal_laugh); flag
 PLAYER_ATTACKING ya viaja para EXE_METALAMY sin mascara (rama exe de
 obj_netclient/Step_2: attacking = isAttacking) -> el hitbox del dash
 se sincroniza solo via bitflags + posicion. Pendiente: partida real.
+
+## v4.7 (2026-11-03) — METAL AMY: fix sprite del dash + sonido de stun + SCAN (tecla V)
+
+Feedback del usuario tras probar el v4.6. Tres partes:
+
+1) FIX SPRITE DEL DASH AL IMPACTAR: "cuando metal amy impacta con el
+   impulso (X) aparece el spr_metalamy_attack11 — no deberia salir; si
+   le golpea debe mantener el sprite que tiene". Causa: Step_2 ponia
+   METALAMY_ATTACK (slot 14 = attack11) al tocar suelo durante el
+   impulso (dash aereo -> aterrizar -> attack11). Arreglo:
+   * Step_2: durante TODO el ataque (impulso + deriva) el estado es
+     SIEMPRE METALAMY_AIR_ATTACK (attack2), en aire y tierra. Fuera el
+     viejo corte suelo<->aire (era del golpe normal antiguo).
+   * scr_exe.gml: slot 14 reusa spr_metalamy_attack2 — attack11 sale
+     del kit por completo (ninguna referencia activa queda).
+   * Draw_76: los dos casos de ataque fusionados (attack2 a 0.25, fija
+     ultimo frame, cierra por attackTimer).
+   El state viaja como u8 en CLIENT_PLAYER_DATA y los puppets de los
+   demas clientes mapean con el MISMO array -> fix visible en todos.
+
+2) SONIDO DE STUN (snd_metal_stun): case EXE_METALAMY en
+   scr_exe_stunsound (antes no existia: sonaba solo el generico). La
+   TRAMPA DE AMELIA era la unica fuente de stun que no llamaba a
+   scr_exe_stunsound (fireball de Blaze y proyectil de Tails si):
+   añadida la llamada con el mismo patron. snd_metal_stun entra al
+   FINAL de global.net_snds (posicion real 115; array = 116 entradas).
+   Hallazgo de paso: los comentarios de indice del array arrastran un
+   desfase historico (snd_egg_tracker dice 28, real 29) — lo que manda
+   es el ORDEN (array_find_index en runtime a ambos lados); el bloque
+   de Metal Amy queda verificado contra el array real.
+
+3) SCAN (tecla V): rastreador de supervivientes, enfriamiento 20 s
+   (METALAMY_SCAN_RECHARGE). Revela la direccion de TODOS los
+   supervivientes 3 s (METALAMY_SCAN_TIME, patron del tracker:
+   obj_surv_indicator / SERVER_TRACKER_PING usan 3 s) con una aguja
+   spr_indicator por objetivo en anillo de 26 px alrededor de ella
+   (pulsado + fundido al expirar), dibujadas por obj_exe_indicator en
+   el cliente del Metal Amy (la aguja normal solo marca al mas cercano
+   / anillo rojo). Mismos filtros que la aguja normal: muertos,
+   esbirros y el velo de gracia de Amelia ocultos. CERO paquetes
+   nuevos: los puppets ya estan sincronizados, el scan es visual.
+   * Pose propia: spr_metalamy_scan (8 frames, slot 21 = estado
+     METALAMY_SCAN), 0,8 s (scanPose), solo en tierra, prioridad baja
+     (el dash y la bala la pisan). El stun la corta (Step_0).
+   * Sonido: snd_egg_tracker (el rastreador del juego; ya viajaba por
+     red desde el Eggman). Sin gateo de invisibilidad: el scan es
+     informacion, no un ataque.
+   * HUD: icono spr_gui_metalamy_indy a la derecha de la C, misma fila
+     (patron Amy canon v4.1). El PNG trae una V horneada en keycap
+     (x24..31) + separador (x17..21): NO se edita la imagen — artW = 14
+     recorta el arte hasta el ojo y drawKeyIcon dibuja la tecla REAL
+     (V) dinamica, como en todos los iconos desde v4.3. Respuesta a la
+     pregunta del usuario: si, el mecanismo afecta a todos los iconos
+     de habilidad; no hace falta cambiar ningun PNG.
+
+ARCHIVOS v4.7: obj_metalamy/Create_0-Step_0-Step_2-Draw_76,
+scr_metalamy_special.gml, scr_exe.gml, scr_exe_stunsound.gml,
+net_sounds.gml, obj_amelia_trap/Create_0.gml,
+obj_exe_indicator/Create_0-Step_2-Draw_64, obj_playerui/Draw_64.gml.
+
+VERIFICACION: verify_v47.py — balance de llaves/parentesis/corchetes
+de los 13 GML OK; net_snds = 116 entradas reales (0..115, ultima
+snd_metal_stun); anims Metal Amy = 22 slots (14 y 15 = attack2, 21 =
+scan); sin attack11 en codigo activo; receiver de CLIENT_SOUND_EMIT
+ignora indices fuera de rango (cliente viejo seguro). Pendiente:
+partida real.

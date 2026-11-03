@@ -30,6 +30,11 @@ shards = 0;
 bulletTimer = 0;
 shootPose = 0;
 
+// METAL AMY v4.7: scan (tecla V)
+scanTimer = 0;    // revelado activo (METALAMY_SCAN_TIME)
+scanRecharge = 0; // enfriamiento restante (20 s)
+scanPose = 0;     // frames de pose de escaneo restantes
+
 // METAL AMY v4.6: dash de 8 direcciones (tecla X)
 dashDirX = 0;      // -1 / 0 / 1 de la ultima embestida
 dashDirY = 0;      // -1 / 0 / 1 de la ultima embestida

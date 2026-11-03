@@ -197,6 +197,20 @@ if(instance_exists(global.player) && !global.player.isDead)
 
                                         var prog = 1.0 - (global.player.bulletTimer / METALAMY_BULLET_RECHARGE);
                                         drawKeyIcon(spr_gui_metal_amy_lazer, 0, 24, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+
+                                        // v4.7 (SCAN, tecla V): a la derecha de la C, misma fila
+                                        // (patron Amy canon v4.1: C y V comparten fila, como en el
+                                        // teclado; la vista es 480x270 y una cuarta fila apilada
+                                        // caeria fuera de pantalla). spr_gui_metalamy_indy trae el
+                                        // ojo verde + una V horneada en un keycap (x24..31 del PNG):
+                                        // NO hace falta editar la imagen — el mecanismo de v4.3
+                                        // recorta el arte hasta el ojo (artW = 14) y dibuja la tecla
+                                        // REAL dinamica (drawKeyIcon), igual que en todos los iconos
+                                        // de habilidad desde v4.3. Blanco = listo o revelado activo;
+                                        // el relleno barre los 20 s de enfriamiento.
+                                        var _sprog = 1.0 - (global.player.scanRecharge / METALAMY_SCAN_RECHARGE);
+                                        var _sact = global.player.scanTimer > 0;
+                                        drawKeyIcon(spr_gui_metalamy_indy, 0, 14, global.KeyV, 44 + _sprog * 10, 250 - _mob, (_sprog >= 1.0 || _sact) ? c_white : c_red, (_sprog >= 1.0 || _sact) ? 1 : _sprog, 0);
                                         break;
                                 }
                         }

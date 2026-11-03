@@ -11,6 +11,7 @@ else
         isAttacking = false;
         isJumping = false;
         dashBoost = 0; // v4.6: el stun corta el impulso del dash
+        scanPose = 0;  // v4.7: y tambien corta la pose de escaneo
         gspd -= min(abs(gspd), acc) * sign(gspd);
         xspd -= min(abs(xspd), acc) * sign(gspd);
         shockedTimer--;

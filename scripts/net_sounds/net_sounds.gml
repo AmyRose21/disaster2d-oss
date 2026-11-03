@@ -151,10 +151,23 @@ global.net_snds =
         // indices simplemente los ignora. OJO: antes de este cambio los
         // net_sound_emit del dash y el laser viajaban con indice -1 (255 al
         // leerse como u8) y los demas clientes JAMAS los oian: sonaban solo
-        // en la maquina del Metal Amy. Con estas entradas ya viajan bien. ---
-        snd_metalamy_dash, // 115
-        snd_metal_lazer,   // 116
-        snd_metal_laugh    // 117
+        // en la maquina del Metal Amy. Con estas entradas ya viajan bien.
+        // NOTA v4.7: los numeros de comentario de TODO el array vienen
+        // arrastrando un desfase historico (p. ej. snd_egg_tracker dice
+        // 28 y su posicion real es 29): lo que manda es el ORDEN — el
+        // indice se calcula con array_find_index en runtime a ambos
+        // lados. Los de este bloque si estan verificados contra el array
+        // real (116 entradas, 0..115). ---
+        snd_metalamy_dash, // 112 (real)
+        snd_metal_lazer,   // 113 (real)
+        snd_metal_laugh,   // 114 (real)
+
+        // --- METAL AMY v4.7: su sonido de STUN. Lo emite scr_exe_stunsound
+        // desde el cliente de la victima (trampa de Amelia, bola de fuego
+        // de Blaze, proyectil de Tails). Mismo patron del final: indice
+        // nuevo, un cliente viejo que lo reciba lo ignora (115 >= su
+        // array_length -> break en el receptor). ---
+        snd_metal_stun     // 115 (real)
 ];
 global.tmp_sndid = 0;
 

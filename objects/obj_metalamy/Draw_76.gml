@@ -50,30 +50,13 @@ switch(state)
                 image_speed = abs(xspd) / 5;
                 break;
 
-        case METALAMY_ATTACK:
-                // v4.6 (dash): la animacion corre a ritmo de embestida y se
-                // queda en su ultimo frame; el ataque lo cierra el TIEMPO
-                // (attackTimer = 0,5 s), no el frame: el dash (18 frames de
-                // impulso) dura mas que el sprite. El frenado del frame final
-                // viejo pasa al cierre por tiempo.
-                image_speed = 0.3;
-
-                if(image_index >= image_number - 1)
-                        image_index = image_number - 1;
-
-                if(attackTimer <= 0)
-                {
-                        xspd = xspd * .7;
-                        gspd = gspd * .7;
-                        isAttacking = false;
-                }
-                break;
-
+        case METALAMY_ATTACK:      // v4.7: slot 14 reusa attack2 (la vieja attack11 salio del kit)
         case METALAMY_AIR_ATTACK:
-                // v4.6 (dash aereo): spr_metalamy_attack2 (4 frames, slot 15):
-                // corre despacio para cubrir el impulso, se fija en el ultimo
-                // frame y el ataque lo cierra el TIEMPO (attackTimer = 0,5 s),
-                // no la animacion (la vieja attack22 cerraba por frame).
+                // v4.6/v4.7 (dash): spr_metalamy_attack2 SIEMPRE (4 frames,
+                // slot 15; aire y tierra, y al impactar NO cambia): corre
+                // despacio para cubrir el impulso, se fija en su ultimo
+                // frame y el ataque lo cierra el TIEMPO (attackTimer = 0,5
+                // s), no la animacion (la vieja attack22 cerraba por frame).
                 image_speed = 0.25;
 
                 if(image_index >= image_number - 1)
@@ -86,7 +69,6 @@ switch(state)
                         isAttacking = false;
                         isJumping = false;
                 }
-
                 break;
 
         case METALAMY_SHOCKED:
@@ -103,6 +85,16 @@ switch(state)
         case METALAMY_LAZER:
                 image_speed = 0;
                 image_index = 0;
+                break;
+
+        case METALAMY_SCAN:
+                // v4.7 (scan): spr_metalamy_scan (8 frames): la onda sale y
+                // la pose se sostiene lo que dure scanPose (0,8 s), fijada
+                // en su ultimo frame (patron de la pose de disparo).
+                image_speed = 0.25;
+
+                if(image_index >= image_number - 1)
+                        image_index = image_number - 1;
                 break;
 
         case EMOTION1:

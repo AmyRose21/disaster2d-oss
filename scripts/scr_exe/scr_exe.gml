@@ -166,11 +166,12 @@ global.player_exesanims[? EXE_EXELLER] =
 ];
 
 /* v2.2 — METAL AMY (killer de TD2D Through the Blood): mismo layout
-   que Exeller (21 estados, sin set invisible). El 14 es el dash en
-   TIERRA (attack11), el 15 el dash AEREO de 8 direcciones — v4.6:
-   pasa de attack22 (golpe aereo viejo) a attack2, la animacion de
-   embestida que pidio el usuario —, el 19 la tirolina. NO tiene
-   lost2: reusa lost (defensivo). */
+   que Exeller + slots propios al final. v4.6: el 15 (dash aereo) pasa
+   de attack22 a attack2, la animacion de embestida pedida. v4.7: el
+   14 (dash en tierra) REUSA attack2 — la vieja attack11 salio del kit
+   (al impactar/aterrizar el sprite ya no cambia: se mantiene attack2) —
+   y el 21 es la pose de escaneo de la V (scan). El 19 la tirolina.
+   NO tiene lost2: reusa lost (defensivo). */
 global.player_exesanims[? EXE_METALAMY] = 
 [
         //Visible
@@ -188,13 +189,14 @@ global.player_exesanims[? EXE_METALAMY] =
         spr_metalamy_emotion, // 11
         spr_metalamy_jump, //12
         spr_metalamy_balancing, //13
-        spr_metalamy_attack11, //14
+        spr_metalamy_attack2, //14 = dash en tierra v4.7 (reusa attack2; antes attack11)
         spr_metalamy_attack2, //15 = dash aereo v4.6 (antes attack22)
         spr_metalamy_shocked, //16
         spr_metalamy_won, //17
         spr_metalamy_lost, //18
         spr_metalamy_zipline, //19
-        spr_metalamy_lazer //20 = METALAMY_LAZER: pose de disparo (tecla C)
+        spr_metalamy_lazer, //20 = METALAMY_LAZER: pose de disparo (tecla C)
+        spr_metalamy_scan  //21 = METALAMY_SCAN: pose de escaneo (tecla V, v4.7)
 ];
 
 

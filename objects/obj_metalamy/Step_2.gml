@@ -5,6 +5,7 @@
 #macro METALAMY_LOST BALANCING+5
 #macro METALAMY_ZIPLINE BALANCING+6
 #macro METALAMY_LAZER BALANCING+7 // pose de disparo (tecla C, slot 20)
+#macro METALAMY_SCAN BALANCING+8   // pose de escaneo (tecla V, slot 21, v4.7)
 
 if(!emotion)
         state = IDLE;
@@ -45,40 +46,27 @@ if(shockedTimer > 0)
 
 if(isAttacking)
 {
-        // v4.6 (dash): durante el impulso de la embestida NO se cancela al
-        // despegar (arriba/diagonal desde el suelo) ni al aterrizar: el
-        // dash sigue hasta agotar su fase. Fuera del impulso se conserva el
-        // patron viejo: el cambio suelo <-> aire corta el ataque.
-        if(dashBoost > 0)
-        {
-                state = isGrounded ? METALAMY_ATTACK : METALAMY_AIR_ATTACK;
-                return;
-        }
-
-        if(isGrounded)
-        {
-                if(state == METALAMY_AIR_ATTACK)
-                {
-                        isAttacking = false;
-                        return;
-                }
-                state = METALAMY_ATTACK;
-        }
-        else
-        {
-                if(state == METALAMY_ATTACK)
-                {
-                        isAttacking = false;
-                        return;
-                }
-                state = METALAMY_AIR_ATTACK;
-        }
+        // v4.7 (dash): el sprite es SIEMPRE spr_metalamy_attack2 (slot 15),
+        // en el aire Y en tierra: ni al aterrizar ni al impactar con nada
+        // aparece la vieja attack11 (pedido del usuario: "si le golpea debe
+        // mantener el sprite como tal que tiene"). El viejo corte del ataque
+        // al cambiar suelo <-> aire tambien desaparece: el dash dura lo que
+        // diga su attackTimer (0,5 s) y ya esta.
+        state = METALAMY_AIR_ATTACK;
         return;
 }
 
 if(shootPose > 0 && isGrounded)
 {
         state = METALAMY_LAZER;
+        return;
+}
+
+// v4.7 (scan): pose de escaneo mientras scanPose este activo (misma
+// prioridad baja que la del disparo: el dash y la bala la pisan).
+if(scanPose > 0 && isGrounded)
+{
+        state = METALAMY_SCAN;
         return;
 }
 

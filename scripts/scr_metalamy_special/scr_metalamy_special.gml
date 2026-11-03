@@ -7,14 +7,21 @@
 //     en tierra es horizontal, y arriba/diagonal despega). Sustituye al
 //     golpe normal. Tres cargas (METALAMY_DASH_MAX), cada una tarda 5 s
 //     en recargar (secuencial) y entre uso y uso hay 0,5 s
-//     (METALAMY_DASH_GAP = attackTimer). Animacion: en tierra
-//     spr_metalamy_attack11, en el aire spr_metalamy_attack2 (slot 15).
+//     (METALAMY_DASH_GAP = attackTimer). Animacion: SIEMPRE
+//     spr_metalamy_attack2 (v4.7: la vieja attack11 salio del kit — al
+//     impactar/aterrizar el sprite se mantiene, no cambia).
 //     Sonido: snd_metalamy_dash.
 //   * BALA (tecla C): disparo del canon del pecho: proyectil recto
 //     que hace 20 de dano al sobreviviente que toque (mismo modelo
 //     que el laser exe de Tails: lo tick-ea el server, el dano lo
 //     aplica el cliente de la victima y el parry de Sonic puede
 //     desviarlo). Recarga 8 s.
+//   * SCAN (tecla V, v4.7): rastreador — revela la direccion de TODOS
+//     los supervivientes (agujas del obj_exe_indicator en su cliente;
+//     la aguja normal solo marca al mas cercano / al del anillo rojo)
+//     durante METALAMY_SCAN_TIME, con pose propia (spr_metalamy_scan,
+//     slot 21) y enfriamiento de 20 s. Cero paquetes: los puppets ya
+//     estan sincronizados en su cliente, el scan es solo visual.
 //  Stats: identicos a Exeller (12 / 0.056875).
 // =====================================================================
 #macro METALAMY_BULLET_RECHARGE (60 * 3)
@@ -29,6 +36,11 @@
 #macro METALAMY_DASH_HSPD 12          // velocidad horizontal (patron chaos)
 #macro METALAMY_DASH_VSPD 8           // velocidad vertical (patron chaos)
 
+// v4.7 — SCAN (tecla V): rastreador de supervivientes
+#macro METALAMY_SCAN_RECHARGE (60 * 20) // 20 s de enfriamiento
+#macro METALAMY_SCAN_TIME (60 * 3)      // 3 s de revelado (patron del tracker: obj_surv_indicator / SERVER_TRACKER_PING)
+#macro METALAMY_SCAN_POSE 48            // 0,8 s de pose de escaneo (spr_metalamy_scan, slot 21)
+
 function scr_metalamy_special()
 {
         if(won || lost)
@@ -36,6 +48,8 @@ function scr_metalamy_special()
                 isAttacking = false;
                 attackTimer = 0;
                 dashBoost = 0;
+                scanPose = 0;   // v4.7
+                scanTimer = 0;  // v4.7: fin de ronda, fuera el revelado
         }
 
         // cancelar el salto en el aire (patron killers)
@@ -168,6 +182,25 @@ function scr_metalamy_special()
                 shootPose = 24;
         }
 
+        // ---- SCAN (tecla V, v4.7): rastreador ----
+        // Revela la direccion de TODOS los supervivientes durante
+        // METALAMY_SCAN_TIME (lo dibuja obj_exe_indicator en este cliente;
+        // la aguja normal solo marca al mas cercano o al del anillo rojo).
+        // Es puramente visual: los puppets ya viajan sincronizados, asi que
+        // NO hace falta ningun paquete nuevo. El sonido es el del rastreador
+        // (snd_egg_tracker: ya viajaba por red desde el Eggman, cualquier
+        // cliente lo conoce). Sin gateo de invisibilidad: el dash y la bala
+        // son ATAQUES, el scan es informacion.
+        if(global.playerControls && keyboard_check_pressed(global.KeyV) && scanRecharge <= 0)
+        {
+                scanTimer = METALAMY_SCAN_TIME;
+                scanRecharge = METALAMY_SCAN_RECHARGE;
+                scanPose = METALAMY_SCAN_POSE;
+
+                audio_play_sound(snd_egg_tracker, 0, false);
+                net_sound_emit(snd_egg_tracker);
+        }
+
         // timers
         if(attackTimer > 0)
                 attackTimer--;
@@ -177,6 +210,16 @@ function scr_metalamy_special()
 
         if(shootPose > 0)
                 shootPose--;
+
+        // v4.7 — timers del scan
+        if(scanTimer > 0)
+                scanTimer--;
+
+        if(scanRecharge > 0)
+                scanRecharge--;
+
+        if(scanPose > 0)
+                scanPose--;
 
         // v4.6 — impulso del dash (se agota solo; si el ataque se cancela
         // por stun/muelle/etc. simplemente expira sin efecto)

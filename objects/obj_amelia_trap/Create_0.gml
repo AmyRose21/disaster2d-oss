@@ -69,6 +69,13 @@ function amelia_trap_trigger()
 
                 audio_play_sound(snd_exe_stun, 0, false);
                 net_sound_emit(snd_exe_stun);
+
+                // v4.7: sonido de stun PROPIO del exe (patron de la bola de
+                // fuego de Blaze y del proyectil de Tails: generico + el del
+                // personaje; la trampa era la unica fuente de stun que no lo
+                // llamaba). Metal Amy -> snd_metal_stun.
+                if(global.character == CHARACTER_EXE)
+                        scr_exe_stunsound();
         }
 
         // ECLIPSE (v2.13): la ceguera pisa aunque el stun no aplique
