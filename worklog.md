@@ -2739,3 +2739,44 @@ imágenes cargadas, cero errores de consola), interacción de botones de
 variante y cambio de pestañas sin errores, y VLM sobre capturas de las
 escenas trampa/genio/metal/parry/tiers/contornos (fix aplicado: el exe del
 ciclo 2 del parry se salía del canvas). Pendiente: partida real.
+
+---
+
+## v4.3 — TECLAS DINAMICAS EN EL HUD (LEEME_TECLAS_V1.txt)
+
+Problema del usuario (prioridad): al remapear una habilidad (ej:
+special2 de X a F) el juego respondia a la nueva tecla pero el icono
+del HUD seguia mostrando la letra horneada en el PNG (X). No existia
+ningun sistema que actualizara la letra de la miniatura.
+
+SOLUCION: scr_hud_keycap (script nuevo, 3 funciones) dibuja en vivo,
+cada frame, un keycap limpio (spr_gui_keycap, el arte original 8x9
+con la letra borrada) + la letra de la tecla ACTUAL con la micro-fuente
+solida nueva spr_gui_keyletter (38 frames 3x5 negros; spr_letter1 no
+sirve: cara blanca + sombra negra = bloque ilegible al mezclar con
+negro, probado en mockup). obj_playerui/Draw_64.gml: los 54
+draw_sprite_ext de iconos pasan a scr_hud_icon(sprite, frame, x, y,
+global.Key*, blend, alpha); emociones A/S/D -> 3 keycaps dinamicos
+(global.KeyEm1/2/3, ancho limitado a 16px por estar pegadas al borde
+derecho 470/480). Tabla de posiciones de los 35 keycaps horneados
+medida por analisis de componentes conexos de los PNG (no estimada).
+
+De paso corrige letras horneadas que mentian: eggshield-X usado por
+Metal para habilidad C, sonicdropdash-X siendo Z, chaosslime/amelia_trap
+con letra rara, metalamyattack sin indicador, y chaoswalldash conserva
+su tinte azulado (blend especial en la tabla). PNGs tocados (borrado de
+letras outline que sangraban por las esquinas redondeadas): chaosattack,
+exetiorattack, exetiorring, metal_amy_lazer, chaoswalldash, emotions.
+
+REGISTRO: 3 recursos nuevos en .yyp (orden alfabetico) +
+.resource_order, misma receta que el commit de spr_gui_amyparry_canon
+(11c24aca): carpeta sprites/<nombre>/{uuid}.png, layers/<uuid>/<uuid>.png,
+.yy de plantilla, entrada en .yyp y resource_order.
+
+VERIFICACION: mockup Python que replica el render GML exacto (C->F,
+B->r, rojo+alpha, shift largo, outline->keycap, A/S/D, num 1) con
+ASCII pixel a pixel; balance de llaves/parentesis de los GML (OK);
+.yyp parsea como JSON tras quitar comas finales (OK, 1935 recursos,
+sin duplicados); patrones GML con precedente en el proyecto
+(if/else de sprites, continue en for, var i doble). Pendiente:
+partida real (compilar y rempear en vivo).

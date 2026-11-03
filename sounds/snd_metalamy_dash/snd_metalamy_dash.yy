@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":1.1293877551020408,
+  "duration":1.1293877,
   "exportDir":"",
   "name":"snd_metalamy_dash",
   "parent":{

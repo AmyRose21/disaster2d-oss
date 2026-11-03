@@ -1,0 +1,102 @@
+=====================================================================
+ TECLAS DINAMICAS EN EL HUD (v1) - EL ICONO MUESTRA LA TECLA REAL
+ "Si cambio special 2 de X a F, que el icono diga F" | 54 iconos
+=====================================================================
+
+EL PROBLEMA (reportado por el usuario)
+--------------------------------------
+  Los iconos de habilidad del HUD (la miniatura con la "tecla" al
+  lado) tenian la letra HORNEADA en el PNG del sprite: un keycap
+  blanco con la letra negra pintada a mano. El juego leia la tecla
+  configurada (global.KeyA/KeyB/KeyC/KeyV), asi que si remapeabas
+  (Opciones -> Controles, ej: special2 de X a F) la habilidad
+  respondia a la F... pero el icono seguria diciendo (X) para
+  siempre, porque la letra era parte de la imagen.
+
+LA SOLUCION (v4.3)
+-------------------
+  Nuevo sistema scr_hud_keycap que se dibuja ENCIMA del keycap
+  horneado, EN VIVO, cada frame:
+    1. spr_gui_keycap (nuevo, 8x9): el keycap original con la letra
+       borrada (mismo arte: esquinas redondeadas, borde negro).
+    2. spr_gui_keyletter (nuevo, 38 frames 4x5): micro-fuente solida
+       3x5 negra (a-z, 0-9, '-', '?'), misma talla que las letras
+       horneadas. NO se usa spr_letter1 porque esa fuente es "cara
+       blanca + sombra negra": al mezclarla con negro se vuelve un
+       bloque ilegible (probado en mockup antes de escribir el GML).
+    3. scr_hud_keycap.gml (nuevo script): 3 funciones
+         scr_hud_icon(...)    -> dibuja icono + keycap de una vez
+         scr_hud_keycap(...)  -> busca la posicion del keycap en la
+                                 tabla (35 sprites medidos pixel a
+                                 pixel) y lo dibuja
+         scr_hud_keycap_at(..)-> nucleo: keycap + letra centrada
+  obj_playerui/Draw_64.gml: los 54 draw_sprite_ext de iconos pasan a
+  ser llamadas a scr_hud_icon pasando la tecla REAL de cada
+  habilidad (global.KeyA/KeyB/KeyC/KeyV), y el recordatorio de
+  emociones (A/S/D apiladas) lleva 3 keycaps dinamicos con
+  global.KeyEm1/2/3.
+
+  RESULTADO: cambias special2 de X a F en el menu y el icono dice F
+  AL INSTANTE (se lee global.KeyC en vivo cada frame; el remap ya
+  funcionaba, solo el dibujo estaba horneado). En PC y Android (el
+  touch simula global.Key*, asi que las letras siempre coinciden con
+  los botones en pantalla).
+
+CORRECCIONES DE BOLSILLO (letras horneadas que mentian)
+--------------------------------------------------------
+  * spr_gui_eggshield (X horneada) usado por Metal para su campo
+    electrico que es tecla C -> ahora muestra la C real.
+  * spr_gui_sonicdropdash (X horneada) siendo habilidad de Z -> ahora
+    muestra la Z real.
+  * spr_gui_chaosslime y spr_gui_amelia_trap tenian una letra rara
+    horneada (ni C ni X claras) -> ahora la tecla correcta.
+  * spr_gui_metalamyattack (golpe de Metal Amy, tecla X) no tenia
+    NINGUN indicador de tecla -> ahora tiene su keycap.
+  * chaoswalldash conserva su keycap azulado (se pasa el tinte
+    original como blend especial en la tabla).
+
+PNGs TOCADOS (solo borrar letras viejas que sangraban por las
+esquinas del keycap nuevo; el arte de los iconos queda intacto):
+  spr_gui_chaosattack, spr_gui_exetiorattack, spr_gui_exetiorring,
+  spr_gui_metal_amy_lazer, spr_gui_chaoswalldash, spr_gui_emotions
+  (sus letras eran "outline" blancas y se veian por los huecos de
+  las esquinas redondeadas del keycap overlay).
+
+ARCHIVOS NUEVOS/TOCADOS
+-----------------------
+  NUEVOS:
+    scripts/scr_hud_keycap/scr_hud_keycap.gml  (3 funciones)
+    scripts/scr_hud_keycap/scr_hud_keycap.yy
+    sprites/spr_gui_keycap/   (keycap 8x9 sin letra, +layers)
+    sprites/spr_gui_keyletter/ (38 frames de micro-fuente, +layers)
+  TOCADOS:
+    objects/obj_playerui/Draw_64.gml  (54 iconos -> scr_hud_icon,
+                                        + 3 keycaps de emociones)
+    Sonicexe The Disaster 2D Remake.yyp        (3 recursos nuevos:
+    el script + los 2 sprites, insertados en orden alfabetico)
+    Sonicexe The Disaster 2D Remake.resource_order (3 entradas)
+    6 sprites PNG (letras outline borradas, ver arriba)
+
+COMO SE VERIFICO (sin poder abrir el juego)
+-------------------------------------------
+  * Analisis pixel a pixel de los 35 sprites del HUD (componentes
+    conexos) para ubicar cada keycap horneado: la tabla de posiciones
+    del script sale de ahi, no de estimaciones.
+  * MOCKUP en Python que replica el render exacto de GML (mismo
+    keycap, misma fuente, mismos blends/alphas): verificado que la
+    letra vieja queda cubierta y la nueva es legible en los casos
+    C->F, C->c, B->r, X rojo con alpha 0.6 (cooldown), C->shift
+    (nombre largo: el keycap se ensancha), B->n sobre el viejo estilo
+    outline, A/S/D de emociones y "num 1" (numpad).
+  * Balance de llaves/parentesis de los GML (OK), .yyp parsea como
+    JSON (OK), sin recursos duplicados (OK).
+  * Patrones GML usados solo si ya existen en el proyecto: la cadena
+    if/else de sprites copia el "spr == spr_gui_exellerclone" que ya
+    usaba Draw_64.gml; el "continue" dentro de for viene de
+    scr_text_spr; la doble declaracion "var i" tiene precedente en
+    scr_move_basic.gml.
+
+PENDIENTE (partida real): abrir el proyecto en GameMaker, compilar y
+probar en partida: 1) rempear special2 a otra tecla y ver el cambio
+en vivo, 2) cooldowns (keycap rojo, letra negra), 3) Android (HUD
+sube 200px, letras siguen coincidiendo con los botones tactiles).
