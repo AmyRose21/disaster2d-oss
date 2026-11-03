@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mejoras v3.2 y Tier List · Sonic.exe The Disaster 2D Remake</title>
+<title>Mejoras v3.2 + v4.4 y Tier List · Sonic.exe The Disaster 2D Remake</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -486,6 +486,65 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
   #musdock input[type=range]{width:60px}
 }
 
+/* ==================== v4.4 · remolde ==================== */
+.v44banner{
+  border:1px solid #7a1e2b; border-radius:14px; padding:16px 20px; margin:14px 0 6px;
+  background:linear-gradient(180deg,rgba(230,34,55,.12),rgba(230,34,55,.03));
+  color:var(--dim); font-size:14px; line-height:1.6;
+  animation:v44pulse 3.2s ease-in-out infinite;
+}
+.v44banner b{color:var(--gold)}
+@keyframes v44pulse{0%,100%{box-shadow:0 0 0 0 rgba(230,34,55,0)}50%{box-shadow:0 0 22px 0 rgba(230,34,55,.22)}}
+.kcap{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:34px;height:34px;padding:0 8px;margin:0 3px;
+  font-weight:900;font-size:16px;color:#ffe9b0;
+  background:linear-gradient(180deg,#3a2a10,#241a08);
+  border:1px solid #a06a1e;border-bottom-width:3px;border-radius:8px;
+}
+.kplus{color:var(--dim);font-weight:900;margin:0 4px;font-size:15px}
+.suite-keycaps{display:flex;align-items:center;flex-wrap:wrap;margin:14px 0 2px}
+.suite-keycaps .klbl{font-size:12px;color:var(--faint);margin-left:12px;letter-spacing:.4px;max-width:640px}
+/* remolde: aparición al hacer scroll */
+.rv{opacity:0;transform:translateY(16px)}
+.rv.in{opacity:1;transform:none;transition:opacity .55s cubic-bezier(.2,.7,.2,1),transform .55s cubic-bezier(.2,.7,.2,1)}
+/* barra de progreso de lectura */
+#rbar{position:fixed;top:0;left:0;height:3px;width:0;z-index:99;
+  background:linear-gradient(90deg,var(--red2),var(--red),var(--gold));
+  box-shadow:0 0 8px rgba(230,34,55,.55)}
+/* volver arriba */
+#totop{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;align-items:center;gap:8px;
+  font-family:inherit;font-size:12.5px;font-weight:600;color:var(--dim);
+  background:rgba(22,19,36,.92);border:1px solid var(--line);border-radius:999px;
+  padding:9px 16px;cursor:pointer;opacity:0;pointer-events:none;transform:translateY(8px);
+  transition:.25s;backdrop-filter:blur(6px)}
+#totop.show{opacity:1;pointer-events:auto;transform:none}
+#totop:hover{color:var(--txt);border-color:var(--red2)}
+/* brillo que barre la tarjeta al pasar el ratón */
+.demo-card{position:relative;overflow:hidden}
+.demo-card::after{
+  content:"";position:absolute;top:0;left:-70%;width:45%;height:100%;z-index:1;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.055),transparent);
+  transform:skewX(-18deg);transition:left .7s ease;pointer-events:none;
+}
+.demo-card:hover::after{left:120%}
+/* enlace destacado a la tier list de comentarios */
+.linkcard{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  border:1px solid #514a63;border-radius:14px;padding:16px 20px;margin:16px 0;
+  background:linear-gradient(135deg,rgba(160,106,232,.10),rgba(230,34,55,.06));
+  transition:.2s;text-decoration:none;
+}
+.linkcard:hover{border-color:#a06ae8;transform:translateY(-2px);box-shadow:0 8px 26px rgba(160,106,232,.18)}
+.linkcard .lc-t{font-weight:900;font-size:15.5px;color:var(--txt)}
+.linkcard .lc-d{font-size:13px;color:var(--dim);flex:1;min-width:240px}
+.linkcard .lc-btn{
+  font-family:inherit;font-weight:700;font-size:13px;color:#ffe9b0;cursor:pointer;white-space:nowrap;
+  background:linear-gradient(135deg,#4a360c,#241a06);
+  border:1px solid #a06a1e;border-radius:9px;padding:9px 18px;text-decoration:none;
+}
+.linkcard .lc-btn:hover{filter:brightness(1.2)}
+
 </style>
 </head>
 <body>
@@ -503,11 +562,13 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
     <span class="badge">Datos del código · <b>v3.2</b></span>
     <span class="badge">Actualizado · <b>3 de noviembre de 2026</b></span>
     <span class="badge">Novedad v3.2 · <b>La pasada del pull · 16 recortes de recarga · Amy Canon sin límite</b></span>
+    <span class="badge red">Novedad v4.4 · <b>Amelia «ciega»: inmune al anillo rojo · trampas y sensores dentro del escondite</b></span>
+    <span class="badge"><a href="TierList_Comentarios_V1.html">La voz del lobby: <b>tier list con comentarios de jugadores</b></a></span>
   </div>
 </header>
 
 <nav class="tabs" id="tabs">
-  <button data-tab="mejoras" class="on">Mejoras v3.2</button>
+  <button data-tab="mejoras" class="on">Mejoras v3.2 + v4.4</button>
   <button data-tab="vsexe">VS el EXE</button>
   <button data-tab="impres">Impresiones</button>
   <button data-tab="tiers">Tier list</button>
@@ -524,14 +585,113 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
 
   <!-- ============================ MEJORAS v3.0 ============================ -->
   <section class="tab on" id="tab-mejoras">
-    <h2 class="sec"><span class="dot gold"></span>Mejoras v3.2 · la pasada del pull + «Genio Malvado»</h2>
+    <h2 class="sec"><span class="dot gold"></span>Mejoras v3.2 + v4.4 · del pull a la emboscada</h2>
     <p class="lead">
-      El pull entró y con él la <b>v3.2</b>: tu pasada de balance editada con la Suite TD2D, que la tabla <b>Δ</b> de arriba compara número a número contra el último tierlist. Debajo sigue la historia completa — la v3.0/v3.1 aplicada sobre el código real del juego y del servidor:
+      El pull entró y con él la <b>v3.2</b>: tu pasada de balance editada con la Suite TD2D, que la tabla <b>Δ</b> de abajo compara número a número contra el último tierlist. Debajo sigue la historia completa — la v3.0/v3.1 aplicada sobre el código real del juego y del servidor:
       recargas, reglas de ceguera, i-frames, el arreglo del parry de Sonic y la pasiva nueva del
-      Dr. Eggman — que convierte sus anillos en piezas y sus trampas en oro. Cada escena está
+      Dr. Eggman — que convierte sus anillos en piezas y sus trampas en oro. Y encabezando la
+      página, lo más reciente: la <b>v4.4</b> — Amelia, ciega de verdad, ya no sufre los anillos
+      rojos, y trampas y sensores se colocan <b>desde dentro del escondite</b>. Cada escena está
       montada con los sprites y sonidos del propio juego.
     </p>
 
+
+    <!-- ============ v4.4 · EL AJUSTE DE AMELIA Y EL ESCONDITE ============ -->
+    <div class="v44banner">
+      <b>v4.4 en una línea:</b> Amelia es <b>inmune al anillo rojo</b> — ciega = sin alucinaciones;
+      lo recoge igual y el EXE pierde esa trampa — y <b>trampa, trampolín y sensor se colocan
+      escondidos</b> en las zonas de ocultamiento: el ↓ que te esconde es el mismo ↓ del combo.
+      Spindash, doble salto y escudo siguen cortados al esconderse: <b>colocar no rompe el
+      sigilo; pelear, sí</b>.
+    </div>
+
+    <!-- ============ G. v4.4 · PASIVA «CIEGA» ============ -->
+    <article class="demo-card">
+      <div class="demo-head">
+        <h3><span class="n goldbg">G</span>v4.4 · «Ciega»: el anillo rojo no puede alucinarla</h3>
+        <div class="pills">
+          <span class="pill gold">Efecto del anillo: <b>NULO</b></span>
+          <span class="pill blue">Ella <b>lo recoge</b> igual</span>
+          <span class="pill red">El EXE <b>pierde</b> esa trampa</span>
+          <span class="pill">Mismo patrón que Amy Canon</span>
+        </div>
+      </div>
+      <p class="demo-txt">
+        Las alucinaciones del anillo rojo son <b>pura imagen y sonido</b>: la música de posesión
+        (<code>mus_mindfuck</code>), el velo rojo sobre la pantalla y el silencio de habilidades
+        durante 10 s. Amelia <b>no ve</b> — un efecto visual sobre una ciega no tiene dónde
+        agarrarse. Desde la v4.4 lo recoge igual (contacto físico: el anillo desaparece y el EXE
+        pierde esa trampa), pero <code>net_state_game.gml</code> corta el efecto en las <b>dos
+        rutas de entrada</b>, junto a la pasiva de Amy Canon. El resto de supervivientes sigue
+        sufriendo las 10 s completas.
+      </p>
+      <div class="variantbar" id="var-ciega">
+        <button data-v="amelia" class="on">Amelia · efecto nulo</button>
+        <button data-v="tails">Tails · 10 s de alucinaciones</button>
+      </div>
+      <div class="stagewrap">
+        <canvas id="cv-ciega" width="470" height="150"></canvas>
+        <div class="stagehint">el anillo rojo aparece · Amelia lo recoge sin efecto · Tails lo recoge y sufre el velo</div>
+      </div>
+    </article>
+
+    <!-- ============ H. v4.4 · EMBOSCADA EN EL ESCONDITE ============ -->
+    <article class="demo-card">
+      <div class="demo-head">
+        <h3><span class="n goldbg">H</span>v4.4 · Trampas y sensores dentro del escondite</h3>
+        <div class="pills">
+          <span class="pill gold">Amelia: trampa <b>y</b> trampolín oculta</span>
+          <span class="pill gold">Eggman: sensor oculto</span>
+          <span class="pill blue">Mantén <b>↓</b> y pulsa <b>C</b> desde el matorral</span>
+          <span class="pill red">El spindash SÍ sigue cortado</span>
+        </div>
+      </div>
+      <p class="demo-txt">
+        Antes las recargas se congelaban al esconderse: estabas oculto y no podías colocar nada —
+        una trampa que no funciona justo donde mejor trampa sería es, siendo honestos, un
+        despropósito. Desde la v4.4 la compuerta se partió en dos: <b>esconderse ya no corta las
+        colocaciones</b> (trampa y trampolín de Amelia, sensor de Eggman); solo el movimiento y
+        el combate (spindash, doble salto, escudo). La sinergia es gratis: para esconderse ya
+        mantienes <b>↓</b>, que es justo el modificador del combo — <b>agachada en el matorral,
+        pulsa C</b> y la emboscada queda servida. El servidor nunca validó el ocultamiento (solo
+        recargas por jugador), así que el cambio era puro cliente.
+      </p>
+      <div class="variantbar" id="var-escondite">
+        <button data-v="amelia" class="on">Amelia · trampa en el matorral</button>
+        <button data-v="egg">Eggman · sensor en el matorral</button>
+      </div>
+      <div class="stagewrap">
+        <canvas id="cv-escondite" width="470" height="170"></canvas>
+        <div class="stagehint">oculta en el matorral · coloca sin salir · el EXE revisa el escondite · Eclipse / ralentizado</div>
+      </div>
+    </article>
+
+    <!-- ============ I. v4.4 · REGISTRO DE LA SUITE v5 ============ -->
+    <article class="demo-card">
+      <div class="demo-head">
+        <h3><span class="n goldbg">I</span>La Suite v5: música del lobby y «botones de habilidades»</h3>
+        <div class="pills">
+          <span class="pill gold">Música del lobby · <b>OST 1.0</b> (volumen y memoria)</span>
+          <span class="pill blue"><b>44</b> habilidades reasignables</span>
+          <span class="pill blue">Combos de <b>2 teclas</b>: mantener + pulsar</span>
+          <span class="pill">Conflictos · diff · copia de seguridad · deshacer</span>
+        </div>
+      </div>
+      <p class="demo-txt">
+        Registro del otro frente de esta misma semana: la <b>Suite TD2D</b>
+        (<code>Suite_TD2D.html</code>, la herramienta de edición del repo) estrenó la música del
+        lobby con control de volumen y memoria de ajustes, y el módulo <b>«Botones de
+        habilidades»</b>: reasigna la tecla de cada una de las 44 habilidades — incluidos combos
+        de dos teclas con los direccionales (mantener ↓↑←→ y pulsar) — parcheando a la vez la
+        activación (<code>scr_*_special</code>) y los iconos del HUD (letra dinámica y ancho del
+        «↓+»). Detecta conflictos, enseña el diff antes de aplicar, guarda copia de seguridad y
+        permite deshacer. Primera aplicación práctica, ya en el código:
+      </p>
+      <div class="suite-keycaps">
+        <span class="kcap">↓</span><span class="kplus">+</span><span class="kcap">C</span>
+        <span class="klbl">la trampa de Amelia, hoy: mantener ↓ y pulsar C (antes, C sola) — el icono volvió a mostrar el «↓+» horneado del sprite</span>
+      </div>
+    </article>
 
     <!-- ============ 0. LA COMPARATIVA DEL PULL (v3.2) ============ -->
     <article class="demo-card">
@@ -855,6 +1015,17 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
       muestran las recargas de la v3.2; los detalles con escenas están en la pestaña
       «Mejoras v3.2».
     </div>
+    <div class="v44banner" style="margin-top:10px">
+      <b>v4.4 (aún sin movimiento de tier):</b> Amelia suma la pasiva «Ciega» — inmune al anillo
+      rojo — y la emboscada en el escondite: trampa y trampolín colocables OCULTA. Eggman coloca
+      su sensor escondido. ¿Sigue Amelia en A+ o esto ya huele a S?
+    </div>
+    <a class="linkcard" href="TierList_Comentarios_V1.html">
+      <span class="lc-t">La voz del lobby</span>
+      <span class="lc-d">La tier list aparte con comentarios de jugadores — positivos y negativos,
+      supervivientes y exes, con sus exageraciones — debatiendo cada puesto de esta tabla.</span>
+      <span class="lc-btn">Abrir la tier list de comentarios</span>
+    </a>
 
     <h2 class="sec"><span class="dot"></span>Tier list de EXE</h2>
     <p class="lead">
@@ -1298,7 +1469,8 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
     <div>
       <h5>Créditos</h5>
       <p>Página generada para el proyecto «Sonic.exe The Disaster 2D Remake» (cliente GameMaker + servidor dedicado en C). Los sprites son los del propio juego.</p>
-      <p>Sonic.exe The Disaster 2D Remake — plantel v2.11 · tierlist v2 · 1 de noviembre de 2026.</p>
+      <p>Sonic.exe The Disaster 2D Remake — plantel v2.11 · tierlist v3 (v3.2 + v4.4) · 3 de noviembre de 2026.</p>
+      <p>La v4.4 se verificó sobre net_state_game.gml (rutas SERVER_RING_COLLECTED y SERVER_RMZSLIME_RINGBONUS), scr_amelia_special.gml, scr_egg_special.gml y Draw_64.gml del 3 de noviembre de 2026. La tier list con comentarios de jugadores (simulados) vive en TierList_Comentarios_V1.html.</p>
     </div>
   </div>
 </footer>
@@ -1555,17 +1727,19 @@ const SURV = [
   key:'amelia', name:'Amelia', mod:true, tier:'A+', role:'Control de zona · Detective ciega',
   speed:'11 · 18 en espinas', acc:'0.046875',
   bars:{mov:4, util:5, sup:2, pres:4},
-  passive:{name:'Auravisión + Luna y Eclipse (v2.12/v2.13)', desc:'Auravisión: a 350 px ve el aura de calor del bando EXE a través de paredes e invisibilidad; el EXE REAL arde más fuerte que clones y esbirros. Luna: oculta = invisible grado EXE (velo de gracia 3 s, CD 15 s). Eclipse: su trampa arrastra 4 s de ceguera al lado EXE.'},
+  passive:{name:'Auravisión · Sol y Luna · Ciega (v2.12 → v4.4)', desc:'Auravisión: a 350 px ve el aura de calor del bando EXE a través de paredes e invisibilidad; el EXE REAL arde más fuerte que clones y esbirros. Luna: oculta = invisible grado EXE (velo de gracia 3 s, CD 15 s). Eclipse: su trampa arrastra 4 s de ceguera al lado EXE. Ciega (v4.4): los anillos rojos no le hacen nada — los recoge y el EXE pierde esa trampa.'},
   abilities:[
-    {k:'X', n:'Trampolín', d:'Resorte en el suelo: quien lo pise (killer incluido) sale disparado hacia arriba. Dura 12 s, un uso. v3.2: 20,5 s.', cd:'20,5 s / 10 s'},
-    {k:'C', n:'Trampa', d:'Stun de 3 s + ralentización del 40 % durante 3,5 s más. Vive 60 s y puede haber varias (v2.8). ECLIPSE (v2.13): el EXE real queda CIEGO 4 s y los esbirros 6 s (v3.0). Si Amelia se demoniza, sus trampas aturden a los supervivientes PERO SIN ceguera.', cd:'24 s / 15 s'},
+    {k:'X', n:'Trampolín', d:'Resorte en el suelo: quien lo pise (killer incluido) sale disparado hacia arriba. Dura 12 s, un uso. v3.2: 20,5 s. v4.4: colocable también ESCONDIDA.', cd:'20,5 s / 10 s'},
+    {k:'↓+C', n:'Trampa', d:'Stun de 3 s + ralentización del 40 % durante 3,5 s más. Vive 60 s y puede haber varias (v2.8). ECLIPSE (v2.13): el EXE real queda CIEGO 4 s y los esbirros 6 s (v3.0). Si Amelia se demoniza, sus trampas aturden a los supervivientes PERO SIN ceguera. v4.4: combo mantener ↓ + pulsar C (puesto con la Suite v5) y colocable ESCONDIDA — la emboscada del matorral.', cd:'24 s / 15 s'},
     {k:'↓+Z', n:'Spin dash', d:'Idéntico al de Sonic: 8 + carga, tope 18. Sin enfriamiento.', cd:'—'}
   ],
   plus:[
     'La única con tres herramientas simultáneas en el mapa a la vez',
     'Las trampas NO perdonan invisibles: el EXE oculto las pisa igual que todos',
     'Auravisión gratis: la lectura del bando EXE que otros pagan con habilidades',
-    'Spin dash heredado: movilidad de primera sin coste de recarga'
+    'Spin dash heredado: movilidad de primera sin coste de recarga',
+    'Ciega (v4.4): el anillo rojo le resbala — puede comerse la trampa del EXE sin castigo',
+    'v4.4: trampa y trampolín se colocan desde DENTRO del escondite (emboscada)'
   ],
   minus:[
     'La Luna pide un escondite cerca: en campo abierto cae como cualquier mortal',
@@ -1631,7 +1805,7 @@ const SURV = [
   abilities:[
     {k:'Z', n:'Jetpack', d:'Doble salto con impulso (v3.0: 8 s).', cd:'8 s'},
     {k:'X', n:'Escudo', d:'Aturde al killer que lo toca (v3.0: 15 s).', cd:'15 s / 7 s'},
-    {k:'C', n:'Rastreador', d:'Marca al EXE con la flecha roja para todo el equipo (v3.0: 25 s).', cd:'25 s'},
+    {k:'↓+C', n:'Rastreador', d:'Marca al EXE con la flecha roja para todo el equipo (v3.0: 25 s). v4.4: colocable también ESCONDIDO — control de mapa desde el matorral.', cd:'25 s'},
     {k:'V', n:'Mejorar trampa (Genio Malvado)', d:'Gasta anillos (3 su sensor / 5 una trampa de Amelia) para potenciarla un 25 %: contorno dorado, stun/ceguera más largos… y si el bando EXE la pisa, su posición se revela a todos los supervivientes.', cd:'2 s anti-spam'}
   ],
   plus:[
@@ -1841,6 +2015,13 @@ const PROPS = [
   why:'Economía (información + recursos, nunca daño), sigilo condicional (el EXE conserva su indicador pasado el velo) y la contrapartida ofensiva de la trampa: castiga al EXE que pisa sin mirar. Cero paquetes nuevos: la Luna y el Eclipse son 100 % locales y el Sol reusa el camino de red de los anillos de Cream.',
   tags:['v2.13','En el código','Sol · Luna · Eclipse','Cero paquetes nuevos'],
   verdict:'<b>Implementada en la v2.13.</b> Ojo: el Sol viaja por el paquete de anillos de Cream — el server debe estar recompilado con el Game.c de la v2.13 (acepta a Amy Canon y su suelo anti-spam baja a 6 s); sin recompilar, desconecta a Amy Canon.'
+},
+{
+  name:'Ciega (el anillo rojo no puede alucinarla)', done:true,
+  desc:'Los anillos rojos no le hacen NADA: su efecto es 100 % visual (música de posesión, velo rojo y silencio de habilidades durante 10 s) y Amelia no ve. Los RECOGE igual — contacto físico, el EXE pierde esa trampa — pero net_state_game corta el efecto en las dos rutas de entrada, junto a la pasiva de Amy Canon (SERVER_RING_COLLECTED y el bonus de anillos del RMZ slime).',
+  why:'La coherencia lo pedía desde el primer día: un anillo maldito que «alucina» a una ciega es un efecto que ni siquiera debería intentar funcionar. Y de regalo táctico: Amelia puede comerse el anillo-trampa del EXE sin castigo, limpiando el camino para sus compañeros.',
+  tags:['v4.4','En el código','Solo cliente','Cero paquetes','Lore fiel'],
+  verdict:'<b>Implementada en la v4.4.</b> Mismo patrón exacto que la pasiva 1 de Amy Canon: el chequeo vive junto al suyo en las dos rutas de anillos de net_state_game.gml.'
 },
 {
   name:'Deducción del detective', rec:false,
@@ -2414,6 +2595,152 @@ scene('cv-parry',(cv,ctx)=>{
 scene('cv-exe-norm',(cv,ctx)=>({ draw(ctx,t){ dr(ctx,'exe_run',Math.floor(t*9)%8,45,96,{scale:2}); } }));
 scene('cv-exe-invis',(cv,ctx)=>({ draw(ctx,t){ dr(ctx,'exe_invis_walk',Math.floor(t*9)%8,45,96,{scale:2}); } }));
 
+/* ==================== ESCENA F · v4.4: PASIVA «CIEGA» ==================== */
+let ciegaVar='amelia';
+scene('cv-ciega',(cv,ctx)=>{
+  const W=cv.width, H=cv.height, G=H-16;
+  const parts=mkParts();
+  /* fases: 0 camina hacia el anillo · 1 contacto (lo recoge) · 2 fundido */
+  let ph=0, pt=0, veilOn=false;
+  const RX=W/2+52, RY=G-24;
+  function ringAt(t){
+    const ry=RY+Math.sin(t*3.1)*4;
+    const halo=.26+.13*Math.sin(t*5);
+    const gr=ctx.createRadialGradient(RX,ry-7,2,RX,ry-7,26);
+    gr.addColorStop(0,'rgba(230,34,55,'+halo+')'); gr.addColorStop(1,'rgba(230,34,55,0)');
+    ctx.fillStyle=gr; ctx.fillRect(RX-28,ry-34,56,52);
+    ctx.save(); ctx.filter='sepia(.85) saturate(5.5) hue-rotate(-32deg) brightness(.92)';
+    dr(ctx,'ring',Math.floor(t*7)%IMG.ring.length,RX,ry,{scale:1.8});
+    ctx.restore();
+  }
+  return {
+    update(dt,t){
+      pt+=dt;
+      if(ph===0){ if(pt>1.5){ ph=1; pt=0;
+        for(let i=0;i<8;i++) parts.add(RX,RY-6,'shockparticle',-40-Math.random()*35,(Math.random()-.5)*95,.6,1.1);
+        if(audioUnlocked){ snd('heal',.3); if(ciegaVar==='tails') snd('trap_boom',.2); }
+        veilOn=(ciegaVar==='tails');
+      } }
+      else if(ph===1){ if(pt>2.5){ ph=2; pt=0; } }
+      else if(pt>0.7){ ph=0; pt=0; veilOn=false; }
+      parts.upd(dt);
+    },
+    draw(ctx,t){
+      ctx.fillStyle='#1d1a28'; ctx.fillRect(0,G,W,3);
+      if(ph===0) ringAt(t);
+      const strip=(ciegaVar==='amelia')?'amelia_run':'tails_walk';
+      const nfr=IMG[strip].length;
+      let wx;
+      if(ph===0) wx=44+(pt/1.5)*(RX-64);
+      else if(ph===1) wx=RX+Math.min(pt/1.3,1)*96;
+      else wx=W-28;
+      const wob=(veilOn&&ph===1)?Math.sin(t*17)*1.4:0;
+      dr(ctx,strip,Math.floor(t*8)%nfr,wx+wob,G,{scale:2.05});
+      label(ctx,(ciegaVar==='amelia')?'AMELIA · CIEGA':'TAILS',wx,G-80,(ciegaVar==='amelia')?'#ffd75e':'#7ec7ff');
+      if(veilOn){
+        ctx.fillStyle='rgba(190,20,40,.30)'; ctx.fillRect(0,0,W,H);
+        biglabel(ctx,'ALUCINACIONES · velo rojo · 10 s de silencio','#ff6d6d');
+      }
+      else if(ph>=1&&ciegaVar==='amelia'){
+        biglabel(ctx,'EFECTO NULO · recogido: el EXE pierde la trampa','#5dd06a');
+      }
+      parts.draw(ctx);
+      hud(ctx,'v4.4 · net_state_game: la pasiva «CIEGA» corta el efecto junto a la de Amy Canon');
+    }
+  };
+});
+document.querySelectorAll('#var-ciega button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    ciegaVar=b.dataset.v;
+    document.querySelectorAll('#var-ciega button').forEach(x=>x.classList.toggle('on',x===b));
+  });
+});
+
+/* ==================== ESCENA G · v4.4: EMBOSCADA EN EL ESCONDITE ==================== */
+let esconVar='amelia';
+function drawBush(ctx,cx,gy,t){
+  ctx.save();
+  const sway=Math.sin(t*1.6)*1.5;
+  const cols=['#17301f','#22452b','#1a3623'];
+  for(let i=0;i<7;i++){
+    const bx=cx+(i-3)*14+(i%2?6:-5)+sway*(i%2?1:-1);
+    const by=gy-16-((i===3)?18:(i%2)*9);
+    const r=19-Math.abs(i-3)*2;
+    ctx.fillStyle=cols[i%3];
+    ctx.beginPath(); ctx.ellipse(bx,by,r+5,r+9,0,0,Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle='#0f2116';
+  ctx.beginPath(); ctx.ellipse(cx,gy-6,56,13,0,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+scene('cv-escondite',(cv,ctx)=>{
+  const W=cv.width, H=cv.height, G=H-14;
+  const parts=mkParts();
+  /* fases: 0 entra caminando · 1 se agacha y coloca (↓+C) · 2 el EXE revisa · 3 boom · 4 fundido */
+  let ph=0, pt=0, boom=0, veil=0, hx=0;
+  return {
+    update(dt,t){
+      pt+=dt;
+      if(ph===0){ if(pt>1.25){ ph=1; pt=0; if(audioUnlocked)snd('trap_place'); } }
+      else if(ph===1){ if(pt>1.2){ ph=2; pt=0; hx=-34; } }
+      else if(ph===2){
+        hx=-34+(pt/1.75)*((W/2)+30);
+        if(pt>1.75){ ph=3; pt=0; boom=1; veil=(esconVar==='amelia')?1:0;
+          if(audioUnlocked){ snd('trap_boom'); snd('exe_stun'); if(esconVar==='egg')snd('tracker',.5); }
+          for(let i=0;i<10;i++) parts.add(W/2,G-8,'shockparticle',-50-Math.random()*42,(Math.random()-.5)*120,.7);
+        }
+      }
+      else if(ph===3){ boom=Math.max(0,boom-dt*3); if(pt>2.7){ ph=4; pt=0; } }
+      else if(pt>0.7){ ph=0; pt=0; veil=0; }
+      parts.upd(dt);
+    },
+    draw(ctx,t){
+      ctx.fillStyle='#1d1a28'; ctx.fillRect(0,G,W,3);
+      drawBush(ctx,W/2,G,t);
+      /* la colocadora, agachada dentro (fantasma: la Luna la esconde del exe) */
+      const pstrip=(esconVar==='amelia')?'amelia_run':'egg_walk';
+      let px=W/2;
+      if(ph===0) px=44+(pt/1.25)*(W/2-44);
+      const pa=(ph===0)?.95:.5;
+      dr(ctx,pstrip,0,px,G,{scale:1.7,alpha:pa});
+      if(ph>=1) label(ctx,(esconVar==='amelia')?'AMELIA · OCULTA':'EGGMAN · OCULTO',px,G-64,'#b9a7e8');
+      /* la pieza colocada DENTRO del matorral */
+      if(ph>=1&&ph<3){
+        dr(ctx,(esconVar==='amelia')?'trap':'eggtrack',0,W/2,G-2,{scale:1.65,alpha:.95});
+        label(ctx,(esconVar==='amelia')?'↓+C · TRAMPA':'↓+C · SENSOR',W/2,G-40,'#ffd75e');
+      }
+      /* el EXE revisa el escondite */
+      if(ph===2||ph===3){
+        const sh=(ph===3)?Math.sin(t*38)*1.5:0;
+        if(ph===3&&esconVar==='amelia') dr(ctx,'exe_shocked',Math.floor(t*6)%5,W/2+sh,G,{scale:2.05});
+        else{
+          /* con el sensor: sigue andando, pero LENTO (−30 %) */
+          const slowX=(ph===3)?(W/2+sh+pt*22):hx;
+          dr(ctx,'exe_run',Math.floor(t*(ph===3?4:9))%8,slowX,G,{scale:2.05});
+        }
+      }
+      parts.draw(ctx);
+      if(boom>0){ ctx.fillStyle='rgba(255,255,255,'+(boom*.45)+')'; ctx.fillRect(0,0,W,H); }
+      if(veil>0){
+        ctx.fillStyle='rgba(5,2,12,.6)'; ctx.fillRect(0,0,W,H);
+        biglabel(ctx,'ECLIPSE · revisa el escondite CIEGO 4 s','#b46cff');
+      }
+      else if(ph===3&&esconVar==='egg'){
+        ctx.fillStyle='rgba(60,110,220,.14)'; ctx.fillRect(0,0,W,H);
+        biglabel(ctx,'SENSOR: el EXE ralentizado −30 % · 3 s','#7ec7ff');
+      }
+      label(ctx,'EXE',(ph===3)?W/2:hx,G-84,'#ff6d6d');
+      hud(ctx,'v4.4 · esconderse ya no corta la colocación (scr_amelia_special / scr_egg_special)');
+    }
+  };
+});
+document.querySelectorAll('#var-escondite button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    esconVar=b.dataset.v;
+    document.querySelectorAll('#var-escondite button').forEach(x=>x.classList.toggle('on',x===b));
+  });
+});
+
 /* ==================== PLANIFICADOR DE ESCENAS ====================
    Las animaciones SOLO corren cuando su tarjeta está en pantalla, y solo
    UNA tarjeta corre a la vez (la más visible). El resto queda congelada en
@@ -2513,6 +2840,8 @@ const CDS=[
 
 /* ==================== tabla VS el EXE ==================== */
 const VSDATA=[
+  {t:'El anillo rojo ya no es universal', chip:'Amelia v4.4', d:'La pasiva «Ciega» neutraliza el arma psicológica del EXE: Amelia recoge el anillo maldito sin música de posesión, sin velo rojo y sin silencio de habilidades — <b>el EXE pierde esa trampa</b> y ella sigue entera. Coherencia pura: un efecto visual no tiene dónde agarrarse en quien no ve.'},
+  {t:'Emboscada en el escondite', chip:'Amelia / Eggman v4.4', d:'Trampa, trampolín y sensor se colocan <b>desde dentro del matorral</b>: el ↓ que te esconde es el mismo ↓ del combo. El EXE que revisa un escondite puede pisar una trampa que lo deja <b>ciego 4 s</b> (y al esbirro, 6): los escondites dejan de ser zonas muertas y se vuelven <b>zonas de caza</b>. El spindash sigue cortado: colocar no rompe el sigilo, pelear sí.'},
   {t:'Trampa a 24 s', chip:'Amelia', d:'Casi una trampa más por minuto y pueden convivir varias: los pasillos calientes se quedan <b>sembrados</b>. El EXE deja de tener rutas seguras a mitad de partida.'},
   {t:'Eclipse escalonado', chip:'Amelia', d:'El EXE real queda ciego <b>4 s</b> y los esbirros <b>6 s</b> (+2): el ejército del EXE pierde el rumbo justo cuando persigue por el suelo, donde viven las trampas.'},
   {t:'Sin ceguera a supervivientes', chip:'Amelia demonizada', d:'Si Amelia cae y se vuelve exe, sus trampas aturden a los supervivientes <b>sin velo oscuro</b>: el bando del EXE no hereda la herramienta más OP del Eclipse.'},
@@ -2565,6 +2894,38 @@ const EXEDATA=[
   /* intento de auto-arranque al primer gesto (los navegadores bloquean antes) */
   document.addEventListener('pointerdown',function once(){ document.removeEventListener('pointerdown',once,true);
     if(!playing) toggle(); },{capture:true});
+})();
+
+/* ==================== remolde v4.4: aparición al hacer scroll ==================== */
+(function(){
+  if(!('IntersectionObserver' in window)) return;
+  const els=document.querySelectorAll('.demo-card,.tierblock,.v30banner,.v44banner,.linkcard,.card,.vrow,.exe-card,.prop,.weakest,.impr');
+  els.forEach(el=>el.classList.add('rv'));
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:.12});
+  els.forEach(el=>io.observe(el));
+})();
+
+/* ==================== remolde v4.4: barra de progreso + volver arriba + atajos ==================== */
+(function(){
+  const bar=document.createElement('div'); bar.id='rbar'; document.body.appendChild(bar);
+  const top=document.createElement('button'); top.id='totop'; top.textContent='▲ Volver arriba';
+  document.body.appendChild(top);
+  top.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+  function upd(){
+    const max=document.documentElement.scrollHeight-innerHeight;
+    bar.style.width=(max>0?(scrollY/max*100):0)+'%';
+    top.classList.toggle('show',scrollY>640);
+  }
+  addEventListener('scroll',upd,{passive:true}); upd();
+  /* atajos de teclado 1..9 para las pestañas */
+  const btns=[...document.querySelectorAll('#tabs button')];
+  addEventListener('keydown',e=>{
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    const n=parseInt(e.key,10);
+    if(n>=1&&n<=btns.length) showTab(btns[n-1].dataset.tab);
+  });
 })();
 
 </script>
