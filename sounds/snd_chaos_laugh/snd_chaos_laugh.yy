@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":2.246531,
+  "duration":2.2204082,
   "exportDir":"",
   "name":"snd_chaos_laugh",
   "parent":{

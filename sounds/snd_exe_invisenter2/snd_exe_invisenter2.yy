@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":5.041633,
+  "duration":5.0039,
   "exportDir":"",
   "name":"snd_exe_invisenter2",
   "parent":{

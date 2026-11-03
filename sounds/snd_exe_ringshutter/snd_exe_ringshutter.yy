@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":0.849569,
+  "duration":0.84956914,
   "exportDir":"",
   "name":"snd_exe_ringshutter",
   "parent":{

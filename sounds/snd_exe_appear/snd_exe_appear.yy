@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":1.005828,
+  "duration":1.0058277,
   "exportDir":"",
   "name":"snd_exe_appear",
   "parent":{

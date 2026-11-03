@@ -10,7 +10,7 @@
   "compression":3,
   "compressionQuality":9,
   "conversionMode":0,
-  "duration":15.333878,
+  "duration":15.30195,
   "exportDir":"",
   "name":"mus_exewin",
   "parent":{

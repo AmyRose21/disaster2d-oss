@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":3.828118,
+  "duration":3.8281178,
   "exportDir":"",
   "name":"snd_exe_taunt",
   "parent":{

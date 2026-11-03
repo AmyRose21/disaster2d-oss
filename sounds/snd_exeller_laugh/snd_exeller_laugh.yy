@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":3.552653,
+  "duration":3.5252154,
   "exportDir":"",
   "name":"snd_exeller_laugh",
   "parent":{

@@ -14,8 +14,8 @@
   "exportDir":"",
   "name":"snd_metal_laugh",
   "parent":{
-    "name":"Metal Sonic",
-    "path":"folders/Sounds/Player/Metal Sonic.yy",
+    "name":"Metal Amy",
+    "path":"folders/Sounds/Player/Metal Amy.yy",
   },
   "preload":false,
   "resourceType":"GMSound",

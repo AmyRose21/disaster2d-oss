@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":3.620181,
+  "duration":3.6201813,
   "exportDir":"",
   "name":"snd_chaos_stun",
   "parent":{
