@@ -19,6 +19,14 @@
 //     Ahora se dibujan las teclas REALES (global.KeyEm1/2/3, remapeables)
 //     en el mismo sitio donde estaban las horneadas.
 //
+// v4.3c: la TRAMPA de Amelia se activa con SOLO la tecla C (ver
+//        scr_amelia_special: KeyC + isColliding, SIN isLookingDown),
+//        pero su sprite trae "-↓+C" horneado y v4.3 conservaba el "↓+"
+//        como si fuera un combo real. Ahora el arte se corta en el guion:
+//        el icono muestra "[trampa]-C", igual que como se lanza de verdad.
+//        El "↓+" SE conserva en trampolin (↓+X), spindash (↓+Z) y tracker
+//        de Eggman (↓+C) porque esos SI exigen estar agachado.
+//
 //  - En PC se ve siempre la tecla actual del remapeo (letra, numero o
 //    nombre corto: space, shift, enter, ...). Se actualiza al instante
 //    porque se consulta global.KeyX en cada fotograma.
@@ -437,8 +445,14 @@ if(instance_exists(global.player) && !global.player.isDead)
 
                         // Icono (tecla C): TRAMPA — la trampa-oso que
                         // siempre fue suya (antes estaba en el slot X).
+                        // v4.3c: artW 25 (antes 39). El sprite trae
+                        // "[trampa] - ↓ + C" horneado (arte 0-18, guion
+                        // 20-24, flecha 26-33, + 35-38, C 40-47), pero la
+                        // trampa NO exige abajo: solo C + estar en el suelo
+                        // (scr_amelia_special). Se corta en el guion y la
+                        // tecla dinamica queda justo despues: "[trampa]-C".
                         var prog = 1.0 - (max(global.player.trapTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE));
-                        drawKeyIcon(spr_gui_amelia_trap, 0, 39, global.KeyC, prog * 10, 258 - _mob, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_amelia_trap, 0, 25, global.KeyC, prog * 10, 258 - _mob, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
 
