@@ -181,8 +181,16 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         // v4.3: el frame 0 de spr_gui_metalamyattack ERA una X grande
                                         // horneada (no habia arte separable), asi que se dibuja solo la
                                         // tecla real (artW = 0) en su lugar.
-                                        var prog = 1.0 - (min(global.player.attackTimer, 120) / 120.0);
-                                        drawKeyIcon(spr_gui_metalamyattack, 0, 0, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                                        // v4.6 (dash): el anillo del icono X refleja el sistema de
+                                        // cargas: con cargas -> barre el gap de 0,5 s entre usos; sin
+                                        // cargas -> el anillo ES la recarga (5 s por carga), rojo
+                                        // hasta llenarse.
+                                        var _maprog;
+                                        if(global.player.dashCharges > 0)
+                                                _maprog = 1.0 - (min(global.player.attackTimer, METALAMY_DASH_GAP) / METALAMY_DASH_GAP);
+                                        else
+                                                _maprog = global.player.dashRecharge / METALAMY_DASH_RECHARGE;
+                                        drawKeyIcon(spr_gui_metalamyattack, 0, 0, global.KeyB, _maprog * 10, 240 - _mob, _maprog == 1.0 ? c_white : c_red, _maprog, 0);
 
                                         var prog = global.playerControls && global.player.isJumping;
                                         drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog ? c_white : c_red, prog ? 1 : 0.5, 0);

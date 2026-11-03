@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mejoras v3.2 + v4.5 y Tier List · Sonic.exe The Disaster 2D Remake</title>
+<title>Mejoras v3.2 + v4.6 y Tier List · Sonic.exe The Disaster 2D Remake</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -564,12 +564,14 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
     <span class="badge">Novedad v3.2 · <b>La pasada del pull · 16 recortes de recarga · Amy Canon sin límite</b></span>
     <span class="badge red">Novedad v4.4 · <b>Amelia «ciega»: inmune al anillo rojo · trampas y sensores dentro del escondite</b></span>
     <span class="badge red">Fix v4.5 · <b>La bala de Metal Amy ya avanza</b> · Amelia siente la marca de la salida</span>
+    <span class="badge red">Rework v4.6 · <b>Metal Amy: dash de 8 direcciones</b> · 3 cargas · 5 s por carga · 0,5 s entre usos</span>
+    <span class="badge red">Fix v4.6 · <b>La bola de fuego de Blaze ya vuela</b> · mismo arreglo del canal UDP</span>
     <span class="badge"><a href="TierList_Comentarios_V1.html">La voz del lobby: <b>tier list con comentarios de jugadores</b></a></span>
   </div>
 </header>
 
 <nav class="tabs" id="tabs">
-  <button data-tab="mejoras" class="on">Mejoras v3.2 + v4.5</button>
+  <button data-tab="mejoras" class="on">Mejoras v3.2 + v4.6</button>
   <button data-tab="vsexe">VS el EXE</button>
   <button data-tab="impres">Impresiones</button>
   <button data-tab="tiers">Tier list</button>
@@ -586,16 +588,18 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
 
   <!-- ============================ MEJORAS v3.0 ============================ -->
   <section class="tab on" id="tab-mejoras">
-    <h2 class="sec"><span class="dot gold"></span>Mejoras v3.2 + v4.5 · del pull a la emboscada</h2>
+    <h2 class="sec"><span class="dot gold"></span>Mejoras v3.2 + v4.6 · del pull a la embestida</h2>
     <p class="lead">
       El pull entró y con él la <b>v3.2</b>: tu pasada de balance editada con la Suite TD2D, que la tabla <b>Δ</b> de abajo compara número a número contra el último tierlist. Debajo sigue la historia completa — la v3.0/v3.1 aplicada sobre el código real del juego y del servidor:
       recargas, reglas de ceguera, i-frames, el arreglo del parry de Sonic y la pasiva nueva del
       Dr. Eggman — que convierte sus anillos en piezas y sus trampas en oro. Y encabezando la
       página, lo más reciente: la <b>v4.4</b> — Amelia, ciega de verdad, ya no sufre los anillos
-      rojos, y trampas y sensores se colocan <b>desde dentro del escondite</b>. Y recién llegado,
-      el <b>fix v4.5</b>: la bala de Metal Amy por fin <b>avanza</b> (nacía quieta) y Amelia estrena
-      la <b>marca de la salida</b> — versión limitada, a 400 px y parpadeante. Cada escena está
-      montada con los sprites y sonidos del propio juego.
+      rojos, y trampas y sensores se colocan <b>desde dentro del escondite</b>. El <b>fix v4.5</b>:
+      la bala de Metal Amy por fin <b>avanza</b> (nacía quieta) y Amelia estrena la <b>marca de la
+      salida</b> — versión limitada, a 400 px y parpadeante. Y la <b>v4.6</b> recién salida:
+      <b>Metal Amy cambia el golpe X por un dash de 8 direcciones</b> con 3 cargas, y <b>la bola
+      de fuego de Blaze ya vuela</b> — el mismo bug del canal UDP, el mismo arreglo. Cada escena
+      está montada con los sprites y sonidos del propio juego.
     </p>
 
 
@@ -740,6 +744,68 @@ h2.sec .dot.gold{background:linear-gradient(180deg,var(--gold),var(--gold2))}
         convertirla en brújula. Solo en su cliente, cero paquetes: el mismo convenio de sus
         auras. Y sin flecha roja del EXE: de eso ya se encarga la Auravisión (350 px, a través
         de paredes).
+      </p>
+    </article>
+
+    <!-- ============ v4.6 · banner ============ -->
+    <div class="v44banner">
+      <b>v4.6 en una línea:</b> el golpe X de Metal Amy pasa a ser un <b>dash de 8 direcciones
+      estilo Chaos</b> — 3 cargas, 5 s de recarga por carga, 0,5 s entre usos, animación
+      <code>attack2</code> en el aire y <code>snd_metalamy_dash</code> en cada embestida —, su risa
+      <code>snd_metal_laugh</code> suena al seleccionarla y en su taunt, y <b>la bola de fuego de
+      Blaze ya vuela</b>: mismo bug del canal UDP que la bala de Metal Amy, mismo arreglo.
+    </div>
+
+    <!-- ============ L. v4.6 · FIX: LA BOLA DE FUEGO DE BLAZE YA VUELA ============ -->
+    <article class="demo-card">
+      <div class="demo-head">
+        <h3><span class="n goldbg">L</span>v4.6 · Fix: la bola de fuego de Blaze ya vuela</h3>
+        <div class="pills">
+          <span class="pill gold">Síntoma: <b>nacía quieta</b> y solo reaccionaba a los rebotes</span>
+          <span class="pill blue">Causa: el tick de posición viaja por <b>UDP</b> a un case que no existía</span>
+          <span class="pill red">1 archivo · <code>net_udpprocess.gml</code></span>
+          <span class="pill">Mismo patrón que el láser de Tails y la bala de Metal Amy</span>
+        </div>
+      </div>
+      <p class="demo-txt">
+        <b>Blaze necesitaba el mismo arreglo</b> — y lo tenía de serie: el servidor simula el cometa
+        rebotante de la superviviente (<code>bfire_tick</code>) y difunde su posición cada tick como
+        <b>no confiable</b> (<code>server_broadcast(..., false)</code>), o sea por <b>UDP</b>… y el
+        case que lo escucha solo existía en <code>net_state_game.gml</code> (el canal TCP, por el que
+        jamás llega). Resultado: la bola nacía, quedaba <b>quieta</b> y solo «revivía» cuando un
+        cliente reportaba un rebote. El fix añade el case en <code>net_udpprocess.gml</code> con el
+        patrón exacto de Tails y Metal Amy: lee <code>nid</code> + posición + dirección + velocidad
+        vertical, y cada cliente rota el cometa siguiendo su trayectoria de proyectil rebotante.
+        Gravedad, rebotes informados por los clientes y vida de 4 s: intactos.
+      </p>
+    </article>
+
+    <!-- ============ M. v4.6 · REWORK: METAL AMY, DASH DE 8 DIRECCIONES ============ -->
+    <article class="demo-card">
+      <div class="demo-head">
+        <h3><span class="n goldbg">M</span>v4.6 · Metal Amy: del golpe normal al <b>dash de 8 direcciones</b></h3>
+        <div class="pills">
+          <span class="pill gold"><b>3 cargas</b> máx · <b>5 s</b> de recarga por carga</span>
+          <span class="pill gold"><b>0,5 s</b> entre uso y uso</span>
+          <span class="pill blue">8 direcciones: <b>tú decides</b> con las flechas al pulsar X</span>
+          <span class="pill red">En el aire: <code>spr_metalamy_attack2</code> · <code>snd_metalamy_dash</code></span>
+        </div>
+      </div>
+      <p class="demo-txt">
+        La X de Metal Amy deja de ser un golpe cuerpo a cuerpo al uso y pasa a ser una <b>embestida
+        dirigible estilo Chaos</b>: la dirección que sujetes al pulsar decide hacia dónde sale
+        disparada — <b>8 direcciones</b> con diagonales incluidas; sin flechas, hacia donde mira.
+        En el aire el control es total (arriba, abajo y diagonales); en tierra es horizontal, y
+        sujetar arriba la hace <b>despegar en diagonal ya</b>. El impulso dura 18 frames a 12/8 px
+        por frame (los números del dash de Chaos) y luego frena en una deriva suave. El sistema de
+        <b>cargas</b> es el pedido: máx 3, cada una tarda <b>5 s</b> en recargar (secuencial) y entre
+        uso y uso hay <b>0,5 s</b>. En el aire estrena la animación <code>spr_metalamy_attack2</code>
+        y cada embestida suena con <code>snd_metalamy_dash</code>. El anillo del icono X del HUD
+        ahora cuenta la historia: con cargas barre el gap de 0,5 s; sin cargas, <b>es</b> la recarga
+        de 5 s. Y su risa <code>snd_metal_laugh</code> suena al seleccionarla (y en su taunt, que
+        estaba mudo). Bonus invisible: los sonidos del dash y del láser viajaban con índice −1
+        (solo sonaban en la máquina de Metal Amy); con las entradas 115-117 de
+        <code>net_snds</code> ya los oyen todos.
       </p>
     </article>
 

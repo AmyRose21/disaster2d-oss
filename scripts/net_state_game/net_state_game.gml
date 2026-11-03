@@ -205,6 +205,12 @@ function net_state_game(rbuff, nps, isPasstrough)
                         }
                         else if(_state == 1) // Tick
                         {
+                                // v2.9b: el tick real viaja por el canal NO confiable
+                                // (UDP) y se procesa en net_udpprocess (patron laser
+                                // de Tails / bala de Metal Amy). Esta rama queda como
+                                // salvaguarda: el server (bfire_tick) envia el estado 1
+                                // con server_broadcast(..., false), asi que por aqui no
+                                // deberia llegar nunca.
                                 // v2.9: nid + dir + vy (gravedad del
                                 // server): el cometa rota siguiendo su
                                 // trayectoria de proyectil rebotante

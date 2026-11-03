@@ -143,7 +143,18 @@ global.net_snds =
         // volar hacia el exe. Asset NUEVO del mod (no existia antes y
         // nadie mas lo emite por red). Al FINAL a proposito: un cliente
         // viejo que reciba el indice 114 simplemente lo ignora. ---
-        snd_chocola_dive // 114: Chocola se lanza sobre el exe (mini-embestida)
+        snd_chocola_dive, // 114: Chocola se lanza sobre el exe (mini-embestida)
+
+        // --- METAL AMY (v4.6): dash (tecla X), laser del canon (tecla C)
+        // y risa (seleccion + emocion). AL FINAL a proposito (mismo patron
+        // que snd_parry/Chocola): un cliente viejo que reciba estos
+        // indices simplemente los ignora. OJO: antes de este cambio los
+        // net_sound_emit del dash y el laser viajaban con indice -1 (255 al
+        // leerse como u8) y los demas clientes JAMAS los oian: sonaban solo
+        // en la maquina del Metal Amy. Con estas entradas ya viajan bien. ---
+        snd_metalamy_dash, // 115
+        snd_metal_lazer,   // 116
+        snd_metal_laugh    // 117
 ];
 global.tmp_sndid = 0;
 

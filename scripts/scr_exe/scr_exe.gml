@@ -166,9 +166,11 @@ global.player_exesanims[? EXE_EXELLER] =
 ];
 
 /* v2.2 — METAL AMY (killer de TD2D Through the Blood): mismo layout
-   que Exeller (21 estados, sin set invisible). El 14 es su golpe
-   cuerpo a cuerpo (attack11), el 15 el aereo (attack22), el 19 la
-   tirolina. NO tiene lost2: reusa lost (defensivo). */
+   que Exeller (21 estados, sin set invisible). El 14 es el dash en
+   TIERRA (attack11), el 15 el dash AEREO de 8 direcciones — v4.6:
+   pasa de attack22 (golpe aereo viejo) a attack2, la animacion de
+   embestida que pidio el usuario —, el 19 la tirolina. NO tiene
+   lost2: reusa lost (defensivo). */
 global.player_exesanims[? EXE_METALAMY] = 
 [
         //Visible
@@ -187,7 +189,7 @@ global.player_exesanims[? EXE_METALAMY] =
         spr_metalamy_jump, //12
         spr_metalamy_balancing, //13
         spr_metalamy_attack11, //14
-        spr_metalamy_attack22, //15
+        spr_metalamy_attack2, //15 = dash aereo v4.6 (antes attack22)
         spr_metalamy_shocked, //16
         spr_metalamy_won, //17
         spr_metalamy_lost, //18

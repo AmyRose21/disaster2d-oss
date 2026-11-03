@@ -483,6 +483,13 @@ function scr_move_basic()
                                                 emotionSnd = audio_play_sound(snd_exeller_laugh, 0, false);
                                                 net_sound_emit(snd_exeller_laugh);
                                                 break;
+
+                                        // v4.6: la emocion/taunt de Metal Amy ya tiene
+                                        // risa (antes quedaba muda: su case no existia)
+                                        case EXE_METALAMY:
+                                                emotionSnd = audio_play_sound(snd_metal_laugh, 0, false);
+                                                net_sound_emit(snd_metal_laugh);
+                                                break;
                                 }
                         }
                 }
@@ -656,14 +663,14 @@ function scr_move_basic()
                                 return;
                         
 
-				// v2.2 (TTB): METAL no salta en pleno dash (la electro si
-				// deja: es un campo pasivo alrededor).
-				if(global.character == CHARACTER_METAL && metalDashing > 0)
-					return;
-				
-				// v2.2 (TTB): BLAZE no salta en la pose de disparo.
-				if(global.character == CHARACTER_BLAZE && shootPose > 0 && isGrounded)
-					return;
+                                // v2.2 (TTB): METAL no salta en pleno dash (la electro si
+                                // deja: es un campo pasivo alrededor).
+                                if(global.character == CHARACTER_METAL && metalDashing > 0)
+                                        return;
+                                
+                                // v2.2 (TTB): BLAZE no salta en la pose de disparo.
+                                if(global.character == CHARACTER_BLAZE && shootPose > 0 && isGrounded)
+                                        return;
                         // CREAM/VANILLA (original del juego): no saltan
                         // mientras invocan anillos.
                         if((global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA) && ringsSpawn > 0)

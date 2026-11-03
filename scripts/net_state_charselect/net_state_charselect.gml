@@ -57,6 +57,12 @@ function net_state_charselect(rbuff, nps, isPasstrough)
                                 case EXE_EXELLER:
                                         audio_play_sound(snd_exeller_laugh, 0, false);
                                         break;
+
+                                // v4.6: la risa de Metal Amy al arrancar la
+                                // partida (mismo canal que el resto de killers)
+                                case EXE_METALAMY:
+                                        audio_play_sound(snd_metal_laugh, 0, false);
+                                        break;
                         }
                         break;
                 }

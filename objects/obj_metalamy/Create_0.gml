@@ -30,6 +30,13 @@ shards = 0;
 bulletTimer = 0;
 shootPose = 0;
 
+// METAL AMY v4.6: dash de 8 direcciones (tecla X)
+dashDirX = 0;      // -1 / 0 / 1 de la ultima embestida
+dashDirY = 0;      // -1 / 0 / 1 de la ultima embestida
+dashCharges = METALAMY_DASH_MAX; // nace con las 3 cargas
+dashRecharge = 0;  // progreso de la carga en curso (5 s por carga)
+dashBoost = 0;     // frames de impulso restantes del dash actual
+
 //General
 hp = 10000;
 isGrounded = false;

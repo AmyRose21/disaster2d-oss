@@ -200,6 +200,55 @@ function net_udpprocess(rbuff)
                         break;
                 }
                 
+                // v2.9b — FIX BOLA DE FUEGO DE BLAZE: mismo arreglo que el
+                // laser de Metal Amy (v2.2b) y el de Tails. El server envia
+                // el tick de posicion (SERVER_BLAZE_FIREBALL_STATE 1) como
+                // NO confiable (server_broadcast(..., false) en bfire_tick),
+                // o sea por ESTE canal (UDP). El case solo existia en
+                // net_state_game (canal TCP), por el que ese estado jamas
+                // llegaba: la bola nacia quieta y solo reaccionaba a los
+                // rebotes. Mismo patron que el Tails de arriba: nid + pos +
+                // dir + vy para que cada cliente rote el cometa siguiendo
+                // su trayectoria rebotante.
+                case PacketType.SERVER_BLAZE_FIREBALL_STATE:
+                {
+                        if(passtrough)
+                                 break;
+
+                        if(state != STATE_GAME)
+                                break;
+
+                        var _state = buffer_read_s(rbuff, buffer_u8);
+
+                        if(_state != 1) //impossible
+                                break;
+
+                        var _nid = buffer_read_s(rbuff, buffer_u16);
+                        var _xx = buffer_read_s(rbuff, buffer_u16);
+                        var _yy = buffer_read_s(rbuff, buffer_u16);
+                        var _dir = buffer_read_s(rbuff, buffer_s8);
+                        var _vy = buffer_read_s(rbuff, buffer_s8);
+
+                        if(!instance_exists(obj_blaze_fireball))
+                                break;
+
+                        with(obj_blaze_fireball)
+                        {
+                                if(nid != _nid || isBreaking)
+                                        continue;
+
+                                vx = _dir * 10;
+                                vy = _vy;
+                                dir = _dir;
+                                x = _xx;
+                                y = _yy;
+                                image_xscale = 1;
+                                image_angle = point_direction(0, 0, vx, vy);
+                                break;
+                        }
+                        break;
+                }
+
                 // v2.2b — FIX LASER DE METAL AMY: el server envia el tick de
                 // posicion de la bala (SERVER_METALAMY_BULLET_STATE 1) como
                 // NO confiable (server_broadcast(..., false) en mabul_tick),

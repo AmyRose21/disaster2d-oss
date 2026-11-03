@@ -7,116 +7,126 @@
 #macro METALAMY_LAZER BALANCING+7 // pose de disparo (tecla C, slot 20)
 
 if(!emotion)
-	state = IDLE;
+        state = IDLE;
 
 if(won)
 {
-	if(isGrounded)
-	{
-		state = METALAMY_WON;
-		return;
-	}
+        if(isGrounded)
+        {
+                state = METALAMY_WON;
+                return;
+        }
 }
 
 if(lost)
 {
-	if(isGrounded)
-	{
-		state = METALAMY_LOST;
-		return;
-	}
+        if(isGrounded)
+        {
+                state = METALAMY_LOST;
+                return;
+        }
 }
 
 if(isHurt)
 {
-	state = HURT;
-	return;
+        state = HURT;
+        return;
 }
 
 if(shockedTimer > 0)
 {
-	if(!isGrounded)
-		state = HURT;
-	else
-		state = METALAMY_SHOCKED;
+        if(!isGrounded)
+                state = HURT;
+        else
+                state = METALAMY_SHOCKED;
 
-	return;
+        return;
 }
 
 if(isAttacking)
 {
-	if(isGrounded)
-	{
-		if(state == METALAMY_AIR_ATTACK)
-		{
-			isAttacking = false;
-			return;
-		}
-		state = METALAMY_ATTACK;
-	}
-	else
-	{
-		if(state == METALAMY_ATTACK)
-		{
-			isAttacking = false;
-			return;
-		}
-		state = METALAMY_AIR_ATTACK;
-	}
-	return;
+        // v4.6 (dash): durante el impulso de la embestida NO se cancela al
+        // despegar (arriba/diagonal desde el suelo) ni al aterrizar: el
+        // dash sigue hasta agotar su fase. Fuera del impulso se conserva el
+        // patron viejo: el cambio suelo <-> aire corta el ataque.
+        if(dashBoost > 0)
+        {
+                state = isGrounded ? METALAMY_ATTACK : METALAMY_AIR_ATTACK;
+                return;
+        }
+
+        if(isGrounded)
+        {
+                if(state == METALAMY_AIR_ATTACK)
+                {
+                        isAttacking = false;
+                        return;
+                }
+                state = METALAMY_ATTACK;
+        }
+        else
+        {
+                if(state == METALAMY_ATTACK)
+                {
+                        isAttacking = false;
+                        return;
+                }
+                state = METALAMY_AIR_ATTACK;
+        }
+        return;
 }
 
 if(shootPose > 0 && isGrounded)
 {
-	state = METALAMY_LAZER;
-	return;
+        state = METALAMY_LAZER;
+        return;
 }
 
 if(isZipline)
 {
-	if(isGrounded)
-		isZipline = false;
+        if(isGrounded)
+                isZipline = false;
 
-	state = METALAMY_ZIPLINE;
-	return;
+        state = METALAMY_ZIPLINE;
+        return;
 }
 
 if(isLookingUp)
 {
-	state = LOOKUP;
-	return;
+        state = LOOKUP;
+        return;
 }
 
 if(isLookingDown)
 {
-	state = LOOKDOWN;
-	return;
+        state = LOOKDOWN;
+        return;
 }
 
 if(isSpinning)
 {
-	state = SPIN;
-	return;
+        state = SPIN;
+        return;
 }
 
 if(abs(xspd) > 0 && isGrounded)
 {
-	if(abs(xspd) < 8)
-		state = WALK;
-	else
-		state = RUN;
+        if(abs(xspd) < 8)
+                state = WALK;
+        else
+                state = RUN;
 }
 
 if(isOnEdge)
 {
-	state = BALANCING;
-	return;
+        state = BALANCING;
+        return;
 }
 
 if (!isGrounded) //in air
 {
-	if(isJumping)
-		state = JUMP;
-	else
-		state = FALL;
+        if(isJumping)
+                state = JUMP;
+        else
+                state = FALL;
 }

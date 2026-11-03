@@ -2780,3 +2780,73 @@ ASCII pixel a pixel; balance de llaves/parentesis de los GML (OK);
 sin duplicados); patrones GML con precedente en el proyecto
 (if/else de sprites, continue en for, var i doble). Pendiente:
 partida real (compilar y rempear en vivo).
+
+---
+
+## v4.6 — BLAZE: MISMO FIX UDP · METAL AMY: DASH DE 8 DIRECCIONES
+
+Dos tareas del usuario en un paquete: "Blaze necesita el mismo
+arreglo" y el rework completo de la X de Metal Amy.
+
+1) FIX BLAZE (v2.9b): la bola de fuego sufria el MISMO bug del canal
+que la bala de Metal Amy (v2.2b): bfire_tick difunde el estado 1 como
+NO confiable (UDP) y el case solo existia en net_state_game (TCP) ->
+la bola nacia quieta y solo reaccionaba a los rebotes. Arreglo: case
+SERVER_BLAZE_FIREBALL_STATE en net_udpprocess.gml con el patron Tails
+(nid + pos + dir + vy; rota el cometa con point_direction). La rama
+TCP del tick queda documentada como salvaguarda (mismo criterio que
+Metal Amy). Gravedad, rebotes por cliente y vida de 4 s intactos.
+
+2) REWORK METAL AMY (v4.6): la X pasa de golpe normal (patron Exeller,
+recovery 60/120) a DASH dirigible en 8 direcciones (patron chaos):
+   * Direccion: flechas sujetadas al pulsar (8 dirs con diagonales);
+     sin flechas, hacia donde mira. Aire: control total. Tierra:
+     horizontal (abajo se anula); arriba/diagonal DESPEGA ya
+     (isGrounded=false + yspd, patron del salto de scr_move_basic).
+   * Impulso: 18 frames a 12/8 px (numeros del dash de chaos: xspd =
+     dashDirX*12, yspd = dashDirY*8; en tierra gspd para pendientes).
+     Luego deriva suave (*2, patron chaos) hasta expirar el timer.
+   * Cargas: 3 max (METALAMY_DASH_MAX), recarga SECUENCIAL de 5 s por
+     carga (METALAMY_DASH_RECHARGE), 0,5 s entre usos (attackTimer =
+     METALAMY_DASH_GAP: el viejo recovery 60/120 de la X desaparece).
+   * Variables nuevas en obj_metalamy/Create_0: dashDirX/Y, dashCharges,
+     dashRecharge, dashBoost. Reset de dashBoost en stun (Step_0) y en
+     won/lost (scr_metalamy_special).
+   * Step_2: durante el impulso NO se cancela el ataque al despegar ni
+     al aterrizar (el caso viejo cancelaba en el cambio suelo<->aire);
+     fuera del impulso, patron viejo conservado.
+   * Draw_76: los dos estados de ataque cierran por TIEMPO (attackTimer
+     <= 0), no por ultimo frame: el dash (18 frames) dura mas que los
+     sprites. Ground attack11 a 0.3; air attack2 a 0.25.
+   * scr_exe.gml: slot 15 (air attack) pasa de spr_metalamy_attack22 a
+     spr_metalamy_attack2 (la animacion pedida para el aire).
+   * HUD (obj_playerui/Draw_64): el anillo del icono X refleja las
+     cargas: con cargas barre el gap de 0,5 s; sin cargas ES la recarga
+     (rojo hasta llenarse). Antes leia attackTimer/120 (hubiera quedado
+     desajustado: min(30,120)/120 = 75 % fijo).
+   * Seleccion: case EXE_METALAMY en net_state_charselect (risa
+     snd_metal_laugh al arrancar la partida, canal de los demas
+     killers) + case en el switch de emociones de scr_move_basic (su
+     taunt estaba MUDO: el case no existia).
+
+3) FIX SONIDOS POR RED (descubierto al añadir la risa): los
+   net_sound_emit de snd_metalamy_dash y snd_metal_lazer viajaban con
+   indice -1 (array_find_index falla: NO estaban en global.net_snds) ->
+   255 al leerse como u8 -> los demas clientes JAMAS los oian (sonaban
+   solo en la maquina del Metal Amy). Arreglo: entradas 115-117 al
+   FINAL del array (patron snd_parry/Chocola: cliente viejo que reciba
+   el indice lo ignora): snd_metalamy_dash, snd_metal_lazer,
+   snd_metal_laugh.
+
+ARCHIVOS: net_udpprocess.gml, net_state_game.gml (comentario),
+scr_metalamy_special.gml, obj_metalamy/Create_0-Step_0-Step_2-Draw_76,
+scr_exe.gml, net_sounds.gml, net_state_charselect.gml,
+scr_move_basic.gml, obj_playerui/Draw_64.gml, TierList_Mejoras_V3_2.html
+(badges + banner + fichas L y M).
+
+VERIFICACION: balance de llaves/parentesis/corchetes de los 12 GML
+editados (strip de comentarios y strings, script verify_v46.py) OK;
+net_snds = 118 entradas (0..117, ultima snd_metal_laugh); flag
+PLAYER_ATTACKING ya viaja para EXE_METALAMY sin mascara (rama exe de
+obj_netclient/Step_2: attacking = isAttacking) -> el hitbox del dash
+se sincroniza solo via bitflags + posicion. Pendiente: partida real.
