@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Suite TD2D — Animaciones · Recargas · Imágenes · Enfriamientos</title>
+<title>Suite TD2D — Animaciones · Recargas · Imágenes · Enfriamientos · Arte</title>
 <style>
 :root{
   --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
@@ -298,6 +298,38 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 #srv-side .desync b{color:#e8927b}
 #srv-side .side-head{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold)}
 
+/* ---- módulo 🎨 Arte (v3.5) ---- */
+#mod-arte .mid{overflow-y:auto}
+#arte-tabs{display:flex;gap:4px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:6px}
+.atab{border:none;border-radius:0;background:transparent;padding:6px 10px;color:var(--mut);font-weight:600}
+.atab.sel{color:var(--gold2);box-shadow:inset 0 -2px 0 var(--gold)}
+#arte-canvas{image-rendering:pixelated;width:100%;max-width:956px;background:#0b0c0f;border:1px solid var(--line);border-radius:8px}
+.arteline{border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin:6px 0;background:var(--panel2)}
+.alhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.alhead b{font-size:12px;color:var(--gold2)}
+.altext{width:100%;font-family:var(--mono);font-size:12px}
+.mini{font-size:11px;color:var(--mut);display:flex;gap:4px;align-items:center;white-space:nowrap}
+.alw{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--mut)}
+.alw.over{color:var(--red);font-weight:700}
+.chipsrow{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:4px 0}
+.chipcol{width:18px;height:18px;padding:0;border-radius:4px;border:1px solid #000}
+.chipico{padding:1px;border-radius:4px;display:inline-flex;line-height:0}
+.chipico canvas{image-rendering:pixelated}
+.arte-lbl{font-size:10.5px;color:var(--mut);letter-spacing:.5px;text-transform:uppercase}
+.arte-head{font-size:12.5px;margin-bottom:6px}
+.artenote{font-size:11px;color:var(--mut);margin-top:8px;line-height:1.5}
+.artestrip{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;align-items:center}
+.selframe{background:#101317;border:1px solid var(--line);border-radius:4px;image-rendering:pixelated;width:48px;height:48px}
+#mod-arte .selframe[width="58"]{width:58px;height:62px}
+.arteimport{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+#arte-status{color:var(--mut);font-size:11px;margin-left:auto}
+#arte-warn{color:var(--red);font-size:11.5px;margin-top:4px}
+.lnk{cursor:pointer}
+/* controles unidos (simplificación v3.5): slider+número = UN control */
+.ctlgrp{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--panel2);vertical-align:middle}
+.ctlgrp input{border:none;border-radius:0;box-shadow:none}
+.ctlgrp input+input{border-left:1px solid var(--line)}
+
 @media (max-width:1100px){.mod{grid-template-columns:220px 1fr 300px}}
 </style>
 </head>
@@ -306,7 +338,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 <audio id="bgm" loop preload="none" src="https://file.garden/aoWRYc0-p1TyFbL9/Sonic.exe%20The%20Disaster%201.0%20Lobby%20Music%20(OST).mp3"></audio>
 
 <header id="topbar">
-  <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes · enfriamientos · botones</span></div>
+  <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes · enfriamientos · arte</span></div>
   <button id="btn-open" class="btn primary">Abrir carpeta del proyecto</button>
   <button id="btn-open-ro" class="btn">Elegir carpeta (solo lectura)</button>
   <button id="btn-demo" class="btn">Demo</button>
@@ -326,6 +358,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   <button class="mnav" data-mod="img">🖼 Imágenes de habilidades</button>
   <button class="mnav" data-mod="srv">❄️ Enfriamientos (todos)</button>
   <button class="mnav" data-mod="keys">🎮 Botones de habilidades</button>
+  <button class="mnav" data-mod="arte">🎨 Arte</button>
   <span id="modnav-note">tú mueves · el código se escribe solo</span>
 </nav>
 
@@ -366,18 +399,22 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
         <button id="btn-last" title="último frame (End)">&gt;|</button>
       </div>
       <div class="grp2">
-        <label>velocidad <input id="in-speed" type="range" min="0.05" max="3" step="0.05" value="1"></label>
-        <input id="num-speed" type="number" min="0.01" max="10" step="0.01" value="1">
+        <label>velocidad <span class="ctlgrp"><input id="in-speed" type="range" min="0.05" max="3" step="0.05" value="1"><input id="num-speed" type="number" min="0.01" max="10" step="0.01" value="1"></span></label>
         <span id="frame-label"></span>
       </div>
-      <div class="grp2" id="presets">
-        <button class="preset" data-v="0.1">.1</button>
-        <button class="preset" data-v="0.2">.2</button>
-        <button class="preset" data-v="0.3">.3</button>
-        <button class="preset" data-v="0.5">.5</button>
-        <button class="preset" data-v="1">1</button>
-        <button class="preset" data-v="1.1">1.1</button>
-        <button class="preset" data-v="2">2</button>
+      <div class="grp2">
+        <label>vel. fija
+          <select id="sel-preset">
+            <option value="">—</option>
+            <option value="0.1">0.1×</option>
+            <option value="0.2">0.2×</option>
+            <option value="0.3">0.3×</option>
+            <option value="0.5">0.5×</option>
+            <option value="1">1×</option>
+            <option value="1.1">1.1×</option>
+            <option value="2">2×</option>
+          </select>
+        </label>
       </div>
       <div class="grp2">
         <label>zoom</label>
@@ -589,6 +626,42 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   </aside>
 </div><!-- /mod-keys -->
 
+<div id="mod-arte" class="mod hidden">
+  <aside class="side">
+    <div class="side-head">Personaje</div>
+    <div id="arte-char-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+  </aside>
+  <main class="mid">
+    <div id="arte-tabs">
+      <button class="atab sel" data-tab="placa">📋 Placa de info</button>
+      <button class="atab" data-tab="sel">🎯 Icono de selección</button>
+      <button class="atab" data-tab="end">🏁 Pantalla de fin</button>
+      <span id="arte-status"></span>
+    </div>
+    <div id="arte-pane-placa">
+      <canvas id="arte-canvas" width="478" height="40"></canvas>
+      <div id="arte-warn" class="hidden">⚠ una línea se sale de la placa (478 px): acórtala o baja su x</div>
+      <div id="arte-placa-edit"></div>
+    </div>
+    <div id="arte-pane-sel" class="hidden"><div id="arte-sel-edit"></div></div>
+    <div id="arte-pane-end" class="hidden"><div id="arte-end-edit"></div></div>
+  </main>
+  <aside class="rightpane">
+    <section>
+      <h3>Placa</h3>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button id="arte-write" class="btn primary" style="flex:1;min-width:110px">Escribir placa</button>
+        <button id="arte-dl" class="btn">PNG</button>
+        <button id="arte-undo" class="btn">Deshacer</button>
+      </div>
+      <div class="muted" style="font-size:11px;margin-top:4px">El icono de selección y la pantalla de fin se aplican con sus propios botones, en su pestaña.</div>
+    </section>
+    <section class="note">La placa se redibuja con la <b>fuente real del juego</b> (spr_letter1) sobre la plantilla del panel; el medidor de la izquierda se conserva tal cual. En solo lectura todo se edita igual y «PNG» descarga el archivo listo.</section>
+    <section class="note"><b>Pantalla de fin por personaje:</b> se crea el sprite <code>spr_end_*</code>, se registra en el <code>.yyp</code> y <code>net_state_game.gml</code> pasa a llamar a <code>scr_end_sprite()</code> — con <code>sprite_exists</code> de guarda: si un personaje no tiene sprite propio, sale la genérica. Tras escribir: F5; el server no cambia.</section>
+    <section class="note">Siempre queda copia en <code>_backups_animeditor/</code> y hay botón de deshacer (placa, icono y final).</section>
+  </aside>
+</div><!-- /mod-arte -->
+
 </div><!-- /mods -->
 
 <div id="toasts"></div>
@@ -634,11 +707,19 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   el icono del HUD pasa a mostrar la tecla nueva al momento. Se reescribe la condición de teclado en
   <code>scr_*_special.gml</code> y la tecla del icono en <code>obj_playerui/Draw_64.gml</code> — nada de red ni server,
   y en Android los botones táctiles emulan las mismas teclas, así que aplica igual.</p>
-  <h4>7. Música</h4>
+  <h4>7. Módulo 🎨 Arte</h4>
+  <p><b>Placas, iconos de selección y pantallas de fin.</b> Elige personaje (superviviente o killer) y edita la
+  placa del lobby: las 3 líneas con los colores e iconos del juego (<code>№</code> naranja, <code>/</code> azul,
+  <code>|</code> gris… y <code>{shoe}</code> mete el icono del zapato); el nombre admite <b>efectos</b>
+  (sombra, brillo doble, degradado, colores alternos). La pestaña 🎯 importa tu imagen (o una tira) como
+  icono de selección; la 🏁 crea la pantalla de fin <b>por personaje</b> (sprite nuevo + registro en el .yyp +
+  parche de <code>net_state_game.gml</code> vía <code>scr_end_sprite()</code>) o reemplaza las genéricas
+  (gameover, escaparon, etc.). En solo-lectura todo se edita igual y se descarga el material.</p>
+  <h4>8. Música</h4>
   <p>El botón <b>🎵 Música</b> de la barra de arriba pone el tema del lobby
   (<i>Sonic.exe The Disaster 1.0 OST</i>) mientras editas, en bucle y con control de volumen.
   Si lo dejaste encendido, vuelve solo en tu próxima visita.</p>
-  <h4>8. Escribir (todos los módulos)</h4>
+  <h4>9. Escribir (todos los módulos)</h4>
   <p>El panel derecho muestra el antes/después exacto de cada archivo. <b>Escribir</b> guarda una copia en
   <code>_backups_animeditor/</code> y tiene botón de deshacer. Después compila el juego (F5).
   El multijugador no necesita recompilar el server para animaciones ni macros: el frame exacto viaja por red
@@ -2434,9 +2515,10 @@ function init() {
     const v = clamp(parseFloat(e.target.value) || 1, 0.01, 10);
     S.player.speed = v; syncControls(); computeEdits();
   });
-  $$('.preset').forEach(b => b.addEventListener('click', () => {
-    S.player.speed = parseFloat(b.dataset.v); syncControls(); computeEdits();
-  }));
+  $('#sel-preset').addEventListener('change', (e) => {
+    if (!e.target.value) return;
+    S.player.speed = parseFloat(e.target.value); syncControls(); computeEdits();
+  });
   $('#chk-once').addEventListener('change', (e) => { S.player.onePass = e.target.checked; });
   $('#chk-onion').addEventListener('change', (e) => { S.onion = e.target.checked; });
   $('#sel-bg').addEventListener('change', (e) => { S.bg = e.target.value; });
@@ -2554,12 +2636,14 @@ function switchModule(mod) {
   $('#mod-img').classList.toggle('hidden', mod !== 'img');
   $('#mod-srv').classList.toggle('hidden', mod !== 'srv');
   $('#mod-keys').classList.toggle('hidden', mod !== 'keys');
+  $('#mod-arte').classList.toggle('hidden', mod !== 'arte');
   S.pendingFiles = {}; S.edits = [];
   if (discarded && typeof T.discardModulePending === 'function') T.discardModulePending();
   if (mod === 'anim') computeAnimAgain();
   else if (mod === 'tune') enterTune();
   else if (mod === 'srv' && T.enterSrv) T.enterSrv();
   else if (mod === 'keys' && T.enterKeys) T.enterKeys();
+  else if (mod === 'arte' && T.enterArte) T.enterArte();
   else enterImg();
 }
 
@@ -4092,7 +4176,8 @@ function renderCdRows() {
       '<div class="cdtop"><b>' + esc(friendlyName(b.name)) + '</b>' + who +
       '<span class="cur">' + curTxt + '</span>' +
       (changedBase ? '<span class="newchip">→ ' + (fmtSec(b) || b.value + ' frames') + '</span>' : '') + '</div>' +
-      '<div class="pairline">' + subs + subHtml + '</div>' +
+      '<div class="pairline">' + subs + subHtml +
+      (r.hasSrv ? '<label class="mini lnk"><input type="checkbox" class="lnkchk" checked> 🔗 con el server</label>' : '') + '</div>' +
       (chips ? '<div class="srvpair">' + chips + '</div>' : '') +
       (cuadrar ? '<div class="rowbtns">' + cuadrar + '</div>' : '') +
       '<div class="mcode">' + esc(mcodeFor(r)) + '</div>' +
@@ -4450,6 +4535,20 @@ function entForRow(row) {
   return Srv.entries.find(e => !e.ghost && e.line === line) || null;
 }
 
+/* fusión v3.5: con el 🔗 activo, mover la recarga del cliente arrastra al
+   server al mismo valor — una sola palanca para los dos lados. */
+function syncServerTo(name, secs) {
+  const ids = MACRO_TO_IDS[name];
+  if (!ids || !Srv.found) return false;
+  for (const e of Srv.entries) {
+    if (e.ghost || e.ternary) continue;
+    if (!e.ids.some(id => ids.includes(id))) continue;
+    setSrvCd(e, [secs]);
+    return true;
+  }
+  return false;
+}
+
 function init4() {
   // filas del server (igual que v3.3)
   $('#srv-cd-rows').addEventListener('input', (e) => {
@@ -4480,8 +4579,11 @@ function init4() {
     const name = row.dataset.m, rel = row.dataset.rel;
     const m = macroByName(name);
     if (!m || m.kind !== 'sec') return;
-    setMacroSec(rel, name, Math.max(0, parseFloat(e.target.value) || 0)).then((ok) => {
+    const _v = Math.max(0, parseFloat(e.target.value) || 0);
+    setMacroSec(rel, name, _v).then((ok) => {
       if (!ok) return;
+      const lnk = row.querySelector('.lnkchk');
+      if (lnk && lnk.checked) syncServerTo(name, _v);
       refreshRowSurgically(row);
       renderSrvEdits(); renderCdSide();
     });
@@ -4496,7 +4598,11 @@ function init4() {
     const rel = m.rel;
     const val = Math.max(0, parseFloat(e.target.value) || 0);
     const patch = m.kind === 'sec' ? { seconds: val } : { value: Math.round(val) };
-    setMacroVal(rel, name, patch).then(() => { renderCdRows(); renderCdSide(); renderSrvEdits(); });
+    setMacroVal(rel, name, patch).then(() => {
+      const lnk = row.querySelector('.lnkchk');
+      if (lnk && lnk.checked && m.kind === 'sec') syncServerTo(name, val);
+      renderCdRows(); renderCdSide(); renderSrvEdits();
+    });
   });
   $('#cd-rows').addEventListener('click', (e) => {
     const btn = e.target.closest('.cuadrar');
@@ -5496,6 +5602,1590 @@ if (typeof module !== 'undefined' && module.exports) {
 
 initKeys();
 })();
+</script>
+<script>
+/* =====================================================================
+   ARTE CORE TD2D — núcleo del módulo «Arte» de Suite_TD2D.html (v3.5).
+   Funciones puras: render de placas con la fuente del juego (spr_letter1),
+   decodificación de placas existentes (coincidencia de glifos + kerning),
+   códigos de color del juego. Funciona en Node (tests) y navegador.
+
+   Convenciones verificadas contra los PNG reales del repo:
+   - Placa: 478×40. Bandas de plantilla en filas 3-10, 16-23 y 32-37
+     (rayas a alfa 38). Texto anclado en y = 5, 18 y 31.
+   - Glifos: 8×6, cuerpo blanco + detalle negro; kerning: la próxima letra
+     pinta su primera columna 2 px a la derecha de la última del glifo.
+   - Colores (scr_text_spr): \\ #C20037 · @ #0fff39 · & #b824ff · / #5D67FF
+     | #646464 · ` #ffdb00 · № #ea6014 · ~ vuelve al blanco.
+   - El texto es SIEMPRE opaco (a255); el panel de fondo va a alfa 38.
+   ===================================================================== */
+(function (root, factory) {
+  if (typeof module !== 'undefined' && module.exports) module.exports = factory();
+  else root.ArteCore = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var ESCAPE = { '\\': [0xC2, 0x00, 0x37], '@': [0x0f, 0xff, 0x39], '&': [0xb8, 0x24, 0xff],
+    '/': [0x5D, 0x67, 0xFF], '|': [0x64, 0x64, 0x64], '`': [0xff, 0xdb, 0x00],
+    '№': [0xea, 0x60, 0x14], '~': null };
+  var PALETA = [
+    ['~', [255, 255, 255]], ['\\', [0xC2, 0x00, 0x37]], ['@', [0x0f, 0xff, 0x39]],
+    ['&', [0xb8, 0x24, 0xff]], ['/', [0x5D, 0x67, 0xFF]], ['|', [0x64, 0x64, 0x64]],
+    ['`', [0xff, 0xdb, 0x00]], ['№', [0xea, 0x60, 0x14]]
+  ];
+
+  /* ---------- glifos ---------- */
+
+  function glyphFromRgba(rgba, w, h) {
+    var mask = [];
+    for (var y = 0; y < h; y++) {
+      var fila = [];
+      for (var x = 0; x < w; x++) {
+        var i = (y * w + x) * 4;
+        var r = rgba[i], g = rgba[i + 1], b = rgba[i + 2], a = rgba[i + 3];
+        if (a < 40) fila.push(0);
+        else if (r > 128 && g > 128 && b > 128) fila.push(1);
+        else fila.push(2);
+      }
+      mask.push(fila);
+    }
+    return mask;
+  }
+
+  function glyphMetrics(mask) {
+    var L = -1, R = -1;
+    for (var x = 0; x < 8; x++) {
+      var hay = false;
+      for (var y = 0; y < mask.length; y++) if (mask[y][x]) { hay = true; break; }
+      if (hay) { if (L < 0) L = x; R = x; }
+    }
+    return { L: L < 0 ? 0 : L, R: R < 0 ? 0 : R };
+  }
+
+  function glyphMax(mask) {
+    var m = 0;
+    for (var y = 0; y < mask.length; y++)
+      for (var x = 0; x < mask[y].length; x++) {
+        if (mask[y][x] === 1) m += 3;
+        else if (mask[y][x] === 2) m += 2;
+      }
+    return m;
+  }
+
+  function glyphPainted(mask) {
+    var n = 0;
+    for (var y = 0; y < mask.length; y++)
+      for (var x = 0; x < mask[y].length; x++) if (mask[y][x]) n++;
+    return n;
+  }
+
+  function nearestEscape(rgb) {
+    var best = '~', bd = 1e9;
+    for (var k in ESCAPE) {
+      var c = ESCAPE[k];
+      if (!c) continue;
+      var d = Math.abs(rgb[0] - c[0]) + Math.abs(rgb[1] - c[1]) + Math.abs(rgb[2] - c[2]);
+      if (d < bd) { bd = d; best = k; }
+    }
+    return bd <= 96 ? best : '~';
+  }
+
+  /* ---------- decodificación de una placa ----------
+     glyphs: [{mask, ch, L, R, max}] — los sin ch se excluyen. */
+
+  function decodePlaque(img, glyphsAll) {
+    var glyphs = glyphsAll.filter(function (g) { return !!g.ch; });
+    var W = img.w, H = img.h, D = img.data;
+    function tipo(x, y) {
+      if (x < 0 || x >= W || y < 0 || y >= H) return 'F';
+      var i = (y * W + x) * 4;
+      var r = D[i], g = D[i + 1], b = D[i + 2], a = D[i + 3];
+      if (a < 200) return 'T';
+      if (r + g + b < 180) return 'N';
+      return 'B';
+    }
+    var rows = [];
+    for (var y = 0; y < H; y++) {
+      var n = 0;
+      for (var x = 0; x < W; x++) if (tipo(x, y) === 'B') n++;
+      rows.push(n);
+    }
+    var bands = [], cur = null;
+    for (y = 0; y < H; y++) {
+      if (rows[y] >= 4) { if (!cur) cur = [y, y]; cur[1] = y; }
+      else if (cur) { bands.push(cur); cur = null; }
+    }
+    if (cur) bands.push(cur);
+    var anchors = [];
+    for (var bi = 0; bi < bands.length; bi++) {
+      var b = bands[bi], mx = 0;
+      for (y = b[0]; y <= b[1]; y++) mx = Math.max(mx, rows[y]);
+      var ay = b[0];
+      for (y = b[0]; y <= b[1]; y++) if (rows[y] >= Math.max(12, mx * 0.4)) { ay = y; break; }
+      if (mx >= 12) anchors.push(ay);
+    }
+    anchors = anchors.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b2) { return a - b2; });
+
+    var lines = [];
+    for (var ai = 0; ai < anchors.length; ai++) {
+      var ly = anchors[ai];
+      var tokens = [];
+      var run = null;
+      function flush() {
+        if (run && run.s) { run.s = run.s.replace(/\s+$/, ''); if (run.s) tokens.push({ t: 'txt', s: run.s, color: run.color, x0: run.x0 }); }
+        run = null;
+      }
+      var pen = 0;
+      var dy, dx;
+      while (pen < W - 2) {
+        var cuerpo = false;
+        for (dy = 0; dy < 6; dy++) if (tipo(pen, ly + dy) === 'B') { cuerpo = true; break; }
+        if (!cuerpo) {
+          var altoB = false;
+          for (dy = -6; dy < 12; dy++) {
+            if (dy >= 0 && dy < 6) continue;
+            if (tipo(pen, ly + dy) === 'B') { altoB = true; break; }
+          }
+          if (!altoB) { if (run) run.s += ' '; pen += 1; continue; }
+          flush();
+          var xsA = pen, xeA = pen;
+          while (xeA < W) {
+            var hayBA = false;
+            for (dy = -6; dy < 12; dy++) if (tipo(xeA, ly + dy) === 'B') { hayBA = true; break; }
+            if (!hayBA) break;
+            xeA++;
+          }
+          if (xeA > xsA) { tokens.push({ t: 'icon', x: xsA, y: ly, w: xeA - xsA, h: 6, tall: true }); pen = xeA + 2; }
+          else pen += 1;
+          continue;
+        }
+        // busca el mejor glifo con holgura ±1 (las placas originales no
+        // llevan kerning exacto) y dos penalidades: cuerpo en R+1 (glifo
+        // corto) y más cuerpo en el span del que pinta (glifo pequeño)
+        var best = -1, bestScore = -1, bestRgb = null, bestX0 = 0;
+        for (var gi = 0; gi < glyphs.length; gi++) {
+          var g = glyphs[gi];
+          for (var off = -1; off <= 1; off++) {
+            var x0 = pen - g.L + off;
+            if (x0 < 0) continue;
+            var gm = g.mask;
+            var score = 0, rs = 0, gs = 0, bs = 0, nBr = 0, spanBody = 0;
+            for (dy = 0; dy < 6; dy++) {
+              for (var dxx = 0; dxx < 8; dxx++) {
+                var m = (gm[dy] && gm[dy][dxx] !== undefined) ? gm[dy][dxx] : 0;
+                if (!m) continue;
+                var t2 = tipo(x0 + dxx, ly + dy);
+                if (m === 1) {
+                  if (t2 === 'B') { score += 3; var i2 = ((ly + dy) * W + (x0 + dxx)) * 4; rs += D[i2]; gs += D[i2 + 1]; bs += D[i2 + 2]; nBr++; }
+                  else if (t2 === 'N') score -= 3;
+                  else if (t2 === 'T') score -= 1;
+                } else {
+                  if (t2 === 'N') score += 2;
+                  else if (t2 === 'B') score -= 3;
+                }
+              }
+              for (var dxx2 = 0; dxx2 <= g.R; dxx2++) if (tipo(x0 + dxx2, ly + dy) === 'B') spanBody++;
+            }
+            if (spanBody > (g.painted || 999) + 3) score -= 5;
+            for (dy = 0; dy < 6; dy++) if (tipo(x0 + g.R + 1, ly + dy) === 'B') { score -= 4; break; }
+            if (score > bestScore) { bestScore = score; best = gi; bestRgb = nBr ? [rs / nBr, gs / nBr, bs / nBr] : null; bestX0 = x0; }
+          }
+        }
+        var umbral = Math.max(10, 0.5 * (best >= 0 ? glyphs[best].max : 20));
+        if (best >= 0 && bestScore >= umbral) {
+          var ch = glyphs[best].ch;
+          var col = bestRgb ? nearestEscape(bestRgb) : '~';
+          if (run && run.color !== col) { flush(); run = { s: '', color: col, x0: bestX0 }; }
+          else if (!run) run = { s: '', color: col, x0: bestX0 };
+          run.s += ch;
+          pen = bestX0 + glyphs[best].R + 2;
+          continue;
+        }
+        flush();
+        var xs = Math.max(0, pen - 1), xe = pen;
+        while (xe < W) {
+          var hayB = false;
+          for (dy = -6; dy < 12; dy++) if (tipo(xe, ly + dy) === 'B') { hayB = true; break; }
+          if (hayB) { xe++; continue; }
+          if (xe + 1 < W) {
+            var hayB2 = false;
+            for (dy = -6; dy < 12; dy++) if (tipo(xe + 1, ly + dy) === 'B') { hayB2 = true; break; }
+            if (hayB2) { xe += 2; continue; }
+          }
+          break;
+        }
+        var yTop = ly, yBot = ly + 5;
+        for (dy = -6; dy < 0; dy++) {
+          var has = false;
+          for (dx = xs; dx < xe; dx++) if (tipo(dx, ly + dy) !== 'T' && tipo(dx, ly + dy) !== 'F') { has = true; break; }
+          if (has) yTop = ly + dy; else break;
+        }
+        for (dy = 6; dy < 12; dy++) {
+          var has2 = false;
+          for (dx = xs; dx < xe; dx++) if (tipo(dx, ly + dy) !== 'T' && tipo(dx, ly + dy) !== 'F') { has2 = true; break; }
+          if (has2) yBot = ly + dy; else break;
+        }
+        if (xe - xs >= 2) tokens.push({ t: 'icon', x: xs, y: yTop, w: xe - xs, h: yBot - yTop + 1 });
+        pen = xe + 2;
+      }
+      flush();
+      var clean = [];
+      for (var ti = 0; ti < tokens.length; ti++) {
+        var tk = tokens[ti];
+        if (tk.t === 'txt') { tk.s = tk.s.replace(/\s+/g, ' '); if (!tk.s.trim()) continue; }
+        clean.push(tk);
+      }
+      lines.push({ y: ly, tokens: clean });
+    }
+    return { w: W, h: H, lines: lines };
+  }
+
+  /* ---------- texto con códigos del juego -> runs ----------
+     "№tails~ /mobility:~ {shoe}" → runs coloreados + token de icono. */
+
+  function parseGameText(str) {
+    var out = [], cur = { s: '', color: '~' }, started = false;
+    var i = 0;
+    while (i < str.length) {
+      var c = str[i];
+      if (c === '{') {
+        var j = str.indexOf('}', i + 1);
+        if (j > i) {
+          if (cur.s) out.push(cur);
+          out.push({ icon: str.slice(i + 1, j) });
+          cur = { s: '', color: cur.color }; started = false;
+          i = j + 1; continue;
+        }
+      }
+      if (c in ESCAPE) {
+        if (cur.s) out.push(cur);
+        cur = { s: '', color: c }; started = false;
+        i++; continue;
+      }
+      cur.s += c; started = true; i++;
+    }
+    if (cur.s) out.push(cur);
+    return out.filter(function (r) { return r.icon || r.s; });
+  }
+
+  /* ---------- ancho de un texto con kerning (px) ---------- */
+
+  function textWidth(s, glyphsByCh) {
+    var pen = 0;
+    for (var i = 0; i < s.length; i++) {
+      var c = s[i];
+      if (c === ' ') { pen += 5; continue; }
+      var g = glyphsByCh ? glyphsByCh[c] : null;
+      var L = g ? g.L : 0, R = g ? g.R : 5;
+      var x0 = Math.max(pen - L, 0);
+      pen = x0 + R + 2;
+    }
+    return Math.max(0, pen - 2);
+  }
+
+  /* ---------- efectos del texto (para el nombre y otros runs) ---------- */
+
+  var FX = {
+    none:  { lbl: 'normal' },
+    shadow:{ lbl: 'sombra',            dy: 1, dx: 1 },
+    glow:  { lbl: 'brillo doble',      ring: 2 },
+    grad:  { lbl: 'degradado (2 tonos)' },
+    cycle: { lbl: 'colores alternos' }
+  };
+
+  function blitGlyph(D, W, H, gx, gy, glyph, rgb, fx, fxParam, seed) {
+    function put(x, y, r, g, b, a) {
+      if (x < 0 || x >= W || y < 0 || y >= H) return;
+      var i = (y * W + x) * 4;
+      D[i] = r; D[i + 1] = g; D[i + 2] = b; D[i + 3] = a;
+    }
+    var m = glyph.mask;
+    var fxo = fx && FX[fx] ? FX[fx] : FX.none;
+    var col = rgb;
+    if (fxo.grad && fxParam) {
+      // degradado: mitad superior color A, inferior color B
+      col = null; // se decide por fila abajo
+    }
+    if (fxo.cycle) {
+      var pal = PALETA;
+      var idx = (seed || 0);
+      col = pal[idx % pal.length][1];
+    }
+    // sombra / segunda pasada
+    if (fxo.dy || fxo.dx) {
+      for (var y = 0; y < m.length; y++)
+        for (var x = 0; x < m[y].length; x++)
+          if (m[y][x])
+            for (var dy2 = -1; dy2 <= 1; dy2++)
+              for (var dx2 = -1; dx2 <= 1; dx2++)
+                if (Math.abs(dx2) + Math.abs(dy2) === 1)
+                  put(gx + x + dx2 + (fxo.dx || 0), gy + y + dy2 + (fxo.dy || 0), 0, 0, 0, 255);
+    }
+    // contorno negro
+    var ring = fxo.ring || 1;
+    for (var rr = 0; rr < ring; rr++) {
+      for (y = 0; y < m.length; y++)
+        for (x = 0; x < m[y].length; x++)
+          if (m[y][x]) {
+            if (ring === 1) {
+              for (dy2 = -1; dy2 <= 1; dy2++)
+                for (dx2 = -1; dx2 <= 1; dx2++)
+                  if (Math.abs(dx2) + Math.abs(dy2) === 1) put(gx + x + dx2, gy + y + dy2, 0, 0, 0, 255);
+            } else {
+              for (dy2 = -2; dy2 <= 2; dy2++)
+                for (dx2 = -2; dx2 <= 2; dx2++)
+                  if (Math.abs(dx2) + Math.abs(dy2) <= 2) put(gx + x + dx2, gy + y + dx2, 0, 0, 0, 255);
+              // anillo exterior en color (brillo)
+              for (dy2 = -2; dy2 <= 2; dy2++)
+                for (dx2 = -2; dx2 <= 2; dx2++)
+                  if (Math.abs(dx2) + Math.abs(dy2) === 2) put(gx + x + dx2, gy + y + dx2, rgb[0], rgb[1], rgb[2], 255);
+            }
+          }
+    }
+    // cuerpo
+    for (y = 0; y < m.length; y++)
+      for (x = 0; x < m[y].length; x++) {
+        var v = m[y][x];
+        if (v === 1) {
+          var c2 = col;
+          if (fxo.grad && fxParam) {
+            var A = fxParam[0], B = fxParam[1];
+            c2 = y < 3 ? A : B;
+          }
+          put(gx + x, gy + y, c2[0], c2[1], c2[2], 255);
+        } else if (v === 2) put(gx + x, gy + y, 0, 0, 0, 255);
+      }
+  }
+
+  function escapeRgb(code) {
+    var c = ESCAPE[code];
+    return c || [255, 255, 255];
+  }
+
+  /* ---------- render de una placa ----------
+     model: {
+       lines: [{y, x, text, fx, fxParam, fxSeed}]  — texto con escapes e {icono}
+       erase: [{x, y, w, h}]                        — cajas a repintar desde la plantilla
+     }
+     base: RGBA de partida (placa original), template: RGBA limpio,
+     glyphsByCh: char->glyph; iconsById: id->{w,h,pixels:RGBA} */
+
+  function renderPlaque(model, base, template, glyphsByCh, iconsById) {
+    var W = 478, H = 40;
+    var D = new Uint8ClampedArray(base);
+    var boxes = (model.erase || []).slice();
+    for (var li = 0; li < model.lines.length; li++) {
+      var L = model.lines[li];
+      boxes.push({ x: (L.x != null ? L.x : 5) - 2, y: L.y - 2, w: 480, h: 10 });
+    }
+    for (var bi = 0; bi < boxes.length; bi++) {
+      var B = boxes[bi];
+      for (var y = B.y; y < B.y + (B.h || 8); y++)
+        for (var x = B.x; x < B.x + (B.w || 8); x++) {
+          if (x < 0 || x >= W || y < 0 || y >= H) continue;
+          var i = (y * W + x) * 4;
+          D[i] = template[i]; D[i + 1] = template[i + 1];
+          D[i + 2] = template[i + 2]; D[i + 3] = template[i + 3];
+        }
+    }
+    for (li = 0; li < model.lines.length; li++) {
+      L = model.lines[li];
+      var runs = parseGameText(L.text || '');
+      var pen = (L.x != null ? L.x : 5);
+      for (var ri = 0; ri < runs.length; ri++) {
+        var r = runs[ri];
+        if (r.icon) {
+          var ic = iconsById && iconsById[r.icon];
+          if (ic) {
+            var iy = L.y + 1 + Math.max(0, Math.floor((5 - ic.h) / 2));
+            blitPatch(D, W, H, pen - 1, iy, ic);
+            pen += ic.w + 2;
+          }
+          continue;
+        }
+        var rgb = escapeRgb(r.color);
+        for (var ci = 0; ci < r.s.length; ci++) {
+          var ch = r.s[ci];
+          if (ch === ' ') { pen += 5; continue; }
+          var gl = glyphsByCh[ch];
+          if (gl) blitGlyph(D, W, H, pen - gl.L, L.y, gl, rgb, L.fx, L.fxParam, (L.fxSeed || 0) + ci);
+          pen += (gl ? gl.R : 5) + 2;
+        }
+      }
+    }
+    return { data: D, w: W, h: H };
+  }
+
+  function blitPatch(D, W, H, x, y, patch) {
+    for (var py = 0; py < patch.h; py++)
+      for (var px = 0; px < patch.w; px++) {
+        var i = (py * patch.w + px) * 4;
+        if (patch.pixels[i + 3] < 8) continue;
+        var X = x + px, Y = y + py;
+        if (X < 0 || X >= W || Y < 0 || Y >= H) continue;
+        var j = (Y * W + X) * 4;
+        D[j] = patch.pixels[i]; D[j + 1] = patch.pixels[i + 1];
+        D[j + 2] = patch.pixels[i + 2]; D[j + 3] = patch.pixels[i + 3];
+      }
+  }
+
+  return {
+    ESCAPE: ESCAPE, PALETA: PALETA, FX: FX,
+    glyphFromRgba: glyphFromRgba, glyphMetrics: glyphMetrics, glyphMax: glyphMax, glyphPainted: glyphPainted,
+    nearestEscape: nearestEscape, decodePlaque: decodePlaque,
+    parseGameText: parseGameText, textWidth: textWidth,
+    blitGlyph: blitGlyph, blitPatch: blitPatch,
+    escapeRgb: escapeRgb, renderPlaque: renderPlaque
+  };
+});
+
+</script>
+<script>
+/* =====================================================================
+   Suite TD2D — parte 6 (v3.5): módulo «🎨 Arte»
+   · Placa de información del lobby (las 3 líneas con los colores e iconos
+     del juego) — editar texto, colores, efectos del nombre e iconos, con
+     vista previa en vivo. Supervivientes Y killers.
+   · Icono de selección del personaje (spr_lobby_icon / spr_lobby_exeicon*):
+     importar una imagen (o una tira) y encajarla en los frames reales.
+   · Pantalla de fin de juego POR PERSONAJE: crea el sprite spr_end_*,
+     lo registra en el .yyp y parchea net_state_game.gml para usarlo
+     (scr_end_sprite()); también permite reemplazar las pantallas genéricas.
+   Funciona en modo escritura (fs) y en solo-lectura (descarga de PNG +
+   código listo para pegar). Basado en ArteCore (render con la fuente real
+   del juego, spr_letter1) y en el decodificador por coincidencia de glifos.
+   ===================================================================== */
+(() => {
+'use strict';
+const C = window.AnimCore;
+const AC = window.ArteCore;
+const T = window.__animtool;
+const S = T.S;
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+const esc = T.esc, toast = T.toast;
+
+/* ---------- constantes verificadas contra obj_lobby / obj_lobby_icon ---------- */
+
+const INFO_REMAP = { 7: 11, 8: 5, 9: 4, 10: 12, 11: 13, 12: 14 };
+const EXE_ICON_SPR = ['spr_lobby_exeicon', 'spr_lobby_exeicon2', 'spr_lobby_exeicon3', 'spr_lobby_exeicon4', 'spr_lobby_exeicon6'];
+const CHAR_BLAZE = 13;
+const YYP_HINT = 'Sonicexe The Disaster 2D Remake.yyp';
+const NET_GAME = 'scripts/net_state_game/net_state_game.gml';
+const END_SCRIPT_DIR = 'scripts/scr_end_sprite';
+const END_SCRIPT_REL = END_SCRIPT_DIR + '/scr_end_sprite.gml';
+const GAMEOVER_LINE = 'inst.sprite_index = spr_gameover;';
+
+function infoFrameOf(c, isExe) {
+  if (isExe) return c.idx === 4 ? 15 : 7 + c.idx;
+  const sprInd = c.idx - 1;
+  return INFO_REMAP[sprInd] != null ? INFO_REMAP[sprInd] : sprInd;
+}
+function iconTargetOf(c, isExe) {
+  if (isExe) return { spr: EXE_ICON_SPR[c.idx] || EXE_ICON_SPR[4], frame: null };
+  let f = c.idx + 1;
+  if (c.key === 'CHARACTER_SALLY_CANON') f = 7;
+  else if (c.key === 'CHARACTER_VANILLA') f = 6;
+  else if (c.key === 'CHARACTER_METAL') f = 10;
+  else if (c.key === 'CHARACTER_AMELIA') f = 11;
+  else if (c.key === 'CHARACTER_BLAZE') f = 12;
+  return { spr: 'spr_lobby_icon', frame: f };
+}
+function endSpriteName(c, isExe) {
+  const base = c.key.replace(/^CHARACTER_/, '').replace(/^EXE_/, '').toLowerCase();
+  return 'spr_end_' + (isExe ? 'e_' : 's_') + base;
+}
+
+/* ---------- estado ---------- */
+
+const Arte = {
+  loadedCore: false,       // glifos + plantilla + librería de iconos
+  glyphs: null, byCh: null, template: null,
+  infoBitmaps: null, infoGuids: null,
+  icons: null,             // librería {id:{w,h,pixels}}
+  sel: null, isExe: false,
+  model: null,             // {lines:[{y,x,text,fx}], patches:{}, keepName}
+  frameData: null,         // RGBA del frame de la placa actual
+  tab: 'placa',
+  endSprites: new Set(),   // nombres spr_end_* detectados
+  undoStack: [],
+  imports: { selImg: null, selMode: 'contain', selStrip: false, endImgs: [] },
+};
+
+/* ---------- carga del núcleo (una vez por proyecto) ---------- */
+
+async function blobToImageData(blob) {
+  const bmp = await createImageBitmap(blob);
+  const cv = document.createElement('canvas');
+  cv.width = bmp.width; cv.height = bmp.height;
+  const cx = cv.getContext('2d', { willReadFrequently: true });
+  cx.drawImage(bmp, 0, 0);
+  return cx.getImageData(0, 0, bmp.width, bmp.height);
+}
+
+async function loadFrameImageData(spriteName, frameIdx) {
+  const yyText = await T.readText('sprites/' + spriteName + '/' + spriteName + '.yy');
+  if (yyText == null) return null;
+  const meta = C.parseSpriteYy(yyText);
+  if (!meta || !meta.frames.length) return null;
+  const fg = meta.frames[Math.min(frameIdx, meta.frames.length - 1)];
+  const rels = ['sprites/' + spriteName + '/' + fg + '.png'];
+  for (const lg of meta.layers) rels.push('sprites/' + spriteName + '/layers/' + fg + '/' + lg + '.png');
+  for (const rel of rels) {
+    const b = await T.readBlob(rel);
+    if (b) return { imageData: await blobToImageData(b), guid: fg, meta, rel: rel };
+  }
+  return null;
+}
+
+async function loadArteCore() {
+  if (Arte.loadedCore) return true;
+  const host = $('#arte-status');
+  host.textContent = 'cargando la fuente del juego (spr_letter1)…';
+  // glifos
+  const yyText = await T.readText('sprites/spr_letter1/spr_letter1.yy');
+  if (yyText == null) { toast('No encuentro sprites/spr_letter1 (la fuente del juego).', 'err'); return false; }
+  const meta = C.parseSpriteYy(yyText);
+  const chars = buildChars();
+  const glyphs = [], byCh = {};
+  for (let i = 0; i < meta.frames.length; i++) {
+    const fg = meta.frames[i];
+    const b = await T.readBlob('sprites/spr_letter1/' + fg + '.png');
+    if (!b) continue;
+    const id = await blobToImageData(b);
+    const mask = AC.glyphFromRgba(id.data, id.width, id.height);
+    const m = AC.glyphMetrics(mask);
+    const g = { ch: chars[i] || '', mask, L: m.L, R: m.R, max: AC.glyphMax(mask), painted: AC.glyphPainted(mask) };
+    glyphs.push(g);
+    if (g.ch) byCh[g.ch] = g;
+  }
+  Arte.glyphs = glyphs; Arte.byCh = byCh;
+  // placas: 16 frames + plantilla por mayoría
+  host.textContent = 'cargando las placas (spr_char_info)…';
+  const ciyy = await T.readText('sprites/spr_char_info/spr_char_info.yy');
+  const cim = C.parseSpriteYy(ciyy || '');
+  const bitmaps = [], guids = [];
+  for (const fg of cim.frames) {
+    const b = await T.readBlob('sprites/spr_char_info/' + fg + '.png');
+    if (b) { bitmaps.push(await blobToImageData(b)); guids.push(fg); }
+  }
+  if (bitmaps.length < 8) { toast('No puedo leer los PNG de spr_char_info.', 'err'); return false; }
+  Arte.infoBitmaps = bitmaps; Arte.infoGuids = guids;
+  Arte.template = makeTemplate(bitmaps);
+  // librería de iconos: recortes fijos de placas conocidas
+  Arte.icons = extractIcons(bitmaps);
+  // finales existentes
+  Arte.endSprites = new Set([...S.spriteNames].filter(n => n.startsWith('spr_end_')));
+  Arte.loadedCore = true;
+  host.textContent = '';
+  return true;
+}
+
+function buildChars() {
+  const chars = [''] * 0;
+  const out = [];
+  for (let k = 0; k < 26; k++) out.push(String.fromCharCode(97 + k));
+  out.push('-', ',');
+  for (let k = 1; k <= 9; k++) out.push(String(k));
+  out.push('0', '.', "'", ':', '(', ')', '%');
+  for (let k = 0; k < 33; k++) out.push('');
+  out.push('+', 'ñ', 'á', 'é', 'í', 'ó', 'ú', 'ü', '¿', '¡', '?', '!');
+  while (out.length < 89) out.push('');
+  return out;
+}
+
+function makeTemplate(bitmaps) {
+  const W = 478, H = 40;
+  const tpl = new Uint8ClampedArray(W * H * 4);
+  for (let y = 0; y < H; y++) {
+    const tenues = {};
+    for (let x = 0; x < W; x++) {
+      const vals = {};
+      for (const bm of bitmaps) {
+        const i = (y * W + x) * 4;
+        if (bm.data[i + 3] < 60) {
+          const k = bm.data[i] + ',' + bm.data[i + 1] + ',' + bm.data[i + 2] + ',' + bm.data[i + 3];
+          vals[k] = (vals[k] || 0) + 1;
+        }
+      }
+      const ks = Object.keys(vals);
+      if (ks.length) {
+        let best = ks[0];
+        for (const k of ks) if (vals[k] > vals[best]) best = k;
+        tenues[x] = best.split(',').map(Number);
+      }
+    }
+    const xs = Object.keys(tenues).map(Number).sort((a, b) => a - b);
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4;
+      let v;
+      if (tenues[x]) v = tenues[x];
+      else if (xs.length) {
+        let bestX = xs[0];
+        for (const cx of xs) if (Math.abs(cx - x) < Math.abs(bestX - x)) bestX = cx;
+        v = tenues[bestX];
+      } else v = [0, 0, 0, 0];
+      tpl[i] = v[0]; tpl[i + 1] = v[1]; tpl[i + 2] = v[2]; tpl[i + 3] = v[3];
+    }
+  }
+  return tpl;
+}
+
+/* librería de iconos: recortes (con margen de contorno) de placas reales */
+const ICON_CROPS = [
+  ['shoe', 0, 150, 4, 11, 9, 'zapato — velocidad'],
+  ['chev', 0, 193, 3, 12, 10, 'flechas — salto'],
+  ['snow', 0, 256, 3, 12, 9, 'copo — duración'],
+  ['clock', 0, 229, 16, 12, 10, 'reloj — recarga'],
+  ['gauge', 0, 5, 16, 26, 9, 'medidor de pips'],
+  ['fist', 1, 160, 11, 12, 14, 'puño — golpe'],
+  ['bolt', 2, 212, 16, 19, 9, 'rayo — campo'],
+  ['bomb', 2, 262, 29, 14, 9, 'bomba'],
+  ['skull', 7, 160, 16, 10, 9, 'calavera — daño'],
+  ['skull2', 7, 258, 16, 10, 9, 'calavera pequeña'],
+  ['whip', 8, 190, 11, 17, 15, 'látigo'],
+];
+function extractIcons(bitmaps) {
+  const icons = {};
+  for (const [id, fi, x, y, w, h] of ICON_CROPS) {
+    const bm = bitmaps[fi];
+    if (!bm) continue;
+    const px = new Uint8ClampedArray(w * h * 4);
+    for (let py = 0; py < h; py++)
+      for (let pxx = 0; pxx < w; pxx++) {
+        const i = ((y + py) * 478 + (x + pxx)) * 4;
+        const j = (py * w + pxx) * 4;
+        for (let k = 0; k < 4; k++) px[j + k] = (x + pxx >= 0 && x + pxx < 478 && y + py >= 0 && y + py < 40) ? bm.data[i + k] : 0;
+      }
+    icons[id] = { w, h, pixels: px };
+  }
+  return icons;
+}
+
+/* ---------- decodificar la placa actual → modelo editable ---------- */
+
+function patchFromFrame(x, y, w, h) {
+  const px = new Uint8ClampedArray(w * h * 4);
+  const D = Arte.frameData.data;
+  for (let py = 0; py < h; py++)
+    for (let pxx = 0; pxx < w; pxx++) {
+      const i = ((y + py) * 478 + (x + pxx)) * 4;
+      const j = (py * w + pxx) * 4;
+      for (let k = 0; k < 4; k++) px[j + k] = D[i + k];
+    }
+  return { w, h, pixels: px };
+}
+
+/* caja del contenido opaco de un parche (normaliza márgenes) */
+function alphaBbox(px, w, h) {
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (px[(y * w + x) * 4 + 3] > 40) {
+      if (x < x0) x0 = x; if (x > x1) x1 = x;
+      if (y < y0) y0 = y; if (y > y1) y1 = y;
+    }
+  }
+  return x1 < 0 ? null : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+}
+function cropToBbox(px, w, h, bb) {
+  const out = new Uint8ClampedArray(bb.w * bb.h * 4);
+  for (let y = 0; y < bb.h; y++) for (let x = 0; x < bb.w; x++) {
+    const i = ((bb.y + y) * w + (bb.x + x)) * 4, j = (y * bb.w + x) * 4;
+    for (let k = 0; k < 4; k++) out[j + k] = px[i + k];
+  }
+  return { w: bb.w, h: bb.h, pixels: out };
+}
+
+function matchIcon(patch) {
+  const pb = alphaBbox(patch.pixels, patch.w, patch.h);
+  if (!pb || pb.w < 3) return null; // los de 2 px (los «:») van como parche
+  const pc = cropToBbox(patch.pixels, patch.w, patch.h, pb);
+  function inA(p, x, y) {
+    if (x < 0 || y < 0 || x >= p.w || y >= p.h) return false;
+    return p.pixels[(y * p.w + x) * 4 + 3] > 40;
+  }
+  for (const id in Arte.icons) {
+    const ic = Arte.icons[id];
+    const ib = alphaBbox(ic.pixels, ic.w, ic.h);
+    if (!ib) continue;
+    if (Math.abs(ib.w - pb.w) > 1 || Math.abs(ib.h - pb.h) > 1) continue;
+    const icc = cropToBbox(ic.pixels, ic.w, ic.h, ib);
+    // mejor alineación con desfases ±1 (el contorno puede sobresalir 1 px)
+    let best = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      let same = 0, tot = 0;
+      for (let y = 0; y < Math.max(pc.h, icc.h); y++) for (let x = 0; x < Math.max(pc.w, icc.w); x++) {
+        const a = inA(pc, x - dx, y - dy), b = inA(icc, x, y);
+        tot++; if (a === b) same++;
+      }
+      if (tot && same / tot > best) best = same / tot;
+    }
+    if (best >= 0.88) return id;
+  }
+  return null;
+}
+
+function modelFromDecode(dec) {
+  const model = { lines: [], patches: {}, keepName: false };
+  let patchN = 0;
+  for (const L of dec.lines) {
+    let text = '';
+    let prevColor = null;
+    let nameZone = true; // antes de x≈55: zona del nombre
+    let sawTxtInName = false;
+    const tokens = [];
+    for (const tk of L.tokens) {
+      if (tk.t === 'txt') {
+        if (tk.x0 < 55) sawTxtInName = true;
+        tokens.push(tk);
+      } else tokens.push(tk);
+    }
+    if (!sawTxtInName && L.tokens.some(tk => tk.t === 'icon' && tk.x < 55)) model.keepName = true;
+    let x0 = null;
+    for (const tk of tokens) {
+      if (tk.t === 'txt') {
+        if (x0 == null) x0 = tk.x0;
+        if (tk.color !== prevColor && tk.color !== '~') text += tk.color;
+        else if (tk.color !== prevColor && prevColor !== null) text += '~';
+        text += tk.s;
+        prevColor = tk.color;
+        text += ' ';
+      } else {
+        if (model.keepName && tk.x < 55) continue; // el nombre «de arte» se conserva
+        if (x0 == null || tk.x < x0) x0 = Math.max(tk.x, 59);
+        // margen de contorno: los parches se comparan (y se dibujan) con
+        // su contorno negro, igual que los recortes de la librería
+        const patch = patchFromFrame(tk.x - 1, tk.y - 2, tk.w + 2, tk.h + 4);
+        const libId = matchIcon(patch);
+        if (libId) text += '{' + libId + '}';
+        else {
+          patchN++;
+          model.patches['p' + patchN] = patch;
+          text += '{p' + patchN + '}';
+        }
+        prevColor = null;
+        text += ' ';
+      }
+    }
+    text = text.replace(/\s+/g, ' ').replace(/\s+$/, '');
+    model.lines.push({ y: L.y, x: Math.max(x0 != null ? x0 : 5, 2), text, fx: 'none' });
+  }
+  return model;
+}
+
+/* ---------- editor de la placa ---------- */
+
+const COLS = [
+  ['~', 'blanco'], ['\\', 'rojo'], ['@', 'verde'], ['&', 'morado'],
+  ['/', 'azul'], ['|', 'gris'], ['`', 'amarillo'], ['№', 'naranja']
+];
+const FXS = [
+  ['none', 'normal'], ['shadow', 'con sombra'], ['glow', 'brillo doble'],
+  ['grad', 'degradado'], ['cycle', 'colores alternos']
+];
+
+function chipsHTML() {
+  let h = '<span class="arte-lbl">color:</span>';
+  for (const [code, lbl] of COLS) {
+    const rgb = AC.escapeRgb(code);
+    h += '<button class="chipcol" data-ins="' + esc(code) + '" title="insertar color ' + lbl + ' en el cursor" style="background:rgb(' + rgb.join(',') + ')"></button>';
+  }
+  h += '<span class="arte-lbl" style="margin-left:8px">icono:</span>';
+  for (const [id, , , , , , lbl] of ICON_CROPS) {
+    if (!Arte.icons[id]) continue;
+    h += '<button class="chipico" data-ins="{' + id + '}" title="' + esc(lbl) + '"><canvas width="16" height="14" data-icon="' + id + '"></canvas></button>';
+  }
+  return h;
+}
+
+function lineRowHTML(i, L) {
+  const nombres = ['línea 1 · nombre y movilidad', 'línea 2 · defensa / apoyo', 'línea 3 · pasiva'];
+  const wpx = AC.textWidth(L.text, Arte.byCh);
+  return '<div class="arteline" data-l="' + i + '">' +
+    '<div class="alhead"><b>' + nombres[i] + '</b>' +
+    '<label class="mini">x <input type="number" class="alx" min="0" max="470" value="' + (L.x || 0) + '" style="width:52px"></label>' +
+    (i === 0 ? '<label class="mini">efecto <select class="alfx">' +
+      FXS.map(f => '<option value="' + f[0] + '"' + (L.fx === f[0] ? ' selected' : '') + '>' + f[1] + '</option>').join('') +
+      '</select></label>' : '') +
+    '<span class="alw' + (wpx > 460 ? ' over' : '') + '">' + wpx + ' px</span></div>' +
+    '<input type="text" class="altext" spellcheck="false" value="' + esc(L.text) + '">' +
+    '</div>';
+}
+
+function renderPlaqueEditor() {
+  const host = $('#arte-placa-edit');
+  const c = Arte.sel;
+  if (!c || !Arte.model) { host.innerHTML = '<div class="muted">elige un personaje</div>'; return; }
+  let h = '<div class="arte-head">' + (Arte.isExe ? '☠ ' : '') + esc(c.name) +
+    ' · placa <span class="mono">spr_char_info</span> frame ' + infoFrameOf(c, Arte.isExe) +
+    (Arte.model.keepName ? ' · <span class="mut">nombre dibujado a mano: se conserva (borra el texto y escribe el tuyo para redibujarlo)</span>' : '') +
+    '</div>';
+  h += '<div class="chipsrow">' + chipsHTML() + '</div>';
+  Arte.model.lines.forEach((L, i) => { h += lineRowHTML(i, L); });
+  h += '<div class="artenote">Los botones de color/icono insertan en el cursor del campo activo. Códigos: <span class="mono">№</span> naranja · <span class="mono">/</span> azul · <span class="mono">|</span> gris · <span class="mono">\\</span> rojo · <span class="mono">`</span> amarillo · <span class="mono">~</span> vuelve al blanco · <span class="mono">{shoe}</span> mete un icono.</div>';
+  host.innerHTML = h;
+  // miniaturas de iconos
+  for (const cv of host.querySelectorAll('canvas[data-icon]')) {
+    const ic = Arte.icons[cv.dataset.icon];
+    if (!ic) continue;
+    const cx = cv.getContext('2d');
+    const id = new ImageData(new Uint8ClampedArray(ic.pixels), ic.w, ic.h);
+    tmpCanvas(ic.w, ic.h, id, (cvs) => {
+      cx.imageSmoothingEnabled = false;
+      const sc = Math.min(cv.width / ic.w, cv.height / ic.h);
+      cx.clearRect(0, 0, cv.width, cv.height);
+      cx.drawImage(cvs, 0, 0, ic.w * sc, ic.h * sc);
+    });
+  }
+  renderPreview();
+}
+
+function tmpCanvas(w, h, imageData, cb) {
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  cv.getContext('2d').putImageData(imageData, 0, 0);
+  cb(cv);
+}
+
+function renderPreview() {
+  const cv = $('#arte-canvas');
+  if (!cv || !Arte.model || !Arte.frameData) return;
+  const icons = Object.assign({}, Arte.icons, Arte.model.patches);
+  const out = AC.renderPlaque(Arte.model, Arte.frameData.data, Arte.template, Arte.byCh, icons);
+  const cx = cv.getContext('2d');
+  cx.imageSmoothingEnabled = false;
+  cx.putImageData(new ImageData(out.data, 478, 40), 0, 0);
+  // aviso de desbordamiento
+  let over = false;
+  for (const L of Arte.model.lines) {
+    if (AC.textWidth(L.text, Arte.byCh) + (L.x || 0) > 474) over = true;
+  }
+  $('#arte-warn').classList.toggle('hidden', !over);
+}
+
+/* ---------- pestaña: icono de selección ---------- */
+
+async function renderSelIconTab() {
+  const host = $('#arte-sel-edit');
+  const c = Arte.sel;
+  if (!c) { host.innerHTML = '<div class="muted">elige un personaje</div>'; return; }
+  const tgt = iconTargetOf(c, Arte.isExe);
+  host.innerHTML =
+    '<div class="arte-head">' + esc(c.name) + ' · icono de selección · <span class="mono">' + tgt.spr + '</span>' +
+    (tgt.frame != null ? ' · frame ' + tgt.frame : ' · tira animada (6 frames)') + '</div>' +
+    '<div class="artestrip" id="arte-sel-strip"><div class="muted">cargando…</div></div>' +
+    '<div class="arteimport">' +
+    '<input type="file" id="arte-sel-file" accept="image/*" style="max-width:240px">' +
+    '<label class="mini"><input type="checkbox" id="arte-sel-strip-chk" ' + (Arte.imports.selStrip ? 'checked' : '') + '> es una tira: repartir en frames</label>' +
+    '<label class="mini">encaje <select id="arte-sel-fit">' +
+    '<option value="contain"' + (Arte.imports.selMode === 'contain' ? ' selected' : '') + '>contener (mantiene todo)</option>' +
+    '<option value="cover"' + (Arte.imports.selMode === 'cover' ? ' selected' : '') + '>llenar (recorta)</option>' +
+    '<option value="stretch"' + (Arte.imports.selMode === 'stretch' ? ' selected' : '') + '>estirar</option></select></label>' +
+    '</div>' +
+    '<div id="arte-sel-prev"></div>' +
+    '<div class="rowbtns"><button id="arte-sel-apply" class="btn primary"' + (S.mode !== 'fs' ? ' title="solo lectura: usa Descargar"' : '') + '>Aplicar al juego</button>' +
+    '<button id="arte-sel-dl" class="btn">Descargar PNG</button></div>' +
+    '<div class="artenote">El icono del lobby es el que se ve al elegir personaje (24×24 los supervivientes, 58×62 los killers, animado). Una imagen sola se repite en todos los frames; una tira horizontal se corta en frames.</div>';
+  // frames actuales
+  const yyText = await T.readText('sprites/' + tgt.spr + '/' + tgt.spr + '.yy');
+  const strip = $('#arte-sel-strip');
+  if (yyText == null) { strip.innerHTML = '<div class="muted">no encuentro ' + esc(tgt.spr) + '</div>'; return; }
+  const meta = C.parseSpriteYy(yyText);
+  const n = meta.frames.length;
+  let h = '';
+  const frames = [];
+  for (let i = 0; i < n; i++) {
+    const fg = meta.frames[i];
+    const b = await T.readBlob('sprites/' + tgt.spr + '/' + fg + '.png');
+    h += '<canvas class="selframe" width="' + (tgt.spr === 'spr_lobby_icon' ? 24 : 58) + '" height="' + (tgt.spr === 'spr_lobby_icon' ? 24 : 62) + '" data-fi="' + i + '"' +
+      (tgt.frame === i ? ' style="outline:2px solid var(--gold)"' : '') + '></canvas>';
+    frames.push({ guid: fg, blob: b, meta });
+  }
+  strip.innerHTML = h + '<span class="mut" style="font-size:11px">' + n + ' frames' + (tgt.frame != null ? ' · el marcado es el de este personaje' : '') + '</span>';
+  for (const cv of strip.querySelectorAll('canvas')) {
+    const f = frames[+cv.dataset.fi];
+    if (f && f.blob) {
+      const bmp = await createImageBitmap(f.blob);
+      cv.getContext('2d').drawImage(bmp, 0, 0);
+    }
+  }
+  Arte.selTarget = { spr: tgt.spr, frames, frame: tgt.frame };
+  bindSelIconEvents();
+}
+
+function fitDraw(cx, bmp, W, H, mode) {
+  cx.clearRect(0, 0, W, H);
+  cx.imageSmoothingEnabled = false;
+  if (mode === 'stretch') { cx.drawImage(bmp, 0, 0, W, H); return; }
+  const sc = mode === 'cover' ? Math.max(W / bmp.width, H / bmp.height) : Math.min(W / bmp.width, H / bmp.height);
+  const dw = Math.round(bmp.width * sc), dh = Math.round(bmp.height * sc);
+  cx.drawImage(bmp, Math.floor((W - dw) / 2), Math.floor((H - dh) / 2), dw, dh);
+}
+
+async function importSelIcon(file) {
+  const bmp = await createImageBitmap(file);
+  Arte.imports.selImg = bmp;
+  renderSelIconPreview();
+}
+
+function renderSelIconPreview() {
+  const host = $('#arte-sel-prev');
+  const t = Arte.selTarget;
+  if (!host || !t || !Arte.imports.selImg) { if (host) host.innerHTML = ''; return; }
+  const isLobby = t.spr === 'spr_lobby_icon';
+  const W = isLobby ? 24 : 58, H = isLobby ? 24 : 62;
+  const bmp = Arte.imports.selImg;
+  const strip = Arte.imports.selStrip;
+  const n = strip ? Math.max(1, Math.min(Math.floor(bmp.width / W), t.frames.length)) : 1;
+  let h = '<div class="arte-lbl">vista previa (' + n + ' frame' + (n > 1 ? 's' : '') + '):</div><div class="artestrip">';
+  for (let i = 0; i < t.frames.length; i++) {
+    h += '<canvas class="selframe" width="' + W + '" height="' + H + '" data-fi="' + i + '"></canvas>';
+  }
+  h += '</div>';
+  host.innerHTML = h;
+  for (const cv of host.querySelectorAll('canvas')) {
+    const fi = +cv.dataset.fi;
+    const cx = cv.getContext('2d');
+    cx.imageSmoothingEnabled = false;
+    cx.clearRect(0, 0, W, H);
+    if (strip) {
+      const src = Math.min(fi, n - 1);
+      cx.drawImage(bmp, src * W, 0, W, H, 0, 0, W, H);
+    } else {
+      fitDraw(cx, bmp, W, H, Arte.imports.selMode);
+    }
+  }
+}
+
+function bindSelIconEvents() {
+  const file = $('#arte-sel-file');
+  if (file) file.addEventListener('change', async (e) => {
+    if (e.target.files && e.target.files[0]) { await importSelIcon(e.target.files[0]); e.target.value = ''; }
+  });
+  const chk = $('#arte-sel-strip-chk');
+  if (chk) chk.addEventListener('change', (e) => { Arte.imports.selStrip = e.target.checked; renderSelIconPreview(); });
+  const fit = $('#arte-sel-fit');
+  if (fit) fit.addEventListener('change', (e) => { Arte.imports.selMode = e.target.value; renderSelIconPreview(); });
+  const apply = $('#arte-sel-apply');
+  if (apply) apply.addEventListener('click', applySelIcon);
+  const dl = $('#arte-sel-dl');
+  if (dl) dl.addEventListener('click', downloadSelIcon);
+}
+
+async function selIconFramesBlob() {
+  const t = Arte.selTarget;
+  if (!t || !Arte.imports.selImg) return null;
+  const isLobby = t.spr === 'spr_lobby_icon';
+  const W = isLobby ? 24 : 58, H = isLobby ? 24 : 62;
+  const bmp = Arte.imports.selImg;
+  const strip = Arte.imports.selStrip;
+  const out = [];
+  for (let i = 0; i < t.frames.length; i++) {
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const cx = cv.getContext('2d');
+    cx.imageSmoothingEnabled = false;
+    if (strip) {
+      const n = Math.max(1, Math.min(Math.floor(bmp.width / W), t.frames.length));
+      const src = Math.min(i, n - 1);
+      cx.drawImage(bmp, src * W, 0, W, H, 0, 0, W, H);
+    } else fitDraw(cx, bmp, W, H, Arte.imports.selMode);
+    out.push(await new Promise(res => cv.toBlob(res, 'image/png')));
+  }
+  return out;
+}
+
+async function applySelIcon() {
+  if (S.mode !== 'fs') { toast('Solo lectura: usa «Descargar PNG» y pega el archivo a mano.', 'warn'); return; }
+  const t = Arte.selTarget;
+  const blobs = await selIconFramesBlob();
+  if (!t || !blobs) { toast('Primero importa una imagen.', 'warn'); return; }
+  const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  const undo = [];
+  try {
+    const bdir = await (async () => {
+      const dh = await T.fsWalkDir('');
+      return await dh.getDirectoryHandle('_backups_animeditor', { create: true }).then(d => d.getDirectoryHandle(stamp, { create: true }));
+    })();
+    for (let i = 0; i < t.frames.length; i++) {
+      const f = t.frames[i];
+      const rel = 'sprites/' + t.spr + '/' + f.guid + '.png';
+      await backupAndWrite(rel, blobs[i], bdir, undo);
+      // capas declaradas que existan
+      for (const lg of f.meta.layers) {
+        const lrel = 'sprites/' + t.spr + '/layers/' + f.guid + '/' + lg + '.png';
+        try { await T.fsWalkFile(lrel); await backupAndWrite(lrel, blobs[i], bdir, undo); } catch (e) { /* no existe */ }
+      }
+    }
+  } catch (e) { toast('Error al escribir: ' + e.message, 'err'); return; }
+  Arte.undoStack.push(undo);
+  toast('Icono escrito (' + t.frames.length + ' frames). Recompila (F5) para verlo.');
+  await renderSelIconTab();
+}
+
+async function backupAndWrite(rel, blob, bdir, undo) {
+  const fh = await T.fsWalkFile(rel);
+  const old = await (await fh.getFile()).arrayBuffer();
+  const base = rel.split('/').pop();
+  const bfh = await bdir.getFileHandle(base + '.bak-' + rel.split('/').slice(-2, -1)[0] + '-' + Math.random().toString(36).slice(2, 6), { create: true });
+  let w = await bfh.createWritable(); await w.write(old); await w.close();
+  const nw = await fh.createWritable(); await nw.write(blob); await nw.close();
+  undo.push({ rel, backup: '_backups_animeditor/' + bdir.name + '/' + bfh.name });
+}
+
+async function downloadSelIcon() {
+  const blobs = await selIconFramesBlob();
+  if (!blobs) { toast('Primero importa una imagen.', 'warn'); return; }
+  const t = Arte.selTarget;
+  for (let i = 0; i < blobs.length; i++) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blobs[i]);
+    a.download = t.spr + '_frame' + i + '.png';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
+  toast('Descargados ' + blobs.length + ' PNG: cópialos como ' + t.spr + '/<frameGuid>.png.');
+}
+
+/* ---------- pestaña: pantalla de fin ---------- */
+
+const GENERIC_SCREENS = [
+  ['spr_gameover', 'derrota / el EXE gana'],
+  ['spr_youkilledeveryone', '«los mataste a todos»'],
+  ['spr_survivorsescaped', 'los supervivientes escapan'],
+  ['spr_timeover', 'tiempo agotado']
+];
+
+function renderEndTab() {
+  const host = $('#arte-end-edit');
+  const c = Arte.sel;
+  if (!c) { host.innerHTML = '<div class="muted">elige un personaje</div>'; return; }
+  const sprName = endSpriteName(c, Arte.isExe);
+  const exists = Arte.endSprites.has(sprName);
+  host.innerHTML =
+    '<div class="arte-head">final de <b>' + esc(c.name) + '</b> · sprite propio <span class="mono">' + sprName + '</span> ' +
+    (exists ? '· <span style="color:var(--green)">ya existe</span>' : '· nuevo') + '</div>' +
+    '<div class="arteimport">' +
+    '<input type="file" id="arte-end-file" accept="image/*" multiple style="max-width:280px">' +
+    '<span class="mut" style="font-size:11px">480×270 · cada imagen = 1 frame (se piden en orden)</span></div>' +
+    '<div id="arte-end-prev"></div>' +
+    '<div class="rowbtns">' +
+    '<button id="arte-end-apply" class="btn primary">Crear sprite + enchufar el código</button>' +
+    '<button id="arte-end-dl" class="btn">Descargar material</button></div>' +
+    '<div class="artenote">Crea el sprite del final para ESTE personaje, lo registra en el proyecto y parchea <span class="mono">net_state_game.gml</span> (mediante <span class="mono">scr_end_sprite()</span>) para que cuando tu personaje pierda (o el EXE correspondiente gane) se vea TU imagen en vez de la genérica. Mientras el sprite exista, el juego la usa; el código la respeta con <span class="mono">sprite_exists</span>.</div>' +
+    '<hr style="border:none;border-top:1px dashed var(--line);margin:10px 0">' +
+    '<div class="arte-lbl">…o reemplaza una pantalla genérica (afecta a todos):</div>' +
+    '<div class="arteimport"><select id="arte-generic-sel">' +
+    GENERIC_SCREENS.map(g => '<option value="' + g[0] + '">' + g[0] + ' — ' + g[1] + '</option>').join('') +
+    '</select><input type="file" id="arte-generic-file" accept="image/*" multiple style="max-width:220px"></div>' +
+    '<div class="rowbtns"><button id="arte-generic-apply" class="btn">Reemplazar la genérica</button></div>';
+  const f = $('#arte-end-file');
+  f.addEventListener('change', async (e) => {
+    Arte.imports.endImgs = [];
+    for (const file of e.target.files) Arte.imports.endImgs.push(await createImageBitmap(file));
+    e.target.value = '';
+    renderEndPreview();
+  });
+  $('#arte-end-apply').addEventListener('click', applyEndSprite);
+  $('#arte-end-dl').addEventListener('click', downloadEndMaterial);
+  const gf = $('#arte-generic-file');
+  gf.addEventListener('change', async (e) => {
+    Arte.imports.genericImgs = [];
+    for (const file of e.target.files) Arte.imports.genericImgs.push(await createImageBitmap(file));
+    e.target.value = '';
+  });
+  $('#arte-generic-apply').addEventListener('click', applyGenericScreen);
+  renderEndPreview();
+}
+
+function renderEndPreview() {
+  const host = $('#arte-end-prev');
+  if (!host) return;
+  const imgs = Arte.imports.endImgs;
+  if (!imgs.length) { host.innerHTML = '<div class="muted">sin imagen importada</div>'; return; }
+  let h = '<div class="artestrip">';
+  const ids = [];
+  for (let i = 0; i < Math.min(imgs.length, 6); i++) { h += '<canvas width="160" height="90" data-i="' + i + '"></canvas>'; ids.push(i); }
+  h += '</div>';
+  host.innerHTML = h;
+  for (const cv of host.querySelectorAll('canvas')) {
+    const cx = cv.getContext('2d');
+    cx.imageSmoothingEnabled = false;
+    cx.drawImage(imgs[+cv.dataset.i], 0, 0, cv.width, cv.height);
+  }
+}
+
+async function endFramesBlobs(imgs) {
+  const out = [];
+  for (const bmp of imgs.slice(0, 6)) {
+    const cv = document.createElement('canvas');
+    cv.width = 480; cv.height = 270;
+    const cx = cv.getContext('2d');
+    cx.imageSmoothingEnabled = false;
+    fitDraw(cx, bmp, 480, 270, 'cover');
+    out.push(await new Promise(res => cv.toBlob(res, 'image/png')));
+  }
+  return out;
+}
+
+function guid() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, ch => {
+    const r = Math.random() * 16 | 0;
+    return (ch === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+/* Genera el .yy de un sprite nuevo derivando el de spr_gameover:
+   se parsea, se cambian nombre/GUIDs/nº de frames y se serializa. */
+async function makeSpriteYy(name, nFrames) {
+  const src = await T.readText('sprites/spr_gameover/spr_gameover.yy');
+  if (src == null) throw new Error('no encuentro sprites/spr_gameover/spr_gameover.yy (plantilla)');
+  const d = JSON.parse(src.replace(/,\s*(?=[}\]])/g, ''));
+  d['%Name'] = name;
+  d.name = name;
+  const oldPath = 'sprites/spr_gameover/spr_gameover.yy';
+  const newPath = 'sprites/' + name + '/' + name + '.yy';
+  // frames nuevos
+  const frames = [];
+  for (let i = 0; i < nFrames; i++) {
+    frames.push({ '$GMSpriteFrame': 'v1', '%Name': guid(), resourceType: 'GMSpriteFrame', resourceVersion: '2.0' });
+    frames[frames.length - 1].name = frames[frames.length - 1]['%Name'];
+  }
+  d.frames = frames;
+  // capa por defecto con GUID nuevo
+  const layerGuid = guid();
+  d.layers = [{ '$GMImageLayer': '', '%Name': layerGuid, blendMode: 0, displayName: 'default', isLocked: false, name: layerGuid, opacity: 100.0, resourceType: 'GMImageLayer', resourceVersion: '2.0', visible: true }];
+  // secuencia
+  d.sequence['%Name'] = name;
+  d.sequence.name = name;
+  d.sequence.length = nFrames;
+  const kfs = [];
+  for (let i = 0; i < nFrames; i++) {
+    kfs.push({
+      '$Keyframe<SpriteFrameKeyframe>': '',
+      Channels: {
+        '0': {
+          '$SpriteFrameKeyframe': '',
+          Id: { name: frames[i]['%Name'], path: newPath },
+          resourceType: 'SpriteFrameKeyframe', resourceVersion: '2.0'
+        }
+      },
+      Disabled: false, id: guid(), IsCreationKey: false, Key: i, Length: 1.0,
+      resourceType: 'Keyframe<SpriteFrameKeyframe>', resourceVersion: '2.0', Stretch: false
+    });
+  }
+  d.sequence.tracks = [{
+    '$GMSpriteFramesTrack': '', builtinName: 0, events: [], inheritsTrackColour: true,
+    interpolation: 1, isCreationTrack: false, modifiers: [], name: 'frames',
+    keyframes: { '$KeyframeStore<SpriteFrameKeyframe>': '', Keyframes: kfs, resourceType: 'KeyframeStore<SpriteFrameKeyframe>', resourceVersion: '2.0' },
+    resourceType: 'GMSpriteFramesTrack', resourceVersion: '2.0',
+    spriteId: null, trackColour: 0, tracks: [], traits: 0
+  }];
+  return JSON.stringify(d, null, 2) + '\n';
+}
+
+async function ensureDir(path) {
+  const parts = T.normPath(path).split('/').filter(Boolean);
+  let dh = S.rootHandle;
+  for (const p of parts) dh = await dh.getDirectoryHandle(p, { create: true });
+  return dh;
+}
+
+async function writeFileNew(rel, data) {
+  const parts = T.normPath(rel).split('/');
+  const fname = parts.pop();
+  const dh = await ensureDir(parts.join('/'));
+  const fh = await dh.getFileHandle(fname, { create: true });
+  const w = await fh.createWritable();
+  await w.write(data);
+  await w.close();
+}
+
+async function yypAddResource(name, path) {
+  const yyp = await findYyp();
+  let txt = await T.readText(yyp);
+  if (txt.includes('"name":"' + name + '"')) return false;
+  const marker = '"resources":[';
+  const i = txt.indexOf(marker);
+  if (i < 0) throw new Error('el .yyp no tiene "resources"');
+  const nl = txt.slice(i + marker.length).startsWith('\r\n') ? '\r\n' : '\n';
+  const entry = '    {"id":{"name":"' + name + '","path":"' + path + '",},},' + nl;
+  const at = i + marker.length;
+  txt = txt.slice(0, at) + nl + entry + txt.slice(at);
+  await writeTextFile(yyp, txt);
+  return true;
+}
+
+async function findYyp() {
+  if (S.mode === 'files') {
+    for (const p of S.files.keys()) if (p.endsWith('.yyp')) return p;
+  } else if (S.mode === 'fs') {
+    const dh = S.rootHandle;
+    for await (const [n, h] of dh.entries()) if (h.kind === 'file' && n.endsWith('.yyp')) return n;
+  }
+  throw new Error('no encuentro el .yyp del proyecto');
+}
+
+async function writeTextFile(rel, txt) {
+  const fh = await T.fsWalkFile(rel);
+  const w = await fh.createWritable();
+  await w.write(new Blob([txt], { type: 'text/plain' }));
+  await w.close();
+}
+
+function endScriptContent() {
+  const exeCases = [], survCases = [];
+  for (const name of Arte.endSprites) {
+    const m = name.match(/^spr_end_e_(.+)$/);
+    if (m) exeCases.push('\t\t\tcase EXE_' + m[1].toUpperCase() + ': if(sprite_exists(' + name + ')) return ' + name + '; break;');
+    const m2 = name.match(/^spr_end_s_(.+)$/);
+    if (m2) survCases.push('\t\t\tcase CHARACTER_' + m2[1].toUpperCase() + ': if(sprite_exists(' + name + ')) return ' + name + '; break;');
+  }
+  return 'function scr_end_sprite()\n{\n' +
+    '\t// Suite TD2D (modulo Arte): pantalla de final por personaje.\n' +
+    '\t// Devuelve el sprite propio si existe; si no, el estandar.\n' +
+    '\tif(global.character == CHARACTER_EXE)\n\t{\n\t\tswitch(global.exeCharacter)\n\t\t{\n' +
+    (exeCases.length ? exeCases.join('\n') + '\n' : '') +
+    '\t\t}\n\t}\n\telse\n\t{\n\t\tswitch(global.character)\n\t\t{\n' +
+    (survCases.length ? survCases.join('\n') + '\n' : '') +
+    '\t\t}\n\t}\n\treturn spr_gameover;\n}\n';
+}
+
+async function applyEndSprite() {
+  if (S.mode !== 'fs') { toast('Solo lectura: usa «Descargar material» y sigue el LEEMI.', 'warn'); return; }
+  const c = Arte.sel;
+  const imgs = Arte.imports.endImgs;
+  if (!c || !imgs.length) { toast('Primero importa una o más imágenes.', 'warn'); return; }
+  const sprName = endSpriteName(c, Arte.isExe);
+  const blobs = await endFramesBlobs(imgs);
+  const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  const undo = [];
+  try {
+    // 1) .yy derivado del de spr_gameover: sus guids MANDAN
+    await ensureDir('sprites/' + sprName);
+    const yy = await makeSpriteYy(sprName, blobs.length);
+    const yyObj = JSON.parse(yy.replace(/,\s*(?=[}\]])/g, ''));
+    const frameGuids = yyObj.frames.map(f => f.name);
+    // 2) frames (PNG raíz) con los guids del .yy
+    for (let i = 0; i < blobs.length; i++)
+      await writeFileNew('sprites/' + sprName + '/' + frameGuids[i] + '.png', blobs[i]);
+    await writeFileNew('sprites/' + sprName + '/' + sprName + '.yy', new Blob([yy], { type: 'text/plain' }));
+    // 3) registro en el .yyp
+    await yypAddResource(sprName, 'sprites/' + sprName + '/' + sprName + '.yy');
+    // 4) script scr_end_sprite
+    Arte.endSprites.add(sprName);
+    await ensureDir(END_SCRIPT_DIR);
+    await writeFileNew(END_SCRIPT_REL, new Blob([endScriptContent()], { type: 'text/plain' }));
+    const yyScript = '{\n' +
+      '  "$GMScript":"v1",\n' +
+      '  "%Name":"scr_end_sprite",\n' +
+      '  "isCompatibility":false,\n' +
+      '  "isDnD":false,\n' +
+      '  "name":"scr_end_sprite",\n' +
+      '  "parent":{\n' +
+      '    "name":"Players",\n' +
+      '    "path":"folders/Scripts/Players.yy",\n' +
+      '  },\n' +
+      '  "resourceType":"GMScript",\n' +
+      '  "resourceVersion":"2.0",\n' +
+      '}\n';
+    await writeFileNew(END_SCRIPT_DIR + '/scr_end_sprite.yy', new Blob([yyScript], { type: 'text/plain' }));
+    await yypAddResource('scr_end_sprite', END_SCRIPT_DIR + '/scr_end_sprite.yy');
+    // 5) parche de net_state_game.gml (2 sitios)
+    const gml = await T.readText(NET_GAME);
+    if (gml != null && gml.includes('scr_end_sprite()') === false) {
+      const n = gml.split(GAMEOVER_LINE).length - 1;
+      if (n !== 2) toast('OJO: esperaba 2 líneas «' + GAMEOVER_LINE + '» y encontré ' + n + '; parcheo las que hay.', 'warn');
+      const bdir = await (async () => {
+        const dh = await T.fsWalkDir('');
+        return await dh.getDirectoryHandle('_backups_animeditor', { create: true }).then(d => d.getDirectoryHandle(stamp, { create: true }));
+      })();
+      const bak = await bdir.getFileHandle('net_state_game.gml', { create: true });
+      let w = await bak.createWritable(); await w.write(new Blob([gml])); await w.close();
+      await writeTextFile(NET_GAME, gml.split(GAMEOVER_LINE).join('inst.sprite_index = scr_end_sprite();'));
+      undo.push({ rel: NET_GAME, backup: '_backups_animeditor/' + stamp + '/net_state_game.gml' });
+    }
+  } catch (e) { toast('Error: ' + e.message, 'err'); return; }
+  Arte.undoStack.push(undo);
+  toast('Final de ' + c.name + ' creado y enchufado. F5 para verlo (el server no cambia).');
+  renderEndTab();
+}
+
+async function downloadEndMaterial() {
+  const c = Arte.sel;
+  const imgs = Arte.imports.endImgs;
+  if (!c || !imgs.length) { toast('Primero importa una o más imágenes.', 'warn'); return; }
+  const blobs = await endFramesBlobs(imgs);
+  const sprName = endSpriteName(c, Arte.isExe);
+  for (let i = 0; i < blobs.length; i++) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blobs[i]);
+    a.download = sprName + '_frame' + i + '.png';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  }
+  const yy = await makeSpriteYy(sprName, blobs.length).catch(() => null);
+  if (yy != null) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([yy], { type: 'text/plain' }));
+    a.download = sprName + '.yy';
+    a.click();
+  }
+  Arte.endSprites.add(sprName);
+  const a2 = document.createElement('a');
+  a2.href = URL.createObjectURL(new Blob([endScriptContent() + '\n' +
+    '// Además: en net_state_game.gml reemplaza las 2 líneas\n' +
+    '//   inst.sprite_index = spr_gameover;\n' +
+    '// por\n' +
+    '//   inst.sprite_index = scr_end_sprite();\n'], { type: 'text/plain' }));
+  a2.download = 'scr_end_sprite.gml';
+  a2.click();
+  toast('Material descargado: PNGs, el .yy y el script. Instalación manual en el LEEMI.');
+}
+
+async function applyGenericScreen() {
+  if (S.mode !== 'fs') { toast('Solo lectura: no puedo escribir en este modo.', 'warn'); return; }
+  const spr = $('#arte-generic-sel').value;
+  const imgs = Arte.imports.genericImgs || [];
+  if (!imgs.length) { toast('Importa la imagen de la pantalla.', 'warn'); return; }
+  const blobs = await endFramesBlobs(imgs);
+  const yyText = await T.readText('sprites/' + spr + '/' + spr + '.yy');
+  if (yyText == null) { toast('No encuentro ' + spr + '.', 'err'); return; }
+  const meta = C.parseSpriteYy(yyText);
+  const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  const undo = [];
+  try {
+    const bdir = await (async () => {
+      const dh = await T.fsWalkDir('');
+      return await dh.getDirectoryHandle('_backups_animeditor', { create: true }).then(d => d.getDirectoryHandle(stamp, { create: true }));
+    })();
+    for (let i = 0; i < meta.frames.length; i++) {
+      const fg = meta.frames[i];
+      const rel = 'sprites/' + spr + '/' + fg + '.png';
+      await backupAndWrite(rel, blobs[Math.min(i, blobs.length - 1)], bdir, undo);
+    }
+  } catch (e) { toast('Error: ' + e.message, 'err'); return; }
+  Arte.undoStack.push(undo);
+  toast(spr + ' reemplazado. F5 para verlo.');
+}
+
+/* ---------- escritura de la placa ---------- */
+
+async function writePlaque() {
+  if (S.mode !== 'fs') { toast('Solo lectura: usa «Descargar PNG».', 'warn'); return; }
+  const c = Arte.sel;
+  if (!c || !Arte.model || !Arte.frameData) return;
+  const frame = infoFrameOf(c, Arte.isExe);
+  const guidF = Arte.infoGuids[frame];
+  if (!guidF) { toast('No sé qué frame toca.', 'err'); return; }
+  const cv = document.createElement('canvas');
+  cv.width = 478; cv.height = 40;
+  const icons = Object.assign({}, Arte.icons, Arte.model.patches);
+  const out = AC.renderPlaque(Arte.model, Arte.frameData.data, Arte.template, Arte.byCh, icons);
+  cv.getContext('2d').putImageData(new ImageData(out.data, 478, 40), 0, 0);
+  const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+  const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  const undo = [];
+  try {
+    const bdir = await (async () => {
+      const dh = await T.fsWalkDir('');
+      return await dh.getDirectoryHandle('_backups_animeditor', { create: true }).then(d => d.getDirectoryHandle(stamp, { create: true }));
+    })();
+    const rel = 'sprites/spr_char_info/' + guidF + '.png';
+    await backupAndWrite(rel, blob, bdir, undo);
+    // capas declaradas que existan
+    const yyText = await T.readText('sprites/spr_char_info/spr_char_info.yy');
+    const meta = C.parseSpriteYy(yyText || '');
+    const fg = meta.frames[frame];
+    for (const lg of meta.layers) {
+      const lrel = 'sprites/spr_char_info/layers/' + fg + '/' + lg + '.png';
+      try { await T.fsWalkFile(lrel); await backupAndWrite(lrel, blob, bdir, undo); } catch (e) { /* no existe */ }
+    }
+  } catch (e) { toast('Error al escribir: ' + e.message, 'err'); return; }
+  Arte.undoStack.push(undo);
+  toast('Placa de ' + c.name + ' escrita (frame ' + frame + '). F5 para verla en el lobby.');
+}
+
+async function downloadPlaque() {
+  const c = Arte.sel;
+  if (!c || !Arte.model || !Arte.frameData) return;
+  const icons = Object.assign({}, Arte.icons, Arte.model.patches);
+  const out = AC.renderPlaque(Arte.model, Arte.frameData.data, Arte.template, Arte.byCh, icons);
+  const cv = document.createElement('canvas');
+  cv.width = 478; cv.height = 40;
+  cv.getContext('2d').putImageData(new ImageData(out.data, 478, 40), 0, 0);
+  const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const frame = infoFrameOf(c, Arte.isExe);
+  a.download = 'placa_' + c.key.replace(/^CHARACTER_|^EXE_/, '').toLowerCase() + '_frame' + frame + '.png';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast('PNG descargado: renómbralo a ' + Arte.infoGuids[frame] + '.png dentro de sprites/spr_char_info/.');
+}
+
+/* ---------- interfaz ---------- */
+
+function renderArteChars() {
+  const host = $('#arte-char-list');
+  let html = '<div class="grp">Supervivientes</div>';
+  for (const c of (S.chars || [])) {
+    html += '<button class="charbtn' + (Arte.sel === c && !Arte.isExe ? ' sel' : '') + '" data-char="' + S.chars.indexOf(c) + '">' +
+      '<b>' + esc(c.name) + '</b><span class="obj">placa · icono · final</span></button>';
+  }
+  html += '<div class="grp">Killers (exe)</div>';
+  for (const e of (S.exes || [])) {
+    html += '<button class="charbtn exe' + (Arte.sel === e && Arte.isExe ? ' sel' : '') + '" data-exe="' + S.exes.indexOf(e) + '">' +
+      '<b>' + esc(e.name) + '</b><span class="obj">placa · icono · final</span></button>';
+  }
+  host.innerHTML = html || '<div class="muted">abre tu proyecto primero</div>';
+}
+
+async function selectArteChar(c, isExe) {
+  Arte.sel = c; Arte.isExe = !!isExe;
+  renderArteChars();
+  Arte.tab = Arte.tab || 'placa';
+  syncArteTabs();
+  const host = $('#arte-status');
+  host.textContent = 'decodificando la placa…';
+  const frame = infoFrameOf(c, isExe);
+  const bm = Arte.infoBitmaps[frame];
+  if (!bm) { toast('No puedo leer el frame ' + frame + ' de spr_char_info.', 'err'); Arte.model = null; Arte.frameData = null; renderPlaqueEditor(); return; }
+  Arte.frameData = bm;
+  const dec = AC.decodePlaque({ data: bm.data, w: 478, h: 40 }, Arte.glyphs);
+  Arte.model = modelFromDecode(dec);
+  renderPlaqueEditor();
+  await renderSelIconTab();
+  renderEndTab();
+  host.textContent = '';
+}
+
+function syncArteTabs() {
+  $$('#arte-tabs .atab').forEach(b => b.classList.toggle('sel', b.dataset.tab === Arte.tab));
+  $('#arte-pane-placa').classList.toggle('hidden', Arte.tab !== 'placa');
+  $('#arte-pane-sel').classList.toggle('hidden', Arte.tab !== 'sel');
+  $('#arte-pane-end').classList.toggle('hidden', Arte.tab !== 'end');
+}
+
+function bindArteEvents() {
+  $('#arte-char-list').addEventListener('click', (e) => {
+    const b = e.target.closest('.charbtn');
+    if (!b) return;
+    if (b.dataset.char != null) selectArteChar(S.chars[+b.dataset.char], false);
+    else if (b.dataset.exe != null) selectArteChar(S.exes[+b.dataset.exe], true);
+  });
+  $$('#arte-tabs .atab').forEach(b => b.addEventListener('click', () => {
+    Arte.tab = b.dataset.tab;
+    syncArteTabs();
+    if (Arte.tab === 'sel') renderSelIconTab();
+    else if (Arte.tab === 'end') renderEndTab();
+  }));
+  // edición de la placa (delegado: los inputs SIEMPRE editables)
+  $('#arte-placa-edit').addEventListener('input', (e) => {
+    const line = e.target.closest('.arteline');
+    if (!line || !Arte.model) return;
+    const L = Arte.model.lines[+line.dataset.l];
+    if (!L) return;
+    if (e.target.classList.contains('altext')) L.text = e.target.value;
+    else if (e.target.classList.contains('alx')) L.x = clampInt(e.target.value, 0, 470);
+    else if (e.target.classList.contains('alfx')) L.fx = e.target.value;
+    renderPreview();
+    updateLineWidth(line, L);
+  });
+  // insertar color/icono en el cursor
+  $('#arte-placa-edit').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-ins]');
+    if (!b) return;
+    const input = $('#arte-placa-edit .altext:focus') || e.target.closest('.arteline').querySelector('.altext');
+    if (!input) return;
+    const ins = b.dataset.ins;
+    const a = input.selectionStart != null ? input.selectionStart : input.value.length;
+    const bpos = input.selectionEnd != null ? input.selectionEnd : a;
+    input.value = input.value.slice(0, a) + ins + input.value.slice(bpos);
+    input.focus();
+    input.setSelectionRange(a + ins.length, a + ins.length);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  $('#arte-write').addEventListener('click', writePlaque);
+  $('#arte-dl').addEventListener('click', downloadPlaque);
+  $('#arte-undo').addEventListener('click', arteUndo);
+}
+
+function clampInt(v, a, b) { const n = parseInt(v, 10); return isNaN(n) ? a : Math.max(a, Math.min(b, n)); }
+
+function updateLineWidth(line, L) {
+  const el = line.querySelector('.alw');
+  if (!el) return;
+  const w = AC.textWidth(L.text, Arte.byCh);
+  el.textContent = w + ' px';
+  el.classList.toggle('over', w + (L.x || 0) > 474);
+}
+
+async function arteUndo() {
+  const g = Arte.undoStack.pop();
+  if (!g) { toast('Nada que deshacer.'); return; }
+  if (S.mode !== 'fs') { toast('Deshacer solo en modo escritura.', 'warn'); return; }
+  try {
+    for (const it of g) {
+      const b = await T.readBlob(it.backup);
+      if (!b) { toast('No encuentro la copia: ' + it.backup, 'err'); return; }
+      const fh = await T.fsWalkFile(it.rel);
+      const w = await fh.createWritable(); await w.write(b); await w.close();
+    }
+  } catch (e) { toast('Error al deshacer: ' + e.message, 'err'); return; }
+  toast('Deshecho: archivos restaurados.');
+  if (Arte.sel) await selectArteChar(Arte.sel, Arte.isExe);
+}
+
+/* ---------- entrada al módulo ---------- */
+
+async function enterArte() {
+  const host = $('#arte-char-list');
+  if (!S.mode) { host.innerHTML = '<div class="muted" style="padding:8px">abre tu proyecto primero</div>'; return; }
+  if (S.mode === 'demo') {
+    host.innerHTML = '<div class="muted" style="padding:8px">el módulo Arte necesita los archivos reales del juego:<br>abre la carpeta de tu proyecto</div>';
+    $('#arte-placa-edit').innerHTML = '';
+    $('#arte-sel-edit').innerHTML = '';
+    $('#arte-end-edit').innerHTML = '';
+    return;
+  }
+  if (!Arte.loadedCore) {
+    host.innerHTML = '<div class="muted" style="padding:8px">cargando…</div>';
+    const ok = await loadArteCore();
+    if (!ok) return;
+  }
+  renderArteChars();
+  if (Arte.sel) await selectArteChar(Arte.sel, Arte.isExe);
+  else {
+    renderPlaqueEditor();
+    await renderSelIconTab();
+    renderEndTab();
+  }
+}
+
+T.enterArte = enterArte;
+
+const prevAW6 = S.onAfterWrite;
+S.onAfterWrite = async function () {
+  if (S.module === 'arte') { if (Arte.sel) await selectArteChar(Arte.sel, Arte.isExe); return; }
+  if (prevAW6) await prevAW6();
+};
+
+const prevScan6 = window.__onProjectScan;
+window.__onProjectScan = function () {
+  Arte.loadedCore = false;
+  Arte.glyphs = Arte.byCh = Arte.template = Arte.infoBitmaps = Arte.infoGuids = Arte.icons = null;
+  Arte.sel = null; Arte.model = null; Arte.frameData = null;
+  Arte.imports = { selImg: null, selMode: 'contain', selStrip: false, endImgs: [] };
+  Arte.undoStack = [];
+  if (S.module === 'arte') enterArte();
+  if (prevScan6) prevScan6();
+};
+
+bindArteEvents();
+})();
+
 </script>
 </body>
 </html>
