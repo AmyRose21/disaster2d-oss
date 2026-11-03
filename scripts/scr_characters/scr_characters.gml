@@ -217,3 +217,65 @@ function scr_characters_sanity()
         if(_missing == 0)
                 show_debug_message($"[charsanity] OK: {CHARACTER_SURV_MAX} supervivientes + {EXE_CHAR_COUNT} killers = {CHARACTER_COUNT} slots");
 }
+
+// ===== [Suite TD2D v3.7] retratos con brillo (auto: no editar) =====
+function scr_lobby_shiny_setup(char)
+{
+    var _c = char;
+    if(_c == CHARACTER_SALLY_CANON) _c = CHARACTER_SALLY;
+    if(_c == CHARACTER_VANILLA) _c = CHARACTER_CREAM;
+    var _spr = -1;
+    switch(_c)
+    {
+        case CHARACTER_AMY_CANON: _spr = spr_lobby_icon_sh_amycanon; break;
+    }
+    if(_spr < 0)
+    {
+        sprite_index = spr_lobby_icon;
+        image_speed = 0;
+        image_index = char + 1;
+        if(char == CHARACTER_SALLY_CANON) image_index = CHARACTER_SALLY + 1;
+        if(char == CHARACTER_VANILLA) image_index = CHARACTER_CREAM + 1;
+        if(char == CHARACTER_METAL) image_index = 10;
+        else if(char == CHARACTER_AMELIA) image_index = 11;
+        else if(char == CHARACTER_BLAZE) image_index = 12;
+    }
+    else
+    {
+        sprite_index = _spr;
+        image_speed = 1;
+        if(image_index < 0 || image_index >= sprite_get_number(_spr)) image_index = 0;
+    }
+}
+
+function scr_lobby_shiny_resolve(inst)
+{
+    with(inst)
+    {
+        if(obj_netclient.exeId == master_id) return;
+        if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected) return;
+        var _ch = -1;
+        if(master_id == obj_netclient.nid)
+            _ch = global.character;
+        else if(ds_map_exists(obj_netclient.players, master_id) && !obj_netclient.players[? master_id].pending)
+            _ch = obj_netclient.players[? master_id].character;
+        if(_ch < CHARACTER_TAILS || _ch == CHARACTER_EXE || _ch > CHARACTER_BLAZE) return;
+        scr_lobby_shiny_setup(_ch);
+    }
+}
+
+function scr_lobby_shiny_escape(char, xx, yy)
+{
+    var _c = char;
+    if(_c == CHARACTER_SALLY_CANON) _c = CHARACTER_SALLY;
+    if(_c == CHARACTER_VANILLA) _c = CHARACTER_CREAM;
+    var _spr = -1;
+    switch(_c)
+    {
+        case CHARACTER_AMY_CANON: _spr = spr_lobby_esc_sh_amycanon; break;
+    }
+    if(_spr < 0) return false;
+    draw_sprite(_spr, current_time / 150 % sprite_get_number(_spr), xx, yy);
+    return true;
+}
+// ===== fin [Suite TD2D v3.7] retratos con brillo =====

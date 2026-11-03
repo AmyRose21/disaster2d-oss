@@ -123,7 +123,9 @@ if(global.showHud && titleCard > 4)
                                 draw_sprite(spr_playerhealth_demon, _hudChar-CHARACTER_TAILS, pos, 268);
                 }
                 else
-                        draw_sprite(spr_playerescaped, (_hudChar-CHARACTER_TAILS), pos, 268);
+                        // [Suite TD2D v3.7] escape con brillo si existe; si no, el de siempre
+                        if(!scr_lobby_shiny_escape(_hudChar, pos, 268))
+                                draw_sprite(spr_playerescaped, (_hudChar-CHARACTER_TAILS), pos, 268);
                 
                 pos += 28;
         }
@@ -193,7 +195,9 @@ if(global.showHud && titleCard > 4)
                                 var _ech = player.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : player.character;
                                 if(player.character == CHARACTER_VANILLA)
                                         _ech = CHARACTER_CREAM;
-                                draw_sprite(spr_playerescaped, (_ech-CHARACTER_TAILS), pos + i * 28, 268);
+                                // [Suite TD2D v3.7] escape con brillo si existe; si no, el de siempre
+                                if(!scr_lobby_shiny_escape(_ech, pos + i * 28, 268))
+                                        draw_sprite(spr_playerescaped, (_ech-CHARACTER_TAILS), pos + i * 28, 268);
                         }
                         
                 i++;

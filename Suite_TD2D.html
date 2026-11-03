@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Suite TD2D v3.6 · editor de arte</title>
+<title>Suite TD2D v3.7 · editor de arte</title>
 <style>
 :root{
   --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
@@ -344,7 +344,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 .arte-row:hover{background:rgba(255,255,255,.05)}
 .arte-row.sel{background:rgba(90,120,255,.16);outline:1px solid rgba(90,120,255,.4)}
 .arte-row.dirty .arte-badge{color:var(--gold)}
-.arte-row .arte-thumb{width:224px;height:19px;image-rendering:pixelated;background:#141418;border:1px solid var(--line);flex:none}
+.arte-row .arte-thumb{width:236px;height:20px;image-rendering:pixelated;background:#141418;border:1px solid var(--line);flex:none}
 .arte-row .arte-rowlbl{display:flex;align-items:center;gap:6px;min-width:0}
 .arte-badge{font-size:11px}
 .fgrid{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
@@ -397,6 +397,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   <button class="subnav-btn" data-artesub="iconos">Icono de selección</button>
   <button class="subnav-btn" data-artesub="finales">Pantalla de fin</button>
   <button class="subnav-btn" data-artesub="habilidades">Iconos de habilidades</button>
+  <button class="subnav-btn" data-artesub="imagenes">Estados y objetos</button>
 </nav>
 
 <div id="mods">
@@ -657,10 +658,11 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
       <div class="arte-editor">
         <div class="arte-rowline">
           <label>Nombre</label>
-          <input id="arte-name" maxlength="24" spellcheck="false">
+          <input id="arte-name" spellcheck="false" style="min-width:260px">
           <input id="arte-name-color" type="color" title="Color del nombre">
           <label class="chkline"><input type="checkbox" id="arte-name-inv"> estilo killer (relleno negro)</label>
         </div>
+        <div class="arte-rowline"><span id="arte-width-info" class="muted" style="font-size:11.5px"></span></div>
         <div class="arte-rowline">
           <label>Medidor</label>
           <select id="arte-meter"></select>
@@ -681,7 +683,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
         <div class="arte-linectl"><label>Línea 1</label><textarea id="arte-l1" rows="2" spellcheck="false"></textarea></div>
         <div class="arte-linectl"><label>Línea 2</label><textarea id="arte-l2" rows="2" spellcheck="false"></textarea></div>
         <div class="arte-linectl"><label>Línea 3</label><textarea id="arte-l3" rows="2" spellcheck="false"></textarea></div>
-        <p class="note-inline">Códigos: <code>{r}texto{w}</code> pinta de color y vuelve a blanco · <code>{icon:ic06}</code> inserta un icono · los iconos de la placa se recuperan solos al elegir personaje.</p>
+        <p class="note-inline">Códigos: <code>{r}texto{w}</code> pinta de color y vuelve a blanco · <code>{icon:ic06}</code> inserta un icono · los iconos de la placa se recuperan solos al elegir personaje · <b>sin límite de letras</b>: si el nombre es largo, la línea 1 se corre a la derecha para no taparla.</p>
       </div>
     </main>
     <aside class="rightpane">
@@ -722,7 +724,9 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
             <label>despl. Y <input id="ic-dy" type="range" min="-80" max="80" step="1" value="0"></label>
             <label class="chkline"><input type="checkbox" id="ic-flipx"> espejo horizontal</label>
             <label class="chkline"><input type="checkbox" id="ic-flipy"> espejo vertical</label>
-            <label class="chkline"><input type="checkbox" id="ic-chroma"> clave cromática <input id="ic-chromacol" type="color" value="#ff00ff"> tol <input id="ic-chromatol" type="range" min="0" max="120" step="4" value="40" style="width:70px"></label>
+            <label class="chkline"><input type="checkbox" id="ic-chroma"> clave cromática</label>
+            <label>color clave <input id="ic-chromacol" type="color" value="#ff00ff"></label>
+            <label>tolerancia <input id="ic-chromatol" type="range" min="0" max="120" step="4" value="40" style="width:110px"></label>
             <label>fondo <select id="ic-bg"><option value="transparent">transparente</option><option value="black">negro</option></select></label>
           </div>
         </div>
@@ -734,6 +738,47 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
       </div>
       <div class="arte-subhead">Fotogramas del sprite (clic para asignar la siguiente imagen)</div>
       <div id="arte-icon-frames" class="fgrid"></div>
+
+      <!-- v3.7: retratos de superviviente con efecto de brillo -->
+      <div class="arte-subhead" style="margin-top:18px">✨ Retratos con brillo (supervivientes)</div>
+      <p class="note-inline">El mismo parpadeo que los killers (tipo Metal Amy): cada retrato se convierte en un sprite animado.
+        Cubre <b>la selección</b> y <b>el icono de «escapó»</b> del HUD; la pantalla de resultados sigue usando el normal, no hace falta nada ahí.</p>
+      <div class="arte-rowline" style="margin-bottom:4px">
+        <label>Personaje</label>
+        <select id="sh-char" style="min-width:220px"></select>
+        <span id="sh-note" class="muted" style="font-size:11.5px"></span>
+      </div>
+      <div class="arte-two">
+        <div>
+          <div class="arte-subhead">Imágenes del brillo (2–12 fotogramas)</div>
+          <label class="filebtn">📂 Elegir imágenes… <input id="sh-files" type="file" accept="image/*" multiple hidden></label>
+          <p class="note-inline">Se asignan en serie (img 1 → fotograma 1…). Con 1 sola imagen no hay animación: usa 2 o más.</p>
+          <div id="sh-reel" class="fgrid"></div>
+          <div class="arte-subhead">Transformación</div>
+          <div class="trgrid">
+            <label>escala <input id="sh-scale" type="range" min="0.1" max="4" step="0.05" value="1"> <span id="sh-scale-v">1×</span></label>
+            <label>despl. X <input id="sh-dx" type="range" min="-40" max="40" step="1" value="0"></label>
+            <label>despl. Y <input id="sh-dy" type="range" min="-40" max="40" step="1" value="0"></label>
+            <label class="chkline"><input type="checkbox" id="sh-flipx"> espejo horizontal</label>
+            <label class="chkline"><input type="checkbox" id="sh-flipy"> espejo vertical</label>
+            <label class="chkline"><input type="checkbox" id="sh-chroma"> clave cromática</label>
+            <label>color clave <input id="sh-chromacol" type="color" value="#ff00ff"></label>
+            <label>tolerancia <input id="sh-chromatol" type="range" min="0" max="120" step="4" value="40" style="width:110px"></label>
+          </div>
+          <div class="arte-rowline">
+            <label class="chkline"><input type="checkbox" id="sh-escape" checked> crear también el icono de «escapó» (26×26, mismas imágenes centradas)</label>
+          </div>
+        </div>
+        <div>
+          <div class="arte-subhead">Vista previa del brillo</div>
+          <canvas id="sh-preview" width="260" height="120" style="image-rendering:pixelated;width:780px;max-width:100%;height:auto"></canvas>
+          <p class="note-inline" id="sh-hint"></p>
+        </div>
+      </div>
+      <div class="arte-rowline" style="margin-top:6px">
+        <button id="sh-write" class="btn primary" style="min-width:170px">✨ Escribir retrato con brillo</button>
+        <span id="sh-count" class="muted" style="font-size:12px"></span>
+      </div>
     </main>
     <aside class="rightpane">
       <section>
@@ -787,6 +832,58 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
       </section>
       <section class="note"><b>Genéricos:</b> reemplazan los PNG de <code>spr_gameover</code>, <code>spr_youkilledeveryone</code>, <code>spr_timeover</code> o <code>spr_survivorsescaped</code> (respaldo incluido).</section>
       <section class="note"><b>Por killer:</b> sprite nuevo + <code>.yyp</code> + parche GML con <code>sprite_exists()</code> de guardia. Tras escribir, recompila (F5) y el final del killer aparece cuando gana. En solo lectura, descarga los PNG.</section>
+    </aside>
+  </div>
+
+  <!-- ====== SUB 4 (v3.7): ICONOS DE HABILIDADES (HUD) ====== -->
+  <div class="arte-subpane hidden" data-sub="habilidades" style="display:flex;gap:10px;flex:1;min-height:0">
+    <aside class="side" style="width:250px">
+      <div class="side-head">Icono del HUD · personaje</div>
+      <div id="ab-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+    </aside>
+    <main class="mid" style="overflow-y:auto">
+      <div class="arte-head"><b id="ab-cur">—</b> <span class="muted">· el juego recorta el arte en la línea y dibuja la tecla real a continuación</span></div>
+      <div class="arte-subhead">Cómo se ve en el juego (icono · tecla)</div>
+      <canvas id="ab-preview" width="380" height="170" style="image-rendering:pixelated;width:760px;max-width:100%;height:auto"></canvas>
+      <div class="arte-two">
+        <div>
+          <div class="arte-subhead">Imágenes importadas (reel)</div>
+          <label class="filebtn">📂 Elegir imágenes… <input id="ab-files" type="file" accept="image/*" multiple hidden></label>
+          <label class="chkline"><input type="checkbox" id="ab-fillall"> una imagen rellena TODOS los fotogramas</label>
+          <p class="note-inline">Sin marcar: se asignan en serie (img 1 → fotograma 1…). Haz clic en un fotograma para ciclar su imagen. La escala reduce la imagen importada al tamaño adecuado del hueco.</p>
+          <div id="ab-reel" class="fgrid"></div>
+          <div class="arte-subhead">Transformación</div>
+          <div class="trgrid">
+            <label>escala <input id="ab-scale" type="range" min="0.1" max="4" step="0.05" value="1"> <span id="ab-scale-v">1×</span></label>
+            <label>despl. X <input id="ab-dx" type="range" min="-60" max="60" step="1" value="0"></label>
+            <label>despl. Y <input id="ab-dy" type="range" min="-40" max="40" step="1" value="0"></label>
+            <label class="chkline"><input type="checkbox" id="ab-flipx"> espejo horizontal</label>
+            <label class="chkline"><input type="checkbox" id="ab-flipy"> espejo vertical</label>
+            <label class="chkline"><input type="checkbox" id="ab-chroma"> clave cromática</label>
+            <label>color clave <input id="ab-chromacol" type="color" value="#ff00ff"></label>
+            <label>tolerancia <input id="ab-chromatol" type="range" min="0" max="120" step="4" value="40" style="width:110px"></label>
+            <label>fondo <select id="ab-bg"><option value="transparent">transparente</option><option value="black">negro</option></select></label>
+          </div>
+        </div>
+        <div>
+          <div class="arte-subhead">Sprite completo <span id="ab-size" class="muted"></span></div>
+          <canvas id="ab-full" width="420" height="110" style="image-rendering:pixelated;width:630px;max-width:100%;height:auto"></canvas>
+          <p class="note-inline" id="ab-cutnote"></p>
+          <div class="arte-subhead">Fotogramas del sprite</div>
+          <div id="ab-frames" class="fgrid"></div>
+        </div>
+      </div>
+    </main>
+    <aside class="rightpane">
+      <section>
+        <h3>Cambios a escribir</h3>
+        <div id="ab-count" class="muted">sin cambios</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          <button id="ab-write" class="btn primary" style="flex:1;min-width:130px" disabled>Escribir en el proyecto</button>
+        </div>
+      </section>
+      <section class="note"><b>Qué son:</b> los iconos que acompañan a la tecla en el HUD (<code>spr_gui_*</code>), no las animaciones del personaje. El juego recorta cada PNG en la <b>línea de corte</b> y pinta al lado la tecla REAL de tu configuración — por eso la vista previa muestra ambas cosas juntas.</section>
+      <section class="note">Importa tu imagen, <b>reduce la escala</b> hasta el tamaño adecuado, colócala y escribe: el Suite guarda el PNG (raíz + layers) al tamaño exacto del sprite. Ideal para cambiar el icono de una habilidad existente.</section>
     </aside>
   </div>
 </div><!-- /mod-arte -->
@@ -846,13 +943,20 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   <h4>4. Módulo 🖼 Arte e imágenes</h4>
   <p><b>Barra de información:</b> edita la placa de cada personaje (<code>spr_char_info</code>) igual que el juego la pinta:
   nombre con su color (o estilo killer), 3 líneas de texto con los <b>colores de escape</b> del juego ({r} {g} {b}…),
-  iconos incrustables ({icon:…}), medidor de chevrones y vista previa en vivo. Al elegir un personaje la placa se
+  iconos incrustables ({icon:…}), medidor de chevrones y vista previa en vivo. <b>Sin límite de letras:</b> si el nombre
+  es largo, la línea 1 se corre a la derecha para no taparla. Al elegir un personaje la placa se
   <b>decodifica sola</b>: el texto aparece ya editable (no hace falta redibujar nada a mano). Escribe los PNG
   (raíz + layers) con respaldo y deshacer. <b>Icono de selección:</b> importa una o varias imágenes para
   <code>spr_lobby_icon</code> (supervivientes) o los <code>exeicon</code> animados (6 fotogramas): una imagen que rellena
   todos o una por fotograma, con escala/desplazamiento/espejo/clave cromática y vista previa del lobby.
+  <b>✨ Retratos con brillo:</b> convierte el retrato de un superviviente en un sprite animado (como los killers,
+  tipo Metal Amy): crea <code>spr_lobby_icon_sh_&lt;pj&gt;</code> (selección) y <code>spr_lobby_esc_sh_&lt;pj&gt;</code>
+  (escapó) + parches GML con respaldo. Compatible con Amy (canon), Sonic, Amelia y compañía; Sally (canon) y
+  Vanilla comparten el de Sally/Cream como en el juego. Los resultados no se tocan (usan el normal).
   <b>Pantalla de fin:</b> reemplaza los 4 finales genéricos o crea finales <b>por killer</b> (sprite nuevo + registro .yyp
-  + parche GML con guardia). <b>Iconos de habilidades:</b> el módulo de imágenes clásico (estados y objetos).</p>
+  + parche GML con guardia). <b>Iconos de habilidades:</b> el editor de los <code>spr_gui_*</code> del HUD — el icono
+  recortado junto a su tecla (como se ve en partida), con escala para reducir la imagen importada al tamaño del
+  hueco. <b>Estados y objetos:</b> el módulo de imágenes clásico.</p>
   <h4>5. (dentro de Enfriamientos)</h4>
   <p><b>El inventario completo</b>: cada enfriamiento del juego en una sola lista — las ~55 macros del <b>cliente</b>
   (<code>AMY_ATTACK_RECHARGE</code>, <code>SONIC_PARRY_CD_*</code>… en <code>objects/*/Create_0.gml</code> y <code>scripts/scr_*_special</code>)
@@ -6073,9 +6177,35 @@ initKeys();
   // devuelve {name:{text,color,inv,x0,icons}, lines:[{y,words,icons}]}
   function decodePlaque(rgba, glyphs) {
     var res = { lines: [] };
-    // L1 en dos tramos: nombre (x<57) y mobility... (x>=57)
-    var l1n = decodeLine(rgba, glyphs, 5, 1, 57);
-    var l1 = decodeLine(rgba, glyphs, 5, 57, 478);
+    // v3.7: la fila 1 se decodifica ENTERA y el corte nombre / línea 1 se
+    // hace en la primera palabra CATEGORÍA (mobility, defense, support,
+    // offense, special, passive), no en la columna fija 57: así los
+    // nombres largos (sin límite de letras) no pierden su cola en la
+    // línea 1 ni se comen la primera letra de la movilidad.
+    var l1all = decodeLine(rgba, glyphs, 5, 1, 478);
+    var catX = -1;
+    {
+      var s = '';
+      var posOf = [];
+      for (var ci = 0; ci < l1all.length; ci++) {
+        var el = l1all[ci];
+        if (el.type === 'glyph') { posOf.push(el.x0); s += el.ch; }
+        else { posOf.push(-1); s += '\x01'; }
+      }
+      var mcat = /(mobility|defense|support|offense|special|passive)/i.exec(s);
+      if (mcat && mcat.index > 0) catX = posOf[mcat.index];
+    }
+    var cutX = catX > 0 ? catX : 57;
+    // el icono que va pegado antes de la categoría pertenece a la línea 1
+    // (caso killer: [icono] mobility: ...), no al nombre
+    var l1n = [], l1 = [];
+    for (var ei = 0; ei < l1all.length; ei++) {
+      var e2 = l1all[ei];
+      var isName = e2.x0 < cutX && (e2.type === 'glyph' || e2.x0 < 20);
+      if (catX > 0 && e2.type === 'icon' && e2.x0 < cutX && cutX - (e2.x1 || e2.x0) < 16 && e2.x0 >= 20)
+        isName = false; // icono pegado a la categoría → línea 1
+      (isName ? l1n : l1).push(e2);
+    }
     var nameWords = groupWords(l1n);
     var w1 = groupWords(l1);
     var nameText = nameWords.map(function (w) { return w.map(function (e) { return e.ch; }).join(''); }).join(' ');
@@ -6309,6 +6439,7 @@ initKeys();
     renderPlaque: renderPlaque,
     drawText: drawText,
     tokenize: tokenize,
+    nextGlyphL: nextGlyphL,
     blit: blit,
     classify: classify,
     rgbaToCanvas: rgbaToCanvas
@@ -6506,6 +6637,39 @@ initKeys();
   }
 
   // ---------- render del modelo editable ----------
+  // v3.7: mide el avance del lápiz del nombre (mismo kerning que drawText)
+  // para saber dónde termina su tinta y así empujar la línea 1.
+  function measureNameAdvance(text, x0) {
+    const gidx = A.glyphs.byCh;
+    const tokens = AC.tokenize(text);
+    let xx = x0;
+    const ops = [];
+    for (const tk of tokens) {
+      if (tk.t === 'color') continue;
+      if (tk.t === 'icon') { ops.push({ kind: 'icon', id: tk.id, w: (A.icons[tk.id] || { w: 12 }).w }); continue; }
+      for (const ch of tk.s) {
+        if (ch === ' ') { ops.push({ kind: 'space' }); continue; }
+        const g = gidx ? gidx[ch] : null;
+        if (!g) continue;
+        ops.push({ kind: 'glyph', g });
+      }
+    }
+    let lastInk = -1;
+    for (let j = 0; j < ops.length; j++) {
+      const op = ops[j];
+      if (op.kind === 'space') { xx += 2; continue; }
+      if (op.kind === 'icon') { xx += op.w + 2; lastInk = xx - 1; continue; }
+      xx = xx + op.g.R + 2 - AC.nextGlyphL(ops, j + 1);
+      lastInk = xx - 1;
+    }
+    return { pen: xx, ink: lastInk };
+  }
+
+  // v3.7: ancho de tinta de una línea completa (para el aviso de recorte)
+  function measureLineAdvance(text, x0) {
+    return measureNameAdvance(text, x0).pen;
+  }
+
   function renderEditable(ed, frameIdx) {
     const base = A.plaqueCache.get(frameIdx);
     const cv = document.createElement('canvas');
@@ -6515,12 +6679,19 @@ initKeys();
     if (base) ctx.drawImage(base, 0, 0);
     const rgba = new Uint8Array(ctx.getImageData(0, 0, AC.W, AC.H).data);
     const meter = ed.meter >= 0 && ed.meter < 16 ? A.meters[ed.meter] : null;
+    // v3.7: sin límite de letras — el nombre largo EMPUJA la línea 1 a la
+    // derecha (hueco de 8 px) en vez de tapar su primera letra.
+    const nameAdv = (ed.name && ed.name.length) ? measureNameAdvance(ed.name, 2) : { pen: 2, ink: 1 };
+    const l1x = Math.max(defaultX('L1'), nameAdv.ink + 8);
     // construir modelo para render
     const model = { name: { text: ed.name, color: hexToRgb(ed.nameColor), inv: ed.nameInv, x0: 2 }, lines: [] };
     for (const ln of ed.lines) {
-      model.lines.push({ y: ln.y, words: [{ text: ln.text, color: [255, 255, 255], inv: false, x0: defaultX(ln.kind) }] });
+      const kind = ln.kind;
+      const x0 = kind === 'L1' ? l1x : defaultX(kind);
+      model.lines.push({ y: ln.y, words: [{ text: ln.text, color: [255, 255, 255], inv: false, x0 }] });
     }
     const out = AC.renderPlaque(model, rgba, A.glyphs, A.icons, meter);
+    A._lastLayout = { nameInk: nameAdv.ink, l1x, l1End: measureLineAdvance(ed.lines[0] ? ed.lines[0].text : '', l1x) };
     return out;
   }
   function defaultX(kind) { return kind === 'L1' ? 60 : (kind === 'L2' ? 66 : 21); }
@@ -6613,13 +6784,14 @@ initKeys();
 
   function currentEditable() {
     const ed = {
-      name: $('#arte-name').value.slice(0, 24),
+      // la fuente del juego (spr_letter1) solo tiene minúsculas: se convierten
+      name: $('#arte-name').value.toLowerCase(),
       nameColor: $('#arte-name-color').value,
       nameInv: $('#arte-name-inv').checked,
       lines: [
-        { y: 5, kind: 'L1', text: $('#arte-l1').value },
-        { y: 18, kind: 'L2', text: $('#arte-l2').value },
-        { y: 31, kind: 'L3', text: $('#arte-l3').value }
+        { y: 5, kind: 'L1', text: $('#arte-l1').value.toLowerCase() },
+        { y: 18, kind: 'L2', text: $('#arte-l2').value.toLowerCase() },
+        { y: 31, kind: 'L3', text: $('#arte-l3').value.toLowerCase() }
       ],
       meter: parseInt($('#arte-meter').value, 10)
     };
@@ -6640,6 +6812,21 @@ initKeys();
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, cv.width, cv.height);
     ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    // v3.7: indicador de anchos (límites de texto eliminados: avisar si algo se sale)
+    const wi = $('#arte-width-info');
+    if (wi && A._lastLayout) {
+      const L = A._lastLayout;
+      const l2w = measureLineAdvance(ed.lines[1] ? ed.lines[1].text : '', defaultX('L2'));
+      const l3w = measureLineAdvance(ed.lines[2] ? ed.lines[2].text : '', defaultX('L3'));
+      let txt = 'nombre: ' + (L.nameInk - 1) + ' px de tinta · línea 1 desde x=' + L.l1x;
+      if (L.l1x > defaultX('L1')) txt += ' (empujada por el nombre)';
+      const over = [];
+      if (L.l1End > AC.W - 1) over.push('línea 1 se recorta en ' + (AC.W - 1) + ' px');
+      if (l2w > AC.W - 1) over.push('línea 2 se recorta');
+      if (l3w > AC.W - 1) over.push('línea 3 se recorta');
+      wi.textContent = txt + (over.length ? ' · ⚠ ' + over.join(' · ') : '');
+      wi.style.color = over.length ? 'var(--gold)' : '';
+    }
     // guardar para escritura
     A._lastRender = img;
   }
@@ -6951,8 +7138,8 @@ initKeys();
     if (img) ctx.drawImage(img, x0, y0, IC.w * scale, IC.h * scale);
     ctx.strokeStyle = '#3a3a4a';
     ctx.strokeRect(x0 - 1.5, y0 - 1.5, IC.w * scale + 3, IC.h * scale + 3);
-    // tira de fotogramas
-    for (let k = 0; k < Math.min(IC.n, 8); k++) {
+    // tira de fotogramas (máx. 5, que quepan en el lienzo)
+    for (let k = 0; k < Math.min(IC.n, 5); k++) {
       const t = (IC.assign[k] >= 0 && IC.reel[IC.assign[k]])
         ? transformToCanvas(IC.reel[IC.assign[k]].bmp, IC.w, IC.h, IC.tr)
         : IC.bitmaps[k];
@@ -6960,7 +7147,7 @@ initKeys();
     }
     ctx.fillStyle = '#9aa';
     ctx.font = '10px monospace';
-    ctx.fillText('fotograma ' + i + '/' + IC.n + '  ·  ' + IC.sprite, 90, Hp - 8);
+    ctx.fillText('fotograma ' + i + '/' + IC.n + ' · ' + IC.sprite, 6, Hp - 4);
   }
 
   function markIconsDirty() {
@@ -7389,6 +7576,1011 @@ initKeys();
     toast(k + ' PNG descargados (480×270).', 'ok');
   }
 
+  // ================= SUB-PESTAÑA 4 (v3.7): ICONOS DE HABILIDADES =================
+  // Los iconos del HUD (spr_gui_*): el arte recortado + la tecla al lado.
+  // Registro extraído de obj_playerui/Draw_64.gml (drawKeyIcon): artW =
+  // columnas de arte antes de la tecla dinámica; key = variable de tecla.
+
+  const AB_KEYS = { KeyA: 'Z', KeyB: 'X', KeyC: 'C', KeyV: 'V' };
+
+  const AB_GROUPS = [
+    { label: 'EXE Original (killer)', items: [
+      { spr: 'spr_gui_exeattack', ab: 'Ataque', key: 'KeyB', artW: 19 },
+      { spr: 'spr_gui_exefreejump', ab: 'Salto libre', key: 'KeyA', artW: 26, shared: 'compartido por todos los killers' },
+      { spr: 'spr_gui_exeinvisability', ab: 'Invisibilidad', key: 'KeyC', artW: 25 }
+    ]},
+    { label: 'Chaos (killer)', items: [
+      { spr: 'spr_gui_chaosattack', ab: 'Ataque / látigo', key: 'KeyB', artW: 19 },
+      { spr: 'spr_gui_chaoswalldash', ab: 'Walldash', key: 'KeyB', artW: 19 },
+      { spr: 'spr_gui_chaosslime', ab: 'Forma slime', key: 'KeyC', artW: 18 },
+      { spr: 'spr_gui_exefreejump', ab: 'Salto libre', key: 'KeyA', artW: 26, shared: 'compartido por todos los killers' }
+    ]},
+    { label: 'Exetior (killer)', items: [
+      { spr: 'spr_gui_exetiorattack', ab: 'Ataque aéreo / slam', key: 'KeyB', artW: 19 },
+      { spr: 'spr_gui_exetiorring', ab: 'Anillo sombra', key: 'KeyC', artW: 20 },
+      { spr: 'spr_gui_exefreejump', ab: 'Salto libre', key: 'KeyA', artW: 26, shared: 'compartido por todos los killers' }
+    ]},
+    { label: 'Exeller (killer)', items: [
+      { spr: 'spr_gui_exeattack', ab: 'Ataque', key: 'KeyB', artW: 19, shared: 'compartido con EXE Original' },
+      { spr: 'spr_gui_exefreejump', ab: 'Salto libre', key: 'KeyA', artW: 26, shared: 'compartido por todos los killers' },
+      { spr: 'spr_gui_exellerclone', ab: 'Clon', key: 'KeyC', artW: 20 },
+      { spr: 'spr_gui_exellerclone2', ab: 'Clon (variante)', key: 'KeyC', artW: 47 }
+    ]},
+    { label: 'Metal Amy (killer)', items: [
+      { spr: 'spr_gui_metalamyattack', ab: 'Ataque (solo tecla)', key: 'KeyB', artW: 0 },
+      { spr: 'spr_gui_exefreejump', ab: 'Salto libre', key: 'KeyA', artW: 26, shared: 'compartido por todos los killers' },
+      { spr: 'spr_gui_metal_amy_lazer', ab: 'Láser', key: 'KeyC', artW: 24 },
+      { spr: 'spr_gui_metalamy_indy', ab: 'Indicador', key: 'KeyV', artW: 14 }
+    ]},
+    { label: 'Tails', items: [
+      { spr: 'spr_gui_tailsfly', ab: 'Vuelo', key: 'KeyA', artW: 26 },
+      { spr: 'spr_gui_tailsattack', ab: 'Disparo de cola', key: 'KeyB', artW: 25 }
+    ]},
+    { label: 'Knuckles', items: [
+      { spr: 'spr_gui_knuxglide', ab: 'Planeo', key: 'KeyA', artW: 23 },
+      { spr: 'spr_gui_knuxattack', ab: 'Puño', key: 'KeyB', artW: 19 }
+    ]},
+    { label: 'Eggman', items: [
+      { spr: 'spr_gui_eggdjump', ab: 'Doble salto', key: 'KeyA', artW: 20, shared: 'compartido con Blaze' },
+      { spr: 'spr_gui_eggshield', ab: 'Escudo eléctrico', key: 'KeyB', artW: 20, shared: 'compartido con Vanilla y Metal' },
+      { spr: 'spr_gui_eggtrack', ab: 'Trampas rastreadoras', key: 'KeyC', artW: 38 }
+    ]},
+    { label: 'Amy Rose', items: [
+      { spr: 'spr_gui_amyhjump', ab: 'Salto con martillo', key: 'KeyA', artW: 32 },
+      { spr: 'spr_gui_amyattack', ab: 'Golpe de martillo', key: 'KeyB', artW: 23, shared: 'compartido con Sonic, Vanilla y Blaze' }
+    ]},
+    { label: 'Amy (canon)', items: [
+      { spr: 'spr_gui_amyhjump_canon', ab: 'Salto con martillo', key: 'KeyA', artW: 32 },
+      { spr: 'spr_gui_amyattack_canon', ab: 'Golpe de martillo', key: 'KeyB', artW: 23 },
+      { spr: 'spr_gui_amydash_canon', ab: 'Embestida (tarot)', key: 'KeyC', artW: 23 },
+      { spr: 'spr_gui_amyparry_canon', ab: 'Parry', key: 'KeyV', artW: 19 }
+    ]},
+    { label: 'Sonic', items: [
+      { spr: 'spr_gui_sonicparry', ab: 'Parry', key: 'KeyC', artW: 19 },
+      { spr: 'spr_gui_amyattack', ab: 'El golpe', key: 'KeyB', artW: 23, shared: 'compartido con Amy, Vanilla y Blaze' },
+      { spr: 'spr_gui_sonicspindash', ab: 'Spindash', key: 'KeyA', artW: 33, shared: 'compartido con Amelia' },
+      { spr: 'spr_gui_sonicdropdash', ab: 'Drop dash (aéreo)', key: 'KeyA', artW: 34 }
+    ]},
+    { label: 'Cream', items: [
+      { spr: 'spr_gui_creamfly', ab: 'Vuelo', key: 'KeyA', artW: 25 },
+      { spr: 'spr_gui_creamdash', ab: 'Embestida', key: 'KeyB', artW: 21, shared: 'compartido con Vanilla y Metal' },
+      { spr: 'spr_gui_creamrings', ab: 'Anillos', key: 'KeyC', artW: 21 }
+    ]},
+    { label: 'Vanilla', items: [
+      { spr: 'spr_gui_creamdash', ab: 'Embestida', key: 'KeyB', artW: 21, shared: 'compartido con Cream y Metal' },
+      { spr: 'spr_gui_eggshield', ab: 'Escudo', key: 'KeyC', artW: 20, shared: 'compartido con Eggman y Metal' }
+    ]},
+    { label: 'Metal Sonic', items: [
+      { spr: 'spr_gui_creamdash', ab: 'Overdrive', key: 'KeyB', artW: 21, shared: 'compartido con Cream y Vanilla' },
+      { spr: 'spr_gui_eggshield', ab: 'Electro', key: 'KeyC', artW: 20, shared: 'compartido con Eggman y Vanilla' }
+    ]},
+    { label: 'Amelia', items: [
+      { spr: 'spr_gui_sonicspindash', ab: 'Spindash', key: 'KeyA', artW: 33, shared: 'compartido con Sonic' },
+      { spr: 'spr_gui_sonicspring', ab: 'Trampolín', key: 'KeyB', artW: 33 },
+      { spr: 'spr_gui_amelia_trap', ab: 'Trampa', key: 'KeyC', artW: 39 }
+    ]},
+    { label: 'Blaze', items: [
+      { spr: 'spr_gui_eggdjump', ab: 'Salto de fuego', key: 'KeyA', artW: 20, shared: 'compartido con Eggman' },
+      { spr: 'spr_gui_amyattack', ab: 'Bola de fuego', key: 'KeyB', artW: 23, shared: 'compartido con Amy, Sonic y Vanilla' },
+      { spr: 'spr_gui_sallyshield', ab: 'Ardiente', key: 'KeyC', artW: 19, shared: 'compartido con Sally' }
+    ]},
+    { label: 'Sally', items: [
+      { spr: 'spr_gui_sallyattack', ab: 'Patada', key: 'KeyB', artW: 17, shared: 'compartido con Sally (canon)' },
+      { spr: 'spr_gui_sallyshield', ab: 'Escudo', key: 'KeyC', artW: 19, shared: 'compartido con Sally (canon) y Blaze' }
+    ]},
+    { label: 'Sally (canon)', items: [
+      { spr: 'spr_gui_sallyattack', ab: 'Patada', key: 'KeyB', artW: 17, shared: 'compartido con Sally' },
+      { spr: 'spr_gui_sallyshield', ab: 'Escudo', key: 'KeyC', artW: 19, shared: 'compartido con Sally y Blaze' }
+    ]},
+    { label: 'Otros (sin uso actual)', items: [
+      { spr: 'spr_gui_amelia_spin', ab: 'Spin de Amelia (sin usar)', key: 'KeyA', artW: 33 },
+      { spr: 'spr_gui_amelia_spring', ab: 'Resorte de Amelia (sin usar)', key: 'KeyB', artW: 33 },
+      { spr: 'spr_gui_metal_amy_counter', ab: 'Counter de Metal Amy (sin usar)', key: 'KeyC', artW: 23 },
+      { spr: 'spr_gui_metalamy_attack_lol', ab: 'Ataque Metal Amy (sin usar)', key: 'KeyB', artW: 23 },
+      { spr: 'spr_gui_rougeattack', ab: 'Ataque de Rouge (sin usar)', key: 'KeyB', artW: 100 },
+      { spr: 'spr_gui_rougeglide', ab: 'Planeo de Rouge (sin usar)', key: 'KeyA', artW: 100 },
+      { spr: 'spr_gui_emotions', ab: 'Recordatorio de emociones', key: 'KeyC', artW: 28 }
+    ]}
+  ];
+
+  const AB = {
+    spr: null, meta: null, bitmaps: [], def: null,
+    reel: [], assign: [],
+    tr: { scale: 1, dx: 0, dy: 0, flipX: false, flipY: false, chromaOn: false, chromaColor: '#ff00ff', chromaTol: 40, bg: 'transparent' },
+    animTimer: null, frame: 0
+  };
+
+  function abFindDef(spr) {
+    for (const g of AB_GROUPS) for (const it of g.items) if (it.spr === spr) return it;
+    return null;
+  }
+
+  async function enterAbilities() {
+    if (!AB.built) {
+      AB.built = true;
+      buildAbList();
+      await selectAbSprite('spr_gui_exeattack');
+    }
+  }
+
+  function buildAbList() {
+    const el = $('#ab-list');
+    el.innerHTML = '';
+    for (const g of AB_GROUPS) {
+      const h = document.createElement('div');
+      h.className = 'side-head';
+      h.style.cssText = 'padding:8px 6px 2px;font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px';
+      h.textContent = g.label;
+      el.appendChild(h);
+      for (const it of g.items) {
+        const row = document.createElement('div');
+        row.className = 'arte-row ab-row';
+        row.dataset.spr = it.spr;
+        if (AB.spr === it.spr) row.classList.add('sel');
+        const lbl = document.createElement('span');
+        lbl.className = 'arte-rowlbl';
+        const nm = document.createElement('span');
+        nm.textContent = it.ab;
+        nm.style.fontWeight = '600';
+        const key = document.createElement('span');
+        key.className = 'muted';
+        key.style.cssText = 'font-size:11px;color:var(--mut)';
+        key.textContent = ' · ' + (AB_KEYS[it.key] || '?') + ' · ' + it.spr.replace('spr_gui_', '');
+        lbl.append(nm, key);
+        row.appendChild(lbl);
+        row.addEventListener('click', () => selectAbSprite(it.spr));
+        el.appendChild(row);
+      }
+    }
+  }
+
+  async function selectAbSprite(spr) {
+    AB.spr = spr;
+    AB.def = abFindDef(spr);
+    AB.meta = null; AB.bitmaps = []; AB.assign = [];
+    buildAbList();
+    $('#ab-frames').innerHTML = '<div class="muted">cargando…</div>';
+    const yy = await readText('sprites/' + spr + '/' + spr + '.yy');
+    let n = 1, w = 33, h = 14;
+    if (yy != null) {
+      const meta = C.parseSpriteYy(yy);
+      if (meta) {
+        AB.meta = meta;
+        n = meta.frames.length;
+        if (meta.width) w = meta.width;
+        if (meta.height) h = meta.height;
+      }
+    }
+    if (S.mode === 'demo') { n = 1; }
+    AB.w = w; AB.h = h; AB.n = n;
+    for (let i = 0; i < n; i++) {
+      let bmp = null;
+      if (AB.meta && S.mode !== 'demo') {
+        const fg = AB.meta.frames[i];
+        let blob = AB.meta.layers.length ? await readBlob('sprites/' + spr + '/layers/' + fg + '/' + AB.meta.layers[0] + '.png') : null;
+        if (!blob) blob = await readBlob('sprites/' + spr + '/' + fg + '.png');
+        if (blob) bmp = await createImageBitmap(blob);
+      }
+      AB.bitmaps.push(bmp);
+      AB.assign.push(-1);
+    }
+    const d = AB.def || { ab: spr, key: 'KeyB', artW: 0 };
+    $('#ab-cur').textContent = d.ab + ' · tecla ' + (AB_KEYS[d.key] || '?') + ' (' + d.key + ')';
+    $('#ab-size').textContent = '· ' + spr + ' · ' + w + '×' + h + ' · ' + n + ' fotograma(s)' + (d.shared ? ' · ' + d.shared : '');
+    $('#ab-cutnote').innerHTML = d.artW > 0
+      ? 'Línea de corte en <b>x=' + d.artW + '</b>: las columnas ' + d.artW + '+ del PNG no se dibujan (ahí iba la tecla horneada); el juego pinta la tecla real 2 px después del arte.'
+      : 'Este icono se dibuja <b>solo con la tecla</b> (artW 0): el PNG apenas se ve en el juego.';
+    buildAbFrames();
+    startAbAnim();
+    drawAbPreview();
+    drawAbFull();
+  }
+
+  function buildAbFrames() {
+    const grid = $('#ab-frames');
+    grid.innerHTML = '';
+    for (let i = 0; i < AB.n; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'arte-fcell';
+      const cv = document.createElement('canvas');
+      cv.width = AB.w; cv.height = AB.h;
+      const z = Math.max(2, Math.min(4, Math.floor(72 / Math.max(AB.w, AB.h))));
+      cv.style.width = (AB.w * z) + 'px';
+      cv.style.height = (AB.h * z) + 'px';
+      cell.appendChild(cv);
+      const lbl = document.createElement('span');
+      lbl.textContent = '#' + i + (AB.assign[i] >= 0 ? ' ← img ' + (AB.assign[i] + 1) : '');
+      cell.appendChild(lbl);
+      cell.addEventListener('click', () => {
+        if (!AB.reel.length) { toast('Primero importa una o varias imágenes.', 'warn'); return; }
+        AB.assign[i] = (AB.assign[i] + 1) % (AB.reel.length + 1);
+        drawAbCell(cv, i);
+        lbl.textContent = '#' + i + (AB.assign[i] >= 0 ? ' ← img ' + (AB.assign[i] + 1) : '');
+        drawAbPreview(); drawAbFull(); markAbDirty();
+      });
+      grid.appendChild(cell);
+      drawAbCell(cv, i);
+    }
+  }
+
+  function drawAbCell(cv, i) {
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, AB.w, AB.h);
+    ctx.imageSmoothingEnabled = false;
+    if (AB.assign[i] >= 0 && AB.reel[AB.assign[i]]) {
+      cv.parentElement.classList.add('new');
+      ctx.drawImage(transformToCanvas(AB.reel[AB.assign[i]].bmp, AB.w, AB.h, AB.tr), 0, 0);
+    } else {
+      cv.parentElement.classList.remove('new');
+      if (AB.bitmaps[i]) ctx.drawImage(AB.bitmaps[i], 0, 0, AB.w, AB.h);
+      else { ctx.fillStyle = '#333'; ctx.fillRect(0, 0, AB.w, AB.h); }
+    }
+  }
+
+  function startAbAnim() {
+    if (AB.animTimer) clearInterval(AB.animTimer);
+    if (AB.n <= 1) return;
+    AB.animTimer = setInterval(() => {
+      AB.frame = (AB.frame + 1) % AB.n;
+      drawAbPreview();
+    }, 260);
+  }
+
+  // letra estilo HUD (scr_text_spr: avance fijo de 6 px + 2 en anchas, sin caja)
+  function abDrawLetter(ctx, ch, x, y, color, Z) {
+    Z = Z || 1;
+    const g = A.glyphs.byCh ? A.glyphs.byCh[ch.toLowerCase()] : null;
+    if (!g) return 6 * Z;
+    for (let gy = 0; gy < AC.GH; gy++) {
+      for (let gx = g.L; gx <= g.R; gx++) {
+        const bodyB = (g.cols[gx].body >> gy) & 1;
+        const detB = (g.cols[gx].det >> gy) & 1;
+        if (!(bodyB || detB)) continue;
+        ctx.fillStyle = bodyB ? color : '#000';
+        ctx.fillRect(x + gx * Z, y + gy * Z, Z, Z);
+      }
+    }
+    return ('wm'.includes(ch.toLowerCase()) ? 8 : 6) * Z;
+  }
+
+  function abCurrentFrameCanvas(i) {
+    if (AB.assign[i] >= 0 && AB.reel[AB.assign[i]])
+      return transformToCanvas(AB.reel[AB.assign[i]].bmp, AB.w, AB.h, AB.tr);
+    if (AB.bitmaps[i]) {
+      const cv = document.createElement('canvas');
+      cv.width = AB.w; cv.height = AB.h;
+      cv.getContext('2d').drawImage(AB.bitmaps[i], 0, 0, AB.w, AB.h);
+      return cv;
+    }
+    return null;
+  }
+
+  function tintCanvas(src, color) {
+    const cv = document.createElement('canvas');
+    cv.width = src.width; cv.height = src.height;
+    const ctx = cv.getContext('2d');
+    ctx.drawImage(src, 0, 0);
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    return cv;
+  }
+
+  function drawAbPreview() {
+    const cv = $('#ab-preview');
+    if (!cv) return;
+    const d = AB.def || { artW: 0, key: 'KeyB' };
+    const i = AB.frame % Math.max(1, AB.n);
+    // zoom adaptativo: que las DOS filas (listo + recargando) quepan siempre
+    const Z = Math.max(2, Math.min(4, Math.floor(58 / Math.max(AB.h, 1))));
+    const artW = Math.min(d.artW, AB.w);
+    cv.width = 380; cv.height = 170;
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#14161a';
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    // cuadricula sutil
+    ctx.strokeStyle = '#1d2129';
+    for (let gx = 0; gx < cv.width; gx += Z) { ctx.beginPath(); ctx.moveTo(gx + .5, 0); ctx.lineTo(gx + .5, cv.height); ctx.stroke(); }
+    const img = abCurrentFrameCanvas(i);
+    const keyCh = AB_KEYS[d.key] || '?';
+    const letterW = keyCh.split('').reduce((a, ch) => a + ('wm'.includes(ch.toLowerCase()) ? 8 : 6), 0);
+    const contentW = artW * Z + 2 * Z + letterW * Z;
+    const rowH = AB.h * Z;
+    const xStart = 96; // deja sitio a la etiqueta lateral
+    const drawRow = (y, tint, alpha, tag) => {
+      ctx.globalAlpha = alpha;
+      // etiqueta lateral (vertical centrada)
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#8b93a3';
+      ctx.font = '11px monospace';
+      ctx.fillText(tag, 8, y + Math.floor(rowH / 2) + 4);
+      ctx.globalAlpha = alpha;
+      let x = xStart + Math.max(6, Math.floor((cv.width - 10 - xStart - contentW) / 2));
+      if (img && artW > 0) {
+        const t = tint ? tintCanvas(img, tint) : img;
+        ctx.drawImage(t, 0, 0, artW, AB.h, x, y, artW * Z, AB.h * Z);
+        x += artW * Z;
+      }
+      // tecla real (dinámica)
+      x += 2 * Z;
+      const ly = y + Math.floor((rowH - AC.GH * Z) / 2);
+      for (const ch of keyCh) x += abDrawLetter(ctx, ch, x, ly, tint || '#ffffff', Z);
+      ctx.globalAlpha = 1;
+    };
+    const y1 = Math.max(14, Math.floor((170 - 16 - (rowH * 2 + 18)) / 2));
+    drawRow(y1, null, 1, 'listo');
+    drawRow(y1 + rowH + 18, '#e5506f', 0.55, 'recargando');
+    ctx.strokeStyle = '#3a3a4a';
+    ctx.strokeRect(0.5, 0.5, cv.width - 1, cv.height - 1);
+    ctx.fillStyle = '#5b6272';
+    ctx.font = '11px monospace';
+    ctx.fillText('fotograma ' + (i + 1) + '/' + AB.n + ' · ' + (AB.spr || ''), 8, cv.height - 8);
+  }
+
+  function drawAbFull() {
+    const cv = $('#ab-full');
+    if (!cv) return;
+    const d = AB.def || { artW: 0 };
+    cv.width = 420; cv.height = 110;
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#0c0d10';
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    const Z = Math.max(1, Math.min(4, Math.floor(300 / Math.max(AB.w, 1)), Math.floor(96 / Math.max(AB.h, 1))));
+    const y0 = Math.max(6, Math.floor((cv.height - AB.h * Z) / 2));
+    for (let i = 0; i < Math.min(AB.n, 6); i++) {
+      const img = abCurrentFrameCanvas(i);
+      const x0 = 8 + i * (AB.w * Z + 10);
+      if (img) ctx.drawImage(img, x0, y0, AB.w * Z, AB.h * Z);
+      ctx.strokeStyle = '#3a3a4a';
+      ctx.strokeRect(x0 - 1.5, y0 - 1.5, AB.w * Z + 3, AB.h * Z + 3);
+      // línea de corte artW
+      const artW = Math.min(d.artW, AB.w);
+      if (artW > 0) {
+        ctx.strokeStyle = '#e8b84b';
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(x0 + artW * Z, y0 - 4); ctx.lineTo(x0 + artW * Z, y0 + AB.h * Z + 4); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+  }
+
+  function markAbDirty() {
+    const has = AB.assign.some(a => a >= 0);
+    $('#ab-write').disabled = !has;
+    $('#ab-count').textContent = has ? AB.assign.filter(a => a >= 0).length + ' fotograma(s) listos' : 'sin cambios';
+  }
+
+  async function importAbImages(files) {
+    AB.reel = [];
+    for (const f of files) {
+      if (!/^image\//.test(f.type)) continue;
+      try { AB.reel.push({ bmp: await createImageBitmap(f), name: f.name }); } catch (e) { }
+    }
+    if (!AB.reel.length) { toast('No pude leer ninguna imagen.', 'err'); return; }
+    toast(AB.reel.length + ' imagen(es) importada(s). Ajusta la escala para reducir el tamaño y haz clic en un fotograma para asignar.', 'ok');
+    if ($('#ab-fillall').checked) {
+      for (let i = 0; i < AB.n; i++) AB.assign[i] = 0;
+    } else {
+      let k = 0;
+      for (let i = 0; i < AB.n && k < AB.reel.length; i++, k++) AB.assign[i] = k;
+    }
+    buildAbFrames(); drawAbPreview(); drawAbFull(); markAbDirty();
+    buildAbReel();
+  }
+
+  function buildAbReel() {
+    const el = $('#ab-reel');
+    el.innerHTML = '';
+    AB.reel.forEach((r, k) => {
+      const cell = document.createElement('div');
+      cell.className = 'arte-fcell';
+      const cv = document.createElement('canvas');
+      const s = 56;
+      cv.width = s; cv.height = s;
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      const r2 = Math.min(s / r.bmp.width, s / r.bmp.height);
+      ctx.drawImage(r.bmp, (s - r.bmp.width * r2) / 2, (s - r.bmp.height * r2) / 2, r.bmp.width * r2, r.bmp.height * r2);
+      cell.appendChild(cv);
+      const lbl = document.createElement('span');
+      lbl.textContent = 'img ' + (k + 1) + ' · ' + r.bmp.width + '×' + r.bmp.height;
+      cell.appendChild(lbl);
+      el.appendChild(cell);
+    });
+  }
+
+  async function writeAbIcons() {
+    if (S.mode !== 'fs') {
+      let k = 0;
+      for (let i = 0; i < AB.n; i++) {
+        if (AB.assign[i] < 0) continue;
+        const cv = transformToCanvas(AB.reel[AB.assign[i]].bmp, AB.w, AB.h, AB.tr);
+        cv.toBlob(b => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(b);
+          a.download = AB.spr + '_f' + String(i).padStart(2, '0') + '.png';
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        }, 'image/png');
+        k++;
+      }
+      toast(k + ' PNG descargados: reemplaza los fotogramas en GameMaker.', 'ok');
+      return;
+    }
+    if (!AB.meta) { toast('No encuentro el .yy de ' + AB.spr + ' en el proyecto.', 'err'); return; }
+    const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+    const undoGroup = [];
+    try {
+      const bdir = await ensureDir('_backups_animeditor/' + stamp);
+      let count = 0;
+      for (let i = 0; i < AB.n; i++) {
+        if (AB.assign[i] < 0) continue;
+        const cv = transformToCanvas(AB.reel[AB.assign[i]].bmp, AB.w, AB.h, AB.tr);
+        const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+        const fg = AB.meta.frames[i];
+        if (!fg) continue;
+        const targets = ['sprites/' + AB.spr + '/' + fg + '.png'];
+        for (const lg of AB.meta.layers)
+          targets.push('sprites/' + AB.spr + '/layers/' + fg + '/' + lg + '.png');
+        for (const rel of targets) {
+          let backed = false;
+          try {
+            const fh = await fsWalkFile(rel);
+            const orig = await (await fh.getFile()).arrayBuffer();
+            const bfh = await bdir.getFileHandle(AB.spr + '_' + i + '_' + rel.split('/').pop(), { create: true });
+            const bw = await bfh.createWritable(); await bw.write(orig); await bw.close();
+            backed = true;
+          } catch (e) { }
+          await arteWriteFile(rel, blob);
+          undoGroup.push({ rel, backup: backed ? '_backups_animeditor/' + stamp + '/' + AB.spr + '_' + i + '_' + rel.split('/').pop() : null });
+          count++;
+        }
+      }
+      A.arteUndo = A.arteUndo || [];
+      A.arteUndo.push(undoGroup);
+      toast('Icono escrito (' + count + ' PNG). Respaldo en _backups_animeditor/' + stamp + '/');
+      await selectAbSprite(AB.spr);
+      markAbDirty();
+      $('#ab-count').textContent = 'escrito ✓';
+    } catch (e) { toast('Error al escribir: ' + e.message, 'err'); }
+  }
+
+  // ================= SUB 2 (v3.7): RETRATOS CON BRILLO =================
+  // Sprites animados por superviviente (como los exeicon de los killers)
+  // para la SELECCIÓN (spr_lobby_icon_sh_<key>, 24×24) y el ESCAPE
+  // (spr_lobby_esc_sh_<key>, 26×26). El juego los usa vía los parches GML
+  // que escribe el Suite (scr_characters.gml + obj_lobby_icon + obj_level).
+
+  const SH_CHARS = [
+    { key: 'tails', label: 'Tails', macro: 'CHARACTER_TAILS', slot: 2 },
+    { key: 'knux', label: 'Knuckles', macro: 'CHARACTER_KNUX', slot: 3 },
+    { key: 'eggman', label: 'Eggman', macro: 'CHARACTER_EGGMAN', slot: 4 },
+    { key: 'amy', label: 'Amy Rose', macro: 'CHARACTER_AMY', slot: 5 },
+    { key: 'cream', label: 'Cream', macro: 'CHARACTER_CREAM', slot: 6, also: 'Vanilla comparte este retrato' },
+    { key: 'sally', label: 'Sally', macro: 'CHARACTER_SALLY', slot: 7, also: 'Sally (canon) comparte este retrato' },
+    { key: 'amycanon', label: 'Amy (canon)', macro: 'CHARACTER_AMY_CANON', slot: 8 },
+    { key: 'sonic', label: 'Sonic', macro: 'CHARACTER_SONIC', slot: 9 },
+    { key: 'metal', label: 'Metal Sonic', macro: 'CHARACTER_METAL', slot: 10 },
+    { key: 'amelia', label: 'Amelia', macro: 'CHARACTER_AMELIA', slot: 11 },
+    { key: 'blaze', label: 'Blaze', macro: 'CHARACTER_BLAZE', slot: 12 }
+  ];
+
+  const SH = {
+    char: 'amycanon', reel: [],
+    tr: { scale: 1, dx: 0, dy: 0, flipX: false, flipY: false, chromaOn: false, chromaColor: '#ff00ff', chromaTol: 40, bg: 'transparent' },
+    animTimer: null, frame: 0, escape: true
+  };
+
+  function shSel() { return SH_CHARS.find(c => c.key === SH.char) || SH_CHARS[0]; }
+
+  function buildShCharSelect() {
+    const sel = $('#sh-char');
+    sel.innerHTML = '';
+    for (const c of SH_CHARS) {
+      const o = document.createElement('option');
+      o.value = c.key;
+      o.textContent = c.label + (c.also ? ' (+ ' + c.also + ')' : '');
+      sel.appendChild(o);
+    }
+    sel.value = SH.char;
+    const note = $('#sh-note');
+    const c = shSel();
+    note.textContent = 'estático actual: fotograma ' + c.slot + ' de spr_lobby_icon · con brillo: sprite propio animado';
+  }
+
+  function shFrameCanvas(i, w, h) {
+    const r = SH.reel[i % Math.max(1, SH.reel.length)];
+    if (!r) return null;
+    const tr = Object.assign({}, SH.tr);
+    // para el icono de escapó (26×26) se centra el arte 24×24 con 1 px de margen
+    if (w === 26 && h === 26) { tr.dx += 1; tr.dy += 1; }
+    return transformToCanvas(r.bmp, w, h, tr);
+  }
+
+  function drawShPreview() {
+    const cv = $('#sh-preview');
+    if (!cv) return;
+    const c = shSel();
+    const Z = 3;
+    cv.width = 260; cv.height = 120;
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#101014';
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    const i = SH.frame % Math.max(1, SH.reel.length);
+    // retrato de selección animado (24×24)
+    const sel = shFrameCanvas(i, 24, 24);
+    ctx.fillStyle = '#8b93a3'; ctx.font = '11px monospace';
+    ctx.fillText('selección 24×24', 10, 14);
+    if (sel) ctx.drawImage(sel, 12, 26, 24 * Z, 24 * Z);
+    else {
+      ctx.strokeStyle = '#3a3a4a'; ctx.setLineDash([3, 3]);
+      ctx.strokeRect(12, 26, 24 * Z, 24 * Z); ctx.setLineDash([]);
+      ctx.fillStyle = '#5b6272'; ctx.fillText('importa imágenes…', 18, 70);
+    }
+    ctx.strokeStyle = '#3a3a4a';
+    ctx.strokeRect(11.5, 25.5, 24 * Z + 2, 24 * Z + 2);
+    // icono de escapó (26×26)
+    if (SH.escape) {
+      ctx.fillStyle = '#8b93a3'; ctx.fillText('escapó 26×26', 120, 14);
+      const esc = shFrameCanvas(i, 26, 26);
+      if (esc) ctx.drawImage(esc, 130, 26, 26 * Z, 26 * Z);
+      ctx.strokeStyle = '#3a3a4a';
+      ctx.strokeRect(129.5, 25.5, 26 * Z + 2, 26 * Z + 2);
+    }
+    // tira de fotogramas
+    ctx.fillStyle = '#8b93a3'; ctx.fillText('fotogramas', 10, 112);
+    for (let k = 0; k < Math.min(SH.reel.length, 7); k++) {
+      const t = shFrameCanvas(k, 24, 24);
+      if (t) ctx.drawImage(t, 80 + k * 26, 100, 24, 24);
+    }
+    const hint = $('#sh-hint');
+    if (hint) {
+      if (!SH.reel.length) hint.textContent = 'Importa 2 o más imágenes (el brillo es la animación). ' + (c.also ? 'Ojo: ' + c.also + '.' : '');
+      else hint.textContent = SH.reel.length + ' fotograma(s) · parpadeo a 10 fps como los killers' + (c.also ? ' · ' + c.also : '');
+    }
+  }
+
+  function markShDirty() {
+    const el = $('#sh-count');
+    if (el) el.textContent = SH.reel.length ? SH.reel.length + ' fotograma(s) para ' + shSel().label + (SH.escape ? ' + escape' : '') : 'sin imágenes todavía';
+  }
+
+  async function importShImages(files) {
+    SH.reel = [];
+    for (const f of files) {
+      if (!/^image\//.test(f.type)) continue;
+      try { SH.reel.push({ bmp: await createImageBitmap(f), name: f.name }); } catch (e) { }
+    }
+    if (!SH.reel.length) { toast('No pude leer ninguna imagen.', 'err'); return; }
+    if (SH.reel.length === 1) toast('1 imagen: no habrá parpadeo (el brillo ES la animación). Importa 2 o más.', 'warn');
+    else toast(SH.reel.length + ' imagen(es) para el retrato con brillo de ' + shSel().label + '.', 'ok');
+    buildShReel(); drawShPreview(); markShDirty();
+  }
+
+  function buildShReel() {
+    const el = $('#sh-reel');
+    el.innerHTML = '';
+    SH.reel.forEach((r, k) => {
+      const cell = document.createElement('div');
+      cell.className = 'arte-fcell';
+      const cv = document.createElement('canvas');
+      const s = 56;
+      cv.width = s; cv.height = s;
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      const r2 = Math.min(s / r.bmp.width, s / r.bmp.height);
+      ctx.drawImage(r.bmp, (s - r.bmp.width * r2) / 2, (s - r.bmp.height * r2) / 2, r.bmp.width * r2, r.bmp.height * r2);
+      cell.appendChild(cv);
+      const lbl = document.createElement('span');
+      lbl.textContent = 'f' + (k + 1) + ' · ' + r.bmp.width + '×' + r.bmp.height;
+      cell.appendChild(lbl);
+      el.appendChild(cell);
+    });
+  }
+
+  // ---------- construcción del .yy del sprite nuevo ----------
+  function buildShinyYy(name, w, h, xorigin, yorigin, originEnum, playback, nFrames) {
+    const fid = () => uuid4();
+    const frames = [];
+    for (let i = 0; i < nFrames; i++) frames.push(fid());
+    const layer = fid();
+    const frameEntries = frames.map(g =>
+      '    {"$GMSpriteFrame":"v1","%Name":"' + g + '","name":"' + g + '","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},').join('\n');
+    const keyEntries = frames.map((g, i) =>
+      '            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{\n' +
+      '                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"' + g + '","path":"sprites/' + name + '/' + name + '.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},\n' +
+      '              },"Disabled":false,"id":"' + fid() + '","IsCreationKey":false,"Key":' + i + '.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},').join('\n');
+    return '{\n' +
+      '  "$GMSprite":"v2",\n' +
+      '  "%Name":"' + name + '",\n' +
+      '  "bboxMode":0,\n' +
+      '  "bbox_bottom":' + (h - 1) + ',\n' +
+      '  "bbox_left":0,\n' +
+      '  "bbox_right":' + (w - 1) + ',\n' +
+      '  "bbox_top":0,\n' +
+      '  "collisionKind":1,\n' +
+      '  "collisionTolerance":0,\n' +
+      '  "DynamicTexturePage":false,\n' +
+      '  "edgeFiltering":false,\n' +
+      '  "For3D":false,\n' +
+      '  "frames":[\n' + frameEntries + '\n' +
+      '  ],\n' +
+      '  "gridX":0,\n' +
+      '  "gridY":0,\n' +
+      '  "height":' + h + ',\n' +
+      '  "HTile":false,\n' +
+      '  "layers":[\n' +
+      '    {"$GMImageLayer":"","%Name":"' + layer + '","blendMode":0,"displayName":"default","isLocked":false,"name":"' + layer + '","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},\n' +
+      '  ],\n' +
+      '  "name":"' + name + '",\n' +
+      '  "nineSlice":null,\n' +
+      '  "origin":' + originEnum + ',\n' +
+      '  "parent":{\n' +
+      '    "name":"Lobby",\n' +
+      '    "path":"folders/Sprites/Lobby.yy",\n' +
+      '  },\n' +
+      '  "preMultiplyAlpha":false,\n' +
+      '  "resourceType":"GMSprite",\n' +
+      '  "resourceVersion":"2.0",\n' +
+      '  "sequence":{\n' +
+      '    "$GMSequence":"v1",\n' +
+      '    "%Name":"' + name + '",\n' +
+      '    "autoRecord":true,\n' +
+      '    "backdropHeight":768,\n' +
+      '    "backdropImageOpacity":0.5,\n' +
+      '    "backdropImagePath":"",\n' +
+      '    "backdropWidth":1366,\n' +
+      '    "backdropXOffset":0.0,\n' +
+      '    "backdropYOffset":0.0,\n' +
+      '    "events":{\n' +
+      '      "$KeyframeStore<MessageEventKeyframe>":"",\n' +
+      '      "Keyframes":[],\n' +
+      '      "resourceType":"KeyframeStore<MessageEventKeyframe>",\n' +
+      '      "resourceVersion":"2.0",\n' +
+      '    },\n' +
+      '    "eventStubScript":null,\n' +
+      '    "eventToFunction":{},\n' +
+      '    "length":' + nFrames + '.0,\n' +
+      '    "lockOrigin":false,\n' +
+      '    "moments":{\n' +
+      '      "$KeyframeStore<MomentsEventKeyframe>":"",\n' +
+      '      "Keyframes":[],\n' +
+      '      "resourceType":"KeyframeStore<MomentsEventKeyframe>",\n' +
+      '      "resourceVersion":"2.0",\n' +
+      '    },\n' +
+      '    "name":"' + name + '",\n' +
+      '    "playback":1,\n' +
+      '    "playbackSpeed":' + playback + ',\n' +
+      '    "playbackSpeedType":0,\n' +
+      '    "resourceType":"GMSequence",\n' +
+      '    "resourceVersion":"2.0",\n' +
+      '    "showBackdrop":true,\n' +
+      '    "showBackdropImage":false,\n' +
+      '    "timeUnits":1,\n' +
+      '    "tracks":[\n' +
+      '      {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[\n' +
+      keyEntries + '\n' +
+      '          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},\n' +
+      '    ],\n' +
+      '    "visibleRange":null,\n' +
+      '    "volume":1.0,\n' +
+      '    "xorigin":' + xorigin + ',\n' +
+      '    "yorigin":' + yorigin + ',\n' +
+      '  },\n' +
+      '  "swatchColours":null,\n' +
+      '  "swfPrecision":2.525,\n' +
+      '  "textureGroupId":{\n' +
+      '    "name":"Game",\n' +
+      '    "path":"texturegroups/Game",\n' +
+      '  },\n' +
+      '  "type":0,\n' +
+      '  "VTile":false,\n' +
+      '  "width":' + w + ',\n' +
+      '}\n';
+  }
+
+  async function writeShiny() {
+    const c = shSel();
+    if (!SH.reel.length) { toast('Importa primero las imágenes del brillo (2 o más).', 'warn'); return; }
+    if (SH.reel.length > 12) { toast('Máximo 12 fotogramas por retrato.', 'warn'); return; }
+    if (S.mode !== 'fs') { downloadShiny(); return; }
+    if (!confirm('Se van a CREAR/REEMPLAZAR los sprites animados de ' + c.label + ':\n' +
+      '  · sprites/spr_lobby_icon_sh_' + c.key + '/ (selección, 24×24, ' + SH.reel.length + ' fotogramas)\n' +
+      (SH.escape ? '  · sprites/spr_lobby_esc_sh_' + c.key + '/ (escapó, 26×26)\n' : '') +
+      '  · registro en el .yyp + bloque de funciones en scr_characters.gml\n' +
+      '  · parches en obj_lobby_icon/Draw_0.gml y obj_level/Draw_64.gml\n' +
+      '¿Continuar?')) return;
+    const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+    const undoGroup = [];
+    try {
+      const bdir = await ensureDir('_backups_animeditor/' + stamp);
+      const N = SH.reel.length;
+      // 1) sprites: selección (24×24) y escapó (26×26)
+      const made = [];
+      made.push({ name: 'spr_lobby_icon_sh_' + c.key, w: 24, h: 24, xo: 12, yo: 12, oe: 4 });
+      if (SH.escape) made.push({ name: 'spr_lobby_esc_sh_' + c.key, w: 26, h: 26, xo: 0, yo: 26, oe: 6 });
+      for (const sp of made) {
+        const yy = buildShinyYy(sp.name, sp.w, sp.h, sp.xo, sp.yo, sp.oe, 10, N);
+        await arteWriteFile('sprites/' + sp.name + '/' + sp.name + '.yy', new Blob([yy], { type: 'text/plain' }));
+        const m = C.parseSpriteYy(yy);
+        for (let i = 0; i < N; i++) {
+          const cv = shFrameCanvas(i, sp.w, sp.h);
+          const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+          await arteWriteFile('sprites/' + sp.name + '/' + m.frames[i] + '.png', blob);
+          await arteWriteFile('sprites/' + sp.name + '/layers/' + m.frames[i] + '/' + m.layers[0] + '.png', blob);
+        }
+      }
+      // 2) registro .yyp
+      const yypName = await yypFileName();
+      if (yypName == null) { toast('No encuentro el .yyp del proyecto.', 'err'); return; }
+      let yyp = await readText(yypName);
+      for (const sp of made) {
+        if (yyp.indexOf('"name":"' + sp.name + '"') < 0) {
+          const entry = '{"id":{"name":"' + sp.name + '","path":"sprites/' + sp.name + '/' + sp.name + '.yy",},';
+          const mres = /"resources"\s*:\s*\[\s*\n/.exec(yyp);
+          if (mres) yyp = yyp.slice(0, mres.index + mres[0].length) + '    ' + entry + '\n' + yyp.slice(mres.index + mres[0].length);
+        }
+      }
+      await arteWriteFile(yypName, new Blob([yyp], { type: 'text/plain' }));
+      // 3) bloque de funciones en scr_characters.gml
+      await writeShinyGmlBlock(bdir, undoGroup);
+      // 4) parches de llamada (obj_lobby_icon + obj_level)
+      await patchLobbyIconDraw(bdir, undoGroup);
+      await patchLevelDraw(bdir, undoGroup);
+      A.arteUndo = A.arteUndo || [];
+      A.arteUndo.push(undoGroup);
+      toast('✨ Retrato con brillo de ' + c.label + ' creado (' + N + ' fotogramas).\nRecompila el juego (F5) para ver el parpadeo.');
+      markShDirty();
+    } catch (e) { toast('Error: ' + e.message, 'err'); }
+  }
+
+  // Qué personajes tienen brillo HOY en el proyecto (para el bloque GML)
+  async function shinyCharsInProject() {
+    const out = [];
+    for (const c of SH_CHARS) {
+      const yy = await readText('sprites/spr_lobby_icon_sh_' + c.key + '/spr_lobby_icon_sh_' + c.key + '.yy');
+      if (yy != null) out.push(c);
+    }
+    return out;
+  }
+
+  async function writeShinyGmlBlock(bdir, undoGroup) {
+    const rel = 'scripts/scr_characters/scr_characters.gml';
+    let gml = await readText(rel);
+    if (gml == null) { toast('No encuentro scr_characters.gml.', 'err'); throw new Error('sin scr_characters'); }
+    // respaldo
+    try {
+      const fh = await fsWalkFile(rel);
+      const orig = await (await fh.getFile()).arrayBuffer();
+      const bfh = await bdir.getFileHandle('scr_characters.gml', { create: true });
+      const bw = await bfh.createWritable(); await bw.write(orig); await bw.close();
+      undoGroup.push({ rel, backup: '_backups_animeditor/' + bdir.name + '/scr_characters.gml' });
+    } catch (e) { undoGroup.push({ rel, backup: null }); }
+    const chars = await shinyCharsInProject();
+    if (!chars.length) { toast('Ningún retrato con brillo en el proyecto: se omite el bloque GML.', 'warn'); return; }
+    const BEG = '// ===== [Suite TD2D v3.7] retratos con brillo (auto: no editar) =====';
+    const END = '// ===== fin [Suite TD2D v3.7] retratos con brillo =====';
+    let block = BEG + '\n';
+    block += 'function scr_lobby_shiny_setup(char)\n{\n';
+    block += '    var _c = char;\n';
+    block += '    if(_c == CHARACTER_SALLY_CANON) _c = CHARACTER_SALLY;\n';
+    block += '    if(_c == CHARACTER_VANILLA) _c = CHARACTER_CREAM;\n';
+    block += '    var _spr = -1;\n';
+    block += '    switch(_c)\n    {\n';
+    for (const c of chars)
+      block += '        case ' + c.macro + ': _spr = spr_lobby_icon_sh_' + c.key + '; break;\n';
+    block += '    }\n';
+    block += '    if(_spr < 0)\n    {\n';
+    block += '        sprite_index = spr_lobby_icon;\n';
+    block += '        image_speed = 0;\n';
+    block += '        image_index = char + 1;\n';
+    block += '        if(char == CHARACTER_SALLY_CANON) image_index = CHARACTER_SALLY + 1;\n';
+    block += '        if(char == CHARACTER_VANILLA) image_index = CHARACTER_CREAM + 1;\n';
+    block += '        if(char == CHARACTER_METAL) image_index = 10;\n';
+    block += '        else if(char == CHARACTER_AMELIA) image_index = 11;\n';
+    block += '        else if(char == CHARACTER_BLAZE) image_index = 12;\n';
+    block += '    }\n';
+    block += '    else\n    {\n';
+    block += '        sprite_index = _spr;\n';
+    block += '        image_speed = 1;\n';
+    block += '        if(image_index < 0 || image_index >= sprite_get_number(_spr)) image_index = 0;\n';
+    block += '    }\n';
+    block += '}\n\n';
+    block += 'function scr_lobby_shiny_resolve(inst)\n{\n';
+    block += '    with(inst)\n    {\n';
+    block += '        if(obj_netclient.exeId == master_id) return;\n';
+    block += '        if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected) return;\n';
+    block += '        var _ch = -1;\n';
+    block += '        if(master_id == obj_netclient.nid)\n            _ch = global.character;\n';
+    block += '        else if(ds_map_exists(obj_netclient.players, master_id) && !obj_netclient.players[? master_id].pending)\n            _ch = obj_netclient.players[? master_id].character;\n';
+    block += '        if(_ch < CHARACTER_TAILS || _ch == CHARACTER_EXE || _ch > CHARACTER_BLAZE) return;\n';
+    block += '        scr_lobby_shiny_setup(_ch);\n';
+    block += '    }\n';
+    block += '}\n\n';
+    block += 'function scr_lobby_shiny_escape(char, xx, yy)\n{\n';
+    block += '    var _c = char;\n';
+    block += '    if(_c == CHARACTER_SALLY_CANON) _c = CHARACTER_SALLY;\n';
+    block += '    if(_c == CHARACTER_VANILLA) _c = CHARACTER_CREAM;\n';
+    block += '    var _spr = -1;\n';
+    block += '    switch(_c)\n    {\n';
+    for (const c of chars) {
+      const yy = await readText('sprites/spr_lobby_esc_sh_' + c.key + '/spr_lobby_esc_sh_' + c.key + '.yy');
+      if (yy != null)
+        block += '        case ' + c.macro + ': _spr = spr_lobby_esc_sh_' + c.key + '; break;\n';
+    }
+    block += '    }\n';
+    block += '    if(_spr < 0) return false;\n';
+    block += '    draw_sprite(_spr, current_time / 150 % sprite_get_number(_spr), xx, yy);\n';
+    block += '    return true;\n';
+    block += '}\n';
+    block += END + '\n';
+    // reemplazar el bloque anterior o añadirlo al final
+    const bi = gml.indexOf(BEG);
+    if (bi >= 0) {
+      const be = gml.indexOf(END);
+      gml = gml.slice(0, bi) + block + gml.slice(be >= 0 ? be + END.length + 1 : undefined);
+    } else {
+      gml = gml.replace(/\s*$/, '\n\n') + block;
+    }
+    await arteWriteFile(rel, new Blob([gml], { type: 'text/plain' }));
+  }
+
+  async function backupGml(rel, bdir, undoGroup) {
+    try {
+      const fh = await fsWalkFile(rel);
+      const orig = await (await fh.getFile()).arrayBuffer();
+      const bfh = await bdir.getFileHandle(rel.split('/').pop(), { create: true });
+      const bw = await bfh.createWritable(); await bw.write(orig); await bw.close();
+      undoGroup.push({ rel, backup: '_backups_animeditor/' + bdir.name + '/' + rel.split('/').pop() });
+      return (new TextDecoder()).decode(orig);
+    } catch (e) {
+      undoGroup.push({ rel, backup: null });
+      return null;
+    }
+  }
+
+  async function patchLobbyIconDraw(bdir, undoGroup) {
+    const rel = 'objects/obj_lobby_icon/Draw_0.gml';
+    let gml = await readText(rel);
+    if (gml == null) { toast('No encuentro obj_lobby_icon/Draw_0.gml.', 'err'); return; }
+    if (gml.indexOf('scr_lobby_shiny_resolve') >= 0) return; // ya parcheado
+    const orig = await backupGml(rel, bdir, undoGroup) || gml;
+    gml = orig;
+    // 1) navegación: bloque estático → helper (mismo mapeo de fotogramas)
+    const navOld =
+      '        else\n' +
+      '        {\n' +
+      '                // Sally Canon reusa el icono de Sally en el tira de sprites del lobby\n' +
+      '                image_index = selected == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : selected + 1;\n' +
+      '                if(selected == CHARACTER_VANILLA)\n' +
+      '                        image_index = CHARACTER_CREAM + 1;\n' +
+      '                // v2.2 (TTB): Metal/Amelia/Blaze tienen sus propios frames al\n' +
+      '                // final de la tira (10/11/12)\n' +
+      '                if(selected == CHARACTER_METAL)\n' +
+      '                        image_index = 10;\n' +
+      '                else if(selected == CHARACTER_AMELIA)\n' +
+      '                        image_index = 11;\n' +
+      '                else if(selected == CHARACTER_BLAZE)\n' +
+      '                        image_index = 12;\n' +
+      '                image_blend = c_gray;\n' +
+      '        }';
+    const navNew =
+      '        else\n' +
+      '        {\n' +
+      '                // [Suite TD2D v3.7] icono en navegacion: estatico o con brillo\n' +
+      '                // (scr_lobby_shiny_setup trae el mapeo original de la tira)\n' +
+      '                scr_lobby_shiny_setup(selected);\n' +
+      '                image_blend = c_gray;\n' +
+      '        }';
+    if (gml.indexOf(navOld) < 0) { toast('No encuentro el bloque de navegación de obj_lobby_icon (¿editado?): se parchea solo la resolución.', 'warn'); }
+    else gml = gml.split(navOld).join(navNew);
+    // 2) resolución por fotograma antes de dibujar (a nivel de objeto, sin sangría)
+    const drawOld = 'y = aY - offset;\ndraw_self();';
+    const drawNew =
+      '// [Suite TD2D v3.7] retratos con brillo: resolver el icono del\n' +
+      '// personaje de este jugador (estatico o animado) en cada fotograma\n' +
+      'if(obj_lobby.state > 0 && !hidden)\n' +
+      '        scr_lobby_shiny_resolve(self);\n' +
+      '\n' +
+      'y = aY - offset;\ndraw_self();';
+    if (gml.indexOf(drawOld) < 0) { toast('No encuentro draw_self() en obj_lobby_icon: parche parcial.', 'warn'); }
+    else gml = gml.replace(drawOld, drawNew);
+    await arteWriteFile(rel, new Blob([gml], { type: 'text/plain' }));
+  }
+
+  async function patchLevelDraw(bdir, undoGroup) {
+    const rel = 'objects/obj_level/Draw_64.gml';
+    let gml = await readText(rel);
+    if (gml == null) { toast('No encuentro obj_level/Draw_64.gml.', 'err'); return; }
+    if (gml.indexOf('scr_lobby_shiny_escape') >= 0) return; // ya parcheado
+    const orig = await backupGml(rel, bdir, undoGroup) || gml;
+    gml = orig;
+    // propio (jugador local escapado)
+    const selfOld = '                        draw_sprite(spr_playerescaped, (_hudChar-CHARACTER_TAILS), pos, 268);';
+    const selfNew = '                        // [Suite TD2D v3.7] escape con brillo si existe; si no, el de siempre\n' +
+      '                        if(!scr_lobby_shiny_escape(_hudChar, pos, 268))\n' +
+      '                                draw_sprite(spr_playerescaped, (_hudChar-CHARACTER_TAILS), pos, 268);';
+    if (gml.indexOf(selfOld) < 0) toast('No encuentro el escape propio en obj_level (¿editado?).', 'warn');
+    else gml = gml.replace(selfOld, selfNew);
+    // resto de jugadores
+    const otherOld = '                                draw_sprite(spr_playerescaped, (_ech-CHARACTER_TAILS), pos + i * 28, 268);';
+    const otherNew = '                                // [Suite TD2D v3.7] escape con brillo si existe; si no, el de siempre\n' +
+      '                                if(!scr_lobby_shiny_escape(_ech, pos + i * 28, 268))\n' +
+      '                                        draw_sprite(spr_playerescaped, (_ech-CHARACTER_TAILS), pos + i * 28, 268);';
+    if (gml.indexOf(otherOld) < 0) toast('No encuentro el escape ajeno en obj_level (¿editado?).', 'warn');
+    else gml = gml.replace(otherOld, otherNew);
+    await arteWriteFile(rel, new Blob([gml], { type: 'text/plain' }));
+  }
+
+  function downloadShiny() {
+    const c = shSel();
+    const N = SH.reel.length;
+    let k = 0;
+    for (let i = 0; i < N; i++) {
+      [['spr_lobby_icon_sh_' + c.key, 24, 24]].concat(SH.escape ? [['spr_lobby_esc_sh_' + c.key, 26, 26]] : []).forEach(([base, w, h]) => {
+        const cv = shFrameCanvas(i, w, h);
+        cv.toBlob(b => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(b);
+          a.download = base + '_f' + String(i).padStart(2, '0') + '.png';
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        }, 'image/png');
+        k++;
+      });
+    }
+    // además: parche GML para pegar a mano
+    const chars = [c];
+    let txt = '== Suite TD2D v3.7 · retrato con brillo de ' + c.label + ' ==\n\n';
+    txt += '1) Crea en GameMaker los sprites ' + 'spr_lobby_icon_sh_' + c.key + ' (24×24, ' + N + ' fotogramas, origen centro)' + (SH.escape ? ' y spr_lobby_esc_sh_' + c.key + ' (26×26, origen abajo-izquierda)' : '') + ' con estos PNG.\n';
+    txt += '2) Pega estas funciones al final de scripts/scr_characters/scr_characters.gml:\n\n';
+    txt += buildShinyGmlText(chars) + '\n';
+    txt += '\n3) En objects/obj_lobby_icon/Draw_0.gml, en el bloque else de la navegación (state 2, no-exe), sustituye las líneas de image_index por:\n    scr_lobby_shiny_setup(selected);\n';
+    txt += '4) En ese mismo archivo, justo antes de «y = aY - offset;» añade:\n    if(obj_lobby.state > 0 && !hidden)\n            scr_lobby_shiny_resolve(self);\n';
+    txt += '5) En objects/obj_level/Draw_64.gml, envuelve los dos draw_sprite(spr_playerescaped, ...) con:\n    if(!scr_lobby_shiny_escape(_hudChar, pos, 268))\n            draw_sprite(spr_playerescaped, (_hudChar-CHARACTER_TAILS), pos, 268);\n';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
+    a.download = 'parche_brillo_' + c.key + '.txt';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast(k + ' PNG + parche .txt descargados.', 'ok');
+  }
+
+  function buildShinyGmlText(chars) {
+    let block = '';
+    block += 'function scr_lobby_shiny_setup(char)\n{\n';
+    block += '    var _c = char;\n';
+    block += '    if(_c == CHARACTER_SALLY_CANON) _c = CHARACTER_SALLY;\n';
+    block += '    if(_c == CHARACTER_VANILLA) _c = CHARACTER_CREAM;\n';
+    block += '    var _spr = -1;\n';
+    block += '    switch(_c)\n    {\n';
+    for (const c of chars)
+      block += '        case ' + c.macro + ': _spr = spr_lobby_icon_sh_' + c.key + '; break;\n';
+    block += '    }\n';
+    block += '    if(_spr < 0)\n    {\n';
+    block += '        sprite_index = spr_lobby_icon;\n';
+    block += '        image_speed = 0;\n';
+    block += '        image_index = char + 1;\n';
+    block += '        if(char == CHARACTER_SALLY_CANON) image_index = CHARACTER_SALLY + 1;\n';
+    block += '        if(char == CHARACTER_VANILLA) image_index = CHARACTER_CREAM + 1;\n';
+    block += '        if(char == CHARACTER_METAL) image_index = 10;\n';
+    block += '        else if(char == CHARACTER_AMELIA) image_index = 11;\n';
+    block += '        else if(char == CHARACTER_BLAZE) image_index = 12;\n';
+    block += '    }\n';
+    block += '    else\n    {\n';
+    block += '        sprite_index = _spr;\n';
+    block += '        image_speed = 1;\n';
+    block += '        if(image_index < 0 || image_index >= sprite_get_number(_spr)) image_index = 0;\n';
+    block += '    }\n';
+    block += '}\n';
+    return block;
+  }
+
   // ================= integración con el Suite =================
 
   function bindEvents() {
@@ -7406,7 +8598,7 @@ initKeys();
       S.arteSub = sub;
       $$('#subnav-arte .subnav-btn').forEach(x => x.classList.toggle('sel', x === b));
       $$('.arte-subpane').forEach(p => p.classList.toggle('hidden', p.dataset.sub !== sub));
-      const showImg = (sub === 'habilidades');
+      const showImg = (sub === 'imagenes');
       const modArte = $('#mod-arte'), modImg = $('#mod-img');
       if (modArte) modArte.classList.toggle('hidden', showImg);
       if (modImg) modImg.classList.toggle('hidden', !showImg);
@@ -7414,6 +8606,7 @@ initKeys();
       else if (sub === 'placas') enterPlaques();
       else if (sub === 'iconos') enterIcons();
       else if (sub === 'finales') enterEndings();
+      else if (sub === 'habilidades') enterAbilities();
     }));
 
     // placas
@@ -7495,6 +8688,54 @@ initKeys();
     $('#en-chroma').addEventListener('change', e => { EN.tr.chromaOn = e.target.checked; endTr(); });
     $('#en-chromacol').addEventListener('input', e => { EN.tr.chromaColor = e.target.value; endTr(); });
     $('#arte-end-write').addEventListener('click', writeEnding);
+
+    // v3.7 — iconos de habilidades (HUD)
+    $('#ab-files').addEventListener('change', e => importAbImages(Array.from(e.target.files || [])));
+    $('#ab-fillall').addEventListener('change', () => {
+      if ($('#ab-fillall').checked && AB.reel.length) {
+        for (let i = 0; i < AB.n; i++) AB.assign[i] = 0;
+        buildAbFrames(); drawAbPreview(); drawAbFull(); markAbDirty();
+      }
+    });
+    const abTr = () => { buildAbFrames(); drawAbPreview(); drawAbFull(); };
+    $('#ab-scale').addEventListener('input', e => { AB.tr.scale = parseFloat(e.target.value); $('#ab-scale-v').textContent = e.target.value + '×'; abTr(); });
+    $('#ab-dx').addEventListener('input', e => { AB.tr.dx = parseInt(e.target.value, 10); abTr(); });
+    $('#ab-dy').addEventListener('input', e => { AB.tr.dy = parseInt(e.target.value, 10); abTr(); });
+    $('#ab-flipx').addEventListener('change', e => { AB.tr.flipX = e.target.checked; abTr(); });
+    $('#ab-flipy').addEventListener('change', e => { AB.tr.flipY = e.target.checked; abTr(); });
+    $('#ab-chroma').addEventListener('change', e => { AB.tr.chromaOn = e.target.checked; abTr(); });
+    $('#ab-chromacol').addEventListener('input', e => { AB.tr.chromaColor = e.target.value; abTr(); });
+    $('#ab-chromatol').addEventListener('input', e => { AB.tr.chromaTol = parseInt(e.target.value, 10); abTr(); });
+    $('#ab-bg').addEventListener('change', e => { AB.tr.bg = e.target.value; abTr(); });
+    $('#ab-write').addEventListener('click', writeAbIcons);
+
+    // v3.7 — retratos con brillo
+    buildShCharSelect();
+    $('#sh-char').addEventListener('change', e => {
+      SH.char = e.target.value;
+      SH.reel = [];
+      buildShReel(); drawShPreview(); markShDirty();
+      buildShCharSelect();
+    });
+    $('#sh-files').addEventListener('change', e => importShImages(Array.from(e.target.files || [])));
+    const shTr = () => { drawShPreview(); };
+    $('#sh-scale').addEventListener('input', e => { SH.tr.scale = parseFloat(e.target.value); $('#sh-scale-v').textContent = e.target.value + '×'; shTr(); });
+    $('#sh-dx').addEventListener('input', e => { SH.tr.dx = parseInt(e.target.value, 10); shTr(); });
+    $('#sh-dy').addEventListener('input', e => { SH.tr.dy = parseInt(e.target.value, 10); shTr(); });
+    $('#sh-flipx').addEventListener('change', e => { SH.tr.flipX = e.target.checked; shTr(); });
+    $('#sh-flipy').addEventListener('change', e => { SH.tr.flipY = e.target.checked; shTr(); });
+    $('#sh-chroma').addEventListener('change', e => { SH.tr.chromaOn = e.target.checked; shTr(); });
+    $('#sh-chromacol').addEventListener('input', e => { SH.tr.chromaColor = e.target.value; shTr(); });
+    $('#sh-chromatol').addEventListener('input', e => { SH.tr.chromaTol = parseInt(e.target.value, 10); shTr(); });
+    $('#sh-escape').addEventListener('change', e => { SH.escape = e.target.checked; shTr(); });
+    $('#sh-write').addEventListener('click', writeShiny);
+    if (SH.animTimer) clearInterval(SH.animTimer);
+    SH.animTimer = setInterval(() => {
+      SH.frame = (SH.frame + 1) % Math.max(1, SH.reel.length || 6);
+      const pane = document.querySelector('.arte-subpane[data-sub="iconos"]');
+      if (pane && !pane.classList.contains('hidden')) drawShPreview();
+    }, 150);
+    drawShPreview();
   }
 
   function insertAtCursor(ta, text) {
@@ -7511,7 +8752,7 @@ initKeys();
     const sub = S.arteSub || 'placas';
     $$('#subnav-arte .subnav-btn').forEach(x => x.classList.toggle('sel', x.dataset.artesub === sub));
     $$('.arte-subpane').forEach(p => p.classList.toggle('hidden', p.dataset.sub !== sub));
-    const showImg = sub === 'habilidades';
+    const showImg = sub === 'imagenes';
     const modArte = $('#mod-arte'), modImg = $('#mod-img');
     if (modArte) modArte.classList.toggle('hidden', showImg);
     if (modImg) modImg.classList.toggle('hidden', !showImg);
@@ -7519,6 +8760,7 @@ initKeys();
     else if (sub === 'placas') await enterPlaques();
     else if (sub === 'iconos') enterIcons();
     else if (sub === 'finales') enterEndings();
+    else if (sub === 'habilidades') enterAbilities();
   };
 
   // tras escribir/deshacer desde fuera
@@ -7528,6 +8770,9 @@ initKeys();
       if (typeof prev === 'function') prev();
     };
   })(window.__onProjectScan);
+
+  // gancho de depuración/pruebas (sin efecto en el uso normal)
+  window.__arteDebug = { buildShinyYy: buildShinyYy, buildShinyGmlText: buildShinyGmlText };
 })();
 
 </script>
