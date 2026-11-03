@@ -93,3 +93,9 @@ instance_create_depth(x, y, 0, obj_player_sensorAR);
 // traves de las paredes; la del EXE REAL arde mas fuerte. Ver
 // obj_amelia_auras y las macros AMELIA_AURA_* en scr_amelia_special.
 instance_create_depth(x, y, 0, obj_amelia_auras);
+
+// MARCA DE LA SALIDA (v4.5): version LIMITADA de los sensores de Amy
+// Canon — flecha verde hacia el anillo de escape solo si esta a <= 400
+// px (AMELIA_EXIT_SENSE), y parpadeando. Solo en SU cliente. Ver
+// obj_amelia_indicators.
+instance_create_depth(x, y, 0, obj_amelia_indicators);

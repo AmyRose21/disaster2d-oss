@@ -200,6 +200,45 @@ function net_udpprocess(rbuff)
                         break;
                 }
                 
+                // v2.2b — FIX LASER DE METAL AMY: el server envia el tick de
+                // posicion de la bala (SERVER_METALAMY_BULLET_STATE 1) como
+                // NO confiable (server_broadcast(..., false) en mabul_tick),
+                // o sea por ESTE canal (UDP), igual que el laser de Tails.
+                // El case solo existia en net_state_game (canal TCP), por el
+                // que ese estado jamas llegaba: la bala nacia y quedaba quieta
+                // hasta romperse. Mismo patron que el Tails de arriba.
+                case PacketType.SERVER_METALAMY_BULLET_STATE:
+                {
+                        if(passtrough)
+                                 break;
+                                 
+                        if(state != STATE_GAME)
+                                break;
+                        
+                        var _state = buffer_read_s(rbuff, buffer_u8);
+                        
+                        if(_state != 1) //impossible
+                                break;
+                        
+                        var _xx = buffer_read_s(rbuff, buffer_u16);
+                        var _yy = buffer_read_s(rbuff, buffer_u16);
+                        
+                        // If doesnt exist then spawn ig
+                        if(!instance_exists(obj_metal_amy_bullet))
+                                break;
+                        
+                        with(obj_metal_amy_bullet)
+                        {
+                                if(isBreaking)
+                                        continue;
+                                        
+                                x = _xx;
+                                y = _yy;
+                                break;
+                        }
+                        break;
+                }
+                
                 case PacketType.SERVER_RMZSLIME_STATE:
                 {
                         if(passtrough)

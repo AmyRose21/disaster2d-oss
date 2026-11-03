@@ -60,17 +60,20 @@ function scr_egg_special()
                 isAttacking = false;
         }
         
+        // v4.4 (emboscada en el escondite): el RASTREADOR ya se puede
+        // colocar oculto — solo se cortan el movimiento y el combate
+        // (doble salto y escudo). isAttacking = false se mantiene:
+        // pelear rompe el sigilo; colocar, no. El combo viene gratis:
+        // para esconderse ya mantienes ABAJO, que es el modificador
+        // del sensor (KeyC mirando abajo).
         if(isHiding)
         {
                 if(djumpRecharge <= 60 * 2)
                         djumpRecharge = 60 * 2;
-                
+
                 if(shieldRechrage >= 0 && shieldRechrage <= 60 * 2)
                         shieldRechrage = 60 * 2;
-                        
-                if(trackerRecharge <= 60 * 2)
-                        trackerRecharge = 60 * 2;
-                        
+
                 isAttacking = false;
         }
         

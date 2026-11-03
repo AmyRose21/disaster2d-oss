@@ -268,6 +268,12 @@ function net_state_game(rbuff, nps, isPasstrough)
                         }
                         else if(_state == 1) // Tick
                         {
+                                // v2.2b: el tick real viaja por el canal NO confiable
+                                // (UDP) y se procesa en net_udpprocess (patron laser
+                                // de Tails). Esta rama queda como salvaguarda: el
+                                // server (mabul_tick) envia el estado 1 con
+                                // server_broadcast(..., false), asi que por aqui no
+                                // deberia llegar nunca.
                                 var _xx = buffer_read_s(rbuff, buffer_u16);
                                 var _yy = buffer_read_s(rbuff, buffer_u16);
                                 
@@ -2252,7 +2258,10 @@ function net_state_game(rbuff, nps, isPasstrough)
                         if(_redRing)
                         {
                                 // PASIVA 1 (Amy Canon): el anillo rojo no puede silenciar sus habilidades
-                                if(global.character == CHARACTER_AMY_CANON)
+                                // v4.4 «Ciega» (Amelia): ciega = sin alucinaciones — lo recoge igual
+                                // (el anillo desaparece y el EXE pierde esa trampa) pero sin musica,
+                                // sin velo y sin silencio de habilidades. Mismo patron que Amy Canon.
+                                if(global.character == CHARACTER_AMY_CANON || global.character == CHARACTER_AMELIA)
                                         break;
                                 
                                 if(global.player.redRingTimer > 0)
@@ -2391,7 +2400,9 @@ function net_state_game(rbuff, nps, isPasstrough)
                         if(_isRed && global.player.redRingTimer <= 0)
                         {
                                 // PASIVA 1 (Amy Canon): el anillo rojo no puede silenciar sus habilidades
-                                if(global.character == CHARACTER_AMY_CANON)
+                                // v4.4 «Ciega» (Amelia): misma exemption que en SERVER_RING_COLLECTED
+                                // — ciega = sin alucinaciones; recoge el anillo sin efecto alguno.
+                                if(global.character == CHARACTER_AMY_CANON || global.character == CHARACTER_AMELIA)
                                         break;
                                 
                                 audio_play_sound(mus_mindfuck, 0, false);
