@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Suite TD2D v3.7 · editor de arte</title>
+<title>Suite TD2D v3.8 · editor de arte</title>
 <style>
 :root{
   --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
@@ -371,6 +371,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   <button id="btn-open" class="btn primary">Abrir carpeta del proyecto</button>
   <button id="btn-open-ro" class="btn">Elegir carpeta (solo lectura)</button>
   <button id="btn-demo" class="btn">Demo</button>
+  <button id="btn-yypfix" class="btn" title="Diagnostica y repara el .yyp del proyecto si GameMaker dice que está corrupto (copia de seguridad incluida)">🔧 Reparar .yyp</button>
   <span id="music-ctl" class="hidden">
     <button id="btn-music" class="btn" title="Música del lobby — Sonic.exe The Disaster 1.0 (OST)">🎵 Música</button>
     <input id="music-vol" type="range" min="0" max="1" step="0.01" value="0.3" title="Volumen de la música">
@@ -2729,6 +2730,7 @@ function syncControls() {
 function init() {
   $('#btn-open').addEventListener('click', openFs);
   $('#btn-open-ro').addEventListener('click', () => $('#dir-input').click());
+  $('#btn-yypfix').addEventListener('click', repairYypAction);
   $('#dir-input').addEventListener('change', (e) => { openFiles(e.target.files); e.target.value = ''; });
   $('#btn-demo').addEventListener('click', startDemo);
   $('#btn-help').addEventListener('click', () => $('#help').showModal());
@@ -6925,6 +6927,179 @@ initKeys();
     await w.close();
   }
 
+  // ============================================================
+  // v3.8 — salud y reparación del .yyp
+  // GameMaker dice «The .yyp file is corrupted» cuando el JSON
+  // no parsea. Causas típicas: escritura quedada a medias,
+  // bytes basura de una sincronización (OneDrive/Drive) o un
+  // editor que metió caracteres de control. Estas funciones
+  // validan SIEMPRE antes de escribir y saben reconstruir un
+  // archivo cortado recortando al último recurso completo.
+  // ============================================================
+
+  // JSON «de GameMaker»: igual que JSON.parse pero tolera las
+  // comas colgantes que el IDE escribe (",}" y ",]").
+  function yypLenientParse(text) {
+    if (typeof text !== 'string') return { ok: false, err: 'no es texto' };
+    const t = text.replace(/^\uFEFF/, '').replace(/,(\s*[}\]])/g, '$1');
+    try { return { ok: true, obj: JSON.parse(t) }; }
+    catch (e) { return { ok: false, err: String(e && e.message || e) }; }
+  }
+
+  // Calcula los cierres «} ]» que faltan para que `head` sea un
+  // JSON completo. Devuelve null si head acaba a medias dentro de
+  // una cadena o si los corchetes ya no cuadran.
+  function yypClosersFor(head) {
+    const stack = [];
+    let inStr = false, esc = false;
+    for (let i = 0; i < head.length; i++) {
+      const c = head[i];
+      if (inStr) {
+        if (esc) { esc = false; }
+        else if (c === '\\') { esc = true; }
+        else if (c === '"') { inStr = false; }
+        continue;
+      }
+      if (c === '"') { inStr = true; continue; }
+      if (c === '{' || c === '[') stack.push(c);
+      else if (c === '}' || c === ']') { if (!stack.length) return null; stack.pop(); }
+    }
+    if (inStr) return null;
+    let out = '';
+    while (stack.length) out += (stack.pop() === '{' ? '}' : ']');
+    return out;
+  }
+
+  // Arregla entradas de recurso sin cerrar — el bug del Suite ≤ v3.7
+  // escribía  {"id":{...},   sin el }  que cierra la entrada, y la
+  // siguiente apertura de GameMaker moría con «.yyp corrupted».
+  // Cada línea de recurso arreglada recupera SU sprite: no se pierde nada.
+  function yypFixUnclosedEntries(t) {
+    const lines = t.split('\n');
+    let fixed = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const ln = lines[i];
+      if (!/^\s*\{"id":\{/.test(ln)) continue;
+      const need = yypClosersFor(ln);
+      if (need === '}') {
+        lines[i] = ln + '},';
+        fixed++;
+      }
+    }
+    return fixed ? { text: lines.join('\n'), fixed: fixed } : null;
+  }
+
+  // Intenta reparar un .yyp dañado a nivel de TEXTO (sin
+  // re-serializar: el diff en git se queda mínimo).
+  // Devuelve { text, how } o null si no hay forma humana.
+  function yypTryRepair(text) {
+    const notes = [];
+    let t = text;
+    if (/^\uFEFF/.test(t)) { t = t.slice(1); notes.push('marca BOM quitada'); }
+    if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(t)) {
+      t = t.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+      notes.push('bytes de control quitados');
+    }
+    const ok = s => { try { JSON.parse(s.replace(/,(\s*[}\]])/g, '$1')); return true; } catch (e) { return false; } };
+    if (ok(t)) return { text: t, how: notes.join(' + ') || 'solo re-validado' };
+    // bug del Suite ≤ v3.7: entradas de recurso sin cerrar. Se
+    // arreglan PRIMERO (recuperan sus sprites) y, si además el
+    // archivo está cortado, el recorte sigue sobre lo arreglado.
+    const ent = yypFixUnclosedEntries(t);
+    if (ent) {
+      t = ent.text;
+      notes.push(ent.fixed + ' entrada(s) de recurso sin cerrar arreglada(s) (bug Suite ≤ v3.7)');
+      if (ok(t)) return { text: t, how: notes.join(' · ') };
+    }
+    // ¿cortado a medias? recorta línea a línea hasta el último
+    // recurso completo y cierra lo que quede abierto.
+    let cut = t.length;
+    for (let k = 0; k < 500; k++) {
+      const nl = t.lastIndexOf('\n', cut - 1);
+      if (nl <= 0) return null;
+      const head = t.slice(0, nl);
+      const closers = yypClosersFor(head);
+      if (closers !== null && ok(head + closers)) {
+        notes.push('recortado al último recurso completo (lo que quedó a medias se pierde del registro)');
+        return { text: head + closers, how: notes.join(' · ') };
+      }
+      cut = nl;
+    }
+    return null;
+  }
+
+  // Escritura BLINDADA del .yyp: valida ANTES, copia de seguridad
+  // SIEMPRE, relee y valida DESPUÉS, y si algo falla restaura la
+  // copia. Así el proyecto no puede quedarse sin abrir.
+  async function yypSafeWrite(yypName, text, undoGroup) {
+    const v = yypLenientParse(text);
+    if (!v.ok) {
+      toast('El .yyp nuevo NO sería válido — no se escribe nada.\n' + v.err.slice(0, 140), 'err');
+      return false;
+    }
+    const blobOld = await readBlob(yypName);
+    const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+    const bak = '_backups_animeditor/' + stamp + '/' + yypName.split('/').pop() + '.bak';
+    try {
+      if (blobOld) {
+        const bdir = await ensureDir('_backups_animeditor/' + stamp);
+        const bfh = await bdir.getFileHandle(yypName.split('/').pop() + '.bak', { create: true });
+        const w = await bfh.createWritable(); await w.write(blobOld); await w.close();
+      }
+      await arteWriteFile(yypName, new Blob([text], { type: 'text/plain' }));
+      const back = await readText(yypName);
+      if (back == null || !yypLenientParse(back).ok) throw new Error('la relectura no valida');
+      if (undoGroup) undoGroup.push({ rel: yypName, backup: bak });
+      return true;
+    } catch (e) {
+      try { if (blobOld) await arteWriteFile(yypName, blobOld); } catch (e2) { }
+      toast('Fallo al escribir el .yyp (' + e.message + '): restaurada la copia anterior.', 'err');
+      return false;
+    }
+  }
+
+  // Botón 🔎 Reparar .yyp: diagnostica y (si hace falta) reconstruye.
+  async function repairYypAction() {
+    try {
+      if (S.mode !== 'fs') { toast('Abre la carpeta del proyecto (con permiso de escritura) para poder reparar el .yyp.', 'err'); return; }
+      const name = await yypFileName();
+      if (!name) { toast('No encuentro ningún .yyp en la carpeta del proyecto.', 'err'); return; }
+      const blob = await readBlob(name);
+      const text = blob ? await blob.text() : null;
+      if (text == null) { toast('No pude leer ' + name + '.', 'err'); return; }
+      const ctl = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(text);
+      const v = yypLenientParse(text);
+      if (v.ok && !ctl) {
+        toast('✅ ' + name + ' está SANO («' + (v.obj && v.obj['%Name'] || '?') + '»).\nSi GameMaker se niega igual: ciérralo del todo (revisar el proceso) y vuelve a abrirlo.', 'ok');
+        return;
+      }
+      const why = [];
+      if (!v.ok) why.push('JSON que no parsea: ' + v.err.slice(0, 90));
+      if (ctl) why.push('bytes de control dentro del archivo');
+      if (!confirm('El .yyp está DAÑADO:\n\n· ' + why.join('\n· ') +
+        '\n\nVoy a:\n  1. guardar copia del archivo roto (.ROTO)\n  2. reconstruirlo recortando al último recurso completo\n  3. validarlo ANTES de escribir nada\n\n¿Continuar?')) return;
+      const rep = yypTryRepair(text);
+      if (!rep) {
+        toast('No pude repararlo solo. Plan B:\n· descarga el .yyp sano (te lo doy junto al Suite) y reemplázalo, o\n· en la carpeta del repo:  git checkout -- "' + name + '"', 'err');
+        return;
+      }
+      const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+      const base = name.split('/').pop();
+      const bdir = await ensureDir('_backups_animeditor/' + stamp);
+      const bfh = await bdir.getFileHandle(base + '.ROTO', { create: true });
+      const w = await bfh.createWritable(); await w.write(blob); await w.close();
+      await arteWriteFile(name, new Blob([rep.text], { type: 'text/plain' }));
+      const back = await readText(name);
+      if (back == null || !yypLenientParse(back).ok) {
+        await arteWriteFile(name, blob);
+        toast('La reparación no quedó bien: restaurado el original. Usa el plan B (descarga o git checkout).', 'err');
+        return;
+      }
+      const n = (rep.text.match(/"path"/g) || []).length;
+      toast('🛠 .yyp REPARADO — ' + rep.how + '\n· copia del roto: _backups_animeditor/' + stamp + '/' + base + '.ROTO\n· recursos conservados: ~' + n + '\nCierra GameMaker del todo y vuelve a abrir el proyecto.', 'ok');
+    } catch (e) { toast('Error: ' + e.message, 'err'); }
+  }
+
   async function undoArte() {
     A.arteUndo = A.arteUndo || [];
     const g = A.arteUndo.pop();
@@ -7513,15 +7688,16 @@ initKeys();
           await arteWriteFile('sprites/' + t.name + '/' + framesArr[i] + '.png', blob);
           await arteWriteFile('sprites/' + t.name + '/layers/' + framesArr[i] + '/' + lg + '.png', blob);
         }
-        // registro .yyp
+        // registro .yyp (v3.8: escritura blindada — valida, respalda y verifica)
         const yypName = (await yypFileName());
         let yyp = await readText(yypName);
         if (yyp == null) { toast('No encuentro el .yyp del proyecto.', 'err'); return; }
         if (yyp.indexOf('"name":"' + t.name + '"') < 0) {
-          const entry = '{"id":{"name":"' + t.name + '","path":"sprites/' + t.name + '/' + t.name + '.yy",},';
+          const entry = '{"id":{"name":"' + t.name + '","path":"sprites/' + t.name + '/' + t.name + '.yy",},},';
           const m = /"resources"\s*:\s*\[\s*\n/.exec(yyp);
-          if (m) yyp = yyp.slice(0, m.index + m[0].length) + '    ' + entry + '\n' + yyp.slice(m.index + m[0].length);
-          await arteWriteFile(yypName, new Blob([yyp], { type: 'text/plain' }));
+          if (!m) { toast('No encuentro la lista "resources" dentro del .yyp: no lo toco.', 'err'); return; }
+          yyp = yyp.slice(0, m.index + m[0].length) + '    ' + entry + '\n' + yyp.slice(m.index + m[0].length);
+          if (!(await yypSafeWrite(yypName, yyp, undoGroup))) return;
         }
         // parche GML
         const gmlRel = 'scripts/net_state_game/net_state_game.gml';
@@ -8315,18 +8491,21 @@ initKeys();
           await arteWriteFile('sprites/' + sp.name + '/layers/' + m.frames[i] + '/' + m.layers[0] + '.png', blob);
         }
       }
-      // 2) registro .yyp
+      // 2) registro .yyp (v3.8: escritura blindada — valida, respalda y verifica)
       const yypName = await yypFileName();
       if (yypName == null) { toast('No encuentro el .yyp del proyecto.', 'err'); return; }
       let yyp = await readText(yypName);
+      let yypChanged = false;
       for (const sp of made) {
         if (yyp.indexOf('"name":"' + sp.name + '"') < 0) {
-          const entry = '{"id":{"name":"' + sp.name + '","path":"sprites/' + sp.name + '/' + sp.name + '.yy",},';
+          const entry = '{"id":{"name":"' + sp.name + '","path":"sprites/' + sp.name + '/' + sp.name + '.yy",},},';
           const mres = /"resources"\s*:\s*\[\s*\n/.exec(yyp);
-          if (mres) yyp = yyp.slice(0, mres.index + mres[0].length) + '    ' + entry + '\n' + yyp.slice(mres.index + mres[0].length);
+          if (!mres) { toast('No encuentro la lista "resources" dentro del .yyp: no lo toco.', 'err'); return; }
+          yyp = yyp.slice(0, mres.index + mres[0].length) + '    ' + entry + '\n' + yyp.slice(mres.index + mres[0].length);
+          yypChanged = true;
         }
       }
-      await arteWriteFile(yypName, new Blob([yyp], { type: 'text/plain' }));
+      if (yypChanged && !(await yypSafeWrite(yypName, yyp, undoGroup))) return;
       // 3) bloque de funciones en scr_characters.gml
       await writeShinyGmlBlock(bdir, undoGroup);
       // 4) parches de llamada (obj_lobby_icon + obj_level)
