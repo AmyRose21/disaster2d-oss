@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Suite TD2D v3.5 · editor de arte</title>
+<title>Suite TD2D v3.6 · editor de arte</title>
 <style>
 :root{
   --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
@@ -300,52 +300,65 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 
 @media (max-width:1100px){.mod{grid-template-columns:220px 1fr 300px}}
 
-/* ===== módulo Arte (v3.5) ===== */
+/* ===== módulo Arte (v3.6) ===== */
 .subnav{display:flex;gap:6px;padding:2px 14px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.15)}
-.subnav-btn{background:none;border:0;color:var(--mut);padding:5px 10px;cursor:pointer;font:inherit;font-size:12.5px;border-bottom:2px solid transparent}
+.subnav-btn{background:none;border:0;color:var(--mut);padding:6px 12px;cursor:pointer;font:inherit;font-size:13.5px;border-bottom:2px solid transparent}
 .subnav-btn:hover{color:var(--fg)}
 .subnav-btn.sel{color:var(--fg);border-bottom-color:var(--acc)}
+/* v3.6: el módulo Arte ocupa TODO el ancho de la ventana
+   (antes heredaba el grid .mod de 3 columnas y dejaba ~600px muertos a la derecha) */
+#mod-arte{display:flex;flex-direction:column}
+#arte-subnav-space{display:none}
 .arte-subpane{flex:1;min-height:0}
-.arte-head{margin:4px 0 8px;font-size:14px}
-.arte-subhead{margin:10px 0 4px;font-weight:600;font-size:12.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+#mod-arte .arte-subpane .mid{flex:1;min-width:0}
+#mod-arte .arte-subpane .rightpane{width:330px;flex:none}
+/* fila de vista previa a TODO el ancho (encima de las 3 columnas) */
+#mod-arte .arte-subpane>.arte-prevbox{flex:none;align-items:center;gap:14px;padding:10px 12px 8px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
+#arte-preview{max-width:none;flex:none}
+.arte-head{margin:4px 0 8px;font-size:15px}
+.arte-subhead{margin:10px 0 4px;font-weight:600;font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
 .arte-prevbox{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .arte-prevbox canvas{background:
  repeating-linear-gradient(45deg,#2a2a30 0 6px,#232329 6px 12px);
  border:1px solid var(--line);image-rendering:pixelated;max-width:100%}
-.zoomctl{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--mut)}
+.zoomctl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut);white-space:nowrap}
+.zoomctl input[type=range]{width:130px}
+#arte-zoom-v{font-family:var(--mono);color:var(--gold2);min-width:30px;display:inline-block}
+#arte-name-color{width:34px;height:24px;padding:1px 2px;background:#0b0d10;border:1px solid var(--line)}
 .arte-editor{display:flex;flex-direction:column;gap:8px}
 .arte-rowline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.arte-rowline label:first-child{min-width:60px;font-size:12px;color:var(--mut)}
+.arte-rowline label:first-child{min-width:60px;font-size:12.5px;color:var(--mut)}
 .arte-rowline input[type=text],.arte-rowline input:not([type]){min-width:180px}
 .arte-linectl{display:flex;gap:8px;align-items:flex-start}
-.arte-linectl label{min-width:60px;font-size:12px;color:var(--mut);padding-top:6px}
-.arte-linectl textarea{flex:1;font:12px/1.5 ui-monospace,Consolas,monospace;min-height:44px;resize:vertical}
-#arte-colorbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:12px}
-#arte-colorbar button{background:none;border:1px solid var(--line);border-radius:3px;cursor:pointer;padding:2px 6px;font-size:11.5px}
+.arte-linectl label{min-width:60px;font-size:12.5px;color:var(--mut);padding-top:7px}
+.arte-linectl textarea{flex:1;font:13px/1.55 ui-monospace,Consolas,monospace;min-height:48px;resize:vertical}
+#arte-colorbar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:12.5px}
+#arte-colorbar button{background:none;border:1px solid var(--line);border-radius:3px;cursor:pointer;padding:3px 8px;font-size:12.5px}
 #arte-colorbar button:hover{border-color:var(--acc)}
-#arte-icontray{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
-.arte-icbtn{background:#181820;border:1px solid var(--line);border-radius:3px;cursor:pointer;padding:2px;line-height:0}
+#arte-icontray{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.arte-icbtn{background:#181820;border:1px solid var(--line);border-radius:4px;cursor:pointer;padding:4px;line-height:0}
 .arte-icbtn:hover{border-color:var(--acc);background:#20202a}
 .arte-icbtn canvas{image-rendering:pixelated;display:block}
-.note-inline{font-size:11.5px;color:var(--mut);margin:2px 0}
-.arte-row{display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;border-radius:4px;font-size:12.5px}
+.note-inline{font-size:12.5px;color:var(--mut);margin:2px 0}
+.arte-row{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:5px 6px;cursor:pointer;border-radius:4px;font-size:13px}
 .arte-row:hover{background:rgba(255,255,255,.05)}
 .arte-row.sel{background:rgba(90,120,255,.16);outline:1px solid rgba(90,120,255,.4)}
 .arte-row.dirty .arte-badge{color:var(--gold)}
-.arte-row .arte-thumb{width:132px;height:11px;image-rendering:pixelated;background:#141418;border:1px solid var(--line);flex:none}
-.arte-badge{font-size:10px}
-.fgrid{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
-.arte-fcell{display:flex;flex-direction:column;align-items:center;gap:3px;border:1px solid var(--line);border-radius:4px;padding:4px;cursor:pointer;background:#141419}
+.arte-row .arte-thumb{width:224px;height:19px;image-rendering:pixelated;background:#141418;border:1px solid var(--line);flex:none}
+.arte-row .arte-rowlbl{display:flex;align-items:center;gap:6px;min-width:0}
+.arte-badge{font-size:11px}
+.fgrid{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+.arte-fcell{display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--line);border-radius:4px;padding:6px;cursor:pointer;background:#141419}
 .arte-fcell:hover{border-color:var(--acc)}
 .arte-fcell.new{border-color:var(--acc);background:rgba(90,120,255,.10)}
 .arte-fcell canvas{image-rendering:pixelated;background:#0c0c10}
-.arte-fcell span{font-size:10px;color:var(--mut)}
+.arte-fcell span{font-size:11px;color:var(--mut)}
 .arte-two{display:flex;gap:14px;flex-wrap:wrap}
-.arte-two>div{min-width:260px;flex:1}
-.trgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;font-size:12px}
+.arte-two>div{min-width:280px;flex:1}
+.trgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px;font-size:12.5px}
 .trgrid label{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.chkline{display:flex;align-items:center;gap:5px;font-size:12px}
-.filebtn{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12.5px;background:#1a1a22;margin:4px 0}
+.chkline{display:flex;align-items:center;gap:5px;font-size:12.5px}
+.filebtn{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:13px;background:#1a1a22;margin:4px 0}
 .filebtn:hover{border-color:var(--acc)}
 </style>
 </head>
@@ -625,19 +638,21 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
   <div id="arte-subnav-space"></div>
 
   <!-- ====== SUB 1: BARRA DE INFORMACIÓN ====== -->
-  <div class="arte-subpane" data-sub="placas" style="display:flex;gap:10px;flex:1;min-height:0">
-    <aside class="side" style="width:230px">
-      <div class="side-head">Personaje (placa de spr_char_info)</div>
-      <div id="arte-plaque-list" style="flex:1;overflow-y:auto;padding:6px"></div>
-    </aside>
-    <main class="mid" style="overflow-y:auto">
+  <div class="arte-subpane" data-sub="placas" style="display:flex;flex-direction:column;flex:1;min-height:0">
+    <!-- v3.6: vista previa a ANCHO COMPLETO, arriba de todo -->
+    <div class="arte-prevbox">
+      <canvas id="arte-preview" width="956" height="80"></canvas>
+      <label class="zoomctl">zoom <input id="arte-zoom" type="range" min="1" max="8" step="1" value="2"> <span id="arte-zoom-v">2×</span></label>
+    </div>
+    <div style="display:flex;gap:10px;flex:1;min-height:0">
+      <aside class="side" style="width:250px">
+        <div class="side-head">Personaje (placa de spr_char_info)</div>
+        <div id="arte-plaque-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+      </aside>
+      <main class="mid" style="overflow-y:auto">
       <div class="arte-head">
         <b id="arte-cur-name">—</b>
         <span class="muted">· edita el texto, los colores y los iconos; la vista previa se actualiza sola</span>
-      </div>
-      <div class="arte-prevbox">
-        <canvas id="arte-preview" width="956" height="80"></canvas>
-        <label class="zoomctl">zoom <input id="arte-zoom" type="range" min="1" max="4" step="1" value="2"></label>
       </div>
       <div class="arte-editor">
         <div class="arte-rowline">
@@ -681,12 +696,13 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
       </section>
       <section class="note"><b>Qué hace:</b> reescribe los PNG de <code>spr_char_info</code> (fotograma del personaje, PNG raíz + layers) con el mismo estilo del juego: cajas, colores de escape y kerning. La cara/leyenda y la plantilla no se tocan: solo el texto y los iconos.</section>
       <section class="note">Escribe con respaldo en <code>_backups_animeditor/</code> y botón de deshacer. El icono ⤓ sirve en modo solo lectura o demo para llevarte el PNG a GameMaker a mano.</section>
-    </aside>
+      </aside>
+    </div>
   </div>
 
   <!-- ====== SUB 2: ICONO DE SELECCIÓN ====== -->
   <div class="arte-subpane hidden" data-sub="iconos" style="display:flex;gap:10px;flex:1;min-height:0">
-    <aside class="side" style="width:230px">
+    <aside class="side" style="width:250px">
       <div class="side-head">Sprite de icono</div>
       <div id="arte-icon-list" style="flex:1;overflow-y:auto;padding:6px"></div>
     </aside>
@@ -710,10 +726,11 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
             <label>fondo <select id="ic-bg"><option value="transparent">transparente</option><option value="black">negro</option></select></label>
           </div>
         </div>
-        <div>
-          <div class="arte-subhead">Vista previa del lobby</div>
-          <canvas id="arte-icon-preview" width="240" height="96" style="image-rendering:pixelated;width:480px;height:192px"></canvas>
-        </div>
+      </div>
+      <!-- v3.6: vista previa del lobby a ancho completo, debajo de la transformación -->
+      <div>
+        <div class="arte-subhead">Vista previa del lobby</div>
+        <canvas id="arte-icon-preview" width="240" height="96" style="image-rendering:pixelated;width:720px;max-width:100%;height:auto"></canvas>
       </div>
       <div class="arte-subhead">Fotogramas del sprite (clic para asignar la siguiente imagen)</div>
       <div id="arte-icon-frames" class="fgrid"></div>
@@ -733,7 +750,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 
   <!-- ====== SUB 3: PANTALLA DE FIN ====== -->
   <div class="arte-subpane hidden" data-sub="finales" style="display:flex;gap:10px;flex:1;min-height:0">
-    <aside class="side" style="width:230px">
+    <aside class="side" style="width:250px">
       <div class="side-head">Final</div>
       <div id="arte-end-list" style="flex:1;overflow-y:auto;padding:6px"></div>
     </aside>
@@ -756,7 +773,7 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
         </div>
         <div>
           <div class="arte-subhead">Vista previa</div>
-          <canvas id="arte-end-preview" width="480" height="270" style="image-rendering:pixelated;width:100%;max-width:480px"></canvas>
+          <canvas id="arte-end-preview" width="480" height="270" style="image-rendering:pixelated;width:100%;max-width:960px"></canvas>
         </div>
       </div>
     </main>
@@ -2734,7 +2751,8 @@ window.__animtool = {
   readText: readText, readBlob: readBlob, fsWalkFile: fsWalkFile, fsWalkDir: fsWalkDir,
   loadSprite: loadSprite, frameCountOf: frameCountOf, normPath: normPath,
   buildFrameIndex: buildFrameIndex, loadFrameBitmap: loadFrameBitmap,
-  toast: toast, esc: esc, clamp: clamp, syncControls: syncControls
+  toast: toast, esc: esc, clamp: clamp, syncControls: syncControls,
+  ensureDir: ensureDir
 };
 
 })();
@@ -2808,7 +2826,6 @@ else _bindCdSub();
 try {
   T.enterTune = enterTune;
   T.enterImg = enterImg;
-  T.ensureDir = ensureDir;
 } catch (e) { }
 
 // al volver a animaciones: si el visor quedó con otro sprite (p. ej. porque
@@ -6524,6 +6541,7 @@ initKeys();
   async function enterPlaques() {
     initAssets();
     await loadPlaqueSprite();
+    autoFitZoom();
     buildPlaqueList();
     if (A.sel < 0) selectPlaque(0);
   }
@@ -6547,7 +6565,10 @@ initKeys();
       const badge = document.createElement('span');
       badge.className = 'arte-badge';
       badge.textContent = A.dirty.has(i) ? '●' : '';
-      row.append(thumb, lbl, badge);
+      const rowlbl = document.createElement('span');
+      rowlbl.className = 'arte-rowlbl';
+      rowlbl.append(lbl, badge);
+      row.append(thumb, rowlbl);
       row.addEventListener('click', () => selectPlaque(i));
       list.appendChild(row);
     }
@@ -6612,6 +6633,8 @@ initKeys();
     const img = rgbaToImage(rgba);
     const cv = $('#arte-preview');
     const z = parseInt($('#arte-zoom').value, 10) || 2;
+    const zv = $('#arte-zoom-v');
+    if (zv) zv.textContent = z + '×';
     cv.width = AC.W * z; cv.height = AC.H * z;
     const ctx = cv.getContext('2d');
     ctx.imageSmoothingEnabled = false;
@@ -6619,6 +6642,17 @@ initKeys();
     ctx.drawImage(img, 0, 0, cv.width, cv.height);
     // guardar para escritura
     A._lastRender = img;
+  }
+
+  // v3.6: al entrar en placas, elige el mayor zoom entero que quepa a lo ancho
+  // (mínimo 2×, máximo 4×). El usuario puede cambiarlo con el control zoom.
+  function autoFitZoom() {
+    try {
+      const box = $('#arte-preview').parentElement;
+      const avail = Math.max(300, box.clientWidth - 150);
+      const fit = Math.min(4, Math.max(2, Math.floor(avail / AC.W)));
+      $('#arte-zoom').value = String(fit);
+    } catch (e) { }
   }
 
   function updateDirtyUI() {
@@ -6855,6 +6889,9 @@ initKeys();
       cell.className = 'arte-fcell';
       const cv = document.createElement('canvas');
       cv.width = IC.w; cv.height = IC.h;
+      // v3.6: celdas al doble de tamaño para poder verlas y pincharlas bien
+      cv.style.width = (IC.w * 2) + 'px';
+      cv.style.height = (IC.h * 2) + 'px';
       cell.appendChild(cv);
       const lbl = document.createElement('span');
       lbl.textContent = '#' + i + (IC.assign[i] >= 0 ? ' ← img ' + (IC.assign[i] + 1) : '');
@@ -6964,7 +7001,7 @@ initKeys();
       const cell = document.createElement('div');
       cell.className = 'arte-fcell';
       const cv = document.createElement('canvas');
-      const s = 40;
+      const s = 64;
       cv.width = s; cv.height = s;
       const ctx = cv.getContext('2d');
       ctx.imageSmoothingEnabled = true;
@@ -7416,7 +7453,7 @@ initKeys();
       const ctx = cv.getContext('2d');
       const im = new ImageData(new Uint8ClampedArray(ic.data), ic.w, ic.h);
       ctx.putImageData(im, 0, 0);
-      const z = Math.ceil(20 / Math.max(ic.w, ic.h));
+      const z = Math.ceil(36 / Math.max(ic.w, ic.h));
       cv.style.width = (ic.w * z) + 'px';
       cv.style.height = (ic.h * z) + 'px';
       b.appendChild(cv);
