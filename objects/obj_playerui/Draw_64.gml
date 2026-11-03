@@ -1,22 +1,30 @@
 // ============================================================================
-// v4.3 — LETRA DE TECLA DINAMICA EN EL HUD (arreglo de prioridad)
+// v4.3b — LETRA DE TECLA DINAMICA EN EL HUD (arreglo de prioridad)
 //
-// ANTES: cada sprite de icono tenia la letra de la tecla HORNEADA en sus
-// pixeles (z / x / c / v), asi que al remapear (p.ej. special 1 de X a F)
-// la habilidad se lanzaba con F pero el icono seguia diciendo (X).
+// v4.3: la letra de la tecla ya no esta horneada: el arte se dibuja
+// recortado (draw_sprite_part_ext) sin la zona de la letra y al lado se
+// dibuja la tecla REAL de la configuracion (scr_text_spr +
+// scr_controls_keycode_to_key), con el mismo color/alpha del enfriamiento.
 //
-// AHORA: el arte se dibuja recortado (draw_sprite_part_ext) SIN la zona de
-// la letra horneada, y al lado se dibuja la tecla REAL de la configuracion
-// (global.KeyA / KeyB / KeyC / KeyV) con la propia fuente del juego
-// (scr_text_spr + scr_controls_keycode_to_key), tiñendose con el mismo
-// color y alpha del enfriamiento que el icono.
+// v4.3b (arreglos tras probar en partida):
+//  1) TRAMPA DE AMELIA (y otros 6 iconos) NO SE VEIAN: GameMaker recorta
+//     los bordes transparentes de los sprites al empaquetarlos en texturas,
+//     y pedir draw_sprite_part_ext con top=0 / h=alto_total en un sprite
+//     con margenes vacios (la trampa tiene 2 filas vacias arriba y 3 abajo)
+//     sale de la textura y NO se dibuja nada. Solucion: pedir solo la caja
+//     de contenido real (medida pixel a pixel, tabla de abajo) y desplazar
+//     el destino igual: el resultado en pantalla es identico.
+//  2) EMOCIONES: las letras A/S/D horneadas del PNG se borraron al meter
+//     las teclas dinamicas y quedaba el hueco vacio junto a cada cara.
+//     Ahora se dibujan las teclas REALES (global.KeyEm1/2/3, remapeables)
+//     en el mismo sitio donde estaban las horneadas.
 //
 //  - En PC se ve siempre la tecla actual del remapeo (letra, numero o
 //    nombre corto: space, shift, enter, ...). Se actualiza al instante
 //    porque se consulta global.KeyX en cada fotograma.
 //  - En Android NO se dibuja letra: alli el control son los botones
 //    tactiles de la pantalla (el arte del icono se sigue mostrando).
-//  - Las pistas horneadas que NO son teclas (flechas de direccion, el ↓+
+//  - Las pistas horneadas que NO son teclas (flechas de direccion, el +
 //    de los combos, las flechas del walldash) se conservan como arte o se
 //    redibujan detras de la letra dinamica.
 //
@@ -36,18 +44,43 @@ drawKeyIcon = function(_spr, _frame, _artW, _key, _xx, _yy, _col, _alpha, _hintX
 {
         var _h = sprite_get_height(_spr);
 
-        // 1) arte del icono recortado: columnas [0 .. _artW), sin la letra horneada
+        // v4.3b: caja de contenido real del sprite (medida sobre los PNG):
+        // _ox/_oy = columnas/filas vacias antes del contenido,
+        // _ih     = alto del contenido, _iR = ultima columna con pixeles.
+        // draw_sprite_part_ext solo pide zonas que existen de verdad en la
+        // textura (GameMaker recorta los margenes transparentes al
+        // empaquetar): pedir filas/columnas ya recortadas hacia que el
+        // icono NO se dibujara (caso visible: la trampa de Amelia).
+        var _ox = 0;
+        var _oy = 0;
+        var _ih = _h;
+        var _iR = sprite_get_width(_spr) - 1;
+        if(_spr == spr_gui_amelia_trap)          { _oy = 2; _ih = 9;  _iR = 47; }
+        else if(_spr == spr_gui_chaosattack)     { _oy = 3; _ih = 8;  _iR = 18; }
+        else if(_spr == spr_gui_chaoswalldash)   { _ox = 1; _oy = 1; _ih = 11; _iR = 48; }
+        else if(_spr == spr_gui_chaosslime)      { _ox = 1; _oy = 1; _ih = 11; _iR = 27; }
+        else if(_spr == spr_gui_exetiorattack)   { _ox = 1;             _iR = 42; }
+        else if(_spr == spr_gui_metal_amy_lazer) { _oy = 2; _ih = 9;  _iR = 23; }
+        else if(_spr == spr_gui_sonicparry)      { _ox = 4;             _iR = 32; }
+
+        // 1) arte del icono recortado: columnas [_ox .. _artW), filas
+        //    [_oy .. _oy+_ih), SIN la zona de la letra horneada
         if(_artW > 0)
-                draw_sprite_part_ext(_spr, _frame, 0, 0, _artW, _h, _xx, _yy, 1, 1, _col, _alpha);
+                draw_sprite_part_ext(_spr, _frame, _ox, _oy, _artW - _ox, _ih, _xx + _ox, _yy + _oy, 1, 1, _col, _alpha);
 
         // 2) tecla REAL de la configuracion (solo PC; en Android mandan los botones)
         var _tw = 0;
         if(os_type != os_android)
                 _tw = scr_text_spr(_xx + _artW + 2, _yy + floor((_h - 6) / 2), scr_controls_keycode_to_key(_key), _col, _alpha);
 
-        // 3) pista horneada posterior (flechas del walldash / golpe aereo), si la hay
+        // 3) pista horneada posterior (flechas del walldash / golpe aereo),
+        //    si la hay y cae dentro del contenido del sprite
         if(_hintX > 0)
-                draw_sprite_part_ext(_spr, _frame, _hintX, 0, sprite_get_width(_spr) - _hintX, _h, _xx + _artW + _tw + 4, _yy, 1, 1, _col, _alpha);
+        {
+                var _hw = (_iR + 1) - _hintX;
+                if(_hw > 0)
+                        draw_sprite_part_ext(_spr, _frame, _hintX, _oy, _hw, _ih, _xx + _artW + _tw + 4, _yy + _oy, 1, 1, _col, _alpha);
+        }
 }
 
 if(instance_exists(global.player) && !global.player.isDead)
@@ -472,8 +505,23 @@ if(instance_exists(global.player) && !global.player.isDead)
                 }
         }
 
-        // v4.3: el icono de emociones se deja tal cual (sus letras A/S/D
-        // caen fuera de la vista en x=470 y las emociones no son habilidades).
+        // v4.3b: el recordatorio de emociones recupera sus teclas, ahora
+        // DINAMICAS: el PNG original tenia A/S/D horneadas junto a cada
+        // cara (columnas 20-27 del sprite), pero se borraron para las
+        // teclas dinamicas y quedaba el hueco vacio. El sprite se ancla
+        // por su esquina superior DERECHA (origen 28,0): a x=470 ocupa
+        // 442-470, asi que las teclas van en x=463, una por cara.
         if(global.character != CHARACTER_EXE && (global.player.state == IDLE || global.player.emotion))
-                draw_sprite(spr_gui_emotions, 0, 470, 222 - _mob);
+        {
+                var _ey = 222 - _mob;
+                draw_sprite(spr_gui_emotions, 0, 470, _ey);
+
+                // tecla REAL de cada emocion (remapeable), solo PC
+                if(os_type != os_android)
+                {
+                        scr_text_spr(463, _ey + 3,  scr_controls_keycode_to_key(global.KeyEm1), c_white, 1);
+                        scr_text_spr(463, _ey + 17, scr_controls_keycode_to_key(global.KeyEm2), c_white, 1);
+                        scr_text_spr(463, _ey + 31, scr_controls_keycode_to_key(global.KeyEm3), c_white, 1);
+                }
+        }
 }
