@@ -42,12 +42,15 @@ if(instance_exists(obj_player_puppet))
 
 visible = (global.character != CHARACTER_EXE || global.player.invisTimer > 0 || (global.exeCharacter == 1 && global.player.slimeTimer > 0)) || redRings;
 
-// v4.7 (SCAN de Metal Amy): mientras dura el revelado, una aguja por CADA
-// superviviente (la aguja normal de arriba solo marca al mas cercano o al
-// del anillo rojo). Mismos filtros que arriba: muertos y esbirros fuera,
-// y el velo de gracia de Amelia tambien esconde aqui. Solo corre en el
-// cliente del Metal Amy (la instancia la crea su Create_0) y es TODO
-// local: los puppets ya viajan sincronizados, cero paquetes nuevos.
+// v4.8 (SCAN de Metal Amy): mientras dura el revelado, UNA referencia por
+// cada superviviente VIVO (la aguja normal de arriba solo marca al mas
+// cercano o al del anillo rojo). Mismos filtros que arriba: muertos y
+// esbirros fuera, y el velo de gracia de Amelia tambien esconde aqui.
+// Solo corre en el cliente del Metal Amy (la instancia la crea su
+// Create_0) y es TODO local: los puppets ya viajan sincronizados, cero
+// paquetes nuevos. El Draw_64 dibuja cada silueta A TRAVES de paredes y
+// escondites — «vision de supervivientes», no agujas indicadoras — y las
+// que caen fuera de la vista quedan fijadas al borde de la pantalla.
 if(global.character == CHARACTER_EXE
 && global.exeCharacter == EXE_METALAMY
 && variable_instance_exists(global.player, "scanTimer")
@@ -62,7 +65,7 @@ if(global.character == CHARACTER_EXE
                 if(character == CHARACTER_AMELIA && isHiding && lunaGrace > 0)
                         continue;
 
-                other.scanAng[other.scanCount] = point_direction(global.player.x, global.player.y, x, y);
+                other.scanList[other.scanCount] = id;
                 other.scanCount++;
         }
 }

@@ -263,7 +263,18 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 
                                 // exeSource=true: dano de un ataque del lado EXE (el parry de
                                 // Sonic puede negarlo en scr_player_hurt)
+                                var _hpBefore = global.player.hp;
                                 scr_player_hurt(damage, image_xscale * 3, -3, snd_hurt, spr_blood3, false, true);
+
+                                // v4.8 — MARCA DE DEBILIDAD (pasiva 2 de Metal Amy):
+                                // el golpe del dash/contacto de Metal Amy callo de verdad
+                                // (la vida bajo, o el escudo de Sally lo recibio: isHurt).
+                                // Si el parry lo nego, ni la vida ni isHurt se mueven: sin
+                                // marca. Corre en el cliente de la victima, que es quien
+                                // aplica el dano (mismo lado que scr_player_hurt).
+                                if(character == CHARACTER_EXE && exeCharacter == EXE_METALAMY
+                                && (global.player.hp < _hpBefore || global.player.isHurt))
+                                        scr_weak_mark_hit();
                                 
                                 if(character == CHARACTER_EXE)
                                 {

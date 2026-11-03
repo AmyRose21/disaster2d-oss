@@ -30,10 +30,21 @@ shards = 0;
 bulletTimer = 0;
 shootPose = 0;
 
-// METAL AMY v4.7: scan (tecla V)
+// METAL AMY v4.7/v4.8: scan (tecla V)
 scanTimer = 0;    // revelado activo (METALAMY_SCAN_TIME)
 scanRecharge = 0; // enfriamiento restante (20 s)
 scanPose = 0;     // frames de pose de escaneo restantes
+
+// METAL AMY v4.8 — MARCA DE LA CAZADORA (pasiva 3): con 1 solo
+// superviviente vivo la V se apaga y el rastreo sale solo (8 s cada 14 s)
+huntMode = false; // activo mientras quede exactamente 1 vivo
+huntCd = 0;       // enfriamiento del ciclo pasivo (arranca al cerrar la ventana)
+
+// METAL AMY v4.8 — ADAPTABILIDAD (pasiva 4): stun dentro de los 3 s
+// posteriores a perder la inmunidad por golpe -> +1 carga del dash
+adaptWindow = 0;  // frames restantes de la ventana abierta
+adaptAfter = false; // la inmunidad (hurttime) estaba activa el frame anterior
+wasShocked = false; // venia stuneada el frame anterior (deteccion de arranque)
 
 // METAL AMY v4.6: dash de 8 direcciones (tecla X)
 dashDirX = 0;      // -1 / 0 / 1 de la ultima embestida

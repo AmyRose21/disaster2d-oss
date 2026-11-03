@@ -2916,3 +2916,104 @@ snd_metal_stun); anims Metal Amy = 22 slots (14 y 15 = attack2, 21 =
 scan); sin attack11 en codigo activo; receiver de CLIENT_SOUND_EMIT
 ignora indices fuera de rango (cliente viejo seguro). Pendiente:
 partida real.
+
+## v4.8 (2026-11-03) — METAL AMY: pasivas de la cazadora + scan vision 8 s + laser anti-anillos
+
+Pedido del usuario (texto literal en la sesion): scan con "vision de
+los survivors durante 8 seg no 3" (no un anti-invisible como Exe o
+Chaos), las 4 funciones de la pasiva de Metal Amy, el laser destruye
+rings amarillos, y actualizar la Tier list.
+
+1) SCAN -> VISION (8 s): METALAMY_SCAN_TIME 3 s -> 8 s. Las agujas
+   del v4.7 se van: obj_exe_indicator ahora junta REFERENCIAS
+   (scanList) y su Draw_64 dibuja la SILUETA de cada superviviente
+   encima del mapa (capa GUI, bm_add, rojo pulsante, fundido al
+   ultimo medio segundo) — se ve a traves de paredes y escondites.
+   La que cae fuera de la vista 480x270 queda FIJADA al borde
+   (clamp 24..456/24..246, alpha *0.45): un fantasma que senala la
+   direccion. Mismos filtros de siempre (hp<=0, revivalTimes>=2,
+   velo de Amelia). Los timers del scan (timer/recharge/pose)
+   pasaron del special al Step_0 del objeto: corren tambien durante
+   el stun (antes se congelaban a mitad de revelado).
+
+2) PASIVA 1 — EJECUCION DE LOS DEBILES (obj_metal_amy_bullet/Step_0):
+   laser + hp < METALAMY_EXEC_HP (30) -> scr_player_instakill()
+   directo. Excluidos: revivalTimes >= 1 (moribundo del usuario),
+   auto-revivibles (Vanilla, Sonic, Amy Canon, Sally Canon) y Amelia:
+   comen el dano normal de 20. El parry (scr_parry_protects_me),
+   los i-frames (hurttime) y el escudo de Sally se chequean ANTES:
+   si el golpe no cala no hay ejecucion. Stats: el mismo par de
+   paquetes del golpe letal normal (modo 3 con el hp previo, modo 2 +
+   MERCOIN_BONUS 2 al master_id del puppet de Metal Amy) y la caida
+   sale del CLIENT_PLAYER_DEATH_STATE que ya envia instakill: CERO
+   paquetes nuevos.
+
+3) PASIVA 2 — MARCA DE DEBILIDAD (scr_weak_mark_hit, en
+   scr_player_hurt.gml): cualquier golpe de Metal Amy que cala pone
+   TODAS las habilidades del golpeado en 6 s de recarga
+   (METALAMY_WEAKMARK_TIME; las que ya enfriaban suman 6 s). CD
+   propio de 16 s POR superviviente (METALAMY_WEAKMARK_CD; la
+   variable weakMarkCd se crea al vuelo con variable_instance_set y
+   la hace bajar scr_move_basic con un guard: ningun Create de los
+   13 supervivientes fue tocado). Llamadas: laser (escudo roto,
+   ejecucion y dano real), contacto del puppet (gate hp/isHurt, el
+   parry negado no marca). Convenciones respetadas: flyTimer de Tails
+   en negativo (max(flyTimer, -420+_t)), parryCooldownMax llevado a
+   la par para que el relleno del icono no desfase. Aviso local
+   snd_metal_cd. Corre en el cliente de la victima: cero paquetes.
+
+4) PASIVA 3 — MARCA DE LA CAZADORA (obj_metalamy/Step_0): con
+   exactamente 1 vivo (puppets con hp<=0 o revivalTimes>=2 fuera,
+   misma convencion del indicador) la V se apaga (gate !huntMode en
+   scr_metalamy_special) y el rastreo sale solo: ventana de 8 s, y al
+   terminar (scanTimer==1) arranca huntCd = METALAMY_HUNT_TIME (14 s)
+   que al agotarse reabre la ventana. Reviven a alguien -> modo
+   manual otra vez con la recarga a 0. Sonido de aviso local
+   (snd_egg_tracker). HUD: el anillo del icono V refleja el ciclo y
+   se vuelve DORADO en modo caza (obj_playerui/Draw_64). Local: cero
+   paquetes.
+
+5) PASIVA 4 — ADAPTABILIDAD (obj_metalamy/Step_0): deteccion del
+   ARRANQUE del stun (shockedTimer 0->>0 con wasShocked) dentro de
+   adaptWindow (METALAMY_ADAPT_WINDOW = 3 s) -> +1 dashCharges (tope
+   METALAMY_DASH_MAX = 3) con snd_metal_hiit y sacudida. La ventana
+   se abre cuando hurttime se agota de verdad: la rama del stun la
+   re-arma a 2 s en cada frame aturdido y los golpes la dejan en 3 s,
+   asi que solo cuenta el stun que cae en los 3 s posteriores a la
+   perdida de inmunidad (tal cual el pedido). Cubre TODAS las fuentes
+   de stun sin tocarlas. Local: cero paquetes.
+
+6) LASER vs ANILLOS AMARILLOS (obj_ring/Step_0): overlap con
+   obj_metal_amy_bullet (sin isBreaking) triggerea ringBreak() SOLO
+   en el cliente de Metal Amy (gate global.character == CHARACTER_EXE
+   && exeCharacter == EXE_METALAMY): su ringBreak manda el
+   CLIENT_RING_BROKE + CLIENT_RING_COLLECTED y el server lo retira
+   para todos (patron exacto del laser de Tails esbirro). Anillos
+   rojos (obj_redring) intactos.
+
+7) TIER LIST: TierList_Mejoras_V4_8.html (nueva; la V3_2 queda de
+   historial). build_tierlist_v48.py aplica 13 reemplazos exactos:
+   title/badges/pestana/h2/lead, articulos N (scan v4.7) O (vision
+   8 s) P (4 pasivas + laser), banner "v4.6 -> v4.8 Metal Amy A->S"
+   en la pestana tiers, ficha JS completa reescrita (tier S, pasiva
+   "La cazadora", X/C/V, plus/minus), pie de verificacion y el
+   comentario del EXEDATA ("la ejecucion no perdona").
+
+ARCHIVOS v4.8: obj_exe_indicator/Create_0-Step_2-Draw_64,
+obj_metal_amy_bullet/Step_0, obj_metalamy/Create_0-Step_0,
+obj_player_puppet/Step_0, obj_playerui/Draw_64, obj_ring/Step_0,
+scr_metalamy_special.gml, scr_move_basic.gml, scr_player_hurt.gml,
+TierList_Mejoras_V4_8.html, LEEME.md, worklog.md.
+
+VERIFICACION: verify_v48.py — balance de los 12 GML OK, 27 marcadores
+v4.8 presentes, 6 sonidos verificados (snd_metal_cd, snd_metal_hiit,
+snd_egg_tracker, snd_metal_stun, snd_metal_laugh, snd_metalamy_dash).
+check_tierlist_v48.py (Playwright) — 11 textos visibles en sus
+pestanas, sin errores de consola, Metal Amy en el bloque S. Timers por
+personaje de la marca verificados contra los Create (flyTimer,
+glideTimer, djumpRecharge/shieldRechrage/trackerRecharge, hjumpTimer,
+dashTimer, parryCooldown(Max), ringsTimer, electroTimer,
+bananaTimer/trapTimer, fireballTimer/burningTimer). Flujo de red de la
+ejecucion contrastado contra la ruta letal de scr_player_hurt (modo 3
+con hp previo + instakill + CLIENT_PLAYER_DEATH_STATE; sin
+ring-lose, igual que la letal). Pendiente: partida real.

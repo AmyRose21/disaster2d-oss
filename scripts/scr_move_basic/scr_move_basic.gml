@@ -20,10 +20,18 @@ function scr_move_basic()
                 obj_achivements.show();
         }
         
-        //unset just jumped flag
+        // unset just jumped flag
         justJumped = false;
         isLookingDown = false;
         isLookingUp = false;
+
+        // v4.8 — MARCA DE DEBILIDAD (pasiva 2 de Metal Amy): tick del CD
+        // propio de 16 s por superviviente. La variable solo existe en
+        // quien ya fue marcado una vez (la crea scr_weak_mark_hit), de
+        // ahi el guard; corre para cualquier personaje sin tocar los
+        // Create de los 13 supervivientes.
+        if(variable_instance_exists(id, "weakMarkCd") && weakMarkCd > 0)
+                weakMarkCd--;
         
         // If is dead, play dead animation
         if(isDead)

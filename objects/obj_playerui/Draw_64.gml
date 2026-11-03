@@ -198,7 +198,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         var prog = 1.0 - (global.player.bulletTimer / METALAMY_BULLET_RECHARGE);
                                         drawKeyIcon(spr_gui_metal_amy_lazer, 0, 24, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                                        // v4.7 (SCAN, tecla V): a la derecha de la C, misma fila
+                                        // v4.7/v4.8 (SCAN, tecla V): a la derecha de la C, misma fila
                                         // (patron Amy canon v4.1: C y V comparten fila, como en el
                                         // teclado; la vista es 480x270 y una cuarta fila apilada
                                         // caeria fuera de pantalla). spr_gui_metalamy_indy trae el
@@ -206,11 +206,28 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         // NO hace falta editar la imagen — el mecanismo de v4.3
                                         // recorta el arte hasta el ojo (artW = 14) y dibuja la tecla
                                         // REAL dinamica (drawKeyIcon), igual que en todos los iconos
-                                        // de habilidad desde v4.3. Blanco = listo o revelado activo;
-                                        // el relleno barre los 20 s de enfriamiento.
-                                        var _sprog = 1.0 - (global.player.scanRecharge / METALAMY_SCAN_RECHARGE);
+                                        // de habilidad desde v4.3.
+                                        // v4.8 — MARCA DE LA CAZADORA: con 1 solo superviviente la
+                                        // V ya no se pulsa: el anillo pasa a reflejar el CICLO
+                                        // pasivo (ventana de 8 s en blanco; luego el relleno barre
+                                        // los 14 s del enfriamiento) — el icono se vuelve dorado
+                                        // para avisar de que el rastreo ahora sale solo.
                                         var _sact = global.player.scanTimer > 0;
-                                        drawKeyIcon(spr_gui_metalamy_indy, 0, 14, global.KeyV, 44 + _sprog * 10, 250 - _mob, (_sprog >= 1.0 || _sact) ? c_white : c_red, (_sprog >= 1.0 || _sact) ? 1 : _sprog, 0);
+                                        var _sready;
+                                        var _sprog;
+
+                                        if(global.player.huntMode)
+                                        {
+                                                _sprog = 1.0 - (global.player.huntCd / METALAMY_HUNT_TIME);
+                                                _sready = _sact || _sprog >= 1.0;
+                                                drawKeyIcon(spr_gui_metalamy_indy, 0, 14, global.KeyV, 44 + _sprog * 10, 250 - _mob, _sready ? c_yellow : c_red, _sready ? 1 : _sprog, 0);
+                                        }
+                                        else
+                                        {
+                                                _sprog = 1.0 - (global.player.scanRecharge / METALAMY_SCAN_RECHARGE);
+                                                _sready = _sprog >= 1.0 || _sact;
+                                                drawKeyIcon(spr_gui_metalamy_indy, 0, 14, global.KeyV, 44 + _sprog * 10, 250 - _mob, _sready ? c_white : c_red, _sready ? 1 : _sprog, 0);
+                                        }
                                         break;
                                 }
                         }

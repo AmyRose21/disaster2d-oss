@@ -428,3 +428,123 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 global.player.hurttime = 0;
         
 }
+
+// =====================================================================
+//  v4.8 — MARCA DE DEBILIDAD (pasiva 2 de Metal Amy).
+//  La llama el cliente de la VICTIMA cuando un golpe de Metal Amy calo
+//  de verdad (el laser en obj_metal_amy_bullet/Step_0 o el contacto del
+//  dash/cualquier ataque en obj_player_puppet/Step_0). Efecto: TODOS los
+//  enfriamientos de habilidad del superviviente entran en 6 s de
+//  recarga — los que ya estaban enfriando, esos 6 s se les SUMAN (las
+//  convenciones de cada timer se respetan: el vuelo de Tails cuenta en
+//  negativo y el parry lleva su maximo a la par para que el relleno del
+//  icono no desfase). El CD de la marca es PROPIO de cada superviviente:
+//  16 s (weakMarkCd lo hace bajar scr_move_basic). Cero paquetes: corre
+//  en el cliente de la victima sobre su propio jugador, como el dano.
+//  Aviso LOCAL con snd_metal_cd (la marca es invisible para los demas:
+//  el marcado lo nota porque sus iconos de habilidad se ponen rojos).
+// =====================================================================
+function scr_weak_mark_hit()
+{
+        if(!instance_exists(global.player))
+                return;
+
+        if(obj_netclient.gameEnds)
+                return;
+
+        // solo supervivientes vivos y sin demonizar
+        if(global.character == CHARACTER_EXE || global.player.revivalTimes >= 2)
+                return;
+
+        if(global.player.isDead)
+                return;
+
+        // CD propio de 16 s por superviviente (la variable la creamos aqui
+        // mismo la primera vez: no hacia falta tocar los Create de los 13
+        // supervivientes, y scr_move_basic la hace bajar con un guard)
+        if(!variable_instance_exists(global.player, "weakMarkCd"))
+                variable_instance_set(global.player, "weakMarkCd", 0);
+
+        if(global.player.weakMarkCd > 0)
+                return;
+
+        global.player.weakMarkCd = METALAMY_WEAKMARK_CD;
+
+        var _t = METALAMY_WEAKMARK_TIME;
+
+        with(global.player)
+        {
+                switch(global.character)
+                {
+                        case CHARACTER_TAILS:
+                                // el vuelo de Tails cuenta en NEGATIVO hacia -420
+                                // (listo): la recarga de 6 s es -60. Si esta volando
+                                // (positivo) el vuelo en curso sigue su curso.
+                                if(flyTimer <= 0)
+                                        flyTimer = max(flyTimer, -420 + _t);
+                                attackTimer = (attackTimer <= 0) ? _t : attackTimer + _t;
+                                break;
+
+                        case CHARACTER_KNUX:
+                                glideTimer = (glideTimer <= 0) ? _t : glideTimer + _t;
+                                attackTimer = (attackTimer <= 0) ? _t : attackTimer + _t;
+                                break;
+
+                        case CHARACTER_EGGMAN:
+                                djumpRecharge = (djumpRecharge <= 0) ? _t : djumpRecharge + _t;
+                                shieldRechrage = (shieldRechrage <= 0) ? _t : shieldRechrage + _t;
+                                trackerRecharge = (trackerRecharge <= 0) ? _t : trackerRecharge + _t;
+                                break;
+
+                        case CHARACTER_AMY:
+                                hjumpTimer = (hjumpTimer <= 0) ? _t : hjumpTimer + _t;
+                                attackTimer = (attackTimer <= 0) ? _t : attackTimer + _t;
+                                break;
+
+                        case CHARACTER_AMY_CANON:
+                                hjumpTimer = (hjumpTimer <= 0) ? _t : hjumpTimer + _t;
+                                attackTimer = (attackTimer <= 0) ? _t : attackTimer + _t;
+                                dashTimer = (dashTimer <= 0) ? _t : dashTimer + _t;
+                                parryCooldown = (parryCooldown <= 0) ? _t : parryCooldown + _t;
+                                parryCooldownMax = max(parryCooldownMax, parryCooldown);
+                                break;
+
+                        case CHARACTER_SONIC:
+                                attackTimer = (attackTimer <= 0) ? _t : attackTimer + _t;
+                                parryCooldown = (parryCooldown <= 0) ? _t : parryCooldown + _t;
+                                parryCooldownMax = max(parryCooldownMax, parryCooldown);
+                                break;
+
+                        case CHARACTER_CREAM:
+                        case CHARACTER_VANILLA:
+                                flyTimer = (flyTimer <= 0) ? _t : flyTimer + _t;
+                                dashTimer = (dashTimer <= 0) ? _t : dashTimer + _t;
+                                ringsTimer = (ringsTimer <= 0) ? _t : ringsTimer + _t;
+                                break;
+
+                        case CHARACTER_METAL:
+                                dashTimer = (dashTimer <= 0) ? _t : dashTimer + _t;
+                                electroTimer = (electroTimer <= 0) ? _t : electroTimer + _t;
+                                break;
+
+                        case CHARACTER_AMELIA:
+                                bananaTimer = (bananaTimer <= 0) ? _t : bananaTimer + _t;
+                                trapTimer = (trapTimer <= 0) ? _t : trapTimer + _t;
+                                break;
+
+                        case CHARACTER_BLAZE:
+                                djumpRecharge = (djumpRecharge <= 0) ? _t : djumpRecharge + _t;
+                                fireballTimer = (fireballTimer <= 0) ? _t : fireballTimer + _t;
+                                burningTimer = (burningTimer <= 0) ? _t : burningTimer + _t;
+                                break;
+
+                        case CHARACTER_SALLY:
+                        case CHARACTER_SALLY_CANON:
+                                attackTimer = (attackTimer <= 0) ? _t : attackTimer + _t;
+                                shieldRechrage = (shieldRechrage <= 0) ? _t : shieldRechrage + _t;
+                                break;
+                }
+        }
+
+        audio_play_sound(snd_metal_cd, 0, false);
+}
