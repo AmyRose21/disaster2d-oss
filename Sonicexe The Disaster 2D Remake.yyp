@@ -338,6 +338,7 @@
     {"id":{"name":"obj_flash","path":"objects/obj_flash/obj_flash.yy",},},
     {"id":{"name":"obj_floor_parent","path":"objects/obj_floor_parent/obj_floor_parent.yy",},},
     {"id":{"name":"obj_fw_bolt","path":"objects/obj_fw_bolt/obj_fw_bolt.yy",},},
+    {"id":{"name":"obj_fw_arrow","path":"objects/obj_fw_arrow/obj_fw_arrow.yy",},},
     {"id":{"name":"obj_ghz_controller","path":"objects/obj_ghz_controller/obj_ghz_controller.yy",},},
     {"id":{"name":"obj_ghz_rain","path":"objects/obj_ghz_rain/obj_ghz_rain.yy",},},
     {"id":{"name":"obj_ghz_slope","path":"objects/obj_ghz_slope/obj_ghz_slope.yy",},},

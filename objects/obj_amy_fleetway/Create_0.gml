@@ -5,8 +5,42 @@
 
 #macro FW_ATTACK_RECHARGE (60 * 20)     // puño/patada (tecla B) modo superviviente (20 s)
 #macro FW_EATTACK_RECHARGE (60 * 5)     // puño/patada con revivalTimes >= 2 (5 s)
-#macro FW_CROSSBOW_RECHARGE (60 * 25)   // ballesta (tecla C) modo superviviente (25 s)
-#macro FW_ECROSSBOW_RECHARGE (60 * 15)  // ballesta con revivalTimes >= 2 (15 s)
+
+// v2.15 («La Torre») — rework de la BALLESTA (tecla C):
+// cargador de 3 flechas, recarga de 8 s POR flecha y 0,5 s entre
+// disparos. La flecha vuela recta, se CLAVA en paredes/suelos durante
+// 5 s y sirve de plataforma (obj_fw_arrow, hijo de obj_solid_parent).
+// Contra el EXE: stun de 3 s con reduccion acumulativa del 17,5% por
+// stun continuo (tope 50%; se resetea tras 7 s sin stuns de flecha).
+// Contra esbirros: siempre 3 s completos. Demonizada: daño 20 real.
+#macro FW_ARROW_MAX 3                    // flechas del cargador
+#macro FW_ARROW_RELOAD (60 * 8)          // recarga de cada flecha (8 s)
+#macro FW_ARROW_SHOT_CD 30               // 0,5 s entre disparos
+#macro FW_ARROW_STICK_TIME (60 * 5)      // clavada como plataforma (5 s)
+#macro FW_ARROW_STUN (60 * 3)            // stun base de flecha al EXE (3 s)
+#macro FW_ARROW_STUN_STEP 0.175          // -17,5% por stun continuo
+#macro FW_ARROW_STUN_CAP 0.5             // tope de reduccion (50%)
+#macro FW_ARROW_STUN_RESET (60 * 7)      // el % se resetea tras 7 s sin stun de flecha
+
+// v2.15 («La Torre») — pasivas de Fleetway Amy:
+// LA TORRE: bloqueo fijo del 33% del daño recibido (estilo Chocola
+// con Vanilla, pero determinista). Con REFLEJO DE UNA MISMA ALMA
+// (ver abajo) sube hasta un tope del 40%.
+// El DJ doble salto aturde al EXE 3,2 s por contacto mientras vuela.
+#macro FW_DJ_STUN (60 * 3.2)             // stun del DJ al exe (3,2 s)
+#macro TOWER_BLOCK 0.33                  // La Torre: 33% de bloqueo
+#macro TOWER_BLOCK_MAX 0.40              // tope de La Torre con Reflejo
+
+// v2.15 — REFLEJO DE UNA MISMA ALMA (pasiva compartida de las Amys):
+// por cada Amy en el campo (Amy, Amy Canon, Amelia o Fleetway) la
+// eficacia de los efectos de sus pasivas sube un 5%, hasta un 15%.
+// Afecta al bloqueo de La Torre (FW) y a la hitbox de FUERZA (Amy
+// vanilla). Se define aqui pero lo usan los tres personajes
+// (scr_amy_soul_* en scr_characters.gml).
+#macro SOUL_STEP 0.05                    // +5% por Amy presente
+#macro SOUL_CAP 0.15                     // tope +15%
+#macro AMY_FUERZA_HITBOX 0.20            // FUERZA: hitbox +20% (Amy vanilla)
+
 #macro FW_DJ_RECHARGE (60 * 10)         // DJ doble salto (tecla A aérea) superviviente (10 s)
 #macro FW_EDJ_RECHARGE (60 * 15)        // DJ con revivalTimes >= 2 (15 s) — el revival lo SUBE (más vuelo)
 #macro FW_DJ_BOOST -6                   // impulso vertical del DJ (yspd)
@@ -41,8 +75,11 @@ chunkTimer = 0;
 // Fleetway: timers del moveset (nombres del mod original)
 attackTimer = 0;     // puño/patada (tecla B)
 djTimer = 0;         // DJ doble salto: 0 listo, -1..-30 volando, >0 recargando
-crossBow = 0;        // ballesta (tecla C)
+crossBow = 0;        // v2.15: CD corto entre disparos (FW_ARROW_SHOT_CD)
 cbTimer = 0;         // frames restantes con la ballesta EN LA MANO (sprites cbamy)
+// v2.15 («La Torre»): cargador de la ballesta
+fwArrows = FW_ARROW_MAX;        // flechas disponibles (0..3)
+fwArrowReload = 0;              // recarga de la siguiente flecha (0 = cargador lleno)
 // v2.14.1: paridad con obj_amy: el Step_0 portado lee isHJ en el guardia de
 // daño de contacto (linea 48); sin declararlo el juego crashea con
 // "isHJ not set before reading it". En Fleetway nunca se activa (el salto

@@ -292,3 +292,115 @@ function scr_lobby_shiny_escape(char, xx, yy)
     return true;
 }
 // ===== fin [Suite TD2D v3.7] retratos con brillo =====
+
+// =====================================================================
+//  v2.15 («La Torre») — REFLEJO DE UNA MISMA ALMA (pasiva compartida
+//  de las tres Amys: Amy vanilla / Amy Canon / Amelia / Fleetway).
+//  Dualidad de la Torre: Amelia representa la luz en la oscuridad,
+//  Amy original la parte alegre y optimista, y la Amy de Fleetway la
+//  fortaleza temperamental. Por cada Amy presente en el campo la
+//  eficacia de los efectos de sus pasivas sube un 5% (tope 15%):
+//   * FW Amy  -> bloqueo de LA TORRE (33% -> hasta 40%)
+//   * Amy     -> hitbox de FUERZA (+20% -> hasta +23%)
+//  Se evalua EN CADA CLIENTE con los datos que ya tiene (jugador local
+//  + puppets sincronizados): el conteo coincide sin paquetes extra.
+// =====================================================================
+function scr_amy_soul_count()
+{
+    var _cnt = 0;
+
+    // la Amy de ESTE cliente (si esta viva y jugando)
+    if(instance_exists(global.player) && !global.player.isDead
+    && (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON
+        || global.character == CHARACTER_AMELIA || global.character == CHARACTER_FLEETWAY_AMY))
+        _cnt++;
+
+    // las Amys remotas (puppets vivos y activos)
+    if(instance_exists(obj_player_puppet))
+    {
+        for(var i = 0; i < instance_number(obj_player_puppet); i++)
+        {
+            var inst = instance_find(obj_player_puppet, i);
+
+            if(inst.isInactive)
+                continue;
+
+            if(inst.character == CHARACTER_AMY || inst.character == CHARACTER_AMY_CANON
+            || inst.character == CHARACTER_AMELIA || inst.character == CHARACTER_FLEETWAY_AMY)
+                _cnt++;
+        }
+    }
+
+    return _cnt;
+}
+
+// Bonus de eficacia de Reflejo de una misma alma: +5% por Amy en el
+// campo, tope +15% (3 o mas Amys). Ej.: bloqueo de La Torre =
+// min(TOWER_BLOCK + scr_amy_soul_bonus(), TOWER_BLOCK_MAX).
+function scr_amy_soul_bonus()
+{
+    return min(SOUL_STEP * scr_amy_soul_count(), SOUL_CAP);
+}
+
+// FUERZA (Amy vanilla): sus efectos SOLO se activan si alguna de las
+// OTRAS Amys (Canon / Amelia / Fleetway) esta presente en el campo.
+function scr_amy_soul_otras()
+{
+    if(global.character != CHARACTER_AMY
+    && (global.character == CHARACTER_AMY_CANON || global.character == CHARACTER_AMELIA
+        || global.character == CHARACTER_FLEETWAY_AMY)
+    && instance_exists(global.player) && !global.player.isDead)
+        return true;
+
+    if(instance_exists(obj_player_puppet))
+    {
+        for(var i = 0; i < instance_number(obj_player_puppet); i++)
+        {
+            var inst = instance_find(obj_player_puppet, i);
+
+            if(inst.isInactive)
+                continue;
+
+            if(inst.character == CHARACTER_AMY_CANON || inst.character == CHARACTER_AMELIA
+            || inst.character == CHARACTER_FLEETWAY_AMY)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+// =====================================================================
+//  v2.15 («La Torre») — plataforma de la flecha clavada de Fleetway.
+//  Idempotente por fwId: la crea si no existe o la REPOSICIONA con la
+//  posicion autoritativa del server (estado 3). La llama el evento de
+//  colision de obj_fw_bolt (reporte local inmediato) y net_state_game
+//  (confirmacion del server).
+// =====================================================================
+function scr_fw_arrow_spawn(fwid, xx, yy, dir)
+{
+    // ¿ya existe la plataforma de esta flecha?
+    var _found = noone;
+    with(obj_fw_arrow)
+    {
+        if(fwId == fwid)
+        {
+            _found = id;
+            break;
+        }
+    }
+
+    if(_found != noone)
+    {
+        _found.x = xx;
+        _found.y = yy;
+        _found.image_xscale = sign(dir);
+        return _found;
+    }
+
+    var _arrow = instance_create_depth(xx, yy, 0, obj_fw_arrow);
+    _arrow.fwId = fwid;
+    _arrow.image_xscale = sign(dir);
+    return _arrow;
+}
+// ===== fin v2.15 «La Torre» — Reflejo de una misma alma =====

@@ -355,11 +355,24 @@ if(instance_exists(global.player) && !global.player.isDead)
                         var prog2 = 1.0 - (max(global.player.attackTimer, 0) / val2);
                         drawKeyIcon(spr_gui_amyattack_fw, 0, 23, global.KeyB, prog2 * 10, 240 - _mob, prog2 == 1.0 ? c_white : c_red, prog2, 0);
 
-                        // Icono 3 (tecla C): BALLESTA. El relleno muestra el CD;
-                        // mientras dura cbTimer la lleva en la mano (sprites cbamy).
-                        var val3 = global.player.revivalTimes >= 2 ? FW_ECROSSBOW_RECHARGE : FW_CROSSBOW_RECHARGE;
-                        var prog3 = 1.0 - (max(global.player.crossBow, 0) / val3);
-                        drawKeyIcon(spr_gui_amycrossbow_fw, 0, 23, global.KeyC, prog3 * 10, 258 - _mob, prog3 == 1.0 ? c_white : c_red, prog3, 0);
+                        // Icono 3 (tecla C): BALLESTA — v2.15 («La Torre»): cargador
+                        // de 3 flechas (recarga 8 s por flecha, 0,5 s entre disparos).
+                        // El relleno muestra el cargador entero (flechas + fraccion de
+                        // la que esta recargando); los pips debajo cuentan las listas.
+                        // Blanco = hay flecha Y paso el CD de disparo; rojo = lo demas.
+                        // Mientras dura cbTimer la lleva en la mano (sprites cbamy).
+                        var _arrows = global.player.fwArrows;
+                        var _prog3 = min(1.0, (_arrows + (_arrows < FW_ARROW_MAX ? 1.0 - max(global.player.fwArrowReload, 0) / FW_ARROW_RELOAD : 0)) / FW_ARROW_MAX);
+                        var b3 = (_arrows > 0 && global.player.crossBow <= 0) ? c_white : c_red;
+                        drawKeyIcon(spr_gui_amycrossbow_fw, 0, 23, global.KeyC, _prog3 * 10, 258 - _mob, b3, _prog3, 0);
+
+                        // Pips de municion: un rectangulo por flecha disponible
+                        draw_set_color(b3);
+                        draw_set_alpha(0.9);
+                        for(var _pi = 0; _pi < FW_ARROW_MAX; _pi++)
+                                draw_rectangle(2 + _pi * 7, 258 - _mob + 12, 7 + _pi * 7, 261 - _mob + 12, _pi >= _arrows);
+                        draw_set_color(c_white);
+                        draw_set_alpha(1);
                         break;
                 }
 

@@ -167,7 +167,17 @@ if(character == CHARACTER_SONIC && isAttacking)
                 _sonicPad = SONIC_ATTACK_TIERRA2_PAD;
 }
 
-if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad))
+// v2.15 («La Torre») — PASIVA FUERZA (Amy vanilla): la hitbox del
+// martillo crece un 20% mientras lo lanza, PERO solo si alguna de
+// las otras Amys (Canon / Amelia / Fleetway) esta en el campo; el
+// potenciador de «Reflejo de una misma alma» la sube hasta +23%
+// (+5% por Amy, tope +15%). Mismo mecanismo de pad por distancia que
+// el tarot de Amy Canon y el golpe de Sonic.
+var _amyFuerzaPad = 0;
+if(character == CHARACTER_AMY && isAttacking && scr_amy_soul_otras())
+        _amyFuerzaPad = ceil((bbox_right - bbox_left) * AMY_FUERZA_HITBOX * (1.0 + scr_amy_soul_bonus()));
+
+if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad) || (_amyFuerzaPad > 0 && distance_to_object(global.player) <= _amyFuerzaPad))
 {
         if(isAttacking)
         {
@@ -372,6 +382,13 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 // vez de 3 mientras ella este en ese estado.
                                 if(character == CHARACTER_AMY_CANON && state == AMY_CANON_TAROTDASH)
                                         stunTime = 2;
+                                // v2.15 («La Torre»): DJ DOBLE SALTO de Fleetway Amy —
+                                // mientras vuela con el DJ (bitflag PLAYER_DJ) su contacto
+                                // aturde al EXE 3,2 s (la fortaleza temperamental). Igual
+                                // que el resto de stuns: lo aplica el cliente del EXE,
+                                // que es la victima y la autoridad de su jugador.
+                                if(character == CHARACTER_FLEETWAY_AMY && isDJ)
+                                        stunTime = 3.2;
                                 var snd = snd_exe_stun;
                                 var xxspd = -sign(x - global.player.x) * 4;
                                                                 

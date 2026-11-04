@@ -795,10 +795,15 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, v->in_game);
                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
                         AssertOrDisconnect(v->server, v->surv_char == CH_FLEETWAY_AMY);
+                        /* v2.15 («La Torre»): cargador de 3 flechas — mantienen el
+                         * tope de 3 vivas del server (<= 2 existentes permite el
+                         * spawn de la 3.a). El CD por jugador baja a 0,5 s: el
+                         * limite real lo pone la municion del cliente. */
                         AssertOrDisconnect(v->server, game_find(v->server, NULL, "fwbolt", 10) <= 2);
 
                         /* Cooldown por jugador (patron laser de Tails): sin
-                         * kick, solo se ignora el paquete. */
+                         * kick, solo se ignora el paquete. v2.15: 0,5 s entre
+                         * disparos (FW_ARROW_SHOT_CD del cliente). */
                         if (v->plr_cooldowns[FWBOLT_SPAWN] > 0)
                                 break;
 
@@ -812,7 +817,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, dmg == 0 || (v->plr.flags & PLAYER_DEMONIZED));
 
                         RAssert(game_spawn(v->server, (Entity*)&(MakeFwBolt(x, y, v->id, dir, dmg)), sizeof(FwBolt), NULL));
-                        v->plr_cooldowns[FWBOLT_SPAWN] = 10 * TICKSPERSEC;
+                        v->plr_cooldowns[FWBOLT_SPAWN] = TICKSPERSEC / 2;
                         break;
                 }
 
@@ -820,9 +825,63 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                 {
                         AssertOrDisconnect(v->server, v->in_game);
 
-                        Entity* ents;
-                        if (game_find(v->server, &ents, "fwbolt", 1))
-                                game_despawn(v->server, NULL, ents->id);
+                        /* v2.15 («La Torre»): el reporte ahora lleva el id de la
+                         * flecha y el tipo de contacto:
+                         *   tipo 0 = se rompio (toco al exe / esbirro / limite)
+                         *   tipo 1 = se CLAVO en un solido (x, y) -> plataforma */
+                        PacketRead(fid, packet, packet_read16, uint16_t);
+                        PacketRead(htype, packet, packet_read8, uint8_t);
+                        AssertOrDisconnect(v->server, htype <= 1);
+
+                        Entity* ent = NULL;
+                        for (size_t i = 0; i < v->server->game.entities.capacity; i++)
+                        {
+                                Entity* e = (Entity*)v->server->game.entities.ptr[i];
+                                if (!e)
+                                        continue;
+
+                                if (e->id == fid && strcmp(e->tag, "fwbolt") == 0)
+                                {
+                                        ent = e;
+                                        break;
+                                }
+                        }
+
+                        if (!ent)
+                                break;
+
+                        FwBolt* bolt = (FwBolt*)ent;
+
+                        if (htype == 1)
+                        {
+                                /* Clavarse: deja de volar y queda FWBOLT_STICK_TIME
+                                 * como plataforma. Los primeros reportes que lleguen
+                                 * despues ya la encuentran clavada y se ignoran
+                                 * (varios clientes ven el mismo choque). */
+                                if (bolt->stuck)
+                                        break;
+
+                                PacketRead(hx, packet, packet_read16, uint16_t);
+                                PacketRead(hy, packet, packet_read16, uint16_t);
+
+                                bolt->stuck = true;
+                                bolt->timer = FWBOLT_STICK_TIME;
+                                bolt->pos.x = hx;
+                                bolt->pos.y = hy;
+
+                                Packet pack;
+                                PacketCreate(&pack, SERVER_FWBOLT_STATE);
+                                PacketWrite(&pack, packet_write8, 3);
+                                PacketWrite(&pack, packet_write16, bolt->id);
+                                PacketWrite(&pack, packet_write16, hx);
+                                PacketWrite(&pack, packet_write16, hy);
+                                server_broadcast(v->server, &pack, true);
+                        }
+                        else
+                        {
+                                /* Romperse (patron original): despawn para todos. */
+                                game_despawn(v->server, NULL, ent->id);
+                        }
 
                         break;
                 }

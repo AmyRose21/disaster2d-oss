@@ -161,6 +161,11 @@ function net_udpprocess(rbuff)
                                                 // (estela de fantasmas en este puppet)
                                                 if(character == CHARACTER_SONIC)
                                                         powerBoost = bitflags & PLAYER_POWERBOOST;
+
+                                                // v2.15 «La Torre»: FW Amy volando con el DJ (el
+                                                // cliente del EXE lo necesita para el stun de 3,2 s)
+                                                if(character == CHARACTER_FLEETWAY_AMY)
+                                                        isDJ = bitflags & PLAYER_DJ;
                                         }
                                         break;
                                 }
@@ -193,6 +198,45 @@ function net_udpprocess(rbuff)
                                 if(isBreaking)
                                         continue;
                                         
+                                x = _xx;
+                                y = _yy;
+                                break;
+                        }
+                        break;
+                }
+                
+                // v2.15 («La Torre») — FIX FLECHA DE LA BALLESTA: el server
+                // manda el tick de posicion (SERVER_FWBOLT_STATE 1) como NO
+                // confiable (server_broadcast(..., false) en fwbolt_tick), o
+                // sea por ESTE canal (UDP). El case solo existia en
+                // net_state_game (canal TCP), por el que ese estado JAMAS
+                // llegaba: la flecha nacia quieta en la mano de Fleetway y no
+                // avanzaba ("el proyectil no avanza"). Mismo arreglo que el
+                // laser de Tails, la bola de Blaze (v2.9b) y la bala de Metal
+                // Amy. El paquete lleva el id de la entidad para poder mover
+                // la flecha correcta con hasta 3 en vuelo.
+                case PacketType.SERVER_FWBOLT_STATE:
+                {
+                        if(passtrough)
+                                break;
+
+                        if(state != STATE_GAME)
+                                break;
+
+                        var _state = buffer_read_s(rbuff, buffer_u8);
+
+                        if(_state != 1) //impossible (0/2/3 van por TCP fiable)
+                                break;
+
+                        var _fwid = buffer_read_s(rbuff, buffer_u16);
+                        var _xx = buffer_read_s(rbuff, buffer_u16);
+                        var _yy = buffer_read_s(rbuff, buffer_u16);
+
+                        with(obj_fw_bolt)
+                        {
+                                if(isBreaking || isStuck || fwId != _fwid)
+                                        continue;
+
                                 x = _xx;
                                 y = _yy;
                                 break;

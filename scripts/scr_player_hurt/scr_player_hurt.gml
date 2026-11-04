@@ -236,6 +236,16 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         if((global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON) && global.player.isSliding)
                 return;
 
+        // v2.15 («La Torre») — PASIVA FUERZA (Amy vanilla): mientras
+        // lanza el martillo (isAttacking) Amy tiene i-frames contra el
+        // daño, PERO solo si alguna de las otras Amys (Canon / Amelia /
+        // Fleetway) esta presente en el campo («Reflejo de una misma
+        // alma»: la familia la sostiene). Sin ellas: sin iframes.
+        // (Los i-frames contra el STUN de contacto del exe ya existian
+        // en obj_player_puppet; estos amplian la proteccion al daño.)
+        if(global.character == CHARACTER_AMY && global.player.isAttacking && scr_amy_soul_otras())
+                return;
+
         // === VANILLA V2 ===
         // PACIENCIA / MORIBUNDA: inmune a TODO mientras duran (enojada
         // o tirada en el suelo: ni el exe ni el entorno le hacen nada).
@@ -348,6 +358,19 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                         // retroceso de su fase 2 (parte 1)
                         if(global.character == CHARACTER_SALLY_CANON)
                                 global.player.fase2HitX = xpw;
+                        
+                        // v2.15 («La Torre») — PASIVA LA TORRE (Fleetway Amy):
+                        // bloqueo fijo del 33% del daño recibido (estilo Chocola
+                        // con Vanilla pero determinista). Con «Reflejo de una
+                        // misma alma» sube +5% por Amy en el campo (tope +15%)
+                        // hasta un maximo del 40%. Solo superviviente pura: la
+                        // FW demonizada pelea para el exe y pierde la pasiva.
+                        if(global.character == CHARACTER_FLEETWAY_AMY && damage > 0)
+                        {
+                                var _towerBlock = min(TOWER_BLOCK + scr_amy_soul_bonus(), TOWER_BLOCK_MAX);
+                                damage = max(1, round(damage * (1.0 - _towerBlock)));
+                                net_quick_effect(global.player.x, global.player.y - 20, spr_shieldbreak, false, 1, 0, 0, 1);
+                        }
                         
                         global.player.hp -= damage;
                         

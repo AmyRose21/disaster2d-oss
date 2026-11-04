@@ -3017,3 +3017,96 @@ bananaTimer/trapTimer, fireballTimer/burningTimer). Flujo de red de la
 ejecucion contrastado contra la ruta letal de scr_player_hurt (modo 3
 con hp previo + instakill + CLIENT_PLAYER_DEATH_STATE; sin
 ring-lose, igual que la letal). Pendiente: partida real.
+
+---
+Task ID: torre-v2.15
+Agent: Super Z (main agent)
+Task: v2.15 «La Torre» — Fleetway Amy completa: barra de vida, fix de la flecha que no avanzaba, rework de la ballesta (3 flechas + plataforma), stuns, pasivas de las 3 Amys y tier list
+
+Work Log:
+- GIT PULL (e78928dc -> c3ce2800): el repo local estaba 11 commits por detras
+  del remoto (la sincronizacion del usuario con Metal Amy como EXE #5 habia
+  borrado Fleetway Amy entera en la copia local). El pull la restauro completa
+  (obj_amy_fleetway, sprites _fw, FwBolt.c, enum CH_FLEETWAY_AMY) junto a los
+  arreglos v2.14.1/v2.14.2 ya aplicados por sesiones intermedias.
+
+1) BARRA DE VIDA (bug "no sale ni siquiera la barra"): las tiras de HUD ya
+   tenian los frames de FW (health 91-97 = 98 frames, escaped/demon/hit 13)
+   pero los PNG nuevos estaban 100% VACIOS (0% pixeles visibles) — el juego
+   dibujaba iconos transparentes. Rellenados con el arte real del zip del
+   usuario "Nueva carpeta (3).zip" (spr_playerhealth_21..27, redring idem,
+   escaped_3, demon_3, hit_3). Barrido posterior: los unicos frames vacios
+   restantes (56-69, 8-9) son los de Sally Canon/Vanilla que reusan otros
+   iconos por remap, a proposito. backups en sprites/*/.empty_backup/.
+
+2) FIX FLECHA QUE NO AVANZA (bug viejo): fwbolt_tick manda el estado 1 por
+   canal NO fiable (UDP) y el case SERVER_FWBOLT_STATE solo existia en
+   net_state_game (camino TCP): la flecha nacia quieta. Anadido el case a
+   net_udpprocess.gml — mismo arreglo que el laser de Tails / bola de Blaze
+   v2.9b / bala de Metal Amy.
+
+3) REWORK BALLESTA «La Torre» (spec del usuario):
+   - Cargador de 3 flechas (FW_ARROW_MAX), recarga 8 s por flecha
+     (FW_ARROW_RECHARGE), 0,5 s entre disparos (FW_ARROW_SHOT_CD).
+   - Vuelo recto; al tocar un solido se CLAVA (CLIENT_FWBOLT_HIT nuevo
+     formato: u16 id, u8 tipo 0/1, u16 x, u16 y) y queda 5 s como
+     PLATAFORMA: objeto nuevo obj_fw_arrow (hijo de obj_solid_parent,
+     sprite spr_amy_projectile_fw, Draw propio porque el Draw del solid
+     parent es vacio). Se apilan en torre (las flechas en vuelo chocan
+     contra las clavadas), como en la wiki de Exe Nightmare.
+   - Server: FwBolt.c/h con id de entidad en TODOS los paquetes (hasta 3
+     flechas simultaneas), flag stuck, FWBOLT_STICK_TIME; states/Game.c
+     CLIENT_FWBOLT revalida (CD 0,5 s) y CLIENT_FWBOLT_HIT reescrito
+     (busca la entity por id; tipo 1 = stuck + estado 3 fiable).
+   - Cliente: obj_fw_bolt con fwId/isStuck; colision -> clava y reporta;
+     net_state_game reescrito (estados 0/1/2/3 con id); scr_fw_arrow_spawn
+     idempotente por fwId en scr_characters.gml; pips de municion en el HUD
+     (obj_playerui) con el icono de ballesta mostrando el cargador entero.
+
+4) STUNS DE FLECHA: 3 s al EXE con reduccion acumulativa del 17,5% por stun
+   continuo (tope 50% -> minimo 1,5 s), reset tras 7 s sin stuns de flecha
+   (global.fwArrowStunStack/Decay, reloj en obj_level/Step_0). Esbirros:
+   siempre 3 s completos. Demonizada: dmg 20 real, JAMAS stunea
+   supervivientes. DJ del exe puro conserva su dedup de shockedTimer.
+
+5) DJ DOBLE SALTO ATURDE AL EXE 3,2 s: bitflag nuevo PLAYER_DJ (1<<8) en
+   CLIENT_PLAYER_DATA (obj_netclient/Step_2) -> parseado en el puppet
+   (net_udpprocess + Create) -> el cliente del EXE aplica el stun por
+   contacto (obj_player_puppet/Step_0, mismo modelo de victima-autoridad
+   que el tarot de Amy Canon / electro de Eggman).
+
+6) PASIVAS «La Torre» + «Reflejo de una misma alma» + «Fuerza»:
+   - La Torre (FW): bloqueo determinista del 33% del daño en
+     scr_player_hurt (estilo Chocola con Vanilla); con el Reflejo sube
+     +5% por Amy en el campo hasta el tope del 40%.
+   - Reflejo de una misma alma (las Amys): scr_amy_soul_count/bonus/otras
+     en scr_characters.gml (+5% por Amy presente — Amy, Canon, Amelia,
+     Fleetway —, tope +15%). Conteo local por cliente (local + puppets).
+   - Fuerza (Amy vanilla): i-frames durante el lanzamiento del martillo
+     (scr_player_hurt) y hitbox +20% (pad por distancia en
+     obj_player_puppet, patron del tarot de Amy Canon), hasta +23% con el
+     Reflejo; SOLO si alguna de las otras Amys esta en el campo.
+
+7) TIER LIST (TierList_Mejoras_V4_8.html): ficha completa de Fleetway Amy
+   (tier A+ provisional, rol «Zonera · La Torre», 3 habilidades, plus x4,
+   minus x4, solo/minions), entrada MATRIX vs los 5 EXE (e/e/v/d/e),
+   retrato SPR generado desde spr_lobby_icon_fw frame 0 (39x39, vecino),
+   pasivas de Amy/Amelia/Amy Canon actualizadas con el Reflejo.
+   Verificado en navegador headless: 14 fichas, fila de matriz de 6 celdas,
+   tabla solo y chips OK, retrato cargado (naturalWidth 39).
+
+ARCHIVOS v2.15: yyp, TierList_Mejoras_V4_8.html, FwBolt.c/h,
+states/Game.c, obj_amy_fleetway/Create_0, obj_fw_bolt (Create/Step/
+Collision), obj_fw_arrow (nuevo: Create/Step/Draw/yy), obj_level/Step_0,
+obj_netclient/Step_2, obj_player_puppet (Create/Step_0),
+obj_playerui/Draw_64, net_fw_bolt, net_packets, net_state_game,
+net_udpprocess, scr_amy_fleetway_special, scr_characters, scr_globals,
+scr_player_hurt + 17 PNG de las tiras de HUD rellenados.
+
+VERIFICACION: gcc -fsyntax-only del FwBolt.c y states/Game.c OK (stub de
+enet); balance de llaves/parens/brackets de los 20 GML tocados OK; yyp
+validado como JSON (1992 recursos, obj_fw_arrow registrado); array SURV
+del tier list evaluado con node (14 entradas) + render en navegador real
+sin errores; cero referencias a las macros eliminadas
+(FW_CROSSBOW_RECHARGE); isDead nunca se lee en puppets (patron
+isInactive). Pendiente: partida real de prueba con el server compilado.

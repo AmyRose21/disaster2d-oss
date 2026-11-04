@@ -11,13 +11,15 @@
 //    Sonido: snd_dj (extraido del mod).
 //
 //  HABILIDAD 2 — BALLESTA (tecla C):
-//    Dispara una flecha (obj_fw_bolt) hacia donde mira. Tras el
-//    disparo lleva la ballesta en la mano FW_CB_TIME frames
-//    (sprites cbamy 19-21 del array). Con revivalTimes >= 2 la
-//    flecha hace 20 de daño (puede MATAR al exe); si no, solo lo
-//    aturde 2 s (estilo láser de Tails). CD: FW_CROSSBOW_RECHARGE
-//    (25 s) o FW_ECROSSBOW_RECHARGE (15 s) con revival >= 2.
-//    Sonido: snd_crossbow (extraido del mod).
+//    v2.15 («La Torre»): cargador de 3 flechas (recarga de 8 s por
+//    flecha, 0,5 s entre disparos). La flecha vuela RECTA, se CLAVA
+//    en paredes/suelos 5 s y sirve de plataforma (obj_fw_arrow).
+//    Contra el EXE: stun de 3 s con reduccion acumulativa por stuns
+//    continuos (-17,5% cada uno, tope 50%, reset tras 7 s). Contra
+//    esbirros: siempre 3 s. Con revivalTimes >= 2 la flecha hace 20
+//    de daño real (puede MATAR; nunca stunea supervivientes).
+//    Tras el disparo lleva la ballesta en la mano FW_CB_TIME frames
+//    (sprites cbamy 19-21 del array). Sonido: snd_crossbow.
 //
 //  HABILIDAD 3 — PUÑO / PATADA (tecla B, en el suelo):
 //    Golpe cuerpo a cuerpo direccional (según Izq/Der; si no se
@@ -42,6 +44,8 @@ function scr_amy_fleetway_special()
                         djTimer = 2;
                 if(crossBow <= 2)
                         crossBow = 2;
+                if(fwArrowReload <= 2)
+                        fwArrowReload = 2;
                 isAttacking = false;
                 isDJ = false;
         }
@@ -55,6 +59,8 @@ function scr_amy_fleetway_special()
                         djTimer = 60 * 2;
                 if(crossBow <= 60 * 2)
                         crossBow = 60 * 2;
+                if(fwArrowReload <= 60 * 2)
+                        fwArrowReload = 60 * 2;
                 isAttacking = false;
                 isDJ = false;
         }
@@ -83,9 +89,11 @@ function scr_amy_fleetway_special()
                         isDJ = false;
         }
 
-        // --- Habilidad 2: BALLESTA (tecla C) ---
+        // --- Habilidad 2: BALLESTA (tecla C) — v2.15 cargador de 3 ---
+        // 0,5 s entre disparos (crossBow) y municion fwArrows; la
+        // recarga de cada flecha (8 s) corre siempre que falte alguna.
         if(global.playerControls && !isDead && !isHurt && shockedTimer <= 0 &&
-        keyboard_check_pressed(global.KeyC) && crossBow == 0)
+        keyboard_check_pressed(global.KeyC) && crossBow <= 0 && fwArrows > 0)
         {
                 audio_play_sound(snd_crossbow, 0, false);
                 net_sound_emit(snd_crossbow);
@@ -101,8 +109,11 @@ function scr_amy_fleetway_special()
                 // Ballesta en la mano FW_CB_TIME frames (sprites cbamy)
                 cbTimer = FW_CB_TIME;
 
-                // CD del disparo
-                crossBow = revivalTimes >= 2 ? FW_ECROSSBOW_RECHARGE : FW_CROSSBOW_RECHARGE;
+                // Municion: gasta una flecha y arranca el CD de disparo
+                fwArrows--;
+                crossBow = FW_ARROW_SHOT_CD;
+                if(fwArrowReload <= 0)
+                        fwArrowReload = FW_ARROW_RELOAD;
         }
 
         // --- Habilidad 3: PUÑO / PATADA (tecla B, en el suelo) ---
@@ -154,6 +165,20 @@ function scr_amy_fleetway_special()
         if(attackTimer > 0)
                 attackTimer--;
 
+        // v2.15 («La Torre»): CD corto entre disparos + recarga de la
+        // siguiente flecha (8 s por flecha mientras falte alguna).
         if(crossBow > 0)
                 crossBow--;
+
+        if(fwArrows < FW_ARROW_MAX)
+        {
+                if(fwArrowReload > 0)
+                        fwArrowReload--;
+                else
+                {
+                        fwArrows++;
+                        if(fwArrows < FW_ARROW_MAX)
+                                fwArrowReload = FW_ARROW_RELOAD;
+                }
+        }
 }

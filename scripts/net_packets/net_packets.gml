@@ -256,10 +256,14 @@ enum PacketType
            CLIENT_FWBOLT (u16 x, u16 y, s8 dir, u8 dmg): el server
            valida (Fleetway + CD anti-spam) y spawnea la entidad
            FwBolt (recta, patron laser de Tails). SERVER_FWBOLT_STATE
-           0 spawn (x, y, owner, dir, dmg) / 1 tick (x, y) / 2 destroy.
-           CLIENT_FWBOLT_HIT (sin datos): la flecha toco algo solido o
-           al jugador local. Mismo orden que el Packet.h del server
-           (AL FINAL en los DOS lados). */
+           0 spawn (id, x, y, owner, dir, dmg) / 1 tick (id, x, y) /
+           2 destroy (id) / 3 clavada-plataforma (id, x, y).
+           v2.15 («La Torre»): TODOS los estados llevan el id de la
+           entidad (hasta 3 flechas a la vez) y la flecha se CLAVA en
+           los solidos (CLIENT_FWBOLT_HIT: u16 id, u8 tipo (0 rompe /
+           1 clava), u16 x, u16 y) quedando 5 s como plataforma.
+           Mismo orden que el Packet.h del server (AL FINAL en los
+           DOS lados). */
         CLIENT_FWBOLT,
         CLIENT_FWBOLT_HIT,
         SERVER_FWBOLT_STATE
@@ -279,5 +283,6 @@ enum PacketType
 #macro PLAYER_SALLYSHIELD 1 << 5
 #macro PLAYER_INVIS 1 << 6
 #macro PLAYER_SLIME 1 << 7
+#macro PLAYER_DJ 1 << 8        // v2.15 «La Torre»: FW Amy volando con el DJ (stun 3,2 s al exe)
 // SONIC: powerboost de Nervios de Acero (estela de fantasmas en el puppet)
 #macro PLAYER_POWERBOOST 1 << 0

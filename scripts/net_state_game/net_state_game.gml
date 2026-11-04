@@ -258,6 +258,9 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 break;
 
                         var _state = buffer_read_s(rbuff, buffer_u8);
+                        // v2.15 («La Torre»): TODOS los estados llevan el id de
+                        // la entidad del server (hasta 3 flechas simultaneas).
+                        var _fwid = buffer_read_s(rbuff, buffer_u16);
 
                         if(_state == 0) // Spawn: flecha de la ballesta de Fleetway Amy
                         {
@@ -269,30 +272,68 @@ function net_state_game(rbuff, nps, isPasstrough)
 
                                 var inst = instance_create_depth(_xx, _yy, 0, obj_fw_bolt);
                                 inst.isOwner = (_owner == obj_netclient.nid);
+                                inst.fwId = _fwid;
                                 inst.dmg = _dmg;
                                 inst.image_xscale = _dir;
                         }
                         else if(_state == 1) // Tick (canal UDP: posicion integrada por el server)
                         {
+                                // Por TCP solo llega si el server lo manda fiable;
+                                // el flujo normal entra por net_udpprocess (v2.15).
                                 var _xx = buffer_read_s(rbuff, buffer_u16);
                                 var _yy = buffer_read_s(rbuff, buffer_u16);
 
                                 with(obj_fw_bolt)
                                 {
-                                        if(isBreaking)
+                                        if(isBreaking || isStuck || fwId != _fwid)
                                                 continue;
                                         x = _xx;
                                         y = _yy;
                                         break;
                                 }
                         }
-                        else // 2: despawn
+                        else if(_state == 3) // v2.15: CLAVADA en un solido -> plataforma 5 s
+                        {
+                                var _xx = buffer_read_s(rbuff, buffer_u16);
+                                var _yy = buffer_read_s(rbuff, buffer_u16);
+
+                                // el bolt en vuelo de este cliente deja de existir
+                                // (si el evento de colision local aun no la clavo)
+                                with(obj_fw_bolt)
+                                {
+                                        if(isBreaking || fwId != _fwid)
+                                                continue;
+                                        instance_destroy();
+                                        break;
+                                }
+
+                                // plataforma idempotente: la crea o la reposiciona
+                                // con la pos autoritativa del server
+                                var _adir = 1;
+                                with(obj_fw_arrow)
+                                {
+                                        if(fwId != _fwid)
+                                                continue;
+                                        _adir = image_xscale;
+                                        break;
+                                }
+                                scr_fw_arrow_spawn(_fwid, _xx, _yy, _adir);
+                        }
+                        else // 2: despawn (expiro su vida / se rompio / cayo la plataforma)
                         {
                                 with(obj_fw_bolt)
                                 {
-                                        if(isBreaking)
+                                        if(fwId != _fwid)
                                                 continue;
                                         _destroy();
+                                        break;
+                                }
+
+                                with(obj_fw_arrow)
+                                {
+                                        if(fwId != _fwid)
+                                                continue;
+                                        arrowDrop = true;
                                         break;
                                 }
                         }

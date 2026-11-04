@@ -36,6 +36,7 @@ deadColor = c_white;
 tailsCharge = 0;
 sallyShield = false;
 slimeMode = false;
+isDJ = false; // v2.15 «La Torre»: FW Amy volando con el DJ (bitflag PLAYER_DJ)
 
 isInactive = false;
 state = 0;

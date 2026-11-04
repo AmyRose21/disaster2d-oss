@@ -20,6 +20,14 @@ global.muteChat = false;
 // Draw_64; los supervivientes no se dibujan en obj_player_puppet).
 global.eclipseTimer = 0;
 
+// v2.15 («La Torre» — Fleetway Amy): contador de stuns CONTINUOS de
+// flecha que lleva el EXE de ESTE cliente (quien los recibe es la
+// autoridad). Cada stun seguido reduce el tiempo un 17,5% (tope 50%);
+// si pasan 7 s sin recibir otro, el contador se resetea. Lo descuenta
+// obj_level; lo alimenta obj_fw_bolt al impactar.
+global.fwArrowStunStack = 0;
+global.fwArrowStunDecay = 0;
+
 global.ringId = 0;
 global.ringFrame = 0;
 global.character = -1;
