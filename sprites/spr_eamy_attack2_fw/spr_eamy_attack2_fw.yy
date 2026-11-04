@@ -12,23 +12,24 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"2bf5a6af-e441-4d8b-b8e5-d3874514f96f","name":"2bf5a6af-e441-4d8b-b8e5-d3874514f96f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"2ff5b4e2-1495-46f4-9cd1-87a4a101b9b6","name":"2ff5b4e2-1495-46f4-9cd1-87a4a101b9b6","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"05348a83-55fd-4e08-a266-564f0f8f7ae9","name":"05348a83-55fd-4e08-a266-564f0f8f7ae9","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"ccd48e6b-4d4c-410b-b8a4-58caae0c1b27","name":"ccd48e6b-4d4c-410b-b8a4-58caae0c1b27","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"823aa52d-f4b6-4edd-9415-80155ecc60df","name":"823aa52d-f4b6-4edd-9415-80155ecc60df","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"281af022-e16a-4af1-a9ff-603e31380948","name":"281af022-e16a-4af1-a9ff-603e31380948","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"ea9abd75-5aa4-492e-904a-71af0834a4ca","name":"ea9abd75-5aa4-492e-904a-71af0834a4ca","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"6f03cfd9-14e9-46cb-bd8d-8f9d346cd049","name":"6f03cfd9-14e9-46cb-bd8d-8f9d346cd049","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":46,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"dfae46ef-9faf-4587-985f-8ba207cf8f63","blendMode":0,"displayName":"default","isLocked":false,"name":"77897340-ecab-456f-a80d-0fcd3deeebe1","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"bcdee38f-29e3-435b-90e4-1d061d4ff119","blendMode":0,"displayName":"default","isLocked":false,"name":"bcdee38f-29e3-435b-90e4-1d061d4ff119","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
+  "name":"spr_eamy_attack2_fw",
   "nineSlice":null,
   "origin":9,
   "parent":{
-    "name":"Amy Canon",
-    "path":"folders/Sprites/Player/Survivors/Amy Canon.yy",
+    "name":"Amy Fleetway",
+    "path":"folders/Sprites/Player/Survivors/Amy Fleetway.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
@@ -70,10 +71,18 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"2bf5a6af-e441-4d8b-b8e5-d3874514f96f","path":"sprites/spr_eamy_attack2_fw/spr_eamy_attack2_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"b3aa7788-3859-439d-b025-e38f6bce7d86","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"2ff5b4e2-1495-46f4-9cd1-87a4a101b9b6","path":"sprites/spr_eamy_attack2_fw/spr_eamy_attack2_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"d7fdad49-8532-4e20-82a3-40dca2737083","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"05348a83-55fd-4e08-a266-564f0f8f7ae9","path":"sprites/spr_eamy_attack2_fw/spr_eamy_attack2_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"dc741165-3d2e-453c-b3e5-07277c0ed333","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"ccd48e6b-4d4c-410b-b8a4-58caae0c1b27","path":"sprites/spr_eamy_attack2_fw/spr_eamy_attack2_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"053a2e7d-3482-4c74-9f4e-cf37b57db2ec","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"823aa52d-f4b6-4edd-9415-80155ecc60df","path":"sprites/spr_eamy_attack2_fw/spr_eamy_attack2_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"8259bc1c-c4da-4b85-a462-9c61f7772255","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"281af022-e16a-4af1-a9ff-603e31380948","path":"sprites/spr_eamy_attack2_fw/spr_eamy_attack2_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"4e2e6230-2672-418b-8615-ed8e04b1081f","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"ea9abd75-5aa4-492e-904a-71af0834a4ca","path":"sprites/spr_eamy_attack2_fw/spr_eamy_attack2_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"7b897428-15cc-446d-8058-b755abe9da4e","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"6f03cfd9-14e9-46cb-bd8d-8f9d346cd049","path":"sprites/spr_eamy_attack2_fw/spr_eamy_attack2_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"c3973e25-29ac-4b46-b7c1-231443453ec8","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

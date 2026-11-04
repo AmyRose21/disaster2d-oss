@@ -19,13 +19,14 @@
   "height":11,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"1806b346-a346-4eeb-bd25-9b846c1adb9e","blendMode":0,"displayName":"default","isLocked":false,"name":"c89c0791-0048-48cc-89b5-e4af738d0923","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"1806b346-a346-4eeb-bd25-9b846c1adb9e","blendMode":0,"displayName":"default","isLocked":false,"name":"1806b346-a346-4eeb-bd25-9b846c1adb9e","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
+  "name":"spr_gui_amycrossbow_fw",
   "nineSlice":null,
   "origin":9,
   "parent":{
-    "name":"Amy Canon",
-    "path":"folders/Sprites/Player/Survivors/Amy Canon.yy",
+    "name":"Amy Fleetway",
+    "path":"folders/Sprites/Player/Survivors/Amy Fleetway.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
@@ -67,7 +68,9 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"77dc97c7-5364-4949-aff0-5059abb92d48","path":"sprites/spr_gui_amycrossbow_fw/spr_gui_amycrossbow_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"c12ec11c-a4a4-4146-a22d-dbc95f627686","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"77dc97c7-5364-4949-aff0-5059abb92d48","path":"sprites/spr_gui_amycrossbow_fw/spr_gui_amycrossbow_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"c12ec11c-a4a4-4146-a22d-dbc95f627686","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

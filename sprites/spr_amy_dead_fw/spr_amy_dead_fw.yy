@@ -12,23 +12,24 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"2fff89b4-8e4d-4faa-902c-14ec14418532","name":"2fff89b4-8e4d-4faa-902c-14ec14418532","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"a2766e6a-7429-470a-a094-22c6ceb78e74","name":"a2766e6a-7429-470a-a094-22c6ceb78e74","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"15ed94a0-d547-4412-9959-381a9ede36c0","name":"15ed94a0-d547-4412-9959-381a9ede36c0","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"da5948c8-03b8-49f2-9f0c-c9f9a9f03680","name":"da5948c8-03b8-49f2-9f0c-c9f9a9f03680","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"8c75742d-ff69-4ffb-8d38-f63b5d8e311d","name":"8c75742d-ff69-4ffb-8d38-f63b5d8e311d","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"fa68467f-56e3-4ee2-9936-3b3ae62b275b","name":"fa68467f-56e3-4ee2-9936-3b3ae62b275b","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"7b5f6abd-acdd-4833-937a-ed9017f5eced","name":"7b5f6abd-acdd-4833-937a-ed9017f5eced","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"5ec2b952-7058-481a-9dfc-e21624c3a866","name":"5ec2b952-7058-481a-9dfc-e21624c3a866","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":42,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"a2c664d4-cc82-41a8-80dd-e2819349e5df","blendMode":0,"displayName":"default","isLocked":false,"name":"7c93d886-1a5f-4013-9503-79de9c4eace0","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"f5a32712-fb26-4008-a485-fcff93e5129b","blendMode":0,"displayName":"default","isLocked":false,"name":"f5a32712-fb26-4008-a485-fcff93e5129b","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
+  "name":"spr_amy_dead_fw",
   "nineSlice":null,
   "origin":9,
   "parent":{
-    "name":"Amy Canon",
-    "path":"folders/Sprites/Player/Survivors/Amy Canon.yy",
+    "name":"Amy Fleetway",
+    "path":"folders/Sprites/Player/Survivors/Amy Fleetway.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
@@ -70,10 +71,18 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"2fff89b4-8e4d-4faa-902c-14ec14418532","path":"sprites/spr_amy_dead_fw/spr_amy_dead_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"8f12a97b-2eee-4319-a2f9-f267b3220d19","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"a2766e6a-7429-470a-a094-22c6ceb78e74","path":"sprites/spr_amy_dead_fw/spr_amy_dead_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"7a2c446d-3642-42ed-b0d1-a8af60cebbc9","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"15ed94a0-d547-4412-9959-381a9ede36c0","path":"sprites/spr_amy_dead_fw/spr_amy_dead_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"b06634db-22f8-45e9-a9c4-51dcc62f54c8","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"da5948c8-03b8-49f2-9f0c-c9f9a9f03680","path":"sprites/spr_amy_dead_fw/spr_amy_dead_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"20b58fb5-191d-431c-a41a-b677d7d5629e","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8c75742d-ff69-4ffb-8d38-f63b5d8e311d","path":"sprites/spr_amy_dead_fw/spr_amy_dead_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"5b38f478-138f-4cfe-8038-bb46275a331f","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"fa68467f-56e3-4ee2-9936-3b3ae62b275b","path":"sprites/spr_amy_dead_fw/spr_amy_dead_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"01904e51-46fb-4fd0-b46c-be0ee1b59ead","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"7b5f6abd-acdd-4833-937a-ed9017f5eced","path":"sprites/spr_amy_dead_fw/spr_amy_dead_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"9389563a-6b73-454b-8657-7caba463325b","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"5ec2b952-7058-481a-9dfc-e21624c3a866","path":"sprites/spr_amy_dead_fw/spr_amy_dead_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"4a17bce0-3fff-40d6-a7ce-86cb0ef3d3d4","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

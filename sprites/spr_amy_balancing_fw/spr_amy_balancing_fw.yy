@@ -12,23 +12,24 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"a5d7e81b-e0aa-4748-ace5-8c7bc7bde784","name":"a5d7e81b-e0aa-4748-ace5-8c7bc7bde784","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"9c23bf54-2198-446e-995b-452dc18de5c4","name":"9c23bf54-2198-446e-995b-452dc18de5c4","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"7a9e876c-75ce-4299-9010-d3fca05ad943","name":"7a9e876c-75ce-4299-9010-d3fca05ad943","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"72d7cfb2-a9f7-43ea-b326-ba4c38eeda96","name":"72d7cfb2-a9f7-43ea-b326-ba4c38eeda96","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"b2361bac-6a71-4f8c-889d-75a61d10f159","name":"b2361bac-6a71-4f8c-889d-75a61d10f159","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"74ad0884-7991-43df-a914-4f951fda828d","name":"74ad0884-7991-43df-a914-4f951fda828d","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"bd296463-bf17-4c50-803c-8a7bfd6e9801","name":"bd296463-bf17-4c50-803c-8a7bfd6e9801","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"f866cda9-fd46-4a46-b7a0-ffd7ea7d67ee","name":"f866cda9-fd46-4a46-b7a0-ffd7ea7d67ee","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":45,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"73bafde5-6edc-45ea-a694-b7e76bcc52ef","blendMode":0,"displayName":"default","isLocked":false,"name":"d166d0b7-575e-4e57-850a-d59917008f76","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"61944b2a-f885-44a0-9bff-757ca02e899b","blendMode":0,"displayName":"default","isLocked":false,"name":"61944b2a-f885-44a0-9bff-757ca02e899b","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
+  "name":"spr_amy_balancing_fw",
   "nineSlice":null,
   "origin":9,
   "parent":{
-    "name":"Amy Canon",
-    "path":"folders/Sprites/Player/Survivors/Amy Canon.yy",
+    "name":"Amy Fleetway",
+    "path":"folders/Sprites/Player/Survivors/Amy Fleetway.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
@@ -70,10 +71,18 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"a5d7e81b-e0aa-4748-ace5-8c7bc7bde784","path":"sprites/spr_amy_balancing_fw/spr_amy_balancing_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"57c91812-7f6e-40c6-957a-79d4c4bfdcdb","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"9c23bf54-2198-446e-995b-452dc18de5c4","path":"sprites/spr_amy_balancing_fw/spr_amy_balancing_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"bbd6402a-a501-4f3e-be97-e852cc757def","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"7a9e876c-75ce-4299-9010-d3fca05ad943","path":"sprites/spr_amy_balancing_fw/spr_amy_balancing_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"e73a43b9-976c-4801-ba2d-628c199502bb","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"72d7cfb2-a9f7-43ea-b326-ba4c38eeda96","path":"sprites/spr_amy_balancing_fw/spr_amy_balancing_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"1fe73b0f-c908-4401-ab46-fb8aa83ce5c4","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"b2361bac-6a71-4f8c-889d-75a61d10f159","path":"sprites/spr_amy_balancing_fw/spr_amy_balancing_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"951f1aca-fd14-4e8f-97ce-fcd4c3e67cce","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"74ad0884-7991-43df-a914-4f951fda828d","path":"sprites/spr_amy_balancing_fw/spr_amy_balancing_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"695cc68b-75d5-440f-bbe3-044bb3ee5082","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"bd296463-bf17-4c50-803c-8a7bfd6e9801","path":"sprites/spr_amy_balancing_fw/spr_amy_balancing_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"247b7bf1-ec0f-4673-af21-c0729e1ca650","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"f866cda9-fd46-4a46-b7a0-ffd7ea7d67ee","path":"sprites/spr_amy_balancing_fw/spr_amy_balancing_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"3b15ca40-1087-4927-8bd0-03886641c074","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

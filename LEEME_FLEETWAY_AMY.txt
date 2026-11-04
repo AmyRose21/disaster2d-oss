@@ -1,5 +1,5 @@
 ════════════════════════════════════════════════════════════════════
-  FLEETWAY AMY — PAQUETE COMPLETO (todo en un zip)
+  FLEETWAY AMY — PAQUETE COMPLETO v2.1 (todo en un zip)
   Sonic.exe The Disaster 2D Remake · 4 de noviembre de 2026
 ════════════════════════════════════════════════════════════════════
 
@@ -9,6 +9,18 @@ TODO lo de Fleetway Amy en un solo paquete: sprites, sonidos, objetos,
 scripts, parches del server y el .yyp ya registrado. Se extrae directo
 sobre tu proyecto y queda listo para compilar. Nada de copiar archivo
 por archivo.
+
+>>> v2.1 — FIX DE CARGA EN GAMEMAKER <<<
+Si ya extrajiste el zip anterior y GameMaker te escupió 48 errores
+tipo «spr_amy_..._fw.yy(27,3): Field "name": expected», no pasa nada:
+era un bug del importador (los .yy de los sprites traían %Name pero
+les faltaba el campo legacy "name" de nivel superior, justo después
+del array "layers"). ESTE zip ya lo trae corregido y validado contra
+el formato exacto que escribe GameMaker (mismo orden de campos).
+
+ARREGLO: extrae ESTE zip encima del mismo proyecto y SOBRESCRIBIR
+TODO (reemplaza los 48 .yy rotos por los buenos). No hace falta
+borrar nada: las rutas son idénticas. Ningún otro archivo cambió.
 
 Fuente: "The Disaster 2D Fleetway Amy (Normal Amy Rework)" v1.1.0
         https://gamejolt.com/games/td2dfleetwayamynew/1004715
@@ -33,7 +45,9 @@ NOTAS SOBRE LA INSTALACIÓN
 --------------------------
   * El .yyp incluido ya trae TODO: tu base + Amy Canon + Vanilla + los
     54 recursos nuevos de Fleetway (48 sprites _fw, 2 sonidos,
-    obj_amy_fleetway, obj_fw_bolt, net_fw_bolt, scr_amy_fleetway_special).
+    obj_amy_fleetway, obj_fw_bolt, net_fw_bolt, scr_amy_fleetway_special)
+    + el árbol completo de carpetas (191 Folders, incluida
+    Sprites/Player/Survivors/Amy Canon donde viven los _fw).
     Si tu proyecto estaba al día con los parches anteriores,
     sobrescribir es 100% seguro.
   * .resource_order también va incluido (GameMaker lo usa junto al .yyp).
@@ -81,7 +95,8 @@ FICHA TÉCNICA DEL PERSONAJE (reconstruida del bytecode del mod)
 CONTENIDO DEL ZIP (mapa)
 ------------------------
   sprites/    48 sprites _fw listos para GameMaker (.yy + frames PNG
-              con UUID, orígenes originales del mod). Incluye:
+              con UUID, orígenes originales del mod, formato .yy
+              idéntico al que escribe GM). Incluye:
               spr_menu_amy_fw (retrato de lobby),
               spr_lobby_icon_fw (icono selección 24x24),
               spr_char_info_fw (placa de info),
