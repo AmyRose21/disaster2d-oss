@@ -275,7 +275,19 @@ function scr_lobby_shiny_escape(char, xx, yy)
         case CHARACTER_AMY_CANON: _spr = spr_lobby_esc_sh_amycanon; break;
     }
     if(_spr < 0) return false;
-    draw_sprite(_spr, current_time / 150 % sprite_get_number(_spr), xx, yy);
+    // [Suite TD2D v3.9.1] El brillo puede medir lo que sea (58x62, 24x24...):
+    // su lienzo se CENTRA sobre el hueco del icono 26x26 de la barra
+    // (origen abajo-izquierda => centro del hueco en xx+13, yy-13), igual
+    // que los exeicon van centrados en su slot del lobby. Antes se dibujaba
+    // en (xx, yy) a secas y cualquier brillo mas grande que 26x26 quedaba
+    // desplazado (el de Amy Canon 58x62, unos 17px arriba a la derecha).
+    var _w = sprite_get_width(_spr);
+    var _h = sprite_get_height(_spr);
+    var _ox = sprite_get_xoffset(_spr);
+    var _oy = sprite_get_yoffset(_spr);
+    draw_sprite(_spr, current_time / 150 % sprite_get_number(_spr),
+        xx + 13 - _w / 2 + _ox,
+        yy - 13 - _h / 2 + _oy);
     return true;
 }
 // ===== fin [Suite TD2D v3.7] retratos con brillo =====

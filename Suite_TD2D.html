@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Suite TD2D v3.9 · editor de arte</title>
+<title>Suite TD2D v3.9.1 · editor de arte</title>
 <style>
 :root{
   --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
@@ -748,9 +748,9 @@ window.addEventListener('error', function () { window.__bootErrors++; });
       <div class="arte-subhead">Fotogramas del sprite (clic para asignar la siguiente imagen)</div>
       <div id="arte-icon-frames" class="fgrid"></div>
 
-      <!-- v3.7: retratos de superviviente con efecto de brillo · v3.9: tamaño nativo -->
+      <!-- v3.7: retratos de superviviente con efecto de brillo · v3.9: tamaño nativo · v3.9.1: escape centrado -->
       <div class="arte-subhead" style="margin-top:18px">✨ Retratos con brillo (supervivientes)</div>
-      <p class="note-inline">El mismo parpadeo que los killers (tipo Metal Amy): cada retrato se convierte en un <b>sprite independiente</b> (como los exeicon) y el código del juego redirige a él al seleccionar al personaje. <b>No se toca spr_lobby_icon</b>: los demás supervivientes siguen igual. El sprite se crea <b>al tamaño exacto de tus imágenes</b> (24×24, 58×62, lo que sea) — nada de reescalar. Cubre <b>la selección</b> y <b>el icono de «escapó»</b> del HUD; la pantalla de resultados sigue usando el normal, no hace falta nada ahí.</p>
+      <p class="note-inline">El mismo parpadeo que los killers (tipo Metal Amy): cada retrato se convierte en un <b>sprite independiente</b> (como los exeicon) y el código del juego redirige a él al seleccionar al personaje. <b>No se toca spr_lobby_icon</b>: los demás supervivientes siguen igual. El sprite se crea <b>al tamaño exacto de tus imágenes</b> (24×24, 58×62, lo que sea) — nada de reescalar. Cubre <b>la selección</b> y <b>el icono de «escapó»</b> del HUD: desde la v3.9.1 ese icono <b>se centra solo en su hueco de la barra</b> sea cual sea el tamaño del sprite, como los exeicon en el lobby (antes un brillo más grande que 26×26 quedaba desplazado). La pantalla de resultados sigue usando el normal, no hace falta nada ahí.</p>
       <div class="arte-rowline" style="margin-bottom:4px">
         <label>Personaje</label>
         <select id="sh-char" style="min-width:220px"></select>
@@ -961,7 +961,8 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   <b>✨ Retratos con brillo:</b> convierte el retrato de un superviviente en un <b>sprite independiente</b>
   (como los killers, tipo Metal Amy): crea <code>spr_lobby_icon_sh_&lt;pj&gt;</code> (selección) y
   <code>spr_lobby_esc_sh_&lt;pj&gt;</code> (escapó) <b>al tamaño exacto de tus imágenes</b> (24×24, 58×62, lo que sea)
-  + parches GML con respaldo: al seleccionar al personaje, el código redirige a su sprite propio.
+  + parches GML con respaldo: al seleccionar al personaje, el código redirige a su sprite propio. El icono de
+  «escapó» se centra solo en su hueco de la barra sea cual sea el tamaño (v3.9.1).
   Compatible con Amy (canon), Sonic, Amelia y compañía; Sally (canon) y
   Vanilla comparten el de Sally/Cream como en el juego. Los resultados no se tocan (usan el normal).
   <b>Pantalla de fin:</b> reemplaza los 4 finales genéricos o crea finales <b>por killer</b> (sprite nuevo + registro .yyp
@@ -8258,9 +8259,11 @@ initKeys();
   // Sprites animados por superviviente (como los exeicon de los killers)
   // para la SELECCIÓN (spr_lobby_icon_sh_<key>) y el ESCAPE
   // (spr_lobby_esc_sh_<key>). v3.9: al TAMAÑO NATIVO de las imágenes
-  // importadas (ya no se fuerza 24×24/26×26). El juego los usa vía los
-  // parches GML que escribe el Suite (scr_characters.gml + obj_lobby_icon
-  // + obj_level).
+  // importadas (ya no se fuerza 24×24/26×26). v3.9.1: scr_lobby_shiny_escape
+  // CENTRA el lienzo del brillo sobre el hueco 26x26 del HUD (antes un
+  // brillo 58x62 quedaba desplazado 17px arriba a la derecha).
+  // El juego los usa vía los parches GML que escribe el Suite
+  // (scr_characters.gml + obj_lobby_icon + obj_level).
 
   const SH_CHARS = [
     { key: 'tails', label: 'Tails', macro: 'CHARACTER_TAILS', slot: 2 },
@@ -8635,7 +8638,19 @@ initKeys();
     }
     block += '    }\n';
     block += '    if(_spr < 0) return false;\n';
-    block += '    draw_sprite(_spr, current_time / 150 % sprite_get_number(_spr), xx, yy);\n';
+    block += '    // [Suite TD2D v3.9.1] El brillo puede medir lo que sea (58x62, 24x24...):\n';
+    block += '    // su lienzo se CENTRA sobre el hueco del icono 26x26 de la barra\n';
+    block += '    // (origen abajo-izquierda => centro del hueco en xx+13, yy-13), igual\n';
+    block += '    // que los exeicon van centrados en su slot del lobby. Antes se dibujaba\n';
+    block += '    // en (xx, yy) a secas y cualquier brillo mas grande que 26x26 quedaba\n';
+    block += '    // desplazado (el de Amy Canon 58x62, unos 17px arriba a la derecha).\n';
+    block += '    var _w = sprite_get_width(_spr);\n';
+    block += '    var _h = sprite_get_height(_spr);\n';
+    block += '    var _ox = sprite_get_xoffset(_spr);\n';
+    block += '    var _oy = sprite_get_yoffset(_spr);\n';
+    block += '    draw_sprite(_spr, current_time / 150 % sprite_get_number(_spr),\n';
+    block += '        xx + 13 - _w / 2 + _ox,\n';
+    block += '        yy - 13 - _h / 2 + _oy);\n';
     block += '    return true;\n';
     block += '}\n';
     block += END + '\n';
@@ -8756,10 +8771,10 @@ initKeys();
     }
     // además: parche GML para pegar a mano
     const chars = [c];
-    let txt = '== Suite TD2D v3.9 · retrato con brillo de ' + c.label + ' ==\n\n';
+    let txt = '== Suite TD2D v3.9.1 · retrato con brillo de ' + c.label + ' ==\n\n';
     txt += '1) Crea en GameMaker los sprites ' + 'spr_lobby_icon_sh_' + c.key + ' (' + SH.w + '×' + SH.h + ', ' + N + ' fotogramas, origen centro)' + (SH.escape ? ' y spr_lobby_esc_sh_' + c.key + ' (' + SH.w + '×' + SH.h + ', origen abajo-izquierda)' : '') + ' con estos PNG.\n';
     txt += '2) Pega estas funciones al final de scripts/scr_characters/scr_characters.gml:\n\n';
-    txt += buildShinyGmlText(chars) + '\n';
+    txt += buildShinyGmlText(chars, SH.escape ? chars : []) + '\n';
     txt += '\n3) En objects/obj_lobby_icon/Draw_0.gml, en el bloque else de la navegación (state 2, no-exe), sustituye las líneas de image_index por:\n    scr_lobby_shiny_setup(selected);\n';
     txt += '4) En ese mismo archivo, justo antes de «y = aY - offset;» añade:\n    if(obj_lobby.state > 0 && !hidden)\n            scr_lobby_shiny_resolve(self);\n';
     txt += '5) En objects/obj_level/Draw_64.gml, envuelve los dos draw_sprite(spr_playerescaped, ...) con:\n    if(!scr_lobby_shiny_escape(_hudChar, pos, 268))\n            draw_sprite(spr_playerescaped, (_hudChar-CHARACTER_TAILS), pos, 268);\n';
@@ -8771,7 +8786,7 @@ initKeys();
     toast(k + ' PNG + parche .txt descargados.', 'ok');
   }
 
-  function buildShinyGmlText(chars) {
+  function buildShinyGmlText(chars, escChars) {
     let block = '';
     block += 'function scr_lobby_shiny_setup(char)\n{\n';
     block += '    var _c = char;\n';
@@ -8797,6 +8812,45 @@ initKeys();
     block += '        image_speed = 1;\n';
     block += '        if(image_index < 0 || image_index >= sprite_get_number(_spr)) image_index = 0;\n';
     block += '    }\n';
+    block += '}\n\n';
+    // v3.9.1: el parche manual ahora incluye TAMBIEN resolve y escape
+    // (antes solo venia setup y los pasos 4/5 llamaban a funciones que
+    // ni siquiera estaban en el texto: parche roto)
+    block += 'function scr_lobby_shiny_resolve(inst)\n{\n';
+    block += '    with(inst)\n    {\n';
+    block += '        if(obj_netclient.exeId == master_id) return;\n';
+    block += '        if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected) return;\n';
+    block += '        var _ch = -1;\n';
+    block += '        if(master_id == obj_netclient.nid)\n            _ch = global.character;\n';
+    block += '        else if(ds_map_exists(obj_netclient.players, master_id) && !obj_netclient.players[? master_id].pending)\n            _ch = obj_netclient.players[? master_id].character;\n';
+    block += '        if(_ch < CHARACTER_TAILS || _ch == CHARACTER_EXE || _ch > CHARACTER_BLAZE) return;\n';
+    block += '        scr_lobby_shiny_setup(_ch);\n';
+    block += '    }\n';
+    block += '}\n\n';
+    block += 'function scr_lobby_shiny_escape(char, xx, yy)\n{\n';
+    block += '    var _c = char;\n';
+    block += '    if(_c == CHARACTER_SALLY_CANON) _c = CHARACTER_SALLY;\n';
+    block += '    if(_c == CHARACTER_VANILLA) _c = CHARACTER_CREAM;\n';
+    block += '    var _spr = -1;\n';
+    block += '    switch(_c)\n    {\n';
+    for (const c of escChars)
+      block += '        case ' + c.macro + ': _spr = spr_lobby_esc_sh_' + c.key + '; break;\n';
+    block += '    }\n';
+    block += '    if(_spr < 0) return false;\n';
+    block += '    // [Suite TD2D v3.9.1] El brillo puede medir lo que sea (58x62, 24x24...):\n';
+    block += '    // su lienzo se CENTRA sobre el hueco del icono 26x26 de la barra\n';
+    block += '    // (origen abajo-izquierda => centro del hueco en xx+13, yy-13), igual\n';
+    block += '    // que los exeicon van centrados en su slot del lobby. Antes se dibujaba\n';
+    block += '    // en (xx, yy) a secas y cualquier brillo mas grande que 26x26 quedaba\n';
+    block += '    // desplazado (el de Amy Canon 58x62, unos 17px arriba a la derecha).\n';
+    block += '    var _w = sprite_get_width(_spr);\n';
+    block += '    var _h = sprite_get_height(_spr);\n';
+    block += '    var _ox = sprite_get_xoffset(_spr);\n';
+    block += '    var _oy = sprite_get_yoffset(_spr);\n';
+    block += '    draw_sprite(_spr, current_time / 150 % sprite_get_number(_spr),\n';
+    block += '        xx + 13 - _w / 2 + _ox,\n';
+    block += '        yy - 13 - _h / 2 + _oy);\n';
+    block += '    return true;\n';
     block += '}\n';
     return block;
   }
