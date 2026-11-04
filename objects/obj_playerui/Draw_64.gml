@@ -342,8 +342,11 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // muestra el CD; blanco = lista Y en el aire (espejo del
                         // icono de Amy Canon). El timer vuela en negativo mientras
                         // dura el impulso: se ignora esa fase para el icono.
-                        var _djReady = (djTimer == 0);
-                        var _djProg = _djReady ? 1.0 : (djTimer < 0 ? 0.0 : 1.0 - (djTimer / (revivalTimes >= 2 ? FW_EDJ_RECHARGE : FW_DJ_RECHARGE)));
+                        // v2.14.1: leido via global.player (antes iba a pelo y
+                        // petaba: "obj_playerui.djTimer not set", que el scope
+                        // del Draw es el propio obj_playerui, no el jugador).
+                        var _djReady = (global.player.djTimer == 0);
+                        var _djProg = _djReady ? 1.0 : (global.player.djTimer < 0 ? 0.0 : 1.0 - (global.player.djTimer / (global.player.revivalTimes >= 2 ? FW_EDJ_RECHARGE : FW_DJ_RECHARGE)));
                         var b1 = (_djReady && !global.player.isGrounded) ? c_white : c_red;
                         drawKeyIcon(spr_gui_amydj_fw, 0, 32, global.KeyA, _djProg * 10, 222 - _mob, b1, _djProg, 0);
 
