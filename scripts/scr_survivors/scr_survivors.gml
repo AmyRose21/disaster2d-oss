@@ -31,6 +31,13 @@
 #macro CHARACTER_AMELIA (CHARACTER_TAILS+11)  // Amelia
 #macro CHARACTER_BLAZE (CHARACTER_TAILS+12)   // Blaze
 
+/* v2.14 — Fleetway Amy ("The Disaster 2D Fleetway Amy" de GameJolt,
+   rework de Amy inspirado en Sally.exe CN/FN). Otra Amy de la
+   duena del token: DJ doble salto + ballesta + puños/patadas con
+   sistema de revival. Sprites/port/moveset extraidos del data.win
+   del mod (1.1.0). SIEMPRE AL FINAL de la lista. */
+#macro CHARACTER_FLEETWAY_AMY (CHARACTER_TAILS+13)
+
 global.player_anims = ds_map_create();
 
 //Tails
@@ -366,6 +373,35 @@ global.player_anims[? CHARACTER_BLAZE] =
         spr_blaze_zipline //16 = BLAZE_ZIPLINE
 ];
 
+// Fleetway Amy (v2.14): 18-21 son las extras del mod original —
+// 18 = pose DJ (doble salto, tecla A aérea), 19-21 = Amy CON la
+// ballesta en la mano (cbamy idle/walk/run durante cbTimer).
+global.player_anims[? CHARACTER_FLEETWAY_AMY] = 
+[
+        spr_amy_idle_fw, //0
+        spr_amy_walk_fw, //1
+        spr_amy_run_fw, //2
+        spr_amy_jump_fw, //3
+        spr_amy_fall_fw, //4
+        spr_amy_hurt_fw, //5
+        spr_amy_dead_fw, //6
+        spr_amy_lookup_fw, //7
+        spr_amy_lookdown_fw, //8
+        spr_amy_emotion1_fw, //9
+        spr_amy_emotion2_fw, //10
+        spr_amy_emotion3_fw, //11
+        spr_amy_jump_fw, //12 (spin)
+        spr_amy_balancing_fw, //13
+        spr_amy_attack1_fw, //14 = puño (tecla B)
+        spr_amy_attack2_fw, //15 = patada (tecla B, alterna)
+        spr_none, //16
+        spr_amy_zipline_fw, //17
+        spr_amy_dj_fw, //18 = DJ doble salto
+        spr_cbamy_idle_fw, //19 = con ballesta
+        spr_cbamy_walk_fw, //20 = con ballesta
+        spr_cbamy_run_fw //21 = con ballesta
+];
+
 global.player_eanims = ds_map_create();
 
 //Tails
@@ -485,6 +521,35 @@ global.player_eanims[? CHARACTER_AMY_CANON] =
         spr_amy_capture_canon_right, //21 = SECUESTRO: derecha
         spr_amy_tarot_float, //22 = PASIVA TAROT (demonizada flota igual)
         spr_amy_attack1_canon //23 = HABILIDAD 2 (tecla X) en el aire: impulso de tarot (mismo sprite que la jugadora)
+];
+
+// Fleetway Amy (demonizada): set eamy_fw del mod original. 18 = pose
+// DJ, 19-21 = con ballesta (cbeamy). El stun usa el mismo sprite que
+// la Amy demonizada vanilla pero en su versión Fleetway.
+global.player_eanims[? CHARACTER_FLEETWAY_AMY] = 
+[
+        spr_eamy_idle_fw, //0
+        spr_eamy_walk_fw, //1
+        spr_eamy_run_fw, //2
+        spr_eamy_jump_fw, //3
+        spr_eamy_fall_fw, //4
+        spr_eamy_hurt_fw, //5
+        spr_eamy_stun_fw, //6
+        spr_eamy_lookup_fw, //7
+        spr_eamy_lookdown_fw, //8
+        spr_eamy_emotion1_fw, //9
+        spr_eamy_emotion2_fw, //10
+        spr_eamy_emotion3_fw, //11
+        spr_eamy_jump_fw, //12
+        spr_eamy_balancing_fw, //13
+        spr_eamy_attack1_fw, //14
+        spr_eamy_attack2_fw, //15
+        spr_none, //16
+        spr_eamy_zipline_fw, //17
+        spr_eamy_dj_fw, //18 = pose DJ (demonizada)
+        spr_cbeamy_idle_fw, //19 = con ballesta
+        spr_cbeamy_walk_fw, //20 = con ballesta
+        spr_cbeamy_run_fw //21 = con ballesta
 ];
 
 //Sonic (demonizado: aun no hay sprites esonic_*; se usan los normales.
@@ -776,6 +841,9 @@ function player_get(ind)
 
                 case CHARACTER_BLAZE:
                         return obj_blaze;
+
+                case CHARACTER_FLEETWAY_AMY:
+                        return obj_amy_fleetway;
         }
 }
 
@@ -805,6 +873,11 @@ function scr_char_locked(ch)
         // la duena del token. El server tambien la rechaza por si
         // solo (states/CharSelect.c): doble seguro.
         if(ch == CHARACTER_VANILLA && global.amyCanonToken == "")
+                return true;
+
+        // Fleetway Amy (v2.14): exclusiva de la duena del token,
+        // igual que Amy Canon y Vanilla ("otra version de mi").
+        if(ch == CHARACTER_FLEETWAY_AMY && global.amyCanonToken == "")
                 return true;
 
         return false;

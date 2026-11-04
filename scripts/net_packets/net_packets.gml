@@ -250,7 +250,19 @@ enum PacketType
            que el Packet.h del server (AL FINAL en los DOS lados). */
         CLIENT_EGG_TRAP_UPGRADE_PROGRESS,
         SERVER_EGG_UPGRADE_PROGRESS,
-        SERVER_EGG_UPGRADE_STATUS
+        SERVER_EGG_UPGRADE_STATUS,
+
+        /* v2.14 — Fleetway Amy: flecha de la BALLESTA (tecla C).
+           CLIENT_FWBOLT (u16 x, u16 y, s8 dir, u8 dmg): el server
+           valida (Fleetway + CD anti-spam) y spawnea la entidad
+           FwBolt (recta, patron laser de Tails). SERVER_FWBOLT_STATE
+           0 spawn (x, y, owner, dir, dmg) / 1 tick (x, y) / 2 destroy.
+           CLIENT_FWBOLT_HIT (sin datos): la flecha toco algo solido o
+           al jugador local. Mismo orden que el Packet.h del server
+           (AL FINAL en los DOS lados). */
+        CLIENT_FWBOLT,
+        CLIENT_FWBOLT_HIT,
+        SERVER_FWBOLT_STATE
 }
 
 #macro STATE_PENDING -1

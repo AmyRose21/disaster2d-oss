@@ -1,0 +1,159 @@
+// =====================================================================
+//  v2.14 — FLEETWAY AMY: moveset completo, portado del mod "The
+//  Disaster 2D Fleetway Amy" (GameJolt, idkjustsee — rework de Amy
+//  inspirado en Sally.exe CN/FN). Reconstruido del bytecode del
+//  data.win del mod (scr_amy_special original).
+//
+//  HABILIDAD 1 — DJ DOBLE SALTO (tecla A, SOLO en el aire):
+//    yspd = -6 (FW_DJ_BOOST), vuela FW_DJ_TIME frames con el sprite
+//    de DJ, luego cae normal. Al tocar suelo / atacar se corta.
+//    CD: FW_DJ_RECHARGE (10 s) o FW_EDJ_RECHARGE con revival >= 2.
+//    Sonido: snd_dj (extraido del mod).
+//
+//  HABILIDAD 2 — BALLESTA (tecla C):
+//    Dispara una flecha (obj_fw_bolt) hacia donde mira. Tras el
+//    disparo lleva la ballesta en la mano FW_CB_TIME frames
+//    (sprites cbamy 19-21 del array). Con revivalTimes >= 2 la
+//    flecha hace 20 de daño (puede MATAR al exe); si no, solo lo
+//    aturde 2 s (estilo láser de Tails). CD: FW_CROSSBOW_RECHARGE
+//    (25 s) o FW_ECROSSBOW_RECHARGE (15 s) con revival >= 2.
+//    Sonido: snd_crossbow (extraido del mod).
+//
+//  HABILIDAD 3 — PUÑO / PATADA (tecla B, en el suelo):
+//    Golpe cuerpo a cuerpo direccional (según Izq/Der; si no se
+//    aprieta ninguna, hacia donde mira). Alterna puño (attack1) y
+//    patada (attack2). Mientras ataca NO se mueve (gspd = 0).
+//    CD: FW_ATTACK_RECHARGE (20 s) o FW_EATTACK_RECHARGE (5 s).
+//
+//  SISTEMA DE REVIVAL: igual que el resto de Amys — con
+//  revivalTimes >= 2 (demonizada) TODOS los cooldowns bajan y la
+//  flecha pasa de stun a daño real.
+// =====================================================================
+function scr_amy_fleetway_special()
+{
+        // --- Bloqueos (patrón Amy Canon) ---
+
+        // Anillo rojo: CDs congelados en 2 frames
+        if(redRingTimer > 0)
+        {
+                if(attackTimer <= 2)
+                        attackTimer = 2;
+                if(djTimer <= 2)
+                        djTimer = 2;
+                if(crossBow <= 2)
+                        crossBow = 2;
+                isAttacking = false;
+                isDJ = false;
+        }
+
+        // Escondida: CDs congelados en 2 s
+        if(isHiding)
+        {
+                if(attackTimer <= 60 * 2)
+                        attackTimer = 60 * 2;
+                if(djTimer <= 60 * 2)
+                        djTimer = 60 * 2;
+                if(crossBow <= 60 * 2)
+                        crossBow = 60 * 2;
+                isAttacking = false;
+                isDJ = false;
+        }
+
+        // --- Habilidad 1: DJ DOBLE SALTO (tecla A, SOLO en el aire) ---
+        if(global.playerControls && !isDead && !isHurt && shockedTimer <= 0 &&
+        keyboard_check_pressed(global.KeyA) && !isGrounded && djTimer == 0)
+        {
+                isDJ = true;
+                isJumping = false;
+                yspd = FW_DJ_BOOST;
+
+                audio_play_sound(snd_dj, 0, false);
+                net_sound_emit(snd_dj);
+
+                // el timer vuela en negativo: -1 .. -FW_DJ_TIME
+                djTimer = -1;
+        }
+
+        // Fin del DJ: aterrizar o atacar lo corta
+        if(isDJ)
+        {
+                if(isGrounded)
+                        isDJ = false;
+                if(isAttacking)
+                        isDJ = false;
+        }
+
+        // --- Habilidad 2: BALLESTA (tecla C) ---
+        if(global.playerControls && !isDead && !isHurt && shockedTimer <= 0 &&
+        keyboard_check_pressed(global.KeyC) && crossBow == 0)
+        {
+                audio_play_sound(snd_crossbow, 0, false);
+                net_sound_emit(snd_crossbow);
+
+                // Flecha con daño real solo demonizada (revival >= 2),
+                // igual que el mod original (dmg 20 / stun)
+                var _dmg = revivalTimes >= 2 ? 20 : 0;
+
+                // Sale a la altura del pecho, hacia donde mira
+                net_fw_bolt(x + 12 * (image_xscale >= 0 ? 1 : -1), y - 14,
+                        image_xscale >= 0 ? 1 : -1, _dmg);
+
+                // Ballesta en la mano FW_CB_TIME frames (sprites cbamy)
+                cbTimer = FW_CB_TIME;
+
+                // CD del disparo
+                crossBow = revivalTimes >= 2 ? FW_ECROSSBOW_RECHARGE : FW_CROSSBOW_RECHARGE;
+        }
+
+        // --- Habilidad 3: PUÑO / PATADA (tecla B, en el suelo) ---
+        if(global.playerControls && !isDead && !isHurt && shockedTimer <= 0 &&
+        keyboard_check_pressed(global.KeyB) && attackTimer <= 0 && !isAttacking)
+        {
+                // Dirección del golpe: según la tecla de dirección apretada;
+                // si ninguna, hacia donde mira
+                var _dir = 0;
+                if(keyboard_check(global.KeyLeft))
+                        _dir = -1;
+                else if(keyboard_check(global.KeyRight))
+                        _dir = 1;
+                else
+                        _dir = image_xscale >= 0 ? 1 : -1;
+
+                image_xscale = _dir;
+
+                // Alterna puño (attack1) / patada (attack2)
+                attackNum = !attackNum;
+                isAttacking = true;
+                gspd = 0; // mientras ataca no se mueve (mod original)
+
+                attackTimer = revivalTimes >= 2 ? FW_EATTACK_RECHARGE : FW_ATTACK_RECHARGE;
+        }
+
+        // --- Estados y timers ---
+
+        // La ballesta en la mano mientras dura cbTimer
+        isCB = cbTimer > 0;
+        if(cbTimer > 0)
+                cbTimer--;
+
+        // El golpe congela el movimiento (mod original)
+        if(isAttacking)
+                gspd = 0;
+
+        // DJ: mientras djTimer < 0 esta volando; al llegar a -FW_DJ_TIME
+        // empieza el cooldown (normal o demonizado)
+        if(djTimer < 0)
+        {
+                djTimer--;
+                if(djTimer <= -FW_DJ_TIME)
+                        djTimer = revivalTimes >= 2 ? FW_EDJ_RECHARGE : FW_DJ_RECHARGE;
+        }
+        else if(djTimer > 0)
+                djTimer--;
+
+        if(attackTimer > 0)
+                attackTimer--;
+
+        if(crossBow > 0)
+                crossBow--;
+}

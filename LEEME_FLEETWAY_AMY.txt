@@ -1,0 +1,127 @@
+════════════════════════════════════════════════════════════════════
+  FLEETWAY AMY — PAQUETE COMPLETO (todo en un zip)
+  Sonic.exe The Disaster 2D Remake · 4 de noviembre de 2026
+════════════════════════════════════════════════════════════════════
+
+QUÉ ES ESTE ZIP
+----------------
+TODO lo de Fleetway Amy en un solo paquete: sprites, sonidos, objetos,
+scripts, parches del server y el .yyp ya registrado. Se extrae directo
+sobre tu proyecto y queda listo para compilar. Nada de copiar archivo
+por archivo.
+
+Fuente: "The Disaster 2D Fleetway Amy (Normal Amy Rework)" v1.1.0
+        https://gamejolt.com/games/td2dfleetwayamynew/1004715
+        De Just a normal guy (@idkjustsee).
+        Sprites: Augonic (menú + emote 3), _D0T_ (balance/puños/patadas),
+        Dimalapt (emotes 1-2 + muerta), Triss Vencely (Amy).
+        Iconos: Merfyium y Moro868.
+
+CÓMO INSTALAR (2 pasos)
+-----------------------
+  1. EXTRAE el contenido de este zip en la RAÍZ de tu proyecto
+     (la carpeta donde está "Sonicexe The Disaster 2D Remake.yyp").
+     Si Windows te pregunta, elige SOBRESCRIBIR / Reemplazar todo.
+     Las carpetas sprites/, sounds/, objects/, scripts/ y
+     betterserver-oss/ se mezclan solas con las tuyas.
+  2. RECOMPILA el server con compilar_server.bat (el protocolo de red
+     cambió: hay 3 paquetes nuevos).
+
+Y ya. Abre el proyecto en GameMaker y compila.
+
+NOTAS SOBRE LA INSTALACIÓN
+--------------------------
+  * El .yyp incluido ya trae TODO: tu base + Amy Canon + Vanilla + los
+    54 recursos nuevos de Fleetway (48 sprites _fw, 2 sonidos,
+    obj_amy_fleetway, obj_fw_bolt, net_fw_bolt, scr_amy_fleetway_special).
+    Si tu proyecto estaba al día con los parches anteriores,
+    sobrescribir es 100% seguro.
+  * .resource_order también va incluido (GameMaker lo usa junto al .yyp).
+  * Fleetway Amy aparece en el lobby al ciclar (slot 13, al lado de
+    Amy Canon) SOLO si tienes tu token de Amy (amy_canon.token),
+    igual que Amy Canon y Vanilla.
+  * Su icono de selección es INDEPENDIENTE (spr_lobby_icon_fw, 24x24,
+    como los exeicon de los killers) y su placa de info también
+    (spr_char_info_fw). No comparte la tira de spr_lobby_icon.
+
+FICHA TÉCNICA DEL PERSONAJE (reconstruida del bytecode del mod)
+----------------------------------------------------------------
+  Física: acc=0.046875 · maxHSpeed=11 · maxYSpeed=12 ·
+          yAccel=0.21875 · jumpForce=7 · hp=100
+          (idéntica a Amy Canon: el modder usó tu framework)
+
+  ┌─ HABILIDAD 1 — DJ DOBLE SALTO (tecla A, SOLO en el aire)
+  │  yspd = -6, vuela 30 frames con el sprite de DJ, luego cae
+  │  normal. Se corta al aterrizar o al atacar.
+  │  CD: 600 frames (10 s) · 900 (15 s) demonizada
+  │  Sonido: snd_dj (incluido)
+  │
+  ├─ HABILIDAD 2 — BALLESTA (tecla C)
+  │  Dispara una flecha (22x7) recta hacia donde mira. Tras disparar
+  │  lleva la ballesta EN LA MANO 2 s (sprites cbamy idle/walk/run).
+  │  Superviviente: la flecha ATURDE al exe 2 s (estilo láser de
+  │  Tails). Demonizada (revival>=2): daño real de 20.
+  │  CD: 1500 (25 s) · 900 (15 s) demonizada
+  │  Sonido: snd_crossbow (incluido)
+  │
+  ├─ HABILIDAD 3 — PUÑO / PATADA (tecla B)
+  │  Golpe cuerpo a cuerpo direccional. ALTERNA puño (attack1) y
+  │  patada (attack2). Mientras ataca NO se mueve.
+  │  CD: 1200 (20 s) · 300 (5 s) demonizada
+  │
+  └─ SISTEMA DE REVIVAL: con revivalTimes >= 2 (demonizada) TODOS los
+     cooldowns bajan y la flecha pasa de stun a daño real (mismo
+     sistema que Amy Canon).
+
+  Estados de anim (22): idle · walk · run · jump · fall · hurt · dead
+  · lookup · lookdown · emotions 1-3 · spin · balancing · attack1 ·
+  attack2 · none · zipline · DJ · y los 3 con ballesta. El set
+  demonizado (eamy_fw) es aparte, 20 sprites.
+
+CONTENIDO DEL ZIP (mapa)
+------------------------
+  sprites/    48 sprites _fw listos para GameMaker (.yy + frames PNG
+              con UUID, orígenes originales del mod). Incluye:
+              spr_menu_amy_fw (retrato de lobby),
+              spr_lobby_icon_fw (icono selección 24x24),
+              spr_char_info_fw (placa de info),
+              spr_amy_* (superviviente), spr_eamy_* (demonizada),
+              spr_cbamy_* (con ballesta), spr_cbeamy_* (demonizada
+              con ballesta), spr_amy_projectile_fw (flecha),
+              spr_amy_dj_fw, spr_amy_dead_fw, spr_corpse_amy_fw
+  sounds/     snd_crossbow + snd_dj (WAV + .yy)
+  objects/    obj_amy_fleetway (8 eventos con el moveset) ·
+              obj_fw_bolt (la flecha en cliente) ·
+              eventos MODIFICADOS: obj_lobby (Create/Draw: slot 13 +
+              placa independiente), obj_lobby_icon (Draw: icono
+              independiente), obj_playerui (Draw_64: 3 iconos de
+              habilidad + keycaps), obj_unlockables (Create: paleta
+              normal + demonizada)
+  scripts/    NUEVOS: scr_amy_fleetway_special (moveset completo) ·
+              net_fw_bolt (red de la flecha) ·
+              MODIFICADOS: scr_survivors (macro + anims + lock por
+              token), scr_characters (SURV_MAX + nombre), net_packets
+              (3 paquetes al final), net_state_game (handler del
+              server), scr_hud_keycap (keycaps A/B/C)
+  betterserver-oss/  Server.h · Packet.h · CharSelect.c · Game.c ·
+              CMakeLists.txt (modificados) + entities/FwBolt.h/.c
+              (nuevo: la flecha como entidad del server)
+  Sonicexe The Disaster 2D Remake.yyp + .resource_order
+  LEEME_FLEETWAY_AMY.txt (este archivo)
+
+LA FLECHA EN ONLINE
+-------------------
+La ballesta solo funciona en partida online: el cliente pide al server
+que spawnee la flecha para todos (patrón del láser de Tails:
+CLIENT_FWBOLT → entidad FwBolt del server → broadcast a todos).
+Vuelo recto a 14 px/tick, 5 s de vida, anti-spam de 10 s.
+
+IMPORTANTE — sincronía de paquetes: CLIENT_FWBOLT, CLIENT_FWBOLT_HIT
+y SERVER_FWBOLT_STATE se añadieron AL FINAL del enum en los DOS lados
+(net_packets.gml y Packet.h), en el MISMO orden. Si algún día añades
+paquetes nuevos, hazlo SIEMPRE al final en ambos lados.
+
+Sección técnica de la extracción (data.win del mod, GM 2022.2+,
+texturas "2zoq"+bzip2+QOI custom de GameMaker): los scripts
+reutilizables quedaron en scripts/fw_extract_sprites.py ·
+fw_tracer.py · fw_import_sprites.py · fw_code_meta.py.

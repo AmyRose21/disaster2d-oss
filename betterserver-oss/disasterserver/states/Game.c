@@ -16,6 +16,7 @@
 #include <entities/AmeliaBanana.h>
 #include <entities/AmeliaTrap.h>
 #include <entities/BlazeFireball.h>
+#include <entities/FwBolt.h>
 #include <entities/MetalAmyBullet.h>
 #include <entities/EggmanTracker.h>
 #include <entities/ExellerClone.h>
@@ -786,6 +787,43 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 
                         RAssert(game_spawn(v->server, (Entity*)&(MakeTailsProj(x, y, v->id, dir, v->plr.flags & PLAYER_DEMONIZED, chg, dmg)), sizeof(TProjectile), NULL));
                         v->plr_cooldowns[cooldown_id] = 10 * TICKSPERSEC;
+                        break;
+                }
+
+                case CLIENT_FWBOLT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->surv_char == CH_FLEETWAY_AMY);
+                        AssertOrDisconnect(v->server, game_find(v->server, NULL, "fwbolt", 10) <= 2);
+
+                        /* Cooldown por jugador (patron laser de Tails): sin
+                         * kick, solo se ignora el paquete. */
+                        if (v->plr_cooldowns[FWBOLT_SPAWN] > 0)
+                                break;
+
+                        PacketRead(x, packet, packet_read16, uint16_t);
+                        PacketRead(y, packet, packet_read16, uint16_t);
+                        PacketRead(dir, packet, packet_read8, int8_t);
+                        PacketRead(dmg, packet, packet_read8, uint8_t);
+                        AssertOrDisconnect(v->server, dir >= -1 && dir <= 1);
+                        /* dmg 0 (stun) superviviente / 20 (daño) demonizada */
+                        AssertOrDisconnect(v->server, dmg == 0 || dmg == 20);
+                        AssertOrDisconnect(v->server, dmg == 0 || (v->plr.flags & PLAYER_DEMONIZED));
+
+                        RAssert(game_spawn(v->server, (Entity*)&(MakeFwBolt(x, y, v->id, dir, dmg)), sizeof(FwBolt), NULL));
+                        v->plr_cooldowns[FWBOLT_SPAWN] = 10 * TICKSPERSEC;
+                        break;
+                }
+
+                case CLIENT_FWBOLT_HIT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+
+                        Entity* ents;
+                        if (game_find(v->server, &ents, "fwbolt", 1))
+                                game_despawn(v->server, NULL, ents->id);
+
                         break;
                 }
 

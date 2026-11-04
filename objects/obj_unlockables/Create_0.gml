@@ -275,6 +275,13 @@ if(!ds_map_exists(palettes, CHARACTER_BLAZE))
 if(!ds_map_exists(palettes, CHARACTER_BLAZE + PALETTE_DEMON))
         palettes[? CHARACTER_BLAZE + PALETTE_DEMON] = { name: "default", custom: false, character: CHARACTER_BLAZE + PALETTE_DEMON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
 
+// v2.14 — Fleetway Amy: paleta default (normal + demonizada)
+if(!ds_map_exists(palettes, CHARACTER_FLEETWAY_AMY))
+        palettes[? CHARACTER_FLEETWAY_AMY] = { name: "default", custom: false, character: CHARACTER_FLEETWAY_AMY, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
+
+if(!ds_map_exists(palettes, CHARACTER_FLEETWAY_AMY + PALETTE_DEMON))
+        palettes[? CHARACTER_FLEETWAY_AMY + PALETTE_DEMON] = { name: "default", custom: false, character: CHARACTER_FLEETWAY_AMY + PALETTE_DEMON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
+
 // Metal Amy (killer, EXE_METALAMY = 4): paleta exe. La key del mapa es
 // EXE_METALAMY + PALETTE_EXE (patron de los otros killers).
 if(!ds_map_exists(palettes, EXE_METALAMY + PALETTE_EXE))

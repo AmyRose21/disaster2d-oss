@@ -33,7 +33,7 @@ struct auth_peer_data;
    2.o en usarla dentro de la ventana fallaba y el server lo desconectaba
    (y su cliente crasheaba leyendo `type` sin definir en net_tcpprocess:
    fix cliente v2.1.3). */
-#define PLAYER_COOLCOUNT 10
+#define PLAYER_COOLCOUNT 11
 // Cooldown indices (dentro de PeerData.plr_cooldowns)
 #define TAILS_RECHARGE 0
 #define CREAM_RING_SPAWN 1
@@ -46,6 +46,8 @@ struct auth_peer_data;
 #define AMELIA_TRAP_SPAWN 7
 #define BLAZE_FIREBALL_SPAWN 8
 #define METALAMY_BULLET 9
+/* v2.14: Fleetway Amy */
+#define FWBOLT_SPAWN 10
 
 typedef struct PeerData
 {
@@ -103,7 +105,12 @@ typedef struct PeerData
                    the Blood, LIBRES para todos. Mismo orden que el cliente. */
                 CH_METAL,
                 CH_AMELIA,
-                CH_BLAZE
+                CH_BLAZE,
+
+                /* v2.14: Fleetway Amy (port del mod de GameJolt). Como Amy
+                   Canon y Vanilla: SOLO con el token de Amy (amy_authed).
+                   Mismo orden que el cliente (scr_survivors.gml). */
+                CH_FLEETWAY_AMY
                 } surv_char;
 
         enum
@@ -149,7 +156,7 @@ typedef struct
         /* Character Select */
         int8_t map;
         uint16_t exe;
-        bool avail[CH_BLAZE + 1];
+        bool avail[CH_FLEETWAY_AMY + 1];
 } Lobby;
 
 typedef enum

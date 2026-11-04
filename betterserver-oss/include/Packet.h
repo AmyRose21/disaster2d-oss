@@ -256,7 +256,17 @@ typedef enum
            anadido AL FINAL en los DOS lados. */
         CLIENT_EGG_TRAP_UPGRADE_PROGRESS,
         SERVER_EGG_UPGRADE_PROGRESS,
-        SERVER_EGG_UPGRADE_STATUS
+        SERVER_EGG_UPGRADE_STATUS,
+
+        /* v2.14 — Fleetway Amy: flecha de la ballesta (patron laser
+           de Tails, recta sin gravedad). CLIENT_FWBOLT (u16 x, u16 y,
+           s8 dir, u8 dmg) -> entidad FwBolt; SERVER_FWBOLT_STATE
+           0/1/2 = spawn/tick/destroy; CLIENT_FWBOLT_HIT la retira.
+           Mismo orden que el enum del cliente (net_packets.gml);
+           anadido AL FINAL en los DOS lados. */
+        CLIENT_FWBOLT,
+        CLIENT_FWBOLT_HIT,
+        SERVER_FWBOLT_STATE
 } PacketType;
 
 typedef struct

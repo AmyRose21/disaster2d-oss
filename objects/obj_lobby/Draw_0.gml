@@ -162,8 +162,15 @@ else if(state == 2 || state == 3)
                 _infoFrame = 13; // amelia (v2.2)
         else if(sprInd == 12)
                 _infoFrame = 14; // blaze (v2.2)
+        // v2.14: Fleetway Amy (slot 13) usa su PROPIA placa independiente
+        // (spr_char_info_fw, 478x40), no un frame de la tira comun.
         if(!_amyHidden)
-                draw_sprite(spr_char_info, _infoFrame, 1, 232-5);
+        {
+                if(sprInd == 13)
+                        draw_sprite(spr_char_info_fw, 0, 1, 232-5);
+                else
+                        draw_sprite(spr_char_info, _infoFrame, 1, 232-5);
+        }
         
         if(countScale > 1)
                 countScale -= 0.02;

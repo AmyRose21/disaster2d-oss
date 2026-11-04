@@ -252,6 +252,52 @@ function net_state_game(rbuff, nps, isPasstrough)
                         break;
                 }
                 
+                case PacketType.SERVER_FWBOLT_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+
+                        var _state = buffer_read_s(rbuff, buffer_u8);
+
+                        if(_state == 0) // Spawn: flecha de la ballesta de Fleetway Amy
+                        {
+                                var _xx = buffer_read_s(rbuff, buffer_u16);
+                                var _yy = buffer_read_s(rbuff, buffer_u16);
+                                var _owner = buffer_read_s(rbuff, buffer_u16);
+                                var _dir = buffer_read_s(rbuff, buffer_s8);
+                                var _dmg = buffer_read_s(rbuff, buffer_u8);
+
+                                var inst = instance_create_depth(_xx, _yy, 0, obj_fw_bolt);
+                                inst.isOwner = (_owner == obj_netclient.nid);
+                                inst.dmg = _dmg;
+                                inst.image_xscale = _dir;
+                        }
+                        else if(_state == 1) // Tick (canal UDP: posicion integrada por el server)
+                        {
+                                var _xx = buffer_read_s(rbuff, buffer_u16);
+                                var _yy = buffer_read_s(rbuff, buffer_u16);
+
+                                with(obj_fw_bolt)
+                                {
+                                        if(isBreaking)
+                                                continue;
+                                        x = _xx;
+                                        y = _yy;
+                                        break;
+                                }
+                        }
+                        else // 2: despawn
+                        {
+                                with(obj_fw_bolt)
+                                {
+                                        if(isBreaking)
+                                                continue;
+                                        _destroy();
+                                        break;
+                                }
+                        }
+                        break;
+                }
                 case PacketType.SERVER_METALAMY_BULLET_STATE:
                 {
                         if(isPasstrough)

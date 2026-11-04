@@ -144,7 +144,7 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 		id--; // id - 1
 
 		AssertOrDisconnect(v->server, id >= 0);
-		AssertOrDisconnect(v->server, id <= CH_BLAZE);
+		AssertOrDisconnect(v->server, id <= CH_FLEETWAY_AMY);
 
 		/* Amy Canon: personaje RESERVADO. Solo el jugador con el
 		   token valido (CLIENT_AMY_AUTH, ver states/Server.c)
@@ -196,6 +196,22 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 			return true;
 		}
 
+		/* Fleetway Amy (v2.14): personaje RESERVADO. Solo el jugador con
+		   el token de Amy (mismo CLIENT_AMY_AUTH que Amy Canon y Vanilla).
+		   A los demas se les responde igual que si estuviera ocupada (el
+		   cliente ademas ni se la muestra al ciclar: scr_char_locked).
+		   Doble seguro. */
+		if (id == CH_FLEETWAY_AMY && !v->amy_authed)
+		{
+			PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+			PacketWrite(&pack, packet_write8, id + 1);
+			PacketWrite(&pack, packet_write8, 0);
+			RAssert(packet_send(v->peer, &pack, true));
+
+			Info("%s (id %d) tried to pick [Fleetway Amy] without unlock!", v->nickname.value, v->id);
+			return true;
+		}
+
 		uint8_t avail = v->server->lobby.avail[id];
 		if (avail)
 			v->server->lobby.avail[id] = 0;
@@ -228,7 +244,8 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 			"Vanilla",
 			"Metal Sonic", /* v2.2 (TTB) */
 			"Amelia",
-			"Blaze"};
+			"Blaze",
+			"Fleetway Amy"}; /* v2.14 */
 
 		Info("%s " LOG_RST "(id %d) choses [" LOG_GRN "%s" LOG_RST "]!", v->nickname.value, v->id, survs[id]);
 		return charselect_check_state(v->server) || lobby_init(v->server);
@@ -304,7 +321,7 @@ bool charselect_init(int8_t map, Server *server)
 	server->state = ST_CHARSELECT;
 	server->lobby.countdown_sec = g_config.charselect_time;
 	server->lobby.countdown = TICKSPERSEC;
-	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_BLAZE + 1)); /* v2.2: hasta Blaze */
+	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_FLEETWAY_AMY + 1)); /* v2.14: hasta Fleetway Amy */
 
 	Packet pack;
 	PacketCreate(&pack, SERVER_LOBBY_EXE);
@@ -363,7 +380,7 @@ bool charselect_init_survpractice(Server *server)
 	server->state = ST_CHARSELECT;
 	server->lobby.countdown_sec = g_config.practice_time;
 	server->lobby.countdown = TICKSPERSEC;
-	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_BLAZE + 1)); /* v2.2: hasta Blaze */
+	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_FLEETWAY_AMY + 1)); /* v2.14: hasta Fleetway Amy */
 
 	Packet pack;
 

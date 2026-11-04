@@ -85,6 +85,9 @@ function scr_hud_keycap(_spr, _x, _y, _key, _blend, _alpha)
         else if(_spr == spr_gui_amyattack_canon)  _kc = [25, 5];              // X tarot aereo
         else if(_spr == spr_gui_amydash_canon)    _kc = [25, 5];              // C acometida
         else if(_spr == spr_gui_amyparry_canon)   _kc = [25, 5];              // V parry
+        else if(_spr == spr_gui_amydj_fw)         _kc = [26, 0];              // A DJ doble salto (Fleetway)
+        else if(_spr == spr_gui_amyattack_fw)     _kc = [25, 5];              // B puño/patada (Fleetway)
+        else if(_spr == spr_gui_amycrossbow_fw)   _kc = [24, 5];              // C ballesta (Fleetway)
         else if(_spr == spr_gui_sonicparry)       _kc = [25, 5];              // C parry (Sonic)
         else if(_spr == spr_gui_sonicspindash)    _kc = [34, 2];              // Z spindash (Sonic/Amelia)
         else if(_spr == spr_gui_sonicdropdash)    _kc = [35, 3];              // Z drop dash (tenia X horneada!)

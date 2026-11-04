@@ -21,8 +21,8 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 // Personajes reservados (Amy Canon / Sally Canon):
                 // quien no puede usarlos no pasa por sus slots al ciclar
                 // (ver scr_char_locked). El while salta varios seguidos.
-                // v2.2: el tope ahora es Blaze (13 supervivientes).
-                while(selected >= CHARACTER_TAILS && selected <= CHARACTER_BLAZE && scr_char_locked(selected))
+                // v2.14: el tope ahora es Fleetway Amy (14 supervivientes).
+                while(selected >= CHARACTER_TAILS && selected <= CHARACTER_FLEETWAY_AMY && scr_char_locked(selected))
                         selected--;
                 
                 if(obj_netclient.exeId == master_id)
@@ -61,7 +61,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 }
                 else
                 {
-                        if(selected > CHARACTER_BLAZE)
+                        if(selected > CHARACTER_FLEETWAY_AMY)
                                 selected = 1;
                 }
                         
@@ -119,8 +119,23 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
         }
         else
         {
-                // Sally Canon reusa el icono de Sally en el tira de sprites del lobby
-                image_index = selected == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : selected + 1;
+                // v2.14: Fleetway Amy usa su PROPIA tira independiente
+                // (spr_lobby_icon_fw, 24x24) como los killers con sus
+                // exeicon: NO comparte frame con la tira de spr_lobby_icon.
+                if(selected == CHARACTER_FLEETWAY_AMY)
+                {
+                        sprite_index = spr_lobby_icon_fw;
+                        image_index = 0;
+                        image_blend = c_gray;
+                }
+                else
+                {
+                        // volver a la tira comun si venimos del icono independiente
+                        if(sprite_index != spr_lobby_icon)
+                                sprite_index = spr_lobby_icon;
+                        // Sally Canon reusa el icono de Sally en el tira de sprites del lobby
+                        image_index = selected == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : selected + 1;
+                }
                 if(selected == CHARACTER_VANILLA)
                         image_index = CHARACTER_CREAM + 1;
                 // v2.2 (TTB): Metal/Amelia/Blaze tienen sus propios frames al

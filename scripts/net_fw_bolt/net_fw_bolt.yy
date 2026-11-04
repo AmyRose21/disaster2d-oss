@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"net_fw_bolt",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"net_fw_bolt",
+  "parent":{
+    "name":"Specific",
+    "path":"folders/Scripts/Networking/Specific.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

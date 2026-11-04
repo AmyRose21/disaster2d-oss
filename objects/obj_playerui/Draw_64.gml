@@ -336,6 +336,30 @@ if(instance_exists(global.player) && !global.player.isDead)
                         }
                         break;
                 }
+                case CHARACTER_FLEETWAY_AMY:
+                {
+                        // Icono 1 (tecla A, en el aire): DJ DOBLE SALTO. El relleno
+                        // muestra el CD; blanco = lista Y en el aire (espejo del
+                        // icono de Amy Canon). El timer vuela en negativo mientras
+                        // dura el impulso: se ignora esa fase para el icono.
+                        var _djReady = (djTimer == 0);
+                        var _djProg = _djReady ? 1.0 : (djTimer < 0 ? 0.0 : 1.0 - (djTimer / (revivalTimes >= 2 ? FW_EDJ_RECHARGE : FW_DJ_RECHARGE)));
+                        var b1 = (_djReady && !global.player.isGrounded) ? c_white : c_red;
+                        drawKeyIcon(spr_gui_amydj_fw, 0, 32, global.KeyA, _djProg * 10, 222 - _mob, b1, _djProg, 0);
+
+                        // Icono 2 (tecla B): PUÑO/PATADA. El relleno muestra el CD.
+                        var val2 = global.player.revivalTimes >= 2 ? FW_EATTACK_RECHARGE : FW_ATTACK_RECHARGE;
+                        var prog2 = 1.0 - (max(global.player.attackTimer, 0) / val2);
+                        drawKeyIcon(spr_gui_amyattack_fw, 0, 23, global.KeyB, prog2 * 10, 240 - _mob, prog2 == 1.0 ? c_white : c_red, prog2, 0);
+
+                        // Icono 3 (tecla C): BALLESTA. El relleno muestra el CD;
+                        // mientras dura cbTimer la lleva en la mano (sprites cbamy).
+                        var val3 = global.player.revivalTimes >= 2 ? FW_ECROSSBOW_RECHARGE : FW_CROSSBOW_RECHARGE;
+                        var prog3 = 1.0 - (max(global.player.crossBow, 0) / val3);
+                        drawKeyIcon(spr_gui_amycrossbow_fw, 0, 23, global.KeyC, prog3 * 10, 258 - _mob, prog3 == 1.0 ? c_white : c_red, prog3, 0);
+                        break;
+                }
+
                 case CHARACTER_SONIC:
                 {
                         // Icono (tecla C): PARRY (v3.2). El relleno muestra el CD

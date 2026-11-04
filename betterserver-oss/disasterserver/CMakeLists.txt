@@ -55,6 +55,7 @@ set(SOURCES
         "entities/Ring.c"
         "entities/CreamRing.c"
         "entities/TailsProjectile.c"
+        "entities/FwBolt.c"
         "entities/EggmanTracker.c"
         "entities/BlackRing.c"
         "entities/ExellerClone.c"

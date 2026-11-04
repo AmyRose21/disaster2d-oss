@@ -27,7 +27,8 @@ chars =
         spr_menu_metal, // 10: Metal Sonic
         spr_menu_amelia, // 11: Amelia
         spr_menu_blaze, // 12: Blaze
-        // killers (offset CHARACTER_BLAZE = 13)
+        spr_menu_amy_fw, // 13: Fleetway Amy (v2.14)
+        // killers (offset CHARACTER_FLEETWAY_AMY = 14)
         spr_menu_exe,
         spr_menu_chaos,
         spr_menu_exetior,

@@ -1,0 +1,103 @@
+var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
+sprite_index = arr[? CHARACTER_FLEETWAY_AMY][state];
+
+switch(state)
+{
+	case IDLE:
+		image_speed = 1;
+		break;
+
+	case HURT:
+		image_speed = 0;
+		image_index = 0;
+		break;
+
+	case BALANCING:
+		image_xscale = edgeDir;
+		image_speed = 1;
+		break;
+
+	case WALK:
+		image_speed = 0.2 + (abs(xspd) / (maxHSpeed));
+		break;
+
+	case FALL:
+		image_index = 0;
+		break;
+
+	case RUN:
+		image_speed = max(abs(xspd) / 20, 0.5);
+		break;
+
+	case JUMP:
+		image_speed = 1.1;
+
+		if(image_index >= image_number - 1)
+			isJumping = false;
+		break;
+
+	case DEAD:
+		if(revivalTimes >= 2)
+		{
+			image_speed = 0.5;
+			break;
+		}
+
+		if(isGrounded)
+			image_speed = 1;
+		else
+			image_speed = 0;
+
+		if(image_index >= image_number - 1)
+			image_index = image_number - 1;
+		break;
+
+	case LOOKUP:
+	case LOOKDOWN:
+		image_speed = 1;
+
+		// Stop on last frame
+		if(image_index >= 1)
+			image_index = 1;
+
+		break;
+
+	case SPIN:
+		image_speed = abs(xspd) / 5;
+		break;
+
+	case FW_ATTACK:
+		// Puño (attack1) y patada (attack2): 4 frames cada uno, rápido
+		image_speed = 0.5;
+
+		if(image_index >= image_number - 1)
+			isAttacking = false;
+		break;
+
+	case FW_DJ:
+		// Pose del DJ (1 frame): sin animación, solo la postura de vuelo
+		image_speed = 0;
+		image_index = 0;
+		break;
+
+	case FW_CB_IDLE:
+	case FW_CB_WALK:
+	case FW_CB_RUN:
+		// Con la ballesta en la mano: mismos ritmos que sin ella
+		if(state == FW_CB_WALK)
+			image_speed = 0.2 + (abs(xspd) / (maxHSpeed));
+		else if(state == FW_CB_RUN)
+			image_speed = max(abs(xspd) / 20, 0.5);
+		else
+		{
+			image_speed = 1;
+			image_index = 0;
+		}
+		break;
+
+	case EMOTION1:
+	case EMOTION2:
+	case EMOTION3:
+		image_speed = 1;
+		break;
+}

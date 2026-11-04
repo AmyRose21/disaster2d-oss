@@ -40,7 +40,7 @@
 // Tope de supervivientes: el ULTIMO macro de la lista de
 // scr_survivors. Al agregar un pj nuevo al final, este macro
 // queda apuntando al nuevo automaticamente.
-#macro CHARACTER_SURV_MAX CHARACTER_BLAZE
+#macro CHARACTER_SURV_MAX CHARACTER_FLEETWAY_AMY
 
 // Total de slots de personaje (exe + supervivientes).
 #macro CHARACTER_COUNT (CHARACTER_SURV_MAX + 1)
@@ -71,6 +71,7 @@ function scr_char_name(ch)
                 case CHARACTER_METAL: return "Metal Sonic";
                 case CHARACTER_AMELIA: return "Amelia";
                 case CHARACTER_BLAZE: return "Blaze";
+                case CHARACTER_FLEETWAY_AMY: return "Fleetway Amy";
         }
 
         return "desconocido #" + string(ch);
