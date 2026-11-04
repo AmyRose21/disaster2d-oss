@@ -10,8 +10,8 @@
   "name":"obj_fw_bolt",
   "overriddenProperties":[],
   "parent":{
-    "name":"Amy Canon",
-    "path":"folders/Objects/Player/Survivors/Amy Canon.yy",
+    "name":"Amy Fleetway",
+    "path":"folders/Objects/Player/Survivors/Amy Fleetway.yy",
   },
   "parentObjectId":null,
   "persistent":false,

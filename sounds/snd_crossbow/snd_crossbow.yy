@@ -14,8 +14,8 @@
   "exportDir":"",
   "name":"snd_crossbow",
   "parent":{
-    "name":"Player",
-    "path":"folders/Sounds/Player.yy",
+    "name":"Amy Fleetway",
+    "path":"folders/Sounds/Player/Amy Fleetway.yy",
   },
   "preload":false,
   "resourceType":"GMSound",

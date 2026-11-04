@@ -12,21 +12,21 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"312092fb-b5ac-4c37-8a9b-01ba415eb5e3","name":"312092fb-b5ac-4c37-8a9b-01ba415eb5e3","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"a8d6b11d-8645-42ac-9caf-754719d5d008","name":"a8d6b11d-8645-42ac-9caf-754719d5d008","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":24,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"f0de7832-1f17-4bc8-8b77-6428f61734e0","blendMode":0,"displayName":"default","isLocked":false,"name":"5b740969-246a-41cc-a6da-1294a8ecf03f","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"e6a2131a-8bcb-40c1-a03b-ab21c3366954","blendMode":0,"displayName":"default","isLocked":false,"name":"e6a2131a-8bcb-40c1-a03b-ab21c3366954","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_lobby_icon_fw",
   "nineSlice":null,
   "origin":9,
   "parent":{
-    "name":"Sprites",
-    "path":"folders/Sprites.yy",
+    "name":"Amy Fleetway",
+    "path":"folders/Sprites/Player/Survivors/Amy Fleetway.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
@@ -69,8 +69,8 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"312092fb-b5ac-4c37-8a9b-01ba415eb5e3","path":"sprites/spr_lobby_icon_fw/spr_lobby_icon_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"7612d4b1-8d04-41fe-8843-fc21b356644b","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"a8d6b11d-8645-42ac-9caf-754719d5d008","path":"sprites/spr_lobby_icon_fw/spr_lobby_icon_fw.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"06d7f34b-eeb7-4a8c-836e-6170167938e0","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
