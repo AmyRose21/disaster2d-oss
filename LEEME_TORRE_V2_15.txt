@@ -1,0 +1,149 @@
+=====================================================================
+ v2.15 «LA TORRE» — Fleetway Amy completa (fixes + kit + pasivas)
+ Sonic.exe The Disaster 2D Remake · v2.15 sobre v2.14.2 (HEAD actual)
+=====================================================================
+
+CONTENIDO (44 archivos + este LEEME). Copiar cada archivo SOBRE la
+misma ruta del proyecto (el repo debe estar en la version del git
+con Fleetway Amy ya integrada: 62929a11 "Mejora para amy fleet" o
+posterior).
+
+---------------------------------------------------------------------
+ 0. ANTES DE NADA: haz GIT PULL
+---------------------------------------------------------------------
+El repo local estaba 11 commits por detras del remoto y por eso
+Fleetway Amy "desaparecia" y la barra de vida no salia. Sincroniza:
+
+    git stash push -m "locales"   (si tienes cambios sin commitear)
+    git pull --ff-only origin main
+
+---------------------------------------------------------------------
+ 1. BARRA DE VIDA (el bug de "no sale ni siquiera la barra")
+---------------------------------------------------------------------
+CAUSA: las tiras de HUD tenian los frames de FW Amy (salud 91-97,
+escaped/demon/hit 13) PERO los PNG estaban totalmente vacios
+(transparentes): el juego los dibujaba y no se veia nada.
+
+FIX: rellenados con el arte del zip "Nueva carpeta (3).zip":
+  - sprites/spr_playerhealth/           frames 91-97 (7 PNG)
+  - sprites/spr_playerhealth_redring/   frames 91-97 (7 PNG)
+  - sprites/spr_playerescaped/          frame 13
+  - sprites/spr_playerhealth_demon/     frame 13
+  - sprites/spr_playerhealth_hit/       frame 13
+Los PNG vacios originales quedan en sprites/*/.empty_backup/ por si
+quieres comparar. (Los frames 56-69 y 8-9 vacios SON normales: son
+los huecos de Sally Canon y Vanilla, que reusan otros iconos.)
+
+---------------------------------------------------------------------
+ 2. FIX: LA FLECHA DE LA BALLESTA NO AVANZABA
+---------------------------------------------------------------------
+CAUSA (la misma que tuvieron el laser de Tails, la bola de Blaze
+v2.9b y la bala de Metal Amy): el server manda la posicion de la
+flecha (estado 1) por el canal NO fiable (UDP) y el case
+SERVER_FWBOLT_STATE solo existia en net_state_game.gml, que solo
+procesa el canal TCP. La flecha nacia y se quedaba quieta.
+
+FIX: case SERVER_FWBOLT_STATE en scripts/net_udpprocess/net_udpprocess.gml
+(eso es todo para el bug en si).
+
+---------------------------------------------------------------------
+ 3. REWORK DE LA BALLESTA «La Torre»
+---------------------------------------------------------------------
+  * Cargador de 3 flechas. Recarga de 8 s POR flecha (se recargan
+    en serie), 0,5 s entre disparos. El HUD (icono C) muestra el
+    cargador con relleno + 3 pips debajo.
+  * La flecha vuela RECTA y al tocar pared/suelo NO se rompe:
+    se CLAVA 5 segundos y SIRVE DE PLATAFORMA (te puedes subir).
+    Las flechas en vuelo chocan contra las clavadas: se pueden
+    apilar en TORRE, como en la wiki de Exe Nightmare.
+  * Stun al EXE: 3 s. Si le caen stuns de flecha CONTINUOS, cada
+    uno reduce un 17,5% el tiempo (tope 50% -> minimo 1,5 s).
+    El % se resetea tras 7 s sin stuns de flecha.
+  * ESBIRROS (demonizados): siempre los 3 s completos.
+  * Si Fleetway SE VUELVE exe (demonizada): la flecha hace 20 de
+    dano real y JAMAS stunea a un superviviente.
+
+  Server: hay que recompilar betterserver-oss (FwBolt.c, FwBolt.h,
+  states/Game.c cambiaron). CD del server por disparo: 0,5 s.
+
+---------------------------------------------------------------------
+ 4. DJ DOBLE SALTO: ATURDE AL EXE 3,2 s
+---------------------------------------------------------------------
+Mientras Amy FW vuela con el DJ (tecla A en el aire), tocar al EXE
+lo aturde 3,2 s. Viaja con un bitflag nuevo (PLAYER_DJ) en el
+paquete de estado del jugador; lo aplica el cliente del EXE (mismo
+modelo de siempre: la victima es la autoridad). Dedup automatico
+con shockedTimer: no se re-aplica mientras ya este aturdido.
+
+---------------------------------------------------------------------
+ 5. PASIVAS (La Torre / Reflejo de una misma alma / Fuerza)
+---------------------------------------------------------------------
+LA TORRE (Fleetway): bloqueo determinista del 33% del dano
+recibido (estilo Chocola con Vanilla, pero sin RNG). Solo en bando
+superviviente (demonizada la pierde).
+
+REFLEJO DE UNA MISMA ALMA (las Amys): por cada Amy en el campo
+(Amy vanilla, Amy Canon, Amelia, Fleetway) la eficacia de las
+pasivas de la familia sube +5%, tope +15%. Con 2+ Amys la Torre
+toca su techo del 40%.
+
+FUERZA (Amy vanilla): mientras lanza el martillo tiene I-FRAMES y
+la hitbox del golpe crece +20% (hasta +23% con el Reflejo)...
+pero SOLO si alguna de las otras Amys (Canon/Amelia/Fleetway)
+esta en el campo. Sin familia: sin passive.
+
+---------------------------------------------------------------------
+ 6. TIER LIST (TierList_Mejoras_V4_8.html)
+---------------------------------------------------------------------
+  * Ficha completa de Fleetway Amy (tier A+ provisional, ajustala
+    a tu criterio): rol, stats, pasiva, 3 habilidades, plus/minus,
+    notas de solo y de esbirros.
+  * Fila nueva en la matriz vs EXE (Sonic.exe e / Chaos e /
+    Exetior v / Exeller d / Metal Amy e) con su analisis.
+  * Retrato generado desde su icono de lobby real
+    (spr_lobby_icon_fw frame 0).
+  * Pasivas de Amy, Amelia y Amy Canon actualizadas con el
+    Reflejo de una misma alma.
+
+---------------------------------------------------------------------
+ ARCHIVOS Y QUE TOCA CADA UNO
+---------------------------------------------------------------------
+yyp ................................ obj_fw_arrow registrado
+TierList_Mejoras_V4_8.html ......... ficha + matriz + SPR de FW
+worklog.md ........................ entrada torre-v2.15
+FwBolt.c / FwBolt.h / states/Game.c  server: flechas con id,
+                                        clavado (estado 3), CD 0,5 s
+obj_amy_fleetway/Create_0.gml ...... macros del kit v2.15 + municion
+obj_fw_bolt/* ...................... fwId, isStuck, stun con
+                                        reduccion, colision->clavarse
+obj_fw_arrow/* (NUEVO) ............. la flecha clavada (plataforma,
+                                        hijo de obj_solid_parent)
+obj_level/Step_0.gml ............... reloj de reset del stun (7 s)
+obj_netclient/Step_2.gml ........... bitflag PLAYER_DJ al vuelo
+obj_player_puppet/Create+Step ...... isDJ sync, stun 3,2 s, pad
+                                        de Fuerza (+20% hitbox)
+obj_playerui/Draw_64.gml ........... icono ballesta con cargador
+net_fw_bolt.gml .................... nuevo formato de hit (id/tipo)
+net_packets.gml .................... PLAYER_DJ + docs del protocolo
+net_state_game.gml ................. estados 0/1/2/3 con id de flecha
+net_udpprocess.gml ................. EL FIX del avance (canal UDP)
+scr_amy_fleetway_special.gml ....... municion 3 + recarga 8 s
+scr_characters.gml ................ scr_amy_soul_* y scr_fw_arrow_spawn
+scr_globals.gml .................... globals del stack de stun
+scr_player_hurt.gml ................ La Torre + Fuerza (i-frames)
+sprites/spr_player*/*.png .......... 17 PNG rellenados (ver punto 1)
+
+---------------------------------------------------------------------
+ VERIFICACIONES HECHAS
+---------------------------------------------------------------------
+  * Server C compila (gcc -fsyntax-only) limpio.
+  * Balance de llaves/parentesis de los 20 .gml tocados: OK.
+  * yyp valido como JSON: obj_fw_arrow registrado (1992 recursos).
+  * Tier list renderizada en navegador real: 14 fichas, fila de
+    matriz de FW con 6 celdas, tabla solo, chips y retrato OK.
+  * Sin referencias muertas (macros viejas de la ballesta fuera).
+
+PENDIENTE DE PRUEBA EN PARTIDA REAL: disparar las 3 flechas, subir
+a una clavada, apilar torre, stun continuo al exe (ver la reduccion
+en los segundos), bloqueo del 33/40% con el escudo visual, y el
+stun de 3,2 s del DJ.
