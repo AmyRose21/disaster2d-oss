@@ -46,6 +46,12 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
                 char = 13; // Amelia: frame 13
         else if(char == CHARACTER_BLAZE)
                 char = 14; // Blaze: frame 14
+        // v2.14.2: Fleetway Amy -> fila de Amy (frame 3): spr_tab_entry aun no
+        // tiene fila propia (15 frames, 0..14) y el char-- la mandaria a la de
+        // Amelia (13). El icono hit/demon del marcador si sale con su arte
+        // nuevo: hchar = 14-1 = 13 cae justo en su frame dedicado de las tiras.
+        else if(char == CHARACTER_FLEETWAY_AMY)
+                char = 3;
         else
                 char--;
         
