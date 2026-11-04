@@ -58,18 +58,29 @@ if(!obj_minigame.ingame)
                         }
                         else
                         {
-                                sprite = spr_lobby_icon;
-                                // 8 = Sally Canon (valor crudo del server): icono de Sally;
-                                // 9 = Vanilla (valor crudo): icono de Cream
-                                index = (plr.char == 8 ? 5 : plr.char) + 2;
-                                if(plr.char == 9)
-                                        index = 4 + 2;
-                                // v2.2.4: Metal/Amelia/Blaze (10/11/12 crudos) viven
-                                // en los frames 10/11/12 de la tira; 2+id daria
-                                // 12/13/14 (fuera de rango, y Metal sobre el frame
-                                // de Blaze).
-                                if(plr.char >= 10)
-                                        index = plr.char;
+                                // v2.14.1: Fleetway Amy (13 crudo) usa su tira propia
+                                // (spr_lobby_icon_fw): en la comun el frame 13 no existe
+                                // (13 frames, 0..12) y al envolver salia el de otro pj.
+                                if(plr.char == 13)
+                                {
+                                        sprite = spr_lobby_icon_fw;
+                                        index = 0;
+                                }
+                                else
+                                {
+                                        sprite = spr_lobby_icon;
+                                        // 8 = Sally Canon (valor crudo del server): icono de Sally;
+                                        // 9 = Vanilla (valor crudo): icono de Cream
+                                        index = (plr.char == 8 ? 5 : plr.char) + 2;
+                                        if(plr.char == 9)
+                                                index = 4 + 2;
+                                        // v2.2.4: Metal/Amelia/Blaze (10/11/12 crudos) viven
+                                        // en los frames 10/11/12 de la tira; 2+id daria
+                                        // 12/13/14 (fuera de rango, y Metal sobre el frame
+                                        // de Blaze).
+                                        if(plr.char >= 10)
+                                                index = plr.char;
+                                }
                         }
                 }
                 else

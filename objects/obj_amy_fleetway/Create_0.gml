@@ -43,6 +43,12 @@ attackTimer = 0;     // puño/patada (tecla B)
 djTimer = 0;         // DJ doble salto: 0 listo, -1..-30 volando, >0 recargando
 crossBow = 0;        // ballesta (tecla C)
 cbTimer = 0;         // frames restantes con la ballesta EN LA MANO (sprites cbamy)
+// v2.14.1: paridad con obj_amy: el Step_0 portado lee isHJ en el guardia de
+// daño de contacto (linea 48); sin declararlo el juego crashea con
+// "isHJ not set before reading it". En Fleetway nunca se activa (el salto
+// de martillo lo reemplaza el DJ) pero la variable tiene que existir.
+hjumpTimer = 0;      // sin salto de martillo: siempre a 0
+isHJ = false;        // idem: Step_0 lo lee, nada lo activa
 
 //General
 hp = 100;

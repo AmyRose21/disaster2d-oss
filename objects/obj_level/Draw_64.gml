@@ -91,6 +91,12 @@ if(global.showHud && titleCard > 4)
                 var _hudChar = global.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : global.character;
                 if(global.character == CHARACTER_VANILLA)
                         _hudChar = CHARACTER_CREAM;
+                // v2.14.1: Fleetway Amy reusa las caras de Amy en la barra de vida:
+                // su rango (13*7 = 91..97) no existe en la tira de 91 frames y al
+                // envolver salia la cara de Tails. Cuando haya arte propio de HUD
+                // basta con quitar este remapeo.
+                if(global.character == CHARACTER_FLEETWAY_AMY)
+                        _hudChar = CHARACTER_AMY;
                 var sprIndex = (_hudChar-CHARACTER_TAILS) * 7;
                 
                 if(player_exists)
@@ -163,6 +169,10 @@ if(global.showHud && titleCard > 4)
                         var _pch = inst.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : inst.character;
                         if(inst.character == CHARACTER_VANILLA)
                                 _pch = CHARACTER_CREAM;
+                        // v2.14.1: Fleetway Amy reusa las caras de Amy (mismo criterio que
+                        // el icono propio: su rango 91..97 no existe en la tira de 91)
+                        if(inst.character == CHARACTER_FLEETWAY_AMY)
+                                _pch = CHARACTER_AMY;
                         if(!inst.isDemonized || inst.character == CHARACTER_EXE)
                         {
                                 var sprIndex = (_pch-CHARACTER_TAILS) * 7;
@@ -195,6 +205,10 @@ if(global.showHud && titleCard > 4)
                                 var _ech = player.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : player.character;
                                 if(player.character == CHARACTER_VANILLA)
                                         _ech = CHARACTER_CREAM;
+                                // v2.14.1: Fleetway Amy reusa el escape de Amy (frame propio no
+                                // existe en la tira de 13)
+                                if(player.character == CHARACTER_FLEETWAY_AMY)
+                                        _ech = CHARACTER_AMY;
                                 // [Suite TD2D v3.7] escape con brillo si existe; si no, el de siempre
                                 if(!scr_lobby_shiny_escape(_ech, pos + i * 28, 268))
                                         draw_sprite(spr_playerescaped, (_ech-CHARACTER_TAILS), pos + i * 28, 268);

@@ -9,12 +9,17 @@ function net_state_results(rbuff, nps, isPasstrough)
                         var _char = buffer_read_s(rbuff, buffer_s8);
                 // 6 = Amy Canon, 8 = Sally Canon (valores crudos del server):
                 // reusan los iconos de Amy (3) y Sally (5) en las tiras
+                var _isFw = (_char == 13); // v2.14.1: Fleetway Amy (13 crudo)
                 if(_char == 6)
                         _char = 3;
                 else if(_char == 8)
                         _char = 5;
                 else if(_char == 9)
                         _char = 4; // 9 = Vanilla: reusa los iconos de Cream
+                else if(_char == 13)
+                        _char = 3; // 13 = Fleetway Amy: reusa las caras/tiras de Amy
+                                   // (no hay arte propio de results); el icono de lobby
+                                   // (case 3) si usa su tira dedicada via _isFw
                         var _end = buffer_read_s(rbuff, buffer_u8);
                         var _time = buffer_read_s(rbuff, buffer_u16);
                         var _quit = buffer_read_s(rbuff, buffer_u8);
@@ -98,6 +103,14 @@ function net_state_results(rbuff, nps, isPasstrough)
                                 
                                 case 3:
                                 {
+                                        // v2.14.1: Fleetway Amy con su tira propia (spr_lobby_icon_fw);
+                                        // en la comun su frame (13 crudo) no existe y envolveria a 0
+                                        if(_isFw)
+                                        {
+                                                _inst.icon = spr_lobby_icon_fw;
+                                                _inst.frame = 0;
+                                                break;
+                                        }
                                         _inst.icon = spr_lobby_icon;
                                         // _char ya remapeado arriba (Amy Canon->3, Sally Canon->5).
                                         // v2.2.4: Metal/Amelia/Blaze (ids crudos 10/11/12) viven en
