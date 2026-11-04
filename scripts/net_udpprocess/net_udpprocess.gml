@@ -215,6 +215,16 @@ function net_udpprocess(rbuff)
                 // laser de Tails, la bola de Blaze (v2.9b) y la bala de Metal
                 // Amy. El paquete lleva el id de la entidad para poder mover
                 // la flecha correcta con hasta 3 en vuelo.
+                // v2.15.1 — FIX «LA FLECHA TRASPASA LA PARED»: los ticks de
+                // posicion del server YA NO SE APLICAN. El server no conoce
+                // el mapa y sus saltos de 14 px por UDP hacian que la flecha
+                // se saltara la pared en las rafagas (el evento de colision
+                // de GM solo dispara con solape al final del frame). Ahora
+                // cada cliente simula el vuelo LOCALMENTE en obj_fw_bolt/Step
+                // (barrido sub-pixel, misma velocidad FW_ARROW_FLIGHT); el
+                // server dejo de emitir este estado. El case se conserva
+                // leyendo los campos para no desalinear el buffer si algun
+                // server viejo todavia lo manda.
                 case PacketType.SERVER_FWBOLT_STATE:
                 {
                         if(passtrough)
@@ -232,15 +242,9 @@ function net_udpprocess(rbuff)
                         var _xx = buffer_read_s(rbuff, buffer_u16);
                         var _yy = buffer_read_s(rbuff, buffer_u16);
 
-                        with(obj_fw_bolt)
-                        {
-                                if(isBreaking || isStuck || fwId != _fwid)
-                                        continue;
-
-                                x = _xx;
-                                y = _yy;
-                                break;
-                        }
+                        // v2.15.1: posicion descartada a proposito (vuelo
+                        // local; ver obj_fw_bolt/Step_0). _xx/_yy/_fwid se
+                        // leen arriba solo para mantener el buffer alineado.
                         break;
                 }
                 

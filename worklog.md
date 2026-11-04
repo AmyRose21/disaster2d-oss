@@ -3110,3 +3110,52 @@ del tier list evaluado con node (14 entradas) + render en navegador real
 sin errores; cero referencias a las macros eliminadas
 (FW_CROSSBOW_RECHARGE); isDead nunca se lee en puppets (patron
 isInactive). Pendiente: partida real de prueba con el server compilado.
+
+---
+Task ID: torre-v2.15.1
+Agent: Super Z (main agent)
+Task: v2.15.1 — fixes post-prueba del usuario: flecha que atravesaba la pared, retrato de cuerpo entero en la tier list y Fleetway Amy en «La voz del lobby»
+
+Work Log:
+- QUEJA 1 («la tier sigue igualita, no incluiste a Fw ni actualizaste
+  descripciones»): el usuario mira TierList_Comentarios_V2.html («La voz
+  del lobby»), que la sesion anterior NO toco (solo actualizo la de
+  Mejoras). Anadida la tarjeta de Fleetway Amy (A+, «Zonera · La Torre»,
+  6 comentarios + 3 en directo con cifras reales del kit: 3 s de stun,
+  -17,5% por stun continuo, 3,2 s de DJ, 33-40% de Torre), Amy subida a
+  B+ (dos comentarios de la Fuerza: i-frames + hitbox +20/23%),
+  comentario del Reflejo en Amelia, nota en la bitacora de Amy Canon,
+  5 frases nuevas del ticker, cabecera a 16 personajes y referencias
+  v2.15 en hero/notas/pie.
+
+- QUEJA 2 («no sale el sprite de ella de pie como el resto»): el retrato
+  de la ficha era spr_lobby_icon_fw (una CARA 39x39) escalada a 84 px.
+  Regenerado desde el sprite real de pie (spr_amy_idle_fw frame 0,
+  32x47 -> recorte alpha 24x45, 1233 bytes) en las DOS tier lists
+  (ficha, fila de tiers, matriz, tabla solo, tarjeta de comentarios).
+
+- QUEJA 3 («las flechas no se clavan, traspasan la pared»): CAUSA RAIZ —
+  la posicion la integraba el server (que NO conoce el mapa) y llegaba
+  por UDP como teleports de 14 px; el evento de colision de GM solo
+  dispara con solape al final del frame, y en las rafagas de paquetes
+  (2-6 por frame, tipico en red/WiFi) la posicion dentro de la pared se
+  sobrescribia por otra ya pasada -> atravesaba. FIX: vuelo simulado
+  LOCALMENTE por cada cliente (spawn TCP fiable: x, y, dir) con barrido
+  sub-pixel (FW_ARROW_FLIGHT 14 px/frame = FWBOLT_SPEED; sub-pasos
+  FW_ARROW_SWEEP 3,5; busqueda binaria 0,5 px; punta enterrada
+  FW_ARROW_BURY 4 px; wrap de YouCan'tRun y limite izquierdo en local;
+  bocajarro se clava al nacer). El server deja de difundir el estado 1
+  (FwBolt.c) y el flujo de clavado sigue siendo CLIENT_FWBOLT_HIT tipo 1
+  -> estado 3 TCP. net_udpprocess/net_state_game leen pero no aplican
+  las posiciones. Simulacion numerica (scripts/test_fw_sweep.py):
+  paredes 4/8/16/32/64 px — el nuevo SIEMPRE se clava; el viejo con
+  burst 4-6 las atraviesa (repro exacta del bug). gcc -fsyntax-only OK.
+
+ARCHIVOS v2.15.1: TierList_Cometarios_V2.html, TierList_Mejoras_V4_8.html,
+obj_fw_bolt/Step_0, obj_amy_fleetway/Create_0 (macros), net_udpprocess,
+net_state_game, FwBolt.c, LEEME_TORRE_V2_15.txt (reescrito como v2.15.1).
+
+VERIFICACION: navegador real sin errores (retrato 24x45 de cuerpo entero
+en las 3 vistas, 16 tarjetas en Comentarios); balance de llaves OK;
+simulacion del barrido OK; server compila limpio. Pendiente: partida
+real con el server recompilado.

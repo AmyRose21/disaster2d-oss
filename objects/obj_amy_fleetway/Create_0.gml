@@ -22,6 +22,16 @@
 #macro FW_ARROW_STUN_CAP 0.5             // tope de reduccion (50%)
 #macro FW_ARROW_STUN_RESET (60 * 7)      // el % se resetea tras 7 s sin stun de flecha
 
+// v2.15.1 — FIX «LA FLECHA TRASPASA LA PARED»: el vuelo lo simula cada
+// cliente con barrido sub-pixel (el server NO conoce el mapa: sus ticks
+// de posicion llegaban como teleports de 14 px y en las rafagas de UDP
+// se saltaban la pared de un salto — el evento de colision de GM solo
+// dispara si hay solape AL FINAL del frame). FW_ARROW_FLIGHT =
+// FWBOLT_SPEED del server (14 px por tick a 60 tps = 14 px/frame).
+#macro FW_ARROW_FLIGHT 14                // px por frame de vuelo local
+#macro FW_ARROW_SWEEP 3.5                // sub-paso maximo del barrido (4 por frame)
+#macro FW_ARROW_BURY 4                   // px de punta enterrada al clavarse (visual)
+
 // v2.15 («La Torre») — pasivas de Fleetway Amy:
 // LA TORRE: bloqueo fijo del 33% del daño recibido (estilo Chocola
 // con Vanilla, pero determinista). Con REFLEJO DE UNA MISMA ALMA

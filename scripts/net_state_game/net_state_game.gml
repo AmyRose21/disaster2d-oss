@@ -278,19 +278,17 @@ function net_state_game(rbuff, nps, isPasstrough)
                         }
                         else if(_state == 1) // Tick (canal UDP: posicion integrada por el server)
                         {
-                                // Por TCP solo llega si el server lo manda fiable;
-                                // el flujo normal entra por net_udpprocess (v2.15).
+                                // v2.15.1 — FIX «LA FLECHA TRASPASA LA PARED»:
+                                // la posicion del server ya NO se aplica: el
+                                // server no conoce el mapa y sus teleports de
+                                // 14 px por UDP hacian que la flecha se
+                                // saltara la pared en las rafagas. El vuelo
+                                // ahora lo simula cada cliente localmente
+                                // (obj_fw_bolt/Step_0, barrido sub-pixel).
+                                // Los campos se leen igual para no desalinear
+                                // el buffer si un server viejo lo manda.
                                 var _xx = buffer_read_s(rbuff, buffer_u16);
                                 var _yy = buffer_read_s(rbuff, buffer_u16);
-
-                                with(obj_fw_bolt)
-                                {
-                                        if(isBreaking || isStuck || fwId != _fwid)
-                                                continue;
-                                        x = _xx;
-                                        y = _yy;
-                                        break;
-                                }
                         }
                         else if(_state == 3) // v2.15: CLAVADA en un solido -> plataforma 5 s
                         {

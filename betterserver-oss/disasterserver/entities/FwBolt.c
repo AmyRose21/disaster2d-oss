@@ -58,14 +58,17 @@ bool fwbolt_tick(Server* server, Entity* entity)
                         bolt->pos.x = 0;
         }
 
-        Packet pack;
-        PacketCreate(&pack, SERVER_FWBOLT_STATE);
-        PacketWrite(&pack, packet_write8, 1);
-        PacketWrite(&pack, packet_write16, bolt->id);
-        PacketWrite(&pack, packet_write16, (uint16_t)bolt->pos.x);
-        PacketWrite(&pack, packet_write16, (uint16_t)bolt->pos.y);
-        server_broadcast(server, &pack, false);
-
+        /* v2.15.1 — FIX «LA FLECHA TRASPASA LA PARED»: ya NO se difunde el
+         * tick de posicion (estado 1). El server no conoce el mapa y sus
+         * saltos de 14 px por UDP hacian que los clientes vieran la flecha
+         * saltarse la pared de un teleport (el evento de colision de GM
+         * solo dispara con solape al final del frame). Ahora el vuelo lo
+         * simula cada cliente localmente (obj_fw_bolt/Step: barrido
+         * sub-pixel con la misma velocidad, FW_ARROW_FLIGHT = FWBOLT_SPEED)
+         * y el primer cliente que la ve clavarse reporta
+         * CLIENT_FWBOLT_HIT tipo 1; el server fija la posicion para todos
+         * con el estado 3. Esta posicion interna solo sirve para el wrap
+         * y el limite izquierdo de arriba. */
         bolt->pos.x += (float)(bolt->dir * FWBOLT_SPEED * server->delta);
         bolt->timer -= server->delta;
 
