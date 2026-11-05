@@ -4,41 +4,14 @@
 // Todo con mezcla aditiva (bm_add) para que las auras "ardiendo"
 // iluminen lo que hay detras, patron del aura de parry de
 // obj_player_puppet. Solo en la pantalla de la propia Amelia.
-// v4.5: antes de las auras se dibuja aqui el ECO DE LA SALIDA (flecha
-// verde tenue hacia el anillo de escape en rango).
+// v4.7: la MARCA DE LA SALIDA (flecha verde) NO se dibuja aqui: vive
+// en obj_amelia_indicators (una version duplicada del "eco" que uso
+// macros inexistentes fue eliminada; ver Step_0).
 if(!visible)
         return;
 
-if(!instance_exists(global.player))
+if(!instance_exists(global.player) || auraCount <= 0)
         return;
-
-if(!exitVisible && auraCount <= 0)
-        return;
-
-var _x = global.player.x;
-var _y = global.player.y;
-
-// --- ECO DE LA SALIDA (v4.5) ---
-// La flecha verde de Amy Canon (spr_sindicator2), pero POBRE:
-//   * solo existe en rango (el Step la apaga fuera de
-//     AMELIA_EXIT_SENSE_RADIUS; la de Amy Canon es incondicional);
-//   * al 80% de tamano y tintada de VERDE PALIDO
-//     (AMELIA_EXIT_SENSE_COLOR): mismo sprite, lectura distinta;
-//   * DESVANECIDA por distancia (exitK: solida pegada a la salida,
-//     susurro en el borde) y LATIENDO con el mismo auraPulse de las
-//     auras (un eco respira; una senal de radio no).
-// Pegada a Amelia, igual que la de Amy Canon (mismo anclaje: se
-// dibuja en (_x,_y) y rota hacia la salida). En mezcla NORMAL: el
-// resto del dibujado (auras) va en bm_add, asi que va ANTES de
-// encenderla y con la alpha restaurada.
-if(exitVisible)
-{
-        var _ecoBeat = sin(auraPulse);
-        var _ecoAlpha = 0.30 + 0.70 * exitK + _ecoBeat * AMELIA_EXIT_SENSE_PULSE * (0.35 + 0.65 * exitK);
-        draw_set_alpha(clamp(_ecoAlpha, 0.15, 1));
-        draw_sprite_ext(spr_sindicator2, 0, ceil(_x - obj_camera.x), ceil(_y - obj_camera.y), AMELIA_EXIT_SENSE_SCALE, AMELIA_EXIT_SENSE_SCALE, exitAngle, AMELIA_EXIT_SENSE_COLOR, 1);
-        draw_set_alpha(1);
-}
 
 gpu_set_blendmode(bm_add);
 draw_set_circle_precision(32);

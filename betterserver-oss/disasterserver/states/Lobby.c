@@ -6,6 +6,7 @@
 #include <CMath.h>
 #include <stdbool.h>
 #include <time.h>
+#include <stdlib.h> /* v4.7: rand()/srand() se usaban sin declarar (exe_chance) */
 
 /* Timers del lobby configurables en Config.json:
  *   lobby_countdown  -> cuenta atras cuando todos estan ready
@@ -584,7 +585,14 @@ bool lobby_state_tick(Server* server)
 	{
 		server->lobby.prac_countdown -= server->delta;
 		if (server->lobby.prac_countdown <= 0)
-			return charselect_init(20, server) || lobby_init(server);
+		{
+			/* v4.7 (pedido del usuario): la practica del voto .vp
+			 * tambien sortea mapa al azar (antes: 20 fijo = Fart Zone
+			 * eterno), igual que la de .sp */
+			int8_t pmap = map_pick_random(server);
+			server->last_map = pmap;
+			return charselect_init(pmap, server) || lobby_init(server);
+		}
 	}
 
 	// If vote is going on, call tick function

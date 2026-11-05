@@ -29,4 +29,8 @@ bool map_left 	(PeerData* v);
 bool map_time (Server* server, double seconds, float mul);
 bool map_ring (Server* server, int ringcoff);
 
+/* v4.7: sortea un mapa al azar (mapas activos del Config.json, sin
+ * repetir el ultimo): lo usan las rutas de practica */
+int8_t map_pick_random (Server* server);
+
 #endif

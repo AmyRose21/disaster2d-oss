@@ -403,4 +403,72 @@ function scr_fw_arrow_spawn(fwid, xx, yy, dir)
     _arrow.image_xscale = sign(dir);
     return _arrow;
 }
-// ===== fin v2.15 «La Torre» — Reflejo de una misma alma =====
+
+// =====================================================================
+//  v2.15.2 — FIX «LA FLECHA NO SE CLAVA EN LA PARED» (Fart Zone y
+//  demas mapas con pisos fuera de obj_solid_parent).
+//  CAUSA RAIZ: el barrido de vuelo de obj_fw_bolt solo miraba
+//  obj_solid_parent, pero NO TODA la geometria del juego cuelga de
+//  ahi: Fart Zone (mapa 20) tiene 55 muros obj_fart_tile hijos de
+//  obj_floor_parent (el padre del que SI cuelgan), igual que los
+//  bloques de hielo de Nasty Paradise o las puertas de Haunting
+//  Dream. En esos mapas la flecha atravesaba TODAS las paredes.
+//  El jugador colisiona contra obj_floor_parent
+//  (scr_collision_basic, collision_circle_list), asi que esa es la
+//  jerarquia "solida" real — CON UNA EXCEPCION: la familia de las
+//  plataformas saltables (obj_platform_jumptrough y sus pendientes),
+//  que el propio jugador NO toca de lado (guarda
+//  !position_meeting(..., obj_platform_jumptrough) de
+//  scr_collision_check). La flecha hereda esa misma regla.
+// =====================================================================
+
+// ¿inst forma parte de la familia saltable de obj_platform_jumptrough?
+// (obj_ghz_slope*, obj_ycr_slope*, obj_weed_slopus,
+//  obj_marijuna_lavaplatform...: se recorren los padres del objeto)
+function scr_fw_is_jumptrough(inst)
+{
+    var _obj = inst.object_index;
+
+    while(_obj != -1)
+    {
+        if(_obj == obj_platform_jumptrough)
+            return true;
+
+        _obj = object_get_parent(_obj);
+    }
+
+    return false;
+}
+
+// ¿la flecha (self = obj_fw_bolt) colocada en (xx, yy) toca un muro /
+// piso REAL? Corre en el contexto del bolt: usa SU mascara (bbox del
+// spr_amy_projectile_fw). true = hay solido (clavarse); false = libre
+// o solo plataformas saltables (atravesarlas, como el jugador).
+function scr_fw_wall_at(xx, yy)
+{
+    // via rapida: si ni siquiera toca piso, nada que mirar
+    if(!place_meeting(xx, yy, obj_floor_parent))
+        return false;
+
+    // toca ALGUN piso: place_meeting no permite excluir la familia
+    // saltable (se queda con la primera instancia), asi que se miran
+    // TODAS las que solapa el bbox del bolt a mano
+    var _list = ds_list_create();
+    var _n = collision_rectangle_list(xx + bbox_left, yy + bbox_top,
+            xx + bbox_right, yy + bbox_bottom, obj_floor_parent,
+            false, true, _list, false);
+
+    var _wall = false;
+    for(var i = 0; i < _n; i++)
+    {
+        if(!scr_fw_is_jumptrough(_list[| i]))
+        {
+            _wall = true;
+            break;
+        }
+    }
+
+    ds_list_destroy(_list);
+    return _wall;
+}
+// ===== fin v2.15.2 «La Torre» — flecha que clava en toda pared =====

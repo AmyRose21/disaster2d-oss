@@ -3159,3 +3159,73 @@ VERIFICACION: navegador real sin errores (retrato 24x45 de cuerpo entero
 en las 3 vistas, 16 tarjetas en Comentarios); balance de llaves OK;
 simulacion del barrido OK; server compila limpio. Pendiente: partida
 real con el server recompilado.
+
+---
+Task ID: fix-v4.7
+Agent: Super Z (main agent)
+Task: v4.7 — fixes post-prueba del usuario: crash de obj_amelia_auras (AMELIA_EXIT_SENSE_RADIUS), flechas que no se clavan en la pared y modo práctica con mapa al azar. Entrega por GIT (pull/commit).
+
+Work Log:
+- ENTREGA POR GIT (pedido del usuario: «recuerda siempre hacer git a mi
+  repositorio» / «usa el git para que actualices lo que tienes»): clon
+  fresco de github.com/AmyRose21/disaster2d-oss (HEAD 64ad532e «upda»),
+  cambios aplicados encima y commit local listo para push.
+
+- QUEJA 1 (crash reportado tal cual):
+  «Variable obj_amelia_auras.AMELIA_EXIT_SENSE_RADIUS(101172,
+  -2147483648) not set before reading it» en Step_0 linea 110.
+  CAUSA RAIZ (arqueologia git): ec8b8ffe añadio a obj_amelia_auras el
+  «ECO DE LA SALIDA» (SENSOR 3) + macros AMELIA_EXIT_SENSE_RADIUS/PULSE/
+  SCALE/COLOR en scr_amelia_special.gml; a1124a1b (29 min despues) creo
+  obj_amelia_indicators como objeto separado y BORRO las macros, pero
+  olvido quitar el bloque del auras -> macro inexistente = variable de
+  instancia nunca inicializada = crash en cuanto existe obj_bigring.
+  FIX: eliminado el bloque duplicado del Step y del Draw_64; la marca
+  de la salida queda UNA sola (obj_amelia_indicators, la del LEEME
+  v4.5: <=400 px, parpadeante). Sin macros nuevas que mantener.
+
+- QUEJA 2 («No se clavan en la pared» — la v2.15.1 no basto): el
+  barrido local solo miraba obj_solid_parent. En Fart Zone (mapa 20, el
+  FIJO de la practica) los 55 muros son obj_fart_tile, hijos de
+  obj_floor_parent y NO de solid_parent -> ahi la flecha atravesaba
+  TODO (por eso en tu prueba seguia sin clavarse). Tambien afecta a
+  hielos de Nasty Paradise y puertas de Haunting Dream.
+  FIX: scr_fw_wall_at + scr_fw_is_jumptrough (scr_characters.gml):
+  la flecha siente la MISMA geometria que el jugador al caminar —
+  toda obj_floor_parent MENOS la familia saltable
+  (obj_platform_jumptrough y 7 hijos), que el jugador tampoco toca de
+  lado (guarda !position_meeting de scr_collision_check). El barrido
+  sub-pixel v2.15.1 intacto; torre de flechas intacta (las clavadas
+  cuelgan de solid_parent); el evento Collision con solid_parent queda
+  como red de seguridad.
+
+- QUEJA 3 («permite que el modo practica pueda elegir un mapa al azar
+  como si fuera un modo normal»): habia DOS rutas con el mapa 20
+  hardcodeado — .sp (charselect_init_survpractice) y el voto .vp
+  (prac_countdown -> charselect_init(20)).
+  FIX: map_pick_random(Server*) nueva en Maps.c (declarada en Maps.h):
+  sortea entre los mapas ACTIVOS del Config.json (map_list con su
+  lock, igual que mapvote_init) evitando repetir server->last_map; la
+  usan las dos rutas (.sp fija lobby.map/last_map y manda el mapa en
+  SERVER_LOBBY_EXE; .vp sortea al expirar prac_countdown). Chat
+  «map: %s» + Info de consola como el modo normal. Fallback a 20 si
+  no hay mapas activos. REQUIERE RECOMPILAR EL SERVER.
+
+- Limpieza de paso: stdlib.h declarado en states/Lobby.c y
+  states/CharSelect.c (rand() se usaba sin declarar; en compiladores
+  modernos eso es error).
+
+ARCHIVOS v4.7: objects/obj_amelia_auras/{Step_0,Draw_64}.gml,
+objects/obj_fw_bolt/Step_0.gml, scripts/scr_characters/scr_characters.gml,
+betterserver-oss/{disasterserver/Maps.c, include/Maps.h,
+disasterserver/states/CharSelect.c, disasterserver/states/Lobby.c},
+LEEME_FIX_V4_7.txt, worklog.md.
+
+VERIFICACION: balance de llaves de los 4 GML OK (sin comentarios ni
+strings) y cero referencias en codigo a las vars/macros del eco
+eliminado; gcc -fsyntax-only (stub enet) de los 4 C tocados = 0 errores
+(solo los 3 avisos preexistentes del codigo original); simulacion del
+sorteo 100k tiradas: nunca repite last_map, uniforme (5230-5293 sobre
+5263 esperado), bordes 0/1/N mapas OK; diff del server con tabs
+originales (73+/3-). Pendiente: partida real con el server
+recompilado.

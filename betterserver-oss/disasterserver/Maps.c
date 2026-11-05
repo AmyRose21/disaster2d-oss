@@ -3,6 +3,8 @@
 #include <Maps.h>
 #include <States.h>
 #include <CMath.h>
+#include <Config.h>
+#include <stdlib.h>
 
 #include <maps/HideAndSeek2.h>
 #include <maps/RavineMist.h>
@@ -76,6 +78,48 @@ bool map_tcpmsg(PeerData* v, Packet* packet)
 bool map_left(PeerData* v)
 {
 	return true;
+}
+
+/* v4.7 (pedido del usuario): sortea UN mapa al azar con las mismas
+ * reglas que usa el mapvote para sortear sus 3 candidatos:
+ *   - solo mapas activos en el Config.json (clave map_list, con su
+ *     lock, como mapvote_init);
+ *   - evita repetir el ultimo mapa jugado cuando haya alternativa.
+ * Lo usan las DOS rutas de practica (.sp sin EXE y el voto .vp) para
+ * que la practica elija mapa "como un modo normal" en vez del 20
+ * (Fart Zone) fijo de siempre. Si el operador desactivo todos los
+ * mapas, cae al 20 original. */
+int8_t map_pick_random(Server* server)
+{
+	int8_t allowed[MAP_COUNT];
+	int8_t allowed_count = 0;
+
+	MutexLock(g_config.map_list_lock);
+	{
+		for (int8_t i = 0; i < MAP_COUNT; i++)
+		{
+			if (g_config.map_list[i])
+				allowed[allowed_count++] = i;
+		}
+	}
+	MutexUnlock(g_config.map_list_lock);
+
+	if (allowed_count <= 0)
+		return 20; /* Fart Zone: el mapa fijo de la practica original */
+
+	if (allowed_count == 1)
+		return allowed[0];
+
+	/* con 2+ mapas distintos siempre existe uno != last_map:
+	 * el bucle termina seguro */
+	int8_t pick;
+	do
+	{
+		pick = allowed[rand() % allowed_count];
+	}
+	while (pick == server->last_map);
+
+	return pick;
 }
 
 bool map_time(Server* server, double seconds, float mul)

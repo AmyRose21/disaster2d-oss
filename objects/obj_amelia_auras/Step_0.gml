@@ -1,7 +1,6 @@
 if(!instance_exists(global.player))
 {
         auraCount = 0;
-        exitVisible = false;
         visible = false;
         return;
 }
@@ -17,7 +16,6 @@ auraPulse += AMELIA_AURA_PULSE_SPD;
 if(global.player.revivalTimes >= 2)
 {
         auraCount = 0;
-        exitVisible = false;
         visible = false;
         return;
 }
@@ -90,35 +88,17 @@ if(instance_exists(obj_exeller_clone))
         }
 }
 
-// --- SENSOR 3: EL ECO DE LA SALIDA (v4.5) ---
-// La contrapartida POBRE del sensor 1 de Amy Canon
-// (obj_amycanon_indicators): igual flecha verde (spr_sindicator2),
-// mismas matematicas (instance_nearest + point_direction), pero con
-// DISTANCIA: solo si el anillo de escape esta a menos de
-// AMELIA_EXIT_SENSE_RADIUS px (Amy Canon la ve SIEMPRE, sin
-// condicion). La fuerza crece con la cercania (exitK): solida pegada
-// a la salida, apenas un susurro en el borde del radio. Si Amelia se
-// aleja, la flecha se apaga sola: la salida deja de "responderle".
-exitVisible = false;
-exitK = 0;
-if(instance_exists(obj_bigring))
-{
-        var exitRing = instance_nearest(global.player.x, global.player.y, obj_bigring);
-        if(exitRing != noone)
-        {
-                var _exitD = point_distance(global.player.x, global.player.y, exitRing.x, exitRing.y);
-                if(_exitD <= AMELIA_EXIT_SENSE_RADIUS)
-                {
-                        exitAngle = point_direction(global.player.x, global.player.y, exitRing.x, exitRing.y);
-                        exitK = 1 - (_exitD / AMELIA_EXIT_SENSE_RADIUS);
-                        exitVisible = true;
-                }
-        }
-}
+// NOTA v4.7: este objeto SOLO dibuja las AURAS de calor. La MARCA DE
+// LA SALIDA (flecha verde a <= 400 px, v4.5) vive en su propio objeto
+// obj_amelia_indicators: una version anterior del "eco de la salida"
+// llego a duplicarse aqui usando macros que ya no existen
+// (AMELIA_EXIT_SENSE_RADIUS & co.) y hacia CRASHEAR el Step al leerlas
+// ("Variable obj_amelia_auras.AMELIA_EXIT_SENSE_RADIUS not set before
+// reading it", linea 110). Eliminada: una sola flecha, la de siempre.
 
 // Como obj_amycanon_indicators: el evento Draw GUI de este objeto
 // solo corre cuando visible esta en true, asi que hay que encenderlo
-// cada frame que haya al menos un aura O el eco de la salida que
-// dibujar (y apagarlo cuando no). Sin esto el objeto nace con
-// visible = false (ver su .yy) y las auras nunca se dibujan.
-visible = (auraCount > 0 || exitVisible);
+// cada frame que haya al menos un aura que dibujar (y apagarlo cuando
+// no). Sin esto el objeto nace con visible = false (ver su .yy) y
+// las auras nunca se dibujan.
+visible = (auraCount > 0);

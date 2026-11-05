@@ -26,6 +26,16 @@ if(isStuck)
 //  a la misma velocidad (FW_ARROW_FLIGHT = FWBOLT_SPEED del server).
 //  El primer cliente que la ve clavarse reporta CLIENT_FWBOLT_HIT
 //  tipo 1 y el server fija la posicion para todos (estado 3).
+//
+//  v2.15.2 — FIX «NO SE CLAVAN EN LA PARED» (Fart Zone & co.): el
+//  barrido miraba SOLO obj_solid_parent, pero en Fart Zone los muros
+//  son obj_fart_tile (hijos de obj_floor_parent, NO de solid_parent)
+//  y la flecha atravesaba TODO. Ahora el chequeo es scr_fw_wall_at
+//  (scr_characters): toda la jerarquia de piso del jugador
+//  (obj_floor_parent) MENOS la familia de plataformas saltables
+//  (obj_platform_jumptrough), que el jugador tampoco toca de lado.
+//  Los muros que la flecha SI siente son EXACTAMENTE los que siente
+//  el jugador al caminar: nunca mas un mapa donde "no se clava".
 // =====================================================================
 var _dir = sign(image_xscale);
 
@@ -49,7 +59,7 @@ if(_dir != 0)
         }
 
         // disparo a bocajarro: nacio ya dentro de un solido
-        if(place_meeting(x, y, obj_solid_parent))
+        if(scr_fw_wall_at(x, y))
         {
                 isStuck = true;
                 scr_fw_arrow_spawn(fwId, x, y, image_xscale);
@@ -66,7 +76,7 @@ if(_dir != 0)
                 var _paso = min(FW_ARROW_SWEEP, _todo);
                 _todo -= _paso;
 
-                if(place_meeting(x + _paso * _dir, y, obj_solid_parent))
+                if(scr_fw_wall_at(x + _paso * _dir, y))
                 {
                         // punto exacto de contacto: busqueda binaria de
                         // 0,5 px (el ultimo x que NO toca el solido)
@@ -75,7 +85,7 @@ if(_dir != 0)
                         while(_hi - _lo > 0.5)
                         {
                                 var _mid = (_lo + _hi) / 2;
-                                if(place_meeting(x + _mid * _dir, y, obj_solid_parent))
+                                if(scr_fw_wall_at(x + _mid * _dir, y))
                                         _hi = _mid;
                                 else
                                         _lo = _mid;

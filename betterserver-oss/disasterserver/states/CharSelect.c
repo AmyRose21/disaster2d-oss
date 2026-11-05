@@ -2,6 +2,8 @@
 #include <States.h>
 #include <CMath.h>
 #include <Colors.h>
+#include <Maps.h> /* v4.7: map_pick_random (practica con mapa al azar) */
+#include <stdlib.h> /* v4.7: rand() de charselect_choose_exe se usaba sin declarar */
 
 bool charselect_check_state(Server *server)
 {
@@ -354,10 +356,17 @@ bool charselect_init(int8_t map, Server *server)
 	return true;
 }
 
+/* v4.7 (pedido del usuario): la practica de supervivientes (.sp)
+ * elige mapa AL AZAR, como un modo normal - map_pick_random (Maps.c)
+ * sortea entre los mapas activos del Config.json sin repetir el
+ * ultimo jugado. Sin votacion (es un modo solo): un sorteo directo. */
 bool charselect_init_survpractice(Server *server)
 {
 	Debug("Attepting to enter ST_CHARSELECT (survivor practice)...");
 	RAssert(server);
+
+	/* v4.7: mapa sorteado (antes: 20 fijo = Fart Zone eterno) */
+	int8_t map = map_pick_random(server);
 
 	/* charselect_choose_exe() normally resets these for us. */
 	for (size_t i = 0; i < server->peers.capacity; i++)
@@ -397,7 +406,7 @@ bool charselect_init_survpractice(Server *server)
 
 	PacketCreate(&pack, SERVER_LOBBY_EXE);
 	PacketWrite(&pack, packet_write16, server->lobby.exe);
-	PacketWrite(&pack, packet_write16, 20);
+	PacketWrite(&pack, packet_write16, map);
 	server_broadcast(server, &pack, true);
 
 	PacketCreate(&pack, SERVER_CHAR_TIME_SYNC);
@@ -405,7 +414,9 @@ bool charselect_init_survpractice(Server *server)
 	server_broadcast(server, &pack, true);
 
 	Info(LOG_YLW "Server is now in " LOG_PUR "Character Select " LOG_YLW "(survivor practice)");
-	server->lobby.map = 20;
+	Info("Map is [" LOG_BLU "%s" LOG_RST "]", g_mapList[map].name);
+	server->lobby.map = map;
+	server->last_map = map;
 
 	for (size_t i = 0; i < server->peers.capacity; i++)
 	{
@@ -417,6 +428,9 @@ bool charselect_init_survpractice(Server *server)
 		if (data->in_game)
 			continue;
 
+		char msg[256];
+		snprintf(msg, 100, CLRCODE_GRN "map: %s" CLRCODE_RST, g_mapList[map].name);
+		server_send_msg(server, data->peer, msg);
 		server_send_msg(server, data->peer, CLRCODE_GRN "survivor practice:~ pick your character!");
 	}
 
