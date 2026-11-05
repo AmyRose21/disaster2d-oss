@@ -3462,3 +3462,51 @@ Server: cmake Release 100% limpio + smoke test (v1101, 8606, Lobby).
 Pendiente: partida real (server Y cliente se actualizan JUNTOS).
 
 Entregable: download/lms_sonic_v1.zip (cliente + server + LEEME).
+
+---
+
+## v5.1 — Copias propias (Sally Canon / Vanilla) + LMS multi-canción + Suite v5.2 (2026-11-06)
+
+### Qué se hizo
+
+**A) 14 sprites copia** (registrados en .yyp + .resource_order):
+- Sally Canon ← Sally: `spr_lobby_icon_sallycanon`, `spr_char_info_sallycanon`,
+  `spr_playerhealth_sallycanon` (7f), `_hit_`, `_demon_`, `spr_playerescaped_sallycanon`,
+  `spr_menu_sallycanon` (retrato animado, 20f).
+- Vanilla ← Cream: los mismos 7 con sufijo `_vanilla` (retrato 18f).
+- PNGs copiados byte a byte de los frames fuente (raíz + layers), GUIDs nuevos.
+
+**B) scr_characters.gml — bloque v5.1 de resolvedores** (sustituye al v3.7):
+`scr_lobby_icon_sprite/frame/animated/pair` + `scr_lobby_shiny_setup/resolve/escape`
++ `scr_hud_strip/strip_red/hit/demon/escaped/escaped_draw`. Prioridad lobby:
+brillo (sh) > sprite propio > tira común. Fix latente incluido: el guard de
+`scr_lobby_shiny_resolve` ahora llega hasta FLEETWAY (antes `_ch > CHARACTER_BLAZE`
+la dejaba fuera).
+
+**C) Redirecciones** (dejan de reusar arte ajeno): obj_lobby/Create (retratos),
+obj_lobby/Draw (placas), obj_lobby_icon/Draw (nav + resolve por fotograma),
+net_state_charselect (RESPONSE **y** CHANGE), obj_menu_waiting (lista de sala),
+obj_level/Draw_64 (HUD propio + ajeno), obj_level/Create (marcador TAB),
+net_state_results (cases 1–4). Ningún remapeo manual de Sally Canon/Vanilla queda.
+
+**D) LMS multi-canción**: Server.h (`LMS_SONG_COUNT` + `LMS_SONG_SEC[]` +
+`Game.lms_song`), Game.c (elección `rand() % LMS_SONG_COUNT`, reloj a la duración
+de la elegida, `PacketWrite8` del índice, reenvío en join), Packet.h (payload u8),
+scr_lms.gml (`LMS_HP` + `global.lmsSongs` + `scr_lms_play_song`), net_state_game
+(lee u8; server viejo ⇒ −1 ⇒ canción #1).
+
+**E) Suite TD2D v5.2**: módulo nuevo 🎤 Show LMS (multi-canción .mp3/.ogg/.wav
+con duración leída por Web Audio + macros del show + escritura de
+sounds/+.yyp+Server.h con backups/undo), editor de ICONOS DE SUPERVIVIENTES
+separado de killers (modo clásico/independiente: lobby + escapó + barra de vida),
+placas agrupadas (Supervivientes / Placas propias / Killers) con Sally Canon,
+Vanilla y Fleetway Amy editables, ayuda y autockequeo actualizados.
+
+### Validación
+- `apply_v5_1.py` idempotente; run fresco sobre clon HEAD == estado final byte a byte.
+- `validate_v5_1.py`: **239 OK · 0 FAIL** (sprites byte-idénticos al fuente,
+  .yyp JSON válido sin duplicados, llaves balanceadas, marcadores nuevos
+  presentes / remapeos viejos ausentes, 8 scripts JS con sintaxis OK).
+- Suite probado en navegador headless: arranque sin errores, cambio de módulos,
+  editor de Sally Canon en modo propio con targets correctos, editor killer
+  intacto, placas agrupadas en demo.

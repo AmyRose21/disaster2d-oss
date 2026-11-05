@@ -150,10 +150,8 @@ else if(state == 2 || state == 3)
                 if(sprInd == CHARACTER_BLAZE + 4)
                         _infoFrame = 15; // metal amy (v2.2): su propia placa
         }
-        else if(sprInd == 8)
-                _infoFrame = 5; // sally canon: usa la placa de Sally
-        else if(sprInd == 9)
-                _infoFrame = 4; // vanilla: usa la placa de Cream
+        // [Suite TD2D v5.1] Sally Canon (8) y Vanilla (9) ya NO se remapean:
+        // dibujan sus placas PROPIAS (spr_char_info_sallycanon/vanilla)
         else if(sprInd == 7)
                 _infoFrame = 11; // sonic
         else if(sprInd == 10)
@@ -166,7 +164,14 @@ else if(state == 2 || state == 3)
         // (spr_char_info_fw, 478x40), no un frame de la tira comun.
         if(!_amyHidden)
         {
-                if(sprInd == 13)
+                // [Suite TD2D v5.1] placas PROPIAS: Sally Canon y Vanilla ya no
+                // reusan las de Sally/Cream — cada una con su copia editable.
+                // Fleetway sigue con su tira dedicada (v2.14).
+                if(sprInd == 8)
+                        draw_sprite(spr_char_info_sallycanon, 0, 1, 232-5);
+                else if(sprInd == 9)
+                        draw_sprite(spr_char_info_vanilla, 0, 1, 232-5);
+                else if(sprInd == 13)
                         draw_sprite(spr_char_info_fw, 0, 1, 232-5);
                 else
                         draw_sprite(spr_char_info, _infoFrame, 1, 232-5);

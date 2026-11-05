@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Suite TD2D v3.9.1 · editor de arte</title>
+<title>Suite TD2D v5.2 · editor del juego</title>
 <style>
 :root{
   --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
@@ -395,6 +395,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   <button class="mnav" data-mod="cd">⏱ Enfriamientos</button>
   <button class="mnav" data-mod="arte">🖼 Arte e imágenes</button>
   <button class="mnav" data-mod="keys">🎮 Botones</button>
+  <button class="mnav" data-mod="lms">🎤 Show LMS</button>
   <span id="modnav-note">tú mueves · el código se escribe solo</span>
 </nav>
 <nav id="subnav-cd" class="subnav hidden">
@@ -656,7 +657,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
     </div>
     <div style="display:flex;gap:10px;flex:1;min-height:0">
       <aside class="side" style="width:250px">
-        <div class="side-head">Personaje (placa de spr_char_info)</div>
+        <div class="side-head">Personaje <span class="muted" style="font-weight:400">(supervivientes · placas propias · killers)</span></div>
         <div id="arte-plaque-list" style="flex:1;overflow-y:auto;padding:6px"></div>
       </aside>
       <main class="mid" style="overflow-y:auto">
@@ -714,11 +715,19 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   <!-- ====== SUB 2: ICONO DE SELECCIÓN ====== -->
   <div class="arte-subpane hidden" data-sub="iconos" style="display:flex;gap:10px;flex:1;min-height:0">
     <aside class="side" style="width:250px">
-      <div class="side-head">Iconos de killers (sprites propios)</div>
+      <!-- v5.2: supervivientes SEPARADOS de los killers: cada uno con modo
+           clásico (tira común) o independiente (sprite propio, como los
+           exes). Sally Canon y Vanilla ya traen copias propias (v5.1). -->
+      <div class="side-head">Supervivientes <span class="muted" style="font-weight:400">(clásico / propio)</span></div>
+      <div id="sv-list" style="max-height:45%;overflow-y:auto;padding:6px"></div>
+      <div class="side-head" style="margin-top:8px">Killers <span class="muted" style="font-weight:400">(exeicon)</span></div>
       <div id="arte-icon-list" style="flex:1;overflow-y:auto;padding:6px"></div>
     </aside>
     <main class="mid" style="overflow-y:auto">
-      <div class="arte-head"><b id="arte-icon-size">—</b> <span class="muted">· los exeicon son animados (6 fotogramas): importa varias imágenes · los supervivientes van por «✨ Retratos con brillo» (sprite propio, sin tocar spr_lobby_icon)</span></div>
+      <!-- v5.2: editor de SUPERVIVIENTE (icono lobby + escapó + barra de vida) -->
+      <div id="sv-edit" class="hidden"></div>
+      <div id="killer-edit">
+      <div class="arte-head"><b id="arte-icon-size">—</b> <span class="muted">· los exeicon son animados (6 fotogramas): importa varias imágenes · los supervivientes van por la lista de arriba o por «✨ Retratos con brillo»</span></div>
       <div class="arte-two">
         <div>
           <div class="arte-subhead">Imágenes importadas (reel)</div>
@@ -747,6 +756,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
       </div>
       <div class="arte-subhead">Fotogramas del sprite (clic para asignar la siguiente imagen)</div>
       <div id="arte-icon-frames" class="fgrid"></div>
+      </div><!-- /killer-edit -->
 
       <!-- v3.7: retratos de superviviente con efecto de brillo · v3.9: tamaño nativo · v3.9.1: escape centrado -->
       <div class="arte-subhead" style="margin-top:18px">✨ Retratos con brillo (supervivientes)</div>
@@ -793,10 +803,12 @@ window.addEventListener('error', function () { window.__bootErrors++; });
         <h3>Cambios a escribir</h3>
         <div id="arte-icon-count" class="muted">sin cambios</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-          <button id="arte-icon-write" class="btn primary" style="flex:1;min-width:130px" disabled>Escribir en el proyecto</button>
+          <button id="sv-write" class="btn primary" style="flex:1;min-width:150px" disabled>✍ Escribir superviviente</button>
+          <button id="arte-icon-write" class="btn primary" style="flex:1;min-width:130px" disabled>Escribir killer</button>
         </div>
       </section>
-      <section class="note"><b>Multi-fotograma:</b> aquí solo se editan los <code>spr_lobby_exeicon</code> (sprites propios de cada killer, 6 fotogramas animados): importa una tira o varias imágenes sueltas, ajusta escala/desplazamiento/espejo/clave cromática y escribe PNG raíz + layers. Para los <b>supervivientes</b> usa «✨ Retratos con brillo»: sprite nuevo independiente al tamaño de tus imágenes + parche GML que redirige (nada de reescalar ni tocar la tira compartida).</section>
+      <section class="note"><b>Supervivientes (v5.2):</b> elige uno a la izquierda y decide el <b>modo</b>: <b>Clásico</b> edita su frame en las tiras comunes (<code>spr_lobby_icon</code> 24×24 · <code>spr_playerescaped</code> y <code>spr_playerhealth</code> 26×26) o <b>Independiente</b> crea/usa sprites propios (como los exes): icono a tamaño nativo, «escapó» centrado en su hueco y barra de vida 26×26. Sally Canon y Vanilla ya usan <b>copias propias</b> (v5.1) — editables sin tocar a Sally ni a Cream. El modo «escapó»/barra propia necesita la base v5.1 del juego (repo actualizado); el icono funciona igual siempre.</section>
+      <section class="note"><b>Multi-fotograma:</b> aquí solo se editan los <code>spr_lobby_exeicon</code> (sprites propios de cada killer, 6 fotogramas animados): importa una tira o varias imágenes sueltas, ajusta escala/desplazamiento/espejo/clave cromática y escribe PNG raíz + layers.</section>
       <section class="note">En modo solo lectura o demo, el botón descarga los PNG listos para reemplazar en GameMaker.</section>
     </aside>
   </div>
@@ -921,6 +933,44 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   </aside>
 </div><!-- /mod-keys -->
 
+<div id="mod-lms" class="mod hidden">
+  <aside class="side" style="overflow-y:auto">
+    <div class="side-head">El Show Fuerte</div>
+    <section class="note" style="border:none;padding:6px 4px">Cuando Sonic queda como <b>último superviviente</b> de la partida, el server dispara el show: banner «LAST MAN STANDING», cura total, pasivas y música a todo volumen.</section>
+    <section class="note" style="border:none;padding:6px 4px"><b>Cómo va ahora (v5.1):</b> el server elige <b>una canción al azar</b> de la lista, sube el reloj a <b>la duración de la elegida</b> y avisa a todos los clientes el índice — todos oyen lo mismo.</section>
+    <div class="side-head">Pasivas de Sonic en el show</div>
+    <section class="note" style="border:none;padding:6px 4px">Vida al arrancar · 55% de bloquear todo el daño · inmunidad a la marca de Metal Amy · todos sus stuns duran +2 s.</section>
+    <div class="side-head">Vista rápida</div>
+    <div id="lms-side-stats" class="muted" style="padding:6px"></div>
+  </aside>
+  <main class="mid" style="overflow-y:auto">
+    <div id="lms-warn" class="hidden" style="background:#3a1d1d;border:1px solid #e05d5d;border-radius:8px;padding:10px 14px"></div>
+    <div class="arte-head"><b>🎤 Canciones y ajustes del show</b> <span class="muted">· añade cuantas quieras: .mp3 vale igual que .ogg (GameMaker las convierte solo) · la duración se lee del audio</span></div>
+    <div class="arte-subhead">Canciones del show (el server elige una al azar)</div>
+    <div id="lms-songs"></div>
+    <div class="arte-rowline" style="gap:8px;flex-wrap:wrap;margin-top:4px">
+      <label class="filebtn">📂 Añadir canciones (.mp3 / .ogg / .wav)… <input id="lms-add" type="file" accept=".mp3,.ogg,.wav,audio/mpeg,audio/ogg,audio/wav" multiple hidden></label>
+      <span class="muted" id="lms-total"></span>
+    </div>
+    <div class="arte-subhead" style="margin-top:18px">Ajustes del show (solo mientras Sonic es el último)</div>
+    <div id="lms-macros" class="trgrid"></div>
+    <section class="note">«i-frames tras bloqueo» = invulnerabilidad tras bloquear un golpe (en segundos). «Vida al arrancar» = la cura que recibe Sonic al empezar el show. Los valores viven en <code>scr_lms.gml</code> como macros.</section>
+  </main>
+  <aside class="rightpane">
+    <section>
+      <h3>Cambios a escribir</h3>
+      <div id="lms-pending" class="muted">sin cambios</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <button id="lms-write" class="btn primary" style="flex:1;min-width:130px" disabled>Escribir en el proyecto</button>
+        <button id="lms-undo">Deshacer</button>
+      </div>
+    </section>
+    <section class="note"><b>Qué toca:</b> crea <code>sounds/mus_lms_N/</code> (audio + .yy) y lo registra en el .yyp; reescribe la lista <code>global.lmsSongs</code> de <code>scr_lms.gml</code>, las macros del show y la lista <code>LMS_SONG_SEC</code> del server (<code>Server.h</code>) con la duración de cada canción. La #1 es <code>mus_undefeatable</code> (Undefeatable): puedes cambiarle el audio con 🔄 pero no quitarla.</section>
+    <section class="note">Tras escribir: <b>F5</b> para el cliente <b>y recompila el server</b> (<code>betterserver-oss/compilar_server.bat</code>) — el reloj y la elección de canción los manda él. Respaldo en <code>_backups_animeditor/</code> + deshacer.</section>
+    <section class="note">Quitar una canción añadida borra su entrada de la lista (la carpeta queda, inofensiva); el botón ✕ no toca la #1.</section>
+  </aside>
+</div><!-- /mod-lms -->
+
 </div><!-- /mods -->
 
 <div id="toasts"></div>
@@ -984,11 +1034,18 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   el icono del HUD pasa a mostrar la tecla nueva al momento. Se reescribe la condición de teclado en
   <code>scr_*_special.gml</code> y la tecla del icono en <code>obj_playerui/Draw_64.gml</code> — nada de red ni server,
   y en Android los botones táctiles emulan las mismas teclas, así que aplica igual.</p>
-  <h4>6. Música</h4>
+  <h4>6. Módulo 🎤 Show LMS</h4>
+  <p>La música y los ajustes del <b>Show Fuerte</b> (cuando Sonic queda como último superviviente).
+  Añade <b>todas las canciones que quieras</b> (.mp3 o .ogg — GameMaker convierte los .mp3 solo):
+  el server elige una <b>al azar</b> al disparar el show y sube el reloj a <b>su duración</b>
+  (se lee automáticamente del audio). También editas las pasivas: % de bloqueo, i-frames tras
+  bloqueo, stun extra, la bola que aturde y la vida al arrancar. Tras escribir: F5 <b>y recompilar
+  el server</b> (el reloj y la canción elegida los manda él).</p>
+  <h4>7. Música</h4>
   <p>El botón <b>🎵 Música</b> de la barra de arriba pone el tema del lobby
   (<i>Sonic.exe The Disaster 1.0 OST</i>) mientras editas, en bucle y con control de volumen.
   Si lo dejaste encendido, vuelve solo en tu próxima visita.</p>
-  <h4>7. Escribir (todos los módulos)</h4>
+  <h4>8. Escribir (todos los módulos)</h4>
   <p>El panel derecho muestra el antes/después exacto de cada archivo. <b>Escribir</b> guarda una copia en
   <code>_backups_animeditor/</code> y tiene botón de deshacer. Después compila el juego (F5).
   El multijugador no necesita recompilar el server para animaciones ni macros: el frame exacto viaja por red
@@ -2923,6 +2980,7 @@ function switchModule(mod) {
   $('#mod-arte').classList.toggle('hidden', !(mod === 'arte' && !arteImg));
   $('#mod-img').classList.toggle('hidden', !(mod === 'img' || arteImg));
   $('#mod-keys').classList.toggle('hidden', mod !== 'keys');
+  $('#mod-lms').classList.toggle('hidden', mod !== 'lms');
   $('#subnav-cd').classList.toggle('hidden', mod !== 'cd');
   $('#subnav-arte').classList.toggle('hidden', mod !== 'arte');
   $$('#subnav-cd .subnav-btn').forEach(b => b.classList.toggle('sel', b.dataset.cdsub === S.cdSub));
@@ -2932,6 +2990,7 @@ function switchModule(mod) {
   if (mod === 'anim') computeAnimAgain();
   else if (mod === 'cd') { if (S.cdSub === 'tune') enterTune(); else if (T.enterSrv) T.enterSrv(); }
   else if (mod === 'keys' && T.enterKeys) T.enterKeys();
+  else if (mod === 'lms' && window.enterLms) window.enterLms();
   else if (mod === 'arte') { if (arteImg) enterImg(); else if (window.enterArte) window.enterArte(); }
   else enterImg();
 }
@@ -6573,7 +6632,36 @@ initKeys();
       }
       if (bmp) A.plaqueCache.set(i, bmp);
     }
+    // v5.2: placas PROPIAS de Sally Canon / Vanilla / Fleetway (sprites
+    // independientes de 1 frame; copias de las de Sally/Cream/Amy).
+    // Solo si existen en el proyecto (base v5.1 del juego).
+    A.extraMeta = A.extraMeta || {};
+    for (const ex of EXTRA_PLAQUES) {
+      if (A.plaqueCache.has(ex.id)) continue;
+      const yx = await readText('sprites/' + ex.sprite + '/' + ex.sprite + '.yy');
+      if (yx == null) { A.extraMeta[ex.id] = null; continue; }
+      const m = C.parseSpriteYy(yx);
+      A.extraMeta[ex.id] = m;
+      if (!m || !m.frames.length) continue;
+      const fg = m.frames[0];
+      let blob = m.layers.length ? await readBlob('sprites/' + ex.sprite + '/layers/' + fg + '/' + m.layers[0] + '.png') : null;
+      if (!blob) blob = await readBlob('sprites/' + ex.sprite + '/' + fg + '.png');
+      if (blob) A.plaqueCache.set(ex.id, await createImageBitmap(blob));
+    }
     return A.spriteMeta;
+  }
+
+  // v5.2 — placas extra (sprites propios por personaje)
+  const EXTRA_PLAQUES = [
+    { id: 100, name: 'Sally Canon', sprite: 'spr_char_info_sallycanon', key: 'sallycanon', meter: 5, note: 'copia propia de la de Sally' },
+    { id: 101, name: 'Vanilla', sprite: 'spr_char_info_vanilla', key: 'vanilla', meter: 4, note: 'copia propia de la de Cream' },
+    { id: 102, name: 'Fleetway Amy', sprite: 'spr_char_info_fw', key: 'fleetway', meter: 3, note: 'placa propia del juego (v2.14)' }
+  ];
+  function extraPlaqueOf(i) { return EXTRA_PLAQUES.find(e => e.id === i) || null; }
+  function plaqueName(i) {
+    const ex = extraPlaqueOf(i);
+    if (ex) return ex.name;
+    return AR.plaqueNames[i] || ('Placa ' + i);
   }
 
   function bitmapToRgba(bmp) {
@@ -6594,7 +6682,8 @@ initKeys();
     const rgba = bitmapToRgba(bmp);
     A.lastRgba = rgba;
     const model = AC.decodePlaque(rgba, A.glyphs);
-    model.meter = { which: i };   // medidor original de esta placa
+    const ex = extraPlaqueOf(i);
+    model.meter = { which: ex ? ex.meter : i };   // medidor original de esta placa
     A.decoded.set(i, model);
     A.models.set(i, JSON.parse(JSON.stringify(model)));
     return model;
@@ -6747,7 +6836,9 @@ initKeys();
     const list = $('#arte-plaque-list');
     if (!list) return;
     list.innerHTML = '';
-    for (let i = 0; i < 16; i++) {
+    // v5.2: lista AGRUPADA — supervivientes aparte de los killers, y al final
+    // las placas PROPIAS de Sally Canon / Vanilla / Fleetway si existen
+    const mkRow = (i, extraNote) => {
       const row = document.createElement('div');
       row.className = 'arte-row' + (A.sel === i ? ' sel' : '') + (A.dirty.has(i) ? ' dirty' : '');
       row.dataset.idx = i;
@@ -6758,7 +6849,7 @@ initKeys();
       const bmp = A.plaqueCache.get(i);
       if (bmp) tctx.drawImage(bmp, 0, 0);
       const lbl = document.createElement('span');
-      lbl.textContent = AR.plaqueNames[i] || ('Placa ' + i);
+      lbl.textContent = plaqueName(i);
       const badge = document.createElement('span');
       badge.className = 'arte-badge';
       badge.textContent = A.dirty.has(i) ? '●' : '';
@@ -6766,9 +6857,26 @@ initKeys();
       rowlbl.className = 'arte-rowlbl';
       rowlbl.append(lbl, badge);
       row.append(thumb, rowlbl);
+      if (extraNote) row.title = extraNote;
       row.addEventListener('click', () => selectPlaque(i));
       list.appendChild(row);
+    };
+    const mkHead = (txt) => {
+      const h = document.createElement('div');
+      h.className = 'side-head';
+      h.style.margin = '4px 0 2px';
+      h.textContent = txt;
+      list.appendChild(h);
+    };
+    mkHead('Supervivientes');
+    for (const i of [0, 1, 2, 3, 4, 5, 6, 11, 12, 13, 14]) mkRow(i);
+    const extras = EXTRA_PLAQUES.filter(e => A.plaqueCache.has(e.id));
+    if (extras.length) {
+      mkHead('Placas propias');
+      for (const e of extras) mkRow(e.id, e.sprite + ' · ' + e.note);
     }
+    mkHead('Killers');
+    for (const i of [7, 8, 9, 10, 15]) mkRow(i);
   }
 
   async function selectPlaque(i) {
@@ -6779,7 +6887,7 @@ initKeys();
     }
     A.sel = i;
     const model = await decodeFrame(i);
-    if (!model) { toast('No puedo leer el fotograma ' + i + ' de spr_char_info.', 'err'); return; }
+    if (!model) { toast('No puedo leer la placa de ' + plaqueName(i) + '.', 'err'); return; }
     buildPlaqueList();
     const ed = modelToEditable(A.models.get(i));
     fillEditor(i, ed);
@@ -6804,7 +6912,8 @@ initKeys();
     oN.value = -1; oN.textContent = '— sin medidor —';
     sel.appendChild(oN);
     sel.value = String(ed.meter);
-    $('#arte-cur-name').textContent = AR.plaqueNames[i];
+    const exP = extraPlaqueOf(i);
+    $('#arte-cur-name').textContent = plaqueName(i) + (exP ? ' (placa propia: ' + exP.sprite + ')' : '');
     updateDirtyUI();
   }
 
@@ -6905,11 +7014,16 @@ initKeys();
         }
         const img = rgbaToImage(rgba);
         const blob = await new Promise(res => img.toBlob(res, 'image/png'));
-        const fg = A.spriteMeta.frames[i];
+        // v5.2: placa propia (Sally Canon / Vanilla / Fleetway) o frame de la tira
+        const exP = extraPlaqueOf(i);
+        const meta = exP ? ((A.extraMeta && A.extraMeta[i]) || null) : A.spriteMeta;
+        const spriteName = exP ? exP.sprite : PLAQUE_SPRITE;
+        const frameIdx = exP ? 0 : i;
+        const fg = meta ? meta.frames[frameIdx] : null;
         if (!fg) continue;
-        const targets = ['sprites/' + PLAQUE_SPRITE + '/' + fg + '.png'];
-        for (const lg of A.spriteMeta.layers)
-          targets.push('sprites/' + PLAQUE_SPRITE + '/layers/' + fg + '/' + lg + '.png');
+        const targets = ['sprites/' + spriteName + '/' + fg + '.png'];
+        for (const lg of meta.layers)
+          targets.push('sprites/' + spriteName + '/layers/' + fg + '/' + lg + '.png');
         for (const rel of targets) {
           // backup binario
           let backed = false;
@@ -7151,14 +7265,18 @@ initKeys();
     const ed = currentEditable();
     const rgba = renderEditable(ed, i);
     const img = rgbaToImage(rgba);
+    const exP = extraPlaqueOf(i);
+    const base = exP ? exP.sprite : ('spr_char_info_f' + String(i).padStart(2, '0') + '_' + (AR.plaqueKeys[i] || i));
     img.toBlob(b => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(b);
-      a.download = 'spr_char_info_f' + String(i).padStart(2, '0') + '_' + (AR.plaqueKeys[i] || i) + '.png';
+      a.download = base + '.png';
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     }, 'image/png');
-    toast('PNG descargado. En GameMaker: abre spr_char_info, elige el fotograma ' + i + ' y reemplaza la imagen.', 'ok');
+    toast(exP
+      ? 'PNG descargado. En GameMaker: abre ' + exP.sprite + ' y reemplaza su fotograma.'
+      : 'PNG descargado. En GameMaker: abre spr_char_info, elige el fotograma ' + i + ' y reemplaza la imagen.', 'ok');
   }
 
   // ================= COMPONENTE: TRANSFORMAR IMAGEN =================
@@ -7219,9 +7337,17 @@ initKeys();
   };
 
   async function enterIcons() {
+    // v5.2: listas de supervivientes Y killers; la primera entrada cae en el
+    // primer superviviente (los killers siguen a un clic, con su editor propio)
+    bindSvEvents();
+    buildSurvList();
+    buildIconSpriteList();
+    if (IC.enteredOnce) return;
+    IC.enteredOnce = true;
     if (!IC.sprite) {
-      buildIconSpriteList();
-      await selectIconSprite(LOBBY_SPRITES[0].name);
+      await selectSurvChar(SURV_CHARS[0]);
+    } else {
+      await selectIconSprite(IC.sprite);
     }
   }
 
@@ -7240,6 +7366,9 @@ initKeys();
 
   async function selectIconSprite(name) {
     IC.sprite = name;
+    const svBox = $('#sv-edit'), keBox = $('#killer-edit');
+    if (svBox) svBox.classList.add('hidden');
+    if (keBox) keBox.classList.remove('hidden');
     const def = LOBBY_SPRITES.find(s => s.name === name);
     IC.meta = null; IC.bitmaps = []; IC.assign = [];
     buildIconSpriteList();
@@ -8550,8 +8679,8 @@ initKeys();
         }
       }
       if (yypChanged && !(await yypSafeWrite(yypName, yyp, undoGroup))) return;
-      // 3) bloque de funciones en scr_characters.gml
-      await writeShinyGmlBlock(bdir, undoGroup);
+      // 3) bloque de funciones en scr_characters.gml (v5.2: regen completo)
+      await regenIconRouterBlock(bdir, undoGroup);
       // 4) parches de llamada (obj_lobby_icon + obj_level)
       await patchLobbyIconDraw(bdir, undoGroup);
       await patchLevelDraw(bdir, undoGroup);
@@ -8855,6 +8984,642 @@ initKeys();
     return block;
   }
 
+  // ================= SUB 2 (v5.2): ICONOS DE SUPERVIVIENTES =================
+  // Separados de los killers (lista propia arriba). Cada superviviente puede
+  // ir en modo CLÁSICO (su frame/bloque en las tiras comunes) o INDEPENDIENTE
+  // (sprites propios, como los exeicon). Cubre los 3 sitios donde vive el
+  // icono de un superviviente: lobby (selección + lista de sala), «escapó»
+  // del HUD y barra de vida (7 estados + golpeado + demonizado).
+  // Sally Canon y Vanilla usan COPAS propias desde la base v5.1 del juego.
+
+  const SURV_CHARS = [
+    { key: 'tails', label: 'Tails', macro: 'CHARACTER_TAILS', frame: 2, block: 0 },
+    { key: 'knux', label: 'Knuckles', macro: 'CHARACTER_KNUX', frame: 3, block: 1 },
+    { key: 'eggman', label: 'Eggman', macro: 'CHARACTER_EGGMAN', frame: 4, block: 2 },
+    { key: 'amy', label: 'Amy Rose', macro: 'CHARACTER_AMY', frame: 5, block: 3 },
+    { key: 'cream', label: 'Cream', macro: 'CHARACTER_CREAM', frame: 6, block: 4 },
+    { key: 'sally', label: 'Sally', macro: 'CHARACTER_SALLY', frame: 7, block: 5 },
+    { key: 'amycanon', label: 'Amy (canon)', macro: 'CHARACTER_AMY_CANON', frame: 8, block: 6 },
+    { key: 'sonic', label: 'Sonic', macro: 'CHARACTER_SONIC', frame: 9, block: 7 },
+    { key: 'sallycanon', label: 'Sally Canon', macro: 'CHARACTER_SALLY_CANON', ownOnly: true, note: 'copia propia de Sally (v5.1)' },
+    { key: 'vanilla', label: 'Vanilla', macro: 'CHARACTER_VANILLA', ownOnly: true, note: 'copia propia de Cream (v5.1)' },
+    { key: 'metal', label: 'Metal Sonic', macro: 'CHARACTER_METAL', frame: 10, block: 8 },
+    { key: 'amelia', label: 'Amelia', macro: 'CHARACTER_AMELIA', frame: 11, block: 9 },
+    { key: 'blaze', label: 'Blaze', macro: 'CHARACTER_BLAZE', frame: 12, block: 10 },
+    { key: 'fleetway', label: 'Fleetway Amy', macro: 'CHARACTER_FLEETWAY_AMY', frame: 13, block: 13, iconOwn: 'spr_lobby_icon_fw', note: 'icono propio del juego (v2.14); escapó y barra en la tira común (bloque 13)' }
+  ];
+  const OWN_ICON_SPR = { sallycanon: 'spr_lobby_icon_sallycanon', vanilla: 'spr_lobby_icon_vanilla', fleetway: 'spr_lobby_icon_fw' };
+  const HP_LABELS = ['sano', '−20%', '−40%', '−60%', '−80%', 'caído', 'revivido', 'golpeado', 'demonizado'];
+
+  const SV = {
+    char: null, mode: 'clasico', reel: [], w: 24, h: 24, bound: false,
+    tr: { scale: 1, dx: 0, dy: 0, flipX: false, flipY: false, chromaOn: false, chromaColor: '#ff00ff', chromaTol: 40 },
+    aIcon: [], aEsc: [-1], aHp: Array(9).fill(-1),
+    metaCache: {}, timer: null, frame: 0
+  };
+
+  function survSel() { return SURV_CHARS.find(c => c.key === SV.char) || SURV_CHARS[0]; }
+  function ownIconName(c) { return OWN_ICON_SPR[c.key] || ('spr_lobby_icon_' + c.key); }
+
+  async function svSpriteExists(name) {
+    const yy = await readText('sprites/' + name + '/' + name + '.yy');
+    return yy != null;
+  }
+
+  async function svMeta(name) {
+    if (SV.metaCache[name] !== undefined) return SV.metaCache[name];
+    const yy = await readText('sprites/' + name + '/' + name + '.yy');
+    SV.metaCache[name] = yy != null ? C.parseSpriteYy(yy) : null;
+    return SV.metaCache[name];
+  }
+
+  // ---------- lista lateral ----------
+  function buildSurvList() {
+    const el = $('#sv-list');
+    if (!el) return;
+    el.innerHTML = '';
+    for (const c of SURV_CHARS) {
+      const row = document.createElement('div');
+      row.className = 'arte-row' + (SV.char === c.key ? ' sel' : '');
+      const lbl = document.createElement('span');
+      lbl.textContent = c.label;
+      row.appendChild(lbl);
+      if (c.ownOnly || c.iconOwn) {
+        const b = document.createElement('span');
+        b.className = 'arte-badge';
+        b.textContent = '★';
+        b.title = c.note || 'sprite propio';
+        b.style.color = 'var(--gold2)';
+        row.appendChild(b);
+      }
+      row.addEventListener('click', () => selectSurvChar(c));
+      el.appendChild(row);
+    }
+  }
+
+  // ---------- UI estática del editor (una vez) ----------
+  function buildSurvEditorStatic() {
+    const box = $('#sv-edit');
+    if (!box || SV.built) return;
+    SV.built = true;
+    box.innerHTML =
+      '<div class="arte-head"><b id="sv-title">—</b> <span class="muted" id="sv-sub"></span></div>' +
+      '<div class="arte-rowline" style="gap:16px;flex-wrap:wrap">' +
+      '  <label><input type="radio" name="sv-mode" value="clasico"> <b>Clásico</b> — su frame en las tiras comunes (spr_lobby_icon · spr_playerescaped · spr_playerhealth)</label>' +
+      '  <label><input type="radio" name="sv-mode" value="propio"> <b>Independiente</b> — sprite propio (como los exes · respeta los tamaños)</label>' +
+      '</div>' +
+      '<p class="note-inline" id="sv-mode-note"></p>' +
+      '<div class="arte-two">' +
+      '  <div>' +
+      '    <div class="arte-subhead">Imágenes importadas (reel)</div>' +
+      '    <label class="filebtn">📂 Elegir imágenes… <input id="sv-files" type="file" accept="image/*" multiple hidden></label>' +
+      '    <div id="sv-reel" class="fgrid"></div>' +
+      '    <div class="arte-subhead">Transformación</div>' +
+      '    <div class="trgrid">' +
+      '      <label>escala <input id="sv-scale" type="range" min="0.25" max="4" step="0.05" value="1"> <span id="sv-scale-v">1×</span></label>' +
+      '      <label>despl. X <input id="sv-dx" type="range" min="-80" max="80" step="1" value="0"></label>' +
+      '      <label>despl. Y <input id="sv-dy" type="range" min="-80" max="80" step="1" value="0"></label>' +
+      '      <label class="chkline"><input type="checkbox" id="sv-flipx"> espejo horizontal</label>' +
+      '      <label class="chkline"><input type="checkbox" id="sv-flipy"> espejo vertical</label>' +
+      '      <label class="chkline"><input type="checkbox" id="sv-chroma"> clave cromática</label>' +
+      '      <label>color clave <input id="sv-chromacol" type="color" value="#ff00ff"></label>' +
+      '      <label>tolerancia <input id="sv-chromatol" type="range" min="0" max="120" step="4" value="40" style="width:110px"></label>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div>' +
+      '    <div class="arte-subhead">Vista previa (lobby · escapó · barra de vida)</div>' +
+      '    <canvas id="sv-preview" width="300" height="130" style="image-rendering:pixelated;width:900px;max-width:100%;height:auto"></canvas>' +
+      '    <p class="note-inline" id="sv-hint"></p>' +
+      '  </div>' +
+      '</div>' +
+      '<div class="arte-subhead">A · Icono del lobby (selección) — <span class="muted" id="sv-icon-tgt"></span></div>' +
+      '<div id="sv-icon-frames" class="fgrid"></div>' +
+      '<div class="arte-subhead" style="margin-top:12px">B · Icono de «escapó» (HUD) — <span class="muted" id="sv-esc-tgt"></span></div>' +
+      '<div id="sv-esc-frames" class="fgrid"></div>' +
+      '<div class="arte-subhead" style="margin-top:12px">C · Barra de vida — 7 estados + golpeado + demonizado <span class="muted">(celdas de 26×26)</span></div>' +
+      '<div id="sv-hp-frames" class="fgrid"></div>';
+  }
+
+  function bindSvEvents() {
+    if (SV.bound) return;
+    SV.bound = true;
+    buildSurvEditorStatic();
+    $('#sv-files').addEventListener('change', e => { importSvImages(Array.from(e.target.files || [])); e.target.value = ''; });
+    const upd = () => renderSvAll();
+    $('#sv-scale').addEventListener('input', e => { SV.tr.scale = parseFloat(e.target.value); $('#sv-scale-v').textContent = e.target.value + '×'; upd(); });
+    $('#sv-dx').addEventListener('input', e => { SV.tr.dx = parseInt(e.target.value, 10); upd(); });
+    $('#sv-dy').addEventListener('input', e => { SV.tr.dy = parseInt(e.target.value, 10); upd(); });
+    $('#sv-flipx').addEventListener('change', e => { SV.tr.flipX = e.target.checked; upd(); });
+    $('#sv-flipy').addEventListener('change', e => { SV.tr.flipY = e.target.checked; upd(); });
+    $('#sv-chroma').addEventListener('change', e => { SV.tr.chromaOn = e.target.checked; upd(); });
+    $('#sv-chromacol').addEventListener('input', e => { SV.tr.chromaColor = e.target.value; upd(); });
+    $('#sv-chromatol').addEventListener('input', e => { SV.tr.chromaTol = parseInt(e.target.value, 10); upd(); });
+    document.querySelectorAll('input[name="sv-mode"]').forEach(r => r.addEventListener('change', () => {
+      if (r.checked) { SV.mode = r.value; renderSvAll(); }
+    }));
+    $('#sv-write').addEventListener('click', writeSv);
+    if (SV.timer) clearInterval(SV.timer);
+    SV.timer = setInterval(() => {
+      SV.frame++;
+      const pane = document.querySelector('.arte-subpane[data-sub="iconos"]');
+      if (pane && !pane.classList.contains('hidden') && SV.char) drawSvPreview();
+    }, 220);
+  }
+
+  async function selectSurvChar(c) {
+    SV.char = c.key;
+    SV.reel = []; SV.aIcon = []; SV.aEsc = [-1]; SV.aHp = Array(9).fill(-1);
+    IC.sprite = null; // la selección de killer se suelta
+    const svBox = $('#sv-edit'), keBox = $('#killer-edit');
+    if (svBox) svBox.classList.remove('hidden');
+    if (keBox) keBox.classList.add('hidden');
+    // modo: propio si el sprite propio existe (sc/vn/fw siempre en base v5.1)
+    if (c.ownOnly) SV.mode = 'propio';
+    else if (await svSpriteExists(ownIconName(c))) SV.mode = 'propio';
+    else SV.mode = 'clasico';
+    buildSurvList();
+    renderSvAll();
+  }
+
+  function importSvImages(files) {
+    const jobs = [];
+    for (const f of files)
+      if (/^image\//.test(f.type)) jobs.push(createImageBitmap(f).then(bmp => ({ bmp, name: f.name })).catch(() => null));
+    Promise.all(jobs).then(list => {
+      SV.reel = list.filter(Boolean);
+      if (!SV.reel.length) { toast('No pude leer ninguna imagen.', 'err'); return; }
+      SV.w = SV.reel[0].bmp.width; SV.h = SV.reel[0].bmp.height;
+      // A (propio): asignación secuencial 1 a 1 · A (clásico) y B: sin asignar · C: sin asignar
+      SV.aIcon = SV.mode === 'propio' ? SV.reel.map((_, i) => i).slice(0, 12) : [];
+      SV.aEsc = [-1];
+      SV.aHp = Array(9).fill(-1);
+      toast(SV.reel.length + ' imagen(es) · sprite ' + SV.w + '×' + SV.h + '. Haz clic en las celdas de abajo para asignarlas.', 'ok');
+      renderSvAll();
+    });
+  }
+
+  function svImg(i, w, h) {
+    const r = SV.reel[i];
+    if (!r) return null;
+    return transformToCanvas(r.bmp, w, h, SV.tr);
+  }
+
+  function svAssigned(list, i) { return list[i] != null && list[i] >= 0 && SV.reel[list[i]] ? list[i] : -1; }
+
+  function buildSvGrid(elId, cells, labels, w, h, assign, key) {
+    const grid = $(elId);
+    grid.innerHTML = '';
+    cells.forEach((_, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'arte-fcell';
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.style.width = Math.min(w * 2, 72) + 'px';
+      cv.style.height = 'auto';
+      cell.appendChild(cv);
+      const lbl = document.createElement('span');
+      lbl.textContent = (labels && labels[i] ? labels[i] + ' · ' : '') + (svAssigned(assign, i) >= 0 ? '← img ' + (svAssigned(assign, i) + 1) : 'vacío');
+      cell.appendChild(lbl);
+      cell.addEventListener('click', () => {
+        if (!SV.reel.length) { toast('Primero importa una o varias imágenes.', 'warn'); return; }
+        assign[i] = ((assign[i] != null ? assign[i] : -1) + 1) % (SV.reel.length + 1);
+        renderSvAll();
+      });
+      grid.appendChild(cell);
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      const a = svAssigned(assign, i);
+      if (a >= 0) { cell.classList.add('new'); ctx.drawImage(svImg(a, w, h), 0, 0); }
+      else { ctx.fillStyle = '#23262e'; ctx.fillRect(0, 0, w, h); }
+    });
+  }
+
+  function renderSvAll() {
+    if (!SV.char) return;
+    const c = survSel();
+    $('#sv-title').textContent = 'Iconos de ' + c.label;
+    const radios = document.querySelectorAll('input[name="sv-mode"]');
+    radios.forEach(r => { r.checked = r.value === SV.mode; r.disabled = !!c.ownOnly; });
+    $('#sv-mode-note').textContent = c.ownOnly
+      ? ('Este personaje usa sprite PROPIO (' + (c.note || 'copia v5.1') + '): edición directa, sin tocar las tiras comunes.' + (c.iconOwn && !c.ownOnly ? '' : ''))
+      : (c.iconOwn
+        ? 'Icono propio del juego; «escapó» y barra de vida van por la tira común (bloque ' + c.block + ').'
+        : (SV.mode === 'clasico'
+          ? 'Clásico: se escribe el frame ' + c.frame + ' de spr_lobby_icon, el ' + c.block + ' de spr_playerescaped y el bloque ' + c.block + ' de la barra (frames ' + (c.block * 7) + '–' + (c.block * 7 + 6) + ').'
+          : 'Independiente: se crean/usan sprites propios al tamaño de tus imágenes (el «escapó» se centra solo en su hueco).'));
+    $('#sv-sub').textContent = SV.mode === 'clasico' ? '· modo clásico (tiras comunes)' : '· modo independiente (sprite propio)';
+
+    // reel
+    const rl = $('#sv-reel');
+    rl.innerHTML = '';
+    SV.reel.forEach((r, k) => {
+      const cell = document.createElement('div');
+      cell.className = 'arte-fcell';
+      const cv = document.createElement('canvas');
+      const s = 56;
+      cv.width = s; cv.height = s;
+      const ctx = cv.getContext('2d');
+      const r2 = Math.min(s / r.bmp.width, s / r.bmp.height);
+      ctx.drawImage(r.bmp, (s - r.bmp.width * r2) / 2, (s - r.bmp.height * r2) / 2, r.bmp.width * r2, r.bmp.height * r2);
+      cell.appendChild(cv);
+      const lbl = document.createElement('span');
+      lbl.textContent = 'img ' + (k + 1);
+      cell.appendChild(lbl);
+      rl.appendChild(cell);
+    });
+
+    // secciones
+    if (SV.mode === 'propio') {
+      const n = Math.max(1, Math.min(SV.reel.length, 12));
+      if (SV.reel.length && SV.aIcon.length !== n) SV.aIcon = SV.reel.map((_, i) => i).slice(0, 12);
+      $('#sv-icon-tgt').textContent = ownIconName(c) + ' · ' + n + ' fotograma(s) a tamaño nativo (' + (SV.reel.length ? SV.w + '×' + SV.h : '—') + ')';
+      buildSvGrid('#sv-icon-frames', Array.from({ length: n }, (_, i) => i), null, SV.reel.length ? SV.w : 24, SV.reel.length ? SV.h : 24, SV.aIcon, 'icon');
+      const escOwn = !c.iconOwn; // fleetway: escapó va por la tira común
+      $('#sv-esc-tgt').textContent = escOwn ? ('spr_playerescaped_' + c.key + ' · tamaño nativo, se centra en su hueco') : ('spr_playerescaped frame ' + c.block + ' (tira común)');
+      buildSvGrid('#sv-esc-frames', [0], null, escOwn ? (SV.reel.length ? SV.w : 26) : 26, escOwn ? (SV.reel.length ? SV.h : 26) : 26, SV.aEsc, 'esc');
+      const hpOwn = !c.iconOwn;
+      buildSvGrid('#sv-hp-frames', Array.from({ length: 9 }, (_, i) => i), HP_LABELS, 26, 26, SV.aHp, 'hp');
+      $('#sv-hint').textContent = hpOwn
+        ? 'C crea/reemplaza spr_playerhealth_' + c.key + ' (7 estados) + _hit_ + _demon_ (26×26, como la tira del juego). El «anillo rojo» sigue saliendo de la tira común.'
+        : 'Fleetway: la barra va a su bloque de la tira común (frames ' + (c.block * 7) + '–' + (c.block * 7 + 6) + ').';
+    } else {
+      $('#sv-icon-tgt').textContent = 'spr_lobby_icon · frame ' + c.frame + ' (24×24, tira común)';
+      buildSvGrid('#sv-icon-frames', [0], null, 24, 24, SV.aIcon.length ? SV.aIcon : (SV.aIcon = [-1]), 'icon');
+      $('#sv-esc-tgt').textContent = 'spr_playerescaped · frame ' + c.block + ' (26×26, tira común)';
+      buildSvGrid('#sv-esc-frames', [0], null, 26, 26, SV.aEsc, 'esc');
+      buildSvGrid('#sv-hp-frames', Array.from({ length: 9 }, (_, i) => i), HP_LABELS, 26, 26, SV.aHp, 'hp');
+      $('#sv-hint').textContent = 'C escribe el bloque ' + c.block + ' de spr_playerhealth (frames ' + (c.block * 7) + '–' + (c.block * 7 + 6) + ') + frame ' + c.block + ' de _hit_ y _demon_.';
+    }
+    drawSvPreview();
+    syncSvPending();
+  }
+
+  function drawSvPreview() {
+    const cv = $('#sv-preview');
+    if (!cv || !SV.char) return;
+    const ctx = cv.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#101014';
+    ctx.fillRect(0, 0, cv.width, cv.height);
+    const c = survSel();
+    ctx.fillStyle = '#8b93a3'; ctx.font = '10px monospace';
+    // A: lobby
+    const iw = SV.mode === 'propio' ? (SV.reel.length ? SV.w : 24) : 24;
+    const ih = SV.mode === 'propio' ? (SV.reel.length ? SV.h : 24) : 24;
+    const zi = Math.max(1, Math.floor(Math.min(64 / iw, 56 / ih)));
+    ctx.fillText('lobby ' + iw + '×' + ih, 8, 12);
+    const ai = SV.mode === 'propio' ? (SV.aIcon.length ? SV.frame % SV.aIcon.length : -1) : 0;
+    const a0 = svAssigned(SV.aIcon, Math.min(ai, (SV.mode === 'propio' ? SV.aIcon.length : 1) - 1));
+    const imgA = a0 >= 0 ? svImg(a0, iw, ih) : null;
+    if (imgA) ctx.drawImage(imgA, 10, 16, iw * zi, ih * zi);
+    ctx.strokeStyle = '#3a3a4a'; ctx.strokeRect(9.5, 15.5, iw * zi + 1, ih * zi + 1);
+    // B: escapó
+    const ew = SV.mode === 'propio' && !c.iconOwn ? (SV.reel.length ? SV.w : 26) : 26;
+    const eh = SV.mode === 'propio' && !c.iconOwn ? (SV.reel.length ? SV.h : 26) : 26;
+    const ze = Math.max(1, Math.floor(Math.min(56 / ew, 56 / eh)));
+    ctx.fillText('escapó ' + ew + '×' + eh, 110, 12);
+    const a1 = svAssigned(SV.aEsc, 0);
+    const imgB = a1 >= 0 ? svImg(a1, ew, eh) : null;
+    if (imgB) ctx.drawImage(imgB, 112, 16, ew * ze, eh * ze);
+    ctx.strokeRect(111.5, 15.5, ew * ze + 1, eh * ze + 1);
+    // C: barra de vida (9 celdas 26x26)
+    ctx.fillText('barra de vida (26×26)', 8, 88);
+    for (let k = 0; k < 9; k++) {
+      const x = 8 + (k % 9) * 32, y = 94;
+      const a = svAssigned(SV.aHp, k);
+      ctx.fillStyle = '#1a1d24'; ctx.fillRect(x, y, 26, 26);
+      if (a >= 0) { const im = svImg(a, 26, 26); if (im) ctx.drawImage(im, x, y); }
+      ctx.strokeStyle = '#3a3a4a'; ctx.strokeRect(x - .5, y - .5, 27, 27);
+      if (k >= 7) { ctx.fillStyle = '#e05d5d'; ctx.font = '8px monospace'; ctx.fillText(HP_LABELS[k].slice(0, 4), x + 2, y + 34); ctx.font = '10px monospace'; ctx.fillStyle = '#8b93a3'; }
+    }
+  }
+
+  function syncSvPending() {
+    const c = survSel();
+    let n = 0;
+    if (svAssigned(SV.aIcon, 0) >= 0 || (SV.mode === 'propio' && SV.aIcon.some((_, i) => svAssigned(SV.aIcon, i) >= 0))) n++;
+    if (svAssigned(SV.aEsc, 0) >= 0) n++;
+    if (SV.aHp.some((_, i) => svAssigned(SV.aHp, i) >= 0)) n++;
+    const has = n > 0;
+    $('#sv-write').disabled = !has;
+    $('#arte-icon-count').textContent = has
+      ? (c.label + ': ' + (SV.mode === 'propio' ? 'modo independiente' : 'modo clásico') + ' · ' + n + ' sección(es) con imágenes')
+      : (SV.char ? 'superviviente: sin cambios (importa imágenes y asigna celdas)' : 'sin cambios');
+  }
+
+  // ---------- escritura ----------
+
+  async function writeFramesIntoSprite(name, frameMap, w, h, bdir, stamp, undoGroup) {
+    // frameMap: {frameIdx: canvas} — escribe PNG raíz + layers con respaldo
+    const meta = await svMeta(name);
+    if (!meta) return { name, created: false, ok: false };
+    for (const k of Object.keys(frameMap)) {
+      const i = parseInt(k, 10);
+      const fg = meta.frames[i];
+      if (!fg) continue;
+      const cv = frameMap[k];
+      const blob = await new Promise(res => cv.toBlob(res, 'image/png'));
+      const targets = ['sprites/' + name + '/' + fg + '.png'];
+      for (const lg of meta.layers) targets.push('sprites/' + name + '/layers/' + fg + '/' + lg + '.png');
+      for (const rel of targets) {
+        let backed = false;
+        try {
+          const fh = await fsWalkFile(rel);
+          const orig = await (await fh.getFile()).arrayBuffer();
+          const bfh = await bdir.getFileHandle(name + '_' + i + '_' + rel.split('/').pop(), { create: true });
+          const bw = await bfh.createWritable(); await bw.write(orig); await bw.close();
+          backed = true;
+        } catch (e) { }
+        await arteWriteFile(rel, blob);
+        undoGroup.push({ rel, backup: backed ? '_backups_animeditor/' + stamp + '/' + name + '_' + i + '_' + rel.split('/').pop() : null });
+      }
+    }
+    return { name, created: false, ok: true };
+  }
+
+  async function svEnsureSprite(name, n, w, h, xo, yo, oe, speed, parentName, parentPath, tex, bdir, stamp, undoGroup) {
+    let meta = await svMeta(name);
+    if (meta) return { meta, created: false };
+    const yy = buildSpriteYyG(name, w, h, xo, yo, oe, speed, n, parentName, parentPath, tex);
+    await arteWriteFile('sprites/' + name + '/' + name + '.yy', new Blob([yy], { type: 'text/plain' }));
+    meta = C.parseSpriteYy(yy);
+    undoGroup.push({ rel: 'sprites/' + name + '/' + name + '.yy', backup: null });
+    return { meta, created: true };
+  }
+
+  async function writeSv() {
+    const c = survSel();
+    if (!SV.reel.length) { toast('Importa primero una o varias imágenes.', 'warn'); return; }
+    if (S.mode !== 'fs') { downloadSv(c); return; }
+    const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+    const undoGroup = [];
+    const created = [];
+    try {
+      const bdir = await ensureDir('_backups_animeditor/' + stamp);
+      const sections = [];
+      if (SV.mode === 'clasico') {
+        // A: frame de la tira común
+        const a = svAssigned(SV.aIcon, 0);
+        if (a >= 0) {
+          await writeFramesIntoSprite('spr_lobby_icon', { [c.frame]: svImg(a, 24, 24) }, 24, 24, bdir, stamp, undoGroup);
+          sections.push('icono (tira común, frame ' + c.frame + ')');
+        }
+        const e0 = svAssigned(SV.aEsc, 0);
+        if (e0 >= 0) {
+          await writeFramesIntoSprite('spr_playerescaped', { [c.block]: svImg(e0, 26, 26) }, 26, 26, bdir, stamp, undoGroup);
+          sections.push('escapó (frame ' + c.block + ')');
+        }
+        const hpAny = SV.aHp.some((_, i) => svAssigned(SV.aHp, i) >= 0);
+        if (hpAny) {
+          const fm = {};
+          for (let k = 0; k < 7; k++) { const a2 = svAssigned(SV.aHp, k); if (a2 >= 0) fm[c.block * 7 + k] = svImg(a2, 26, 26); }
+          await writeFramesIntoSprite('spr_playerhealth', fm, 26, 26, bdir, stamp, undoGroup);
+          const fh2 = {}; const a7 = svAssigned(SV.aHp, 7); if (a7 >= 0) fh2[c.block] = svImg(a7, 26, 26);
+          await writeFramesIntoSprite('spr_playerhealth_hit', fh2, 26, 26, bdir, stamp, undoGroup);
+          const fd2 = {}; const a8 = svAssigned(SV.aHp, 8); if (a8 >= 0) fd2[c.block] = svImg(a8, 26, 26);
+          await writeFramesIntoSprite('spr_playerhealth_demon', fd2, 26, 26, bdir, stamp, undoGroup);
+          sections.push('barra de vida (bloque ' + c.block + ')');
+        }
+      } else {
+        // A: sprite propio del icono (tamaño nativo, 1–12 fotogramas)
+        const frames = SV.aIcon.map((a, i) => svAssigned(SV.aIcon, i)).filter(a => a >= 0);
+        if (frames.length) {
+          const n = frames.length;
+          const name = ownIconName(c);
+          const r = await svEnsureSprite(name, n, SV.w, SV.h, Math.floor(SV.w / 2), Math.floor(SV.h / 2), 4, 10, 'Lobby', 'folders/Sprites/Lobby.yy', 'Menus', bdir, stamp, undoGroup);
+          if (r.created) created.push(name);
+          const fm = {};
+          for (let i = 0; i < n; i++) fm[i] = svImg(frames[i], SV.w, SV.h);
+          await writeFramesIntoSprite(name, fm, SV.w, SV.h, bdir, stamp, undoGroup);
+          sections.push('icono propio ' + name + ' (' + n + ' f, ' + SV.w + '×' + SV.h + ')');
+        }
+        // B: escapó propio (fleetway se queda en la tira común)
+        const e0 = svAssigned(SV.aEsc, 0);
+        if (e0 >= 0) {
+          if (c.iconOwn) {
+            await writeFramesIntoSprite('spr_playerescaped', { [c.block]: svImg(e0, 26, 26) }, 26, 26, bdir, stamp, undoGroup);
+            sections.push('escapó (tira común, frame ' + c.block + ')');
+          } else {
+            const name = 'spr_playerescaped_' + c.key;
+            const r = await svEnsureSprite(name, 1, SV.w, SV.h, 0, SV.h, 6, 30, 'Player', 'folders/Sprites/GUI/Player.yy', 'Game', bdir, stamp, undoGroup);
+            if (r.created) created.push(name);
+            await writeFramesIntoSprite(name, { 0: svImg(e0, SV.w, SV.h) }, SV.w, SV.h, bdir, stamp, undoGroup);
+            sections.push('escapó propio ' + name);
+          }
+        }
+        // C: barra propia (fleetway: tira común)
+        const hpAny = SV.aHp.some((_, i) => svAssigned(SV.aHp, i) >= 0);
+        if (hpAny) {
+          if (c.iconOwn) {
+            const fm = {};
+            for (let k = 0; k < 7; k++) { const a2 = svAssigned(SV.aHp, k); if (a2 >= 0) fm[c.block * 7 + k] = svImg(a2, 26, 26); }
+            await writeFramesIntoSprite('spr_playerhealth', fm, 26, 26, bdir, stamp, undoGroup);
+            const fh2 = {}; const a7 = svAssigned(SV.aHp, 7); if (a7 >= 0) fh2[c.block] = svImg(a7, 26, 26);
+            await writeFramesIntoSprite('spr_playerhealth_hit', fh2, 26, 26, bdir, stamp, undoGroup);
+            const fd2 = {}; const a8 = svAssigned(SV.aHp, 8); if (a8 >= 0) fd2[c.block] = svImg(a8, 26, 26);
+            await writeFramesIntoSprite('spr_playerhealth_demon', fd2, 26, 26, bdir, stamp, undoGroup);
+            sections.push('barra (tira común, bloque ' + c.block + ')');
+          } else {
+            const nHp = 'spr_playerhealth_' + c.key;
+            const r1 = await svEnsureSprite(nHp, 7, 26, 26, 0, 26, 6, 30, 'Player', 'folders/Sprites/GUI/Player.yy', 'Game', bdir, stamp, undoGroup);
+            if (r1.created) created.push(nHp);
+            const fm = {};
+            for (let k = 0; k < 7; k++) { const a2 = svAssigned(SV.aHp, k); if (a2 >= 0) fm[k] = svImg(a2, 26, 26); }
+            await writeFramesIntoSprite(nHp, fm, 26, 26, bdir, stamp, undoGroup);
+            const nHit = 'spr_playerhealth_hit_' + c.key;
+            const r2 = await svEnsureSprite(nHit, 1, 26, 26, 0, 26, 6, 10, 'Player', 'folders/Sprites/GUI/Player.yy', 'Game', bdir, stamp, undoGroup);
+            if (r2.created) created.push(nHit);
+            const fh2 = {}; const a7 = svAssigned(SV.aHp, 7); if (a7 >= 0) fh2[0] = svImg(a7, 26, 26);
+            await writeFramesIntoSprite(nHit, fh2, 26, 26, bdir, stamp, undoGroup);
+            const nDem = 'spr_playerhealth_demon_' + c.key;
+            const r3 = await svEnsureSprite(nDem, 1, 26, 26, 0, 26, 6, 30, 'Player', 'folders/Sprites/GUI/Player.yy', 'Game', bdir, stamp, undoGroup);
+            if (r3.created) created.push(nDem);
+            const fd2 = {}; const a8 = svAssigned(SV.aHp, 8); if (a8 >= 0) fd2[0] = svImg(a8, 26, 26);
+            await writeFramesIntoSprite(nDem, fd2, 26, 26, bdir, stamp, undoGroup);
+            sections.push('barra propia ' + nHp + ' (+hit/demon)');
+          }
+        }
+      }
+      if (!sections.length) { toast('Ninguna celda tiene imagen asignada: haz clic en las celdas.', 'warn'); return; }
+      // registro .yyp de los sprites creados + bloque GML
+      if (created.length) {
+        const yypName = await yypFileName();
+        if (yypName == null) { toast('No encuentro el .yyp del proyecto.', 'err'); return; }
+        let yyp = await readText(yypName);
+        let yypChanged = false;
+        for (const nm of created) {
+          if (yyp.indexOf('"name":"' + nm + '"') >= 0) continue;
+          const entry = '    {"id":{"name":"' + nm + '","path":"sprites/' + nm + '/' + nm + '.yy",},},\n';
+          const mres = /"resources"\s*:\s*\[\s*\n/.exec(yyp);
+          if (!mres) { toast('No encuentro "resources" en el .yyp: no lo toco.', 'err'); return; }
+          yyp = yyp.slice(0, mres.index + mres[0].length) + entry + yyp.slice(mres.index + mres[0].length);
+          yypChanged = true;
+        }
+        if (yypChanged && !(await yypSafeWrite(yypName, yyp, undoGroup))) return;
+        await regenIconRouterBlock(bdir, undoGroup);
+      }
+      A.arteUndo = A.arteUndo || [];
+      A.arteUndo.push(undoGroup);
+      toast('Iconos de ' + c.label + ' escritos (' + sections.join(' · ') + ').\n'
+        + (SV.mode === 'propio' && created.length ? 'Sprites nuevos: ' + created.join(', ') + ' + bloque GML regenerado.\n' : '')
+        + 'Recompila el juego (F5) para verlos.');
+      SV.metaCache = {};
+      renderSvAll();
+    } catch (e) {
+      toast('Error al escribir: ' + e.message, 'err');
+    }
+  }
+
+  function downloadSv(c) {
+    let k = 0;
+    const dump = (cv, base, i) => cv.toBlob(b => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = base + '_f' + String(i).padStart(2, '0') + '.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }, 'image/png');
+    if (SV.mode === 'clasico') {
+      const a = svAssigned(SV.aIcon, 0); if (a >= 0) { dump(svImg(a, 24, 24), 'spr_lobby_icon_f' + c.frame, 0); k++; }
+      const e0 = svAssigned(SV.aEsc, 0); if (e0 >= 0) { dump(svImg(e0, 26, 26), 'spr_playerescaped_f' + c.block, 0); k++; }
+      for (let i = 0; i < 9; i++) { const a2 = svAssigned(SV.aHp, i); if (a2 >= 0) { dump(svImg(a2, 26, 26), (i < 7 ? 'spr_playerhealth_f' + (c.block * 7 + i) : (i === 7 ? 'spr_playerhealth_hit_f' + c.block : 'spr_playerhealth_demon_f' + c.block)), 0); k++; } }
+    } else {
+      SV.aIcon.forEach((a, i) => { const r = svAssigned(SV.aIcon, i); if (r >= 0) { dump(svImg(r, SV.w, SV.h), ownIconName(c), i); k++; } });
+      const e0 = svAssigned(SV.aEsc, 0); if (e0 >= 0) { dump(svImg(e0, SV.w, SV.h), 'spr_playerescaped_' + c.key, 0); k++; }
+      for (let i = 0; i < 9; i++) { const a2 = svAssigned(SV.aHp, i); if (a2 >= 0) { dump(svImg(a2, 26, 26), (i < 7 ? 'spr_playerhealth_' + c.key : (i === 7 ? 'spr_playerhealth_hit_' + c.key : 'spr_playerhealth_demon_' + c.key)), i % 7); k++; } }
+    }
+    toast(k + ' PNG descargados: reemplaza los fotogramas en GameMaker.', 'ok');
+  }
+
+  // .yy de sprite GENERALIZADO (v5.2): igual que buildShinyYy pero con carpeta
+  // y grupo de textura configurables (Lobby/Menus, GUI-Player/Game…)
+  function buildSpriteYyG(name, w, h, xorigin, yorigin, originEnum, playback, nFrames, parentName, parentPath, tex) {
+    return buildShinyYy(name, w, h, xorigin, yorigin, originEnum, playback, nFrames)
+      .replace('"name":"Lobby",\n    "path":"folders/Sprites/Lobby.yy",', '"name":"' + parentName + '",\n    "path":"' + parentPath + '",')
+      .replace('"name":"Game",\n    "path":"texturegroups/Game",', '"name":"' + tex + '",\n    "path":"texturegroups/' + tex + '",');
+  }
+
+  // ================= REGEN del bloque v5.1 (scr_characters.gml) =================
+  // Reconstruye TODO el bloque de resolvedores escaneando el proyecto: brillos
+  // (v3.7) + sprites propios de supervivientes (v5.2). Sustituye al bloque
+  // v3.7 si el proyecto aún lo tiene (actualiza solo).
+
+  async function regenIconRouterBlock(bdir, undoGroup) {
+    const rel = 'scripts/scr_characters/scr_characters.gml';
+    let gml = await readText(rel);
+    if (gml == null) { toast('No encuentro scr_characters.gml.', 'err'); throw new Error('sin scr_characters'); }
+    try {
+      const fh = await fsWalkFile(rel);
+      const orig = await (await fh.getFile()).arrayBuffer();
+      const bfh = await bdir.getFileHandle('scr_characters.gml', { create: true });
+      const bw = await bfh.createWritable(); await bw.write(orig); await bw.close();
+      undoGroup.push({ rel, backup: '_backups_animeditor/' + bdir.name + '/scr_characters.gml' });
+    } catch (e) { undoGroup.push({ rel, backup: null }); }
+
+    const has = svSpriteExists;
+    const shIcons = [], shEsc = [], ownIcons = [], ownEsc = [], ownHp = [], ownHit = [], ownDem = [];
+    for (const c of SURV_CHARS) {
+      if (await has('spr_lobby_icon_sh_' + c.key)) shIcons.push(c);
+      if (await has('spr_lobby_esc_sh_' + c.key)) shEsc.push(c);
+      if (await has(ownIconName(c))) ownIcons.push(c);
+      if (await has('spr_playerescaped_' + c.key)) ownEsc.push(c);
+      if (await has('spr_playerhealth_' + c.key)) ownHp.push(c);
+      if (await has('spr_playerhealth_hit_' + c.key)) ownHit.push(c);
+      if (await has('spr_playerhealth_demon_' + c.key)) ownDem.push(c);
+    }
+
+    const BEG = '// ===== [Suite TD2D v5.1] iconos de selección y HUD por personaje (auto: no editar) =====';
+    const END = '// ===== fin [Suite TD2D v5.1] =====';
+    const BEG37 = '// ===== [Suite TD2D v3.7] retratos con brillo (auto: no editar) =====';
+    const END37 = '// ===== fin [Suite TD2D v3.7] retratos con brillo =====';
+    let b = BEG + '\n';
+    b += '// Resolvedores de arte por personaje. LOBBY (icono de selección + lista\n';
+    b += '// de sala): prioridad brillo animado (spr_lobby_icon_sh_<key>, v3.7) >\n';
+    b += '// sprite propio (spr_lobby_icon_<key>; Sally Canon y Vanilla usan COPIAS\n';
+    b += '// propias desde v5.1 — antes reusaban las de Sally/Cream — y Fleetway su\n';
+    b += '// tira dedicada) > tira común spr_lobby_icon. HUD (barra de vida /\n';
+    b += '// golpeado / demonizado / escapó): tiras propias (spr_playerhealth_<key>)\n';
+    b += '// o las comunes con el bloque del personaje. El Suite TD2D regenera este\n';
+    b += '// bloque al escribir: no lo edites a mano.\n';
+    b += 'function scr_lobby_icon_sprite(char)\n{\n';
+    b += '    var _spr = -1;\n    switch(char)\n    {\n';
+    for (const c of shIcons) b += '        case ' + c.macro + ': _spr = spr_lobby_icon_sh_' + c.key + '; break;\n';
+    b += '    }\n    if(_spr < 0)\n    {\n        switch(char)\n        {\n';
+    for (const c of ownIcons) b += '            case ' + c.macro + ': _spr = ' + ownIconName(c) + '; break;\n';
+    b += '        }\n    }\n    if(_spr >= 0)\n        return _spr;\n    return spr_lobby_icon;\n}\n\n';
+    b += 'function scr_lobby_icon_frame(char)\n{\n';
+    b += '    if(scr_lobby_icon_sprite(char) != spr_lobby_icon)\n        return 0;\n    switch(char)\n    {\n';
+    b += '        case CHARACTER_SALLY_CANON: return CHARACTER_SALLY + 1;\n';
+    b += '        case CHARACTER_VANILLA: return CHARACTER_CREAM + 1;\n';
+    b += '        case CHARACTER_METAL: return 10;\n';
+    b += '        case CHARACTER_AMELIA: return 11;\n';
+    b += '        case CHARACTER_BLAZE: return 12;\n    }\n    return char + 1;\n}\n\n';
+    b += 'function scr_lobby_icon_animated(char)\n{\n    var _spr = scr_lobby_icon_sprite(char);\n    if(_spr == spr_lobby_icon)\n        return false;\n    return sprite_get_number(_spr) > 1;\n}\n\n';
+    b += 'function scr_lobby_icon_pair(char)\n{\n    return [scr_lobby_icon_sprite(char), scr_lobby_icon_frame(char)];\n}\n\n';
+    b += 'function scr_lobby_shiny_setup(char)\n{\n';
+    b += '    // v5.1: un solo camino para todos (brillo > propio > tira común)\n';
+    b += '    sprite_index = scr_lobby_icon_sprite(char);\n';
+    b += '    if(scr_lobby_icon_animated(char))\n    {\n';
+    b += '        image_speed = 1;\n';
+    b += '        if(image_index < 0 || image_index >= sprite_get_number(sprite_index))\n            image_index = 0;\n    }\n';
+    b += '    else\n    {\n        image_speed = 0;\n        image_index = scr_lobby_icon_frame(char);\n    }\n}\n\n';
+    b += 'function scr_lobby_shiny_resolve(inst)\n{\n    with(inst)\n    {\n';
+    b += '        if(obj_netclient.exeId == master_id)\n            return;\n';
+    b += '        if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)\n            return;\n';
+    b += '        var _ch = -1;\n';
+    b += '        if(master_id == obj_netclient.nid)\n            _ch = global.character;\n';
+    b += '        else if(ds_map_exists(obj_netclient.players, master_id) && !obj_netclient.players[? master_id].pending)\n            _ch = obj_netclient.players[? master_id].character;\n';
+    b += '        if(_ch < CHARACTER_TAILS || _ch == CHARACTER_EXE || _ch > CHARACTER_FLEETWAY_AMY)\n            return;\n';
+    b += '        scr_lobby_shiny_setup(_ch);\n    }\n}\n\n';
+    b += 'function scr_lobby_shiny_escape(char, xx, yy)\n{\n    var _spr = -1;\n    switch(char)\n    {\n';
+    for (const c of shEsc) b += '        case ' + c.macro + ': _spr = spr_lobby_esc_sh_' + c.key + '; break;\n';
+    b += '    }\n    if(_spr < 0)\n        return false;\n';
+    b += '    var _w = sprite_get_width(_spr);\n    var _h = sprite_get_height(_spr);\n';
+    b += '    var _ox = sprite_get_xoffset(_spr);\n    var _oy = sprite_get_yoffset(_spr);\n';
+    b += '    draw_sprite(_spr, current_time / 150 % sprite_get_number(_spr),\n';
+    b += '        xx + 13 - _w / 2 + _ox,\n        yy - 13 - _h / 2 + _oy);\n    return true;\n}\n\n';
+    b += 'function scr_hud_strip(char)\n{\n    switch(char)\n    {\n';
+    for (const c of ownHp) b += '        case ' + c.macro + ': return [spr_playerhealth_' + c.key + ', 0];\n';
+    b += '    }\n    return [spr_playerhealth, (char - CHARACTER_TAILS) * 7];\n}\n\n';
+    b += 'function scr_hud_strip_red(char)\n{\n';
+    b += '    switch(char)\n    {\n';
+    b += '        case CHARACTER_SALLY_CANON: return [spr_playerhealth_redring, (CHARACTER_SALLY - CHARACTER_TAILS) * 7];\n';
+    b += '        case CHARACTER_VANILLA: return [spr_playerhealth_redring, (CHARACTER_CREAM - CHARACTER_TAILS) * 7];\n';
+    b += '    }\n    return [spr_playerhealth_redring, (char - CHARACTER_TAILS) * 7];\n}\n\n';
+    b += 'function scr_hud_hit(char)\n{\n    switch(char)\n    {\n';
+    for (const c of ownHit) b += '        case ' + c.macro + ': return [spr_playerhealth_hit_' + c.key + ', 0];\n';
+    b += '    }\n    return [spr_playerhealth_hit, char - CHARACTER_TAILS];\n}\n\n';
+    b += 'function scr_hud_demon(char)\n{\n    switch(char)\n    {\n';
+    for (const c of ownDem) b += '        case ' + c.macro + ': return [spr_playerhealth_demon_' + c.key + ', 0];\n';
+    b += '    }\n    return [spr_playerhealth_demon, char - CHARACTER_TAILS];\n}\n\n';
+    b += 'function scr_hud_escaped(char)\n{\n    switch(char)\n    {\n';
+    for (const c of ownEsc) b += '        case ' + c.macro + ': return [spr_playerescaped_' + c.key + ', 0];\n';
+    b += '    }\n    return [spr_playerescaped, char - CHARACTER_TAILS];\n}\n\n';
+    b += 'function scr_hud_escaped_draw(char, xx, yy)\n{\n';
+    b += '    var _pair = scr_hud_escaped(char);\n';
+    b += '    if(_pair[0] != spr_playerescaped)\n    {\n';
+    b += '        var _w = sprite_get_width(_pair[0]);\n        var _h = sprite_get_height(_pair[0]);\n';
+    b += '        var _ox = sprite_get_xoffset(_pair[0]);\n        var _oy = sprite_get_yoffset(_pair[0]);\n';
+    b += '        draw_sprite(_pair[0], _pair[1], xx + 13 - _w / 2 + _ox, yy - 13 - _h / 2 + _oy);\n        return true;\n    }\n';
+    b += '    draw_sprite(_pair[0], _pair[1], xx, yy);\n    return true;\n}\n';
+    b += END + '\n';
+
+    const bi = gml.indexOf(BEG);
+    if (bi >= 0) {
+      const be = gml.indexOf(END);
+      gml = gml.slice(0, bi) + b + gml.slice(be >= 0 ? be + END.length + 1 : undefined);
+    } else {
+      const b37 = gml.indexOf(BEG37);
+      if (b37 >= 0) {
+        const e37 = gml.indexOf(END37);
+        gml = gml.slice(0, b37) + b + gml.slice(e37 >= 0 ? e37 + END37.length + 1 : undefined);
+      } else {
+        gml = gml.replace(/\s*$/, '\n\n') + b;
+      }
+    }
+    await arteWriteFile(rel, new Blob([gml], { type: 'text/plain' }));
+  }
+
   // ================= integración con el Suite =================
 
   function bindEvents() {
@@ -9041,6 +9806,7 @@ initKeys();
   window.__onProjectScan = (function (prev) {
     return function () {
       A.plaqueCache.clear(); A.decoded.clear(); A.models.clear(); A.spriteMeta = null;
+      A.extraMeta = null; SV.metaCache = {}; A.sel = -1; A.dirty.clear();
       if (typeof prev === 'function') prev();
     };
   })(window.__onProjectScan);
@@ -9051,6 +9817,469 @@ initKeys();
 
 </script>
 <script>
+/* =====================================================================
+   Suite TD2D — parte 6 (v5.2): módulo «🎤 Show LMS»
+
+   El Show Fuerte (Sonic último superviviente) con MULTI-CANCIÓN:
+     - añade cuantas canciones quieras (.mp3 / .ogg / .wav — GameMaker
+       convierte los .mp3 solo al compilar);
+     - el server elige UNA al azar (Server.h LMS_SONG_SEC, que este
+       módulo rellena con la duración LEÍDA DEL AUDIO vía Web Audio);
+     - el cliente la reproduce por índice (global.lmsSongs +
+       scr_lms_play_song, ya parcheados en la base v5.1 del juego);
+     - ajustes del show: % de bloqueo, i-frames tras bloqueo, stun
+       extra, bola que aturde y vida al arrancar (macros scr_lms.gml).
+
+   Requiere la base v5.1 del repo (global.lmsSongs). Sin ella avisa y
+   no escribe. Backups en _backups_animeditor/ + deshacer propio.
+   ===================================================================== */
+(() => {
+'use strict';
+const C = window.AnimCore;
+const T = window.__animtool;
+const S = T.S;
+const $ = (s) => document.querySelector(s);
+const toast = T.toast;
+
+const REL_LMS = 'scripts/scr_lms/scr_lms.gml';
+const REL_NSG = 'scripts/net_state_game/net_state_game.gml';
+const REL_SRVH = 'betterserver-oss/include/Server.h';
+const REL_GAMEC = 'betterserver-oss/disasterserver/states/Game.c';
+
+const LMS = {
+  scanned: false, baseOk: false, serverOk: false, nsgPatched: true, gamePatched: true,
+  songs: [],           // {asset, dur, ext, isNew, bytes?, fileName?, repl?}
+  macOrig: null, mac: null,
+  undoStack: [], audioCtx: null
+};
+
+const mmss = (s) => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
+const fmt1 = (v) => (Math.round(v * 10) / 10).toString();
+
+// ------------------------------------------------------------------
+// utilidades de escritura (patrón del módulo Arte: backups + undo)
+// ------------------------------------------------------------------
+
+async function lmsWrite(rel, data) {
+  const parts = normPath(rel).split('/').filter(Boolean);
+  let dh = S.rootHandle;
+  for (let i = 0; i < parts.length - 1; i++) dh = await dh.getDirectoryHandle(parts[i], { create: true });
+  const fh = await dh.getFileHandle(parts[parts.length - 1], { create: true });
+  const w = await fh.createWritable();
+  await w.write(data);
+  await w.close();
+}
+
+async function lmsBackup(rel, bdir, undo, binary) {
+  try {
+    const fh = await fsWalkFile(rel);
+    const f = await fh.getFile();
+    const data = binary ? await f.arrayBuffer() : await f.text();
+    const bname = rel.replace(/\//g, '__');
+    const bfh = await bdir.getFileHandle(bname, { create: true });
+    const w = await bfh.createWritable(); await w.write(data); await w.close();
+    undo.push({ rel, backup: '_backups_animeditor/' + bdir.name + '/' + bname, binary: !!binary });
+    return data;
+  } catch (e) { undo.push({ rel, backup: null }); return null; }
+}
+
+async function lmsYypName() {
+  const dh = await fsWalkDir('');
+  for await (const [n, h] of dh.entries())
+    if (h.kind === 'file' && n.endsWith('.yyp')) return n;
+  return null;
+}
+
+function lmsYypOk(t) {
+  try { JSON.parse(String(t).replace(/^\uFEFF/, '').replace(/,(\s*[}\]])/g, '$1')); return true; }
+  catch (e) { return false; }
+}
+
+// .yy de sonido a partir del de mus_undefeatable (campos probados del juego)
+function buildSoundYy(tmpl, asset, ext, dur) {
+  let yy = tmpl.split('mus_undefeatable').join(asset);
+  yy = yy.replace(new RegExp('"' + asset + '\\.[A-Za-z0-9]+"'), '"' + asset + '.' + ext + '"');
+  yy = yy.replace(/"duration":[0-9.]+/, '"duration":' + (Math.round(dur * 10000) / 10000));
+  return yy;
+}
+
+// duración real del audio (Web Audio decodifica mp3/ogg/wav)
+async function decodeDuration(file) {
+  try {
+    if (!LMS.audioCtx) LMS.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = await file.arrayBuffer();
+    const ab = await LMS.audioCtx.decodeAudioData(buf.slice(0));
+    return { dur: ab.duration, bytes: buf };
+  } catch (e) { return null; }
+}
+
+// ------------------------------------------------------------------
+// escaneo del proyecto
+// ------------------------------------------------------------------
+
+async function scanLms() {
+  LMS.songs = []; LMS.macOrig = null; LMS.scanned = true; LMS.baseOk = false;
+  const gml = await readText(REL_LMS);
+  if (gml == null) return;
+  const m = /global\.lmsSongs\s*=\s*\[([^\]]*)\]/.exec(gml);
+  if (!m) return; // proyecto sin base v5.1
+  LMS.baseOk = true;
+  const assets = m[1].split(',').map(s => s.trim()).filter(Boolean);
+  for (const a of assets) {
+    const yy = await readText('sounds/' + a + '/' + a + '.yy');
+    let dur = null, ext = '';
+    if (yy) {
+      const dm = /"duration":([0-9.]+)/.exec(yy); if (dm) dur = parseFloat(dm[1]);
+      const sm = /"soundFile":"([^"]+)"/.exec(yy); if (sm) ext = sm[1].split('.').pop();
+    }
+    LMS.songs.push({ asset: a, dur: dur, ext: ext, isNew: false });
+  }
+  // macros del show
+  const by = {};
+  C.parseMacros(gml).forEach(mm => by[mm.name] = mm);
+  const spinM = /^#macro\s+LMS_SPIN_STUN\s+(\w+)/m.exec(gml);
+  const mac = {
+    chance: by.LMS_BLOCK_CHANCE ? by.LMS_BLOCK_CHANCE.value : 55,
+    invuln_s: by.LMS_BLOCK_INVULN ? (by.LMS_BLOCK_INVULN.value / 60) : 1,
+    stun: by.LMS_STUN_BONUS ? by.LMS_STUN_BONUS.value : 2,
+    spin: spinM ? spinM[1] === 'true' : true,
+    hp: by.LMS_HP ? by.LMS_HP.value : 100
+  };
+  LMS.macOrig = JSON.parse(JSON.stringify(mac));
+  LMS.mac = JSON.parse(JSON.stringify(mac));
+  // server presente y parcheado
+  const srv = await readText(REL_SRVH);
+  LMS.serverOk = srv != null && /#define LMS_SONG_COUNT/.test(srv);
+  const gc = await readText(REL_GAMEC);
+  LMS.gamePatched = gc != null && /lms_song/.test(gc);
+  const nsg = await readText(REL_NSG);
+  LMS.nsgPatched = nsg != null && /scr_lms_play_song/.test(nsg);
+}
+
+// ------------------------------------------------------------------
+// UI
+// ------------------------------------------------------------------
+
+function macChanged() {
+  const o = LMS.macOrig, m = LMS.mac;
+  return o && (o.chance !== m.chance || o.invuln_s !== m.invuln_s || o.stun !== m.stun
+    || o.spin !== m.spin || o.hp !== m.hp);
+}
+
+function pendingInfo() {
+  const add = LMS.songs.filter(s => s.isNew && !s.repl);
+  const repl = LMS.songs.filter(s => s.repl);
+  const mac = macChanged();
+  const parts = [];
+  if (add.length) parts.push(add.length + ' canción(es) nueva(s)');
+  if (repl.length) parts.push(repl.length + ' audio(s) reemplazado(s)');
+  if (mac) parts.push('ajustes del show');
+  return { add, repl, mac, any: parts.length > 0, text: parts.length ? parts.join(' · ') : 'sin cambios' };
+}
+
+function renderLms() {
+  const warn = $('#lms-warn');
+  const ro = S.mode !== 'fs';
+  let msgs = [];
+  if (!LMS.baseOk) msgs.push('Este proyecto <b>no tiene la base v5.1 del Show LMS</b> (falta <code>global.lmsSongs</code> en <code>scr_lms.gml</code>). Actualiza el juego desde el repo y vuelve a abrir la carpeta.');
+  if (LMS.baseOk && !LMS.serverOk) msgs.push('No encuentro <code>betterserver-oss/include/Server.h</code> (o sin bloque <code>LMS_SONG_COUNT</code>): solo se actualizará el cliente y el reloj usará la última lista guardada del server.');
+  if (LMS.baseOk && LMS.serverOk && !LMS.gamePatched) msgs.push('<code>Game.c</code> no tiene el parche multi-canción (¿proyecto viejo?): la duración nueva se guardará en <code>Server.h</code> pero el server usará la de la #1 hasta actualizar.');
+  if (LMS.baseOk && !LMS.nsgPatched) msgs.push('<code>net_state_game.gml</code> sin el parche del índice de canción: el cliente reproduciría siempre la #1 hasta actualizar.');
+  if (ro) msgs.push('Modo solo lectura: abre la carpeta del proyecto (Chrome/Edge) para escribir.');
+  if (msgs.length) { warn.innerHTML = msgs.map(x => '<div style="margin:2px 0">⚠ ' + x + '</div>').join(''); warn.classList.remove('hidden'); }
+  else warn.classList.add('hidden');
+
+  // filas de canciones
+  const box = $('#lms-songs');
+  box.innerHTML = '';
+  LMS.songs.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:6px;margin-bottom:6px;flex-wrap:wrap';
+    const num = document.createElement('b');
+    num.style.cssText = 'min-width:30px;color:' + (i === 0 ? 'var(--gold2)' : 'var(--mut)');
+    num.textContent = '#' + (i + 1);
+    const name = document.createElement('span');
+    name.style.flex = '1';
+    name.innerHTML = T.esc(s.asset) + (s.isNew
+      ? ' <span class="muted">· ' + T.esc(s.fileName || '') + (s.repl ? ' (reemplaza el audio)' : ' (nueva)') + '</span>'
+      : (i === 0 ? ' <span class="muted">· Undefeatable (original)</span>' : ''));
+    const dur = document.createElement('span');
+    dur.className = 'muted';
+    dur.textContent = (s.dur != null ? mmss(s.dur) + ' · ' + Math.round(s.dur) + ' s' : 'duración ?') + ' · ' + (s.ext || '?');
+    const bRep = mkBtn('🔄', 'reemplazar el audio de esta canción', async () => pickReplace(i));
+    const bUp = mkBtn('↑', 'subir', () => moveSong(i, -1));
+    const bDn = mkBtn('↓', 'bajar', () => moveSong(i, +1));
+    const bDel = mkBtn('✕', 'quitar de la lista', () => {
+      if (i === 0) { toast('La #1 (mus_undefeatable) no se quita: es la canción base.', 'warn'); return; }
+      LMS.songs.splice(i, 1); renderLms();
+    });
+    bUp.disabled = i === 0; bDn.disabled = i === LMS.songs.length - 1;
+    if (i === 0) bDel.disabled = true;
+    row.append(num, name, dur, bRep, bUp, bDn, bDel);
+    box.appendChild(row);
+  });
+
+  const st = $('#lms-side-stats');
+  if (st) st.innerHTML = LMS.baseOk
+    ? LMS.songs.length + ' canción(es) en la lista<br>duraciones: ' + (LMS.songs.map(s => Math.round(s.dur || 0)).join(' / ') || '—') + ' s<br>server: ' + (LMS.serverOk ? 'listo ✓' : 'no encontrado')
+    : 'proyecto sin base v5.1';
+  const tot = $('#lms-total');
+  if (tot) tot.textContent = LMS.baseOk ? 'el reloj del show = duración de la canción que salga (' + LMS.songs.length + ' en la lista)' : '';
+
+  // macros
+  const mg = $('#lms-macros');
+  mg.innerHTML = '';
+  if (LMS.mac) {
+    const mk = (label, val, attrs, tip) => {
+      const l = document.createElement('label');
+      l.innerHTML = label + ' ';
+      const inp = document.createElement('input');
+      inp.type = attrs.type || 'number';
+      for (const k in (attrs.attrs || {})) inp[k] = attrs.attrs[k];
+      if (attrs.type === 'checkbox') inp.checked = val; else inp.value = val;
+      if (tip) inp.title = tip;
+      inp.addEventListener('input', () => {
+        if (attrs.type === 'checkbox') LMS.mac[attrs.key] = inp.checked;
+        else {
+          const v = parseFloat(inp.value);
+          if (isFinite(v)) LMS.mac[attrs.key] = v;
+        }
+        syncPending();
+      });
+      l.appendChild(inp);
+      return l;
+    };
+    mg.appendChild(mk('Bloqueo de daño (% de golpes bloqueados)', fmt1(LMS.mac.chance), { key: 'chance', attrs: { min: 0, max: 100, step: 1, style: 'width:70px' } }, 'LMS_BLOCK_CHANCE'));
+    mg.appendChild(mk('i-frames tras bloqueo (s)', fmt1(LMS.mac.invuln_s), { key: 'invuln_s', attrs: { min: 0, max: 10, step: 0.1, style: 'width:70px' } }, 'LMS_BLOCK_INVULN (frames = s × 60)'));
+    mg.appendChild(mk('Stun extra de Sonic (s)', fmt1(LMS.mac.stun), { key: 'stun', attrs: { min: 0, max: 10, step: 0.5, style: 'width:70px' } }, 'LMS_STUN_BONUS'));
+    mg.appendChild(mk('Vida al arrancar', fmt1(LMS.mac.hp), { key: 'hp', attrs: { min: 1, max: 999, step: 1, style: 'width:70px' } }, 'LMS_HP'));
+    mg.appendChild(mk('La bola (spindash) aturde por contacto', LMS.mac.spin, { type: 'checkbox', key: 'spin' }, 'LMS_SPIN_STUN'));
+  }
+  syncPending();
+}
+
+function mkBtn(txt, tip, fn) {
+  const b = document.createElement('button');
+  b.textContent = txt; b.title = tip || '';
+  b.addEventListener('click', fn);
+  return b;
+}
+
+function syncPending() {
+  const p = pendingInfo();
+  $('#lms-pending').textContent = p.text;
+  $('#lms-write').disabled = !p.any || !LMS.baseOk || S.mode !== 'fs';
+}
+
+function moveSong(i, d) {
+  const j = i + d;
+  if (j < 0 || j >= LMS.songs.length) return;
+  const a = LMS.songs[i]; LMS.songs[i] = LMS.songs[j]; LMS.songs[j] = a;
+  renderLms();
+}
+
+function nextAsset() {
+  let n = 2;
+  const used = new Set(LMS.songs.map(s => s.asset));
+  while (used.has('mus_lms_' + n)) n++;
+  return 'mus_lms_' + n;
+}
+
+async function addLmsSongs(files) {
+  if (!LMS.baseOk) { toast('El proyecto no tiene la base v5.1 del Show LMS.', 'err'); return; }
+  let added = 0;
+  for (const f of files) {
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if (!['mp3', 'ogg', 'wav'].includes(ext)) { toast('«' + f.name + '» no es .mp3/.ogg/.wav: se ignora.', 'warn'); continue; }
+    const dec = await decodeDuration(f);
+    if (!dec || !dec.dur) { toast('No pude leer la duración de «' + f.name + '» (¿archivo válido?). Se ignora.', 'err'); continue; }
+    LMS.songs.push({ asset: nextAsset(), dur: dec.dur, ext: ext, isNew: true, bytes: dec.bytes, fileName: f.name });
+    added++;
+  }
+  if (added) toast(added + ' canción(es) lista(s) para escribir. Duración leída del audio.', 'ok');
+  renderLms();
+}
+
+async function pickReplace(i) {
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.mp3,.ogg,.wav,audio/mpeg,audio/ogg,audio/wav';
+  inp.addEventListener('change', async () => {
+    const f = (inp.files || [])[0];
+    if (!f) return;
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if (!['mp3', 'ogg', 'wav'].includes(ext)) { toast('Solo .mp3/.ogg/.wav.', 'warn'); return; }
+    const dec = await decodeDuration(f);
+    if (!dec) { toast('No pude decodificar ese audio.', 'err'); return; }
+    const s = LMS.songs[i];
+    s.repl = true; s.bytes = dec.bytes; s.dur = dec.dur; s.ext = ext; s.isNew = true; s.fileName = f.name;
+    toast('Audio de ' + s.asset + ' reemplazado por «' + f.name + '» (' + mmss(dec.dur) + ').', 'ok');
+    renderLms();
+  });
+  inp.click();
+}
+
+// ------------------------------------------------------------------
+// escritura
+// ------------------------------------------------------------------
+
+async function writeLms() {
+  const p = pendingInfo();
+  if (!p.any) { toast('No hay cambios que escribir.'); return; }
+  if (S.mode !== 'fs') { toast('Modo solo lectura: abre la carpeta del proyecto (Chrome/Edge).', 'warn'); return; }
+  if (!LMS.baseOk) { toast('El proyecto no tiene la base v5.1 del Show LMS.', 'err'); return; }
+  const lines = ['Se va a escribir en el proyecto:'];
+  p.add.forEach(s => lines.push('  · sounds/' + s.asset + '/ (' + s.ext + ', ' + mmss(s.dur) + ') + registro .yyp'));
+  p.repl.forEach(s => lines.push('  · audio nuevo de ' + s.asset + ' (' + s.ext + ', ' + mmss(s.dur) + ')'));
+  lines.push('  · scr_lms.gml: lista de ' + LMS.songs.length + ' canción(es)' + (LMS.serverOk ? ' + macros del show' : ''));
+  if (LMS.serverOk) lines.push('  · Server.h: LMS_SONG_SEC = { ' + LMS.songs.map(s => Math.max(1, Math.round(s.dur || 282))).join(', ') + ' }');
+  lines.push('\nDespués: F5 (cliente) y RECOMPILAR EL SERVER. ¿Continuar?');
+  if (!confirm(lines.join('\n'))) return;
+
+  const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  const undo = [];
+  try {
+    const bdir = await ensureDir('_backups_animeditor/' + stamp);
+
+    // 1) sonidos: carpetas nuevas / audios reemplazados
+    const tmpl = await readText('sounds/mus_undefeatable/mus_undefeatable.yy');
+    if (!tmpl) { toast('No encuentro sounds/mus_undefeatable/mus_undefeatable.yy (plantilla).', 'err'); return; }
+    for (const s of p.add.concat(p.repl)) {
+      const dirRel = 'sounds/' + s.asset + '/';
+      const yyRel = dirRel + s.asset + '.yy';
+      const audRel = dirRel + s.asset + '.' + s.ext;
+      const yyNew = buildSoundYy(tmpl, s.asset, s.ext, s.dur);
+      if (s.repl) await lmsBackup(yyRel, bdir, undo, false);
+      await lmsWrite(yyRel, yyNew);
+      // audio viejo de otra extensión: respaldar y quitar (mejor esfuerzo)
+      if (s.repl) {
+        for (const e2 of ['mp3', 'ogg', 'wav']) {
+          if (e2 === s.ext) continue;
+          const oldRel = dirRel + s.asset + '.' + e2;
+          try { const fh = await fsWalkFile(oldRel); const f = await fh.getFile(); const d = await f.arrayBuffer();
+            const bh = await bdir.getFileHandle(oldRel.replace(/\//g, '__'), { create: true });
+            const w2 = await bh.createWritable(); await w2.write(d); await w2.close();
+            undo.push({ rel: oldRel, backup: '_backups_animeditor/' + bdir.name + '/' + oldRel.replace(/\//g, '__'), binary: true });
+            try { const dh = await fsWalkDir('sounds/' + s.asset); await dh.removeEntry(s.asset + '.' + e2); } catch (e) { }
+          } catch (e) { /* no existía */ }
+        }
+      } else {
+        undo.push({ rel: yyRel, backup: null });
+        undo.push({ rel: audRel, backup: null, binary: true });
+      }
+      await lmsWrite(audRel, s.bytes);
+    }
+
+    // 2) registro .yyp (solo canciones nuevas)
+    const newAssets = p.add.filter(s => !s.repl).map(s => s.asset);
+    if (newAssets.length) {
+      const yypName = await lmsYypName();
+      if (!yypName) { toast('No encuentro el .yyp del proyecto.', 'err'); return; }
+      let yyp = await readText(yypName);
+      let changed = false;
+      for (const a of newAssets) {
+        if (yyp.indexOf('"name":"' + a + '"') >= 0) continue;
+        const entry = '    {"id":{"name":"' + a + '","path":"sounds/' + a + '/' + a + '.yy",},},\n';
+        const mres = /"resources"\s*:\s*\[\s*\n/.exec(yyp);
+        if (!mres) { toast('No encuentro la lista "resources" del .yyp: no lo toco.', 'err'); return; }
+        yyp = yyp.slice(0, mres.index + mres[0].length) + entry + yyp.slice(mres.index + mres[0].length);
+        changed = true;
+      }
+      if (changed) {
+        if (!lmsYypOk(yyp)) { toast('El .yyp nuevo NO validaría: no se escribe.', 'err'); return; }
+        await lmsBackup(yypName, bdir, undo, false);
+        await lmsWrite(yypName, yyp);
+      }
+    }
+
+    // 3) scr_lms.gml: lista + macros
+    {
+      let gml = await readText(REL_LMS);
+      await lmsBackup(REL_LMS, bdir, undo, false);
+      gml = gml.replace(/global\.lmsSongs\s*=\s*\[[^\]]*\]/, 'global.lmsSongs = [' + LMS.songs.map(s => s.asset).join(', ') + ']');
+      if (p.mac) {
+        let r = C.setMacro(gml, 'LMS_BLOCK_CHANCE', { value: Math.round(LMS.mac.chance) }); if (r.changed) gml = r.gml;
+        r = C.setMacro(gml, 'LMS_BLOCK_INVULN', { value: Math.round(LMS.mac.invuln_s * 60) }); if (r.changed) gml = r.gml;
+        r = C.setMacro(gml, 'LMS_STUN_BONUS', { value: LMS.mac.stun }); if (r.changed) gml = r.gml;
+        r = C.setMacro(gml, 'LMS_HP', { value: Math.round(LMS.mac.hp) }); if (r.changed) gml = r.gml;
+        gml = gml.replace(/^#macro\s+LMS_SPIN_STUN\s+\w+/m, (ln) => ln.replace(/(LMS_SPIN_STUN\s+)\w+/, '$1' + (LMS.mac.spin ? 'true' : 'false')));
+      }
+      await lmsWrite(REL_LMS, gml);
+    }
+
+    // 4) Server.h: lista de duraciones
+    if (LMS.serverOk) {
+      let srv = await readText(REL_SRVH);
+      await lmsBackup(REL_SRVH, bdir, undo, false);
+      const durs = LMS.songs.map(s => Math.max(1, Math.round(s.dur || 282)));
+      srv = srv.replace(/#define LMS_SONG_COUNT \d+/, '#define LMS_SONG_COUNT ' + LMS.songs.length)
+        .replace(/static const uint16_t LMS_SONG_SEC\[LMS_SONG_COUNT\] = \{[^}]*\};/,
+          'static const uint16_t LMS_SONG_SEC[LMS_SONG_COUNT] = { ' + durs.join(', ') + ' };');
+      await lmsWrite(REL_SRVH, srv);
+    }
+
+    LMS.undoStack.push(undo);
+    LMS.songs.forEach(s => { s.isNew = false; s.repl = false; delete s.bytes; delete s.fileName; });
+    await scanLms(); renderLms();
+    toast('Show LMS escrito ✓ ' + LMS.songs.length + ' canción(es).\nRecompila el juego (F5) Y el server (compilar_server.bat).');
+  } catch (e) {
+    toast('Error al escribir: ' + e.message, 'err');
+  }
+}
+
+async function undoLms() {
+  const g = LMS.undoStack.pop();
+  if (!g) { toast('Nada que deshacer.'); return; }
+  try {
+    for (const it of g) {
+      if (it.backup) {
+        const fh = await fsWalkFile(it.backup);
+        const f = await fh.getFile();
+        const data = it.binary ? await f.arrayBuffer() : await f.text();
+        await lmsWrite(it.rel, data);
+      } else {
+        // archivo nuevo: quitarlo (mejor esfuerzo)
+        try {
+          const parts = normPath(it.rel).split('/');
+          const fn = parts.pop();
+          const dh = await fsWalkDir(parts.join('/'));
+          await dh.removeEntry(fn);
+        } catch (e) { }
+      }
+    }
+  } catch (e) { toast('Error al deshacer: ' + e.message, 'err'); return; }
+  await scanLms(); renderLms();
+  toast('Deshecho: restaurado desde la copia.');
+}
+
+// ------------------------------------------------------------------
+// integración
+// ------------------------------------------------------------------
+
+function bindLms() {
+  if (LMS.bound) return;
+  LMS.bound = true;
+  $('#lms-add').addEventListener('change', e => { addLmsSongs(Array.from(e.target.files || [])); e.target.value = ''; });
+  $('#lms-write').addEventListener('click', writeLms);
+  $('#lms-undo').addEventListener('click', undoLms);
+}
+
+window.enterLms = async function () {
+  bindLms();
+  if (!LMS.scanned) { await scanLms(); }
+  renderLms();
+};
+
+window.__onProjectScan = (function (prev) {
+  return function () {
+    LMS.scanned = false; LMS.songs = []; LMS.macOrig = null; LMS.mac = null;
+    if (typeof prev === 'function') prev();
+  };
+})(window.__onProjectScan);
+
+})();
+</script>
+<script>
 /* v3.8.1 — AUTOCHEQUEO DE ARRANQUE: si algún módulo no se cargó, se ve AQUÍ y en la
    consola (F12), en vez de quedarse la interfaz muerta sin decir nada. */
 (function () {
@@ -9058,6 +10287,7 @@ initKeys();
   if (!window.__animtoolInitOk) fails.push('módulo 🎬 Animaciones no arrancó');
   if (typeof window.setCdSub !== 'function') fails.push('módulo ⏱ Enfriamientos no arrancó');
   if (typeof window.__yypfix !== 'function' || typeof window.enterArte !== 'function') fails.push('módulo 🖼 Arte no arrancó');
+  if (typeof window.enterLms !== 'function') fails.push('módulo 🎤 Show LMS no arrancó');
   if (window.__bootErrors) fails.push(window.__bootErrors + ' error(es) JS durante el arranque (mira la consola F12)');
   if (fails.length) {
     console.error('SUITE TD2D — NO CARGÓ COMPLETO:', fails.join(' · '));

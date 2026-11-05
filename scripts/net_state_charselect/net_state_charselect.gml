@@ -93,26 +93,9 @@ function net_state_charselect(rbuff, nps, isPasstrough)
                                         // Antes caia en la tira comun con image_index = char+1 = 15:
                                         // fuera de rango (13 frames) y al envolver (15%13=2) salia
                                         // el frame de Tails al seleccionarla.
-                                        if(char == CHARACTER_FLEETWAY_AMY)
-                                        {
-                                                sprite_index = spr_lobby_icon_fw;
-                                                image_index = 0;
-                                        }
-                                        else
-                                        {
-                                                sprite_index = spr_lobby_icon;
-                                                // Sally Canon (9) reusa el icono de Sally en la tira
-                                                image_index = char == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : char + 1;
-                                                if(char == CHARACTER_VANILLA)
-                                                        image_index = CHARACTER_CREAM + 1;
-                                                // v2.2 (TTB): frames propios de Metal/Amelia/Blaze
-                                                if(char == CHARACTER_METAL)
-                                                        image_index = 10;
-                                                else if(char == CHARACTER_AMELIA)
-                                                        image_index = 11;
-                                                else if(char == CHARACTER_BLAZE)
-                                                        image_index = 12;
-                                        }
+                                        // [Suite TD2D v5.1] icono por resolvedor
+                                        // (brillo > propio > tira común)
+                                        scr_lobby_shiny_setup(char);
                                         image_xscale = 0;
                                 }
                                 
@@ -256,30 +239,9 @@ function net_state_charselect(rbuff, nps, isPasstrough)
                                 }
                                 else
                                 {
-                                        // v2.14.1: Fleetway Amy con su tira propia (mismo criterio
-                                        // que SERVER_LOBBY_CHARACTER_RESPONSE: sin esto los DEMAS
-                                        // clientes veian el frame de Tails al elegirla)
-                                        if(char == CHARACTER_FLEETWAY_AMY)
-                                        {
-                                                sprite_index = spr_lobby_icon_fw;
-                                                image_index = 0;
-                                        }
-                                        else
-                                        {
-                                                sprite_index = spr_lobby_icon;
-                                                
-                                                // Sally Canon (9) reusa el icono de Sally en la tira
-                                                image_index = char == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : char + 1;
-                                                if(char == CHARACTER_VANILLA)
-                                                        image_index = CHARACTER_CREAM + 1;
-                                                // v2.2 (TTB): frames propios de Metal/Amelia/Blaze
-                                                if(char == CHARACTER_METAL)
-                                                        image_index = 10;
-                                                else if(char == CHARACTER_AMELIA)
-                                                        image_index = 11;
-                                                else if(char == CHARACTER_BLAZE)
-                                                        image_index = 12;
-                                        }
+                                        // [Suite TD2D v5.1] icono por resolvedor (brillo >
+                                        // propio > tira común), igual que en el RESPONSE
+                                        scr_lobby_shiny_setup(char);
                                         image_xscale = 0;
                                 }
                         }

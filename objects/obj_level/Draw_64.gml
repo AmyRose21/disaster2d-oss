@@ -87,33 +87,32 @@ if(global.showHud && titleCard > 4)
         //self icon
         if(obj_netclient.exeId != obj_netclient.nid)
         {               
-                // Sally Canon reusa los iconos de Sally y Vanilla los de Cream
-                var _hudChar = global.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : global.character;
-                if(global.character == CHARACTER_VANILLA)
-                        _hudChar = CHARACTER_CREAM;
-                // v2.14.2: Fleetway Amy ya tiene arte PROPIO de HUD (bloque
-                // 91..97 de spr_playerhealth, frame 13 de hit/demon/escaped,
-                // instalado en las tiras): sin remapeo, su indice cae directo
-                // en su slot (13*7 = 91).
-                var sprIndex = (_hudChar-CHARACTER_TAILS) * 7;
+                // [Suite TD2D v5.1] iconos del HUD por resolvedor: tiras propias
+                // (Sally Canon / Vanilla = COPIAS independientes de las de
+                // Sally/Cream) o la común con el bloque del personaje.
+                var _hudChar = global.character;
                 
                 if(player_exists)
                 {
                         if(global.player.revivalTimes < 2)
                         {
-                                sprIndex += round((1.0 - (global.player.hp / 100.0)) * 5);
+                                var sprIndex = round((1.0 - (global.player.hp / 100.0)) * 5);
                                 
                                 if(global.player.hp <= 0)
                                 {
                                         if(global.player.revivalTimes == 0)
-                                                sprIndex = (_hudChar-CHARACTER_TAILS) * 7 + 5;
+                                                sprIndex = 5;
                                         else
-                                                sprIndex = (_hudChar-CHARACTER_TAILS) * 7 + 6;
+                                                sprIndex = 6;
                                 }
                                 
-                                draw_sprite(global.player.redRingTimer > 0 ? spr_playerhealth_redring : spr_playerhealth, sprIndex, pos, 268);
+                                var _hudPair = global.player.redRingTimer > 0 ? scr_hud_strip_red(_hudChar) : scr_hud_strip(_hudChar);
+                                draw_sprite(_hudPair[0], _hudPair[1] + sprIndex, pos, 268);
                                 if(global.player.revivalTimes >= 1 && global.player.hp > 0)
-                                        draw_sprite(spr_playerhealth_hit, _hudChar - 1, pos, 268);
+                                {
+                                        var _hudHit = scr_hud_hit(_hudChar);
+                                        draw_sprite(_hudHit[0], _hudHit[1], pos, 268);
+                                }
                                 
                                 if(global.player.isDead)
                                 {
@@ -124,12 +123,15 @@ if(global.showHud && titleCard > 4)
                                         scr_number_spr(pos + 12, 264, string(global.player.shards), #27ff23);           
                         }
                         else
-                                draw_sprite(spr_playerhealth_demon, _hudChar-CHARACTER_TAILS, pos, 268);
+                        {
+                                var _hudDem = scr_hud_demon(_hudChar);
+                                draw_sprite(_hudDem[0], _hudDem[1], pos, 268);
+                        }
                 }
                 else
-                        // [Suite TD2D v3.7] escape con brillo si existe; si no, el de siempre
+                        // [Suite v5.1] escape: brillo si existe; si no, propio o común
                         if(!scr_lobby_shiny_escape(_hudChar, pos, 268))
-                                draw_sprite(spr_playerescaped, (_hudChar-CHARACTER_TAILS), pos, 268);
+                                scr_hud_escaped_draw(_hudChar, pos, 268);
                 
                 pos += 28;
         }
@@ -162,28 +164,27 @@ if(global.showHud && titleCard > 4)
                 
                 if(inst != noone)
                 {
-                        // Sally Canon reusa los iconos de Sally en la barra de vida
-                        // (declarado fuera del if para que la rama demonizado tambien lo tenga)
-                        var _pch = inst.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : inst.character;
-                        if(inst.character == CHARACTER_VANILLA)
-                                _pch = CHARACTER_CREAM;
-                        // v2.14.2: Fleetway Amy con arte propio (frames 91..97 / 13)
+                        // [Suite TD2D v5.1] tiras por resolvedor (propias o común)
+                        var _pch = inst.character;
                         if(!inst.isDemonized || inst.character == CHARACTER_EXE)
                         {
-                                var sprIndex = (_pch-CHARACTER_TAILS) * 7;
-                                sprIndex += round((1.0 - (inst.hp / 100.0)) * 5);
+                                var sprIndex = round((1.0 - (inst.hp / 100.0)) * 5);
                                 
                                 if(inst.hp <= 0)
                                 {
                                         if(inst.revivalTimes == 0)
-                                                sprIndex = (_pch-CHARACTER_TAILS) * 7 + 5;
+                                                sprIndex = 5;
                                         else
-                                                sprIndex = (_pch-CHARACTER_TAILS) * 7 + 6;
+                                                sprIndex = 6;
                                 }
                                 
-                                draw_sprite(redRing ? spr_playerhealth_redring : spr_playerhealth, sprIndex, pos + i * 28, 268);
+                                var _hudPair2 = redRing ? scr_hud_strip_red(_pch) : scr_hud_strip(_pch);
+                                draw_sprite(_hudPair2[0], _hudPair2[1] + sprIndex, pos + i * 28, 268);
                                 if(inst.revivalTimes >= 1 && inst.hp > 0)
-                                        draw_sprite(spr_playerhealth_hit, _pch - 1, pos + i * 28, 268);
+                                {
+                                        var _hudHit2 = scr_hud_hit(_pch);
+                                        draw_sprite(_hudHit2[0], _hudHit2[1], pos + i * 28, 268);
+                                }
                                 
                                 if(inst.revivalTimes == 0 && inst.deadTimer < 31)
                                         scr_number_spr(pos + i * 28 + 12, 264, string(inst.deadTimer), inst.deadColor);
@@ -192,18 +193,16 @@ if(global.showHud && titleCard > 4)
                         }
                         else
                         {
-                                draw_sprite(spr_playerhealth_demon, _pch-CHARACTER_TAILS, pos + i * 28, 268);
+                                var _hudDem2 = scr_hud_demon(_pch);
+                                draw_sprite(_hudDem2[0], _hudDem2[1], pos + i * 28, 268);
                         }
                 }
                 else 
                         {
-                                var _ech = player.character == CHARACTER_SALLY_CANON ? CHARACTER_SALLY : player.character;
-                                if(player.character == CHARACTER_VANILLA)
-                                        _ech = CHARACTER_CREAM;
-                                // v2.14.2: Fleetway Amy con escape propio (frame 13)
-                                // [Suite TD2D v3.7] escape con brillo si existe; si no, el de siempre
+                                var _ech = player.character;
+                                // [Suite v5.1] escape: brillo si existe; si no, propio o común
                                 if(!scr_lobby_shiny_escape(_ech, pos + i * 28, 268))
-                                        draw_sprite(spr_playerescaped, (_ech-CHARACTER_TAILS), pos + i * 28, 268);
+                                        scr_hud_escaped_draw(_ech, pos + i * 28, 268);
                         }
                         
                 i++;

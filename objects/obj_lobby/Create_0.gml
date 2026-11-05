@@ -21,8 +21,8 @@ chars =
         spr_menu_sally,
         spr_menu_amy_canon,
         spr_menu_sonic_canon,
-        spr_menu_sally, // 8: Sally Canon reusa el retrato de Sally
-        spr_menu_cream, // 9: Vanilla reusa el retrato de Cream
+        spr_menu_sallycanon, // 8: Sally Canon — retrato PROPIO (v5.1, copia de Sally)
+        spr_menu_vanilla, // 9: Vanilla — retrato PROPIO (v5.1, copia de Cream)
         // v2.2 (TTB): los 3 rescatados
         spr_menu_metal, // 10: Metal Sonic
         spr_menu_amelia, // 11: Amelia

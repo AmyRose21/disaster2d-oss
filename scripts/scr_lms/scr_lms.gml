@@ -26,6 +26,23 @@
 #macro LMS_BLOCK_INVULN 60     // i-frames tras un bloqueo (60 = 1 s, como el escudo roto de Sally)
 #macro LMS_STUN_BONUS 2        // segundos EXTRA en todos los stuns que Sonic causa durante el show
 #macro LMS_SPIN_STUN true      // la bola (spindash/dropdash rodando) aturde al bando EXE por contacto
+#macro LMS_HP 100              // v5.1: vida a la que Sonic sube al arrancar el show
+
+// v5.1 — MULTI-CANCION: lista de canciones del show. La #1 es la
+// original (mus_undefeatable); el Suite TD2D anade aqui mus_lms_2..N
+// y sus duraciones en el server (LMS_SONG_SEC). El server elige UNA al
+// azar y manda su indice en SERVER_GAME_LMS (u8); buffer_read_s devuel
+// ve -1 con un server viejo sin payload y cae en la #1.
+global.lmsSongs = [mus_undefeatable];
+
+function scr_lms_play_song(idx)
+{
+        var _songs = global.lmsSongs;
+        if(idx >= 0 && idx < array_length(_songs))
+                scr_play_music(_songs[idx]);
+        else
+                scr_play_music(mus_undefeatable);
+}
 
 function scr_lms_sonic_try_block()
 {

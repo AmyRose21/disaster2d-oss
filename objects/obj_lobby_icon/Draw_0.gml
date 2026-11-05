@@ -119,39 +119,21 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
         }
         else
         {
-                // v2.14: Fleetway Amy usa su PROPIA tira independiente
-                // (spr_lobby_icon_fw, 24x24) como los killers con sus
-                // exeicon: NO comparte frame con la tira de spr_lobby_icon.
-                if(selected == CHARACTER_FLEETWAY_AMY)
-                {
-                        sprite_index = spr_lobby_icon_fw;
-                        image_index = 0;
-                        image_blend = c_gray;
-                }
-                else
-                {
-                        // volver a la tira comun si venimos del icono independiente
-                        if(sprite_index != spr_lobby_icon)
-                                sprite_index = spr_lobby_icon;
-                        // Sally Canon reusa el icono de Sally en el tira de sprites del lobby
-                        image_index = selected == CHARACTER_SALLY_CANON ? CHARACTER_SALLY + 1 : selected + 1;
-                }
-                if(selected == CHARACTER_VANILLA)
-                        image_index = CHARACTER_CREAM + 1;
-                // v2.2 (TTB): Metal/Amelia/Blaze tienen sus propios frames al
-                // final de la tira (10/11/12)
-                if(selected == CHARACTER_METAL)
-                        image_index = 10;
-                else if(selected == CHARACTER_AMELIA)
-                        image_index = 11;
-                else if(selected == CHARACTER_BLAZE)
-                        image_index = 12;
+                // [Suite TD2D v5.1] icono de navegación por resolvedor:
+                // brillo > sprite propio (Sally Canon/Vanilla = COPIAS,
+                // Fleetway su tira) > tira común. (antes: remapeos a mano)
+                scr_lobby_shiny_setup(selected);
                 image_blend = c_gray;
         }
 }
 
 if(sprite_index != spr_lobby_exeicon5 && obj_netclient.exeId == master_id)
         image_speed = 1;
+
+// [Suite TD2D v5.1] resolver el icono del personaje de este jugador
+// cada fotograma (brillo animado / propio / tira común)
+if(obj_lobby.state > 0 && !hidden)
+        scr_lobby_shiny_resolve(self);
 
 y = aY - offset;
 draw_self();

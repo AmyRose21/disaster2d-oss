@@ -173,11 +173,15 @@ typedef enum
         ED_TIMEOVER
 } Ending;
 
-/* v5.0 — LMS «El Show Fuerte»: segundos de show cuando Sonic queda como
-   ultimo superviviente = duracion de la cancion (Undefeatable V2,
-   281,8 s redondeado a 282). El reloj SOLO sube: si quedaban mas de
-   282 s se conservan los que hubiera. */
-#define LMS_TIME_SEC 282
+/* v5.1 — LMS «El Show Fuerte» MULTI-CANCION: el server elige UNA cancion
+   al azar de la lista al disparar el show, sube el reloj a la duracion
+   de LA ELEGIDA y avisa el indice en SERVER_GAME_LMS (payload u8).
+   La #1 es la original (mus_undefeatable = Undefeatable, 282 s); el
+   Suite TD2D anade mus_lms_2..N (.mp3/.ogg) y rellena esta lista con
+   las duraciones de cada una (redondeadas al segundo). El reloj SOLO
+   sube: si quedaba mas tiempo, se conserva. */
+#define LMS_SONG_COUNT 1
+static const uint16_t LMS_SONG_SEC[LMS_SONG_COUNT] = { 282 };
 
 typedef struct
 {
@@ -186,6 +190,7 @@ typedef struct
         bool started;
         bool sudden_death;
         bool lms; /* v5.0: LMS «El Show Fuerte» activo (Sonic ultimo superviviente) */
+        uint8_t lms_song; /* v5.1: indice de la cancion elegida (se reenvia al reconectar) */
 
         double start_timeout;
         double time;

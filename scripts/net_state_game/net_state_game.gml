@@ -2811,12 +2811,16 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // solo, con el TIME_SYNC del siguiente segundo.
                         global.lmsActive = true;
                         
-                        scr_play_music(mus_undefeatable);
+                        // v5.1: el server eligio la cancion y manda su indice
+                        // (server viejo sin payload => -1 => cae en la #1)
+                        var _lmsSong = buffer_read_s(rbuff, buffer_u8);
+                        
+                        scr_lms_play_song(_lmsSong);
                         instance_create_depth(0, 0, 0, obj_lms_banner);
                         
                         if(global.character == CHARACTER_SONIC && instance_exists(global.player) && !global.player.isDead)
                         {
-                                global.player.hp = 100;
+                                global.player.hp = LMS_HP;
                                 
                                 audio_play_sound(snd_heal, 0, false);
                                 net_sound_emit(snd_heal);

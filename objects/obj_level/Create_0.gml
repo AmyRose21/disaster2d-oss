@@ -19,15 +19,8 @@ instance_create_depth(0, 0, 0, obj_playerui);
 drawPing = function(char, exeCharacter, ping, revival, name, index)
 {       
         var hchar = char - 1;
-        // v2.5 (fix HUD TAB): mismo remapeo que obj_level/Draw_64.gml para el
-        // icono hit/demon. Sin esto Sally Canon/Vanilla caian en los frames
-        // 8/9 de spr_playerhealth_hit/demon (placeholders transparentes) y su
-        // icono de golpe/demonizacion quedaba invisible en el marcador TAB.
-        if(char == CHARACTER_SALLY_CANON)
-                hchar = CHARACTER_SALLY - 1;
-        else if(char == CHARACTER_VANILLA)
-                hchar = CHARACTER_CREAM - 1;
-        
+        // [Suite v5.1] hit/demon por resolvedor (tiras propias de Sally
+        // Canon/Vanilla o la común): sin remapeos a mano.
         if(char == CHARACTER_EXE)
         {
                 hchar = -1;
@@ -67,10 +60,9 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
         
         if(hchar > -1)
         {
-                if(revival >= 2)
-                        draw_sprite(spr_playerhealth_demon, hchar, 480/2-113 + 1, 43 + index * 30 + 28);
-                else if(revival >= 1)
-                        draw_sprite(spr_playerhealth_hit, hchar, 480/2-113 + 1, 43 + index * 30 + 28);
+                // [Suite v5.1] tiras por resolvedor (propias o común)
+                var _tabPair = revival >= 2 ? scr_hud_demon(char) : scr_hud_hit(char);
+                draw_sprite(_tabPair[0], _tabPair[1], 480/2-113 + 1, 43 + index * 30 + 28);
         }
         
         var clr = #0fff39;

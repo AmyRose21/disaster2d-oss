@@ -219,33 +219,78 @@ function scr_characters_sanity()
                 show_debug_message($"[charsanity] OK: {CHARACTER_SURV_MAX} supervivientes + {EXE_CHAR_COUNT} killers = {CHARACTER_COUNT} slots");
 }
 
-// ===== [Suite TD2D v3.7] retratos con brillo (auto: no editar) =====
-function scr_lobby_shiny_setup(char)
+// ===== [Suite TD2D v5.1] iconos de selección y HUD por personaje (auto: no editar) =====
+// Resolvedores de arte por personaje. LOBBY (icono de selección + lista
+// de sala): prioridad brillo animado (spr_lobby_icon_sh_<key>, v3.7) >
+// sprite propio (spr_lobby_icon_<key>; Sally Canon y Vanilla usan COPIAS
+// propias desde v5.1 — antes reusaban las de Sally/Cream — y Fleetway su
+// tira dedicada) > tira común spr_lobby_icon. HUD (barra de vida /
+// golpeado / demonizado / escapó): tiras propias (spr_playerhealth_<key>)
+// o las comunes con el bloque del personaje. El Suite TD2D regenera este
+// bloque al escribir: no lo edites a mano.
+function scr_lobby_icon_sprite(char)
 {
-    var _c = char;
-    if(_c == CHARACTER_SALLY_CANON) _c = CHARACTER_SALLY;
-    if(_c == CHARACTER_VANILLA) _c = CHARACTER_CREAM;
     var _spr = -1;
-    switch(_c)
+    switch(char)
     {
         case CHARACTER_AMY_CANON: _spr = spr_lobby_icon_sh_amycanon; break;
     }
     if(_spr < 0)
     {
-        sprite_index = spr_lobby_icon;
-        image_speed = 0;
-        image_index = char + 1;
-        if(char == CHARACTER_SALLY_CANON) image_index = CHARACTER_SALLY + 1;
-        if(char == CHARACTER_VANILLA) image_index = CHARACTER_CREAM + 1;
-        if(char == CHARACTER_METAL) image_index = 10;
-        else if(char == CHARACTER_AMELIA) image_index = 11;
-        else if(char == CHARACTER_BLAZE) image_index = 12;
+        switch(char)
+        {
+            case CHARACTER_SALLY_CANON: _spr = spr_lobby_icon_sallycanon; break;
+            case CHARACTER_VANILLA: _spr = spr_lobby_icon_vanilla; break;
+            case CHARACTER_FLEETWAY_AMY: _spr = spr_lobby_icon_fw; break;
+        }
+    }
+    if(_spr >= 0)
+        return _spr;
+    return spr_lobby_icon;
+}
+
+function scr_lobby_icon_frame(char)
+{
+    if(scr_lobby_icon_sprite(char) != spr_lobby_icon)
+        return 0;
+    switch(char)
+    {
+        case CHARACTER_SALLY_CANON: return CHARACTER_SALLY + 1;
+        case CHARACTER_VANILLA: return CHARACTER_CREAM + 1;
+        case CHARACTER_METAL: return 10;
+        case CHARACTER_AMELIA: return 11;
+        case CHARACTER_BLAZE: return 12;
+    }
+    return char + 1;
+}
+
+function scr_lobby_icon_animated(char)
+{
+    var _spr = scr_lobby_icon_sprite(char);
+    if(_spr == spr_lobby_icon)
+        return false;
+    return sprite_get_number(_spr) > 1;
+}
+
+function scr_lobby_icon_pair(char)
+{
+    return [scr_lobby_icon_sprite(char), scr_lobby_icon_frame(char)];
+}
+
+function scr_lobby_shiny_setup(char)
+{
+    // v5.1: un solo camino para todos (brillo > propio > tira común)
+    sprite_index = scr_lobby_icon_sprite(char);
+    if(scr_lobby_icon_animated(char))
+    {
+        image_speed = 1;
+        if(image_index < 0 || image_index >= sprite_get_number(sprite_index))
+            image_index = 0;
     }
     else
     {
-        sprite_index = _spr;
-        image_speed = 1;
-        if(image_index < 0 || image_index >= sprite_get_number(_spr)) image_index = 0;
+        image_speed = 0;
+        image_index = scr_lobby_icon_frame(char);
     }
 }
 
@@ -253,29 +298,32 @@ function scr_lobby_shiny_resolve(inst)
 {
     with(inst)
     {
-        if(obj_netclient.exeId == master_id) return;
-        if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected) return;
+        if(obj_netclient.exeId == master_id)
+            return;
+        if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
+            return;
         var _ch = -1;
         if(master_id == obj_netclient.nid)
             _ch = global.character;
         else if(ds_map_exists(obj_netclient.players, master_id) && !obj_netclient.players[? master_id].pending)
             _ch = obj_netclient.players[? master_id].character;
-        if(_ch < CHARACTER_TAILS || _ch == CHARACTER_EXE || _ch > CHARACTER_BLAZE) return;
+        // v5.1: tope ampliado a Fleetway (antes _ch > CHARACTER_BLAZE la
+        // dejaba fuera del resolve)
+        if(_ch < CHARACTER_TAILS || _ch == CHARACTER_EXE || _ch > CHARACTER_FLEETWAY_AMY)
+            return;
         scr_lobby_shiny_setup(_ch);
     }
 }
 
 function scr_lobby_shiny_escape(char, xx, yy)
 {
-    var _c = char;
-    if(_c == CHARACTER_SALLY_CANON) _c = CHARACTER_SALLY;
-    if(_c == CHARACTER_VANILLA) _c = CHARACTER_CREAM;
     var _spr = -1;
-    switch(_c)
+    switch(char)
     {
         case CHARACTER_AMY_CANON: _spr = spr_lobby_esc_sh_amycanon; break;
     }
-    if(_spr < 0) return false;
+    if(_spr < 0)
+        return false;
     // [Suite TD2D v3.9.1] El brillo puede medir lo que sea (58x62, 24x24...):
     // su lienzo se CENTRA sobre el hueco del icono 26x26 de la barra
     // (origen abajo-izquierda => centro del hueco en xx+13, yy-13), igual
@@ -291,8 +339,77 @@ function scr_lobby_shiny_escape(char, xx, yy)
         yy - 13 - _h / 2 + _oy);
     return true;
 }
-// ===== fin [Suite TD2D v3.7] retratos con brillo =====
 
+function scr_hud_strip(char)
+{
+    switch(char)
+    {
+        case CHARACTER_SALLY_CANON: return [spr_playerhealth_sallycanon, 0];
+        case CHARACTER_VANILLA: return [spr_playerhealth_vanilla, 0];
+    }
+    return [spr_playerhealth, (char - CHARACTER_TAILS) * 7];
+}
+
+function scr_hud_strip_red(char)
+{
+    // variante anillo rojo: sin copia propia se usa la común (Sally Canon
+    // y Vanilla caen en el bloque de Sally/Cream, como siempre)
+    switch(char)
+    {
+        case CHARACTER_SALLY_CANON: return [spr_playerhealth_redring, (CHARACTER_SALLY - CHARACTER_TAILS) * 7];
+        case CHARACTER_VANILLA: return [spr_playerhealth_redring, (CHARACTER_CREAM - CHARACTER_TAILS) * 7];
+    }
+    return [spr_playerhealth_redring, (char - CHARACTER_TAILS) * 7];
+}
+
+function scr_hud_hit(char)
+{
+    switch(char)
+    {
+        case CHARACTER_SALLY_CANON: return [spr_playerhealth_hit_sallycanon, 0];
+        case CHARACTER_VANILLA: return [spr_playerhealth_hit_vanilla, 0];
+    }
+    return [spr_playerhealth_hit, char - CHARACTER_TAILS];
+}
+
+function scr_hud_demon(char)
+{
+    switch(char)
+    {
+        case CHARACTER_SALLY_CANON: return [spr_playerhealth_demon_sallycanon, 0];
+        case CHARACTER_VANILLA: return [spr_playerhealth_demon_vanilla, 0];
+    }
+    return [spr_playerhealth_demon, char - CHARACTER_TAILS];
+}
+
+function scr_hud_escaped(char)
+{
+    switch(char)
+    {
+        case CHARACTER_SALLY_CANON: return [spr_playerescaped_sallycanon, 0];
+        case CHARACTER_VANILLA: return [spr_playerescaped_vanilla, 0];
+    }
+    return [spr_playerescaped, char - CHARACTER_TAILS];
+}
+
+function scr_hud_escaped_draw(char, xx, yy)
+{
+    // icono de «escapó»: copia propia CENTRADA en el hueco 26x26 (cualquier
+    // tamaño, origen abajo-izquierda) o la tira común en su hueco
+    var _pair = scr_hud_escaped(char);
+    if(_pair[0] != spr_playerescaped)
+    {
+        var _w = sprite_get_width(_pair[0]);
+        var _h = sprite_get_height(_pair[0]);
+        var _ox = sprite_get_xoffset(_pair[0]);
+        var _oy = sprite_get_yoffset(_pair[0]);
+        draw_sprite(_pair[0], _pair[1], xx + 13 - _w / 2 + _ox, yy - 13 - _h / 2 + _oy);
+        return true;
+    }
+    draw_sprite(_pair[0], _pair[1], xx, yy);
+    return true;
+}
+// ===== fin [Suite TD2D v5.1] =====
 // =====================================================================
 //  v2.15 («La Torre») — REFLEJO DE UNA MISMA ALMA (pasiva compartida
 //  de las tres Amys: Amy vanilla / Amy Canon / Amelia / Fleetway).
