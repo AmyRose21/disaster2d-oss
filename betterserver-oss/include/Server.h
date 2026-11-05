@@ -192,9 +192,12 @@ typedef struct
         uint16_t sec[LMS_MAX_SONGS]; /* duracion de cada una (s) */
 } LmsShow;
 
-#define LMS_SHOW_COUNT 1
+#define LMS_SHOW_COUNT 4
 static const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {
+        { CH_EGGMAN, 1, { 195 } },
+        { CH_AMY_CANON, 1, { 181 } },
         { CH_SONIC, 1, { 282 } },
+        { CH_SALLY_CANON, 1, { 130 } },
 };
 
 typedef struct

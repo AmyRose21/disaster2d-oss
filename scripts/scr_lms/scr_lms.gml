@@ -32,7 +32,7 @@
 
 #macro LMS_HP 100              // vida a la que sube el personaje del show al arrancarlo
 #macro LMS_BLOCK_CHANCE 55     // (solo Sonic) % de bloquear TODO el daño de un golpe
-#macro LMS_BLOCK_INVULN 60     // (solo Sonic) i-frames tras un bloqueo (60 = 1 s)
+#macro LMS_BLOCK_INVULN 90     // (solo Sonic) i-frames tras un bloqueo (60 = 1 s)
 #macro LMS_STUN_BONUS 2        // (solo Sonic) segundos EXTRA en sus stuns durante el show
 #macro LMS_SPIN_STUN true      // (solo Sonic) la bola (spindash/dropdash) aturde al bando EXE por contacto
 
@@ -41,7 +41,10 @@
 // TD2D la reescribe entera al guardar (no editar a mano si se usa el
 // Suite: se sobreescribiria).
 global.lmsCharSongs = ds_map_create();
+global.lmsCharSongs[? CHARACTER_EGGMAN] = [mus_lms_4];
+global.lmsCharSongs[? CHARACTER_AMY_CANON] = [mus_lms_2];
 global.lmsCharSongs[? CHARACTER_SONIC] = [mus_undefeatable];
+global.lmsCharSongs[? CHARACTER_SALLY_CANON] = [mus_lms_3];
 
 function scr_lms_play_song(ch, idx)
 {

@@ -219,6 +219,9 @@
   },
   "name":"Sonicexe The Disaster 2D Remake",
   "resources":[
+    {"id":{"name":"mus_lms_3","path":"sounds/mus_lms_3/mus_lms_3.yy",},},
+    {"id":{"name":"mus_lms_4","path":"sounds/mus_lms_4/mus_lms_4.yy",},},
+    {"id":{"name":"mus_lms_2","path":"sounds/mus_lms_2/mus_lms_2.yy",},},
     {"id":{"name":"data","path":"extensions/data/data.yy",},},
     {"id":{"name":"disasterserver","path":"extensions/disasterserver/disasterserver.yy",},},
     {"id":{"name":"disnet","path":"extensions/disnet/disnet.yy",},},
