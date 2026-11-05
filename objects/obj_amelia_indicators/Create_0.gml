@@ -5,7 +5,7 @@
 // obj_amycanon_indicators / obj_vanilla_indicators / obj_amelia_auras.
 // Toda la pasiva es local: cero paquetes, cero servidor — informacion
 // pura. Ver Draw_64 para el dibujado.
-#macro AMELIA_EXIT_SENSE 400 // px: radio en el que Amelia "siente" la salida
+#macro AMELIA_EXIT_SENSE 680 // px: radio en el que Amelia "siente" la salida (v4.9: era 400)
 
 depth = -200;
 

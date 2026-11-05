@@ -102,9 +102,39 @@ function scr_amy_fleetway_special()
                 // igual que el mod original (dmg 20 / stun)
                 var _dmg = revivalTimes >= 2 ? 20 : 0;
 
-                // Sale a la altura del pecho, hacia donde mira
-                net_fw_bolt(x + 12 * (image_xscale >= 0 ? 1 : -1), y - 14,
-                        image_xscale >= 0 ? 1 : -1, _dmg);
+                // v4.9 — MODO PARED (video del juego original): si hay un
+                // muro REAL a su alcance (FW_WALL_REACH) a la altura de los
+                // PIES, la flecha sale a la altura de los pies (ya no del
+                // pecho) y nace pegada al muro, clavandose casi al instante
+                // (1-2 frames de vuelo): es el disparo de ESCALADA del
+                // original. Vale tambien en el aire (saltar y disparar en
+                // el punto mas alto = colocar la siguiente flecha mas
+                // arriba). Lejos de todo muro el disparo es el de siempre:
+                // pecho, vuelo recto y largo.
+                var _dir = image_xscale >= 0 ? 1 : -1;
+                var _sx = x + 12 * _dir;    // pecho (por defecto)
+                var _sy = y - 14;
+
+                for(var _d = 12; _d <= FW_WALL_REACH; _d += 4)
+                {
+                        // y+14 = tobillo: el bbox de la flecha clavada a
+                        // la altura del pie (origen en y+18) cubre y+12..y+16
+                        if(scr_fw_wall_point(x + _d * _dir, y + 14))
+                        {
+                                // nace 24 px antes del muro: el barrido de
+                                // obj_fw_bolt la clava con la punta
+                                // FW_ARROW_BURY px dentro en el primer Step
+                                _sx = x + (_d - 24) * _dir;
+                                _sy = y + 18;      // altura de los pies
+                                break;
+                        }
+                }
+
+                if(_sx < 1)
+                        _sx = 1;     // u16 del server: jamas negativo
+
+                // Sale hacia donde mira
+                net_fw_bolt(_sx, _sy, _dir, _dmg);
 
                 // Ballesta en la mano FW_CB_TIME frames (sprites cbamy)
                 cbTimer = FW_CB_TIME;

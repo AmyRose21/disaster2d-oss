@@ -14,8 +14,8 @@
     "path":"folders/Objects/Player/Survivors/Amy Fleetway.yy",
   },
   "parentObjectId":{
-    "name":"obj_solid_parent",
-    "path":"objects/obj_solid_parent/obj_solid_parent.yy",
+    "name":"obj_platform_jumptrough",
+    "path":"objects/obj_platform_jumptrough/obj_platform_jumptrough.yy",
   },
   "persistent":false,
   "physicsAngularDamping":0.1,

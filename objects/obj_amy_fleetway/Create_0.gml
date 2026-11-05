@@ -32,6 +32,13 @@
 #macro FW_ARROW_SWEEP 3.5                // sub-paso maximo del barrido (4 por frame)
 #macro FW_ARROW_BURY 4                   // px de punta enterrada al clavarse (visual)
 
+// v4.9 — MODO PARED: alcance en px desde Amy dentro del cual un muro real
+// a la altura de los pies convierte el disparo en "flecha de escalada"
+// (sale a los pies y se clava casi al instante, como en el video del
+// juego original). Fuera de ese alcance el disparo es el normal (pecho,
+// vuelo recto). Escanea de 12 en 12..FW_WALL_REACH px hacia donde mira.
+#macro FW_WALL_REACH 48                  // px: distancia maxima del muro para el modo pared
+
 // v2.15 («La Torre») — pasivas de Fleetway Amy:
 // LA TORRE: bloqueo fijo del 33% del daño recibido (estilo Chocola
 // con Vanilla, pero determinista). Con REFLEJO DE UNA MISMA ALMA

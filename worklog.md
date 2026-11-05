@@ -3229,3 +3229,87 @@ sorteo 100k tiradas: nunca repite last_map, uniforme (5230-5293 sobre
 5263 esperado), bordes 0/1/N mapas OK; diff del server con tabs
 originales (73+/3-). Pendiente: partida real con el server
 recompilado.
+
+---
+Task ID: fix-v4.9
+Agent: Super Z (main agent)
+Task: v4.9 — fixes post-prueba del usuario: crash universal de
+obj_fw_bolt (object_get_parent -100) y flechas de Fleetway Amy como en
+el video del juego original (salen a los pies junto al muro, se clavan
+casi al instante y la clavada es plataforma ATRAVESABLE). Incluye
+re-aplicacion del v4.8 perdido (clamps de cura + radio Amelia 680).
+
+Work Log:
+- Base: clon fresco de GitHub (HEAD 1d73a37b «update») — el v4.8 del
+  sandbox anterior se perdio al reciclarse (push sin credenciales);
+  re-aplicado aqui.
+
+- QUEJA 1 (crash reportado tal cual):
+  «object_get_parent argument 1 invalid reference to (object) -
+  requested -100 max is 326» en scr_fw_is_jumptrough (linea 437) <-
+  scr_fw_wall_at <- obj_fw_bolt Step_0.
+  CAUSA RAIZ: el bucle de scr_fw_is_jumptrough recorria la cadena de
+  padres hasta cortar con -1, pero object_get_parent devuelve -100
+  cuando el objeto NO tiene padre. obj_camerachecker (raiz de
+  obj_floor_parent, el padre de casi toda la geometria) tiene
+  parentObjectId null -> la cadena llega a -100 y el bucle lo pasa a
+  object_get_parent = abort. Pasaba en TODOS los mapas (el usuario lo
+  confirmo) siempre que una flecha en vuelo tocase cualquier piso/muro
+  NO saltable — coincide con la salida porque es cuando se dispara
+  cerca de paredes.
+  FIX: el while ahora corta con _obj != -100 && _obj != -1 &&
+  object_exists(_obj). Universal: cualquier cadena, cualquier mapa.
+
+- QUEJA 2 («no puedo traspasar la flecha saltando desde abajo, sigue
+  siendo como un muro» + video del juego original): analizado el video
+  (file.garden, 17 s, VLM): (1) en tierra lejos del muro la flecha
+  sale del pecho y vuela recta; (2) pegada al muro / escalando sale a
+  la ALTURA DE LOS PIES y aparece clavada casi al instante (1-2
+  frames); (3) las flechas clavadas son plataformas de UNA VIA: se
+  atraviesan desde abajo y se aterriza encima.
+  FIX A (plataforma atravesable): obj_fw_arrow.yy parentObjectId pasa
+  de obj_solid_parent a obj_platform_jumptrough. Automaticamente:
+  aterrizar encima al caer (scr_collision_check_bottom rama
+  jumptrough), SIN techo ni pared lateral (guardas
+  !position_meeting de scr_collision_check/top), y las flechas en
+  vuelo la ignoran (scr_fw_wall_at excluye la familia saltable) — se
+  clavan en el muro de detras, como el original. Se pierde la «torre»
+  de flechas apiladas (consecuencia natural de la opcion 2 pedida).
+  FIX B (modo pared): FW_WALL_REACH 48 en obj_amy_fleetway/Create_0 +
+  scr_fw_wall_point (scr_characters.gml, version por punto de
+  scr_fw_wall_at para el jugador) + logica en
+  scr_amy_fleetway_special: si hay muro real a 12..48 px a la altura
+  del tobillo (y+14), la flecha nace 24 px antes del muro a la
+  ALTURA DE LOS PIES (y+18 = contacto del suelo, verificado contra
+  sprite 32x47 origen y=29 y scr_collision_check_bottom y=contact-18)
+  y el barrido del Step_0 la clava en el primer frame (punta
+  FW_ARROW_BURY dentro). Funciona tambien EN EL AIRE: saltar y
+  disparar en el punto mas alto coloca la siguiente flecha mas arriba
+  (loop de escalada del video). Lejos de todo muro: disparo normal de
+  pecho SIN CAMBIOS (pedido explicito). Guarda _sx>=1 para el u16 del
+  server. Cero paquetes nuevos: mismo CLIENT_FWBOLT/CLIENT_FWBOLT_HIT.
+
+- RE-APLICACION v4.8 (perdido): 4 curas con clamp min(100, hp+20) en
+  net_state_game.gml (lineas ~1360, ~2382, ~2522 y 4011 — el
+  anticheat del server kickea con hp>100: «garic forn») y
+  AMELIA_EXIT_SENSE 400->680 (obj_amelia_indicators + comentario de
+  obj_amelia).
+
+ARCHIVOS v4.9: scripts/scr_characters/scr_characters.gml,
+scripts/scr_amy_fleetway_special/scr_amy_fleetway_special.gml,
+scripts/net_state_game/net_state_game.gml,
+objects/obj_amy_fleetway/Create_0.gml,
+objects/obj_fw_arrow/{obj_fw_arrow.yy,Create_0.gml},
+objects/obj_fw_bolt/{Create_0.gml,Collision_obj_solid_parent.gml},
+objects/obj_amelia_indicators/Create_0.gml,
+objects/obj_amelia/Create_0.gml,
+LEEME_FIX_V4_9.txt, worklog.md.
+Servidor: SIN CAMBIOS (el clavado instantaneo ya viaja por el flujo
+tipo 1 existente; states/Game.c acepta cualquier posicion).
+
+VERIFICACION: balance de llaves de los 4 GML tocados OK (sin
+comentarios ni strings); grep de min(100,...) = 4 exactos; macro
+FW_WALL_REACH declarado 1 vez y usado 1 vez; scr_fw_wall_point
+declarada 1 vez y llamada 1 vez; obj_fw_arrow.yy apunta a
+obj_platform_jumptrough; analisis del video con VLM confirmando los
+3 comportamientos antes de codificar. Pendiente: partida real.

@@ -1,0 +1,102 @@
+════════════════════════════════════════════════════════════════════
+  FIX v4.9 — CRASH DE LA FLECHA (TODOS LOS MAPAS) · FLECHAS DE
+  FLEETWAY AMY COMO EN EL VIDEO DEL JUEGO ORIGINAL
+  Sonic.exe The Disaster 2D Remake · 5 de noviembre de 2026
+════════════════════════════════════════════════════════════════════
+
+QUÉ HAY EN ESTE PAQUETE
+-----------------------
+
+1) FIX PEDIDO — CRASH «object_get_parent ... -100» (obj_fw_bolt)
+   * Síntoma: el juego aborta con
+     «object_get_parent argument 1 invalid reference to (object) -
+     requested -100» en scr_fw_is_jumptrough, llamado desde
+     scr_fw_wall_at <- obj_fw_bolt/Step_0.
+   * Causa: el bucle que recorre la cadena de padres de un objeto
+     cortaba solo cuando valía -1, pero GameMaker devuelve -100
+     cuando el objeto NO tiene padre. La raíz de casi toda la
+     geometría (obj_camerachecker, padre de obj_floor_parent) no
+     tiene padre -> la cadena llega a -100 y se lo pasa de nuevo a
+     object_get_parent = crash. Por eso daba en TODOS los mapas:
+     saltaba siempre que una flecha en vuelo tocase cualquier piso o
+     muro real (coincide con la salida porque es cuando más se
+     dispara cerca de paredes).
+   * Solución: el bucle ahora corta con -100, con -1 y con
+     objeto inexistente. Universal: cualquier objeto, cualquier mapa.
+   * Archivo: scripts/scr_characters/scr_characters.gml.
+
+2) REWORK PEDIDO — FLECHAS DE FLEETWAY AMY IGUAL QUE EL VIDEO
+   (video del juego original del 2026-11-04, 17 s)
+   Lo que muestra el video, ahora en el juego:
+   * LEJOS DE TODO MURO: disparo normal, SIN CAMBIOS — sale del
+     pecho y vuela recto (como pediste).
+   * PEGADA A UN MURO (o escalando sobre una flecha): la flecha
+     sale a la ALTURA DE LOS PIES (ya no del pecho) y se CLAVA casi
+     al instante — nace pegada al muro y se entierra en 1-2 frames,
+     sin ese vuelo raro.
+   * FLECHA CLAVADA = PLATAFORMA ATRAVESABLE (tu opción 2): saltas
+     desde abajo, la ATRAVIESAS y aterrizas ENCIMA. Ya no es un
+     muro/techo que te rebota contra el suelo.
+   * CÓMO ESCALAR (el loop del video): dispara al muro -> salta
+     recto hacia arriba -> EN EL AIRE, en el punto más alto, vuelve
+     a disparar -> la nueva flecha queda más arriba, clavada a la
+     altura de tus pies -> caes y aterrizas sobre ella -> repite.
+     Subes en saltitos, exactamente como el personaje del video.
+   * Detalle: las flechas en vuelo ya NO chocan contra las flechas
+     clavadas (las atraviesan y se clavan en el muro de detrás,
+     como en el original). Ya no se apilan en torre.
+   * Alcance del «modo pared»: si hay muro real a menos de 48 px a la
+     altura de los pies (FW_WALL_REACH, ajustable en
+     objects/obj_amy_fleetway/Create_0.gml).
+   * Archivos: scripts/scr_amy_fleetway_special/ (disparo),
+     scripts/scr_characters/ (scr_fw_wall_point nueva),
+     objects/obj_amy_fleetway/Create_0.gml (macro),
+     objects/obj_fw_arrow/ (plataforma atravesable: el .yy cambia su
+     padre a obj_platform_jumptrough), objects/obj_fw_bolt/ (comentarios).
+   * Servidor: SIN CAMBIOS, no hay que recompilarlo.
+
+3) RE-APLICACIÓN DEL v4.8 (se había perdido): las 4 curas ahora
+   nunca pasan de 100 de vida (el anticheat del server te kickeaba
+   con «garic forn — Сьогодні о 04:31» al curarte con 81-99 de hp) y
+   el sentido de la salida de Amelia sube de 400 a 680 px.
+   * Archivos: scripts/net_state_game/net_state_game.gml,
+     objects/obj_amelia_indicators/Create_0.gml,
+     objects/obj_amelia/Create_0.gml.
+
+CÓMO SE APLICA (2 MINUTOS, SIN PROGRAMAS EXTRA)
+-----------------------------------------------
+Nada de «aplicar parches»: estos son los mismos archivos .gml/.yy
+que GameMaker lee. Solo hay que reemplazarlos y recompilar.
+  1. CIERRA GameMaker Studio 2 si lo tienes abierto.
+  2. Abre la carpeta de tu proyecto (donde está el .yyp).
+  3. Copia dentro las carpetas «scripts» y «objects» de este paquete
+     (o del ZIP), REEMPLAZANDO cuando lo pida. Son solo los archivos
+     modificados; todo lo demás queda igual.
+  4. Abre el proyecto en GameMaker y dale Run (F5). Listo.
+O por git: copia los archivos en tu repo local, commit «update» y
+push, como hiciste con el v4.7.
+
+LISTA EXACTA DE ARCHIVOS MODIFICADOS (para copiar a mano si prefieres)
+----------------------------------------------------------------------
+  scripts/scr_characters/scr_characters.gml
+  scripts/scr_amy_fleetway_special/scr_amy_fleetway_special.gml
+  scripts/net_state_game/net_state_game.gml
+  objects/obj_amy_fleetway/Create_0.gml
+  objects/obj_fw_arrow/obj_fw_arrow.yy        <- cambia el padre
+  objects/obj_fw_arrow/Create_0.gml
+  objects/obj_fw_bolt/Create_0.gml
+  objects/obj_fw_bolt/Collision_obj_solid_parent.gml
+  objects/obj_amelia_indicators/Create_0.gml
+  objects/obj_amelia/Create_0.gml
+  LEEME_FIX_V4_9.txt · worklog.md
+
+PRUEBA RÁPIDA
+-------------
+  * Modo práctica con Fleetway Amy, acércate a cualquier pared.
+  * Dispara: la flecha tiene que salir a la altura de los pies y
+    clavarse al instante en la pared.
+  * Salta desde abajo contra una flecha clavada: la atraviesas y
+    caes ENCIMA de ella (ya no te rebota).
+  * Escala: salta + dispara en el aire + repite.
+  * Aléjate de los muros y dispara: vuelo recto de toda la vida.
+  * Con 81-99 de vida y 10 anillos: curarte ya nunca te kickea.

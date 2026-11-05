@@ -9,6 +9,12 @@
 //   * contra el mapa (obj_solid_parent): se CLAVA (v2.15) y se
 //     convierte en plataforma (obj_fw_arrow) durante 5 s.
 //
+//  v4.9: la plataforma clavada es ATRAVESABLE (hija de
+//  obj_platform_jumptrough, ver obj_fw_arrow): los jugadores la cruzan
+//  desde abajo y aterrizan encima, y las flechas en vuelo la ignoran
+//  (scr_fw_wall_at excluye la familia saltable) — ya no se apilan en
+//  torre, se clavan en el muro de detras, como en el original.
+//
 //  v2.15 («La Torre»):
 //   - fwId: id de la entidad del server (todos los paquetes lo llevan;
 //     hasta 3 flechas simultaneas).

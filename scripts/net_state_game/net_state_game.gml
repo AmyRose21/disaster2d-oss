@@ -1357,7 +1357,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         if(global.player.rings >= 10 && global.player.hp < 100 && _canHeal)
                         {
                                 global.player.rings -= 10;
-                                global.player.hp += 20;
+                                global.player.hp = min(100, global.player.hp + 20);
                                 audio_play_sound(snd_heal, 0, false);
                                 net_sound_emit(snd_heal);
                                 
@@ -2379,7 +2379,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 if(global.player.rings >= 10 && global.player.hp < 100 && _canHeal)
                                 {
                                         global.player.rings = 0;
-                                        global.player.hp += 20;
+                                        global.player.hp = min(100, global.player.hp + 20);
                                         audio_play_sound(snd_heal, 0, false);
                                         net_sound_emit(snd_heal);
                                         
@@ -2519,7 +2519,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 if(global.player.rings >= 10 && global.player.hp < 100 && _canHeal)
                                 {
                                         global.player.rings = 0;
-                                        global.player.hp += 20;
+                                        global.player.hp = min(100, global.player.hp + 20);
                                         audio_play_sound(snd_heal, 0, false);
                                         net_sound_emit(snd_heal);
                                         
@@ -4008,7 +4008,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         audio_play_sound(snd_heal, 0, false);
                         net_sound_emit(snd_heal);
                         
-                        global.player.hp += 20;
+                        global.player.hp = min(100, global.player.hp + 20);
                         break;
                 }
                 

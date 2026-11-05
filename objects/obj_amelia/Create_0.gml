@@ -95,7 +95,7 @@ instance_create_depth(x, y, 0, obj_player_sensorAR);
 instance_create_depth(x, y, 0, obj_amelia_auras);
 
 // MARCA DE LA SALIDA (v4.5): version LIMITADA de los sensores de Amy
-// Canon — flecha verde hacia el anillo de escape solo si esta a <= 400
+// Canon — flecha verde hacia el anillo de escape solo si esta a <= 680
 // px (AMELIA_EXIT_SENSE), y parpadeando. Solo en SU cliente. Ver
 // obj_amelia_indicators.
 instance_create_depth(x, y, 0, obj_amelia_indicators);

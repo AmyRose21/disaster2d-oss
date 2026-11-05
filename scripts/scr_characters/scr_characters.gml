@@ -429,7 +429,14 @@ function scr_fw_is_jumptrough(inst)
 {
     var _obj = inst.object_index;
 
-    while(_obj != -1)
+    // v4.9 — FIX CRASH (bosque majin): object_get_parent devuelve -100
+    // cuando el objeto NO tiene padre. El bucle anterior solo cortaba con
+    // -1, asi que al llegar a la raiz (obj_camerachecker) volvia a llamar
+    // object_get_parent(-100) y GameMaker abortaba con "invalid reference
+    // (object) -100". Pasaba en el bosque majin porque su terreno
+    // (obj_majong_slope) NO pertenece a la familia saltable y el recorrido
+    // llegaba hasta el fondo de la cadena. Cortar en -100/-1/no-existente.
+    while(_obj != -100 && _obj != -1 && object_exists(_obj))
     {
         if(_obj == obj_platform_jumptrough)
             return true;
@@ -438,6 +445,31 @@ function scr_fw_is_jumptrough(inst)
     }
 
     return false;
+}
+
+// v4.9 — ¿el punto (xx, yy) cae dentro de un muro/piso REAL (toda la
+// jerarquia obj_floor_parent MENOS la familia saltable, incluidas las
+// flechas clavadas de Fleetway)? Version por PUNTO de scr_fw_wall_at:
+// aquella usa el bbox del bolt; esta sirve para el jugador. La usa
+// scr_amy_fleetway_special en el "modo pared" (detectar muro al alcance
+// a la altura de los pies para el disparo de escalada del video).
+function scr_fw_wall_point(xx, yy)
+{
+    var _list = ds_list_create();
+    var _n = collision_point_list(xx, yy, obj_floor_parent, false, false, _list, false);
+
+    var _wall = false;
+    for(var i = 0; i < _n; i++)
+    {
+        if(!scr_fw_is_jumptrough(_list[| i]))
+        {
+            _wall = true;
+            break;
+        }
+    }
+
+    ds_list_destroy(_list);
+    return _wall;
 }
 
 // ¿la flecha (self = obj_fw_bolt) colocada en (xx, yy) toca un muro /
