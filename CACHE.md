@@ -751,6 +751,10 @@ y las pistas nuevas de 20-28s se cortaban).
   al lobby ~1s despues de que termine la cancion).
 - flecha-pegada-v2: pendiente PROBAR en partida (calibracion 14px / 20 grados
   ajustable en un minuto si no convence).
+- LMS v5.0: pendiente PROBAR en partida real (2 ventanas: EXE mata al
+  2do superviviente -> banner + Undefeatable + reloj 4:42 + Sonic a
+  100; mitad de golpes bloqueados; stuns de 5 s; sin marca de Metal
+  Amy). OJO: RECOMPILAR el server (enum nuevo en los 2 lados).
 - carry-v1: pendiente PROBAR en partida real (2 ventanas: colgarse de un
   Tails volando, soltar con Z, soltar con V, auto-sueltas, y notar la
   acometida/tarot de Amy a 14). Guion de 8 pasos en LEEME_CARRY_V1.txt.
@@ -1243,3 +1247,25 @@ y las pistas nuevas de 20-28s se cortaban).
   de pantalla completa; (4) el suelo anti-spam del server debe quedar
   POR DEBAJO del ritmo legitimo del cliente (6 < 7 s) o se come
   paquetes sanos por jitter.
+- 2026-11-05 (v5.0 LMS «El Show Fuerte»): Sonic último superviviente
+  => el show: reloj a 282 s (LMS_TIME_SEC = duración de Undefeatable
+  V2, descargada de file.garden y convertida a ogg q3), canción para
+  TODOS (mus_undefeatable streamada), banner obj_lms_banner/spr_
+  lms_banner (4 frames pixel-art «LAST MAN STANDING»), cura a 100,
+  bloqueo 55% de TODO el daño (scr_lms_sonic_try_block tras la Torre
+  en scr_player_hurt, patrón Chocola + 60f i-frames), inmunidad a la
+  MARCA DE DEBILIDAD de Metal Amy (gate en scr_weak_mark_hit) y
+  TODOS los stuns de Sonic +2 s (golpe X 3->5, parry 3,5->5,5 y la
+  BOLA del spindash aturde por contacto SOLO en LMS — estado SPIN
+  del puppet, macro LMS_SPIN_STUN). Paquete NUEVO SERVER_GAME_LMS al
+  final del enum en los DOS lados (server: detección en game_state_
+  tick con latch game.lms + reenvío en game_state_join; el reloj
+  solo SUBE). Práctica (.sp) también dispara el show (exe=0xFFFF no
+  cuenta). Gates de música: la chase del anillo y el banner de
+  muerte súbita no pisan la canción (la demonización del server
+  sigue). FIX EXTRA: el stun de 3,2 s del DJ de FW Amy era código
+  muerto (el bloque de stun exige isAttacking y FW no lo envía);
+  la puerta ahora acepta (FW && isDJ). REQUIERE RECOMPILAR SERVER.
+  Validador 139/139 + server cmake limpio + smoke test OK. LEEME_
+  LMS_V1.txt con macros ajustables y guion de prueba. Pendiente:
+  partida real.

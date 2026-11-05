@@ -267,6 +267,18 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 return;
         }
 
+        // v5.0 LMS — «EL SHOW FUERTE» (Sonic, ultimo superviviente): 55% de
+        // probabilidad de BLOQUEAR TODO el daño de CADA golpe que le entra
+        // (ni vida ni anillos ni retroceso: escudo roto + 1 s de invulnera-
+        // bilidad, el mismo efecto del bloqueo de Chocola). El 45% restante
+        // entra completo por el camino de siempre. Corre en el cliente de
+        // la victima, que es quien aplica el daño (mismo lado que la Torre
+        // de FW Amy de arriba). Las muertes instantaneas (hoyos) no pasan
+        // por aqui, como siempre.
+        if(global.character == CHARACTER_SONIC && global.lmsActive
+        && damage > 0 && scr_lms_sonic_try_block())
+                return;
+
         // === VANILLA V2 ===
         // PACIENCIA / MORIBUNDA: inmune a TODO mientras duran (enojada
         // o tirada en el suelo: ni el exe ni el entorno le hacen nada).
@@ -491,6 +503,12 @@ function scr_weak_mark_hit()
                 return;
 
         if(global.player.isDead)
+                return;
+
+        // v5.0 LMS: Sonic en el LMS es INMUNE a la MARCA DE DEBILIDAD de
+        // Metal Amy («No servira contra Sonic en LMS»): sus habilidades
+        // jamas entran en la recarga forzada de 6 s mientras dure el show.
+        if(global.character == CHARACTER_SONIC && global.lmsActive)
                 return;
 
         // CD propio de 16 s por superviviente (la variable la creamos aqui

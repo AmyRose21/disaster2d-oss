@@ -1,6 +1,7 @@
 global.timeSeconds = 0;
 global.timeMinutes = 0;
 global.ringFrame = 0;
+global.lmsActive = false;
 state = 0;
 showSurvivors = false;
 survivorTimer = 0;

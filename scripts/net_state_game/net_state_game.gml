@@ -2783,11 +2783,45 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 break;
                                 
                         obj_level.timeFrame++;
-                        if(global.timeMinutes == 2 && global.timeSeconds == 1)
+                        // v5.0 LMS: durante el show no sale el banner/estinuendo de la
+                        // muerte subita (la cancion manda); la demonizacion de los caidos
+                        // la sigue haciendo el server igual que siempre.
+                        if(global.timeMinutes == 2 && global.timeSeconds == 1 && !global.lmsActive)
                                 instance_create_depth(0, 0, 0, obj_suddendeath);
                                 
                         if(global.timeMinutes == 0 && global.timeSeconds <= 10)
                                 audio_play_sound(snd_clock, 1, false);
+                        
+                        break;
+                }
+                
+                case PacketType.SERVER_GAME_LMS:
+                {                               
+                        if(isPasstrough)
+                                break;
+                        
+                        if(!instance_exists(obj_level) || gameEnds)
+                                break;
+                        
+                        // v5.0 — «EL SHOW FUERTE»: el server dice que Sonic quedo
+                        // como ULTIMO SUPERVIVIENTE. Todos los clientes entran en
+                        // el show a la vez: la cancion (Undefeatable, dura lo
+                        // mismo que el reloj nuevo) y el banner. Sonic ademas se
+                        // cura a 100 (la vida del show). El reloj extendido llega
+                        // solo, con el TIME_SYNC del siguiente segundo.
+                        global.lmsActive = true;
+                        
+                        scr_play_music(mus_undefeatable);
+                        instance_create_depth(0, 0, 0, obj_lms_banner);
+                        
+                        if(global.character == CHARACTER_SONIC && instance_exists(global.player) && !global.player.isDead)
+                        {
+                                global.player.hp = 100;
+                                
+                                audio_play_sound(snd_heal, 0, false);
+                                net_sound_emit(snd_heal);
+                                net_quick_effect(global.player.x, global.player.y, spr_ring_sparkle);
+                        }
                         
                         break;
                 }
@@ -3048,20 +3082,26 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         break;
                                 }
                                 
-                                if(room == room_dotdotdot)
+                                // v5.0 LMS: durante el show la musica es Undefeatable hasta
+                                // el final — la musica de persecucion del anillo NO la
+                                // reemplaza (el anillo sigue apareciendo normal).
+                                if(!global.lmsActive)
                                 {
-                                        audio_stop_sound(mus_dotdotdot);
-                                        audio_stop_sound(mus_dotdotdot2);
-                                        
-                                        scr_play_music(mus_dotdotdot_chase);
+                                        if(room == room_dotdotdot)
+                                        {
+                                                audio_stop_sound(mus_dotdotdot);
+                                                audio_stop_sound(mus_dotdotdot2);
+                                                
+                                                scr_play_music(mus_dotdotdot_chase);
+                                        }
+                                        else if(room == room_act9)
+                                        {
+                                                audio_sound_gain(mus_act9, 0, 1000);
+                                                audio_sound_gain(mus_act9_chase, 1, 1000);
+                                        }
+                                        else
+                                                scr_play_music(global.levels[lvlId].chaseMusic);
                                 }
-                                else if(room == room_act9)
-                                {
-                                        audio_sound_gain(mus_act9, 0, 1000);
-                                        audio_sound_gain(mus_act9_chase, 1, 1000);
-                                }
-                                else
-                                        scr_play_music(global.levels[lvlId].chaseMusic);
                                 
                                 var ind = buffer_read_s(rbuff, buffer_u8); 
                                 var inst = instance_find(obj_ringspawn, ind % (instance_number(obj_ringspawn)));

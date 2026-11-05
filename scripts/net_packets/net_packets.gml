@@ -266,7 +266,16 @@ enum PacketType
            DOS lados). */
         CLIENT_FWBOLT,
         CLIENT_FWBOLT_HIT,
-        SERVER_FWBOLT_STATE
+        SERVER_FWBOLT_STATE,
+
+        /* v5.0 — LMS «El Show Fuerte» (Sonic ultimo superviviente):
+           SERVER_GAME_LMS (sin payload): lo emite el server UNA VEZ al
+           detectar que el unico superviviente vivo es Sonic — sube el
+           reloj de la partida a la duracion de la cancion (282 s) y
+           todos los clientes entran en el show (Undefeatable + banner
+           + pasivas de Sonic). Anadido AL FINAL en los DOS lados
+           (mismo orden que include/Packet.h). */
+        SERVER_GAME_LMS
 }
 
 #macro STATE_PENDING -1

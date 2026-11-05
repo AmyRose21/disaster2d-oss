@@ -179,7 +179,16 @@ if(character == CHARACTER_AMY && isAttacking && scr_amy_soul_otras())
 
 if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad) || (_amyFuerzaPad > 0 && distance_to_object(global.player) <= _amyFuerzaPad))
 {
-        if(isAttacking)
+        // v5.0 LMS + FIX DJ (v2.15 arrastrado): este bloque de stun/contacto
+        // exige isAttacking, pero (a) el DJ de Fleetway Amy NUNCA manda ese
+        // bitflag (no esta en la lista de obj_netclient/Step_2) -> su stun
+        // de 3,2 s era CODIGO MUERTO desde la v2.15; (b) durante el LMS la
+        // BOLA de Sonic (spindash/dropdash rodando, estado SPIN) aturde al
+        // bando EXE por contacto («el Show fuerte»). Las dos puertas se
+        // anaden aqui sin tocar el bitflag de nadie.
+        if(isAttacking
+        || (character == CHARACTER_FLEETWAY_AMY && isDJ)
+        || (LMS_SPIN_STUN && global.lmsActive && character == CHARACTER_SONIC && state == SPIN))
         {
                 if(isDemonized && visible)
                 {
@@ -389,6 +398,14 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 // que es la victima y la autoridad de su jugador.
                                 if(character == CHARACTER_FLEETWAY_AMY && isDJ)
                                         stunTime = 3.2;
+                                // v5.0 LMS («el Show fuerte»): con Sonic como ULTIMO
+                                // superviviente, TODOS los stuns que el causa duran
+                                // +2 s: el golpe X (3 -> 5 s), la bola del spindash
+                                // (3 -> 5 s) y el parry (3,5 -> 5,5 s en scr_parry).
+                                // Lo aplica el cliente de la victima, igual que el
+                                // resto de stuns del juego.
+                                if(global.lmsActive && character == CHARACTER_SONIC)
+                                        stunTime += LMS_STUN_BONUS;
                                 var snd = snd_exe_stun;
                                 var xxspd = -sign(x - global.player.x) * 4;
                                                                 

@@ -28,6 +28,11 @@ global.eclipseTimer = 0;
 global.fwArrowStunStack = 0;
 global.fwArrowStunDecay = 0;
 
+// v5.0 LMS «El Show Fuerte»: true desde que el server confirma (SERVER_GAME_LMS)
+// que Sonic quedo como ultimo superviviente, hasta el final de la ronda
+// (lo resetea el Create de obj_level). Mientras valga: pasivas del show.
+global.lmsActive = false;
+
 global.ringId = 0;
 global.ringFrame = 0;
 global.character = -1;

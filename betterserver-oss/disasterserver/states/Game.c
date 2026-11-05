@@ -122,6 +122,7 @@ bool game_init(int exe, int8_t map, Server* server)
                 .bring_state = BS_NONE,
                 .bring_loc = (uint8_t)rand(),
                 .sudden_death = false,
+                .lms = false,
                 .started = false,
                 .end = 0.0,
                 .entid = 0,
@@ -521,6 +522,18 @@ bool game_demonize(Server* server, PeerData* data)
 bool game_state_join(PeerData* v)
 {
         (void)v; // dont fucking remember why this exists ~~
+
+        /* v5.0 LMS: el SERVER_GAME_LMS fue un broadcast UNICO; quien entre
+           o se reconecte a una partida ya avanzada se lo pierde. Re-enviarlo
+           solo a este peer para que su cliente tambien viva el show (el
+           reloj extendido ya le llega con el TIME_SYNC de siempre). */
+        if (v->server->game.lms)
+        {
+                Packet packet;
+                PacketCreate(&packet, SERVER_GAME_LMS);
+                RAssert(packet_send(v->peer, &packet, true));
+        }
+
         return true;
 }
 
@@ -2645,6 +2658,51 @@ bool game_state_tick(Server* server)
                         RAssert(game_uninit(server, true));
 
                 return true;
+        }
+
+        /* v5.0 — LMS «EL SHOW FUERTE»: Sonic como ULTIMO SUPERVIVIENTE.
+           Cuando el unico jugador vivo del bando survivor es Sonic, el show
+           arranca: el reloj sube a la duracion de la cancion (LMS_TIME_SEC,
+           solo si queda menos) y se avisa a todos con SERVER_GAME_LMS
+           (musica Undefeatable + banner + cura a 100 + pasivas).
+           DISPARO UNICO (game.lms latch): si un companero caido revive
+           despues, el show ya empezo y sigue su curso. La practica tambien
+           lo dispara (exe = 0xFFFF no matchea a nadie): un Sonic solo en
+           .sp puede probar el show entero. */
+        if (!server->game.lms)
+        {
+                int alive = 0;
+                PeerData* last = NULL;
+
+                for (size_t i = 0; i < server->peers.capacity; i++)
+                {
+                        PeerData* v = (PeerData*)server->peers.ptr[i];
+                        if (!v || !v->in_game)
+                                continue;
+
+                        if (v->id == server->game.exe)
+                                continue;
+
+                        if (v->plr.flags & PLAYER_DEAD || v->plr.flags & PLAYER_DEMONIZED || v->plr.flags & PLAYER_ESCAPED)
+                                continue;
+
+                        alive++;
+                        last = v;
+                }
+
+                if (alive == 1 && last && last->surv_char == CH_SONIC)
+                {
+                        server->game.lms = true;
+
+                        if (server->game.time_sec < LMS_TIME_SEC)
+                                server->game.time_sec = LMS_TIME_SEC;
+
+                        Packet packet;
+                        PacketCreate(&packet, SERVER_GAME_LMS);
+                        RAssert(server_broadcast(server, &packet, true));
+
+                        Info(LOG_YLW "LMS: Sonic is the last survivor - El Show Fuerte! (time %ds)" LOG_RST, (int)server->game.time_sec);
+                }
         }
 
         server->game.elapsed += server->delta;

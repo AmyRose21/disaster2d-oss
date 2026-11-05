@@ -3389,3 +3389,76 @@ drawPing -> 15, .yy con 16 frames/keyframes 0..15/length 16, frame
 15 difiere solo dentro del medallon (291 px dentro, 0 fuera), clamp
 hp, techo rings 119, 4 clamps de cura intactos). PNG huérfano del
 primer intento del script eliminado. Pendiente: partida real.
+
+## v5.0 (2026-11-05) — LMS «EL SHOW FUERTE»: Sonic último superviviente con Undefeatable
+
+Pedido del usuario (literal): «El LMS es el sistema cuando queda 1 por
+ahora el unico que tendra LMS es sonic [...] el tiempo del juego
+aumentara y se ajustara a la duracion de la cancion la vida cambiara a
+tener 100 de vida. y sonic ganara una pasiva durante el lms Bloquear el
+daño recibido con un 55% de probabilidad de bloquear todo el daño
+recibido. Sonic durante el LMS sera imune a la pasiva de
+enfriamientos que da Metal amy [...] No servira contra sonic en LMS.
+El spindash todos los stun aumentaran +2seg mas a sus duraciones.»
+Canción: Undefeatable V2 - Sonic Frontiers Epic Rock Reimagined Cover
+(file.garden, 281,86 s -> ogg q3, LMS_TIME_SEC 282 = 4:42 en el HUD).
+
+DISPARO (server, states/Game.c game_state_tick): cuenta vivos del bando
+survivor (fuera el exe, PLAYER_DEAD/DEMONIZED/ESCAPED); si queda
+EXACTAMENTE 1 y es CH_SONIC -> latch game.lms, reloj = max(actual,
+282), broadcast SERVER_GAME_LMS (paquete NUEVO al final del enum en los
+DOS lados). Reenvío del paquete en game_state_join para reconexiones.
+Práctica (.sp con exe=0xFFFF) también lo dispara: Sonic solo en
+práctica vive el show entero (vía de test).
+
+CLIENTE (net_state_game case SERVER_GAME_LMS): global.lmsActive (init
+en scr_globals, reset por ronda en obj_level/Create) + scr_play_music
+(mus_undefeatable, streamada como las demás mus_*) + banner
+obj_lms_banner (clon de obj_suddendeath sin sting, 5 s) + cura local
+de Sonic a 100 (snd_heal + spr_ring_sparkle por red). Gates: la música
+de persecución del anillo NO pisa la canción durante el show y el
+banner/sting de la muerte súbita no sale (la demonización del server
+sigue). El tic-tac de los últimos 10 s se conserva.
+
+PASIVAS (solo con global.lmsActive):
+1) BLOQUEO 55% — scr_lms_sonic_try_block (scripts/scr_lms NUEVO,
+   macros LMS_*), llamada desde scr_player_hurt tras la Torre de FW:
+   tirada random(100) < 55 (patrón Chocola); bloqueado = ni hp ni
+   anillos ni retroceso, escudo roto visible/sonoro por red + 60
+   frames de invulnerabilidad (una tirada limpia por golpe). La
+   ejecución de Metal Amy ya excluye a Sonic (v4.8) => la bala/laser
+   pasan por scr_player_hurt y la tirada las cubre sin dobles rolls.
+2) INMUNIDAD WEAKMARK — gate al inicio de scr_weak_mark_hit: la marca
+   de debilidad jamás aplica a Sonic en LMS.
+3) STUNS +2 s — obj_player_puppet Step_0: stunTime += LMS_STUN_BONUS
+   cuando el atacante es Sonic (golpe X 3->5; la BOLA del spindash/
+   dropdash aturde por contacto SOLO en LMS, estado SPIN, macro
+   LMS_SPIN_STUN para desactivar) y scr_parry_apply_stun: parry
+   3,5->5,5 s (shockedTimer y _stunSec consistentes).
+
+FIX EXTRA (bug real hallado al leer el puppet): el stun de 3,2 s del
+DJ de Fleetway Amy era CODIGO MUERTO desde v2.15 — el bloque de stun
+exige isAttacking y FW nunca envía ese bitflag (no está en la lista
+de obj_netclient/Step_2); el fix del bit PLAYER_DJ (v4.10) no bastaba.
+La puerta del bloque ahora acepta (FW && isDJ) => el stun del DJ
+funciona por fin.
+
+ASSETS NUEVOS (registrados en .yyp 1996 recursos y .resource_order,
+1 vez cada uno): sounds/mus_undefeatable (.ogg 3,7 MB streamado,
+formato mus_*), sprites/spr_lms_banner (4 frames 480x270, pixel font
+5x7 escala 2, «LAST MAN STANDING» paleta fuego rodante, composites
+raíz + layers/<frame>/<layer> — lección v2.2.2), objects/obj_lms_banner
+(3 eventos, TABs como su plantilla), scripts/scr_lms.
+
+HERRAMIENTAS: /home/z/my-project/scripts/lms/{apply_lms_v1.py
+(idempotencia FUERTE: si el resultado ya está, skip — los parches de
+inserción ya no se duplican entre corridas), validate_lms_v1.py}.
+
+VERIFICACION: validador 139/139 (paridad enum, orden del bloqueo antes
+de wasHurt, 55% exacto en 200k tiradas, HUD 4:42, banner ASCII-legible
++ paleta fuego + 4 frames distintos, composites+layers, .yyp sin
+duplicados, sonido mus-formato, sin CR/ternarios encadenados).
+Server: cmake Release 100% limpio + smoke test (v1101, 8606, Lobby).
+Pendiente: partida real (server Y cliente se actualizan JUNTOS).
+
+Entregable: download/lms_sonic_v1.zip (cliente + server + LEEME).

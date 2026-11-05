@@ -1,0 +1,158 @@
+════════════════════════════════════════════════════════════════════
+  v5.0 — LMS «EL SHOW FUERTE» (Last Man Standing de SONIC)
+  Canción: Undefeatable V2 (Sonic Frontiers Epic Rock Reimagined Cover)
+  Sonic.exe The Disaster 2D Remake · 5 de noviembre de 2026
+════════════════════════════════════════════════════════════════════
+
+QUÉ ES
+------
+
+Cuando en una partida queda UN SOLO superviviente vivo y ese
+superviviente es SONIC, arranca «el Show fuerte»:
+
+  * EL RELOJ de la partida sube a la duración de la canción:
+    4:42 (282 s). La partida dura exactamente lo que dura
+    Undefeatable. Si quedaba MÁS de 4:42, se conserva (el reloj
+    solo sube, nunca baja).
+  * LA CANCIÓN suena para TODOS (Sonic, el EXE, los esbirros y
+    los que ya cayeron): el show es del servidor entero. Sustituye
+    la música del mapa y la de persecución (el anillo de salida
+    sigue apareciendo normal, pero ya no cambia la música).
+  * BANNER «LAST MAN STANDING» estilo muerte súbita (texto de
+    fuego animado, 5 segundos).
+  * SONIC SE CURA A 100 de vida al arrancar el show.
+
+LAS PASIVAS DE SONIC DURANTE EL LMS (solo mientras dure el show)
+----------------------------------------------------------------
+
+  1. BLOQUEO 55%: cada golpe que le entra tiene un 55% de
+     probabilidad de ser BLOQUEADO COMPLETO — ni vida, ni anillos,
+     ni retroceso. Sale el escudo roto (todos lo ven y lo oyen) y
+     1 segundo de invulnerabilidad, para que el siguiente golpe
+     sea otra tirada limpia. El 45% restante entra completo por
+     el camino de siempre.
+
+  2. INMUNIDAD A METAL AMY: la MARCA DE DEBILIDAD (la pasiva de
+     enfriamientos de Metal Amy, que pone TODAS las habilidades
+     en 6 s de recarga) NO funciona contra Sonic en LMS. Ni el
+     láser ni el dash ni nada la marca.
+
+  3. STUNS +2 SEGUNDOS: TODO lo que Sonic aturde dura 2 s más:
+       - El golpe (X):            3 s  -> 5 s
+       - La BOLA (spindash/dropdash rodando): al tocar al bando
+         EXE lo aturde 3 s -> 5 s (la bola aturde SOLO durante
+         el LMS; en partida normal sigue siendo movilidad+defensa)
+       - El PARRY (C):            3,5 s -> 5,5 s
+
+DETALLES DE DISEÑO (decisiones tomadas)
+---------------------------------------
+
+  * El show se dispara UNA VEZ (queda enganchado). Si un compañero
+    caído revive después, el show ya empezó y sigue su curso: la
+    música no se corta y las pasivas se mantienen.
+  * El EXE ORIGINAL no tiene ataques a distancia: con la bola
+    aturdiendo por contacto + el 55% + los stuns de 5 s, Sonic en
+    LMS es una fortaleza. ES EL SHOW — así se pidió. Si te parece
+    demasiado, hay macros para ajustarlo (ver abajo).
+  * El modo PRÁCTICA también dispara el LMS (el exe falso 0xFFFF
+    no cuenta como jugador): puedes probar el show completo SOLO
+    con tu ventana de Sonic en .sp. Perfecto para testear.
+  * La MUERTE SÚBITA (2:00 restantes) sigue ocurriendo durante el
+    show (el server demoniza a los caídos igual), pero su banner y
+    su sting de audio NO salen: la canción manda.
+  * El tic-tac del reloj final (últimos 10 s) SÍ suena: queda
+    épico con el final de la canción.
+  * El anti-camp (obj_player_warning) sigue bajando la música si
+    te quedas quieto: si Sonic o el EXE campearan, la canción se
+    atenúa hasta que se muevan. Presión anti-camp intacta.
+  * Quien se reconecte a una partida con el show ya arrancado
+    recibe el paquete otra vez (música + pasivas al día).
+
+FIX EXTRA INCLUIDO (bug real encontrado al hacer el LMS)
+--------------------------------------------------------
+El stun de 3,2 s del DOBLE SALTO de Fleetway Amy era CÓDIGO MUERTO
+desde la v2.15: el bloque de stun del puppet exige el bitflag
+isAttacking y FW Amy nunca lo envía (no está en la lista de
+obj_netclient/Step_2). Aunque la v4.10 arregló el bit PLAYER_DJ,
+el bloque nunca se abría para ella. Ahora su vuelo con DJ abre el
+bloque directamente: el stun de contacto del DJ FUNCIONA por fin.
+
+ARCHIVOS DEL PAQUETE
+--------------------
+
+  NUEVOS:
+    sounds/mus_undefeatable/        (la canción, .ogg streamado 281,8 s)
+    sprites/spr_lms_banner/         (banner 4 frames, estilo suddendeath)
+    objects/obj_lms_banner/         (Create + Alarm_0 + Draw_64 + .yy)
+    scripts/scr_lms/                (macros + scr_lms_sonic_try_block)
+
+  MODIFICADOS (cliente):
+    scripts/net_packets/net_packets.gml       (enum + SERVER_GAME_LMS)
+    scripts/scr_globals/scr_globals.gml       (global.lmsActive)
+    objects/obj_level/Create_0.gml            (reset del show por ronda)
+    scripts/net_state_game/net_state_game.gml (handler + gates de música)
+    scripts/scr_player_hurt/scr_player_hurt.gml (bloqueo 55% + weakmark)
+    objects/obj_player_puppet/Step_0.gml      (stuns +2 s, bola, FIX DJ)
+    scripts/scr_parry/scr_parry.gml           (parry 5,5 s en LMS)
+    Sonicexe The Disaster 2D Remake.yyp       (4 recursos nuevos)
+    Sonicexe The Disaster 2D Remake.resource_order
+
+  MODIFICADOS (server — HAY QUE RECOMPILAR):
+    betterserver-oss/include/Server.h         (Game.lms + LMS_TIME_SEC)
+    betterserver-oss/include/Packet.h         (enum SERVER_GAME_LMS)
+    betterserver-oss/disasterserver/states/Game.c (detección + timer
+                                                + broadcast + reenvío)
+
+CÓMO SE INSTALA
+---------------
+  1. Cierra GameMaker.
+  2. Extrae el ZIP DENTRO de la carpeta de tu proyecto (donde está
+     el .yyp) y REEMPLAZA todo lo que pregunte. Comprueba que el
+     .yyp y el .resource_order se sobrescriben de verdad (la
+     lección de la v2.2: si el explorador no pide reemplazarlos,
+     algo fue mal) y que en el árbol de recursos aparecen
+     mus_undefeatable, spr_lms_banner, obj_lms_banner y scr_lms.
+  3. RECOMPILA EL SERVER (compilar_server.bat o cmake). Sin
+     recompilar, el server viejo no manda el SERVER_GAME_LMS y el
+     show jamás arranca (además el enum nuevo no existe en su
+     protocolo: cliente y server se actualizan JUNTOS).
+  4. Abre el proyecto y F5.
+
+MACROS AJUSTABLES (scripts/scr_lms/scr_lms.gml)
+-----------------------------------------------
+  LMS_BLOCK_CHANCE 55     % de bloquear todo el daño de cada golpe
+  LMS_BLOCK_INVULN 60     i-frames tras un bloqueo (60 = 1 s)
+  LMS_STUN_BONUS 2        segundos extra en los stuns de Sonic
+  LMS_SPIN_STUN true      pon false y la bola deja de aturdir
+                          (el golpe X y el parry siguen con +2 s)
+
+  En el server (include/Server.h): LMS_TIME_SEC 282 (duración del
+  show = duración de la canción; recalcula si cambias la canción).
+
+GUION DE PRUEBA (con 2 ventanas + allow_duplicate_ip)
+-----------------------------------------------------
+  1. Server recompilado y arrancado. Entra EXE + Sonic + un
+     superviviente cualquiera (p. ej. Amy).
+  2. Que el EXE mate a Amy (2 caídas). Al quedarte SOLO con
+     Sonic: banner LAST MAN STANDING + Undefeatable en las 2-3
+     ventanas + reloj a 4:42 + Sonic a 100 de vida.
+  3. Deja que el EXE te pegue varias veces: ~la mitad de los
+     golpes se bloquean (escudo roto, sin perder vida).
+  4. Golpe X al EXE: stun de 5 s (antes 3). Rueda un spindash
+     y pásale por encima: stun de 5 s. Parry: stun de 5,5 s.
+  5. (Si el EXE es Metal Amy) que te dé con el láser: tus
+     habilidades JAMÁS entran en recarga forzada.
+  6. Espera al final: la canción termina justo cuando el reloj
+     llega a 0 -> TIMEOVER con su música de resultados normal.
+  7. Siguiente ronda: música de mapa normal (el show se resetea).
+
+VERIFICADO
+----------
+Validador 139 checks OK (paridad del enum en los 2 lados, orden del
+bloqueo antes del contador de logros, tirada 55% exacta, HUD 4:42,
+banner legible con paleta fuego, 4 frames distintos, composites y
+layers del sprite completos — lección v2.2.2 —, .yyp sin duplicados
+y con los 4 recursos 1 sola vez, sonido streamado como las demás
+mus_*, sin CR, sin ternarios encadenados GM2026). Server compilado
+100% limpio (gcc Release) + smoke test OK (v1101, puerto 8606,
+Lobby). Pendiente: partida real.

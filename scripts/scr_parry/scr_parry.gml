@@ -861,7 +861,11 @@ function scr_parry_apply_stun(_victimNid, _kx, _emitSound)
         global.player.isSpinCharging = false;
         global.player.spinCharge = 0;
         global.player.hurttime = 0;
-        global.player.shockedTimer = SONIC_PARRY_STUN_TIME;
+        // v5.0 LMS: con Sonic como ultimo superviviente, el stun del parry
+        // dura +2 s (3,5 -> 5,5 s). Vale para el parry de SONIC: durante el
+        // LMS el es el unico que puede tener la ventana activa (los
+        // demonizados no parrean y Amy Canon ya cayo).
+        global.player.shockedTimer = SONIC_PARRY_STUN_TIME + (global.lmsActive ? LMS_STUN_BONUS * 60 : 0);
         global.player.xspd = _kx;
         global.player.yspd = -2;
         global.player.isGrounded = false;
@@ -877,7 +881,7 @@ function scr_parry_apply_stun(_victimNid, _kx, _emitSound)
         // victima esta identificada
         if(_victimNid >= 0)
         {
-                var _stunSec = SONIC_PARRY_STUN_TIME div 60;
+                var _stunSec = (SONIC_PARRY_STUN_TIME + (global.lmsActive ? LMS_STUN_BONUS * 60 : 0)) div 60;
 
                 var _buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
                 buffer_write(_buffer, buffer_u16, _victimNid);

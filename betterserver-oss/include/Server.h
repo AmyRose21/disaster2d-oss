@@ -173,12 +173,19 @@ typedef enum
         ED_TIMEOVER
 } Ending;
 
+/* v5.0 — LMS «El Show Fuerte»: segundos de show cuando Sonic queda como
+   ultimo superviviente = duracion de la cancion (Undefeatable V2,
+   281,8 s redondeado a 282). El reloj SOLO sube: si quedaban mas de
+   282 s se conservan los que hubiera. */
+#define LMS_TIME_SEC 282
+
 typedef struct
 {
         int exe;
         int8_t map;
         bool started;
         bool sudden_death;
+        bool lms; /* v5.0: LMS «El Show Fuerte» activo (Sonic ultimo superviviente) */
 
         double start_timeout;
         double time;
