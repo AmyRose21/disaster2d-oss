@@ -2803,22 +2803,35 @@ function net_state_game(rbuff, nps, isPasstrough)
                         if(!instance_exists(obj_level) || gameEnds)
                                 break;
                         
-                        // v5.0 — «EL SHOW FUERTE»: el server dice que Sonic quedo
-                        // como ULTIMO SUPERVIVIENTE. Todos los clientes entran en
-                        // el show a la vez: la cancion (Undefeatable, dura lo
-                        // mismo que el reloj nuevo) y el banner. Sonic ademas se
-                        // cura a 100 (la vida del show). El reloj extendido llega
-                        // solo, con el TIME_SYNC del siguiente segundo.
+                        // v5.3 — «EL SHOW FUERTE» por personaje: el server dice
+                        // QUE personaje quedo como ULTIMO SUPERVIVIENTE y QUE
+                        // cancion de su lista eligio (u8 + u8). Todos los clientes
+                        // oyen la misma cancion y ven el banner; al personaje del
+                        // show ademas le sube la vida (LMS_HP). Si su personaje no
+                        // esta en la lista del show, el server ya no habria
+                        // disparado nada. El reloj extendido llega solo, con el
+                        // TIME_SYNC del siguiente segundo.
                         global.lmsActive = true;
                         
-                        // v5.1: el server eligio la cancion y manda su indice
-                        // (server viejo sin payload => -1 => cae en la #1)
+                        // v5.3: personaje del show + indice de SU cancion.
+                        // Servers VIEJOS: v5.0 no mandaba payload (-1/-1) y
+                        // v5.1 mandaba SOLO el indice de la cancion (que
+                        // caeria en el hueco del personaje): en ambos casos
+                        // el show era de SONIC, asi que se reconstruye asi.
+                        var _lmsChar = buffer_read_s(rbuff, buffer_u8);
                         var _lmsSong = buffer_read_s(rbuff, buffer_u8);
+                        if(_lmsSong < 0)
+                        {
+                                _lmsSong = _lmsChar;    // v5.1: eso era la cancion
+                                _lmsChar = CHARACTER_SONIC;
+                        }
+                        else if(_lmsChar < 0)
+                                _lmsChar = CHARACTER_SONIC;    // v5.0: sin payload
                         
-                        scr_lms_play_song(_lmsSong);
+                        scr_lms_play_song(_lmsChar, _lmsSong);
                         instance_create_depth(0, 0, 0, obj_lms_banner);
                         
-                        if(global.character == CHARACTER_SONIC && instance_exists(global.player) && !global.player.isDead)
+                        if(global.character == _lmsChar && instance_exists(global.player) && !global.player.isDead)
                         {
                                 global.player.hp = LMS_HP;
                                 

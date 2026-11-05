@@ -268,13 +268,14 @@ typedef enum
         CLIENT_FWBOLT_HIT,
         SERVER_FWBOLT_STATE,
 
-        /* v5.1 — LMS «El Show Fuerte» (Sonic ultimo superviviente):
-           SERVER_GAME_LMS (payload u8 song = indice de la cancion que
-           el server eligio al azar): el server lo emite UNA VEZ al
-           detectar que el unico superviviente vivo es Sonic; sube el
-           reloj a la duracion de LA CANCION ELEGIDA (LMS_SONG_SEC) y
-           los clientes entran en el show (musica, banner, cura a 100
-           y pasivas de Sonic). Se re-envia en game_state_join para
+        /* v5.3 — LMS «El Show Fuerte» POR PERSONAJE: SERVER_GAME_LMS
+           (payload u8 char + u8 song = personaje con show + indice de
+           SU cancion): el server lo emite UNA VEZ al detectar que el
+           unico superviviente vivo tiene show en LMS_SHOWS (Server.h);
+           sube el reloj a la duracion de la cancion elegida y los
+           clientes entran en el show (su cancion + banner + vida al
+           personaje del show; las pasivas de bloqueo/stuns son
+           personales de Sonic). Se re-envia en game_state_join para
            reconexiones. Mismo orden que el enum del cliente
            (net_packets.gml); anadido AL FINAL en los DOS lados. */
         SERVER_GAME_LMS

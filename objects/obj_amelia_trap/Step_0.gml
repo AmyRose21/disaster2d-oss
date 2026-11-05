@@ -17,7 +17,11 @@ if(life <= 0)
 // obj_eggtrack (lee el puppet de Amelia en este cliente; si YO soy
 // Amelia, mi propio revivalTimes).
 var _ameliaDemon = false;
-if(global.character == CHARACTER_AMELIA)
+// fix: al SALIR por la salida el player local se destruye y esta
+// lectura reventaba ("Unable to find instance for object index 24").
+// Si ya no existe, _ameliaDemon queda false: mas abajo el trigger
+// igual exige instance_exists(global.player), asi que nada cambia.
+if(global.character == CHARACTER_AMELIA && instance_exists(global.player))
         _ameliaDemon = global.player.revivalTimes >= 2;
 else if(instance_exists(obj_player_puppet))
 {

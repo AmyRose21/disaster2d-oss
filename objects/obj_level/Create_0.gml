@@ -19,6 +19,11 @@ instance_create_depth(0, 0, 0, obj_playerui);
 drawPing = function(char, exeCharacter, ping, revival, name, index)
 {       
         var hchar = char - 1;
+        // fix v5.1: los resolvedores scr_hud_* piden el PERSONAJE, no el
+        // frame de spr_tab_entry. Antes se les pasaba `char` DESPUES del
+        // remapeo (Tails pedia el frame -1 de la tira hit y todos los
+        // iconos de golpe/demon salian desplazados una fila).
+        var _hudch = char;
         // [Suite v5.1] hit/demon por resolvedor (tiras propias de Sally
         // Canon/Vanilla o la común): sin remapeos a mano.
         if(char == CHARACTER_EXE)
@@ -60,9 +65,15 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
         
         if(hchar > -1)
         {
-                // [Suite v5.1] tiras por resolvedor (propias o común)
-                var _tabPair = revival >= 2 ? scr_hud_demon(char) : scr_hud_hit(char);
-                draw_sprite(_tabPair[0], _tabPair[1], 480/2-113 + 1, 43 + index * 30 + 28);
+                // [Suite v5.1] tiras por resolvedor (propias o común), con el
+                // PERSONAJE original (_hudch). Solo se dibuja si fue golpeado
+                // (revival >= 1) o demonizado (>= 2), como siempre: un jugador
+                // vivo y sin golpes NO lleva icono aqui.
+                if(revival >= 1)
+                {
+                        var _tabPair = revival >= 2 ? scr_hud_demon(_hudch) : scr_hud_hit(_hudch);
+                        draw_sprite(_tabPair[0], _tabPair[1], 480/2-113 + 1, 43 + index * 30 + 28);
+                }
         }
         
         var clr = #0fff39;

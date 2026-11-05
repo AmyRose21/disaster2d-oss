@@ -173,15 +173,29 @@ typedef enum
         ED_TIMEOVER
 } Ending;
 
-/* v5.1 — LMS «El Show Fuerte» MULTI-CANCION: el server elige UNA cancion
-   al azar de la lista al disparar el show, sube el reloj a la duracion
-   de LA ELEGIDA y avisa el indice en SERVER_GAME_LMS (payload u8).
-   La #1 es la original (mus_undefeatable = Undefeatable, 282 s); el
-   Suite TD2D anade mus_lms_2..N (.mp3/.ogg) y rellena esta lista con
-   las duraciones de cada una (redondeadas al segundo). El reloj SOLO
-   sube: si quedaba mas tiempo, se conserva. */
-#define LMS_SONG_COUNT 1
-static const uint16_t LMS_SONG_SEC[LMS_SONG_COUNT] = { 282 };
+/* v5.3 — LMS «El Show Fuerte» POR PERSONAJE: la lista de QUIEN tiene
+   show. Cada entrada lleva SU(S) cancion(es) (duraciones en segundos,
+   redondeadas); al disparar el show el server elige UNA al azar de las
+   del personaje, sube el reloj a ESA duracion (solo si queda menos) y
+   avisa a todos con SERVER_GAME_LMS (payload u8 char + u8 song). El
+   reloj SOLO sube: si quedaba mas tiempo, se conserva.
+   CH_* van en el mismo orden que los CHARACTER_* del cliente
+   (scr_survivors.gml); la lista de canciones del lado cliente es
+   global.lmsCharSongs (scr_lms.gml), que el Suite TD2D mantiene
+   sincronizada con esta tabla. Editar con el Suite (modulo Show LMS). */
+#define LMS_MAX_SONGS 16
+
+typedef struct
+{
+        uint8_t ch;    /* CH_* del personaje con show */
+        uint8_t songs; /* cuantas canciones tiene (1..LMS_MAX_SONGS) */
+        uint16_t sec[LMS_MAX_SONGS]; /* duracion de cada una (s) */
+} LmsShow;
+
+#define LMS_SHOW_COUNT 1
+static const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {
+        { CH_SONIC, 1, { 282 } },
+};
 
 typedef struct
 {
@@ -189,8 +203,9 @@ typedef struct
         int8_t map;
         bool started;
         bool sudden_death;
-        bool lms; /* v5.0: LMS «El Show Fuerte» activo (Sonic ultimo superviviente) */
-        uint8_t lms_song; /* v5.1: indice de la cancion elegida (se reenvia al reconectar) */
+        bool lms; /* v5.0: LMS «El Show Fuerte» activo (ultimo superviviente con show) */
+        uint8_t lms_char; /* v5.3: personaje del show (se reenvia al reconectar) */
+        uint8_t lms_song; /* v5.3: indice de la cancion elegida DENTRO de la lista del personaje */
 
         double start_timeout;
         double time;

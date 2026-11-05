@@ -123,6 +123,7 @@ bool game_init(int exe, int8_t map, Server* server)
                 .bring_loc = (uint8_t)rand(),
                 .sudden_death = false,
                 .lms = false,
+                .lms_char = 0,
                 .lms_song = 0,
                 .started = false,
                 .end = 0.0,
@@ -532,7 +533,9 @@ bool game_state_join(PeerData* v)
         {
                 Packet packet;
                 PacketCreate(&packet, SERVER_GAME_LMS);
-                /* v5.1: la misma cancion que sono al disparar el show */
+                /* v5.3: el mismo personaje y la misma cancion que sono
+                   al disparar el show */
+                PacketWrite(&packet, packet_write8, v->server->game.lms_char);
                 PacketWrite(&packet, packet_write8, v->server->game.lms_song);
                 RAssert(packet_send(v->peer, &packet, true));
         }
@@ -2663,16 +2666,16 @@ bool game_state_tick(Server* server)
                 return true;
         }
 
-        /* v5.0 — LMS «EL SHOW FUERTE»: Sonic como ULTIMO SUPERVIVIENTE.
-           Cuando el unico jugador vivo del bando survivor es Sonic, el show
-           arranca: el server elige UNA cancion al azar (LMS_SONG_SEC), sube
-           el reloj a SU duracion (solo si queda menos) y se avisa a todos
-           con SERVER_GAME_LMS (indice u8 + musica + banner + cura a 100 +
-           pasivas).
+        /* v5.3 — LMS «EL SHOW FUERTE» POR PERSONAJE: cuando el unico
+           jugador vivo del bando survivor tiene show en LMS_SHOWS
+           (Server.h), este arranca: el server elige UNA cancion al azar
+           de LAS SUYAS, sube el reloj a SU duracion (solo si queda
+           menos) y avisa a todos con SERVER_GAME_LMS (u8 char + u8 song
+           + musica + banner + cura a LMS_HP del lado cliente).
            DISPARO UNICO (game.lms latch): si un companero caido revive
-           despues, el show ya empezo y sigue su curso. La practica tambien
-           lo dispara (exe = 0xFFFF no matchea a nadie): un Sonic solo en
-           .sp puede probar el show entero. */
+           despues, el show ya empezo y sigue su curso. La practica
+           tambien lo dispara (exe = 0xFFFF no matchea a nadie): un
+           personaje solo en .sp puede probar su show entero. */
         if (!server->game.lms)
         {
                 int alive = 0;
@@ -2694,24 +2697,40 @@ bool game_state_tick(Server* server)
                         last = v;
                 }
 
-                if (alive == 1 && last && last->surv_char == CH_SONIC)
+                if (alive == 1 && last)
                 {
-                        server->game.lms = true;
+                        /* v5.3: el show es del ULTIMO SUPERVIVIENTE que
+                           esté en la lista (LMS_SHOWS). Sin entrada en
+                           la lista no hay show: la ronda sigue normal. */
+                        const LmsShow* show = NULL;
+                        for (int i = 0; i < LMS_SHOW_COUNT; i++)
+                        {
+                                if (LMS_SHOWS[i].ch == (uint8_t)last->surv_char)
+                                {
+                                        show = &LMS_SHOWS[i];
+                                        break;
+                                }
+                        }
 
-                        /* v5.1: cancion al azar de la lista; el reloj sube a la
-                           duracion de LA ELEGIDA y el indice viaja en el paquete
-                           (u8) para que todos los clientes oigan la misma. */
-                        server->game.lms_song = (uint8_t)(rand() % LMS_SONG_COUNT);
+                        if (show)
+                        {
+                                server->game.lms = true;
+                                server->game.lms_char = show->ch;
+                                server->game.lms_song = (uint8_t)(rand() % show->songs);
 
-                        if (server->game.time_sec < LMS_SONG_SEC[server->game.lms_song])
-                                server->game.time_sec = LMS_SONG_SEC[server->game.lms_song];
+                                uint16_t song_sec = show->sec[server->game.lms_song];
+                                if (server->game.time_sec < song_sec)
+                                        server->game.time_sec = song_sec;
 
-                        Packet packet;
-                        PacketCreate(&packet, SERVER_GAME_LMS);
-                        PacketWrite(&packet, packet_write8, server->game.lms_song);
-                        RAssert(server_broadcast(server, &packet, true));
+                                Packet packet;
+                                PacketCreate(&packet, SERVER_GAME_LMS);
+                                PacketWrite(&packet, packet_write8, server->game.lms_char);
+                                PacketWrite(&packet, packet_write8, server->game.lms_song);
+                                RAssert(server_broadcast(server, &packet, true));
 
-                        Info(LOG_YLW "LMS: Sonic is the last survivor - El Show Fuerte! (song %u/%d, time %ds)" LOG_RST, (unsigned)server->game.lms_song + 1u, LMS_SONG_COUNT, (int)server->game.time_sec);
+                                Info(LOG_YLW "LMS: ch %u is the last survivor - El Show Fuerte! (song %u/%u, time %ds)" LOG_RST,
+                                     (unsigned)server->game.lms_char, (unsigned)server->game.lms_song + 1u, (unsigned)show->songs, (int)server->game.time_sec);
+                        }
                 }
         }
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Suite TD2D v5.2 · editor del juego</title>
+<title>Suite TD2D · editor del juego</title>
 <style>
 :root{
   --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
@@ -936,25 +936,28 @@ window.addEventListener('error', function () { window.__bootErrors++; });
 <div id="mod-lms" class="mod hidden">
   <aside class="side" style="overflow-y:auto">
     <div class="side-head">El Show Fuerte</div>
-    <section class="note" style="border:none;padding:6px 4px">Cuando Sonic queda como <b>último superviviente</b> de la partida, el server dispara el show: banner «LAST MAN STANDING», cura total, pasivas y música a todo volumen.</section>
-    <section class="note" style="border:none;padding:6px 4px"><b>Cómo va ahora (v5.1):</b> el server elige <b>una canción al azar</b> de la lista, sube el reloj a <b>la duración de la elegida</b> y avisa a todos los clientes el índice — todos oyen lo mismo.</section>
-    <div class="side-head">Pasivas de Sonic en el show</div>
-    <section class="note" style="border:none;padding:6px 4px">Vida al arrancar · 55% de bloquear todo el daño · inmunidad a la marca de Metal Amy · todos sus stuns duran +2 s.</section>
+    <section class="note" style="border:none;padding:6px 4px">Cuando queda <b>un solo superviviente vivo</b>, el server mira si <b>su personaje tiene música asignada</b>. Si la tiene: show (banner + su canción + reloj a la duración + <b>vida rellenada</b>). Si no tiene: no le aplica nada y la ronda sigue. <b>Y punto.</b></section>
+    <div class="side-head">Cómo se activa</div>
+    <section class="note" style="border:none;padding:6px 4px">Asignarle canciones a un personaje en la lista = <b>activarle el LMS</b>. Quitarle todas = desactivado. El efecto genérico del show es solo rellenar la vida; los efectos extra se hacen a mano por personaje (los de Sonic ya vienen de fábrica).</section>
+    <div class="side-head">Sonic ⭐ (personal, intacto)</div>
+    <section class="note" style="border:none;padding:6px 4px">Además de la vida: <b>55% de bloquear todo el daño</b> · inmunidad a la marca de Metal Amy · <b>sus stuns duran +2 s</b>. Son sus pasivas personalizadas de siempre — nadie más las hereda.</section>
     <div class="side-head">Vista rápida</div>
     <div id="lms-side-stats" class="muted" style="padding:6px"></div>
   </aside>
   <main class="mid" style="overflow-y:auto">
-    <div id="lms-warn" class="hidden" style="background:#3a1d1d;border:1px solid #e05d5d;border-radius:8px;padding:10px 14px"></div>
-    <div class="arte-head"><b>🎤 Canciones y ajustes del show</b> <span class="muted">· añade cuantas quieras: .mp3 vale igual que .ogg (GameMaker las convierte solo) · la duración se lee del audio</span></div>
-    <div class="arte-subhead">Canciones del show (el server elige una al azar)</div>
+    <div id="lms-warn" class="hidden" style="background:#3a1d1d;border:1px solid #e05d5d;border-radius:8px;padding:10px 14px;margin-bottom:10px"></div>
+    <div class="arte-head"><b>🎤 Música LMS por personaje</b> <span class="muted">· el que tenga música, tiene show · el que no, no · .mp3 vale igual que .ogg (GameMaker las convierte solo) · la duración se lee del audio</span></div>
+    <div class="arte-subhead">Personaje <span class="muted">(🔊 = con show · — = sin show · ⭐ = pasivas personales)</span></div>
+    <div id="lms-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+    <div class="arte-subhead" id="lms-charhead"></div>
     <div id="lms-songs"></div>
     <div class="arte-rowline" style="gap:8px;flex-wrap:wrap;margin-top:4px">
-      <label class="filebtn">📂 Añadir canciones (.mp3 / .ogg / .wav)… <input id="lms-add" type="file" accept=".mp3,.ogg,.wav,audio/mpeg,audio/ogg,audio/wav" multiple hidden></label>
+      <label class="filebtn">📂 Añadir canciones a este personaje (.mp3 / .ogg / .wav)… <input id="lms-add" type="file" accept=".mp3,.ogg,.wav,audio/mpeg,audio/ogg,audio/wav" multiple hidden></label>
       <span class="muted" id="lms-total"></span>
     </div>
-    <div class="arte-subhead" style="margin-top:18px">Ajustes del show (solo mientras Sonic es el último)</div>
+    <div class="arte-subhead" style="margin-top:18px">Ajustes del show</div>
     <div id="lms-macros" class="trgrid"></div>
-    <section class="note">«i-frames tras bloqueo» = invulnerabilidad tras bloquear un golpe (en segundos). «Vida al arrancar» = la cura que recibe Sonic al empezar el show. Los valores viven en <code>scr_lms.gml</code> como macros.</section>
+    <section class="note">«Vida al arrancar el show» es del show genérico (vale para cualquier personaje con música). Los demás ajustes son <b>solo de Sonic</b> (sus pasivas personales). Los valores viven en <code>scr_lms.gml</code> como macros.</section>
   </main>
   <aside class="rightpane">
     <section>
@@ -965,9 +968,9 @@ window.addEventListener('error', function () { window.__bootErrors++; });
         <button id="lms-undo">Deshacer</button>
       </div>
     </section>
-    <section class="note"><b>Qué toca:</b> crea <code>sounds/mus_lms_N/</code> (audio + .yy) y lo registra en el .yyp; reescribe la lista <code>global.lmsSongs</code> de <code>scr_lms.gml</code>, las macros del show y la lista <code>LMS_SONG_SEC</code> del server (<code>Server.h</code>) con la duración de cada canción. La #1 es <code>mus_undefeatable</code> (Undefeatable): puedes cambiarle el audio con 🔄 pero no quitarla.</section>
-    <section class="note">Tras escribir: <b>F5</b> para el cliente <b>y recompila el server</b> (<code>betterserver-oss/compilar_server.bat</code>) — el reloj y la elección de canción los manda él. Respaldo en <code>_backups_animeditor/</code> + deshacer.</section>
-    <section class="note">Quitar una canción añadida borra su entrada de la lista (la carpeta queda, inofensiva); el botón ✕ no toca la #1.</section>
+    <section class="note"><b>Qué toca:</b> crea <code>sounds/mus_lms_N/</code> (audio + .yy) y lo registra en el .yyp; reescribe la lista <code>global.lmsCharSongs</code> de <code>scr_lms.gml</code> (quién tiene show y con qué canciones), las macros y la tabla <code>LMS_SHOWS</code> del server (<code>Server.h</code>) con las duraciones leídas del audio. Sin canciones = sin show: así se apaga el LMS de un personaje.</section>
+    <section class="note">Tras escribir: <b>F5</b> para el cliente <b>y recompila el server</b> (<code>betterserver-oss/compilar_server.bat</code>) — el reloj, el personaje del show y la canción los manda él.</section>
+    <section class="note">Quitar una canción con ✕ solo la quita de la lista (la carpeta del audio queda, inofensiva). Las recargas al entrar a mitad del show oyen <b>la misma canción</b> que sonó al arrancarlo.</section>
   </aside>
 </div><!-- /mod-lms -->
 
@@ -1035,12 +1038,14 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   <code>scr_*_special.gml</code> y la tecla del icono en <code>obj_playerui/Draw_64.gml</code> — nada de red ni server,
   y en Android los botones táctiles emulan las mismas teclas, así que aplica igual.</p>
   <h4>6. Módulo 🎤 Show LMS</h4>
-  <p>La música y los ajustes del <b>Show Fuerte</b> (cuando Sonic queda como último superviviente).
-  Añade <b>todas las canciones que quieras</b> (.mp3 o .ogg — GameMaker convierte los .mp3 solo):
-  el server elige una <b>al azar</b> al disparar el show y sube el reloj a <b>su duración</b>
-  (se lee automáticamente del audio). También editas las pasivas: % de bloqueo, i-frames tras
-  bloqueo, stun extra, la bola que aturde y la vida al arrancar. Tras escribir: F5 <b>y recompilar
-  el server</b> (el reloj y la canción elegida los manda él).</p>
+  <p>La música del <b>Show Fuerte</b>, ahora <b>por personaje</b>: elige quién tiene show
+  asignándole canciones (el que no tenga música, no le aplica — y punto). Cada personaje acepta
+  <b>todas las canciones que quieras</b> (.mp3, .ogg o .wav — GameMaker convierte los .mp3 solo):
+  al quedar como último superviviente, el server elige una <b>al azar de SU lista</b> y sube el reloj
+  a <b>su duración</b> (se lee automáticamente del audio). El show genérico solo rellena la vida;
+  las pasivas extra son personales (las de Sonic: bloqueo, i-frames, stun extra y la bola que
+  aturde) y se editan aquí mismo. Tras escribir: F5 <b>y recompilar el server</b>
+  (el personaje del show y la canción elegida los manda él).</p>
   <h4>7. Música</h4>
   <p>El botón <b>🎵 Música</b> de la barra de arriba pone el tema del lobby
   (<i>Sonic.exe The Disaster 1.0 OST</i>) mientras editas, en bucle y con control de volumen.
@@ -9818,20 +9823,25 @@ initKeys();
 </script>
 <script>
 /* =====================================================================
-   Suite TD2D — parte 6 (v5.2): módulo «🎤 Show LMS»
+   Suite TD2D — parte 6: módulo «🎤 Show LMS» POR PERSONAJE
 
-   El Show Fuerte (Sonic último superviviente) con MULTI-CANCIÓN:
-     - añade cuantas canciones quieras (.mp3 / .ogg / .wav — GameMaker
-       convierte los .mp3 solo al compilar);
-     - el server elige UNA al azar (Server.h LMS_SONG_SEC, que este
-       módulo rellena con la duración LEÍDA DEL AUDIO vía Web Audio);
-     - el cliente la reproduce por índice (global.lmsSongs +
-       scr_lms_play_song, ya parcheados en la base v5.1 del juego);
-     - ajustes del show: % de bloqueo, i-frames tras bloqueo, stun
-       extra, bola que aturde y vida al arrancar (macros scr_lms.gml).
+   El Show Fuerte ya no es solo de Sonic: se asigna MÚSICA POR PERSONAJE.
+     - El personaje con canciones en la lista TIENE show; sin canciones,
+       NO le aplica. Y punto.
+     - El show genérico = canción + banner + reloj a la duración + VIDA
+       rellenada (LMS_HP). Nada más por defecto.
+     - Efectos extra = hechos a mano por personaje. Los de Sonic (bloqueo
+       55%, +2 s de stun, inmunidad a Metal Amy) vienen de fábrica y
+       siguen siendo SUYOS: no los hereda nadie más.
+     - Canciones .mp3 / .ogg / .wav (GameMaker convierte los .mp3 solo al
+       compilar); la duración se lee DEL AUDIO vía Web Audio.
+     - El server decide: mira si el último superviviente está en LMS_SHOWS
+       (Server.h), elige UNA de SUS canciones al azar y avisa a todos con
+       SERVER_GAME_LMS (u8 char + u8 song).
 
-   Requiere la base v5.1 del repo (global.lmsSongs). Sin ella avisa y
-   no escribe. Backups en _backups_animeditor/ + deshacer propio.
+   Si la carpeta abierta tiene el LMS viejo (solo Sonic), el módulo lo
+   dice y no edita: copia los archivos de la entrega y reabre. Requiere
+   también el server (betterserver-oss).
    ===================================================================== */
 (() => {
 'use strict';
@@ -9839,22 +9849,54 @@ const C = window.AnimCore;
 const T = window.__animtool;
 const S = T.S;
 const $ = (s) => document.querySelector(s);
+// helpers del núcleo (parte 1) — prestados vía T, igual que el módulo Arte
+// (ojo: NO existen como globales; sin esto el módulo truena al escanear)
+const readText = T.readText;
+const fsWalkFile = T.fsWalkFile;
+const fsWalkDir = T.fsWalkDir;
+const normPath = T.normPath;
+const ensureDir = T.ensureDir;
 const toast = T.toast;
 
 const REL_LMS = 'scripts/scr_lms/scr_lms.gml';
 const REL_NSG = 'scripts/net_state_game/net_state_game.gml';
 const REL_SRVH = 'betterserver-oss/include/Server.h';
 const REL_GAMEC = 'betterserver-oss/disasterserver/states/Game.c';
+const MAX_SONGS = 16; // = LMS_MAX_SONGS del server
+
+// Los 14 supervivientes, mismo orden que scr_survivors.gml (CHARACTER_*)
+// y Server.h (CH_*). sonic => pasivas personales de fábrica.
+const LMS_CHARS = [
+  { key: 'tails',       label: 'Tails',        cm: 'CHARACTER_TAILS',       ch: 'CH_TAILS' },
+  { key: 'knux',        label: 'Knuckles',     cm: 'CHARACTER_KNUX',        ch: 'CH_KNUX' },
+  { key: 'eggman',      label: 'Eggman',       cm: 'CHARACTER_EGGMAN',      ch: 'CH_EGGMAN' },
+  { key: 'amy',         label: 'Amy Rose',     cm: 'CHARACTER_AMY',         ch: 'CH_AMY' },
+  { key: 'cream',       label: 'Cream',        cm: 'CHARACTER_CREAM',       ch: 'CH_CREAM' },
+  { key: 'sally',       label: 'Sally',        cm: 'CHARACTER_SALLY',       ch: 'CH_SALLY' },
+  { key: 'amycanon',    label: 'Amy (canon)',  cm: 'CHARACTER_AMY_CANON',   ch: 'CH_AMY_CANON' },
+  { key: 'sonic',       label: 'Sonic',        cm: 'CHARACTER_SONIC',       ch: 'CH_SONIC', personal: true },
+  { key: 'sallycanon',  label: 'Sally (canon)', cm: 'CHARACTER_SALLY_CANON', ch: 'CH_SALLY_CANON' },
+  { key: 'vanilla',     label: 'Vanilla',      cm: 'CHARACTER_VANILLA',     ch: 'CH_VANILLA' },
+  { key: 'metal',       label: 'Metal Sonic',  cm: 'CHARACTER_METAL',       ch: 'CH_METAL' },
+  { key: 'amelia',      label: 'Amelia',       cm: 'CHARACTER_AMELIA',      ch: 'CH_AMELIA' },
+  { key: 'blaze',       label: 'Blaze',        cm: 'CHARACTER_BLAZE',       ch: 'CH_BLAZE' },
+  { key: 'fleetway',    label: 'Fleetway Amy', cm: 'CHARACTER_FLEETWAY_AMY', ch: 'CH_FLEETWAY_AMY' }
+];
 
 const LMS = {
-  scanned: false, baseOk: false, serverOk: false, nsgPatched: true, gamePatched: true,
-  songs: [],           // {asset, dur, ext, isNew, bytes?, fileName?, repl?}
+  scanned: false, base: 'none',       // none | old (solo Sonic) | ok (por personaje)
+  chars: {}, sel: 'sonic',            // key -> { songs: [...] }
+  origLists: {},                      // key -> [assets] tal cual escaneado
   macOrig: null, mac: null,
+  srvOk: false, gameOk: false, nsgOk: false,
   undoStack: [], audioCtx: null
 };
 
 const mmss = (s) => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
 const fmt1 = (v) => (Math.round(v * 10) / 10).toString();
+const charBy = (k) => LMS_CHARS.find(c => c.key === k) || LMS_CHARS[7];
+const selChar = () => charBy(LMS.sel);
+const hasShow = (c) => LMS.chars[c.key] && LMS.chars[c.key].songs.length > 0;
 
 // ------------------------------------------------------------------
 // utilidades de escritura (patrón del módulo Arte: backups + undo)
@@ -9917,44 +9959,72 @@ async function decodeDuration(file) {
 // escaneo del proyecto
 // ------------------------------------------------------------------
 
-async function scanLms() {
-  LMS.songs = []; LMS.macOrig = null; LMS.scanned = true; LMS.baseOk = false;
-  const gml = await readText(REL_LMS);
-  if (gml == null) return;
-  const m = /global\.lmsSongs\s*=\s*\[([^\]]*)\]/.exec(gml);
-  if (!m) return; // proyecto sin base v5.1
-  LMS.baseOk = true;
-  const assets = m[1].split(',').map(s => s.trim()).filter(Boolean);
-  for (const a of assets) {
-    const yy = await readText('sounds/' + a + '/' + a + '.yy');
-    let dur = null, ext = '';
-    if (yy) {
-      const dm = /"duration":([0-9.]+)/.exec(yy); if (dm) dur = parseFloat(dm[1]);
-      const sm = /"soundFile":"([^"]+)"/.exec(yy); if (sm) ext = sm[1].split('.').pop();
-    }
-    LMS.songs.push({ asset: a, dur: dur, ext: ext, isNew: false });
+async function songInfo(asset) {
+  const yy = await readText('sounds/' + asset + '/' + asset + '.yy');
+  let dur = null, ext = '';
+  if (yy) {
+    const dm = /"duration":([0-9.]+)/.exec(yy); if (dm) dur = parseFloat(dm[1]);
+    const sm = /"soundFile":"([^"]+)"/.exec(yy); if (sm) ext = sm[1].split('.').pop();
   }
-  // macros del show
-  const by = {};
-  C.parseMacros(gml).forEach(mm => by[mm.name] = mm);
-  const spinM = /^#macro\s+LMS_SPIN_STUN\s+(\w+)/m.exec(gml);
-  const mac = {
-    chance: by.LMS_BLOCK_CHANCE ? by.LMS_BLOCK_CHANCE.value : 55,
-    invuln_s: by.LMS_BLOCK_INVULN ? (by.LMS_BLOCK_INVULN.value / 60) : 1,
-    stun: by.LMS_STUN_BONUS ? by.LMS_STUN_BONUS.value : 2,
-    spin: spinM ? spinM[1] === 'true' : true,
-    hp: by.LMS_HP ? by.LMS_HP.value : 100
-  };
-  LMS.macOrig = JSON.parse(JSON.stringify(mac));
-  LMS.mac = JSON.parse(JSON.stringify(mac));
-  // server presente y parcheado
-  const srv = await readText(REL_SRVH);
-  LMS.serverOk = srv != null && /#define LMS_SONG_COUNT/.test(srv);
-  const gc = await readText(REL_GAMEC);
-  LMS.gamePatched = gc != null && /lms_song/.test(gc);
-  const nsg = await readText(REL_NSG);
-  LMS.nsgPatched = nsg != null && /scr_lms_play_song/.test(nsg);
+  return { asset: asset, dur: dur, ext: ext, isNew: false };
 }
+
+async function scanLms() {
+  LMS.chars = {}; LMS.base = 'none'; LMS.scanned = true; LMS.origLists = {};
+  for (const c of LMS_CHARS) LMS.chars[c.key] = { songs: [] };
+
+  const gml = await readText(REL_LMS);
+  if (gml != null) {
+    if (/global\.lmsCharSongs/.test(gml)) {
+      // lista por personaje: id -> canciones
+      LMS.base = 'ok';
+      const re = /global\.lmsCharSongs\[\?\s*(CHARACTER_\w+)\]\s*=\s*\[([^\]]*)\]/g;
+      let m;
+      while ((m = re.exec(gml))) {
+        const ent = LMS_CHARS.find(c => c.cm === m[1]);
+        if (!ent) continue;
+        const assets = m[2].split(',').map(s => s.trim()).filter(Boolean);
+        for (const a of assets) LMS.chars[ent.key].songs.push(await songInfo(a));
+      }
+    } else if (/scr_lms_sonic_try_block|global\.lmsSongs/.test(gml)) {
+      // LMS viejo (solo Sonic): se muestra como referencia, no se edita
+      LMS.base = 'old';
+      const lm = /global\.lmsSongs\s*=\s*\[([^\]]*)\]/.exec(gml);
+      const assets = lm ? lm[1].split(',').map(s => s.trim()).filter(Boolean) : ['mus_undefeatable'];
+      for (const a of assets) LMS.chars.sonic.songs.push(await songInfo(a));
+    }
+  }
+  for (const c of LMS_CHARS)
+    LMS.origLists[c.key] = LMS.chars[c.key].songs.map(s => s.asset);
+
+  // macros del show
+  LMS.macOrig = null; LMS.mac = null;
+  if (LMS.base !== 'none' && gml != null) {
+    const by = {};
+    C.parseMacros(gml).forEach(mm => by[mm.name] = mm);
+    const spinM = /^#macro\s+LMS_SPIN_STUN\s+(\w+)/m.exec(gml);
+    const mac = {
+      hp: by.LMS_HP ? by.LMS_HP.value : 100,
+      chance: by.LMS_BLOCK_CHANCE ? by.LMS_BLOCK_CHANCE.value : 55,
+      invuln_s: by.LMS_BLOCK_INVULN ? (by.LMS_BLOCK_INVULN.value / 60) : 1,
+      stun: by.LMS_STUN_BONUS ? by.LMS_STUN_BONUS.value : 2,
+      spin: spinM ? spinM[1] === 'true' : true
+    };
+    LMS.macOrig = JSON.parse(JSON.stringify(mac));
+    LMS.mac = JSON.parse(JSON.stringify(mac));
+  }
+
+  // server presente y con la tabla del show
+  const srv = await readText(REL_SRVH);
+  LMS.srvOk = srv != null && /LMS_SHOWS/.test(srv);
+  const gc = await readText(REL_GAMEC);
+  LMS.gameOk = gc != null && /lms_char/.test(gc);
+  const nsg = await readText(REL_NSG);
+  LMS.nsgOk = nsg != null && /scr_lms_play_song\(_lmsChar/.test(nsg);
+}
+
+const editable = () => LMS.base === 'ok';
+const NEED_COPY = 'Copia los archivos de la entrega (scr_lms.gml, net_state_game.gml, net_packets.gml, Server.h, Packet.h y Game.c) en tu proyecto y vuelve a abrir la carpeta.';
 
 // ------------------------------------------------------------------
 // UI
@@ -9966,43 +10036,99 @@ function macChanged() {
     || o.spin !== m.spin || o.hp !== m.hp);
 }
 
+function listsChanged() {
+  for (const c of LMS_CHARS) {
+    const now = LMS.chars[c.key].songs.map(s => s.asset);
+    const old = LMS.origLists[c.key] || [];
+    if (now.length !== old.length || now.some((a, i) => a !== old[i])) return true;
+  }
+  return false;
+}
+
 function pendingInfo() {
-  const add = LMS.songs.filter(s => s.isNew && !s.repl);
-  const repl = LMS.songs.filter(s => s.repl);
+  const add = [], repl = [];
+  for (const c of LMS_CHARS)
+    for (const s of LMS.chars[c.key].songs) {
+      if (s.isNew && s.repl) repl.push({ char: c, song: s });
+      else if (s.isNew) add.push({ char: c, song: s });
+    }
   const mac = macChanged();
+  const lists = listsChanged();
   const parts = [];
   if (add.length) parts.push(add.length + ' canción(es) nueva(s)');
   if (repl.length) parts.push(repl.length + ' audio(s) reemplazado(s)');
+  if (lists) parts.push('listas del show');
   if (mac) parts.push('ajustes del show');
-  return { add, repl, mac, any: parts.length > 0, text: parts.length ? parts.join(' · ') : 'sin cambios' };
+  return { add, repl, mac, lists, any: parts.length > 0, text: parts.length ? parts.join(' · ') : 'sin cambios' };
 }
 
 function renderLms() {
   const warn = $('#lms-warn');
   const ro = S.mode !== 'fs';
-  let msgs = [];
-  if (!LMS.baseOk) msgs.push('Este proyecto <b>no tiene la base v5.1 del Show LMS</b> (falta <code>global.lmsSongs</code> en <code>scr_lms.gml</code>). Actualiza el juego desde el repo y vuelve a abrir la carpeta.');
-  if (LMS.baseOk && !LMS.serverOk) msgs.push('No encuentro <code>betterserver-oss/include/Server.h</code> (o sin bloque <code>LMS_SONG_COUNT</code>): solo se actualizará el cliente y el reloj usará la última lista guardada del server.');
-  if (LMS.baseOk && LMS.serverOk && !LMS.gamePatched) msgs.push('<code>Game.c</code> no tiene el parche multi-canción (¿proyecto viejo?): la duración nueva se guardará en <code>Server.h</code> pero el server usará la de la #1 hasta actualizar.');
-  if (LMS.baseOk && !LMS.nsgPatched) msgs.push('<code>net_state_game.gml</code> sin el parche del índice de canción: el cliente reproduciría siempre la #1 hasta actualizar.');
+  const msgs = [];
+
+  if (LMS.base === 'none') {
+    msgs.push('Esta carpeta no tiene el <b>Show LMS</b> (falta <code>scr_lms.gml</code>). ' + NEED_COPY);
+  } else if (LMS.base === 'old') {
+    msgs.push('Esta carpeta tiene el LMS <b>viejo (solo Sonic)</b>: copia los archivos de la entrega y vuelve a abrir la carpeta para poder elegir la música de cada personaje.');
+  } else {
+    if (!LMS.srvOk) msgs.push('No encuentro la tabla <code>LMS_SHOWS</code> en <code>betterserver-oss/include/Server.h</code>: sin ella el server no dispara el show para nadie. Copia el <code>Server.h</code> de la entrega y recompila el server.');
+    else if (!LMS.gameOk) msgs.push('<code>Game.c</code> no tiene el disparo por personaje: copia el <code>Game.c</code> de la entrega y recompila el server.');
+    if (!LMS.nsgOk) msgs.push('<code>net_state_game.gml</code> no sabe tocar la canción por personaje: copia el de la entrega (F5 después).');
+  }
   if (ro) msgs.push('Modo solo lectura: abre la carpeta del proyecto (Chrome/Edge) para escribir.');
   if (msgs.length) { warn.innerHTML = msgs.map(x => '<div style="margin:2px 0">⚠ ' + x + '</div>').join(''); warn.classList.remove('hidden'); }
   else warn.classList.add('hidden');
 
-  // filas de canciones
+  // chips de personaje
+  const chips = $('#lms-chips');
+  chips.innerHTML = '';
+  for (const c of LMS_CHARS) {
+    const n = LMS.chars[c.key] ? LMS.chars[c.key].songs.length : 0;
+    const b = document.createElement('button');
+    b.className = 'chip' + (LMS.sel === c.key ? ' on' : '');
+    b.style.cssText = 'padding:4px 10px;border-radius:14px;border:1px solid var(--line);background:' + (LMS.sel === c.key ? 'var(--gold2)' : 'transparent') + ';color:inherit;cursor:pointer';
+    b.innerHTML = T.esc(c.label) + ' <span class="muted">' + (n ? '🔊' + n : '—') + '</span>' + (c.personal ? ' ⭐' : '');
+    b.title = n ? n + ' canción(es): el show LE aplica' : 'sin canciones: sin show';
+    b.addEventListener('click', () => { LMS.sel = c.key; renderLms(); });
+    chips.appendChild(b);
+  }
+
+  // panel del personaje elegido
+  const sc = selChar();
+  $('#lms-charhead').innerHTML = 'Canciones de <b>' + T.esc(sc.label) + '</b>'
+    + (sc.personal ? ' <span class="muted">· ⭐ pasivas personales del show (bloqueo/stuns/Metal Amy): suyas, intactas</span>' : '')
+    + ' <span class="muted">· el server elige una al azar al disparar el show</span>';
+
   const box = $('#lms-songs');
   box.innerHTML = '';
-  LMS.songs.forEach((s, i) => {
+  const songs = LMS.chars[LMS.sel].songs;
+  if (!editable()) {
+    const d = document.createElement('div');
+    d.className = 'muted';
+    d.style.padding = '6px 2px';
+    d.innerHTML = LMS.base === 'old'
+      ? 'Esta carpeta tiene el LMS viejo: solo <b>Sonic</b> tiene show (con ' + songs.length + ' canción(es)). Copia los archivos de la entrega para elegir la música de cada personaje.'
+      : '—';
+    box.appendChild(d);
+  } else if (!songs.length) {
+    const d = document.createElement('div');
+    d.className = 'muted';
+    d.style.padding = '6px 2px';
+    d.innerHTML = 'Sin canciones = <b>SIN show</b> para ' + T.esc(sc.label) + '. Añádele una para activárselo.';
+    box.appendChild(d);
+  }
+  songs.forEach((s, i) => {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:6px;margin-bottom:6px;flex-wrap:wrap';
     const num = document.createElement('b');
-    num.style.cssText = 'min-width:30px;color:' + (i === 0 ? 'var(--gold2)' : 'var(--mut)');
+    num.style.cssText = 'min-width:30px;color:var(--mut)';
     num.textContent = '#' + (i + 1);
     const name = document.createElement('span');
     name.style.flex = '1';
-    name.innerHTML = T.esc(s.asset) + (s.isNew
-      ? ' <span class="muted">· ' + T.esc(s.fileName || '') + (s.repl ? ' (reemplaza el audio)' : ' (nueva)') + '</span>'
-      : (i === 0 ? ' <span class="muted">· Undefeatable (original)</span>' : ''));
+    name.innerHTML = T.esc(s.asset)
+      + (s.isNew ? ' <span class="muted">· ' + T.esc(s.fileName || '') + (s.repl ? ' (reemplaza el audio)' : ' (nueva)') + '</span>' : '')
+      + (s.asset === 'mus_undefeatable' ? ' <span class="muted">· Undefeatable (la original)</span>' : '');
     const dur = document.createElement('span');
     dur.className = 'muted';
     dur.textContent = (s.dur != null ? mmss(s.dur) + ' · ' + Math.round(s.dur) + ' s' : 'duración ?') + ' · ' + (s.ext || '?');
@@ -10010,21 +10136,22 @@ function renderLms() {
     const bUp = mkBtn('↑', 'subir', () => moveSong(i, -1));
     const bDn = mkBtn('↓', 'bajar', () => moveSong(i, +1));
     const bDel = mkBtn('✕', 'quitar de la lista', () => {
-      if (i === 0) { toast('La #1 (mus_undefeatable) no se quita: es la canción base.', 'warn'); return; }
-      LMS.songs.splice(i, 1); renderLms();
+      if (songs.length === 1 && !confirm('Esta es la ÚLTIMA canción de ' + sc.label + ': al quitarla se queda SIN show (el LMS no le aplicará). ¿Quitarla igual?')) return;
+      songs.splice(i, 1); renderLms();
     });
-    bUp.disabled = i === 0; bDn.disabled = i === LMS.songs.length - 1;
-    if (i === 0) bDel.disabled = true;
+    bUp.disabled = i === 0; bDn.disabled = i === songs.length - 1;
     row.append(num, name, dur, bRep, bUp, bDn, bDel);
     box.appendChild(row);
   });
 
   const st = $('#lms-side-stats');
-  if (st) st.innerHTML = LMS.baseOk
-    ? LMS.songs.length + ' canción(es) en la lista<br>duraciones: ' + (LMS.songs.map(s => Math.round(s.dur || 0)).join(' / ') || '—') + ' s<br>server: ' + (LMS.serverOk ? 'listo ✓' : 'no encontrado')
-    : 'proyecto sin base v5.1';
+  const nChars = LMS_CHARS.filter(hasShow).length;
+  const nSongs = LMS_CHARS.reduce((a, c) => a + (LMS.chars[c.key] ? LMS.chars[c.key].songs.length : 0), 0);
+  st.innerHTML = editable()
+    ? nChars + ' personaje(s) con show<br>' + nSongs + ' canción(es) en total<br>server: ' + (LMS.srvOk ? 'listo ✓' : 'sin tabla LMS_SHOWS ⚠')
+    : (LMS.base === 'none' ? 'sin Show LMS en esta carpeta' : 'LMS viejo (solo Sonic) en esta carpeta');
   const tot = $('#lms-total');
-  if (tot) tot.textContent = LMS.baseOk ? 'el reloj del show = duración de la canción que salga (' + LMS.songs.length + ' en la lista)' : '';
+  if (tot) tot.textContent = editable() ? 'reloj del show = duración de la canción que salga' : '';
 
   // macros
   const mg = $('#lms-macros');
@@ -10049,10 +10176,14 @@ function renderLms() {
       l.appendChild(inp);
       return l;
     };
+    mg.appendChild(mk('Vida al arrancar el show (cualquier personaje con música)', fmt1(LMS.mac.hp), { key: 'hp', attrs: { min: 1, max: 999, step: 1, style: 'width:70px' } }, 'LMS_HP'));
+    const gh = document.createElement('div');
+    gh.style.cssText = 'grid-column:1/-1;margin-top:8px;font-weight:600';
+    gh.textContent = '⭐ Solo Sonic — pasivas personales (no las hereda nadie):';
+    mg.appendChild(gh);
     mg.appendChild(mk('Bloqueo de daño (% de golpes bloqueados)', fmt1(LMS.mac.chance), { key: 'chance', attrs: { min: 0, max: 100, step: 1, style: 'width:70px' } }, 'LMS_BLOCK_CHANCE'));
     mg.appendChild(mk('i-frames tras bloqueo (s)', fmt1(LMS.mac.invuln_s), { key: 'invuln_s', attrs: { min: 0, max: 10, step: 0.1, style: 'width:70px' } }, 'LMS_BLOCK_INVULN (frames = s × 60)'));
-    mg.appendChild(mk('Stun extra de Sonic (s)', fmt1(LMS.mac.stun), { key: 'stun', attrs: { min: 0, max: 10, step: 0.5, style: 'width:70px' } }, 'LMS_STUN_BONUS'));
-    mg.appendChild(mk('Vida al arrancar', fmt1(LMS.mac.hp), { key: 'hp', attrs: { min: 1, max: 999, step: 1, style: 'width:70px' } }, 'LMS_HP'));
+    mg.appendChild(mk('Stun extra (s)', fmt1(LMS.mac.stun), { key: 'stun', attrs: { min: 0, max: 10, step: 0.5, style: 'width:70px' } }, 'LMS_STUN_BONUS'));
     mg.appendChild(mk('La bola (spindash) aturde por contacto', LMS.mac.spin, { type: 'checkbox', key: 'spin' }, 'LMS_SPIN_STUN'));
   }
   syncPending();
@@ -10068,35 +10199,39 @@ function mkBtn(txt, tip, fn) {
 function syncPending() {
   const p = pendingInfo();
   $('#lms-pending').textContent = p.text;
-  $('#lms-write').disabled = !p.any || !LMS.baseOk || S.mode !== 'fs';
+  $('#lms-write').disabled = !p.any || !editable() || S.mode !== 'fs';
 }
 
 function moveSong(i, d) {
+  const songs = LMS.chars[LMS.sel].songs;
   const j = i + d;
-  if (j < 0 || j >= LMS.songs.length) return;
-  const a = LMS.songs[i]; LMS.songs[i] = LMS.songs[j]; LMS.songs[j] = a;
+  if (j < 0 || j >= songs.length) return;
+  const a = songs[i]; songs[i] = songs[j]; songs[j] = a;
   renderLms();
 }
 
 function nextAsset() {
   let n = 2;
-  const used = new Set(LMS.songs.map(s => s.asset));
+  const used = new Set();
+  for (const c of LMS_CHARS) LMS.chars[c.key].songs.forEach(s => used.add(s.asset));
   while (used.has('mus_lms_' + n)) n++;
   return 'mus_lms_' + n;
 }
 
 async function addLmsSongs(files) {
-  if (!LMS.baseOk) { toast('El proyecto no tiene la base v5.1 del Show LMS.', 'err'); return; }
+  if (!editable()) { toast(NEED_COPY, 'err'); return; }
+  const songs = LMS.chars[LMS.sel].songs;
+  if (songs.length + files.length > MAX_SONGS) { toast('Máximo ' + MAX_SONGS + ' canciones por personaje (LMS_MAX_SONGS del server).', 'warn'); return; }
   let added = 0;
   for (const f of files) {
     const ext = (f.name.split('.').pop() || '').toLowerCase();
     if (!['mp3', 'ogg', 'wav'].includes(ext)) { toast('«' + f.name + '» no es .mp3/.ogg/.wav: se ignora.', 'warn'); continue; }
     const dec = await decodeDuration(f);
     if (!dec || !dec.dur) { toast('No pude leer la duración de «' + f.name + '» (¿archivo válido?). Se ignora.', 'err'); continue; }
-    LMS.songs.push({ asset: nextAsset(), dur: dec.dur, ext: ext, isNew: true, bytes: dec.bytes, fileName: f.name });
+    songs.push({ asset: nextAsset(), dur: dec.dur, ext: ext, isNew: true, bytes: dec.bytes, fileName: f.name });
     added++;
   }
-  if (added) toast(added + ' canción(es) lista(s) para escribir. Duración leída del audio.', 'ok');
+  if (added) toast(added + ' canción(es) para ' + selChar().label + '. Duración leída del audio.', 'ok');
   renderLms();
 }
 
@@ -10111,7 +10246,7 @@ async function pickReplace(i) {
     if (!['mp3', 'ogg', 'wav'].includes(ext)) { toast('Solo .mp3/.ogg/.wav.', 'warn'); return; }
     const dec = await decodeDuration(f);
     if (!dec) { toast('No pude decodificar ese audio.', 'err'); return; }
-    const s = LMS.songs[i];
+    const s = LMS.chars[LMS.sel].songs[i];
     s.repl = true; s.bytes = dec.bytes; s.dur = dec.dur; s.ext = ext; s.isNew = true; s.fileName = f.name;
     toast('Audio de ' + s.asset + ' reemplazado por «' + f.name + '» (' + mmss(dec.dur) + ').', 'ok');
     renderLms();
@@ -10123,16 +10258,40 @@ async function pickReplace(i) {
 // escritura
 // ------------------------------------------------------------------
 
+function buildCharBlock() {
+  const lines = ['global.lmsCharSongs = ds_map_create();'];
+  for (const c of LMS_CHARS) {
+    const songs = LMS.chars[c.key].songs;
+    if (songs.length) lines.push('global.lmsCharSongs[? ' + c.cm + '] = [' + songs.map(s => s.asset).join(', ') + '];');
+  }
+  return lines.join('\n');
+}
+
+function buildShowsTable() {
+  const rows = [];
+  for (const c of LMS_CHARS) {
+    const songs = LMS.chars[c.key].songs;
+    if (!songs.length) continue;
+    const durs = songs.map(s => Math.max(1, Math.round(s.dur || 282)));
+    rows.push('        { ' + c.ch + ', ' + songs.length + ', { ' + durs.join(', ') + ' } },');
+  }
+  if (!rows.length)
+    return '#define LMS_SHOW_COUNT 0\nstatic const LmsShow LMS_SHOWS[1] = { { 0, 0, { 0 } } }; /* tabla vacia: nadie tiene show */';
+  return '#define LMS_SHOW_COUNT ' + rows.length + '\nstatic const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {\n' + rows.join('\n') + '\n};';
+}
+
 async function writeLms() {
   const p = pendingInfo();
   if (!p.any) { toast('No hay cambios que escribir.'); return; }
   if (S.mode !== 'fs') { toast('Modo solo lectura: abre la carpeta del proyecto (Chrome/Edge).', 'warn'); return; }
-  if (!LMS.baseOk) { toast('El proyecto no tiene la base v5.1 del Show LMS.', 'err'); return; }
+  if (!editable()) { toast(NEED_COPY, 'err'); return; }
+
+  const withShow = LMS_CHARS.filter(hasShow);
   const lines = ['Se va a escribir en el proyecto:'];
-  p.add.forEach(s => lines.push('  · sounds/' + s.asset + '/ (' + s.ext + ', ' + mmss(s.dur) + ') + registro .yyp'));
-  p.repl.forEach(s => lines.push('  · audio nuevo de ' + s.asset + ' (' + s.ext + ', ' + mmss(s.dur) + ')'));
-  lines.push('  · scr_lms.gml: lista de ' + LMS.songs.length + ' canción(es)' + (LMS.serverOk ? ' + macros del show' : ''));
-  if (LMS.serverOk) lines.push('  · Server.h: LMS_SONG_SEC = { ' + LMS.songs.map(s => Math.max(1, Math.round(s.dur || 282))).join(', ') + ' }');
+  p.add.forEach(x => lines.push('  · sounds/' + x.song.asset + '/ (' + x.song.ext + ', ' + mmss(x.song.dur) + ') + registro .yyp'));
+  p.repl.forEach(x => lines.push('  · audio nuevo de ' + x.song.asset + ' (' + x.song.ext + ', ' + mmss(x.song.dur) + ')'));
+  lines.push('  · scr_lms.gml: listas por personaje — ' + (withShow.length ? withShow.map(c => c.label + ' (' + LMS.chars[c.key].songs.length + ')').join(', ') : 'NADIE con show (LMS apagado)'));
+  if (LMS.srvOk) lines.push('  · Server.h: LMS_SHOWS = ' + (withShow.length ? withShow.map(c => c.ch).join(' + ') : '(vacía)'));
   lines.push('\nDespués: F5 (cliente) y RECOMPILAR EL SERVER. ¿Continuar?');
   if (!confirm(lines.join('\n'))) return;
 
@@ -10144,19 +10303,20 @@ async function writeLms() {
     // 1) sonidos: carpetas nuevas / audios reemplazados
     const tmpl = await readText('sounds/mus_undefeatable/mus_undefeatable.yy');
     if (!tmpl) { toast('No encuentro sounds/mus_undefeatable/mus_undefeatable.yy (plantilla).', 'err'); return; }
-    for (const s of p.add.concat(p.repl)) {
+    for (const x of p.add.concat(p.repl)) {
+      const s = x.song;
       const dirRel = 'sounds/' + s.asset + '/';
       const yyRel = dirRel + s.asset + '.yy';
       const audRel = dirRel + s.asset + '.' + s.ext;
       const yyNew = buildSoundYy(tmpl, s.asset, s.ext, s.dur);
       if (s.repl) await lmsBackup(yyRel, bdir, undo, false);
       await lmsWrite(yyRel, yyNew);
-      // audio viejo de otra extensión: respaldar y quitar (mejor esfuerzo)
       if (s.repl) {
         for (const e2 of ['mp3', 'ogg', 'wav']) {
           if (e2 === s.ext) continue;
           const oldRel = dirRel + s.asset + '.' + e2;
-          try { const fh = await fsWalkFile(oldRel); const f = await fh.getFile(); const d = await f.arrayBuffer();
+          try {
+            const fh = await fsWalkFile(oldRel); const f = await fh.getFile(); const d = await f.arrayBuffer();
             const bh = await bdir.getFileHandle(oldRel.replace(/\//g, '__'), { create: true });
             const w2 = await bh.createWritable(); await w2.write(d); await w2.close();
             undo.push({ rel: oldRel, backup: '_backups_animeditor/' + bdir.name + '/' + oldRel.replace(/\//g, '__'), binary: true });
@@ -10171,7 +10331,7 @@ async function writeLms() {
     }
 
     // 2) registro .yyp (solo canciones nuevas)
-    const newAssets = p.add.filter(s => !s.repl).map(s => s.asset);
+    const newAssets = p.add.filter(x => !x.song.repl).map(x => x.song.asset);
     if (newAssets.length) {
       const yypName = await lmsYypName();
       if (!yypName) { toast('No encuentro el .yyp del proyecto.', 'err'); return; }
@@ -10192,36 +10352,41 @@ async function writeLms() {
       }
     }
 
-    // 3) scr_lms.gml: lista + macros
+    // 3) scr_lms.gml: listas por personaje + macros
     {
       let gml = await readText(REL_LMS);
       await lmsBackup(REL_LMS, bdir, undo, false);
-      gml = gml.replace(/global\.lmsSongs\s*=\s*\[[^\]]*\]/, 'global.lmsSongs = [' + LMS.songs.map(s => s.asset).join(', ') + ']');
+      const a0 = gml.indexOf('global.lmsCharSongs = ds_map_create();');
+      const a1 = gml.indexOf('function scr_lms_play_song');
+      if (a0 < 0 || a1 < 0 || a1 < a0) { toast('scr_lms.gml no tiene el bloque del show por personaje (falta la lista global.lmsCharSongs): copia el scr_lms.gml de la entrega.', 'err'); return; }
+      gml = gml.slice(0, a0) + buildCharBlock() + '\n\n' + gml.slice(a1);
       if (p.mac) {
-        let r = C.setMacro(gml, 'LMS_BLOCK_CHANCE', { value: Math.round(LMS.mac.chance) }); if (r.changed) gml = r.gml;
+        let r = C.setMacro(gml, 'LMS_HP', { value: Math.round(LMS.mac.hp) }); if (r.changed) gml = r.gml;
+        r = C.setMacro(gml, 'LMS_BLOCK_CHANCE', { value: Math.round(LMS.mac.chance) }); if (r.changed) gml = r.gml;
         r = C.setMacro(gml, 'LMS_BLOCK_INVULN', { value: Math.round(LMS.mac.invuln_s * 60) }); if (r.changed) gml = r.gml;
         r = C.setMacro(gml, 'LMS_STUN_BONUS', { value: LMS.mac.stun }); if (r.changed) gml = r.gml;
-        r = C.setMacro(gml, 'LMS_HP', { value: Math.round(LMS.mac.hp) }); if (r.changed) gml = r.gml;
         gml = gml.replace(/^#macro\s+LMS_SPIN_STUN\s+\w+/m, (ln) => ln.replace(/(LMS_SPIN_STUN\s+)\w+/, '$1' + (LMS.mac.spin ? 'true' : 'false')));
       }
       await lmsWrite(REL_LMS, gml);
     }
 
-    // 4) Server.h: lista de duraciones
-    if (LMS.serverOk) {
+    // 4) Server.h: tabla LMS_SHOWS
+    if (LMS.srvOk) {
       let srv = await readText(REL_SRVH);
       await lmsBackup(REL_SRVH, bdir, undo, false);
-      const durs = LMS.songs.map(s => Math.max(1, Math.round(s.dur || 282)));
-      srv = srv.replace(/#define LMS_SONG_COUNT \d+/, '#define LMS_SONG_COUNT ' + LMS.songs.length)
-        .replace(/static const uint16_t LMS_SONG_SEC\[LMS_SONG_COUNT\] = \{[^}]*\};/,
-          'static const uint16_t LMS_SONG_SEC[LMS_SONG_COUNT] = { ' + durs.join(', ') + ' };');
+      const t0 = srv.indexOf('#define LMS_SHOW_COUNT');
+      const tA = srv.indexOf('LMS_SHOWS[', t0);
+      const t1 = srv.indexOf('};', tA);
+      if (t0 < 0 || tA < 0 || t1 < 0) { toast('Server.h no tiene la tabla LMS_SHOWS esperada: no lo toco.', 'err'); return; }
+      srv = srv.slice(0, t0) + buildShowsTable() + srv.slice(t1 + 2);
       await lmsWrite(REL_SRVH, srv);
     }
 
     LMS.undoStack.push(undo);
-    LMS.songs.forEach(s => { s.isNew = false; s.repl = false; delete s.bytes; delete s.fileName; });
+    for (const c of LMS_CHARS) LMS.chars[c.key].songs.forEach(s => { s.isNew = false; s.repl = false; delete s.bytes; delete s.fileName; });
     await scanLms(); renderLms();
-    toast('Show LMS escrito ✓ ' + LMS.songs.length + ' canción(es).\nRecompila el juego (F5) Y el server (compilar_server.bat).');
+    const n = LMS_CHARS.filter(hasShow).length;
+    toast('Show LMS escrito ✓ ' + n + ' personaje(s) con show.\nRecompila el juego (F5) Y el server (compilar_server.bat).');
   } catch (e) {
     toast('Error al escribir: ' + e.message, 'err');
   }
@@ -10238,7 +10403,6 @@ async function undoLms() {
         const data = it.binary ? await f.arrayBuffer() : await f.text();
         await lmsWrite(it.rel, data);
       } else {
-        // archivo nuevo: quitarlo (mejor esfuerzo)
         try {
           const parts = normPath(it.rel).split('/');
           const fn = parts.pop();
@@ -10272,7 +10436,7 @@ window.enterLms = async function () {
 
 window.__onProjectScan = (function (prev) {
   return function () {
-    LMS.scanned = false; LMS.songs = []; LMS.macOrig = null; LMS.mac = null;
+    LMS.scanned = false; LMS.chars = {}; LMS.macOrig = null; LMS.mac = null;
     if (typeof prev === 'function') prev();
   };
 })(window.__onProjectScan);

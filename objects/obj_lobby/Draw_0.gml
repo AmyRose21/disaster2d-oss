@@ -108,7 +108,7 @@ else if(state == 2 || state == 3)
                 sprInd = selected - 1;
                 
                 if(obj_netclient.exeId == obj_netclient.nid)
-                        sprInd += CHARACTER_BLAZE; // v2.2: 13 supervivientes + 5 killers
+                        sprInd += CHARACTER_FLEETWAY_AMY; // killers arrancan en chars[14] (despues de Fleetway, v2.14)
         }
         
         // Personajes reservados ocultos: ni retrato ni placa de info (doble
@@ -140,14 +140,14 @@ else if(state == 2 || state == 3)
         draw_sprite(spr_char_bars, obj_netclient.exeId == obj_netclient.nid, 0, 0);
         // Placa de info: survivors usan su frame (0-6 los originales, 11 = sonic
         // el nuevo). El HOST (EXE) usa los frames 7-10 de los killers; como su
-        // sprInd ya viene desplazado (+CHARACTER_VANILLA = +10); se le resta
-        // (CHARACTER_VANILLA - 7) = 3 para volver a los frames 7-10.
+        // sprInd ya viene desplazado (+CHARACTER_FLEETWAY_AMY = +14); se le
+        // resta (CHARACTER_FLEETWAY_AMY - 7) = 7 para volver a los frames 7-10.
         var _infoFrame = sprInd;
         if(obj_netclient.exeId == obj_netclient.nid)
         {
-                // v2.2: offset killers (exe=13..metalamy=17 -> placas 7-10 + Metal Amy 15)
-                _infoFrame = sprInd - (CHARACTER_BLAZE - 7);
-                if(sprInd == CHARACTER_BLAZE + 4)
+                // killers: exe=14..metalamy=18 en chars[] -> placas 7-10 + Metal Amy 15
+                _infoFrame = sprInd - (CHARACTER_FLEETWAY_AMY - 7);
+                if(sprInd == CHARACTER_FLEETWAY_AMY + 4)
                         _infoFrame = 15; // metal amy (v2.2): su propia placa
         }
         // [Suite TD2D v5.1] Sally Canon (8) y Vanilla (9) ya NO se remapean:
