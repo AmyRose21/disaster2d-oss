@@ -335,8 +335,9 @@ function scr_amy_soul_count()
 }
 
 // Bonus de eficacia de Reflejo de una misma alma: +5% por Amy en el
-// campo, tope +15% (3 o mas Amys). Ej.: bloqueo de La Torre =
-// min(TOWER_BLOCK + scr_amy_soul_bonus(), TOWER_BLOCK_MAX).
+// campo, tope +15% (3 o mas Amys). Ej.: hitbox de FUERZA de Amy.
+// (v4.10: ya NO afecta a La Torre de Fleetway: el bloqueo es COMPLETO,
+// no hay porcentaje que subir.)
 function scr_amy_soul_bonus()
 {
     return min(SOUL_STEP * scr_amy_soul_count(), SOUL_CAP);

@@ -32,6 +32,13 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
                 hchar = -1;
                 char += CHARACTER_SALLY;
                 char += exeCharacter;
+                // v4.10: Metal Amy (5.a killer, EXE_METALAMY=4) tiene fila
+                // PROPIA en spr_tab_entry (frame 15, cara de spr_lobby_exeicon6).
+                // Antes la formula la mandaba al frame 10 — que es la fila de
+                // Amy (superviviente) — y en el marcador TAB la asesina salia
+                // con la cara equivocada.
+                if(exeCharacter == EXE_METALAMY)
+                        char = 15;
         }
         else if(char == CHARACTER_AMY_CANON)
                 char = 10; // Amy Canon: frame 10 de spr_tab_entry

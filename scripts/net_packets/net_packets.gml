@@ -283,6 +283,13 @@ enum PacketType
 #macro PLAYER_SALLYSHIELD 1 << 5
 #macro PLAYER_INVIS 1 << 6
 #macro PLAYER_SLIME 1 << 7
-#macro PLAYER_DJ 1 << 8        // v2.15 «La Torre»: FW Amy volando con el DJ (stun 3,2 s al exe)
+// v4.10 FIX: PLAYER_DJ era 1 << 8 = 256 y el bitflag viaja en un
+// buffer_u8 (0..255): el bit SE PERDIA (256 & 0xFF = 0) y el stun del
+// DJ de FW Amy nunca llego a funcionar. Ahora comparte el bit 7 con
+// PLAYER_SLIME: es seguro porque SLIME solo lo usa Chaos (un EXE) y
+// DJ solo lo usa Fleetway Amy (superviviente) — jamas colisionan. El
+// server solo interpreta PLAYER_ATTACKING y retransmite el byte tal
+// cual (states/Game.c), asi que llega intacto a los puppets.
+#macro PLAYER_DJ 1 << 7        // v2.15/v4.10 «La Torre»: FW Amy volando con el DJ (stun 3,2 s al exe)
 // SONIC: powerboost de Nervios de Acero (estela de fantasmas en el puppet)
 #macro PLAYER_POWERBOOST 1 << 0

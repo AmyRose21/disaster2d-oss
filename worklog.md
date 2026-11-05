@@ -3313,3 +3313,79 @@ FW_WALL_REACH declarado 1 vez y usado 1 vez; scr_fw_wall_point
 declarada 1 vez y llamada 1 vez; obj_fw_arrow.yy apunta a
 obj_platform_jumptrough; analisis del video con VLM confirmando los
 3 comportamientos antes de codificar. Pendiente: partida real.
+
+## v4.10 (2026-11-05) — FW AMY: RUN VISIBLE + TORRE TOTAL + ICONO ? DE METAL AMY + BLINDAJE ANTI-CHEAT
+
+Pedido del usuario (4 puntos + captura del kick «garic forn»):
+run de FW Amy nunca sale; doble salto con spr_amy_dj_fw; cbamy
+idle/walk/run solo mientras la ballesta; «para el bloqueo me referia
+a BLOQUEAR el daño COMPLETO no reducirlo»; y el icono de Metal Amy
+asesina en "?" para los demas.
+
+1) RUN: la maquina de estados estaba bien (identica a Amy Canon) y
+   los sprites existen y son validos (8 frames unicos, run != walk).
+   La causa real: con acc 0.046875 se tardan ~3 s en llegar a los
+   8 px/frame del umbral RUN -> en partidas reales nunca se llega.
+   FIX: FW_ACC 0.046875 -> 0.09375 (doble; corre en ~1,4 s y frena
+   en mitad de distancia). Umbral 8 intacto (consistencia con todos).
+   Verificado ademas: isOnEdge solo se calcula con abs(xspd) <= 0
+   (nunca pisa WALK/RUN) y nada sobreescribe acc/maxHSpeed en
+   runtime salvo Alarm_4 (que restaura los valores FW).
+
+2) DJ/CBAMY: los estados 18-21 y sus sprites ya estaban cableados
+   (tabla v2.14 + Step_2 + Draw_76): con el fix de velocidad ahora
+   cbamy_run tambien se ve. BUG REAL EXTRA: PLAYER_DJ = 1<<8 = 256
+   y el bitflag viaja en buffer_u8 -> se enviaba 0: el stun de 3,2 s
+   del DJ jamas llego al cliente del EXE. FIX: PLAYER_DJ pasa a
+   1<<7 compartido con PLAYER_SLIME (seguro: slime solo lo pone
+   Chaos/EXE, DJ solo FW/superviviente; el server solo interpreta
+   PLAYER_ATTACKING y retransmite el byte tal cual - verificado en
+   states/Game.c 2285-2292). Puppet parsea isDJ solo para FW.
+
+3) LA TORRE TOTAL: scr_player_hurt reducia 33-40% (min(TOWER_BLOCK+
+   soul_bonus, MAX)) y «literalmente aun recibia daño». Ahora: return
+   temprano con efecto de escudo + hurttime 60 - ni hp ni anillos ni
+   retroceso. Colocado DENTRO del gate damage > 0, ANTES de
+   wasHurt (golpe bloqueado no cuenta para logros, mismo criterio
+   que el escudo de Sally) y con gate revival < 2 (demonizada sin
+   pasiva). Muertes instantaneas (hoyos, ejecucion Metal Amy) no
+   pasan por aqui: siguen matando (documentado en el LEEME).
+   Macros TOWER_BLOCK/MAX eliminados; queda TOWER_BLOCK_INVULN 60.
+   scr_amy_soul_bonus sobrevive (FUERZA de Amy vanilla lo usa).
+
+4) ICONO «?» METAL AMY: SERVER_LOBBY_CHARACTER_CHANGE y
+   SERVER_LOBBY_EXECHARACTER_RESPONSE (net_state_charselect) no
+   tenian case EXE_METALAMY -> el icono de los demas se quedaba en
+   spr_lobby_exeicon5 (la bola «?»). Anadido en AMBOS switches
+   (exeicon6). Bonus TAB: drawPing mandaba a Metal Amy asesina al
+   frame 10 (fila de Amy); fabricado frame 15 de spr_tab_entry
+   (medallon de la fila exe + cabeza de exeicon6 redimensionada;
+   anillo/borde intactos verificados pixel a pixel) + length 15->16
+   + keyframe 15 en el .yy (mismo formato GameMaker, JSON valido).
+
+5) BLINDAJE ANTI-CHEAT (la captura «garic forn» del usuario era del
+   build PRE-v4.9: aplico v4.9 a las 00:21 y los clamps recien
+   llegaban): hp del CLIENT_PLAYER_DATA ahora viaja clamp(0,100)
+   (imposible que cualquier ruta futura mande >100) y anillos con
+   techo 119 tras recoger (el server kickea «gomunkulus» con >=120
+   en mapas normales; la practica con mapa aleatorio v4.7 puede
+   caer en uno). Los 4 clamps de cura v4.9 intactos. Server SIN
+   cambios.
+
+ARCHIVOS v4.10: objects/obj_amy_fleetway/Create_0.gml,
+scripts/scr_player_hurt/scr_player_hurt.gml,
+scripts/net_packets/net_packets.gml,
+scripts/net_state_charselect/net_state_charselect.gml,
+objects/obj_netclient/Step_2.gml,
+scripts/net_state_game/net_state_game.gml,
+objects/obj_level/Create_0.gml, scripts/scr_characters/scr_characters.gml
+(comentario), sprites/spr_tab_entry/{spr_tab_entry.yy,fc1b733a-*.png},
+LEEME_FIX_V4_10.txt, worklog.md.
+
+VERIFICACION: verify_v410.py — 30 checks OK (balance de los 8 GML,
+FW_ACC 0.09375, macros Torre, orden del bloqueo antes de wasHurt/
+hp-=, PLAYER_DJ 1<<7 en rama superviviente, 2 cases EXE_METALAMY,
+drawPing -> 15, .yy con 16 frames/keyframes 0..15/length 16, frame
+15 difiere solo dentro del medallon (291 px dentro, 0 fuera), clamp
+hp, techo rings 119, 4 clamps de cura intactos). PNG huérfano del
+primer intento del script eliminado. Pendiente: partida real.

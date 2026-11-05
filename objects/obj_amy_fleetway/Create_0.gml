@@ -40,20 +40,23 @@
 #macro FW_WALL_REACH 48                  // px: distancia maxima del muro para el modo pared
 
 // v2.15 («La Torre») — pasivas de Fleetway Amy:
-// LA TORRE: bloqueo fijo del 33% del daño recibido (estilo Chocola
-// con Vanilla, pero determinista). Con REFLEJO DE UNA MISMA ALMA
-// (ver abajo) sube hasta un tope del 40%.
+// LA TORRE (v4.10): BLOQUEO COMPLETO del daño (peticion de la dueña:
+// «bloquear TODO el daño», no reducirlo). Todo golpe que iba a caer se
+// niega entero (scr_player_hurt: ni HP ni anillos ni retroceso), con
+// destello de escudo para que el EXE vea el bloqueo. El stun y caer al
+// vacio siguen funcionando. Solo superviviente pura (la FW demonizada
+// pierde la pasiva). Antes (v2.15-v4.9) reducia un 33% (+Reflejo, tope
+// 40%): las macros TOWER_BLOCK/TOWER_BLOCK_MAX se retiraron.
 // El DJ doble salto aturde al EXE 3,2 s por contacto mientras vuela.
 #macro FW_DJ_STUN (60 * 3.2)             // stun del DJ al exe (3,2 s)
-#macro TOWER_BLOCK 0.33                  // La Torre: 33% de bloqueo
-#macro TOWER_BLOCK_MAX 0.40              // tope de La Torre con Reflejo
 
 // v2.15 — REFLEJO DE UNA MISMA ALMA (pasiva compartida de las Amys):
 // por cada Amy en el campo (Amy, Amy Canon, Amelia o Fleetway) la
 // eficacia de los efectos de sus pasivas sube un 5%, hasta un 15%.
-// Afecta al bloqueo de La Torre (FW) y a la hitbox de FUERZA (Amy
-// vanilla). Se define aqui pero lo usan los tres personajes
-// (scr_amy_soul_* en scr_characters.gml).
+// v4.10: afecta a la hitbox de FUERZA (Amy vanilla); La Torre (FW) ya
+// no la usa porque su bloqueo es COMPLETO (nada que potenciar). Se
+// define aqui pero lo usan los tres personajes (scr_amy_soul_* en
+// scr_characters.gml).
 #macro SOUL_STEP 0.05                    // +5% por Amy presente
 #macro SOUL_CAP 0.15                     // tope +15%
 #macro AMY_FUERZA_HITBOX 0.20            // FUERZA: hitbox +20% (Amy vanilla)

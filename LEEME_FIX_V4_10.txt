@@ -1,0 +1,115 @@
+════════════════════════════════════════════════════════════════════
+  FIX v4.10 — ANIMACIONES DE FLEETWAY AMY (video del 05-11) ·
+  BLOQUEO COMPLETO DE LA TORRE · ICONO DE METAL AMY ASESINA
+  Sonic.exe The Disaster 2D Remake · 5 de noviembre de 2026
+════════════════════════════════════════════════════════════════════
+
+QUÉ HAY EN ESTE PAQUETE
+-----------------------
+
+1) FIX PEDIDO — ANIMACIONES DE LA BALLESTA (video Runner 2026-11-05)
+   * Síntomas reportados con el video:
+       a) «cuando estoy quieta no hace la animacion de
+          spr_cbamy_idle_fw»
+       b) «cuando camino usa la idle en vez de spr_cbamy_walk_fw»
+       c) «la flecha aparece muy arriba de la cabeza, encima de su
+          cabeza (solo cuando dispara de lejos; la de la pared está
+          bien)»
+   * Causa UNICA (un solo bug, v4.9 y anteriores): las macros de
+     estado de obj_amy_fleetway estaban TODAS corridas por -1
+     respecto del array de sprites de scr_survivors.gml:
+
+       array real:  14=attack1  15=attack2  16=none  17=zipline
+                    18=DJ  19=cb_idle  20=cb_walk  21=cb_run
+       macro antes: FW_CB_IDLE=18  FW_CB_WALK=19  FW_CB_RUN=20
+                    FW_DJ=17
+
+     -> Quieta con la ballesta mostraba el sprite del DJ (30x30, casi
+        una bolita): síntoma (a).
+     -> Caminando con la ballesta mostraba spr_cbamy_IDLE: síntoma (b).
+     -> El sprite del DJ es 30 px con el origen arriba (y-12): la
+        flecha del disparo lejano sale a y-14 (altura del ARCO de los
+        sprites cbamy de 45 px)… pero sobre el cuerpo enano del DJ
+        quedaba literalmente ENCIMA de la cabeza: síntoma (c). Con el
+        sprite correcto la flecha sale donde está el arco. El disparo
+        de pared (pies, y+18) nunca se vio mal porque nace muy abajo.
+   * Solución: macros corregidas (FW_CB_IDLE=19, FW_CB_WALK=20,
+     FW_CB_RUN=21, FW_DJ=18) + el estado de la tirolina usaba el
+     identificador ZIPLINE, que NO EXISTE en el proyecto (error en
+     cuanto agarrara una tirolina): ahora es FW_ZIPLINE=17.
+   * EXTRA: la patada (attack2, frame 15) NUNCA se veía — el estado
+     siempre apuntaba al frame 14 (puño). Ahora alterna con attackNum
+     y el estado viaja por red: los demás jugadores también ven
+     puño/patada alternados.
+   * EXTRA: la idle de la ballesta quedaba congelada en su primer
+     frame (image_index = 0 cada frame). Ahora anima como la IDLE
+     normal (los 3 frames del sprite son iguales, pero por si algún
+     día se reemplazan).
+   * Archivos: objects/obj_amy_fleetway/Step_2.gml (macros + estados),
+     objects/obj_amy_fleetway/Draw_76.gml (case FW_ATTACK2 + idle).
+
+   NOTA sobre la tecla Z: la habilidad de la Z (global.KeyA, tecla
+   por defecto Z) ES el doble salto DJ — no cambió nada del bind, y
+   ahora sí muestra spr_amy_dj_fw (antes mostraba la pose de
+   tirolina por el desfase). También en los demás clientes: el
+   estado viaja en CLIENT_PLAYER_DATA y el puppet usa el mismo array.
+
+2) FIX PEDIDO — LA TORRE = BLOQUEO COMPLETO DEL DAÑO
+   * Síntoma: «para el bloqueo me refería a bloquear el daño COMPLETO,
+     no que reduzcan el daño, puesto que literalmente aún recibe
+     daño».
+   * Causa: la v2.15 la implementó como reducción fija del 33%
+     (tope 40% con Reflejo) — ella seguía perdiendo vida.
+   * Solución: TODO golpe con daño se niega ENTERO (return temprano en
+     scr_player_hurt, junto al resto de pasivas de inmunidad total):
+     ni HP, ni anillos, ni retroceso, ni animación de daño. Solo un
+     destello de escudo + sonido para que el EXE vea que su golpe
+     conectó pero fue bloqueado. Las macros TOWER_BLOCK /
+     TOWER_BLOCK_MAX se retiraron (ya no hay porcentaje).
+   * Lo que SIGUE funcionando contra ella (contrapartida): los STUNS
+     (el stun no pasa por scr_player_hurt) y los peligros ambiente
+     que matan sin daño (caer al vacío). La Torre bloquea daño, no la
+     gravedad. Y la FW demonizada (revival >= 2) PIERDE la pasiva.
+   * Archivos: scripts/scr_player_hurt/scr_player_hurt.gml,
+     objects/obj_amy_fleetway/Create_0.gml (comentarios/macros),
+     scripts/scr_characters/scr_characters.gml (comentario).
+
+3) FIX PEDIDO — ICONO DE METAL AMY ASESINA («?» PARA LOS DEMÁS)
+   * Síntoma: «cuando el jugador selecciona a Metal Amy de asesina su
+     icono no aparece reflejado en los demás; aparece el de ?, como si
+     no tuviera un icono».
+   * Causa: los DOS switch que actualizan el icono al confirmar el
+     server la selección (SERVER_LOBBY_EXECHARACTER_RESPONSE para la
+     propia jugadora y SERVER_LOBBY_CHARACTER_CHANGE para los demás
+     clientes) NO tenían el case EXE_METALAMY — el sprite quedaba sin
+     cambiar y se veía el icono por defecto (el «?»). El fix v2.2.4
+     solo lo había arreglado en el menú de espera
+     (obj_menu_waiting/Draw_64) y en los resultados, no en estos dos.
+   * Solución: case EXE_METALAMY -> spr_lobby_exeicon6 en ambos
+     switch (mismo criterio que el resto de asesinas).
+   * Archivo: scripts/net_state_charselect/net_state_charselect.gml.
+
+ARCHIVOS TOCADOS (6)
+--------------------
+  objects/obj_amy_fleetway/Create_0.gml          (comentarios/macros)
+  objects/obj_amy_fleetway/Step_2.gml            (macros + estados)
+  objects/obj_amy_fleetway/Draw_76.gml           (anim por estado)
+  scripts/net_state_charselect/net_state_charselect.gml (icono exe)
+  scripts/scr_player_hurt/scr_player_hurt.gml    (bloqueo completo)
+  scripts/scr_characters/scr_characters.gml      (comentario)
+
+CÓMO PROBAR
+-----------
+  1. FW Amy: dispara la ballesta (C) y quédate QUIETA -> ahora hace la
+     animación de spr_cbamy_idle_fw; CAMINA -> spr_cbamy_walk_fw;
+     CORRE -> spr_cbamy_run_fw. La flecha del disparo lejano sale a la
+     altura del arco (pecho), ya no sobre la cabeza. Doble salto (Z en
+     el aire) -> spr_amy_dj_fw.
+  2. Que el EXE (o un esbirro) golpee a FW Amy superviviente: destello
+     de escudo y CERO daño (ni HP ni anillos). Que la tire a un hoyo o
+     la stunee: eso SÍ le funciona.
+  3. En el lobby: un jugador elige a Metal Amy de asesina -> su icono
+     (exeicon6) ahora se ve en TODAS las pantallas, sin «?».
+
+Versiones: juego v4.10 sobre data v2.15.2. Compatible con el server
+betterserver-oss actual (cero paquetes nuevos).

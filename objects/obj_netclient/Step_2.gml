@@ -56,7 +56,13 @@ with(global.player)
         
                 if(global.character != CHARACTER_EXE)
                 {
-                        buffer_write(buffer, buffer_s8, hp);
+                        // v4.10 blindaje «garic forn»: el anticheat del server
+                        // (states/Game.c) desconecta con hp > 100 en el
+                        // CLIENT_PLAYER_DATA. Las curas ya viajan clampeadas
+                        // (v4.8/v4.9) pero esto garantiza que NINGUNA ruta
+                        // futura pueda mandar un hp fuera de rango: aqui es
+                        // fisicamente imposible que viaje > 100.
+                        buffer_write(buffer, buffer_s8, clamp(hp, 0, 100));
                         buffer_write(buffer, buffer_u8, revivalTimes);
                         buffer_write(buffer, buffer_s16, rings);
                 

@@ -246,6 +246,27 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         if(global.character == CHARACTER_AMY && global.player.isAttacking && scr_amy_soul_otras())
                 return;
 
+        // v4.10 («La Torre») — PASIVA LA TORRE (Fleetway Amy): BLOQUEO
+        // COMPLETO del daño (orden de la dueña: «bloquear TODO el daño»,
+        // no reducirlo — la v2.15 lo rebajaba un 33-40% y seguia perdiendo
+        // vida). Todo golpe que iba a caer se detiene en el escudo: ni
+        // HP ni anillos ni retroceso ni animacion de daño; solo el
+        // destello del escudo (y su sonido) para que el EXE vea que su
+        // golpe conectó pero fue bloqueado. El stun y los peligros
+        // ambiente que matan sin daño (caer al vacio) SIGUEN funcionando:
+        // la Torre bloquea daño, no la gravedad. Solo superviviente pura:
+        // la FW demonizada (revival >= 2) pelea para el exe y pierde la
+        // pasiva.
+        if(global.character == CHARACTER_FLEETWAY_AMY
+        && global.player.revivalTimes < 2
+        && damage > 0)
+        {
+                audio_play_sound(snd_sally_shieldbreak, 0, false);
+                net_sound_emit(snd_sally_shieldbreak);
+                net_quick_effect(global.player.x, global.player.y - 20, spr_shieldbreak, false, 1, 0, 0, 1);
+                return;
+        }
+
         // === VANILLA V2 ===
         // PACIENCIA / MORIBUNDA: inmune a TODO mientras duran (enojada
         // o tirada en el suelo: ni el exe ni el entorno le hacen nada).
@@ -358,19 +379,9 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                         // retroceso de su fase 2 (parte 1)
                         if(global.character == CHARACTER_SALLY_CANON)
                                 global.player.fase2HitX = xpw;
-                        
-                        // v2.15 («La Torre») — PASIVA LA TORRE (Fleetway Amy):
-                        // bloqueo fijo del 33% del daño recibido (estilo Chocola
-                        // con Vanilla pero determinista). Con «Reflejo de una
-                        // misma alma» sube +5% por Amy en el campo (tope +15%)
-                        // hasta un maximo del 40%. Solo superviviente pura: la
-                        // FW demonizada pelea para el exe y pierde la pasiva.
-                        if(global.character == CHARACTER_FLEETWAY_AMY && damage > 0)
-                        {
-                                var _towerBlock = min(TOWER_BLOCK + scr_amy_soul_bonus(), TOWER_BLOCK_MAX);
-                                damage = max(1, round(damage * (1.0 - _towerBlock)));
-                                net_quick_effect(global.player.x, global.player.y - 20, spr_shieldbreak, false, 1, 0, 0, 1);
-                        }
+                        // (v4.10: el bloqueo COMPLETO de La Torre de Fleetway Amy
+                        // ahora vive ARRIBA con las pasivas de inmunicion total:
+                        // llegados aqui ya no es FW superviviente pura.)
                         
                         global.player.hp -= damage;
                         

@@ -1346,6 +1346,16 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         global.player.rings += 4;
                                         break;
                         }                       
+                        
+                        // v4.10 blindaje «gomunkulus»: el anticheat del server
+                        // desconecta con rings >= 120 en cualquier mapa que no
+                        // sea el 20 (practica). Desde que la practica elige mapa
+                        // AL AZAR (v4.7) una partida de practica puede caer en un
+                        // mapa normal, y los anillos que genera la Cream esbirro
+                        // podian llevarte al tope sin querer. Techo definitivo:
+                        // nunca se pasa de 119 (seguir recogiendo simplemente no
+                        // suma; el gasto de la cura de 10 anillos sigue igual).
+                        global.player.rings = min(global.player.rings, 119);
                                 
                         if(global.player.redRingTimer >= 60)
                         {

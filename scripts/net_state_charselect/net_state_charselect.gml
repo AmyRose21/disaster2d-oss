@@ -170,6 +170,14 @@ function net_state_charselect(rbuff, nps, isPasstrough)
                                         case EXE_EXELLER:
                                                 sprite_index = spr_lobby_exeicon4;
                                                 break;
+
+                                        // v4.10: Metal Amy (5.a asesina, EXE_METALAMY=4). Sin este
+                                        // case su icono no se actualizaba al confirmar el server:
+                                        // la propia jugadora veia el icono de antes y los DEMAS
+                                        // veian el "?" (spr_lobby_dicon), como si no tuviera icono.
+                                        case EXE_METALAMY:
+                                                sprite_index = spr_lobby_exeicon6;
+                                                break;
                                 }
                                 
                                 image_index = 0;
@@ -234,6 +242,13 @@ function net_state_charselect(rbuff, nps, isPasstrough)
                                                         
                                                 case EXE_EXELLER:
                                                         sprite_index = spr_lobby_exeicon4;
+                                                        break;
+
+                                                // v4.10: Metal Amy (EXE_METALAMY=4) — mismo fix que en
+                                                // SERVER_LOBBY_EXECHARACTER_RESPONSE: sin este case los
+                                                // demas clientes ven el "?" al elegirla de asesina.
+                                                case EXE_METALAMY:
+                                                        sprite_index = spr_lobby_exeicon6;
                                                         break;
                                         }
                                         
