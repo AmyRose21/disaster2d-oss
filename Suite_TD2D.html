@@ -207,6 +207,16 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 .cdrow input[type=range]{width:190px}
 .cdrow input[type=number]{width:70px;font-family:var(--mono)}
 .cdrow .mcode{color:var(--mut);font-size:10.5px;font-family:var(--mono);margin-top:3px;word-break:break-all}
+/* módulo 🪀 Muelles */
+.mrow .mgrp{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.mrow .mgrp label{display:inline-flex;gap:5px;align-items:center;font-size:12px;color:var(--mut)}
+.mrow input[type=number]{width:58px;font-family:var(--mono);padding:3px 6px}
+.mrow input:disabled{opacity:.4}
+.mrow .mframes{display:flex;gap:3px;margin-top:8px;flex-wrap:wrap}
+.mframes .fr{min-width:38px;text-align:center;font-family:var(--mono);font-size:11px;padding:2px 6px;border-radius:4px;border:1px solid var(--line);color:var(--mut);background:var(--panel)}
+.mframes .fr.up{background:#12233a;color:#8fc1f0;border-color:#2c4d70}
+.mframes .fr.dn{background:#33230f;color:#f0b98f;border-color:#6b4a22}
+.mframes .fr.ud{background:linear-gradient(90deg,#12233a 50%,#33230f 50%);color:#fff;border-color:#5a4a6b}
 .numrow{padding:4px 8px;border-bottom:1px dashed #23272f}
 .numrow .nrow1{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .numrow b{font-size:12.5px;font-family:var(--mono)}
@@ -396,6 +406,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   <button class="mnav" data-mod="arte">🖼 Arte e imágenes</button>
   <button class="mnav" data-mod="keys">🎮 Botones</button>
   <button class="mnav" data-mod="lms">🎤 Show LMS</button>
+  <button class="mnav" data-mod="muelles">🪀 Muelles</button>
   <span id="modnav-note">tú mueves · el código se escribe solo</span>
 </nav>
 <nav id="subnav-cd" class="subnav hidden">
@@ -974,6 +985,39 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   </aside>
 </div><!-- /mod-lms -->
 
+<div id="mod-muelles" class="mod hidden">
+  <aside class="side">
+    <div class="side-head">Personaje</div>
+    <div id="muelles-ent-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+    <section class="note" style="border:none;padding:4px">🪀 = configurado en el muelle · — = caída clásica. Pulsa uno para saltar a su fila (o preseleccionarlo para añadirlo).</section>
+  </aside>
+  <main class="mid" style="overflow-y:auto">
+    <div id="muelles-head" class="muted">abre tu proyecto para configurar los muelles</div>
+    <div id="muelles-rows"></div>
+    <div id="muelles-add" class="tunebox hidden">
+      <h3>＋ Añadir un personaje al muelle</h3>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="muelles-add-sel" style="max-width:340px"></select>
+        <button id="muelles-add-btn" class="btn primary">Añadir</button>
+        <span class="muted">entra su caída normal y, si es distinta, también su caída demonizada</span>
+      </div>
+    </div>
+  </main>
+  <aside class="rightpane">
+    <section>
+      <h3>Cambios a escribir</h3>
+      <div id="muelles-edits"><div class="muted">nada todavía</div></div>
+      <div id="muelles-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <button id="muelles-write" class="btn primary" style="flex:1;min-width:130px">Escribir en los archivos</button>
+        <button id="muelles-undo">Deshacer último</button>
+      </div>
+    </section>
+    <section class="note"><b>Cómo funciona:</b> al rebotar en un muelle el personaje vuela en FALL: <b>subida</b> = mientras asciende (yspd &lt; 0), <b>bajada</b> = el resto. Cada fase usa una <b>pose fija</b> (bucle sin marcar) o un <b>bucle</b> de varios frames a la velocidad indicada. Es el comportamiento clásico: pose de rebote al subir, pose de caída al bajar.</section>
+    <section class="note"><b>Robusto por diseño:</b> un personaje cuyo sprite <b>no esté en la lista</b> usa su caída de siempre — ni errores ni cambios. La Suite además escribe la llamada <code>scr_fall_anim();</code> en su <code>case FALL</code> (si el case es simple; si toca otras cosas, te da el snippet para pegarlo a mano).</section>
+    <section class="note">Nada se toca hasta que pulsas <b>Escribir</b>: antes verás el antes/después exacto, y siempre queda copia en <code>_backups_animeditor/</code> con botón de deshacer. Tras escribir, recompila (F5).</section>
+  </aside>
+</div><!-- /mod-muelles -->
+
 </div><!-- /mods -->
 
 <div id="toasts"></div>
@@ -1046,11 +1090,19 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   las pasivas extra son personales (las de Sonic: bloqueo, i-frames, stun extra y la bola que
   aturde) y se editan aquí mismo. Tras escribir: F5 <b>y recompilar el server</b>
   (el personaje del show y la canción elegida los manda él).</p>
-  <h4>7. Música</h4>
+  <h4>7. Módulo 🪀 Muelles</h4>
+  <p>La caída “tipo trampolín” del Sonic clásico, configurable por personaje: al rebotar en un muelle,
+  <b>subida</b> = mientras asciende, <b>bajada</b> = al caer. Para cada fase eliges el <b>frame</b> (pose fija,
+  el caso típico de 2 frames: f0 sube / f1 cae) o un <b>bucle</b> de varios frames con su velocidad.
+  Todo vive en la lista <code>global.fallAnims</code> de <code>scr_survivors.gml</code> y en una única línea
+  (<code>scr_fall_anim();</code>) en el <code>case FALL</code> de cada personaje de la lista — la Suite la escribe sola.
+  Un personaje sin configurar usa su caída de siempre: ni errores ni cambios (robusto para el futuro).
+  Metal, Metal demonizado, Blaze y Blaze demonizada ya vienen configurados.</p>
+  <h4>8. Música</h4>
   <p>El botón <b>🎵 Música</b> de la barra de arriba pone el tema del lobby
   (<i>Sonic.exe The Disaster 1.0 OST</i>) mientras editas, en bucle y con control de volumen.
   Si lo dejaste encendido, vuelve solo en tu próxima visita.</p>
-  <h4>8. Escribir (todos los módulos)</h4>
+  <h4>9. Escribir (todos los módulos)</h4>
   <p>El panel derecho muestra el antes/después exacto de cada archivo. <b>Escribir</b> guarda una copia en
   <code>_backups_animeditor/</code> y tiene botón de deshacer. Después compila el juego (F5).
   El multijugador no necesita recompilar el server para animaciones ni macros: el frame exacto viaja por red
@@ -2986,6 +3038,7 @@ function switchModule(mod) {
   $('#mod-img').classList.toggle('hidden', !(mod === 'img' || arteImg));
   $('#mod-keys').classList.toggle('hidden', mod !== 'keys');
   $('#mod-lms').classList.toggle('hidden', mod !== 'lms');
+  $('#mod-muelles').classList.toggle('hidden', mod !== 'muelles');
   $('#subnav-cd').classList.toggle('hidden', mod !== 'cd');
   $('#subnav-arte').classList.toggle('hidden', mod !== 'arte');
   $$('#subnav-cd .subnav-btn').forEach(b => b.classList.toggle('sel', b.dataset.cdsub === S.cdSub));
@@ -2996,6 +3049,7 @@ function switchModule(mod) {
   else if (mod === 'cd') { if (S.cdSub === 'tune') enterTune(); else if (T.enterSrv) T.enterSrv(); }
   else if (mod === 'keys' && T.enterKeys) T.enterKeys();
   else if (mod === 'lms' && window.enterLms) window.enterLms();
+  else if (mod === 'muelles' && window.enterMuelles) window.enterMuelles();
   else if (mod === 'arte') { if (arteImg) enterImg(); else if (window.enterArte) window.enterArte(); }
   else enterImg();
 }
@@ -10444,6 +10498,704 @@ window.__onProjectScan = (function (prev) {
 })();
 </script>
 <script>
+/* ===== Suite TD2D — módulo 🪀 MUELLES (caída tipo trampolín) — INICIO =====
+   Configura por sprite qué frame(s) usar al SUBIR y al BAJAR tras un
+   muelle: pose fija o bucle, por fase. Escribe el bloque global.fallAnims
+   de scr_survivors.gml y la llamada scr_fall_anim() en el case FALL de
+   cada personaje de la lista (con diff, respaldo y deshacer).
+   El NÚCLEO de abajo es copia EXACTA de scripts/muelles_core.js para poder
+   testearse en Node: si editas uno, edita también el otro. */
+
+/* ===== Suite TD2D — módulo 🪀 Muelles: NÚCLEO PURO (sin DOM) =====
+   Genera / parsea / aplica el bloque "MUELLES" de scr_survivors.gml y el
+   case FALL de los Draw_76. Sin dependencias: funciona igual en Node
+   (tests) que en el navegador. ESTE MISMO código vive embebido dentro
+   de Suite_TD2D.html (marcado con "MUELLES: NUCLEO PURO"): si cambias
+   algo aquí, cópialo allí también (el test de equivalencia lo caza). */
+(function (root, factory) {
+  if (typeof module !== 'undefined' && module.exports) module.exports = factory();
+  else root.MuellesCore = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  var BLOCK_BEGIN = '// >>>>>>> MUELLES: inicio (bloque generado con Suite_TD2D.html) >>>>>>';
+  var BLOCK_END = '// <<<<<<< MUELLES: fin <<<<<<<';
+
+  function detectNl(text) { return /\r\n/.test(String(text)) ? '\r\n' : '\n'; }
+
+  function fmtN(v) {
+    var n = Math.round(Number(v) * 100) / 100;
+    return String(n);
+  }
+
+  // fila = { spr, note, rs, rc, fs, fc, sp }
+  //   rs/rc = frame inicial y nº de frames de SUBIDA (rc=1 -> pose fija)
+  //   fs/fc = frame inicial y nº de frames de BAJADA
+  //   sp    = velocidad del bucle (solo se usa si rc>1 o fc>1)
+  function normRow(r) {
+    return {
+      spr: String(r.spr || ''),
+      note: r.note || '',
+      rs: Math.max(0, parseInt(r.rs, 10) || 0),
+      rc: Math.max(1, parseInt(r.rc, 10) || 1),
+      fs: Math.max(0, parseInt(r.fs, 10) || 0),
+      fc: Math.max(1, parseInt(r.fc, 10) || 1),
+      sp: isFinite(+r.sp) && +r.sp >= 0 ? Math.round(+r.sp * 100) / 100 : 0.15
+    };
+  }
+
+  /* ---------- generar el bloque GML completo (marcado) ---------- */
+
+  function genBlock(rows) {
+    rows = (rows || []).map(normRow);
+    var w = 14;
+    rows.forEach(function (r) { if (r.spr.length + 2 > w) w = r.spr.length + 2; });
+    var out = BLOCK_BEGIN + '\n';
+    out += '// Caida "tipo trampolin" por sprite, para el case FALL del Draw_76:\n';
+    out += '//   [sprite, frameSubida, nFramesSubida, frameBajada, nFramesBajada, velBucle]\n';
+    out += '//   nFrames = 1 -> pose fija · nFrames > 1 -> bucle de esos frames a velBucle.\n';
+    out += '//   Subida = mientras asciende (yspd < 0) · bajada = el resto (yspd >= 0).\n';
+    out += '//   En el personaje:  case FALL:  scr_fall_anim();  (una sola linea).\n';
+    out += '//   Un sprite que NO este en la lista usa la caida clasica de siempre\n';
+    out += '//   (fallback seguro: ni errores ni cambios para personajes sin configurar).\n';
+    out += 'global.fallAnims = [';
+    if (!rows.length) {
+      out += '\n];';
+    } else {
+      out += '\n';
+      rows.forEach(function (r, i) {
+        var pad = w - r.spr.length;
+        if (pad < 1) pad = 1;
+        out += '        [' + r.spr + ',' + ' '.repeat(pad) +
+          fmtN(r.rs) + ', ' + fmtN(r.rc) + ', ' + fmtN(r.fs) + ', ' + fmtN(r.fc) + ', ' + fmtN(r.sp) + ']' +
+          (i < rows.length - 1 ? ',' : ' ') + (r.note ? ' // ' + r.note : '') + '\n';
+      });
+      out += '];';
+    }
+    out += '\n\n';
+    out += '// La llama el case FALL del Draw_76 del personaje: busca el sprite en\n';
+    out += '// global.fallAnims y aplica su configuracion; si no esta, caida clasica.\n';
+    out += 'function scr_fall_anim()\n';
+    out += '{\n';
+    out += '        for(var i = 0; i < array_length(global.fallAnims); i++)\n';
+    out += '        {\n';
+    out += '                var cfg = global.fallAnims[i];\n';
+    out += '\n';
+    out += '                if(cfg[0] != sprite_index)\n';
+    out += '                        continue;\n';
+    out += '\n';
+    out += '                var rising = yspd < 0;\n';
+    out += '                var start  = rising ? cfg[1] : cfg[3];\n';
+    out += '                var frames = rising ? cfg[2] : cfg[4];\n';
+    out += '\n';
+    out += '                if(frames <= 1)\n';
+    out += '                {\n';
+    out += '                        image_speed = 0;\n';
+    out += '                        image_index = start;\n';
+    out += '                }\n';
+    out += '                else\n';
+    out += '                {\n';
+    out += '                        image_speed = cfg[5];\n';
+    out += '\n';
+    out += '                        if(image_index < start || image_index >= start + frames)\n';
+    out += '                                image_index = start;\n';
+    out += '                }\n';
+    out += '\n';
+    out += '                return;\n';
+    out += '        }\n';
+    out += '\n';
+    out += '        // Fuera de la lista: caida clasica (bucle que acelera al caer)\n';
+    out += '        image_speed = 0.15 + min(abs(yspd), 12) * 0.02;\n';
+    out += '}\n';
+    out += BLOCK_END;
+    return out;
+  }
+
+  /* ---------- parsear el bloque marcado ---------- */
+
+  function parseBlock(text) {
+    text = String(text || '');
+    var m = text.match(/\/\/ >>>>>>> MUELLES: inicio[\s\S]*?\/\/ <<<<<<< MUELLES: fin/);
+    if (!m) return { found: false, rows: [] };
+    var rows = [];
+    var re = /\[\s*([A-Za-z_]\w*)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+(?:\.\d+)?)\s*\]\s*,?\s*(?:\/\/\s*(.*))?/g, r;
+    while ((r = re.exec(m[0]))) {
+      rows.push(normRow({ spr: r[1], rs: r[2], rc: r[3], fs: r[4], fc: r[5], sp: r[6], note: (r[7] || '').trim() }));
+    }
+    return { found: true, rows: rows };
+  }
+
+  /* ---------- quitar el bloque viejo (fix springFallSprites) ---------- */
+
+  function stripLegacy(text) {
+    var re = /[ \t]*\/\/ =+\r?\n(?:[ \t]*\/\/[^\n\r]*\r?\n)*?[ \t]*\/\/ =+\r?\nglobal\.springFallSprites\s*=\s*\[[\s\S]*?\];\r?\n(?:\r?\n)?/;
+    return text.replace(re, '');
+  }
+
+  /* ---------- sustituir / insertar el bloque en scr_survivors ---------- */
+
+  function replaceBlock(text, block) {
+    text = String(text);
+    var nl = detectNl(text);
+    var b = String(block).replace(/\r?\n/g, nl);
+    var marked = /\/\/ >>>>>>> MUELLES: inicio[\s\S]*?\/\/ <<<<<<< MUELLES: fin[^\n\r]*/;
+    if (marked.test(text)) return text.replace(marked, b);
+    var out = stripLegacy(text);
+    var anchor = out.indexOf('function player_get');
+    if (anchor >= 0) return out.slice(0, anchor) + b + nl + nl + out.slice(anchor);
+    return out.replace(/[ \t\r\n]+$/, '') + nl + nl + b + nl;
+  }
+
+  /* ---------------- groups del case FALL (Draw_76) ---------------- */
+
+  function findFallCase(gml) {
+    gml = String(gml);
+    var m = /(^|\n)([ \t]*)case\s+FALL\s*:/.exec(gml);
+    if (!m) return null;
+    var g = { labelStart: m.index + m[1].length, indent: m[2], bodyStart: m.index + m[0].length };
+    var bre = /(^|\n)[ \t]*case\s+[A-Za-z_]\w*\s*:/g;
+    bre.lastIndex = g.bodyStart;
+    var n = bre.exec(gml);
+    if (n) g.end = n.index + n[1].length;
+    else {
+      var cb = gml.lastIndexOf('}');
+      g.end = cb > g.bodyStart ? cb : gml.length;
+    }
+    return g;
+  }
+
+  function caseCallsHelper(gml) {
+    var g = findFallCase(gml);
+    if (!g) return false;
+    return /scr_fall_anim\s*\(\s*\)/.test(gml.slice(g.bodyStart, g.end));
+  }
+
+  // ¿El cuerpo del FALL es "simple" (solo image_speed/image_index/if/else/
+  // break y comentarios)? Los asi se reescriben solos; los que tocan otras
+  // cosas (image_xscale...) van a mano con un snippet para no romperlos.
+  var FALL_SAFE_IDS = /^(?:image_speed|image_index|yspd|abs|min|max|array_contains|global|springFallSprites|sprite_index|scr_fall_anim|true|false|if|else|then|break|exit)$/;
+  function simpleFallBody(body) {
+    var code = String(body).replace(/\/\/[^\n\r]*/g, ' ');
+    var ids = code.match(/[A-Za-z_]\w*/g) || [];
+    for (var i = 0; i < ids.length; i++) if (!FALL_SAFE_IDS.test(ids[i])) return false;
+    return true;
+  }
+
+  function setFallCase(gml) {
+    gml = String(gml);
+    var g = findFallCase(gml);
+    if (!g) return { gml: gml, changed: false, error: 'sin-case' };
+    var nl = detectNl(gml);
+    var oldBody = gml.slice(g.bodyStart, g.end);
+    if (/scr_fall_anim\s*\(\s*\)/.test(oldBody))
+      return { gml: gml, changed: false, already: true, oldBody: oldBody };
+    var bi = g.indent + g.indent;
+    var newBody = nl + bi + '// (MUELLES): frames de subida/bajada configurados con la' + nl +
+      bi + '// Suite (global.fallAnims en scr_survivors.gml)' + nl +
+      bi + 'scr_fall_anim();' + nl + bi + 'break;' + nl + nl;
+    return {
+      gml: gml.slice(0, g.bodyStart) + newBody + gml.slice(g.end),
+      changed: true, oldBody: oldBody, simple: simpleFallBody(oldBody)
+    };
+  }
+
+  function restoreFallCase(gml, oldBody) {
+    gml = String(gml);
+    var g = findFallCase(gml);
+    if (!g) return { gml: gml, changed: false, error: 'sin-case' };
+    return { gml: gml.slice(0, g.bodyStart) + oldBody + gml.slice(g.end), changed: true };
+  }
+
+  return {
+    BLOCK_BEGIN: BLOCK_BEGIN,
+    BLOCK_END: BLOCK_END,
+    detectNl: detectNl,
+    fmtN: fmtN,
+    normRow: normRow,
+    genBlock: genBlock,
+    parseBlock: parseBlock,
+    stripLegacy: stripLegacy,
+    replaceBlock: replaceBlock,
+    findFallCase: findFallCase,
+    caseCallsHelper: caseCallsHelper,
+    simpleFallBody: simpleFallBody,
+    setFallCase: setFallCase,
+    restoreFallCase: restoreFallCase
+  };
+});
+
+/* ===== MUELLES: interfaz (solo navegador; en Node se queda en el return) ===== */
+(function () {
+'use strict';
+if (typeof document === 'undefined') return;
+if (!document.getElementById('mod-muelles')) return;
+
+const C = window.AnimCore;
+const T = window.__animtool;
+if (!T) { console.error('Muelles: falta __animtool (¿no arrancó el módulo base?)'); return; }
+const MuellesCore = window.MuellesCore;
+if (!MuellesCore) { console.error('Muelles: no se cargó el núcleo'); return; }
+const S = T.S;
+const $ = (s) => document.querySelector(s);
+const esc = T.esc, toast = T.toast;
+
+const SURV_REL = 'scripts/scr_survivors/scr_survivors.gml';
+
+const M = {
+  ready: false,
+  origSurv: '',
+  rows: [],        // filas editables (lo que irá en global.fallAnims)
+  catalog: [],     // personajes con su(s) sprite(s) de caída
+  frames: {},      // sprite -> n.º de frames (para chips y tira)
+  origDraw: {},    // obj -> Draw_76.gml tal cual está en disco
+  cards: [],       // tarjetas del panel de cambios
+};
+
+/* ---------------- datos ---------------- */
+
+function fallEntry(arr) {
+  return (arr || []).find(x => x.label === 'FALL' || x.idx === 4) || null;
+}
+
+async function ensureMuellesData() {
+  if (M.ready) return;
+  M.origSurv = (await T.readText(SURV_REL)) || '';
+  M.rows = MuellesCore.parseBlock(M.origSurv).rows.map(r => Object.assign({}, r));
+  const cat = [];
+  const add = (ent, isExe) => {
+    if (!ent || !ent.obj) return;
+    const f1 = fallEntry(ent.anims), f2 = fallEntry(ent.eanims);
+    const sprs = [];
+    if (f1) sprs.push({ spr: f1.spr, note: ent.name });
+    if (f2 && f2.spr !== (f1 && f1.spr)) sprs.push({ spr: f2.spr, note: ent.name + ' (demonizado)' });
+    if (!sprs.length) return;
+    cat.push({ name: ent.name, obj: ent.obj, isExe: !!isExe, sprs });
+  };
+  (S.chars || []).forEach(c => add(c, false));
+  (S.exes || []).forEach(e => add(e, true));
+  M.catalog = cat;
+  const need = new Set();
+  M.rows.forEach(r => need.add(r.spr));
+  cat.forEach(c => c.sprs.forEach(s => need.add(s.spr)));
+  M.frames = {};
+  for (const s of need) { const n = await T.frameCountOf(s); if (n != null) M.frames[s] = n; }
+  M.origDraw = {};
+  for (const c of cat) {
+    const t = await T.readText('objects/' + c.obj + '/Draw_76.gml');
+    if (t != null) M.origDraw[c.obj] = t;
+  }
+  M.ready = true;
+}
+
+function charOf(spr) {
+  for (const c of M.catalog) if (c.sprs.some(s => s.spr === spr)) return c;
+  return null;
+}
+
+/* ---------------- render ---------------- */
+
+function stripHtml(r) {
+  const n = M.frames[r.spr];
+  const total = n != null ? n : Math.max(r.rs + r.rc, r.fs + r.fc, 1);
+  let html = '';
+  for (let f = 0; f < total; f++) {
+    const up = f >= r.rs && f < r.rs + r.rc;
+    const dn = f >= r.fs && f < r.fs + r.fc;
+    const cls = up && dn ? 'ud' : up ? 'up' : dn ? 'dn' : '';
+    html += '<span class="fr ' + cls + '">f' + f + (up && dn ? ' ↑↓' : up ? ' ↑' : dn ? ' ↓' : '') + '</span>';
+  }
+  return html;
+}
+
+function rowWarn(r) {
+  const n = M.frames[r.spr];
+  if (n != null && (r.rs + r.rc > n || r.fs + r.fc > n))
+    return '<div class="warnline">ojo: el rango se sale del sprite (tiene ' + n + ' frames)</div>';
+  return '';
+}
+
+function rowTitle(r) {
+  const c = charOf(r.spr);
+  if (c) {
+    const dem = c.sprs.length > 1 && c.sprs[1].spr === r.spr;
+    return c.name + (dem ? ' (demonizado)' : '');
+  }
+  return r.note || r.spr;
+}
+
+function renderRows() {
+  const host = $('#muelles-rows');
+  if (!M.rows.length) {
+    host.innerHTML = '<div class="muted">ningún personaje configurado: la caída de todos es la clásica de siempre. Añade uno abajo.</div>';
+  } else {
+    let html = '';
+    M.rows.forEach((r, i) => {
+      const nf = M.frames[r.spr];
+      html += '<div class="cdrow mrow" data-i="' + i + '">'
+        + '<div class="cdtop"><b>' + esc(rowTitle(r)) + '</b>'
+        + '<span class="mcode">' + esc(r.spr) + (nf != null ? ' · ' + nf + ' frames' : '') + '</span>'
+        + '<button class="muelles-del" data-i="' + i + '" title="quitar de la lista (vuelve a la caída clásica)">✕ quitar</button></div>'
+        + '<div class="mgrp"><span class="chip">↑ subida</span>'
+        + '<label>frame <input class="mrs" type="number" min="0" step="1" value="' + r.rs + '"></label>'
+        + '<label><input class="mrc-chk" type="checkbox"' + (r.rc > 1 ? ' checked' : '') + '> bucle</label>'
+        + '<label>frames <input class="mrc" type="number" min="2" step="1" value="' + Math.max(2, r.rc) + '"' + (r.rc > 1 ? '' : ' disabled') + '></label></div>'
+        + '<div class="mgrp"><span class="chip orange">↓ bajada</span>'
+        + '<label>frame <input class="mfs" type="number" min="0" step="1" value="' + r.fs + '"></label>'
+        + '<label><input class="mfc-chk" type="checkbox"' + (r.fc > 1 ? ' checked' : '') + '> bucle</label>'
+        + '<label>frames <input class="mfc" type="number" min="2" step="1" value="' + Math.max(2, r.fc) + '"' + (r.fc > 1 ? '' : ' disabled') + '></label></div>'
+        + '<div class="mgrp"><label>velocidad del bucle <input class="msp" type="number" min="0" step="0.05" value="' + MuellesCore.fmtN(r.sp) + '"></label></div>'
+        + '<div class="mframes">' + stripHtml(r) + '</div>'
+        + '<div class="mrow-warn">' + rowWarn(r) + '</div>'
+        + '</div>';
+    });
+    host.innerHTML = html;
+  }
+  renderAdd();
+}
+
+function renderAdd() {
+  const box = $('#muelles-add'), sel = $('#muelles-add-sel');
+  const pend = M.catalog.filter(c => !c.sprs.every(s => M.rows.some(r => r.spr === s.spr)));
+  if (!pend.length) { box.classList.add('hidden'); sel.innerHTML = ''; return; }
+  box.classList.remove('hidden');
+  let html = '';
+  for (const c of pend) {
+    const sprs = c.sprs.filter(s => !M.rows.some(r => r.spr === s.spr)).map(s => s.spr);
+    html += '<option value="' + esc(c.obj) + '">' + esc(c.name + ' (' + sprs.join(' + ') + ')') + '</option>';
+  }
+  const prev = sel.value;
+  sel.innerHTML = html;
+  if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+}
+
+function renderSide() {
+  const host = $('#muelles-ent-list');
+  if (!M.catalog.length) { host.innerHTML = '<div class="muted">sin personajes con sprite de caída</div>'; return; }
+  let html = '';
+  for (const c of M.catalog) {
+    const on = c.sprs.some(s => M.rows.some(r => r.spr === s.spr));
+    html += '<button class="charbtn' + (c.isExe ? ' exe' : '') + '" data-obj="' + esc(c.obj) + '"><b>' + esc(c.name) + '</b><span class="obj">' + (on ? '🪀' : '—') + '</span></button>';
+  }
+  host.innerHTML = html;
+}
+
+/* ---------------- snapshots del case original (localStorage) ---------------- */
+
+function snapKey(obj) { return 'muelles_orig_' + obj; }
+function saveSnap(obj, body) {
+  try { if (!localStorage.getItem(snapKey(obj))) localStorage.setItem(snapKey(obj), JSON.stringify({ body: body })); } catch (e) { }
+}
+function loadSnap(obj) {
+  try { const v = localStorage.getItem(snapKey(obj)); return v ? (JSON.parse(v).body || null) : null; } catch (e) { return null; }
+}
+
+/* ---------------- snippets a mano ---------------- */
+
+function caseSnippet(orig) {
+  const g = MuellesCore.findFallCase(orig);
+  if (!g) return null;
+  const bi = g.indent + g.indent;
+  return g.indent + 'case FALL:\n' + bi + '// (MUELLES): frames de subida/bajada configurados con la\n' +
+    bi + '// Suite (global.fallAnims en scr_survivors.gml)\n' +
+    bi + 'scr_fall_anim();\n' + bi + 'break;';
+}
+function classicSnippet(orig) {
+  const g = MuellesCore.findFallCase(orig);
+  const ind = g ? g.indent : '\t';
+  const bi = ind + ind;
+  return ind + 'case FALL:\n' + bi + '// caida clasica (sin muelle)\n' + bi + 'image_speed = 0.15 + min(abs(yspd), 12) * 0.02;\n' + bi + 'break;';
+}
+
+/* ---------------- computar cambios ---------------- */
+
+function computeMuelles() {
+  const working = {};
+  const cards = [];
+  const block = MuellesCore.genBlock(M.rows);
+  const newSurv = MuellesCore.replaceBlock(M.origSurv, block);
+  if (newSurv !== M.origSurv) {
+    working[SURV_REL] = newSurv;
+    cards.push({ kind: 'surv', rel: SURV_REL, before: M.origSurv, after: newSurv, block: block });
+  }
+  const activos = new Set(M.rows.map(r => r.spr));
+  for (const c of M.catalog) {
+    const rel = 'objects/' + c.obj + '/Draw_76.gml';
+    const orig = M.origDraw[c.obj];
+    if (orig == null) continue;
+    const activo = c.sprs.some(s => activos.has(s.spr));
+    const llama = MuellesCore.caseCallsHelper(orig);
+    if (activo && !llama) {
+      const r = MuellesCore.setFallCase(orig);
+      if (r.error === 'sin-case') cards.push({ kind: 'nocase', obj: c.obj, rel });
+      else if (r.already) { /* imposible: llama era false */ }
+      else if (r.simple) {
+        working[rel] = r.gml;
+        cards.push({ kind: 'case', obj: c.obj, rel, before: orig, after: r.gml, oldBody: r.oldBody });
+      } else {
+        cards.push({ kind: 'snippet', obj: c.obj, rel, snippet: caseSnippet(orig) });
+      }
+    } else if (!activo && llama) {
+      const snap = loadSnap(c.obj);
+      if (snap != null) {
+        const rr = MuellesCore.restoreFallCase(orig, snap);
+        if (rr.changed) {
+          working[rel] = rr.gml;
+          cards.push({ kind: 'restore', obj: c.obj, rel, before: orig, after: rr.gml });
+        }
+      } else {
+        cards.push({ kind: 'restore-manual', obj: c.obj, rel, snippet: classicSnippet(orig) });
+      }
+    }
+  }
+  return { working, cards };
+}
+
+/* ---------------- panel de cambios ---------------- */
+
+function diffPre(before, after) {
+  const d = C.lineDiff(before || '', after || '');
+  let html = '';
+  for (const l of d) {
+    const cls = l.t === '-' ? 'del' : l.t === '+' ? 'add' : '';
+    html += '<span class="' + cls + '">' + esc(l.s || ' ') + '</span>\n';
+  }
+  return html;
+}
+
+function renderEditsPanel() {
+  const host = $('#muelles-edits');
+  const cards = M.cards;
+  if (!cards.length) {
+    host.innerHTML = '<div class="okline">Nada que escribir: lo que ves ya coincide con los archivos.</div>';
+    $('#muelles-actions').style.display = 'none';
+    return;
+  }
+  let html = '';
+  for (const e of cards) {
+    if (e.kind === 'surv') {
+      const snip = cards.some(c => c.kind === 'snippet');
+      html += '<div class="editcard" data-kind="surv">'
+        + '<div class="edhead"><b>scr_survivors.gml</b><span class="edpath">' + esc(e.rel) + '</span></div>'
+        + '<div class="edtitle">la lista global.fallAnims (' + M.rows.length + ' sprite' + (M.rows.length === 1 ? '' : 's') + ')</div>'
+        + (snip ? '<div class="warnline">hay personajes en la lista cuyo case FALL no se reescribe solo: aplícales su snippet de abajo a mano.</div>' : '')
+        + '<pre class="diff">' + diffPre(e.before, e.after) + '</pre>'
+        + '<div class="edbtns"><button class="copyblock" data-what="block">Copiar bloque GML</button>'
+        + '<button class="copyblock" data-what="file">Copiar archivo entero</button></div>'
+        + '</div>';
+    } else if (e.kind === 'case') {
+      html += '<div class="editcard" data-kind="case">'
+        + '<div class="edhead"><b>Draw_76 de ' + esc(e.obj) + '</b><span class="edpath">' + esc(e.rel) + '</span></div>'
+        + '<div class="edtitle">su case FALL pasa a llamar a scr_fall_anim(); — queda guardada una copia del original en este navegador para restaurarlo si lo quitas de la lista</div>'
+        + '<pre class="diff">' + diffPre(e.before, e.after) + '</pre>'
+        + '<div class="edbtns"><button class="copyblock" data-what="file">Copiar archivo entero</button></div>'
+        + '</div>';
+    } else if (e.kind === 'restore') {
+      html += '<div class="editcard" data-kind="restore">'
+        + '<div class="edhead"><b>Draw_76 de ' + esc(e.obj) + '</b><span class="edpath">' + esc(e.rel) + '</span></div>'
+        + '<div class="edtitle">lo quitaste de la lista: su case FALL vuelve al original</div>'
+        + '<pre class="diff">' + diffPre(e.before, e.after) + '</pre>'
+        + '<div class="edbtns"><button class="copyblock" data-what="file">Copiar archivo entero</button></div>'
+        + '</div>';
+    } else if (e.kind === 'snippet') {
+      html += '<div class="editcard">'
+        + '<div class="edhead"><b>' + esc(e.obj) + '</b><span class="edpath">' + esc(e.rel) + '</span></div>'
+        + '<div class="edtitle">su case FALL toca más cosas además de la animación: pega esta llamada a mano (sustituye su case FALL por esto):</div>'
+        + '<pre class="snip">' + esc(e.snippet || '') + '</pre>'
+        + '</div>';
+    } else if (e.kind === 'restore-manual') {
+      html += '<div class="editcard">'
+        + '<div class="edhead"><b>' + esc(e.obj) + '</b><span class="edpath">' + esc(e.rel) + '</span></div>'
+        + '<div class="warnline">lo quitaste de la lista pero no hay copia de su case FALL original (se guarda antes de la primera escritura de la Suite). Déjalo así — usará la caída clásica — o restaura a mano:</div>'
+        + '<pre class="snip">' + esc(e.snippet || '') + '</pre>'
+        + '</div>';
+    } else if (e.kind === 'nocase') {
+      html += '<div class="editcard"><div class="edhead"><b>' + esc(e.obj) + '</b><span class="edpath">' + esc(e.rel) + '</span></div>'
+        + '<div class="warnline">no encuentro un case FALL en su Draw_76: revísalo a mano.</div></div>';
+    }
+  }
+  host.innerHTML = html;
+  $('#muelles-actions').style.display = 'flex';
+  $('#muelles-write').disabled = S.mode !== 'fs';
+  $('#muelles-write').title = S.mode === 'fs' ? '' : 'solo disponible con "Abrir carpeta" (Chrome/Edge)';
+  $('#muelles-undo').disabled = !S.undo.length;
+}
+
+/* ---------------- sync ---------------- */
+
+function syncMuelles() {
+  const res = computeMuelles();
+  M.cards = res.cards;
+  S.pendingFiles = res.working;
+  S.edits = res.cards.filter(c => c.kind === 'surv' || c.kind === 'case' || c.kind === 'restore');
+  renderEditsPanel();
+}
+
+/* ---------------- eventos de fila ---------------- */
+
+function rowFromInputs(card, r) {
+  r.rs = Math.max(0, parseInt(card.querySelector('.mrs').value, 10) || 0);
+  r.rc = card.querySelector('.mrc-chk').checked ? Math.max(2, parseInt(card.querySelector('.mrc').value, 10) || 2) : 1;
+  r.fs = Math.max(0, parseInt(card.querySelector('.mfs').value, 10) || 0);
+  r.fc = card.querySelector('.mfc-chk').checked ? Math.max(2, parseInt(card.querySelector('.mfc').value, 10) || 2) : 1;
+  const sp = parseFloat(card.querySelector('.msp').value);
+  r.sp = isFinite(sp) && sp > 0 ? sp : 0.15;
+}
+
+function refreshRowVisual(card, r) {
+  card.querySelector('.mrc').disabled = r.rc <= 1;
+  card.querySelector('.mfc').disabled = r.fc <= 1;
+  card.querySelector('.mframes').innerHTML = stripHtml(r);
+  card.querySelector('.mrow-warn').innerHTML = rowWarn(r);
+}
+
+function onRowInput(e) {
+  const card = e.target.closest('.mrow'); if (!card) return;
+  const r = M.rows[+card.dataset.i]; if (!r) return;
+  rowFromInputs(card, r);
+  refreshRowVisual(card, r);
+  syncMuelles();
+}
+
+function onRowsClick(e) {
+  const del = e.target.closest('.muelles-del'); if (!del) return;
+  const i = +del.dataset.i;
+  if (!M.rows[i]) return;
+  M.rows.splice(i, 1);
+  renderRows(); renderSide(); syncMuelles();
+}
+
+function onAdd() {
+  const sel = $('#muelles-add-sel');
+  const c = M.catalog.find(x => x.obj === sel.value);
+  if (!c) { toast('Elige un personaje de la lista.'); return; }
+  let any = false;
+  for (const s of c.sprs) {
+    if (M.rows.some(r => r.spr === s.spr)) continue;
+    any = true;
+    const row = { spr: s.spr, note: s.note, rs: 0, rc: 1, fs: 1, fc: 1, sp: 0.15 };
+    if (M.frames[s.spr] === 1) row.fs = 0;   // sprite de 1 frame: ambas fases en f0
+    M.rows.push(row);
+  }
+  if (!any) { toast(c.name + ' ya está entero en la lista.'); return; }
+  renderRows(); renderSide(); syncMuelles();
+  toast('Añadido al muelle: ' + c.name + ' — sube f0 / cae f1 por defecto');
+}
+
+function onSideClick(e) {
+  const b = e.target.closest('[data-obj]'); if (!b) return;
+  const c = M.catalog.find(x => x.obj === b.dataset.obj); if (!c) return;
+  const i = M.rows.findIndex(r => c.sprs.some(s => s.spr === r.spr));
+  if (i >= 0) {
+    const el = $('#muelles-rows').querySelector('.mrow[data-i="' + i + '"]');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.borderColor = 'var(--gold)';
+      setTimeout(() => { el.style.borderColor = ''; }, 1200);
+    }
+  } else {
+    $('#muelles-add-sel').value = c.obj;
+    $('#muelles-add').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+async function copyMuelles(txt, what) {
+  if (!txt) { toast('Nada que copiar.'); return; }
+  try { await navigator.clipboard.writeText(txt); toast('Copiado: ' + what); }
+  catch (err) {
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('Copiado: ' + what); }
+    catch (e2) { toast('No pude copiar automáticamente; selecciona el texto a mano.', 'err'); }
+    ta.remove();
+  }
+}
+
+function onEditsClick(e) {
+  const btn = e.target.closest('.copyblock'); if (!btn) return;
+  const cardEl = btn.closest('.editcard'); if (!cardEl) return;
+  if (btn.dataset.what === 'block') {
+    const c = M.cards.find(x => x.kind === 'surv');
+    if (c) copyMuelles(c.block, 'bloque MUELLES de scr_survivors.gml');
+    return;
+  }
+  const rel = cardEl.querySelector('.edpath').textContent;
+  const txt = (S.pendingFiles || {})[rel];
+  if (txt != null) copyMuelles(txt, rel.split('/').pop() + ' entero');
+  else toast('Nada que copiar.');
+}
+
+/* ---------------- entrar / escribir / deshacer ---------------- */
+
+async function enterMuelles() {
+  const head = $('#muelles-head');
+  const rowsBox = $('#muelles-rows'), addBox = $('#muelles-add');
+  const side = $('#muelles-ent-list');
+  if (!S.mode) {
+    head.textContent = 'abre tu proyecto primero (botón «Abrir carpeta del proyecto» arriba).';
+    rowsBox.innerHTML = ''; addBox.classList.add('hidden'); side.innerHTML = '<div class="muted">—</div>';
+    M.ready = false;
+    return;
+  }
+  if (S.mode === 'demo') {
+    head.textContent = 'en modo demo no hay muelles que configurar: abre tu proyecto.';
+    rowsBox.innerHTML = ''; addBox.classList.add('hidden'); side.innerHTML = '<div class="muted">—</div>';
+    return;
+  }
+  head.innerHTML = 'caída "tipo trampolín" por sprite: <b>subida</b> mientras asciende (yspd &lt; 0), <b>bajada</b> al caer. Cada fase: frame fijo o bucle.';
+  await ensureMuellesData();
+  renderSide(); renderRows(); syncMuelles();
+}
+
+async function muellesWrite() {
+  for (const c of M.cards) if (c.kind === 'case') saveSnap(c.obj, c.oldBody);
+  await T.writeEdits();
+}
+
+async function muellesAfterWrite() {
+  M.ready = false;
+  await enterMuelles();
+}
+
+/* ---------------- hooks e init ---------------- */
+
+window.enterMuelles = enterMuelles;
+
+const prevAW = S.onAfterWrite;
+S.onAfterWrite = async function () {
+  if (S.module === 'muelles') { await muellesAfterWrite(); return; }
+  if (prevAW) await prevAW();
+};
+
+const prevDiscard = T.discardModulePending;
+T.discardModulePending = function () {
+  M.ready = false;   // al descartar cambios, la próxima entrada relee del disco
+  if (prevDiscard) prevDiscard();
+};
+
+const prevScan = window.__onProjectScan;
+window.__onProjectScan = function () {
+  M.ready = false;
+  if (S.module === 'muelles') enterMuelles();
+  if (prevScan) prevScan();
+};
+
+function initMuelles() {
+  $('#muelles-rows').addEventListener('input', onRowInput);
+  $('#muelles-rows').addEventListener('change', onRowInput);
+  $('#muelles-rows').addEventListener('click', onRowsClick);
+  $('#muelles-add-btn').addEventListener('click', onAdd);
+  $('#muelles-ent-list').addEventListener('click', onSideClick);
+  $('#muelles-edits').addEventListener('click', onEditsClick);
+  $('#muelles-write').addEventListener('click', muellesWrite);
+  $('#muelles-undo').addEventListener('click', () => T.undoLast());
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMuelles);
+else initMuelles();
+
+})();
+/* ===== Suite TD2D — módulo 🪀 MUELLES — FIN ===== */
+</script>
+<script>
 /* v3.8.1 — AUTOCHEQUEO DE ARRANQUE: si algún módulo no se cargó, se ve AQUÍ y en la
    consola (F12), en vez de quedarse la interfaz muerta sin decir nada. */
 (function () {
@@ -10452,6 +11204,7 @@ window.__onProjectScan = (function (prev) {
   if (typeof window.setCdSub !== 'function') fails.push('módulo ⏱ Enfriamientos no arrancó');
   if (typeof window.__yypfix !== 'function' || typeof window.enterArte !== 'function') fails.push('módulo 🖼 Arte no arrancó');
   if (typeof window.enterLms !== 'function') fails.push('módulo 🎤 Show LMS no arrancó');
+  if (typeof window.enterMuelles !== 'function') fails.push('módulo 🪀 Muelles no arrancó');
   if (window.__bootErrors) fails.push(window.__bootErrors + ' error(es) JS durante el arranque (mira la consola F12)');
   if (fails.length) {
     console.error('SUITE TD2D — NO CARGÓ COMPLETO:', fails.join(' · '));

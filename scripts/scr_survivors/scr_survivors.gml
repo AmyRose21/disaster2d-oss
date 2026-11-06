@@ -796,21 +796,56 @@ if(array_length(global.sonicAtkTierra) == 0)
 if(array_length(global.sonicAtkAire) == 0)
         array_push(global.sonicAtkAire, spr_sonic_attack2_aereo1);
 
-// =====================================================================
-//  (MUELLES estilo clasico): sprites de caida "tipo trampolin" de 2
-//  frames: f0 = pose de SUBIDA (rebote de muelle, yspd < 0) y f1 =
-//  pose de CAIDA. NO se animan en bucle: el Draw_76 del personaje los
-//  congela en el frame que toca segun el sentido del vuelo (ver
-//  obj_metal / obj_blaze). Un personaje cuyo fall NO esta aqui usa su
-//  caida animada de siempre: activarlo en un personaje nuevo = anadir
-//  su sprite a la lista (fallback seguro para futuros personajes).
-// =====================================================================
-global.springFallSprites = [
-        spr_metal_fall,  // Metal Sonic
-        spr_emetal_fall, // Metal Sonic (demonizado)
-        spr_blaze_fall,  // Blaze
-        spr_eblaze_fall  // Blaze (demonizada)
+// >>>>>>> MUELLES: inicio (bloque generado con Suite_TD2D.html) >>>>>>
+// Caida "tipo trampolin" por sprite, para el case FALL del Draw_76:
+//   [sprite, frameSubida, nFramesSubida, frameBajada, nFramesBajada, velBucle]
+//   nFrames = 1 -> pose fija · nFrames > 1 -> bucle de esos frames a velBucle.
+//   Subida = mientras asciende (yspd < 0) · bajada = el resto (yspd >= 0).
+//   En el personaje:  case FALL:  scr_fall_anim();  (una sola linea).
+//   Un sprite que NO este en la lista usa la caida clasica de siempre
+//   (fallback seguro: ni errores ni cambios para personajes sin configurar).
+global.fallAnims = [
+        [spr_metal_fall,   0, 1, 1, 1, 0.15], // Metal Sonic
+        [spr_emetal_fall,  0, 1, 1, 1, 0.15], // Metal Sonic (demonizado)
+        [spr_blaze_fall,   0, 1, 1, 1, 0.15], // Blaze
+        [spr_eblaze_fall,  0, 1, 1, 1, 0.15]  // Blaze (demonizada)
 ];
+
+// La llama el case FALL del Draw_76 del personaje: busca el sprite en
+// global.fallAnims y aplica su configuracion; si no esta, caida clasica.
+function scr_fall_anim()
+{
+        for(var i = 0; i < array_length(global.fallAnims); i++)
+        {
+                var cfg = global.fallAnims[i];
+
+                if(cfg[0] != sprite_index)
+                        continue;
+
+                var rising = yspd < 0;
+                var start  = rising ? cfg[1] : cfg[3];
+                var frames = rising ? cfg[2] : cfg[4];
+
+                if(frames <= 1)
+                {
+                        image_speed = 0;
+                        image_index = start;
+                }
+                else
+                {
+                        image_speed = cfg[5];
+
+                        if(image_index < start || image_index >= start + frames)
+                                image_index = start;
+                }
+
+                return;
+        }
+
+        // Fuera de la lista: caida clasica (bucle que acelera al caer)
+        image_speed = 0.15 + min(abs(yspd), 12) * 0.02;
+}
+// <<<<<<< MUELLES: fin <<<<<<<
 
 function player_get(ind)
 {

@@ -18,16 +18,9 @@ switch(state)
 		break;
 
 	case FALL:
-		// (MUELLES): fall tipo trampolin (f0 = subida / f1 = caida):
-		// congelado en el frame que toca segun el sentido del vuelo.
-		// Cualquier otro fall (animacion normal) no cambia nada.
-		if(array_contains(global.springFallSprites, sprite_index))
-		{
-			image_speed = 0;
-			image_index = yspd < 0 ? 0 : 1;
-		}
-		else
-			image_speed = 0.15 + min(abs(yspd), 12) * 0.02;
+		// (MUELLES): frames de subida/bajada configurados con la
+		// Suite (global.fallAnims en scr_survivors.gml)
+		scr_fall_anim();
 		break;
 
 	case WALK:
