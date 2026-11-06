@@ -2102,7 +2102,7 @@
     {"id":{"name":"spr_sally_lookup","path":"sprites/spr_sally_lookup/spr_sally_lookup.yy",},},
     {"id":{"name":"spr_sally_run_canon","path":"sprites/spr_sally_run_canon/spr_sally_run_canon.yy",},},
     {"id":{"name":"spr_sally_run","path":"sprites/spr_sally_run/spr_sally_run.yy",},},
-    {"id":{"name":"spr_sally_shield_air1_canon","path":"sprites/spr_sally_shield_air1_canon/spr_sally_shield_air1_canon.yy",},},
+    {"id":{"name":"spr_sally_shield_air_canon","path":"sprites/spr_sally_shield_air_canon/spr_sally_shield_air_canon.yy",},},
     {"id":{"name":"spr_sally_shield_canon","path":"sprites/spr_sally_shield_canon/spr_sally_shield_canon.yy",},},
     {"id":{"name":"spr_sally_shield_down_canon","path":"sprites/spr_sally_shield_down_canon/spr_sally_shield_down_canon.yy",},},
     {"id":{"name":"spr_sally_slide_canon","path":"sprites/spr_sally_slide_canon/spr_sally_slide_canon.yy",},},
