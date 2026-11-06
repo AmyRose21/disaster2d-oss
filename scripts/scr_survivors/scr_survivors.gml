@@ -796,6 +796,22 @@ if(array_length(global.sonicAtkTierra) == 0)
 if(array_length(global.sonicAtkAire) == 0)
         array_push(global.sonicAtkAire, spr_sonic_attack2_aereo1);
 
+// =====================================================================
+//  (MUELLES estilo clasico): sprites de caida "tipo trampolin" de 2
+//  frames: f0 = pose de SUBIDA (rebote de muelle, yspd < 0) y f1 =
+//  pose de CAIDA. NO se animan en bucle: el Draw_76 del personaje los
+//  congela en el frame que toca segun el sentido del vuelo (ver
+//  obj_metal / obj_blaze). Un personaje cuyo fall NO esta aqui usa su
+//  caida animada de siempre: activarlo en un personaje nuevo = anadir
+//  su sprite a la lista (fallback seguro para futuros personajes).
+// =====================================================================
+global.springFallSprites = [
+        spr_metal_fall,  // Metal Sonic
+        spr_emetal_fall, // Metal Sonic (demonizado)
+        spr_blaze_fall,  // Blaze
+        spr_eblaze_fall  // Blaze (demonizada)
+];
+
 function player_get(ind)
 {
         switch(ind)
