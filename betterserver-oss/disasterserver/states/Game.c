@@ -534,8 +534,9 @@ bool game_state_join(PeerData* v)
                 Packet packet;
                 PacketCreate(&packet, SERVER_GAME_LMS);
                 /* v5.3: el mismo personaje y la misma cancion que sono
-                   al disparar el show */
-                PacketWrite(&packet, packet_write8, v->server->game.lms_char);
+                   al disparar el show. v5.3.1: +1 = numeracion
+                   CHARACTER_* del cliente (igual que el broadcast). */
+                PacketWrite(&packet, packet_write8, v->server->game.lms_char + 1);
                 PacketWrite(&packet, packet_write8, v->server->game.lms_song);
                 RAssert(packet_send(v->peer, &packet, true));
         }
@@ -2724,7 +2725,14 @@ bool game_state_tick(Server* server)
 
                                 Packet packet;
                                 PacketCreate(&packet, SERVER_GAME_LMS);
-                                PacketWrite(&packet, packet_write8, server->game.lms_char);
+                                /* v5.3.1: el personaje viaja en numeracion
+                                   CHARACTER_* del cliente (CH_TAILS=0 ->
+                                   CHARACTER_TAILS=1), igual que todo
+                                   id+1 de CharSelect.c. Sin el +1 el
+                                   cliente lee el id del personaje
+                                   ANTERIOR de la lista y suena la
+                                   cancion del vecino. */
+                                PacketWrite(&packet, packet_write8, server->game.lms_char + 1);
                                 PacketWrite(&packet, packet_write8, server->game.lms_song);
                                 RAssert(server_broadcast(server, &packet, true));
 
