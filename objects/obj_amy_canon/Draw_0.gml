@@ -63,7 +63,14 @@ if(parryState == 2)
 // AMY CYBER: mismo palette swap de siempre pero envuelto en el shader
 // holograma (shd_amy_cyber) cuando el efecto esta activo. Si esta
 // apagado (AMY_CYBER_ENABLED false) cae al scr_palette_swap normal.
-scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, sprite_index, image_index);
+// v2: blindaje. Si scr_amy_cyber no esta cargado (script copiado pero
+// sin registrar en el .yyp = asset fantasma), cae al palette swap de
+// siempre: se dibuja normal y NUNCA mas salta el "not set before
+// reading it".
+if(variable_global_exists("scr_amy_cyber"))
+        scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, sprite_index, image_index);
+else
+        scr_palette_swap(global.palleteFrom, global.palleteTo);
 draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
 shader_reset();
 

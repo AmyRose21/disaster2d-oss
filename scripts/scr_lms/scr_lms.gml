@@ -41,10 +41,20 @@
 // TD2D la reescribe entera al guardar (no editar a mano si se usa el
 // Suite: se sobreescribiria).
 global.lmsCharSongs = ds_map_create();
+global.lmsCharSongs[? CHARACTER_TAILS] = [mus_lms_11];
+global.lmsCharSongs[? CHARACTER_KNUX] = [mus_lms_9, mus_lms_10];
 global.lmsCharSongs[? CHARACTER_EGGMAN] = [mus_lms_4];
+global.lmsCharSongs[? CHARACTER_AMY] = [mus_lms_8];
+global.lmsCharSongs[? CHARACTER_CREAM] = [mus_lms_6];
+global.lmsCharSongs[? CHARACTER_SALLY] = [mus_lms_7];
 global.lmsCharSongs[? CHARACTER_AMY_CANON] = [mus_lms_2];
 global.lmsCharSongs[? CHARACTER_SONIC] = [mus_undefeatable];
 global.lmsCharSongs[? CHARACTER_SALLY_CANON] = [mus_lms_3];
+global.lmsCharSongs[? CHARACTER_VANILLA] = [mus_lms_5];
+global.lmsCharSongs[? CHARACTER_METAL] = [mus_lms_14];
+global.lmsCharSongs[? CHARACTER_AMELIA] = [mus_lms_12];
+global.lmsCharSongs[? CHARACTER_BLAZE] = [mus_lms_15];
+global.lmsCharSongs[? CHARACTER_FLEETWAY_AMY] = [mus_lms_13];
 
 function scr_lms_play_song(ch, idx)
 {

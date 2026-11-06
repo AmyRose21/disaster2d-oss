@@ -134,7 +134,14 @@ if(isHiding && character == CHARACTER_AMELIA && global.character == CHARACTER_EX
 // AMY CYBER: mismo palette swap pero con el shader holograma para los
 // personajes de AMY_CYBER_CHARS (Amy Canon). El resto cae al palette
 // swap normal y no cambia nada. Es visual: cada cliente lo dibuja solo.
-scr_amy_cyber(character, fromPallete, toPallete, is_cheating ? spr_merfurmu : sprite_index, image_index);
+// v2: blindaje. Si scr_amy_cyber no esta cargado (script copiado pero
+// sin registrar en el .yyp = asset fantasma), cae al palette swap de
+// siempre: se dibuja normal y NUNCA mas salta el "not set before
+// reading it".
+if(variable_global_exists("scr_amy_cyber"))
+        scr_amy_cyber(character, fromPallete, toPallete, is_cheating ? spr_merfurmu : sprite_index, image_index);
+else
+        scr_palette_swap(fromPallete, toPallete);
 draw_sprite_ext(is_cheating ? spr_merfurmu : sprite_index, image_index, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, _hideAlpha);
 shader_reset();
 

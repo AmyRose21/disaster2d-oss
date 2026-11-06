@@ -1,5 +1,5 @@
 // =====================================================================
-//  AMY CYBER GHOST (v1) — shader holograma glitch estilo Frontiers.
+//  AMY CYBER GHOST (v2) — shader holograma glitch estilo Frontiers.
 //
 //  scr_amy_cyber(char, palleteIn, palleteOut, spr, sub) reemplaza a
 //  scr_palette_swap en el Draw de Amy Canon (local y puppet): si el
@@ -7,6 +7,11 @@
 //  swap + overlay cyber); si no, cae al scr_palette_swap de siempre
 //  y no cambia nada. Es 100% visual: cada cliente lo dibuja solo, sin
 //  red ni server.
+//
+//  v2: blindaje anti-crash. Si el script o el shader no estan
+//  registrados en el .yyp (assets fantasma, como les pasaba a los
+//  sonidos de Sally), NUNCA explota: siempre cae al palette swap
+//  normal y el juego sigue dibujando.
 //
 //  Como ajustarlo (macros de abajo, mismo formato que el resto del
 //  repo):
@@ -60,28 +65,41 @@ function scr_amy_cyber(char, palleteIn, palleteOut, spr, sub)
                 return;
         }
 
+        // v2: blindaje. El shader se busca POR NOMBRE (asset_get_index):
+        // si shd_amy_cyber no esta registrado en el .yyp (asset fantasma),
+        // cae al palette swap de siempre en vez de crashear. Los asset
+        // por nombre no son variables: no se pueden leer con el identificador
+        // directo si no existen, pero SI se pueden buscar sin tocarlos.
+        var _shd = asset_get_index("shd_amy_cyber");
+
+        if(_shd < 0)
+        {
+                scr_palette_swap(palleteIn, palleteOut);
+                return;
+        }
+
         // cache de los uniforms (se piden una sola vez)
         if(!variable_global_exists("amyCyberU"))
         {
                 global.amyCyberU =
                 {
-                        pattern:      shader_get_uniform(shd_amy_cyber, "u_Pattern"),
-                        replacements: shader_get_uniform(shd_amy_cyber, "u_Replacements"),
-                        count:        shader_get_uniform(shd_amy_cyber, "u_ColourCount"),
-                        texel:        shader_get_uniform(shd_amy_cyber, "uTexel"),
-                        time:         shader_get_uniform(shd_amy_cyber, "uTime"),
-                        scan:         shader_get_uniform(shd_amy_cyber, "uScan"),
-                        split:        shader_get_uniform(shd_amy_cyber, "uSplit"),
-                        glitch:       shader_get_uniform(shd_amy_cyber, "uGlitch"),
-                        flicker:      shader_get_uniform(shd_amy_cyber, "uFlicker"),
-                        alpha:        shader_get_uniform(shd_amy_cyber, "uAlpha"),
-                        tint:         shader_get_uniform(shd_amy_cyber, "uTint")
+                        pattern:      shader_get_uniform(_shd, "u_Pattern"),
+                        replacements: shader_get_uniform(_shd, "u_Replacements"),
+                        count:        shader_get_uniform(_shd, "u_ColourCount"),
+                        texel:        shader_get_uniform(_shd, "uTexel"),
+                        time:         shader_get_uniform(_shd, "uTime"),
+                        scan:         shader_get_uniform(_shd, "uScan"),
+                        split:        shader_get_uniform(_shd, "uSplit"),
+                        glitch:       shader_get_uniform(_shd, "uGlitch"),
+                        flicker:      shader_get_uniform(_shd, "uFlicker"),
+                        alpha:        shader_get_uniform(_shd, "uAlpha"),
+                        tint:         shader_get_uniform(_shd, "uTint")
                 };
         }
 
         var _u = global.amyCyberU;
 
-        shader_set(shd_amy_cyber);
+        shader_set(_shd);
 
         // paleta: identico a scr_palette_swap
         shader_set_uniform_f_array(_u.pattern, palleteIn);
