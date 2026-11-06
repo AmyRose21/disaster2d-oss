@@ -17,7 +17,7 @@ if(potater)
 			buffer_write(pak, buffer_u8, 4);
 			send_server_tcp(pak);
 			
-			var pak = cpacket_tcp(PacketType.CLIENT_PLAYER_POTATER, true);
+			pak = cpacket_tcp(PacketType.CLIENT_PLAYER_POTATER, true);
 			buffer_write(pak, buffer_u8, 1);
 			buffer_write(pak, buffer_u16, obj_netclient.nid);
 			send_server_tcp(pak);

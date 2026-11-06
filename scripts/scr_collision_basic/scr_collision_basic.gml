@@ -346,9 +346,10 @@ function scr_collision_check_bottom(_near)
 			dist2++;
 		}
 		
+		var winner = 0;
 		if(dist1 != 35 && dist2 != 35)
 		{
-			var winner = 0;
+			winner = 0;
 			if(sens1.y < sens2.y)
 			{
 				winner = sens2.y - 18;
@@ -505,7 +506,7 @@ function scr_collision_check_bottom(_near)
 		
 		if(_dist1 != maxDist || _dist2 != maxDist)
 		{			
-			var winner = 0;
+			winner = 0;
 			
 			// Now compare distances
 			if(sens1.y == sens2.y)

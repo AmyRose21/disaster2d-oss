@@ -85,8 +85,8 @@ else
 				default:
 					to = scr_pallete_shift(to, 60, 0, 0);
 			
-					var v1 = color_get_hue(make_color_rgb(from[0]*255, from[1]*255, from[2]*255));
-					var v2 = color_get_hue(make_color_rgb(to[0]*255, to[1]*255, to[2]*255));
+					v1 = color_get_hue(make_color_rgb(from[0]*255, from[1]*255, from[2]*255));
+					v2 = color_get_hue(make_color_rgb(to[0]*255, to[1]*255, to[2]*255));
 					
 					if(v1 == v2)
 						percent = "\n(def.)";
@@ -168,8 +168,8 @@ click = function()
 				default:
 					to = scr_pallete_shift(to, 15, 0, 0);
 			
-					var v1 = color_get_hue(make_color_rgb(from[0]*255, from[1]*255, from[2]*255));
-					var v2 = color_get_hue(make_color_rgb(to[0]*255, to[1]*255, to[2]*255));
+					v1 = color_get_hue(make_color_rgb(from[0]*255, from[1]*255, from[2]*255));
+					v2 = color_get_hue(make_color_rgb(to[0]*255, to[1]*255, to[2]*255));
 					
 					if(v1 == v2)
 						percent = "\n(def.)";

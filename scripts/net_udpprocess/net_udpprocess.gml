@@ -494,7 +494,7 @@ function net_udpprocess(rbuff)
                                         return;
                                         
                                 y = _y;
-                                pid = _pid;
+                                self.pid = _pid;
                                 break;
                         }
                         

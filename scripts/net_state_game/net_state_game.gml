@@ -227,7 +227,7 @@ function net_state_game(rbuff, nps, isPasstrough)
 
                                         vx = _dir * 10;
                                         vy = _vy;
-                                        dir = _dir;
+                                        self.dir = _dir;
                                         x = _xx;
                                         y = _yy;
                                         image_xscale = 1;
@@ -1030,7 +1030,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         var inst = instance_create_depth(xx-25, yy+19, -1, obj_exetior_stompballs);
                         inst.dir = -1;
                         
-                        var inst = instance_create_depth(xx+25, yy+19, -1, obj_exetior_stompballs);
+                        inst = instance_create_depth(xx+25, yy+19, -1, obj_exetior_stompballs);
                         inst.dir = 1;
                         
                         if(global.character == CHARACTER_EXE)
@@ -2030,21 +2030,21 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 break;
                 
                                         case 1:
-                                                var _part = instance_create_depth(_x, _y+16-4, _depth, obj_ringpart);
+                                                _part = instance_create_depth(_x, _y+16-4, _depth, obj_ringpart);
                                                 _part.xspd = -1 + _xspd;
                                                 _part.yspd = irandom_range(1, 2);
                                                 _part.sprite_index = spr_ringpart2;
                                                 break;
                 
                                         case 2:
-                                                var _part = instance_create_depth(_x+4, _y+4, _depth, obj_ringpart);
+                                                _part = instance_create_depth(_x+4, _y+4, _depth, obj_ringpart);
                                                 _part.xspd = -1 + _xspd;
                                                 _part.yspd = irandom_range(-4, -2);
                                                 _part.sprite_index = spr_ringpart3;
                                                 break;
                 
                                         case 3:
-                                                var _part = instance_create_depth(_x+16-4, _y+16-4, _depth, obj_ringpart);
+                                                _part = instance_create_depth(_x+16-4, _y+16-4, _depth, obj_ringpart);
                                                 _part.xspd = 1 + _xspd;
                                                 _part.yspd = irandom_range(1, 2);
                                                 _part.sprite_index = spr_ringpart4;

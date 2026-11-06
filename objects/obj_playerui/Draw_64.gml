@@ -103,10 +103,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         var prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
                                         drawKeyIcon(spr_gui_exeattack, 0, 19, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                                        var prog = global.playerControls && global.player.isJumping;
+                                        prog = global.playerControls && global.player.isJumping;
                                         drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
 
-                                        var prog = (min(global.player.invisTimer, 0) / EXE_INVIS_RECHARGE);
+                                        prog = (min(global.player.invisTimer, 0) / EXE_INVIS_RECHARGE);
                                         drawKeyIcon(spr_gui_exeinvisability, 0, 25, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                                         break;
 
@@ -114,7 +114,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         if(global.player.stuckTimer <= 30/2)
                                         {
                                                 var _cf = !global.player.isGrounded;
-                                                var prog = global.player.slimeTimer > 0 ? 0 : 1.0 - (min(global.player.attackTimer, 120) / 120.0);
+                                                prog = global.player.slimeTimer > 0 ? 0 : 1.0 - (min(global.player.attackTimer, 120) / 120.0);
                                                 drawKeyIcon(spr_gui_chaosattack, _cf, 19, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, _cf ? 31 : 0);
                                         }
                                         else
@@ -127,37 +127,37 @@ if(instance_exists(global.player) && !global.player.isDead)
                                                 if(global.player.isGrounded && global.player.stuckDir < 0)
                                                         frame = 0;
 
-                                                var prog = 1;
+                                                prog = 1;
                                                 drawKeyIcon(spr_gui_chaoswalldash, frame, 19, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 31);
                                         }
 
-                                        var prog = global.playerControls && global.player.isJumping;
+                                        prog = global.playerControls && global.player.isJumping;
                                         drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog && global.player.slimeTimer <= 0 ? c_white : c_red, global.player.slimeTimer <= 0 ? (prog ? 1 : 0.5) : 0, 0);
 
-                                        var prog = global.player.slimeTimer > 0 ? 1 : (min(global.player.slimeTimer, 0) / -CHAOS_INVIS_RECHARGE);
+                                        prog = global.player.slimeTimer > 0 ? 1 : (min(global.player.slimeTimer, 0) / -CHAOS_INVIS_RECHARGE);
                                         drawKeyIcon(spr_gui_chaosslime, 0, 18, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                                         break;
 
                                 case EXE_EXETIOR:
                                         var _ef = !global.player.isGrounded;
-                                        var prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
+                                        prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
                                         drawKeyIcon(spr_gui_exetiorattack, _ef, 19, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, _ef ? 31 : 0);
 
-                                        var prog = global.playerControls && global.player.isJumping;
+                                        prog = global.playerControls && global.player.isJumping;
                                         drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
 
-                                        var prog = (1.0 - (global.player.bringTimer / EXETIOR_BRING_RECHARGE));
+                                        prog = (1.0 - (global.player.bringTimer / EXETIOR_BRING_RECHARGE));
                                         drawKeyIcon(spr_gui_exetiorring, 0, 20, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 && global.player.canSpawnRings ? c_white : c_red, prog, 0);
                                         break;
 
                                 case EXE_EXELLER:
-                                        var prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
+                                        prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
                                         drawKeyIcon(spr_gui_exeattack, 0, 19, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                                        var prog = global.playerControls && global.player.isJumping;
+                                        prog = global.playerControls && global.player.isJumping;
                                         drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
 
-                                        var prog = 1.0 - (global.player.cloneTimer / EXELLER_CLONE_RECHARGE);
+                                        prog = 1.0 - (global.player.cloneTimer / EXELLER_CLONE_RECHARGE);
                                         var spr = spr_gui_exellerclone;
 
                                         if((keyboard_check(global.KeyDown) || keyboard_check(global.KeyUp)))
@@ -192,10 +192,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                                                 _maprog = global.player.dashRecharge / METALAMY_DASH_RECHARGE;
                                         drawKeyIcon(spr_gui_metalamyattack, 0, 0, global.KeyB, _maprog * 10, 240 - _mob, _maprog == 1.0 ? c_white : c_red, _maprog, 0);
 
-                                        var prog = global.playerControls && global.player.isJumping;
+                                        prog = global.playerControls && global.player.isJumping;
                                         drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
 
-                                        var prog = 1.0 - (global.player.bulletTimer / METALAMY_BULLET_RECHARGE);
+                                        prog = 1.0 - (global.player.bulletTimer / METALAMY_BULLET_RECHARGE);
                                         drawKeyIcon(spr_gui_metal_amy_lazer, 0, 24, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
                                         // v4.7/v4.8 (SCAN, tecla V): a la derecha de la C, misma fila
@@ -243,7 +243,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // v4.3: la X horneada y el texto (hold) de este sprite se recortan
                         // (el misil ocupa las filas 0-10) y el texto se redibuja dinamico.
                         var val = global.player.revivalTimes >= 2 ? ETAILS_ATTACK_RECHARGE : TAILS_ATTACK_RECHARGE;
-                        var prog = 1.0 - (global.player.attackTimer / val);
+                        prog = 1.0 - (global.player.attackTimer / val);
                         var _tcol = prog == 1.0 ? c_white : c_red;
                         draw_sprite_part_ext(spr_gui_tailsattack, 0, 0, 0, 25, 11, prog * 12, 250 - _mob, 1, 1, _tcol, prog);
                         if(os_type != os_android)
@@ -260,7 +260,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         drawKeyIcon(spr_gui_knuxglide, global.player.revivalTimes >= 2, 23, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         var val = global.player.revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
-                        var prog = 1.0 - (min(global.player.attackTimer, val) / val);
+                        prog = 1.0 - (min(global.player.attackTimer, val) / val);
                         drawKeyIcon(spr_gui_knuxattack, 0, 19, global.KeyB, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -270,10 +270,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                         var prog = 1.0 - (max(global.player.djumpRecharge, 0) / EGGMAN_DJUMP_RECHARGE);
                         drawKeyIcon(spr_gui_eggdjump, 0, 20, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var prog = 1.0 - (max(global.player.shieldRechrage, 0) / EGGMAN_SHIELD_RECHARGE);
+                        prog = 1.0 - (max(global.player.shieldRechrage, 0) / EGGMAN_SHIELD_RECHARGE);
                         drawKeyIcon(spr_gui_eggshield, 0, 20, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var prog = 1.0 - (max(global.player.trackerRecharge, 0) / EGGMAN_TRACKER_RECHARGE);
+                        prog = 1.0 - (max(global.player.trackerRecharge, 0) / EGGMAN_TRACKER_RECHARGE);
                         drawKeyIcon(spr_gui_eggtrack, 0, 38, global.KeyC, prog * 10, 258 - _mob, (global.player.isColliding && prog == 1.0) ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -284,7 +284,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         drawKeyIcon(spr_gui_amyhjump, 0, 32, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         var val = global.player.revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
-                        var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
+                        prog = 1.0 - (max(global.player.attackTimer, 0) / val);
                         drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -301,14 +301,14 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 // El relleno muestra el CD; blanco = lista Y en el aire
                                 // (espejo del icono 3, que exige estar en el suelo).
                                 var val = global.player.revivalTimes >= 2 ? AMY_CANON_ETAROTDASH_RECHARGE : AMY_CANON_TAROTDASH_RECHARGE;
-                                var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
+                                prog = 1.0 - (max(global.player.attackTimer, 0) / val);
                                 var b2 = (prog == 1.0 && !global.player.isGrounded) ? c_white : c_red;
                                 drawKeyIcon(spr_gui_amyattack_canon, 0, 23, global.KeyB, prog * 10, 240 - _mob, b2, prog, 0);
 
                         // Icono 3: ACOMETIDA DE MARTILLO (tecla C). v4.3: la C ya no esta
                         // horneada: se dibuja la tecla real de special2.
-                        var val = global.player.revivalTimes >= 2 ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
-                        var prog = 1.0 - (max(global.player.dashTimer, 0) / val);
+                        val = global.player.revivalTimes >= 2 ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
+                        prog = 1.0 - (max(global.player.dashTimer, 0) / val);
                         var b = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
                         drawKeyIcon(spr_gui_amydash_canon, 0, 23, global.KeyC, prog * 10, 258 - _mob, b, prog, 0);
 
@@ -449,10 +449,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                         var prog = 1.0 - (max(global.player.flyTimer, 0) / CREAM_FLY_RECHARGE);
                         drawKeyIcon(spr_gui_creamfly, global.player.revivalTimes >= 2, 25, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
+                        prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
                         drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
+                        prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
                         drawKeyIcon(spr_gui_creamrings, global.player.revivalTimes >= 2, 21, global.KeyC, prog * 10, 257 - _mob, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -464,10 +464,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                         var prog = 1.0 - (max(global.player.flyTimer, 0) / CREAM_FLY_RECHARGE);
                         drawKeyIcon(spr_gui_creamfly, global.player.revivalTimes >= 2, 25, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
+                        prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
                         drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
+                        prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
                         drawKeyIcon(spr_gui_creamrings, global.player.revivalTimes >= 2, 21, global.KeyC, prog * 10, 257 - _mob, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -484,7 +484,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         var prog = 1.0 - (max(global.player.dashTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_OVERDRIVE_RECHARGE : METAL_OVERDRIVE_RECHARGE));
                         drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var prog = 1.0 - (max(global.player.electroTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE));
+                        prog = 1.0 - (max(global.player.electroTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE));
                         drawKeyIcon(spr_gui_eggshield, 0, 20, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -530,7 +530,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // trampa NO exige abajo: solo C + estar en el suelo
                         // (scr_amelia_special). Se corta en el guion y la
                         // tecla dinamica queda justo despues: "[trampa]-C".
-                        var prog = 1.0 - (max(global.player.trapTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE));
+                        prog = 1.0 - (max(global.player.trapTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE));
                         drawKeyIcon(spr_gui_amelia_trap, 0, 39, global.KeyC, prog * 10, 258 - _mob, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -542,10 +542,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                         var prog = 1.0 - (max(global.player.djumpRecharge, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_DJUMP_RECHARGE : BLAZE_DJUMP_RECHARGE));
                         drawKeyIcon(spr_gui_eggdjump, 0, 20, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var prog = 1.0 - (max(global.player.fireballTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_FIREBALL_RECHARGE : BLAZE_FIREBALL_RECHARGE));
+                        prog = 1.0 - (max(global.player.fireballTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_FIREBALL_RECHARGE : BLAZE_FIREBALL_RECHARGE));
                         drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var prog = 1.0 - (max(global.player.burningTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_BURNING_RECHARGE : BLAZE_BURNING_RECHARGE));
+                        prog = 1.0 - (max(global.player.burningTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_BURNING_RECHARGE : BLAZE_BURNING_RECHARGE));
                         drawKeyIcon(spr_gui_sallyshield, 0, 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -566,8 +566,8 @@ if(instance_exists(global.player) && !global.player.isDead)
 
                         drawKeyIcon(spr_gui_sallyattack, global.player.revivalTimes >= 2, 17, global.KeyB, prog * 10, 240 - _mob, b, prog, 0);
 
-                        var val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
-                        var prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
+                        val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
+                        prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
                         drawKeyIcon(spr_gui_sallyshield, global.player.revivalTimes >= 2, 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -591,8 +591,8 @@ if(instance_exists(global.player) && !global.player.isDead)
 
                         drawKeyIcon(spr_gui_sallyattack, global.player.revivalTimes >= 2, 17, global.KeyB, prog * 10, 240 - _mob, b, prog, 0);
 
-                        var val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
-                        var prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
+                        val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
+                        prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
                         drawKeyIcon(spr_gui_sallyshield, global.player.revivalTimes >= 2, 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }

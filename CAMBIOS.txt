@@ -1,0 +1,139 @@
+==============================================================================
+ TD2DR - Sonicexe The Disaster 2D Remake
+ Correccion de advertencias del compilador de GameMaker
+==============================================================================
+ Base: commit f8fa41a7 de https://github.com/AmyRose21/disaster2d-oss
+ Archivos modificados: 18
+ Avisos corregidos:   78  (68 x GM2044 + 9 x GM2043 + 1 x error GM1020)
+
+------------------------------------------------------------------------------
+ COMO APLICAR
+------------------------------------------------------------------------------
+ Opcion A (sin Git):
+   Cierra GameMaker, extrae el contenido de este ZIP sobre la carpeta de tu
+   proyecto (conservando la estructura objects/ y scripts/) y vuelve a
+   abrir el proyecto. Son solo archivos .gml ya corregidos.
+
+ Opcion B (con Git, desde la raiz del repositorio):
+   git apply td2dr_correcciones.patch
+
+ Despues recompila el juego: la ventana de salida del compilador no deberia
+ volver a mostrar ninguno de los avisos de la lista (GM2043/GM2044/GM1020).
+
+------------------------------------------------------------------------------
+ QUE SE CORRIGIO Y COMO
+------------------------------------------------------------------------------
+ GM2044 "Local variable 'X' is already declared"  (68 avisos)
+   Causa: la misma variable se declaraba con 'var' varias veces en el mismo
+   bloque. Solucion: se conserva la PRIMERA declaracion y a las demas se les
+   quita solo la palabra 'var' (pasan a ser asignaciones normales). El
+   comportamiento en runtime es identico.
+
+ GM2043 "Attempting to access the local variable 'X' outside of the scope
+ it was defined in"  (9 avisos)
+   - scr_collision_basic ('winner' x6): la declaracion estaba dentro del
+     primer if(dist1 != 35 && dist2 != 35), pero los else-if hermanos
+     tambien usaban winner. Se elevo 'var winner = 0;' justo antes de la
+     cadena if/else-if para que todos los bloques la vean.
+   - hitspark_area ('i'): la linea 'i = 0' tras el for era codigo muerto
+     (i nunca se volvia a leer). Se elimino la linea.
+   - net_state_game ('dir') y net_udpprocess ('pid'): estos dos no eran
+     solo cosmeticos, eran BUGS REALES (ver nota abajo).
+
+ GM1020 "The function 'scr_parry_sprite' takes no less than 2 arguments
+ but 1 are provided"  (1 error)
+   obj_sonic (Pre-dibujo, linea 14): la llamada se hacia como
+   scr_parry_sprite(state). Ahora es scr_parry_sprite(state, global.character),
+   el mismo patron que ya usan obj_amy_canon y obj_player_puppet (y la propia
+   funcion lo espera: si _char es -1 usa global.character de todos modos).
+
+------------------------------------------------------------------------------
+ NOTA IMPORTANTE: dos de los GM2043 tapaban bugs reales de red
+------------------------------------------------------------------------------
+ 1) net_state_game.gml, linea 230 (tick de la bola de fuego de Blaze):
+    dentro de with(obj_blaze_fireball), la linea 'dir = _dir;' estaba
+    escribiendo la variable LOCAL 'dir' del script (declarada en otros case,
+    lineas 1749/2426) en lugar de la variable de instancia 'dir' del cometa.
+    Ahora es 'self.dir = _dir;'. Efecto: la bola de fuego por fin actualiza
+    su direccion en cada tick de red (antes mantenia la del spawn; su Step
+    la usa en net_quick_effect(x - 6 * dir, ...)).
+
+ 2) net_udpprocess.gml, linea 497 (estado del ascensor obj_pf_lift):
+    mismo caso con 'pid': escribia la local 'pid' (declarada en la linea 86)
+    en vez de la de la instancia. Ahora es 'self.pid = _pid;'. Efecto: el
+    ascensor sincroniza correctamente que jugador lo ocupa (todos sus eventos
+    comparan obj_netclient.nid == pid).
+
+ Si prefieres NO cambiar ese comportamiento y solo silenciar el aviso,
+ revierte esas dos lineas y renombra las variables locales en su lugar.
+
+------------------------------------------------------------------------------
+ DETALLE POR ARCHIVO (lineas segun el repo original)
+------------------------------------------------------------------------------
+ objects/hitspark_area/Step_0.gml
+   - GM2043 'i' L14: linea muerta eliminada.
+
+ objects/obj_exetior_stompballs/Step_0.gml
+   - GM2044 'buffer' L83.
+
+ objects/obj_fart_controller/Step_0.gml
+   - GM2044 'pak' L20.
+
+ objects/obj_lobby/Draw_0.gml (evento Dibujar)
+   - GM2044 'col' L42, L48, L81, L87, L93.
+
+ objects/obj_menu_skin/Create_0.gml (evento Crear)
+   - GM2044 'v1'/'v2' L88, L89, L171, L172.
+
+ objects/obj_np_background/Create_0.gml (Crear) y Draw_72.gml (Empezar a
+ dibujar)
+   - GM2044 'fx' L23, L26 (Crear) y L11, L14 (Draw).
+
+ objects/obj_player_puppet/Step_0.gml (Paso)
+   - GM2044 'buffer' L337; 'pak' L469, L477.
+
+ objects/obj_playerui/Draw_64.gml (Dibujar GUI)  <- el que mas tenia
+   - GM2044 'prog' x31: L106, 109, 117, 130, 134, 137, 143, 146, 149, 154,
+     157, 160, 195, 198, 246, 263, 273, 276, 287, 304, 311, 452, 455, 467,
+     470, 487, 533, 545, 548, 570, 595.
+   - GM2044 'val' x3: L310, L569, L594.
+
+ objects/obj_ring/Create_0.gml (Crear, funcion ringBreak)
+   - GM2044 '_part' L27, L34, L41.
+
+ objects/obj_sonic/Draw_76.gml (Pre-dibujo)
+   - GM1020 L14: scr_parry_sprite(state, global.character).
+
+ objects/obj_weed/Alarm_1.gml (Alarma 1)
+   - GM2044 '_inst' L12, L18, L24.
+
+ scripts/net_state_game/net_state_game.gml
+   - GM2043 'dir' L230 -> self.dir (bug real, ver nota).
+   - GM2044 'inst' L1033.
+   - GM2044 '_part' L2033, L2040, L2047.
+
+ scripts/net_udpprocess/net_udpprocess.gml
+   - GM2043 'pid' L497 -> self.pid (bug real, ver nota).
+
+ scripts/scr_collision_basic/scr_collision_basic.gml
+   - GM2043 'winner' L405, 411, 421, 430, 436, 446 (declaracion elevada).
+
+ scripts/scr_collision_objects/scr_collision_objects.gml
+   - GM2044 'inst' L393.
+
+ scripts/scr_move_basic/scr_move_basic.gml
+   - GM2044 'snd' L373, L418, L424, L430.
+
+ scripts/scr_pallete_shift/scr_pallete_shift.gml
+   - GM2044 'b' L50 (funcion hsv_to_rgb).
+
+------------------------------------------------------------------------------
+ VERIFICACION REALIZADA
+------------------------------------------------------------------------------
+ - Cada edicion se contrasto contra el contenido esperado de la linea antes
+   de aplicarse (si algo no coincidia, el script abortaba).
+ - Balance de llaves y parentesis comprobado en los 18 archivos.
+ - Conteo de declaraciones 'var' restantes por variable y archivo.
+ - Las 3 llamadas a scr_parry_sprite del proyecto ahora llevan 2 argumentos.
+ - Diff completo revisado a mano (solo se quitan 'var', la linea muerta, y
+   los 4 cambios puntuales descritos arriba; nada mas se toco).

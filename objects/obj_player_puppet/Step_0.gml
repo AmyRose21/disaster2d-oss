@@ -334,7 +334,7 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         send_server_tcp(pak);
                                 }
                                 
-                                var buffer = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
+                                buffer = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
                                 buffer_write(buffer, buffer_u8, 2);
                                 buffer_write(buffer, buffer_u16, master_id);
                                 buffer_write(buffer, buffer_u16, damage);
@@ -466,7 +466,7 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 
                                 if((character == CHARACTER_AMY || character == CHARACTER_AMY_CANON))
                                 {
-                                        var pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
+                                        pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
                                         buffer_write(pak, buffer_u16, master_id);
                                         buffer_write(pak, buffer_u8, 11);
                                         send_server_tcp(pak);
@@ -474,7 +474,7 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 
                                 if(global.character == CHARACTER_EXE)
                                 {
-                                        var pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
+                                        pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
                                         buffer_write(pak, buffer_u16, master_id);
                                         buffer_write(pak, buffer_u8, 1);
                                         send_server_tcp(pak);

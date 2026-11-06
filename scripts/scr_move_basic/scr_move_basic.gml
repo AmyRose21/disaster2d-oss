@@ -370,7 +370,7 @@ function scr_move_basic()
                                                 break;
                                                 
                                         case EXE_EXETIOR:
-                                                var snd = choose(snd_exetior_taunt1, snd_exetior_taunt2, snd_exetior_taunt3);
+                                                snd = choose(snd_exetior_taunt1, snd_exetior_taunt2, snd_exetior_taunt3);
                                                 emotionSnd = audio_play_sound(snd, 0, false);
                                                 net_sound_emit(snd);
                                                 break;
@@ -415,19 +415,19 @@ function scr_move_basic()
                                                 break;
                                                 
                                         case EXE_CHAOS:
-                                                var snd = choose(snd_chaos_taunt, snd_chaos_taunt2);
+                                                snd = choose(snd_chaos_taunt, snd_chaos_taunt2);
                                                 emotionSnd = audio_play_sound(snd, 0, false);
                                                 net_sound_emit(snd);
                                                 break;
                                                 
                                         case EXE_EXETIOR:
-                                                var snd = choose(snd_exetior_taunt1, snd_exetior_taunt2, snd_exetior_taunt3);
+                                                snd = choose(snd_exetior_taunt1, snd_exetior_taunt2, snd_exetior_taunt3);
                                                 emotionSnd = audio_play_sound(snd, 0, false);
                                                 net_sound_emit(snd);
                                                 break;
                                                 
                                         case EXE_EXELLER:
-                                                var snd = choose(snd_exeller_taunt1, snd_exeller_taunt2);
+                                                snd = choose(snd_exeller_taunt1, snd_exeller_taunt2);
                                                 emotionSnd = audio_play_sound(snd, 0, false);
                                                 net_sound_emit(snd);
                                                 break;

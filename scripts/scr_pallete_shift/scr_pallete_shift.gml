@@ -47,7 +47,7 @@ function hsv_to_rgb(hue, saturation, value)
     
     var r = round((rgb[0] + m) * 255);
     var g = round((rgb[1] + m) * 255);
-    var b = round((rgb[2] + m) * 255);
+    b = round((rgb[2] + m) * 255);
 
     return [r, g, b];
 }

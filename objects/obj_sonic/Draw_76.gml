@@ -11,7 +11,7 @@ var _spr = -1;
 // golpe (scr_parry_sprite), igual que las variantes.
 if(scr_parry_state_is(state))
 {
-        _spr = scr_parry_sprite(state);
+        _spr = scr_parry_sprite(state, global.character);
 
         if(_spr != -1)
                 sprite_index = _spr;

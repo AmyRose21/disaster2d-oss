@@ -39,13 +39,13 @@ else if(state == 1)
         
         draw_sprite_ext(spr_mapvote, map1, 16, 58 + 20 * mapFade - (mapChosen == 0 ? mapOff : 0), 1, 1, 0, col, mapFade);
         
-        var col = c_dkgray;
+        col = c_dkgray;
         if(mapChosen == 1 && !mapChose)
                 col = c_white;
         
         draw_sprite_ext(spr_mapvote, map2, 179, 58 + 20 * mapFade - (mapChosen == 1 ? mapOff : 0), 1, 1, 0, col, mapFade);
         
-        var col = c_dkgray;
+        col = c_dkgray;
         if(mapChosen == 2 && !mapChose)
                 col = c_white;
                 
@@ -78,19 +78,19 @@ else if(state == 1)
         if(!mapChose)
                 return;
         
-        var col = c_white;
+        col = c_white;
         if(mapChose && mapChosen == 0)
                 col = #27ff23;
         
         draw_sprite_ext(spr_counter2, map1Votes, 16 + 61, (58 + 20 * mapFade - (mapChosen == 0 ? mapOff : 0)) + 53, 1, 1, 0, col, 1);
         
-        var col = c_white;
+        col = c_white;
         if(mapChose && mapChosen == 1)
                 col = #27ff23;
         
         draw_sprite_ext(spr_counter2, map2Votes, 179 + 61, (58 + 20 * mapFade - (mapChosen == 1 ? mapOff : 0)) + 53, 1, 1, 0, col, 1);
         
-        var col = c_white;
+        col = c_white;
         if(mapChose && mapChosen == 2)
                 col = #27ff23;
         

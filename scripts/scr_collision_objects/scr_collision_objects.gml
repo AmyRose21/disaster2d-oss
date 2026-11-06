@@ -390,7 +390,7 @@ function scr_collision_objects_after()
                         obj_camera.look_timer = 0;
         }
         
-        var inst = instance_place(x, y, obj_quickeffect);
+        inst = instance_place(x, y, obj_quickeffect);
         if(inst != noone)
         {
                 if(global.character == CHARACTER_EXE || global.character == CHARACTER_SALLY)

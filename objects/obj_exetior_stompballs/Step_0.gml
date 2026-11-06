@@ -80,7 +80,7 @@ if(place_meeting(x, y, global.player))
 			buffer_write(buffer, buffer_u16, global.player.hp);
 			send_server_tcp(buffer);
 			
-			var buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
+			buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
 			buffer_write(buffer, buffer_u16, master_id);
 			buffer_write(buffer, buffer_u16, x);
 			buffer_write(buffer, buffer_u16, y);

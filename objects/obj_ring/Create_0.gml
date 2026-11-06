@@ -24,21 +24,21 @@ ringBreak = function()
 				break;
 		
 			case 1:
-				var _part = instance_create_depth(x, y+16-4, depth - 1, obj_ringpart);
+				_part = instance_create_depth(x, y+16-4, depth - 1, obj_ringpart);
 				_part.xspd = -1 + global.player.xspd;
 				_part.yspd = irandom_range(1, 2);
 				_part.sprite_index = spr_ringpart2;
 				break;
 		
 			case 2:
-				var _part = instance_create_depth(x+4, y+4, depth - 1, obj_ringpart);
+				_part = instance_create_depth(x+4, y+4, depth - 1, obj_ringpart);
 				_part.xspd = -1 + global.player.xspd;
 				_part.yspd = irandom_range(-4, -2);
 				_part.sprite_index = spr_ringpart3;
 				break;
 		
 			case 3:
-				var _part = instance_create_depth(x+16-4, y+16-4, depth - 1, obj_ringpart);
+				_part = instance_create_depth(x+16-4, y+16-4, depth - 1, obj_ringpart);
 				_part.xspd = 1 + global.player.xspd;
 				_part.yspd = irandom_range(1, 2);
 				_part.sprite_index = spr_ringpart4;

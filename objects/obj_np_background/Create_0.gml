@@ -20,10 +20,10 @@ depth = 250;
 var fx = layer_get_fx("Background");
 fx_set_parameter(fx, "g_TintCol", [1, 1, 1, 1]);
 
-var fx = layer_get_fx("ShadowTiles");
+fx = layer_get_fx("ShadowTiles");
 fx_set_parameter(fx, "g_Intensity", 0);
 
-var fx = layer_get_fx("Tiles");
+fx = layer_get_fx("Tiles");
 fx_set_parameter(fx, "g_Intensity", 0);
 
 var background = layer_background_get_id(layer_get_id("Colour"));

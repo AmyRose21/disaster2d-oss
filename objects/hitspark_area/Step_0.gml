@@ -11,5 +11,4 @@ if timer % cspeed == 0 {
 		sizing = random_range(size[0],size[1])
 		hitspark(x+random_range(0,image_xscale),y+random_range(0,image_yscale),sizing,sizing,randomitem)
 	}
-	i = 0
 }
