@@ -131,7 +131,10 @@ var _hideAlpha = (isHurt || isHiding) ? 0.5 : image_alpha;
 if(isHiding && character == CHARACTER_AMELIA && global.character == CHARACTER_EXE)
         _hideAlpha = 0;
 
-scr_palette_swap(fromPallete, toPallete);
+// AMY CYBER: mismo palette swap pero con el shader holograma para los
+// personajes de AMY_CYBER_CHARS (Amy Canon). El resto cae al palette
+// swap normal y no cambia nada. Es visual: cada cliente lo dibuja solo.
+scr_amy_cyber(character, fromPallete, toPallete, is_cheating ? spr_merfurmu : sprite_index, image_index);
 draw_sprite_ext(is_cheating ? spr_merfurmu : sprite_index, image_index, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, _hideAlpha);
 shader_reset();
 

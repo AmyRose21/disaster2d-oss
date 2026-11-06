@@ -60,7 +60,10 @@ if(parryState == 2)
 }
 
 //Actual draw
-scr_palette_swap(global.palleteFrom, global.palleteTo);
+// AMY CYBER: mismo palette swap de siempre pero envuelto en el shader
+// holograma (shd_amy_cyber) cuando el efecto esta activo. Si esta
+// apagado (AMY_CYBER_ENABLED false) cae al scr_palette_swap normal.
+scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, sprite_index, image_index);
 draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
 shader_reset();
 
