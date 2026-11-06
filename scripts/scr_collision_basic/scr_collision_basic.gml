@@ -325,6 +325,8 @@ function scr_collision_check_bottom(_near)
 	sens1.coll = false;
 	sens2.coll = false;
 	
+	var winner = 0; // (fix GM2043) declarado a nivel de funcion: lo usan las ramas grounded y no-grounded
+	
 	// Non-grounded mode
 	if(!isGrounded)
 	{
@@ -346,7 +348,6 @@ function scr_collision_check_bottom(_near)
 			dist2++;
 		}
 		
-		var winner = 0;
 		if(dist1 != 35 && dist2 != 35)
 		{
 			winner = 0;

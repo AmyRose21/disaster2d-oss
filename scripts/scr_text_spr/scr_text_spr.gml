@@ -158,42 +158,34 @@ function scr_text_spr(xx, yy, str, color=c_white, alpha=1)
 			case "\\":
 				_col = #C20037;
 				continue;
-				break;
 				
 			case "@":
 				_col = #0fff39;
 				continue;
-				break;
 				
 			case "&":
 				_col = #b824ff;
 				continue;
-				break;
 				
 			case "/":
 				_col = #5D67FF;
 				continue;
-				break;
 				
 			case "|":
 				_col = #646464;
 				continue;
-				break;
 				
 			case "`":
 				_col = #ffdb00;
 				continue;
-				break;
 				
 			case "№":
 				_col = #ea6014;
 				continue;
-				break;
 				
 			case "~":
 				_col = color;
 				continue;
-				break;
 				
 			default:
 				ind = 44;
