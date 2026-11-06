@@ -3510,3 +3510,181 @@ Vanilla y Fleetway Amy editables, ayuda y autockequeo actualizados.
 - Suite probado en navegador headless: arranque sin errores, cambio de módulos,
   editor de Sally Canon en modo propio con targets correctos, editor killer
   intacto, placas agrupadas en demo.
+Task ID: fix-tirolina-v1
+Agent: Super Z (main agent)
+Task: Bug reportado por el usuario en Hide and Seek acto 1 (room_angelisland):
+al agarrarse de la liana/tirolina el personaje «es movido violentamente al
+suelo, no suelta la cuerda pero el cuerpo baja hasta el piso», hasta recibir
+dano del agujero mortal; en la liana que cruza el abismo es literalmente
+imposible pasar sin dano, igual que subir por las que suben. «No se cuando
+fue que se rompio originalmente».
+
+Work Log:
+- ARQUEOLOGIA: el codigo de obj_aiz_zipline NO cambio nunca en la historia
+  del repo (desde el import inicial 84e22207). Lo que cambio fue el REPARTO:
+  el switch de posicion del Step_2 solo tenia case para los 8 personajes del
+  juego original (EXE/TAILS/KNUX/EGGMAN/AMY+CANON/CREAM/SALLY) y el remake
+  anadio 7 mas (SONIC, SALLY_CANON, VANILLA, METAL, AMELIA, BLAZE,
+  FLEETWAY_AMY) sin tocarlo. Por eso «se rompio solo»: segun con quien
+  juegues funciona o te hundes.
+
+- CAUSA RAIZ (linea por linea): el bloque "if(hasPlayer && progress < 1)"
+  hace cada frame "global.player.y = y + OFFSET" (el switch) y LUEGO
+  "global.player.y += sprite_height" (+19, el sprite del TROLLEY, no el del
+  jugador). Con case: la y se reinicia cada frame y el +19 es estable.
+  SIN case: la y NUNCA se reinicia y el += 19 se ACUMULA -> el jugador se
+  hunde 19 px POR FRAME (~1140 px/s) hasta el suelo/abisno sin soltar la
+  cuerda (hasPlayer sigue true, playerControls false, isZipline true).
+  Geometria verificada en room_angelisland: las lianas gid 1 (928->1304,
+  y=1283) y gid 3 (2224->2617, y=1296) cruzan sobre obj_abyss en y=1568 ->
+  ~15 frames tras el agarre el cuerpo toca el abismo: scr_player_hurt(20) +
+  teleport al abyss_target. Exactamente lo reportado. Colgando bien quedan
+  a y~1325: ~240 px de margen.
+
+- FIX 1 (posicion, obj_aiz_zipline/Step_2.gml): cases nuevos para los 7
+  personajes + default. Offsets calibrados con la MISMA regla que siguen
+  los originales: offset = yorigin del sprite de tirolina - 7 (coincide
+  exacto con TAILS 11 y KNUX 22, a +/-2 con el resto; deja el top del
+  sprite a trolley_y+12 como los 8 originales). SONIC=22 (el valor que ya
+  usaba el puppet), SALLY_CANON=23, VANILLA=16 (+isFlying=false: su vuelo
+  pisa el estado CREAM_ZIPLINE en su Step_2, mismo motivo que
+  TAILS/CREAM), METAL=17, AMELIA=22, BLAZE=19, FLEETWAY_AMY=21,
+  default=20 (personaje futuro: cuelga estandar en vez de hundirse).
+  Sprites demonizados verificados: emetal/eamelia/eblaze/eamy_fw tienen
+  dims y yorigin IDENTICOS a los normales -> mismos offsets valen.
+
+- FIX 2 (guard de agarre, mismo archivo): los 14 checks
+  "character == X && state == X_ZIPLINE" reducidos a UN solo
+  "if(global.player.isZipline) return;". Equivalentes (verificado: TODOS
+  los "state = *_ZIPLINE" del proyecto viven dentro de "if(isZipline)")
+  y cubre a los personajes que faltaban (VANILLA/METAL/AMELIA/BLAZE/
+  FLEETWAY): un llevado por un Tails/Cream volando de esos personajes
+  volaba sobre el inicio de la tirolina y esta se lo ROBABA (el mismo bug
+  que CARRY v1 arreglo para SONIC/SALLY_CANON, tercera vez que habia que
+  parchear la cadena). Futuros personajes ya quedan cubiertos solos.
+
+- FIX 3 (vista remota, obj_player_puppet/Draw_0.gml): el puppet dibuja el
+  carrito (spr_aiz_zipline) sobre el jugador remoto en estado *_ZIPLINE,
+  pero le faltaban los 6 personajes nuevos -> los demas clientes veian al
+  colgado SIN carrito. Anadidos con los mismos offsets (inverso exacto de
+  la formula local: y - offset - 19). OJO documentado: SALLY_CANON viaja
+  en SALLY_ZIPLINE y VANILLA en CREAM_ZIPLINE (los estados que usan sus
+  propios Step_2).
+
+- No se toco nada mas: _holdPlayer, el avance del trolley, el release con
+  Z/fin de recorrido, timeout y respawn del trolley quedan igual. Los 8
+  personajes originales ni se enteran (sus cases y offsets intactos, el
+  guard nuevo es equivalente al que tenian).
+
+ARCHIVOS: objects/obj_aiz_zipline/Step_2.gml,
+objects/obj_player_puppet/Draw_0.gml, LEEME_FIX_TIROLINA.txt, worklog.md.
+
+VERIFICACION: balance de llaves OK en ambos GML (sin comentarios/strings);
+macros usadas por el puppet (FW/METAL/BLAZE/AMELIA/SALLY/CREAM_ZIPLINE)
+con definicion unica en el proyecto (globales en GML, patron ya usado por
+los cases existentes); simulacion de geometria: jugador colgado a
+trolley_y+offset+19, ~1325 en las lianas sobre abismo (1568) = margen 240
+px, y avance del trolley 0.016/frame max (launch 2.4 px/f igual que antes).
+Pendiente: prueba en partida real recorriendo la liana del abismo con
+Sonic y subiendo las lianas gid 2/4.
+
+---
+
+============================================================
+Task ID: fix-metalamy-mapas-v1
+Agent: Super Z (main agent)
+Task: Reporte del usuario: 1) Metal Amy (killer EXE_METALAMY=4):
+su visor/habilidad no funciona (tecla V) NI la pasiva de cuando
+queda 1 solo superviviente (no se ve la flecha indicadora).
+2) «No hay otros mapas que no esten funcionando bien con los
+personajes adicionales?» — auditoria de compatibilidad de mapas
+con los 7 personajes anadidos (SONIC, SALLY_CANON, VANILLA,
+METAL, AMELIA, BLAZE, FLEETWAY_AMY) + los killers nuevos.
+
+Work Log:
+
+- CAUSA RAIZ DEL SCAN (Metal Amy): el revelado lo dibuja
+  obj_exe_indicator (la instancia la crea su Create_0), pero su
+  Step_2 lo recogia con «variable_instance_exists(global.player,
+  "scanTimer")» y global.player es el INDICE del objeto
+  (player_getexe devuelve obj_metalamy), NO el id de instancia:
+  esa funcion pide el ID (manual GM; por eso obj_ghz_water usa
+  global.player.id y obj_amelia_auras usa _inst.id). Devolvia
+  false SIEMPRE -> scanCount quedaba en 0 -> la V corria (sonido,
+  pose, anillo del HUD, recarga) pero NO SE DIBUJABA NADA, y la
+  pasiva de la cazadora (huntMode) hacia sonar el tracker con el
+  mismo resultado: nada visible. Un solo bug, los dos sintomas.
+  FIX: gate reescrito con instance_exists(global.player) (que si
+  acepta indices) + lectura scanTimer por punto; el gate de
+  exeCharacter ya garantiza que el jugador es obj_metalamy, cuyo
+  Create_0 define scanTimer. Ademas fuera los puppets
+  isInactive (desconectados con hp viva congelada) del revelado.
+  Mismo fix en scr_player_hurt (weakMark): el CD de 16 s por
+  superviviente nunca se aplicaba porque el exists devolvia false
+  y el set re-creaba la variable a 0 en cada golpe -> ahora con
+  global.player.id (instance_exists ya comprobado arriba).
+  Create del indicador: scanList = [] explicito (antes un 0).
+  Conteo de la cazadora (obj_metalamy/Step_0): tambien excluye
+  isInactive.
+
+- AUDITORIA DE MAPAS (switches por personaje estilo tirolina):
+  se revisaron TODOS los objetos con logica por personaje de
+  TODAS las salas (mapeado room -> objetos con CHARACTER_).
+  * room_dotdotdot — BUG GORDO: obj_dotdotdot_shitladder clava
+    maxHSpeed = 7 al rozarla, y el unico restaurador es el switch
+    de obj_dotdotdot_i/Step_1, que solo tenia a los 8 originales:
+    los 7 anadidos se quedaban PERMANENTEMENTE a velocidad 7.
+    FIX: cases nuevos (SONIC/SALLY_CANON=stats Sally/VANILLA=stats
+    Cream/METAL/AMELIA/BLAZE/FW) + subswitch de killers en el case
+    EXE (antes devolvia EXE_MAXSPEED=12 a todos: Exetior es 11 y
+    Metal Amy 13).
+  * obj_eggtrack (tracker de Eggman): faltaba EXE_METALAMY en el
+    switch del slow del lado EXE: la pisaba, se gastaba y no le
+    aplicaba nada. FIX: case con slow 30% (METALAMY_*), su Alarm_4
+    ya restaura.
+  * scr_player_slow: faltaba FLEETWAY_AMY desde su llegada: hierba
+    (weedzone), humo (ycr), trampa de Amelia y tracker no le
+    aplicaban slow. FIX: case con FW_MAXSPEED/FW_ACC (40%).
+  * obj_fart_dummy (fartzone): faltaba EXE_METALAMY: golpeaba el
+    muneco y salia "0" sin empuje. FIX: case -2 como los demas
+    killers cuerpo a cuerpo.
+  * scr_carry (llevar colgado a un Tails/Cream/Vanilla volando):
+    faltaban METAL/BLAZE/FW en scr_carry_zipline_state: podian
+    agarrarse pero el portador no podia soltarlos con V y otro
+    jugador podia colgarse del mismo portador (el check de
+    pasajero unico no los veia). FIX: 3 cases (METAL_ZIPLINE,
+    BLAZE_ZIPLINE, FW_ZIPLINE).
+  * REVISADOS Y OK (sin cambios): obj_abyss, hd_door/hd_door2,
+    nap_iceblock (Knux/gliding por diseno + universal salto/
+    ataque/proyectil de Tails), pf_lift (el switch del Draw_72
+    solo es cosmetico: los que faltan usan su propio sprite de
+    hurt via su Draw_76), vv_vase (spin universal), majong,
+    marijuna (offset cosmeco), weed, ycr_smoke, act9_wall/bodies,
+    ravintmist_shard, deserttown, darktower, limpcity, camera,
+    bigring/blackring, escondites (obj_hiding_parent agnostico),
+    springs (METAL/VANILLA/SALLY_CANON ya cubiertos), muelles_fall
+    (suite v5). LIMITACION SOLO ARTE: spr_act9_dead tiene 6 frames
+    (Tails..Sally): los personajes 7+ no tienen cuerpo en act9 —
+    hace falta arte nuevo, no codigo.
+
+ARCHIVOS: objects/obj_exe_indicator/Create_0.gml y Step_2.gml,
+objects/obj_metalamy/Step_0.gml, scripts/scr_player_hurt/
+scr_player_hurt.gml, objects/obj_dotdotdot_i/Step_1.gml,
+scripts/scr_player_slow/scr_player_slow.gml,
+objects/obj_eggtrack/Step_0.gml, objects/obj_fart_dummy/Step_0.gml,
+scripts/scr_carry/scr_carry.gml, LEEME_FIX_METALAMY_MAPAS.txt,
+worklog.md. (El zip acumula tambien los archivos de la tirolina
+v1 por si aun no estaban aplicados.)
+
+VERIFICACION: balance de llaves/parentesis OK en los 10 GML
+editados; macros usadas todas definidas (los CLIENT_* son enum
+PacketType de net_packets.gml); los switches nuevos siguen el
+patron de valores de los cases existentes (Alarm_4 de cada
+personaje restaura los mismos macros); cero paquetes nuevos, todo
+local. Pendiente: partida real — V de Metal Amy con supervivientes
+escondidos (ver siluetas rojas a traves de paredes + fijadas al
+borde), passive con 1 vivo (anillo dorado + revelado cada 14 s),
+escalera del mapa «...» con Sonic/Blaze (recuperar velocidad al
+soltar), tracker pisado por Metal Amy, muneco del fartzone, y que
+un Tails suelte con V a un Metal/Blaze/FW colgado.
+---

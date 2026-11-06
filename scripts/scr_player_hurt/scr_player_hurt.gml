@@ -514,8 +514,14 @@ function scr_weak_mark_hit()
         // CD propio de 16 s por superviviente (la variable la creamos aqui
         // mismo la primera vez: no hacia falta tocar los Create de los 13
         // supervivientes, y scr_move_basic la hace bajar con un guard)
-        if(!variable_instance_exists(global.player, "weakMarkCd"))
-                variable_instance_set(global.player, "weakMarkCd", 0);
+        // FIX v4.8.1: variable_instance_exists/set piden el ID DE INSTANCIA,
+        // no el indice del objeto (global.player es el indice): igual que
+        // obj_ghz_water, se resuelve con .id. Antes el exists devolvia false
+        // siempre -> el set re-creaba la variable a 0 en cada golpe y el CD
+        // de 16 s por superviviente nunca se aplicaba (la marca salia en
+        // TODOS los golpes). instance_exists ya se comprobo arriba.
+        if(!variable_instance_exists(global.player.id, "weakMarkCd"))
+                variable_instance_set(global.player.id, "weakMarkCd", 0);
 
         if(global.player.weakMarkCd > 0)
                 return;

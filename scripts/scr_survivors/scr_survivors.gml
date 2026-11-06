@@ -805,10 +805,11 @@ if(array_length(global.sonicAtkAire) == 0)
 //   Un sprite que NO este en la lista usa la caida clasica de siempre
 //   (fallback seguro: ni errores ni cambios para personajes sin configurar).
 global.fallAnims = [
-        [spr_metal_fall,   0, 1, 1, 1, 0.15], // Metal Sonic
-        [spr_emetal_fall,  0, 1, 1, 1, 0.15], // Metal Sonic (demonizado)
-        [spr_blaze_fall,   0, 1, 1, 1, 0.15], // Blaze
-        [spr_eblaze_fall,  0, 1, 1, 1, 0.15]  // Blaze (demonizada)
+        [spr_metal_fall,        0, 1, 1, 1, 0.15], // Metal Sonic
+        [spr_emetal_fall,       0, 1, 1, 1, 0.15], // Metal Sonic (demonizado)
+        [spr_blaze_fall,        0, 1, 1, 1, 0.15], // Blaze
+        [spr_eblaze_fall,       0, 1, 1, 1, 0.15], // Blaze (demonizada)
+        [spr_sally_fall_canon,  0, 1, 4, 1, 0.15]  // SALLY_CANON
 ];
 
 // La llama el case FALL del Draw_76 del personaje: busca el sprite en

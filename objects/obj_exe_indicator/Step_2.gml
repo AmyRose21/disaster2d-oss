@@ -51,15 +51,26 @@ visible = (global.character != CHARACTER_EXE || global.player.invisTimer > 0 || 
 // paquetes nuevos. El Draw_64 dibuja cada silueta A TRAVES de paredes y
 // escondites — «vision de supervivientes», no agujas indicadoras — y las
 // que caen fuera de la vista quedan fijadas al borde de la pantalla.
+// FIX v4.8.1: el viejo variable_instance_exists(global.player, "scanTimer")
+// recibia el INDICE del objeto (global.player = obj_metalamy) en vez del
+// id de la instancia: esa funcion SOLO acepta ids de instancia (por eso
+// obj_ghz_water usa global.player.id), asi que devolvia false SIEMPRE y
+// la lista nunca se llenaba -> el scan no se veia ni con la V ni con la
+// pasiva de la cazadora. El gate de exeCharacter ya garantiza que el
+// jugador es obj_metalamy (su Create_0 define scanTimer): basta
+// instance_exists, que si acepta el indice del objeto.
 if(global.character == CHARACTER_EXE
 && global.exeCharacter == EXE_METALAMY
-&& variable_instance_exists(global.player, "scanTimer")
-&& global.player.scanTimer > 0
-&& instance_exists(obj_player_puppet))
+&& instance_exists(global.player)
+&& instance_exists(obj_player_puppet)
+&& global.player.scanTimer > 0)
 {
         with(obj_player_puppet)
         {
-                if(hp <= 0 || revivalTimes >= 2)
+                // FIX v4.8.1: tambien fuera los desconectados (isInactive):
+                // su puppet se queda congelado con la ultima hp viva y
+                // ensuciaba el revelado (y el conteo de la cazadora).
+                if(isInactive || hp <= 0 || revivalTimes >= 2)
                         continue;
 
                 if(character == CHARACTER_AMELIA && isHiding && lunaGrace > 0)

@@ -100,7 +100,10 @@ if(instance_exists(obj_player_puppet))
 {
         with(obj_player_puppet)
         {
-                if(hp <= 0 || revivalTimes >= 2)
+                // FIX v4.8.1: los desconectados (isInactive) tampoco cuentan:
+                // su puppet queda congelado con la ultima hp viva y la pasiva
+                // no arrancaba aunque quedara un solo jugador real.
+                if(isInactive || hp <= 0 || revivalTimes >= 2)
                         continue;
 
                 _alive++;

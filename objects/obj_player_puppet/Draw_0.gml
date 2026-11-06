@@ -245,4 +245,39 @@ switch(character)
                 if(state == SONIC_ZIPLINE)
                         draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 22 - 19);
                 break;
+                
+        // v3: tirolina de los personajes que faltaban (mismos offsets que
+        // obj_aiz_zipline/Step_2.gml, asi el carrito cae en el mismo sitio
+        // que ve el jugador que viaja). OJO: SALLY_CANON viaja en
+        // SALLY_ZIPLINE y VANILLA en CREAM_ZIPLINE (son los estados que
+        // usan sus Step_2).
+        case CHARACTER_SALLY_CANON:
+                if(state == SALLY_ZIPLINE)
+                        draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 23 - 19);
+                break;
+                
+        case CHARACTER_VANILLA:
+                if(state == CREAM_ZIPLINE)
+                        draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 16 - 19);
+                break;
+                
+        case CHARACTER_METAL:
+                if(state == METAL_ZIPLINE)
+                        draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 17 - 19);
+                break;
+                
+        case CHARACTER_AMELIA:
+                if(state == AMELIA_ZIPLINE)
+                        draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 22 - 19);
+                break;
+                
+        case CHARACTER_BLAZE:
+                if(state == BLAZE_ZIPLINE)
+                        draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 19 - 19);
+                break;
+                
+        case CHARACTER_FLEETWAY_AMY:
+                if(state == FW_ZIPLINE)
+                        draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 21 - 19);
+                break;
 }

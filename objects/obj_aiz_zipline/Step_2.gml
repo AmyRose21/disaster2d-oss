@@ -32,45 +32,14 @@ if(instance_exists(global.player) && global.player.hp > 0)
 {
 	if(place_meeting(x, y, global.player) && !global.player.isGrounded && !hasPlayer && progress <= 0 && timeout <= 0)
 	{
-		if(global.character == CHARACTER_EXE && global.exeCharacter == EXE_ORIGINAL && global.player.state == EXE_ZIPLINE)
-			return;
-			
-		if(global.character == CHARACTER_EXE && global.exeCharacter == EXE_CHAOS && global.player.state == CHAOS_ZIPLINE)
-			return;
-			
-		if(global.character == CHARACTER_EXE && global.exeCharacter == EXE_EXETIOR && global.player.state == EXETIOR_ZIPLINE)
-			return;
-			
-		if(global.character == CHARACTER_EXE && global.exeCharacter == EXE_EXELLER && global.player.state == EXELLER_ZIPLINE)
-			return;
-			
-		if(global.character == CHARACTER_TAILS && global.player.state == TAILS_ZIPLINE)
-			return;
-			
-		if(global.character == CHARACTER_KNUX && global.player.state == KNUX_ZIPLINE)
-			return;
-			
-		if(global.character == CHARACTER_EGGMAN && global.player.state == EGG_ZIPLINE)
-			return;
-			
-		if((global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) && global.player.state == AMY_ZIPLINE)
-			return;
-			
-		if(global.character == CHARACTER_CREAM && global.player.state == CREAM_ZIPLINE)
-			return;
-			
-		if(global.character == CHARACTER_SALLY && global.player.state == SALLY_ZIPLINE)
-			return;
-			
-		// CARRY (v1): guard nuevo para SONIC y SALLY CANON (a todos los demas
-		// personajes ya los cubria su check de arriba, estos dos no tenian
-		// ninguno). Un jugador colgado de un Tails/Cream volando viaja en
-		// estado ZIPLINE: sin este guard la tirolina lo agarraba al pasar por
-		// encima de su punto de inicio y se lo quedaba.
-		if(global.character == CHARACTER_SONIC && global.player.state == SONIC_ZIPLINE)
-			return;
-			
-		if(global.character == CHARACTER_SALLY_CANON && global.player.state == SALLY_ZIPLINE)
+		// CARRY (v2): un jugador colgado de un Tails/Cream volando viaja
+		// con isZipline = true, igual que el que viaja en esta tirolina.
+		// Sin este guard la tirolina lo agarraba al pasar sobre su punto
+		// de inicio y se lo quedaba. Un solo check sirve para TODOS los
+		// personajes (presentes y futuros): los 14 checks por personaje
+		// que habia aqui decian exactamente esto, porque un estado
+		// *_ZIPLINE solo es alcanzable a traves de isZipline.
+		if(global.player.isZipline)
 			return;
 			
 		audio_play_sound(snd_snap, 0, false);
@@ -140,6 +109,47 @@ if(hasPlayer && progress < 1)
 			global.player.y = y + 18;
 			break;
 			
+		// v3 (bug de la tirolina de Angel Island): estos personajes no
+		// tenian case, asi que su "y" nunca se reiniciaba y el
+		// "+= sprite_height" de abajo los hundia 19 px POR FRAME hasta
+		// el suelo: colgados de la liana sobre el abismo recibian dano
+		// sin poder soltarse. Offsets = yorigin del sprite de tirolina
+		// - 7, la misma regla que siguen los cases de arriba (el 22 de
+		// SONIC es el que ya usaba el puppet para dibujar el carrito).
+		case CHARACTER_SONIC:
+			global.player.y = y + 22;
+			break;
+			
+		case CHARACTER_SALLY_CANON:
+			global.player.y = y + 23;
+			break;
+			
+		case CHARACTER_VANILLA:
+			global.player.y = y + 16;
+			global.player.isFlying = false; // igual que Tails/Cream: su vuelo pisa el estado de tirolina
+			break;
+			
+		case CHARACTER_METAL:
+			global.player.y = y + 17;
+			break;
+			
+		case CHARACTER_AMELIA:
+			global.player.y = y + 22;
+			break;
+			
+		case CHARACTER_BLAZE:
+			global.player.y = y + 19;
+			break;
+			
+		case CHARACTER_FLEETWAY_AMY:
+			global.player.y = y + 21;
+			break;
+			
+		default:
+			// Personaje futuro sin offset afinado: cuelga a la
+			// altura estandar en vez de hundirse en el suelo.
+			global.player.y = y + 20;
+			break;
 	}
 	
 	global.player.y += sprite_height;

@@ -6,7 +6,10 @@ redRings = false;
 // mientras dura el revelado (las llena el Step_2; el Draw_64 dibuja sus
 // siluetas a traves de paredes/escondites, y fijadas al borde de la
 // pantalla si estan fuera de la vista de 480x270)
-scanList = 0;
+// FIX v4.8.1: array de verdad desde el Create (antes era un 0 al que el
+// Step_2 le asignaba indices: la conversion real->array funciona pero es
+// fragil; asi queda explicito).
+scanList = [];
 scanCount = 0;
 
 spring = false;

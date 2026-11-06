@@ -95,6 +95,17 @@ if(place_meeting(x, y, global.player) && !activated)
                                         global.player.maxHSpeed = (EXELLER_MAXSPEED * (100-30)) / 100;
                                         global.player.alarm[4] = _exeT;
                                         break;
+                                        
+                                // FIX v4.8.1: faltaba Metal Amy — pisaba el
+                                // tracker, este se gastaba (activated = true)
+                                // y no le aplicaba NADA de slow. Su Alarm_4 ya
+                                // restaura sus stats (METALAMY_*).
+                                case EXE_METALAMY:
+                                        global.player.isSlow = true;
+                                        global.player.acc = (METALAMY_ACC * (100-30)) / 100;
+                                        global.player.maxHSpeed = (METALAMY_MAXSPEED * (100-30)) / 100;
+                                        global.player.alarm[4] = _exeT;
+                                        break;
                         }
                         
                         break;

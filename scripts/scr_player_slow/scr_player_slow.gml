@@ -100,5 +100,16 @@ function scr_player_slow(time)
                                 global.player.maxHSpeed = (BLAZE_MAXSPEED * (100-40)) / 100;
                                 global.player.alarm[4] = 60 * time;
                                 break;
+
+                        // FIX v4.8.1: faltaba Fleetway Amy desde su llegada —
+                        // la hierba, el humo, la trampa de Amelia y el tracker
+                        // de Eggman no le aplicaban slow (ventaja injusta; su
+                        // Alarm_4 ya restaura FW_MAXSPEED/FW_ACC solo).
+                        case CHARACTER_FLEETWAY_AMY:
+                                global.player.isSlow = true;
+                                global.player.acc = (FW_ACC * (100-40)) / 100;
+                                global.player.maxHSpeed = (FW_MAXSPEED * (100-40)) / 100;
+                                global.player.alarm[4] = 60 * time;
+                                break;
         }
 }

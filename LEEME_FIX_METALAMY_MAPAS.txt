@@ -1,0 +1,98 @@
+FIX v4.8.1 — Metal Amy (visor/scan + pasiva) y compatibilidad de mapas
+========================================================================
+
+QUE SE ARREGLA
+--------------
+
+1) METAL AMY: SU VISOR (tecla V) Y SU PASIVA NO MOSTRABAN NADA
+   Causa: el revelado lo dibuja obj_exe_indicator, pero su Step_2
+   lo recogia con variable_instance_exists(global.player, "scanTimer")
+   y global.player es el INDICE del objeto, no el id de la instancia:
+   esa funcion solo acepta ids (por eso obj_ghz_water usa .id), asi
+   que devolvia false SIEMPRE y la lista de siluetas nunca se llenaba.
+   La V "funcionaba" (sonido, pose, recarga del HUD) pero no se veia
+   nada; la pasiva de la cazadora (queda 1 vivo) hacia sonar el
+   tracker con el mismo resultado. Un bug, los dos sintomas.
+   Arreglado en:
+   - objects/obj_exe_indicator/Step_2.gml  (gate del revelado)
+   - objects/obj_exe_indicator/Create_0.gml (scanList array explicito)
+   - objects/obj_metalamy/Step_0.gml       (conteo: desconectados fuera)
+   - scripts/scr_player_hurt/scr_player_hurt.gml (mismo patron roto en
+     la MARCA DE DEBILIDAD: su CD de 16 s por superviviente nunca se
+     aplicaba; ahora usa .id)
+
+   Como queda: al pulsar V se ven las SILUETAS ROJAS BRILLANTES de
+   todos los supervivientes vivos A TRAVES de paredes y escondites
+   durante 8 s; los que estan fuera de pantalla quedan fijados al
+   borde apuntando hacia donde estan. Con 1 solo superviviente vivo
+   la V se apaga, el anillo del icono se vuelve DORADO y el rastreo
+   sale solo: 8 s de revelado cada 14 s. (El "indicador" es esa
+   vision, no una flecha: asi se acordo en la v4.8.)
+
+2) AUDITORIA DE MAPAS CON LOS PERSONAJES ADICIONALES
+   (pregunta: "no hay otros mapas que no esten funcionando bien?")
+   Encontrados y arreglados:
+   - MAPA «...» (room_dotdotdot) — EL GORDO: la escalera clava
+     maxHSpeed = 7 y el restaurador (obj_dotdotdot_i/Step_1) solo
+     conocia a los 8 originales: Sonic, Sally Canon, Vanilla, Metal,
+     Amelia, Blaze y Fleetway Amy se quedaban PERMANENTEMENTE lentos
+     con solo rozar la escalera. Tambien el case EXE devolvia las
+     stats del EXE original a TODOS los killers (Exetior es mas
+     lento y Metal Amy mas rapida). TODO arreglado.
+   - obj_eggtrack (tracker de Eggman): Metal Amy (killer) lo pisaba,
+     se gastaba y no le aplicaba el slow. Case anadido.
+   - scr_player_slow: Fleetway Amy era INMUNE a todos los slows
+     (hierba del weedzone, humo del YCR, trampa de Amelia, tracker).
+     Case anadido.
+   - obj_fart_dummy (fartzone): Metal Amy (killer) golpeaba el muneco
+     y salia "0" sin empuje. Case anadido (-2, como los demas).
+   - scr_carry (colgarse de un Tails/Cream/Vanilla volando): Metal,
+     Blaze y Fleetway Amy podian agarrarse PERO el portador no podia
+     soltarlos con V y otro jugador podia colgarse del mismo
+     portador. Cases anadidos.
+   Revisados y correctos (sin cambios necesarios): abismos, puertas
+   de Haunted Dream, hielo de Nasty Paradise, ascensor de Priceless
+   Freedom (solo cosmeco), jarrones de Volcano Valley, majong,
+   marihuana, hierba, humo del YCR, paredes de Act 9, shards de
+   Ravine Mist, Desert Town, La Torre, Limp City, anillos, escondites,
+   muelles. UNICA LIMITACION (arte, no codigo): en Act 9 el sprite de
+   los cuerpos (spr_act9_dead) solo tiene 6 personajes (Tails..Sally):
+   los nuevos no tienen cuerpo ahi hasta que exista el arte.
+
+ARCHIVOS MODIFICADOS / NUEVOS EN ESTE FIX
+-----------------------------------------
+  objects/obj_exe_indicator/Create_0.gml
+  objects/obj_exe_indicator/Step_2.gml
+  objects/obj_metalamy/Step_0.gml
+  scripts/scr_player_hurt/scr_player_hurt.gml
+  objects/obj_dotdotdot_i/Step_1.gml
+  scripts/scr_player_slow/scr_player_slow.gml
+  objects/obj_eggtrack/Step_0.gml
+  objects/obj_fart_dummy/Step_0.gml
+  scripts/scr_carry/scr_carry.gml
+  LEEME_FIX_METALAMY_MAPAS.txt  (este archivo)
+  worklog.md
+
+  EL ZIP TAMBIEN INCLUYE los archivos del fix anterior de la TIROLINA
+  (obj_aiz_zipline/Step_2.gml y obj_player_puppet/Draw_0.gml +
+  LEEME_FIX_TIROLINA.txt) por si aun no los habias aplicado: si ya los
+  pusiste, se sobreescriben con lo mismo y no pasa nada.
+
+INSTALACION
+-----------
+  Copia las carpetas "objects" y "scripts" (y los dos LEEME + worklog)
+  encima de la raiz del proyecto en GameMaker, aceptando sobreescribir.
+  No hace falta tocar nada mas: cero recursos nuevos, cero paquetes de
+  red, todo es codigo GML ya existente con cases/gates corregidos.
+
+PRUEBAS RAPIDAS RECOMENDADAS
+---------------------------
+  - Como Metal Amy: pulsa V con supervivientes vivos -> siluetas rojas
+    a traves del terreno; deja 1 vivo -> anillo dorado y revelado solo
+    cada 14 s.
+  - Mapa «...»: roza la escalera con Sonic/Blaze y suelta -> la
+    velocidad de carrera vuelve (antes se quedaban a 7 para siempre).
+  - Tracker de Eggman: písalo con Metal Amy -> te aplica el slow.
+  - Fartzone: golpea el muneco con Metal Amy -> sale -2 y lo empuja.
+  - Con un Tails volando: que Metal/Blaze/FW se cuelguen y el Tails
+    los suelte con V.

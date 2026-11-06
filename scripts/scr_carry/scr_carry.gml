@@ -74,6 +74,15 @@ function scr_carry_zipline_state(ch)
                 case CHARACTER_SALLY_CANON: return SALLY_ZIPLINE;
                 case CHARACTER_VANILLA:      return CREAM_ZIPLINE; // Vanilla vuela como Cream
                 case CHARACTER_AMELIA:       return CREAM_ZIPLINE; // v2.4: Amelia ya no vuela, pero sigue usando la tirolina de Cream
+
+                // FIX v4.8.1: faltaban Metal, Blaze y Fleetway Amy. Ellos SI
+                // podian agarrarse (scr_carry_step no filtra personaje), pero
+                // al devolver -1 aqui: el portador no podia soltarlos con la
+                // V, y otro jugador podia agarrarse DEL MISMO portador (el
+                // check de "un pasajero por portador" no los veia colgados).
+                case CHARACTER_METAL:        return METAL_ZIPLINE;
+                case CHARACTER_BLAZE:        return BLAZE_ZIPLINE;
+                case CHARACTER_FLEETWAY_AMY: return FW_ZIPLINE;
         }
         
         return -1;   // el EXE y variantes: nunca cuelgan del carry
