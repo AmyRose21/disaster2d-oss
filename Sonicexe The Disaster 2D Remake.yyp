@@ -648,6 +648,7 @@
     {"id":{"name":"scr_hud_keycap","path":"scripts/scr_hud_keycap/scr_hud_keycap.yy",},},
     {"id":{"name":"scr_knux_special","path":"scripts/scr_knux_special/scr_knux_special.yy",},},
     {"id":{"name":"scr_level_split","path":"scripts/scr_level_split/scr_level_split.yy",},},
+    {"id":{"name":"scr_light_dash","path":"scripts/scr_light_dash/scr_light_dash.yy",},},
     {"id":{"name":"scr_lms","path":"scripts/scr_lms/scr_lms.yy",},},
     {"id":{"name":"scr_metal_special","path":"scripts/scr_metal_special/scr_metal_special.yy",},},
     {"id":{"name":"scr_metalamy_special","path":"scripts/scr_metalamy_special/scr_metalamy_special.yy",},},

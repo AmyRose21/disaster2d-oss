@@ -1,0 +1,58 @@
+v5.9.3 — LIGHT DASH: ALCANCE AMPLIADO (1 anillo basta)
+======================================================
+
+QUE CAMBIA (todo lo que pediste)
+--------------------------------
+1) DISTANCIA DE BUSQUEDA: el radio de captura del primer anillo
+   pasa de 56 a 96 px (casi el doble). Amy pesca la cadena desde
+   mucho mas lejos, llegando por cualquier direccion.
+
+2) TOLERANCIA ENTRE ANILLOS: de 48 a 80 px. Los anillos NO
+   necesitan estar pegados ni muy juntos: lineas sueltas o un
+   poco dispersas encadenan igual. Las lineas clasicas de los
+   mapas (24-36 px) siguen el camino exacto como siempre.
+
+3) UN SOLO ANILLO ACTIVA (antes pediamos 2): si tocas Z en el
+   aire cerca de UN anillo suelto, Amy sale disparada hacia el,
+   lo recoge y sale con el impulso del tramo. Funciona como
+   "lunge de recogida": herramienta de economia y de recuperacion
+   aerea nueva.
+
+4) La FLECHA indicadora tambien sale con 1 solo anillo: la regla
+   de la Z no cambia (flecha visible = Z tocada = rayo/lunge;
+   Z mantenida = flotacion del tarot).
+
+FIX INCLUIDO DEL CASO BORDE
+----------------------------
+Con un anillo muy cerca, el frame de vuelo casi no media
+movimiento y Amy quedaba parada muerta en el aire al salir. Ahora
+la velocidad de salida se pre-fija al arrancar con la direccion
+del primer tramo: el lunge de 1 anillo SIEMPRE sale con sus
+16 px/frame hacia el anillo. De paso, el paquete del frame de
+arranque ya viaja con la direccion buena (el puppet remoto ve
+bien los primeros frames).
+
+INSTALACION (5 archivos, remplazar encima de la v5.9.2)
+-------------------------------------------------------
+  scripts/scr_light_dash/scr_light_dash.gml <- radios, gate 1 anillo, lunge
+  objects/obj_amy_canon/Draw_0.gml          <- flecha con 1 anillo
+  scripts/check_v59_light_dash.py           <- checker (94/94)
+  worklog.md
+  LEEME_LIGHT_DASH_V593.txt (este archivo)
+
+AJUSTES RAPIDOS (macros en scr_light_dash.gml)
+----------------------------------------------
+  LIGHT_DASH_FIRST_RADIUS 96   radio de captura del primer anillo
+  LIGHT_DASH_LINK_DIST    80   distancia max entre anillos de la cadena
+  LIGHT_DASH_SPEED        16   px/frame del vuelo
+  (si quieres aun mas alcance, son solo esos dos numeros)
+
+PRUEBA RAPIDA
+-------------
+1. Un anillo solo en medio del aire: acercate (veras la flecha
+   sobre el) y toca Z — lunge, lo recoges y sales disparada hacia
+   donde iba el tramo.
+2. Linea de anillos separados (~70 px): ahora encadena completa
+   de punta a punta.
+3. Todo lo anterior sigue igual: estela fantasmal, flecha con la
+   tecla real, flotacion del tarot con Z mantenida.

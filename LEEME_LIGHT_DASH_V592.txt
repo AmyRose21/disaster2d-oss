@@ -1,0 +1,81 @@
+v5.9.2 — LIGHT DASH: fix del crash + ESTELA FANTASMAL + FLECHA
+==============================================================
+
+QUE LLEVA ESTE PAQUETE (todo junto, encima de la v5.9)
+------------------------------------------------------
+1) EL CRASH (v5.9.1): "Variable obj_amy_canon.isLightDashing(100534,
+   -2147483648) not set before reading it" en Step_2 de Amy al
+   arrancar la partida.
+   Causa: las variables del dash se creaban "lazy" dentro del
+   script, pero el hook de scr_move_basic esta DETRAS del
+   early-return de !isServerReady (y del bloque de muerte): en
+   esos frames el init nunca corria y el "if(isLightDashing)" del
+   Step_2 leia una variable que no existia.
+   Fix: obj_amy_canon/Create_0 declara las 13 variables del dash.
+   Imposible que vuelva a saltar, en cualquier orden de eventos.
+
+2) LA ESTELA FANTASMAL (v5.9.1): Amy deja un rastro de fantasmas
+   mientras dura el light dash, con la MISMA tecnica de las estelas
+   que ya tiene el juego (float run de Vanilla, powerboost de
+   Sonic): un obj_quickeffect_fade cada 2 frames copiando la POSE
+   ROTADA (image_angle = radtodeg(angle), el metodo de las
+   inclinaciones) — la estela sube las columnas girando igual que
+   el cuerpo, sin fantasmas "planos" en los tramos verticales.
+   Y tambien para LOS DEMAS JUGADORES: el puppet genera la misma
+   estela en cada cliente usando lo que YA viaja en el paquete
+   (estado 25 + angulo + mirada): CERO bytes nuevos de red.
+
+3) LA FLECHA INDICADORA (v5.9.2, el choque con la flotacion del
+   tarot): la Z de Amy en el aire tiene DOS usos — MANTENERLA
+   cayendo es la flotacion del tarot, TOCARLA junto a una cadena es
+   el rayo. Para que nunca sea ambiguo:
+   - Mientras un toque podria arrancar el rayo (tambien flotando),
+     el PRIMER anillo de la cadena se marca con un halo dorado
+     pulsante + una flecha apuntando hacia donde saldra disparada
+     + el keycap de la tecla REAL de salto (si remapeas el salto
+     en Opciones, la letra de la flecha cambia sola).
+   - Regla clara para el jugador: FLECHA VISIBLE = Z tocada = rayo.
+     SIN FLECHA = Z mantenida = flotacion del tarot.
+   - Por que no otra tecla: la Z en el aire es la tecla de
+     habilidad aerea de todo el roster (Tails vuela, Knux planea,
+     Blaze y Cream tocan Z en el aire). Mudarla romperia la
+     convencion del juego entero.
+   - Desde la flotacion tambien se puede rayo: suelta Z y toca de
+     nuevo con la flecha visible.
+   - La flecha es solo local (tu pantalla): no viaja por red y los
+     puppets no la dibujan.
+
+INSTALACION (7 archivos, remplazar encima de la v5.9)
+-----------------------------------------------------
+  objects/obj_amy_canon/Create_0.gml        <- fix del crash + vars de la flecha
+  objects/obj_amy_canon/Draw_0.gml          <- estela local + flecha
+  objects/obj_player_puppet/Step_0.gml      <- estela remota
+  scripts/scr_light_dash/scr_light_dash.gml <- macros + escaneo continuo
+  scripts/check_v59_light_dash.py           <- checker (84/84)
+  worklog.md
+  LEEME_LIGHT_DASH_V592.txt (este archivo)
+
+AJUSTES RAPIDOS (macros en scr_light_dash.gml)
+----------------------------------------------
+  LIGHT_DASH_GHOST_EVERY 2     frames entre fantasmas (1 = rayo solido)
+  LIGHT_DASH_GHOST_FADE  0.06  velocidad de desvanecido
+  LIGHT_DASH_ARROW_DIST  16    distancia anillo -> ancla de la flecha
+  LIGHT_DASH_ARROW_SIZE  7     largo de la punta de la flecha
+
+NOTA (bug ajeno encontrado, NO tocado)
+--------------------------------------
+El fantasma del powerboost del puppet tiene un radtodeg(angle) de
+mas (el angle del puppet ya llega en grados del paquete). No se
+nota porque Sonic corre en llano. Si algun dia se ve raro el
+powerboost en pendientes, es eso.
+
+PRUEBA RAPIDA
+-------------
+1. Amy canon, salta hacia una linea de 2+ anillos: al acercarte
+   (56 px) debe salir la flecha dorada + el keycap de tu tecla de
+   salto sobre el primer anillo. Toca Z: rayo con estela girando.
+2. Sueltate de un borde alto MANTENIENDO Z: flotacion del tarot.
+   Si pasas junto a una cadena ves la flecha: soltar y tocar = rayo,
+   seguir manteniendo = seguir flotando. Nunca se pisan.
+3. En LAN/online, el otro cliente debe ver la misma estela subiendo
+   las columnas girando (la flecha no: es solo tuya).

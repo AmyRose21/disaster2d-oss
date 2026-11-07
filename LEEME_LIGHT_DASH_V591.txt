@@ -1,0 +1,61 @@
+v5.9.1 — LIGHT DASH: fix del crash + ESTELA FANTASMAL
+=====================================================
+
+QUE ARREGLA ESTE PAQUETE
+------------------------
+1) EL CRASH: "Variable obj_amy_canon.isLightDashing(100534,
+   -2147483648) not set before reading it" en Step_2 de Amy al
+   arrancar la partida.
+   Causa: las variables del dash se creaban "lazy" dentro del
+   script, pero el hook de scr_move_basic esta DETRAS del
+   early-return de !isServerReady (y del bloque de muerte): en
+   esos frames el init nunca corria y el "if(isLightDashing)" del
+   Step_2 leia una variable que no existia.
+   Fix: obj_amy_canon/Create_0 declara las 11 variables del dash.
+   Imposible que vuelva a saltar, en cualquier orden de eventos.
+
+2) LA ESTELA FANTASMAL (lo que pediste): Amy deja un rastro de
+   fantasmas mientras dura el light dash, con la MISMA tecnica de
+   las estelas que ya tiene el juego (float run de Vanilla,
+   powerboost de Sonic): un obj_quickeffect_fade cada 2 frames.
+   Detalle importante: los fantasmas copian la POSE ROTADA
+   (image_angle = radtodeg(angle), el metodo de las
+   inclinaciones) — la estela sube las columnas girando igual
+   que el cuerpo, no hay fantasmas "parados" en los tramos
+   verticales.
+   Y es tambien para LOS DEMAS JUGADORES: el puppet genera la
+   misma estela en cada cliente usando lo que YA viaja en el
+   paquete (estado 25 + angulo + mirada): CERO bytes nuevos de
+   red.
+
+INSTALACION (6 archivos, remplazar encima de la v5.9)
+-----------------------------------------------------
+  objects/obj_amy_canon/Create_0.gml        <- fix del crash
+  objects/obj_amy_canon/Draw_0.gml          <- estela local
+  objects/obj_player_puppet/Step_0.gml      <- estela remota
+  scripts/scr_light_dash/scr_light_dash.gml <- macros de estela
+  scripts/check_v59_light_dash.py           <- checker (72/72)
+  worklog.md
+
+AJUSTES RAPIDOS (macros en scr_light_dash.gml)
+----------------------------------------------
+  LIGHT_DASH_GHOST_EVERY 2    frames entre fantasmas (1 = rayo
+                              solido, 3 = mas suelto)
+  LIGHT_DASH_GHOST_FADE  0.06 velocidad de desvanecido (mas
+                              alto = estela mas corta)
+
+NOTA (bug ajeno encontrado, NO tocado)
+--------------------------------------
+El fantasma del powerboost del puppet tiene un radtodeg(angle)
+de mas (el angle del puppet ya llega en grados del paquete). No
+se nota porque Sonic corre en llano. Si algun dia se ve raro el
+powerboost en pendientes, es eso. No lo toque para no mezclar
+cambios: la estela del dash usa el angle tal cual y esa si queda
+perfecta en vertical.
+
+PRUEBA RAPIDA
+-------------
+Amy canon, salta cerca de una linea de anillos y pulsa Z: debe
+verse el rayo con su estela girando por las columnas, y los
+anillos desapareciendo a su paso. En LAN/online, el otro cliente
+debe ver la misma estela.

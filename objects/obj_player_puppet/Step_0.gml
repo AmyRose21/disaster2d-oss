@@ -140,6 +140,33 @@ if(powerBoost)
         }
 }
 
+// v5.9.1 — LIGHT DASH de Amy Canon remota: mientras el byte de estado
+// viaja en AMY_CANON_LIGHTDASH, estela de fantasmas igual que la del
+// jugador local. La pose rotada ya llega en el paquete de siempre
+// (angle s16 en GRADOS + image_xscale), asi que la estela se replica
+// en los demas clientes SIN un byte nuevo de red: cada cliente la
+// genera local. OJO a diferencia del cuerpo: el angle del puppet YA
+// esta en grados (lo escribe el emisor con radtodeg), se copia tal
+// cual — el powerboost de arriba lleva un radtodeg(angle) de mas que
+// no se nota porque Sonic corre en llano (angle ~ 0); aqui si importa
+// (el dash viaja en vertical).
+if(character == CHARACTER_AMY_CANON && state == AMY_CANON_LIGHTDASH)
+{
+        ghostTimer++;
+        
+        if(ghostTimer mod LIGHT_DASH_GHOST_EVERY == 0)
+        {
+                var _ghost = instance_create_depth(x, y, 0, obj_quickeffect_fade);
+                _ghost.sprite_index = sprite_index;
+                _ghost.image_index = image_index;
+                _ghost.image_xscale = image_xscale;
+                _ghost.image_yscale = 1;
+                _ghost.image_angle = angle; // grados: tal cual llega del paquete
+                _ghost.fadeSpeed = LIGHT_DASH_GHOST_FADE;
+                _ghost.depth = depth + 1; // detras del puppet
+        }
+}
+
 if(character == CHARACTER_TAILS)
 {
         if(state != TAILS_FLY && audio_is_playing(snd_tails_fly))

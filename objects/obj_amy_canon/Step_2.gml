@@ -15,6 +15,15 @@
 #macro AMY_CANON_TAROT BALANCING+9
 // HABILIDAD 2 (tecla X) SOLO en el aire: impulso de tarot (spr_amy_attack1_canon)
 #macro AMY_CANON_TAROTDASH BALANCING+10
+// v5.9 — LIGHT DASH (Z en el aire junto a una linea de anillos): Amy se
+// vuelve un rayo que recorre la cadena tragandoselos (sprite
+// spr_amy_light_speed_canon, ROTADO por la variable angle como las
+// pendientes: viaja en diagonal/arriba girando, nunca de espaldas).
+// El byte de estado viaja resuelto por red como cualquier otro.
+// OJO con el 24: ese valor es el AMY_CANON_HUG del abrazo combinado
+// (scr_amy_hug), que va interceptado ANTES del array de scr_survivors
+// en los dos Draw (local y puppet): aqui NO se puede reutilizar.
+#macro AMY_CANON_LIGHTDASH BALANCING+12
 
 if(!emotion)
         state = IDLE;
@@ -80,6 +89,16 @@ if(hugActive)
 if(isHJ)
 {
         state = AMY_CANON_HJUMP;
+        return;
+}
+
+// v5.9 — LIGHT DASH: antes que el resto de habilidades aereas (el dash
+// posee el cuerpo mientras viaja por la cadena de anillos). La pose
+// rotada la escribe scr_light_dash en la variable angle (metodo de las
+// pendientes) y viaja por red en el s16 de siempre.
+if(isLightDashing)
+{
+        state = AMY_CANON_LIGHTDASH;
         return;
 }
 

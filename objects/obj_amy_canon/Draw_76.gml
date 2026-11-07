@@ -143,6 +143,14 @@ switch(state)
                 image_speed = AMY_CANON_TAROTDASH_ANIMSPD;
                 break;
                 
+        // v5.9 — LIGHT DASH: el rayo recorre la cadena de anillos rotado
+        // por la variable angle (metodo de las pendientes). Animacion en
+        // loop rapido; el fin lo controla scr_light_dash (la cadena se
+        // agota o algo cancela el dash), no la animacion.
+        case AMY_CANON_LIGHTDASH:
+                image_speed = LIGHT_DASH_ANIMSPD;
+                break;
+                
         // ESTADO BURBUJA (secuestro): sprites de 1 frame; la variante
         // (frente/izquierda/derecha) la elige Step_2 segun bubbleDir.
         case AMY_CANON_CAPTURE:

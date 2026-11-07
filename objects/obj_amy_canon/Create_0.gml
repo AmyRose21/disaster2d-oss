@@ -128,6 +128,29 @@ tarotSnd2 = -1;          // canal de DSTAROT2 (loop de la pasiva)
 tarotSnd3 = -1;          // canal de Loop_Card (loop compartido pasiva/impulso)
 tarotNetTimer = 0;       // NET: contador de frames para re-enviar los loops del tarot
 
+// --- Variables del LIGHT DASH (v5.9, Z en el aire junto a anillos) ---
+// v5.9.1: declaradas AQUI (no lazy) porque el Step_2 y el Step_0 las
+// leen en frames donde scr_move_basic aun no llego a correr su hook:
+// el early-return de !isServerReady (conectar / practice) se salta el
+// script entero y el "if(isLightDashing)" del Step_2 revienta con
+// "not set before reading it" en el primer frame. Mismo pozo que el
+// v4.9 documento para specialFunc; declararlo en el Create lo tapa
+// para siempre. El bloque lazy del script queda como red de seguridad
+// para el resto de personajes (el hook de move_basic corre para todos).
+isLightDashing = false;   // true mientras recorre la cadena de anillos
+lightDashChain = [];      // ids de los anillos de la cadena
+lightDashIdx = 0;         // indice del anillo objetivo actual
+lightDashTime = 0;        // frames de vuelo (tope de seguridad)
+lightDashDeg = 0;         // angulo de dibujo actual (grados)
+lightDashFace = 1;        // mirada actual del sprite (1 = der, -1 = izq)
+lightDashToX = 0;         // posicion objetivo de este frame
+lightDashToY = 0;
+lightDashVX = 0;          // velocidad del tramo (para la red y la salida)
+lightDashVY = 0;
+lightDashGhostTimer = 0;  // v5.9.1: contador de la estela fantasmal (Draw_0)
+lightDashAim = [];        // v5.9.2: cadena visible para la FLECHA (Draw_0)
+lightDashAimLife = 0;     // v5.9.2: vida de la flecha (caduca sola, 1 frame)
+
 // --- Variables del ESTADO BURBUJA (secuestro, reglas canonicas) ---
 // Ver scr_amy_canon_bubble.gml para el significado y los valores
 // ajustables (tiempo dentro, levitacion, vida al salir, etc.).

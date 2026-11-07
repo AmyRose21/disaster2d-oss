@@ -59,6 +59,35 @@ if(parryState == 2)
         gpu_set_blendmode(bm_normal);
 }
 
+// v5.9.1 — LIGHT DASH: ESTELA FANTASMAL mientras recorre la cadena de
+// anillos (misma tecnica que la estela del float run de Vanilla y la
+// del powerboost de Sonic): un obj_quickeffect_fade cada 2 frames
+// copiando la pose ROTADA actual — image_angle = radtodeg(angle), el
+// mismo metodo de las inclinaciones que usa el cuerpo, asi la estela
+// sube las columnas girando igual que Amy y no hay fantasmas "planos"
+// en los tramos verticales. Con la paleta propia del jugador (igual
+// que el fantasma del effectTime de arriba).
+if(isLightDashing)
+{
+        lightDashGhostTimer++;
+        
+        if(lightDashGhostTimer mod LIGHT_DASH_GHOST_EVERY == 0)
+        {
+                var _ghost = instance_create_depth(x, y, 0, obj_quickeffect_fade);
+                _ghost.sprite_index = sprite_index;
+                _ghost.image_index = image_index;
+                _ghost.image_xscale = image_xscale;
+                _ghost.image_yscale = 1;
+                _ghost.image_angle = isSpinning ? 0 : radtodeg(angle);
+                _ghost.fadeSpeed = LIGHT_DASH_GHOST_FADE;
+                _ghost.depth = depth + 1; // detras del jugador
+                _ghost.palleteFrom = global.palleteFrom;
+                _ghost.palleteTo = global.palleteTo;
+        }
+}
+else
+        lightDashGhostTimer = 0;
+
 //Actual draw
 // AMY CYBER: mismo palette swap de siempre pero envuelto en el shader
 // holograma (shd_amy_cyber) cuando el efecto esta activo. Si esta
@@ -85,3 +114,71 @@ if(bubbleState == AMY_BUBBLE_ACTIVE)
 // PARRY: anillo de activacion / exito (mismo estilo del powerboost de
 // Sonic; el flash es blanco y no lleva color de personaje).
 scr_powerboost_fx_flash(floor(x), floor(y - 6), parryFlash);
+
+// v5.9.2 — LIGHT DASH: FLECHA INDICADORA. La Z de Amy tiene DOS
+// habilidades en el aire (mantener = flotacion del tarot, tocar junto
+// a una cadena = rayo): mientras un toque ARRANCARIA el rayo, se pinta
+// sobre el PRIMER anillo de la cadena una flecha en la direccion del
+// primer tramo y al lado el keycap de la tecla REAL de salto
+// (scr_hud_keycap_at: si el usuario remapea el salto en Opciones, la
+// letra cambia aqui tambien). Flecha visible = Z tocada = rayo; sin
+// flecha = Z mantenida = flotacion. Solo lo dibuja el jugador local
+// (los puppets no leen input). La vida (lightDashAimLife) la repone
+// el escaneo continuo del script cada frame y caduca sola: si el hook
+// no corrio (burbuja, shock, partida conectando) no queda ninguna
+// flecha congelada en pantalla.
+if(lightDashAimLife > 0)
+{
+        lightDashAimLife--;
+
+        // v5.9.3: UN anillo basta — la flecha marca tambien el lunge de
+        // recogida hacia un anillo suelto (no solo lineas de 2+)
+        var _ring = (array_length(lightDashAim) >= 1) ? lightDashAim[0] : noone;
+
+        if(_ring != noone && instance_exists(_ring) && !_ring.used)
+        {
+                // direccion del PRIMER TRAMO (de Amy al anillo): hacia
+                // donde saldra disparada
+                var _dir = point_direction(x, y, _ring.x, _ring.y);
+                var _pulse = 0.75 + 0.25 * dsin(current_time / 4);
+
+                // ancla de la flecha: un poco antes del anillo, sobre la
+                // linea del tramo (del lado de Amy)
+                var _ax = _ring.x + lengthdir_x(LIGHT_DASH_ARROW_DIST, _dir + 180);
+                var _ay = _ring.y + lengthdir_y(LIGHT_DASH_ARROW_DIST, _dir + 180);
+
+                gpu_set_blendmode(bm_add);
+                draw_set_color(make_color_rgb(255, 216, 64));
+
+                // halo doble sobre el primer anillo
+                draw_set_alpha(0.30 * _pulse);
+                draw_circle(_ring.x, _ring.y, 11 + 2 * _pulse, false);
+                draw_set_alpha(0.55 * _pulse);
+                draw_circle(_ring.x, _ring.y, 13, true);
+
+                // la flecha: triangulo apuntando en la direccion del tramo
+                var _s = LIGHT_DASH_ARROW_SIZE * (0.85 + 0.15 * _pulse);
+                var _bx = _ax + lengthdir_x(-_s * 0.6, _dir);
+                var _by = _ay + lengthdir_y(-_s * 0.6, _dir);
+
+                draw_set_alpha(0.85 * _pulse);
+                draw_triangle(_ax + lengthdir_x(_s, _dir),
+                              _ay + lengthdir_y(_s, _dir),
+                              _bx + lengthdir_x(_s * 0.55, _dir + 90),
+                              _by + lengthdir_y(_s * 0.55, _dir + 90),
+                              _bx + lengthdir_x(_s * 0.55, _dir - 90),
+                              _by + lengthdir_y(_s * 0.55, _dir - 90),
+                              false);
+
+                draw_set_alpha(1);
+                draw_set_color(c_white);
+                gpu_set_blendmode(bm_normal);
+
+                // keycap de la tecla REAL (Z remapeable) al lado del
+                // anillo, sobre el lateral derecho del tramo — asi nunca
+                // tapa la cadena ni a Amy
+                scr_hud_keycap_at(_ring.x + lengthdir_x(16, _dir - 90) - 4,
+                                  _ring.y + lengthdir_y(16, _dir - 90) - 4,
+                                  global.KeyA, c_white, 0.7 + 0.3 * _pulse, 0);
+        }
+}

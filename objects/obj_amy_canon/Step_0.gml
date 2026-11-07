@@ -55,7 +55,7 @@ scr_collision_basic();
 if(isTarotFloat)
 {
         // Salidas: soltar Z, tocar el suelo, o cualquier cosa que la pare.
-        if(!global.playerControls || !keyboard_check(global.KeyA) || isGrounded || isHurt || isDead || shockedTimer > 0 || isZipline || isDashing || isTarotDashing || isHJ || isAttacking || bubbleState == AMY_BUBBLE_ACTIVE)
+        if(!global.playerControls || !keyboard_check(global.KeyA) || isGrounded || isHurt || isDead || shockedTimer > 0 || isZipline || isDashing || isTarotDashing || isHJ || isAttacking || bubbleState == AMY_BUBBLE_ACTIVE || isLightDashing)
                 isTarotFloat = false;
 }
 
@@ -66,7 +66,7 @@ if(isTarotFloat)
 // pasiva quedaba muerta; ahora solo se bloquea DENTRO (!= ACTIVE)
 // y la salida de arriba solo corta DENTRO (== ACTIVE).
 if(!isTarotFloat && global.playerControls && bubbleState != AMY_BUBBLE_ACTIVE && shockedTimer <= 0
-&& !isHurt && !isDead && !isZipline && !isDashing && !isTarotDashing && !isHJ && !isAttacking
+&& !isHurt && !isDead && !isZipline && !isDashing && !isTarotDashing && !isHJ && !isAttacking && !isLightDashing
 && !isGrounded && yspd > 0 && keyboard_check(global.KeyA))
 {
         isTarotFloat = true;

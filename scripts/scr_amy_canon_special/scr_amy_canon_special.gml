@@ -62,7 +62,7 @@ function scr_amy_canon_special()
         // salir (estado OVER) quedaba bloqueada PARA SIEMPRE; ahora solo se
         // bloquea DENTRO de la burbuja (!= AMY_BUBBLE_ACTIVE).
         if(global.playerControls && bubbleState != AMY_BUBBLE_ACTIVE && isGrounded
-        && !isDashing
+        && !isDashing && !isLightDashing
         && keyboard_check(global.KeyDown) && keyboard_check_pressed(global.KeyA) && hjumpTimer <= 0)
         {
                 // Direccion: si aprietas izquierda/derecha, mira hacia ese lado;
@@ -122,7 +122,7 @@ function scr_amy_canon_special()
         // tambien DESPUES de salir de la burbuja, solo se bloquea DENTRO.
         if(global.playerControls && bubbleState != AMY_BUBBLE_ACTIVE && !isGrounded
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isDashing
-        && !isAttacking && !isHJ && !isTarotDashing && keyboard_check_pressed(global.KeyB)
+        && !isAttacking && !isHJ && !isTarotDashing && !isLightDashing && keyboard_check_pressed(global.KeyB)
         && attackTimer <= 0)
         {
                 // Direccion: si aprietas izquierda/derecha, mira hacia ese lado;
@@ -155,7 +155,7 @@ function scr_amy_canon_special()
         // --- ATAQUE 3: INICIO de la acometida ---
         // Se activa con la tecla C (global.KeyC), solo en el suelo
         // y cuando el CD (dashTimer) llego a 0.
-        if(global.playerControls && !isDashing && isGrounded && keyboard_check_pressed(global.KeyC) && dashTimer <= 0)
+        if(global.playerControls && !isDashing && isGrounded && !isLightDashing && keyboard_check_pressed(global.KeyC) && dashTimer <= 0)
         {
                 // Direccion: si aprietas izquierda/derecha al iniciar,
                 // la acometida va hacia ese lado; si no, hacia donde miras.

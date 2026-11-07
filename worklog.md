@@ -4334,3 +4334,265 @@ moderna, complemento natural del coyote); (3) geometria de nivel
 360 (loops/corkscrews: el motor maneja angulos y sensores, pero los
 mapas TDR no tienen loops). Propuesta: proximo fix = (1), es 6
 lineas y cambia el feel entero del salto.
+
+## v5.9 (2026-11-07) — LIGHT DASH DE AMY CANON: el rayo que se come las líneas de anillos
+
+PEDIDO: tras el coyote v5.3 el usuario pidió mecánicas nuevas que
+aprovecharan los mapas sin loops; de la lista eligió el LIGHT DASH
+(Sonic Adventure) y subió su animación propia
+(spr_amy_light_speed_canon). Pregunta concreta que motivó el diseño
+de la rotación: "el sprite debería rotar si es hacia arriba... si
+estoy rotada hacia arriba y la zona está hacia la derecha, ¿voy a
+estar moviéndome de espaldas?".
+
+Work Log:
+- NUEVO scripts/scr_light_dash.gml (+.yy, registrado en el .yyp):
+  Z PULSADA en el aire junto a una línea de >= 2 anillos vivos
+  dentro del radio de captura (56 px el primero, eslabones de hasta
+  48 px, tope de 16) = Amy se vuelve un rayo a LIGHT_DASH_SPEED
+  (16 px/frame, un spindash lleno) que recorre la cadena comiéndose
+  cada anillo y sale disparada con el impulso del último tramo
+  (columnas = ascensores, filas = carriles). El finder es codicioso
+  por vecino más cercano: con las líneas/columnas/arcos reales de
+  los mapas (anillos a 24-36 px) sigue el camino exacto.
+- ROTACIÓN = "el método rotativa de las inclinaciones", ampliado a
+  360: la pose se escribe en la MISMA variable `angle` de las
+  pendientes; el draw local usa radtodeg(angle) y por red viaja
+  resuelto (s16 en grados + image_xscale) — el puppet replica la
+  vuelta SIN un byte nuevo de red. Correspondencia: viajando a la
+  derecha rotación = dirección; a la izquierda rotación = dirección
+  - 180 (siempre cae en -90..+90: nunca cabeza abajo, nunca de
+  espaldas). El giro entre tramos es un LERP sobre el ángulo
+  RENDERIZADO (R), no el de dibujo: el espejo cambia el forward
+  180° de golpe, así que la mirada se RE-DERIVA de R en cada frame
+  y el flip cae siempre en la vertical (R = ±90), donde ambas
+  miradas dibujan lo mismo — el volteo es continuo, cruza de
+  arriba-derecha a arriba-izquierda PASANDO POR ARRIBA. Bug pillado
+  por el checker y arreglado: el lerp converge por el camino corto
+  en espacio envuelto y deg podía acabar fuera de rango (-355 =
+  5): canonización con whiles al final del bloque.
+- RECOGIDA DIRECTA: a 16 px/frame un frame puede saltarse un anillo
+  por dentro (la máscara no lo toca) — el dash marca el anillo
+  (used) y manda el MISMO CLIENT_RING_COLLECTED que mandaría su
+  Step (iid + nid): el server responde igual que siempre (rings,
+  sonido, curación de los 10) en todos los clientes. Cero cambios
+  en obj_ring, cero paquetes nuevos.
+- INTEGRACIÓN: hook en scr_move_basic justo tras el bloque de
+  muerte: `if(scr_light_dash_step()) { scr_collision_basic();
+  scr_light_dash_pose(); return; }` — el collision corre igual
+  (sensores honestos, mismo patrón que el early-return de
+  !isServerReady) y la pose se REAPLICA después porque el collision
+  resetea angle=0 en el aire y sumaría la gravedad del frame. En el
+  frame de salida step() devuelve false dejando el impulso en
+  xspd/yspd: la física normal toma el relevo ese mismo frame.
+- ESTADO: AMY_CANON_LIGHTDASH = BALANCING+12 = 25 (el 24 es el
+  AMY_CANON_HUG del abrazo combinado, interceptado antes del array:
+  colisión pillada a tiempo). Índice 25 = spr_amy_light_speed_canon
+  en player_anims y player_eanims (el 24 de los arrays es un
+  spr_none de hueco). Animación en loop a LIGHT_DASH_ANIMSPD
+  (Draw_76); el puppet anima solo con el image_index que ya viaja.
+- GATES (variables lazy al estilo coyoteTimer, sin tocar Creates):
+  solo CHARACTER_AMY_CANON, NO demonizada (revivalTimes >= 2 no
+  puede recoger anillos: la cadena no se tragaría nada), aire, viva,
+  sin stun/tirolina/acompletida/impulso-tarot/flotación/HJ/ataque/
+  burbuja activa/abrazo/parry/anillo rojo. Salidas: cadena agotada,
+  daño, muerte, stun, tirolina, burbuja, abrazo, parry iniciado,
+  anillo rojo, bordes de sala, caer del mapa, tope de 120 frames.
+  La flotación del tarot (Step_0) y las 3 activaciones de
+  scr_amy_canon_special (martillo/impulso/acometida) llevan ahora
+  !isLightDashing. Durante el dash NO es un ataque: el contacto
+  con el EXE le hace daño normal (movilidad pura con riesgo) y la
+  contra-jugada nativa sigue siendo que el EXE reviente los anillos
+  de la línea (el dash salta el eslabón roto y sigue).
+- SPRITE: spr_amy_light_speed_canon — la animación REAL del
+  usuario, ya en el proyecto y commiteada por él (1 frame 35x33,
+  origen 23,20, layer único). El dash la dibuja tal cual; el
+  LIGHT_DASH_ANIMSPD de Draw_76 es inofensivo con 1 frame y queda
+  listo por si la animación crece (no hay que tocar nada). La entrada
+  del .yyp del sprite la añadió GMS2 al guardarla el usuario; la del
+  SCRIPT (scr_light_dash) es la única entrada nueva del yyp de este
+  paquete (verificado: sin duplicados).
+- REBASE (regla de oro): el trabajo se hizo sobre la base vieja
+  (bafeab82) y se re-aplicó sobre los 5 commits nuevos del usuario
+  (30ab04d4: fixes v4.9/v5.3 de manejo, Sally duelista, etc.) tras
+  git pull. Fusiones: el hook del scr_move_basic cayó igual (después
+  del bloque de muerte, antes del de daño); SALLY_CANON_POSE_VEL se
+  quedó en 0.1 (el tuning propio del usuario, no el 0.5 viejo); el
+  yyp traía el sprite ya registrado por el usuario y se quitó el
+  duplicado que añadió el rebase.
+
+VERIFICACIÓN: scripts/check_v59_light_dash.py (estática + simulación
+frame a frame) — 53/53 OK sobre la base nueva. Estática: brackets en
+los 7 archivos, los 8 puntos de integración, HUG(24) != LIGHTDASH(25),
+arrays de 26, sprite real del usuario con sus frames y layers, yyp
+registrado sin duplicados, sin placeholders. Simulación: la L
+fila->columna come los 6 anillos con 6 paquetes únicos y sale hacia
+arriba a 16; el caso del usuario (columna que dobla a la derecha)
+converge mirando a la derecha; el arco que cruza la vertical gira
+continuo (sin saltos > 90°) y termina en la bajada (abajo-derecha);
+barrido exhaustivo de 360°: converge apuntando a la dirección de
+viaje con |deg| <= 90 en TODAS; fila de 4x28 px a budget 16 no deja
+anillos vivos; anillo roto a mitad de vuelo se salta y come el resto;
+gates (1 anillo no dispara, > 56 px fuera, fade-in excluido) y tope de
+16 eslabones. PENDIENTE DE PRUEBA REAL: probar en partida (columna
+de GHZ x=3592, filas de 3, arcos sobre rampas) viendo el volteo en
+vivo — en especial el caso que preguntó el usuario: columna que
+dobla a la derecha (debe cruzar POR ARRIBA y quedar mirando a la
+derecha, nunca de espaldas).
+
+## v5.9.1 (2026-11-07) — FIX del crash de primer frame + ESTELA FANTASMAL del light dash
+
+PEDIDO: el usuario reporto el crash "Variable
+obj_amy_canon.isLightDashing not set before reading it" en
+gml_Object_obj_amy_canon_Step_2 line 99 al probar la v5.9, y pidio
+añadir "un efecto fantasmal para cuando amy este usando el light".
+
+Work Log:
+- CAUSA DEL CRASH: las vars del dash se declaraban LAZY dentro de
+  scr_light_dash_step (patron coyoteTimer), pero el hook vive en
+  scr_move_basic DETRAS de dos early-returns: el de !isServerReady
+  (conectar / practice / timeout de envio) y el bloque de muerte.
+  En esos frames el init no corre, y el Step_2 de Amy lee
+  "if(isLightDashing)" en crudo — mismo pozo que el v4.9 documento
+  para specialFunc (corre suelto antes del 1er frame de move_basic).
+  El Step_0 (lineas 58/69) tambien lee la flag, pero ahi lo tapaba
+  el cortocircuito de la cadena de gates; el Step_2 no tenia nada.
+- FIX: obj_amy_canon/Create_0 declara las 11 vars del dash
+  (isLightDashing + cadena + pose + estela). El bloque lazy del
+  script queda como red de seguridad para el RESTO de personajes
+  (el hook de move_basic corre para todos y su primera lectura
+  "if(isLightDashing)" la necesita). Con esto el dash ya no depende
+  del orden de eventos ni del estado del servidor: imposible que
+  vuelva a saltar.
+- ESTELA FANTASMAL (local): en el Draw_0 de Amy, mismo patron que
+  la estela del float run de Vanilla y la del powerboost de Sonic
+  (obj_quickeffect_fade): un fantasma cada LIGHT_DASH_GHOST_EVERY
+  (2) frames copiando sprite, indice, mirada y — la clave — la POSE
+  ROTADA (image_angle = isSpinning ? 0 : radtodeg(angle), el metodo
+  de las inclinaciones): los fantasmas suben las columnas girando
+  igual que el cuerpo, nunca "planos" en los tramos verticales.
+  Con la paleta del jugador (como el fantasma del effectTime) y
+  depth propio + 1 para quedar detras. Fade a
+  LIGHT_DASH_GHOST_FADE (0.06/frame ~ 17 frames de vida): a 16
+  px/frame la estela pinta un rayo continuo de ~270 px.
+- ESTELA FANTASMAL (remota, los demas clientes): el puppet ya
+  recibe TODO lo necesario en el paquete de siempre — estado
+  resuelto 25 (AMY_CANON_LIGHTDASH), angle (s16 en grados) e
+  image_xscale — asi que su Step_0 genera la misma estela local en
+  cada cliente: CERO bytes nuevos de red, sin bitflags nuevos (no
+  como el powerboost, que necesita PLAYER_POWERBOOST: aqui el
+  estado ya existe). Usa el ghostTimer que ya tenia el puppet.
+- BUG LATENTE ENCONTRADO (NO tocado, fuera de alcance): el ghost
+  del powerboost del puppet (Step_0, lineas ~130-140) hace
+  "image_angle = radtodeg(angle)" con el angle del puppet, que YA
+  llega en grados del paquete (el emisor escribe radtodeg(angle));
+  doble conversion. No se nota porque Sonic corre en llano
+  (angle ~ 0 => radtodeg(0) = 0). En la estela del dash SI importaba
+  (viaja en vertical): la nueva usa el angle tal cual. Si algun dia
+  se ve raro el powerboost en pendientes, es ese radtodeg de mas.
+
+VERIFICACION: checker v5.9 ampliado a 72/72 OK: los 10 checks
+nuevos (Create declara las 11 vars, macros de estela, lazy con
+ghostTimer, estela local con pose rotada y paleta, estela remota
+con el gate de personaje+estado, angle del puppet en grados sin
+radtodeg) mas el balance de brackets en los 3 archivos nuevos
+tocados (Create, Draw_0, puppet Step_0). Toda la simulacion de la
+v5.9 intacta y pasando.
+
+## v5.9.2 (2026-11-07) — LIGHT DASH: FLECHA INDICADORA — la Z sin choque con la flotacion del tarot
+
+PEDIDO DEL USUARIO: "amy ya tiene una habilidad al dejar presionada
+la Z (flotar con las tarot); habra que colocarle una flecha o algo
+para que no choque con la otra habilidad".
+
+DECISION DE DISEÑO (por que la flecha y no otra tecla):
+- La Z en el aire es la tecla de habilidad aerea de todo el roster
+  (Tails vuela, Knux planea, Blaze doble salto, Cream vuela: todas
+  con keyboard_check_pressed(global.KeyA)). Mudar el dash a otra
+  tecla romperia la convencion del juego entero.
+- El choque real era de INFORMACION, no de input: el dash ya era
+  solo-toque (keyboard_check_pressed) y la flotacion solo-mantener
+  (keyboard_check cayendo): fisicamente nunca pelean (con la tecla
+  abajo no existe un "toque" nuevo; desde la flotacion hay que
+  soltar y volver a tocar). Lo que faltaba era que el jugador supiera
+  QUE va a hacer la Z antes de pulsarla.
+- SOLUCION = la que sugirio el usuario: una FLECHA sobre la cadena.
+
+IMPLEMENTACION:
+- scr_light_dash_step seccion 2 reordenada: los gates de elegibilidad
+  quedan igual, pero scr_light_dash_find pasa a correr CONTINUAMENTE
+  (antes solo en el frame del toque) y su resultado se guarda en
+  lightDashAim: la MISMA cadena alimenta la flecha y el arranque (lo
+  que ves es lo que vuela). El gate de isTarotFloat baja al bloque de
+  activacion, despues del escaneo: flotando la flecha TAMBIEN se
+  muestra, porque soltar-y-tocar si arranca el rayo desde la
+  flotacion y el jugador tiene que verlo.
+- La flecha caduca sola: lightDashAim se limpia cada frame al inicio
+  del step y lightDashAimLife (2) lo gasta el Draw. Si el hook no
+  corre un frame (burbuja, shock, !isServerReady) no queda flecha
+  congelada en pantalla. Mismo patron de vida corta que el tarotNetTimer.
+- Draw_0 de Amy (solo jugador local, los puppets no leen input):
+  halo dorado pulsante + triangulo apuntando en la direccion del
+  PRIMER TRAMO sobre el primer anillo + keycap de la tecla REAL de
+  salto con scr_hud_keycap_at (el sistema de keycaps dinamicos del
+  HUD v4.3: si el usuario remapea el salto, la letra cambia sola).
+  Blend aditivo como el aura del parry; dibujado tras el
+  shader_reset del cuerpo. Guards: anillo existe y no usado.
+- Create de Amy: +2 vars (lightDashAim, lightDashAimLife) — misma
+  leccion del fix v5.9.1: todo lo que lee un Draw nace en el Create.
+- Macros nuevas: LIGHT_DASH_ARROW_DIST (16), LIGHT_DASH_ARROW_SIZE
+  (7). CERO bytes de red: la flecha no viaja (input local puro).
+
+VERIFICACION: checker ampliado a 84/84 OK: 10 checks nuevos de la
+flecha (vars en Create, macros, lazy, clear por frame, escaneo
+continuo, gate de flotacion despues del escaneo, gates activos sin
+isTarotFloat, halo+triangulo+keycap en Draw, orden tras
+shader_reset, caducidad + anillo vivo) y 2 de geometria nuevos en
+la simulacion (keycap y ancla nunca pisan un anillo de la cadena en
+columna / fila / diagonal; la flecha apunta exactamente al primer
+tramo).
+
+## v5.9.3 (2026-11-07) — LIGHT DASH: ALCANCE AMPLIADO — 1 anillo basta, radios 96/80
+
+PEDIDO DEL USUARIO: "hay que aumentar mas la distancia de busqueda y
+la tolerancia. No necesariamente necesito que hayan 2 rings pegados
+en si, si no con una bastaria para activarla y no necesariamente que
+esten pegadas una a la otra (muy juntas), la tolerancia puede ser
+mayor".
+
+CAMBIOS (todo en macros + 3 bloques):
+- LIGHT_DASH_FIRST_RADIUS: 56 -> 96 px (radio de captura del PRIMER
+  anillo, en cualquier direccion). Casi el doble de "distancia de
+  busqueda".
+- LIGHT_DASH_LINK_DIST: 48 -> 80 px (distancia max entre eslabones):
+  los anillos ya NO hacen falta que esten pegados — las lineas
+  sueltas o dispersas de los mapas encadenan igual, y las lineas
+  clasicas a 24-36 px siguen el camino exacto como antes.
+- UN SOLO ANILLO ACTIVA (antes exitia 2): el gate pasa de
+  "array_length(_chain) < 2" a "< 1". El dash con un anillo suelto
+  funciona como LUNGE DE RECOGIDA: Amy sale disparada hacia el
+  anillo, lo recoge y sale con el impulso del tramo — herramienta
+  de economia y de recuperacion aerea nueva.
+- Fix del caso borde del lunge: la velocidad de salida se PRE-FIJA
+  al arrancar con la direccion del primer tramo
+  (point_direction(x, y, _chain[0].x, _chain[0].y)): con un anillo
+  muy cerca, el frame de vuelo casi no media movimiento y la salida
+  quedaba parada muerta en el aire (vx = vy = 0). Ahora siempre
+  sale con sus 16 px/frame hacia el anillo, y de paso el paquete
+  del frame de arranque ya viaja con la direccion buena (el puppet
+  remoto ve bien los primeros frames).
+- La FLECHA indicadora (v5.9.2) sale tambien con 1 solo anillo
+  (Draw_0: >= 2 pasa a >= 1): el lunge se anuncia igual que la
+  cadena, regla de la Z intacta (flecha = tap = rayo/lunge).
+- CERO cambios de red, CERO variables nuevas: mismo paquete de
+  siempre, mismas 13 vars del Create.
+
+VERIFICACION: checker ampliado a 94/94 OK: 5 checks estaticos nuevos
+(macros 96/80, gate < 1 sin rastro del < 2, velocidad pre-fijada,
+flecha >= 1) y 5 de simulacion nuevos (1 anillo forma cadena; el
+lunge recoge el anillo, manda su CLIENT_RING_COLLECTED y sale a 16
+px/frame; eslabones a 70 px encadenan con tolerancia 80; captura a
+90 px dentro del nuevo radio; a 120 px sigue fuera). Los gates
+viejos actualizados al comportamiento nuevo (1 anillo SI, > 96 NO,
+fade-in excluido igual). Toda la simulacion previa (rotacion,
+presupuesto, contra-jugada, flecha) intacta y pasando.

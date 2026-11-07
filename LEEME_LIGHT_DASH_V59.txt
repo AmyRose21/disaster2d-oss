@@ -1,0 +1,96 @@
+v5.9 — LIGHT DASH DE AMY CANON
+(el rayo que se come las lineas de anillos)
+=========================================================
+
+QUE ES
+------
+El clasico de Sonic Adventure, tuneado para TD2D: pulsar Z EN EL
+AIRE junto a una linea de >= 2 anillos vivos convierte a Amy en un
+rayo (tu sprite spr_amy_light_speed_canon) que recorre la cadena
+tragandose cada anillo y sale disparada con el impulso del ultimo
+tramo. Las columnas verticales se vuelven ASCENSORES y las filas
+horizontales CARRILES de velocidad.
+
+INSTALACION
+-----------
+Son 11 archivos (8 modificados + 3 nuevos). Copiar/reemplazar
+dentro de la carpeta del proyecto respetando las rutas:
+
+  NUEVOS:
+    scripts/scr_light_dash/scr_light_dash.gml   <- la mecanica
+    scripts/scr_light_dash/scr_light_dash.yy
+    scripts/check_v59_light_dash.py             <- checker (fuera de GMS2)
+
+  MODIFICADOS:
+    scripts/scr_move_basic/scr_move_basic.gml   <- hook tras el bloque de muerte
+    scripts/scr_amy_canon_special/...           <- 3 gates !isLightDashing
+    scripts/scr_survivors/scr_survivors.gml     <- arrays a 26 (indice 25)
+    objects/obj_amy_canon/Step_0.gml            <- flotacion del tarot cede
+    objects/obj_amy_canon/Step_2.gml            <- macro + estado 25
+    objects/obj_amy_canon/Draw_76.gml           <- velocidad de animacion
+    Sonicexe The Disaster 2D Remake.yyp         <- registra el script
+    worklog.md                                  <- entrada v5.9
+
+El sprite NO va en el zip: ya lo tienes tu en el proyecto (commit
+30ab04d4). Este paquete usa tu animacion tal cual.
+
+COMO SE USA (en juego)
+----------------------
+* Amy canon, EN EL AIRE, cerca de una linea de anillos: pulsa Z
+  (un toque). MANTENER Z no activa nada (la flotacion del tarot
+  sigue siendo mantener Z cayendo, como siempre).
+* La cadena se pesca sola: primer anillo vivo a <= 56 px en
+  CUALQUIER direccion, y de ahi vecino mas cercano (eslabones de
+  hasta 48 px, tope de 16 anillos).
+* Vuelo a 16 px/frame (un spindash lleno), girando por la variable
+  angle de las pendientes: sube columnas ROTANDO, nunca de
+  espaldas.
+* Sale disparada con la velocidad del ULTIMO tramo: si la cadena
+  terminaba hacia arriba, sales hacia arriba.
+* Contra-jugada nativa (ya existia): el EXE revienta los anillos
+  de la linea con melee/laser y el dash se salta el eslabon roto
+  y sigue por los que queden.
+* Durante el dash NO es un ataque: si el EXE te toca, te hace
+  dano normal y el dash se corta. Movilidad pura, con riesgo.
+
+LA ROTACION (la pregunta que hiciste)
+-------------------------------------
+"si estoy rotada hacia arriba y la zona esta hacia la derecha,
+voy a moverme de espaldas?" — NO, nunca:
+* Viajando a la DERECHA: rotacion = direccion tal cual.
+* Viajando a la IZQUIERDA: el sprite esta espejado y la rotacion
+  se mapea a (direccion - 180), que siempre cae en -90..+90.
+* El cambio de mirada cae SIEMPRE en la vertical (donde ambas
+  miradas dibujan lo mismo): cruzar de arriba-derecha a
+  arriba-izquierda pasa POR ARRIBA, continua, como en una rampa.
+* Por red viaja resuelto en el s16 de grados de siempre + el
+  image_xscale: el puppet del otro cliente replica la vuelta SIN
+  un byte nuevo de red.
+
+AJUSTES RAPIDOS (macros arriba de scr_light_dash.gml)
+-----------------------------------------------------
+  LIGHT_DASH_SPEED        16   px/frame del vuelo
+  LIGHT_DASH_FIRST_RADIUS 56   radio de captura del 1er anillo
+  LIGHT_DASH_LINK_DIST    48   distancia max entre eslabones
+  LIGHT_DASH_MAX_RINGS    16   tope de anillos por cadena
+  LIGHT_DASH_MAX_TIME    120   tope de frames de vuelo
+  LIGHT_DASH_TURN        0.35  suavizado del volteo (1 = seco)
+
+QUE NO SE TOCO
+--------------
+* obj_ring, server, paquetes: CERO cambios de red. La recogida
+  manda el MISMO CLIENT_RING_COLLECTED que mandaria el anillo.
+* Demonizada (revivalTimes >= 2): no puede recoger anillos, el
+  dash no le arranca (gate directo).
+* Martillo (X), impulso de tarot (X aire) y acometida (C): llevan
+  gate !isLightDashing — no se pisan con el dash.
+
+VERIFICACION
+------------
+scripts/check_v59_light_dash.py: 53/53 OK (estatica + simulacion
+frame a frame: rotacion en los 360 grados sin espaldas ni cabeza
+abajo, presupuesto de 16 px sin dejar anillos vivos, anillo roto
+a mitad de vuelo, gates, topes). Pendiente: probar en vivo en GHZ
+(columna x=3592, filas de 3, arcos) — en especial columna que
+dobla a la derecha: debe cruzar POR ARRIBA y quedar mirando a la
+derecha.

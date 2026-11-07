@@ -156,7 +156,9 @@ global.player_anims[? CHARACTER_AMY_CANON] =
         spr_amy_capture_canon_left, //20 = SECUESTRO: moviendose a la izquierda
         spr_amy_capture_canon_right, //21 = SECUESTRO: moviendose a la derecha
         spr_amy_tarot_float, //22 = PASIVA TAROT: flotacion lenta al caer
-        spr_amy_attack1_canon //23 = HABILIDAD 2 (tecla X) en el aire: impulso de tarot (sprite nuevo de 2 frames)
+        spr_amy_attack1_canon, //23 = HABILIDAD 2 (tecla X) en el aire: impulso de tarot (sprite nuevo de 2 frames)
+        spr_none, //24 = hueco del AMY_CANON_HUG: ese estado va interceptado ANTES del array (Draw_76 y puppet Draw_72), nunca se lee
+        spr_amy_light_speed_canon, //25 = v5.9 LIGHT DASH (Z en el aire): rayo por la cadena de anillos, rotado por angle
 ];
 
 //Sonic
@@ -522,7 +524,9 @@ global.player_eanims[? CHARACTER_AMY_CANON] =
         spr_amy_capture_canon_left, //20 = SECUESTRO: izquierda
         spr_amy_capture_canon_right, //21 = SECUESTRO: derecha
         spr_amy_tarot_float, //22 = PASIVA TAROT (demonizada flota igual)
-        spr_amy_attack1_canon //23 = HABILIDAD 2 (tecla X) en el aire: impulso de tarot (mismo sprite que la jugadora)
+        spr_amy_attack1_canon, //23 = HABILIDAD 2 (tecla X) en el aire: impulso de tarot (mismo sprite que la jugadora)
+        spr_none, //24 = hueco del AMY_CANON_HUG (interceptado antes del array: nunca se lee)
+        spr_amy_light_speed_canon, //25 = v5.9 LIGHT DASH (nunca ocurre demonizada —no puede recoger anillos—, pero el indice existe para que el array no quede corto)
 ];
 
 // Fleetway Amy (demonizada): set eamy_fw del mod original. 18 = pose

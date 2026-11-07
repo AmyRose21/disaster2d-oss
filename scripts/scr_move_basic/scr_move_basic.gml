@@ -114,6 +114,7 @@ function scr_move_basic()
                         isDashing = false; // ATAQUE 3: la muerte cancela la acometida
                         isTarotDashing = false; // la muerte cancela el impulso aereo
                         isTarotFloat = false;   // ... y la pasiva del tarot
+                        isLightDashing = false; // v5.9: la muerte cancela el light dash
                 }
                 
                 gspd -= min(abs(gspd), acc) * sign(gspd); 
@@ -122,6 +123,20 @@ function scr_move_basic()
                 return;
         }
         
+        // v5.9 — LIGHT DASH (Amy Canon): Z en el aire junto a una linea
+        // de anillos. Si scr_light_dash_step() devuelve true, este frame
+        // lo controla el dash: se corre el collision igual (sensores y
+        // suelo honestos, mismo patron que el early-return de arriba) y
+        // scr_light_dash_pose() reaplica posicion + pose rotada DESPUES,
+        // porque el collision resetea angle=0 en el aire. En el frame de
+        // salida step() devuelve false dejando el impulso en xspd/yspd y
+        // la fisica normal sigue su curso en ese mismo frame.
+        if(scr_light_dash_step())
+        {
+                scr_collision_basic();
+                scr_light_dash_pose();
+                return;
+        }
         
         bounceTimer--;
         if(bounceTimer > 0)
@@ -201,6 +216,7 @@ function scr_move_basic()
                         
                         case CHARACTER_AMY_CANON:
                                 isDashing = false; // ATAQUE 3: recibir dano cancela la acometida
+                                isLightDashing = false; // v5.9: el dano cancela el light dash
                                 break;
                 }
                 
