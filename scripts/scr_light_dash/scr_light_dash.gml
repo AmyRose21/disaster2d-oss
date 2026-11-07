@@ -81,11 +81,11 @@
 // =====================================================================
 
 // --- PARAMETROS AJUSTABLES (60 frames = 1 segundo) -------------------
-#macro LIGHT_DASH_SPEED 8         // px/frame del vuelo (v5.9.4: era 16, muy rapida)
-#macro LIGHT_DASH_FIRST_RADIUS 96  // radio de captura del PRIMER anillo (v5.9.3: era 56)
-#macro LIGHT_DASH_LINK_DIST 80     // dist max entre eslabones (v5.9.3: era 48; no hace falta que esten pegados)
+#macro LIGHT_DASH_SPEED 5         // px/frame del vuelo (v5.9.4: era 16, muy rapida)
+#macro LIGHT_DASH_FIRST_RADIUS 155  // radio de captura del PRIMER anillo (v5.9.3: era 56)
+#macro LIGHT_DASH_LINK_DIST 175     // dist max entre eslabones (v5.9.3: era 48; no hace falta que esten pegados)
 #macro LIGHT_DASH_MAX_RINGS 20     // tope de anillos por cadena (seguridad)
-#macro LIGHT_DASH_MAX_TIME 200     // tope de frames de vuelo (v5.9.4: 180, por la velocidad menor)
+#macro LIGHT_DASH_MAX_TIME 320     // tope de frames de vuelo (v5.9.4: 180, por la velocidad menor)
 #macro LIGHT_DASH_TURN 0.35        // suavizado del volteo (1 = instantaneo)
 #macro LIGHT_DASH_ANIMSPD 0.5      // velocidad de la animacion del rayo
 // v5.9.1 — ESTELA FANTASMAL (efecto de rayo): un obj_quickeffect_fade
