@@ -1,11 +1,13 @@
 // v4.9 — COYOTE TIME: frames de gracia para saltar despues de dejar
 // el suelo (borde, plataforma atravesable, pendiente que despega al
-// correr). 6 frames = 100 ms: el estandar comodo de los plataformas
-// modernos. En los clasicos de Genesis NO existia: ahi viene la
-// sensacion de "salto comido". La variable coyoteTimer se declara
+// correr). v5.3: ampliado de 6 (100 ms) a 10 frames (~167 ms) a
+// peticion del usuario — un pelin mas de posibilidad para cazar el
+// borde sin llegar a la ventana "generosa" (12+ frames) que ya se
+// siente flotante. En los clasicos de Genesis NO existia: ahi viene
+// la sensacion de "salto comido". La variable coyoteTimer se declara
 // lazy al inicio de scr_move_basic (mismo patron que weakMarkCd /
 // gsAbsorbDone: sin tocar el Create de los ~20 personajes).
-#macro PLAYER_COYOTE_FRAMES 6
+#macro PLAYER_COYOTE_FRAMES 10
 
 function scr_move_basic()
 {
@@ -705,7 +707,7 @@ function scr_move_basic()
         // Jump — en el suelo, o EN EL AIRE dentro de la ventana coyote
         // (v4.9): acaba de dejar el borde y todavia cae (yspd >= 0; nunca
         // en pleno ascenso de un salto real: eso lo bloquea !isJumping y
-        // los propios 6 frames de la ventana). En tirolina no: su salto
+        // los propios 10 frames de la ventana). En tirolina no: su salto
         // lo lleva el sistema de la tirolina. El mismo bloque y los
         // mismos guards de siempre: solo se abre la puerta del aire.
         if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isJumping
@@ -760,7 +762,31 @@ function scr_move_basic()
                 audio_play_sound(snd_jump, 0, false);
                 net_sound_emit(snd_jump);
                 isGrounded = false;
-                isSpinning = false;
+                
+                // v5.3 — SALTO EN BOLA: saltar ya NO mata la rodadura.
+                // Antes este "isSpinning = false" rompia la habilidad:
+                // un despegue por pendiente conservaba el estado SPIN y
+                // la velocidad, pero el SALTO te devolvia a la animacion
+                // de salto y al aterrizar ibas DE PIE, como si el
+                // spindash se hubiera "perdido" (cancelacion prematura
+                // de la habilidad). Ahora la regla es una sola y sale del
+                // motor: SI ESTABAS EN BOLA, EL SALTO NO TE SACA DE LA
+                // BOLA — mismo empujon vertical (jumpForce), misma
+                // ventana coyote, y al aterrizar SIGUES RODANDO con la
+                // velocidad que llevaras (fidelidad al manejo moderno:
+                // Sonic MAX y compagnie tratan el spin como estado que
+                // el salto no interrumpe).
+                // Por que es seguro: "isSpinning en el aire" YA era un
+                // estado legal del motor (rodar y despegarte de una
+                // subida). La animacion prioriza SPIN sobre JUMP, la
+                // pasiva de repeler el salto/rodadura del EXE ya cubria
+                // (isJumping || isSpinning), el estado SPIN ya viaja por
+                // red para las rodaduras, y los especiales aereos que
+                // consumen Z (vuelo de Tails, planeo de Knux, vuelo de
+                // Cream) apagan isSpinning al activarse ellos mismos.
+                // El drop dash de Sonic ya NO arma desde un salto en
+                // bola (gate !isSpinning en scr_sonic_special): ese
+                // vuelo ya ES la habilidad.
                 isJumping = true;
                 justJumped = true;
                 image_index = 0;

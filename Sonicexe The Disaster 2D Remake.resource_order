@@ -107,6 +107,7 @@
     {"name":"spr_amy_idle_fw","order":10,"path":"sprites/spr_amy_idle_fw/spr_amy_idle_fw.yy",},
     {"name":"spr_amy_jump_canon","order":1,"path":"sprites/spr_amy_jump_canon/spr_amy_jump_canon.yy",},
     {"name":"spr_amy_jump_fw","order":11,"path":"sprites/spr_amy_jump_fw/spr_amy_jump_fw.yy",},
+    {"name":"spr_amy_light_speed_canon","order":45,"path":"sprites/spr_amy_light_speed_canon/spr_amy_light_speed_canon.yy",},
     {"name":"spr_amy_lookdown_canon","order":2,"path":"sprites/spr_amy_lookdown_canon/spr_amy_lookdown_canon.yy",},
     {"name":"spr_amy_lookdown_fw","order":12,"path":"sprites/spr_amy_lookdown_fw/spr_amy_lookdown_fw.yy",},
     {"name":"spr_amy_lookup_canon","order":39,"path":"sprites/spr_amy_lookup_canon/spr_amy_lookup_canon.yy",},

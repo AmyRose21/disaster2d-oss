@@ -4229,3 +4229,108 @@ Sonic propio (gspd/xspd/angulo/sensores en scr_move_basic +
 scr_collision_basic, el enfoque Genesis de verdad); los engines de
 referencia en GM son Sonic MAX y afines (open source). Con estos dos
 fixes el feel queda al nivel de esos kits sin cambiar de motor.
+
+---
+Task ID: fix-v5.3-bola-salto
+Agent: Super Z (main agent)
+Task: 2 ajustes pedidos tras probar v4.9: (1) subir el coyote time a
+10 frames ("para darle un tanto mas de posibilidad") y (2) que saltar
+con el spindash NO abandone el estado bola: "cuando salto pasa a su
+animacion de salto normal... la habilidad se cancela al saltar como
+tal (cosa que no pasa si pasa por una subida y lo manda al aire: ahi
+conserva el estado y la velocidad)". Referencia citada por el
+usuario: Sonic MAX (framework GMS2 open source).
+
+Work Log:
+- COYOTE 10 (scr_move_basic): macro PLAYER_COYOTE_FRAMES 6 -> 10
+  (100 -> ~167 ms). Solo cambia el numero, su comentario de cabecera
+  y el "los propios 6 frames" del bloque de salto (ahora 10). Todo el
+  mecanismo v4.9 (grant en suelo, gasto 1/frame en aire, puerta de
+  aire con yspd >= 0, consumo al saltar) intacto.
+- SALTO EN BOLA — mapa previo: isSpinning aparece en 117 archivos.
+  Lo que importa: (a) las maquinas de animacion de TODOS los
+  personajes priorizan isSpinning -> SPIN por delante de la rama de
+  aire isJumping -> JUMP (obj_sonic/Step_2: linea 137 vs 159, y sus
+  equivalentes en exe/tails/knux/etc); (b) la pasiva de repeler el
+  salto/rodadura del EXE ya cubria (isJumping || isSpinning)
+  (obj_sonic/Step_0:231); (c) el clamp de rodadura de
+  scr_collision_basic usa isSpinning; (d) por red viaja el "state" YA
+  RESUELTO (SPIN es valor legal y corriente: es como hoy se ve una
+  rodadura ajena despegada de una subida); (e) los especiales aereos
+  que consumen Z (vuelo de Tails, planeo de Knux, vuelo de Cream) ya
+  apagan isSpinning al activarse ellos mismos; (f) el aterrizaje
+  (scr_collision_check_bottom) solo hace gspd = xspd: no toca flags.
+- CAUSA: el bloque de salto de scr_move_basic hacia "isSpinning =
+  false" incondicional. La rodadura despegada por pendiente
+  conservaba estado y velocidad, pero el SALTO devolvia la animacion
+  de salto y al aterrizar ibas DE PIE: cancelacion prematura de la
+  habilidad. Mismo estado, dos salidas: inconsistencia pura.
+- FIX (scr_move_basic, bloque de salto): quitado el isSpinning =
+  false. Regla unica del motor: SI ESTABAS EN BOLA, EL SALTO NO TE
+  SACA DE LA BOLA. Aplica a la rodadura (abajo corriendo), al
+  spindash de Sonic/Amelia/Sally y al drop dash: mismo flag, misma
+  regla. En el aire la animacion sigue siendo la bola (SPIN gana),
+  la pasiva de repeler ya cubria, y al aterrizar gspd = xspd con el
+  estado vivo: SIGUES RODANDO con la velocidad que llevaras. Cero
+  cambios de red/colision/objetos: "isSpinning en el aire" ya era un
+  estado legal del motor.
+- DROP DASH (scr_sonic_special): el latch dropDashFromJump ("este
+  vuelo empezo con un salto") ahora exige !isSpinning. Sin el gate,
+  el salto en bola armaba el drop dash y su disparo al aterrizar
+  PISABA la velocidad conservada con la fija de SONIC_DROPDASH_SPEED
+  (14: menos que un spindash de 4-5 revs) y hasta podia INVERTIRTE
+  si giraste la mirada con el control aereo (el disparo usa
+  image_xscale). El drop dash queda para saltos normales (de
+  pie/corriendo), que es su proposito: RECUPERAR la bola.
+- EXEs y demas personajes: la regla es del motor y les aplica igual
+  (rodar + saltar = bola en el aire). El contacto del puppet ya
+  trataba JUMP y SPIN como el mismo ataque-bola: combate idem. Chaos:
+  su stuck-dash se sigue cancelando al despegar; solo que si saltas
+  en pleno dash aterrizas rodando (coherente con la regla).
+- NOTA FISICA: el air drag clasico del motor (xspd -= xspd/32 por
+  frame mientras -4 < yspd < 0, aplicado junto al apex) NO se toco:
+  es Genesis puro y aplica a TODOS los saltos. Un spindash a 16
+  aterriza a ~9 tras un salto; lo que conserva el fix es el ESTADO
+  (y con el la pasiva y seguir rodando).
+
+VERIFICACION: scripts/check_v53_bola_salto.py (estatica + simulacion
+frame a frame con el orden real del Step). Estatica: balance {} ()
+[] en los 2 archivos (93/93, 242/242; 18/18, 95/95), 0 tabs,
+presencia de los 5 cambios, bloque de salto sin "isSpinning = false"
+(fuera de comentarios) y regression de los 3 especiales que apagan
+la bola (Tails/Knux/Cream). Coyote 10: Z en frames de aire 1-9 =
+salta, 10+ = no; salto real + Z en ascenso = sin doble; Tails: Z en
+ventana = salto, Z tardio = vuelo. Salto en bola: rodando a 16 y
+saltar -> aterriza RODANDO (isSpinning vivo, sigue rodando al final
+del sim); SIN fix aterriza DE PIE y acaba parado (gspd 0). Z
+MANTENIDO en el salto en bola: drop dash NO arma ni dispara, la
+rodadura manda; SIN fix pisaba el gspd a 14 fijo. Salto normal + Z
+mantenido: drop dash arma y dispara a 14 INTACTO. Borde en rodadura
++ Z dentro de la ventana = salto EN BOLA. Tails: bola + salto + Z en
+el aire = vuelo (apaga la bola, no aterriza rodando). Pendiente
+partida real: spindash lleno + salto (bola todo el vuelo, aterrizar
+rodando), salto en bola manteniendo Z (sin destello de armado del
+drop dash), salto normal + Z mantenido (drop dash como siempre), y
+rodar+saltar con Tails/Knux y luego volar (sin bola colgada).
+
+NOTA FIDELIDAD (pregunta del usuario: "comparado a un juego de sonic
+en que carece el tdr?"): honestamente, en CLASICOS puros (S2/S3&K/
+Mania) saltar desde la rodadura SI te saca de la bola y aterrizas de
+pie — de ahi que Mania inventara el drop dash (para recuperar la
+bola tras saltar). Lo implementado a peticion (salto que conserva el
+estado) es el enfoque MODERNO tipo Sonic MAX: el spin como
+habilidad-estado que el salto no interrumpe — perfectamente legitimo
+y mas comodo para un remake 2D. Con v4.9 + v5.3 el kit de movimiento
+ya cubre: spindash con revs reales, rodadura con fisica clasica
+(friccion 0.0234375, factor de pendiente 0.225, tope 18), drop dash
+estilo Mania, coyote time, salto en bola, air drag clasico y control
+aereo estilo S3&K. Lo que GENUINAMENTE le falta frente a un Sonic de
+verdad, en orden de impacto: (1) SALTO DE ALTURA VARIABLE — soltar Z
+a mitad del ascenso deberia cortar el salto (en Genesis: soltar el
+boton con yspd < -4 clava yspd = -4; aqui jumpForce solo inicia el
+salto y no hay corte alguno); (2) JUMP BUFFER — apretar Z justo
+antes de aterrizar deberia saltar en el frame de contacto (QoL
+moderna, complemento natural del coyote); (3) geometria de nivel
+360 (loops/corkscrews: el motor maneja angulos y sensores, pero los
+mapas TDR no tienen loops). Propuesta: proximo fix = (1), es 6
+lineas y cambia el feel entero del salto.

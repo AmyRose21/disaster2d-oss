@@ -239,7 +239,16 @@ function scr_sonic_special()
         // de aterrizar, asi que no sirve de condicion directa: en cuanto
         // el salto pone la bola en marcha, dropDashFromJump queda fijado
         // hasta volver al suelo (o cancelar por dano/stun/etc).
-        if(!isGrounded && isJumping)
+        // v5.3 — !isSpinning: desde v5.3 saltar desde la bola CONSERVA el
+        // estado SPIN (salto en bola, ver scr_move_basic). Ese vuelo ya
+        // ES la habilidad, y dejar armar el drop dash ahi seria un
+        // boomerang: su disparo al aterrizar PISARIA la velocidad
+        // conservada de la rodadura con la fija de SONIC_DROPDASH_SPEED
+        // (14: MENOS que un spindash de 4-5 revolucadas, saldrias
+        // frenando) y hasta podria INVERTIRTE si giraste la mirada con el
+        // control aereo. El drop dash queda para los saltos normales
+        // (de pie / corriendo), que es donde brilla: recuperar la bola.
+        if(!isGrounded && isJumping && !isSpinning)
                 dropDashFromJump = true;
         
         var _ddFired = false;

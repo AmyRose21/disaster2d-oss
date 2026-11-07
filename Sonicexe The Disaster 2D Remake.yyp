@@ -1149,6 +1149,7 @@
     {"id":{"name":"spr_amy_jump_canon","path":"sprites/spr_amy_jump_canon/spr_amy_jump_canon.yy",},},
     {"id":{"name":"spr_amy_jump_fw","path":"sprites/spr_amy_jump_fw/spr_amy_jump_fw.yy",},},
     {"id":{"name":"spr_amy_jump","path":"sprites/spr_amy_jump/spr_amy_jump.yy",},},
+    {"id":{"name":"spr_amy_light_speed_canon","path":"sprites/spr_amy_light_speed_canon/spr_amy_light_speed_canon.yy",},},
     {"id":{"name":"spr_amy_lookdown_canon","path":"sprites/spr_amy_lookdown_canon/spr_amy_lookdown_canon.yy",},},
     {"id":{"name":"spr_amy_lookdown_fw","path":"sprites/spr_amy_lookdown_fw/spr_amy_lookdown_fw.yy",},},
     {"id":{"name":"spr_amy_lookdown","path":"sprites/spr_amy_lookdown/spr_amy_lookdown.yy",},},
