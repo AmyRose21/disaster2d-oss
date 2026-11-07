@@ -138,7 +138,7 @@ tarotNetTimer = 0;       // NET: contador de frames para re-enviar los loops del
 // para siempre. El bloque lazy del script queda como red de seguridad
 // para el resto de personajes (el hook de move_basic corre para todos).
 isLightDashing = false;   // true mientras recorre la cadena de anillos
-lightDashChain = [];      // ids de los anillos de la cadena
+lightDashChain = [];      // la RUTA: anillos + waypoints del desvio (v5.10)
 lightDashIdx = 0;         // indice del anillo objetivo actual
 lightDashTime = 0;        // frames de vuelo (tope de seguridad)
 lightDashDeg = 0;         // angulo de dibujo actual (grados)
@@ -150,6 +150,10 @@ lightDashVY = 0;
 lightDashGhostTimer = 0;  // v5.9.1: contador de la estela (lo usa scr_light_dash_ghost)
 lightDashAim = [];        // v5.9.2: cadena visible para la FLECHA (Draw_0)
 lightDashAimLife = 0;     // v5.9.2: vida de la flecha (caduca sola, 1 frame)
+lightDashAimX = 0;        // v5.10: primer punto de la RUTA (flecha; con
+                         // desvio A* es el primer quiebre, no el anillo)
+lightDashAimY = 0;
+lightDashAimDir = 0;      // v5.10: direccion del primer tramo de la ruta
 
 // --- Variables del ESTADO BURBUJA (secuestro, reglas canonicas) ---
 // Ver scr_amy_canon_bubble.gml para el significado y los valores

@@ -4716,3 +4716,96 @@ AJUSTE FINO: LIGHT_DASH_LOS_TRIM en scripts/scr_light_dash/
 scr_light_dash.gml — subirlo encadena mas agresivo cerca de
 superficies, bajarlo mas estricto (8 = el radio visual de un
 anillo apoyado).
+
+## v5.10 (2026-11-07) — LIGHT DASH: PATHFINDING A* REAL — el rayo traza su propio rodeo
+
+PEDIDO DEL USUARIO: "quizas podriamos mejorar un poco el sistema de
+pathfinding. Busca por internet algun sistema de pathfinding avanzado
+donde pueda servir como una especie de manera detectar las paredes
+buscar caminos atajos etc. En si normalmente con los anillos seria
+facil pero en TD sabes que eso no abundan y aparecen bastante
+separados asi que ya me entenderas". Aclaracion previa: PRIMERO el
+pull del fork del usuario (4 commits: subio el trabajo de v5.9.x y su
+propio tuning de macros — SPEED 5, FIRST_RADIUS 220, LINK_DIST 275,
+MAX_RINGS 20, MAX_TIME 200 — que QUEDA intacto y pineado en el
+checker para que nadie lo revierta).
+
+INVESTIGACION (fuentes): el A* NATIVO de GameMaker vive en los mp_grid
+(manual: mp_grid_path con allowdiag, mp_grid_add_instances con
+colision precisa, puntos en coordenadas de sala) y el estandar de la
+industria para "A* con caminos naturales" es el smoothing por STRING
+PULLING / Theta* (tirar de la cuerda y conservar solo los quiebres con
+linea de vision; gamedev.net "Navigation Meshes and Pathfinding",
+Nash & Koenig "Theta*: Any-Angle Path Planning on Grids", CMU). El
+combo elegido: mp_grid + string pulling reusando la scr_light_dash_clear
+de v5.9.5 — Theta* practico sin implementar A* a mano.
+
+POR QUE NO A* SOLO: el rayo SOLO puede volar por donde diga su ruta,
+asi que el A* solo sirve si sus quiebres entran al VUELO. La solucion:
+la cadena se convierte en RUTA = anillos + WAYPOINTS ({x, y} structs) y
+el vuelo los sigue igual que a los anillos (los targets del presupuesto
+por frame ya entendian puntos; solo hubo que hacer el bucle struct-
+aware: is_struct para el "objetivo vivo" y para la recogida — solo los
+anillos mandan CLIENT_RING_COLLECTED).
+
+COMO FUNCIONA (scr_light_dash.gml, 3 funciones nuevas):
+- scr_light_dash_grid(): mp_grid cacheado en globals (celdas de
+  LIGHT_DASH_GRID_CELL 16 px), bloquea todo obj_floor_parent con
+  mp_grid_add_instances(precise) y se reconstruye cada
+  LIGHT_DASH_GRID_REFRESH (30) frames o al cambiar de sala — las
+  puertas y el terreno movil se recalifican solos.
+- scr_light_dash_route(x1,y1,x2,y2,maxLen): mp_grid_path (A* nativo,
+  diagonales) de Amy al anillo + string pulling con scr_light_dash_clear
+  (solo sobreviven quiebres con linea de vision REAL). Las celdas de
+  salida y meta se desbloquean un momento (Amy pegada a un muro / anillo
+  apoyado no ahogan el A*) y se re-bloquean SOLO si de verdad tienen
+  terreno (collision_rectangle sobre la celda — misma semantica que
+  add_instances; re-bloquear a ciegas dejaba celdas FANTASMA en el aire
+  libre y el grid se llenaba de muros inexistentes: bug cazado en el
+  checker). Devuelve los quiebres; [] si no hay camino o el recorrido
+  se pasa del presupuesto.
+- scr_light_dash_find(): ahora devuelve la RUTA. Pase 1: el vecino mas
+  cercano con linea de vision (cero A*, el caso comun queda EXACTO a
+  v5.9.5 — verificado). Pase 2 (solo si nadie es visible): candidatos
+  en orden de cercania probando A* con presupuesto LIGHT_DASH_ROUTE_
+  FACTOR (1.5) x el alcance del tramo — el rodeo de "buscar el angulo
+  posible para rodear y llegar". Higiene nueva: anillos con el centro
+  DENTRO del terreno fuera de la lista de candidatos (el A* no se
+  zambulle a buscar anillos enterrados que nadie puede recoger).
+- scr_light_dash_step: lightDashAim sigue siendo SOLO anillos (la
+  flecha no cambia su dibujo base) + lightDashAimX/Y/Dir nuevos para
+  que la FLECHA apunte al PRIMER TRAMO de la ruta (con desvio apunta
+  al primer quiebre, no a la pared). Draw_0 usa esas vars; Create_0
+  las declara. Cero paquetes nuevos (la posicion ya viaja resuelta),
+  cero objetos nuevos, el puppet no cambia archivo.
+
+NOTA DE DISENO: rings apoyados en el suelo siguen funcionando (vuelo
+recto al anillo); el tuning del usuario (220/275) hace que el primer
+anillo util de TD casi siempre este a linea de vision y el A* solo
+entre en juego contra muros de verdad — exactamente el hueco que
+quedaba en v5.9.5.
+
+VERIFICACION: checker reescrito a 147/147 OK. Parte 1: tuning del
+usuario pineado (5 macros "no revertir"), v5.10 estaticos (funciones
+grid/route, re-bloqueo condicional, vuelo struct-aware x2, recogida
+guard, waypoints push, higiene, aim en seccion 2/Create/Draw/lazy).
+Parte 2 (constantes PARSEADAS del gml, unica fuente de verdad): A*
+8-dir sin cortar esquinas + celdas de salida/meta desbloqueadas y
+restauradas + string pulling portados 1:1. Escenarios nuevos: anillo
+tras muro CON hueco -> encadena con WAYPOINTS y el vuelo lo RODEA sin
+tocar terreno (frames exactos = ruta/SPEED); muro que tapa la sala ->
+sin cadena (el A* lo intento); rodeo sobre presupuesto -> descartado;
+REGRESION CRITICA: con linea de vision NO corre ningun A* y la ruta no
+tiene waypoints; anillo roto a mitad de desvio -> sigue quiebres y
+come el segundo; el grid no acumula celdas fantasma; anillos TD a 250
+px encadenan con el LINK 275 del usuario. Los escenarios v5.9.x
+(rotacion, presupuesto, rotos, gates, flecha, apoyados, enterrados)
+siguen OK con las constantes nuevas.
+
+AJUSTE FINO (macros nuevas en scr_light_dash.gml):
+- LIGHT_DASH_ROUTE_FACTOR 1.5: presupuesto del rodeo (x el alcance del
+  tramo). Subir = desvios mas largos permitidos.
+- LIGHT_DASH_GRID_CELL 16: celdas del A* (mas fino = rodeos mas
+  pegados al muro, mas caro).
+- LIGHT_DASH_GRID_REFRESH 30: cada cuantos frames se reconstruye el
+  grid (terreno movil).

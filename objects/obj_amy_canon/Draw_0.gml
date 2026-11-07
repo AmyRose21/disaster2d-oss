@@ -118,15 +118,17 @@ if(lightDashAimLife > 0)
 
         if(_ring != noone && instance_exists(_ring) && !_ring.used)
         {
-                // direccion del PRIMER TRAMO (de Amy al anillo): hacia
-                // donde saldra disparada
-                var _dir = point_direction(x, y, _ring.x, _ring.y);
+                // v5.10: direccion del PRIMER TRAMO DE LA RUTA — recto al
+                // anillo o el primer giro del desvio A*: hacia donde saldra
+                // disparada de verdad
+                var _dir = lightDashAimDir;
                 var _pulse = 0.75 + 0.25 * dsin(current_time / 4);
 
-                // ancla de la flecha: un poco antes del anillo, sobre la
-                // linea del tramo (del lado de Amy)
-                var _ax = _ring.x + lengthdir_x(LIGHT_DASH_ARROW_DIST, _dir + 180);
-                var _ay = _ring.y + lengthdir_y(LIGHT_DASH_ARROW_DIST, _dir + 180);
+                // ancla de la flecha: un poco antes del PRIMER PUNTO de la
+                // ruta (el anillo en vuelo recto; el primer quiebre con
+                // desvio), sobre la linea del tramo (del lado de Amy)
+                var _ax = lightDashAimX + lengthdir_x(LIGHT_DASH_ARROW_DIST, _dir + 180);
+                var _ay = lightDashAimY + lengthdir_y(LIGHT_DASH_ARROW_DIST, _dir + 180);
 
                 gpu_set_blendmode(bm_add);
                 draw_set_color(make_color_rgb(255, 216, 64));

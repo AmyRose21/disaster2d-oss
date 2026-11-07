@@ -103,6 +103,26 @@
 //  hielo) cierra sobre el rayo a mitad de vuelo, NO hay rescate propio:
 //  el juego ya tiene su sistema anti-atasco que saca al jugador de
 //  dentro del solido, y ese sistema la rescata igual que a cualquiera.
+//
+// v5.10 — PATHFINDING A* REAL (el rodeo de verdad): la linea de vision
+//  de v5.9.5 sabia que habia una pared en medio, pero si NINGUN anillo
+//  tenia tramo limpio la cadena simplemente moria — y en TD los anillos
+//  escasean y aparecen bastante separados, asi que "esperar al siguiente
+//  anillo visible" casi nunca pasa. Ahora el rayo traza su propia RUTA:
+//  cuando el anillo mas cercano no tiene linea de vision pero existe un
+//  camino AEREO a su alrededor, el A* NATIVO de GameMaker (mp_grid, con
+//  diagonales) calcula la ruta por las celdas libres y un string-pulling
+//  (el "Theta* practico": tirar de la cuerda con la misma scr_light_dash
+//  _clear) la endereza a tramos con linea de vision real. Esos quiebres
+//  entran a la ruta como WAYPOINTS ({x, y} structs) y el vuelo los sigue
+//  igual que a los anillos: el rayo PEGA EL RODEO aunque no haya un solo
+//  anillo guiandolo. Presupuesto del desvio: LIGHT_DASH_ROUTE_FACTOR por
+//  la distancia tope del tramo (si el rodeo es mas largo, se descarta y
+//  se prueba el siguiente candidato, como en v5.9.5). Con linea de vision
+//  directa NO corre ningun A* — el caso comun queda intacto. La FLECHA
+//  apunta al primer tramo de la ruta (recto o el primer giro del desvio)
+//  y sigue marcando el anillo objetivo con el halo. Cero paquetes nuevos
+//  (la posicion ya viaja resuelta), cero objetos nuevos.
 // =====================================================================
 
 // --- PARAMETROS AJUSTABLES (60 frames = 1 segundo) -------------------
@@ -134,6 +154,16 @@
 // siga encadenando: el rayo llega AL anillo, no lo atraviesa.
 #macro LIGHT_DASH_TERRAIN obj_floor_parent
 #macro LIGHT_DASH_LOS_TRIM 8
+// v5.10 — PATHFINDING A*: el presupuesto del desvio y el grid.
+// ROUTE_FACTOR multiplica la distancia tope del tramo (FIRST_RADIUS al
+// arrancar, LINK_DIST al extender): un rodeo mas largo que eso se
+// descarta. GRID_CELL es el tamano de celda del mp_grid (16 px: fino
+// para rodear muros, barato para el A*); GRID_REFRESH cada cuantos
+// frames se reconstruye el grid (puertas y terreno movil se recalifican
+// solos).
+#macro LIGHT_DASH_ROUTE_FACTOR 1.5
+#macro LIGHT_DASH_GRID_CELL 16
+#macro LIGHT_DASH_GRID_REFRESH 30
 
 // scr_light_dash_step(): activacion + viaje. Devuelve true si ESTE
 // frame lo controla el dash. Las variables lazy siguen el patron de
@@ -163,6 +193,9 @@ function scr_light_dash_step()
                 lightDashGhostTimer = 0; // contador de la estela (scr_light_dash_ghost)
                 lightDashAim = [];       // v5.9.2: cadena para la FLECHA (Draw_0)
                 lightDashAimLife = 0;    // v5.9.2: vida de la flecha (caduca sola)
+                lightDashAimX = 0;       // v5.10: primer punto de la RUTA (flecha)
+                lightDashAimY = 0;
+                lightDashAimDir = 0;     // v5.10: direccion del primer tramo
         }
 
         // v5.9.2 — la FLECHA caduca sola cada frame: la repuebla el escaneo
@@ -191,13 +224,14 @@ function scr_light_dash_step()
                 // solido, y ese sistema la rescata igual que a cualquiera.)
 
                 // --- objetivo vivo? (el EXE pudo reventarlo / un aliado
-                //     recogerlo: se salta el eslabon y se sigue) ---
+                //     recogerlo: se salta el eslabon y se sigue; los
+                //     waypoints del desvio v5.10 nunca mueren) ---
                 var _tgt = noone;
                 while(lightDashIdx < array_length(lightDashChain))
                 {
                         var _r = lightDashChain[lightDashIdx];
 
-                        if(instance_exists(_r) && !_r.used)
+                        if(is_struct(_r) || (instance_exists(_r) && !_r.used))
                         {
                                 _tgt = _r;
                                 break;
@@ -242,20 +276,24 @@ function scr_light_dash_step()
                                 // (iid + nid): el server responde igual que siempre (rings,
                                 // sonido y posible curacion de los 10 en TODOS los clientes).
                                 // El used = true hace que el Step del anillo se salga solo
-                                // (ningun paquete duplicado).
-                                _tgt.used = true;
+                                // (ningun paquete duplicado). v5.10: solo los ANILLOS se
+                                // recogen; los waypoints del desvio solo se sobrevuelan.
+                                if(!is_struct(_tgt))
+                                {
+                                        _tgt.used = true;
 
-                                var _pak = cpacket_tcp(PacketType.CLIENT_RING_COLLECTED);
-                                buffer_write(_pak, buffer_u8, _tgt.iid);
-                                buffer_write(_pak, buffer_u16, _tgt.nid);
-                                send_server_tcp(_pak);
+                                        var _pak = cpacket_tcp(PacketType.CLIENT_RING_COLLECTED);
+                                        buffer_write(_pak, buffer_u8, _tgt.iid);
+                                        buffer_write(_pak, buffer_u16, _tgt.nid);
+                                        send_server_tcp(_pak);
+                                }
 
                                 _tgt = noone;
                                 while(lightDashIdx < array_length(lightDashChain))
                                 {
                                         var _r2 = lightDashChain[lightDashIdx];
 
-                                        if(instance_exists(_r2) && !_r2.used)
+                                        if(is_struct(_r2) || (instance_exists(_r2) && !_r2.used))
                                         {
                                                 _tgt = _r2;
                                                 break;
@@ -368,16 +406,35 @@ function scr_light_dash_step()
         // tocar SI arranca el rayo desde la flotacion, y el jugador tiene
         // que verlo. Misma cadena para la flecha y para el arranque: lo que
         // ves es lo que vuela.
-        var _chain = scr_light_dash_find();
+        var _route = scr_light_dash_find();
 
-        lightDashAim = _chain;
+        // la FLECHA solo marca ANILLOS (los waypoints no llevan halo);
+        // el vuelo se come la ruta completa
+        lightDashAim = [];
+
+        for(var i = 0; i < array_length(_route); i++)
+        {
+                if(!is_struct(_route[i]))
+                        array_push(lightDashAim, _route[i]);
+        }
+
+        // flecha: el PRIMER PUNTO de la ruta (anillo en vuelo recto, o el
+        // primer quiebre del desvio A*) y la direccion del primer tramo —
+        // con rodeo apunta hacia donde sale el rayo, no hacia la pared
+        if(array_length(_route) > 0)
+        {
+                lightDashAimX = _route[0].x;
+                lightDashAimY = _route[0].y;
+                lightDashAimDir = point_direction(x, y, _route[0].x, _route[0].y);
+        }
+
         lightDashAimLife = 2; // la gasta el Draw (1 frame de vida + colchon)
 
         // v5.9.3 — UN anillo BASTA: el dash funciona tambien como lunge
         // de recogida hacia un anillo suelto (recoge y sale disparada
         // hacia el). Con cadena vacia (nada a <= 96 px) no hay nada que
         // hacer. La flecha del Draw tambien sale con 1 solo anillo.
-        if(array_length(_chain) < 1)
+        if(array_length(_route) < 1)
                 return false;
 
         // Z TOCADA en el aire (tap). MANTENERLA no activa nada: la pasiva
@@ -398,7 +455,7 @@ function scr_light_dash_step()
         isGrounded = false;
         image_index = 0;
 
-        lightDashChain = _chain;
+        lightDashChain = _route;
         lightDashIdx = 0;
         lightDashTime = 0;
         lightDashDeg = radtodeg(angle); // parte de la pose actual (0 en el aire)
@@ -414,7 +471,7 @@ function scr_light_dash_step()
         // con la direccion buena (los primeros frames de red se ven
         // bien en el puppet). Con cadena larga lo sobreescribe el viaje
         // en cuanto corre el primer frame real.
-        var _d0 = point_direction(x, y, _chain[0].x, _chain[0].y);
+        var _d0 = point_direction(x, y, _route[0].x, _route[0].y);
         lightDashVX = lengthdir_x(LIGHT_DASH_SPEED, _d0);
         lightDashVY = lengthdir_y(LIGHT_DASH_SPEED, _d0);
 
@@ -528,94 +585,288 @@ function scr_light_dash_clear(x1, y1, x2, y2)
                                LIGHT_DASH_TERRAIN, true, true);
 }
 
-// scr_light_dash_find(): construye la cadena de anillos. El primer
-// eslabon es el anillo vivo mas cercano dentro del radio de captura
-// (en CUALQUIER direccion: asi las columnas verticales se pescan
-// llegando por el lateral); a partir de ahi, vecino mas cercano
-// encadenado (codicioso). v5.9.3: captura a 96 px y eslabones hasta
-// de 80 px — con las lineas/columnas/arcos de los mapas (anillos a
-// 24-36 px) sigue el camino exacto, pero ahora tambien engancha
-// lineas sueltas o dispersas y UN anillo solo forma cadena (lunge).
-// v5.9.5: cada candidato exige ADEMAS linea de vision limpia
-// (scr_light_dash_clear): el vecino mas cercano DETRAS de un muro no
-// encadena y la cadena pasa al mas cercano VISIBLE — si los anillos
-// rodean un obstaculo, el rayo los sigue ALREDEDOR (pathfinding real
-// por donde el diseñador puso los anillos). Si nadie es visible, la
-// cadena termina ahi: Amy sale con el impulso del ultimo tramo limpio
-// y nunca queda incrustada en el terreno.
-function scr_light_dash_find()
+// scr_light_dash_grid(): el mp_grid del rayo (cacheado en globals). Se
+// reconstruye cada LIGHT_DASH_GRID_REFRESH frames o al cambiar de sala:
+// las puertas y el terreno movil se recalifican solos. Celdas de
+// LIGHT_DASH_GRID_CELL px; bloquea todo lo que cuelga de
+// LIGHT_DASH_TERRAIN (el padre universal) con mp_grid_add_instances
+// (precise: las pendientes son mascaras diagonales). El path para
+// mp_grid_path tambien se cachea (global.__ldPath). Devuelve el id del
+// grid o -1 si no se pudo crear.
+function scr_light_dash_grid()
 {
-        var _chain = [];
-
-        // --- primer anillo (v5.9.5: el mas cercano VISIBLE — el tramo
-        // desde Amy tambien se prueba: un anillo al otro lado de la pared
-        // o bajo el borde del piso ya no se pesca) ---
-        var _best = noone;
-        var _bestDist = LIGHT_DASH_FIRST_RADIUS;
-
-        with(obj_ring)
+        if(!variable_global_exists("__ldGrid"))
         {
-                if(used || !visible || image_alpha < 1)
-                        continue;
-
-                var _d = point_distance(x, y, other.x, other.y);
-
-                if(_d < _bestDist && scr_light_dash_clear(other.x, other.y, x, y))
-                {
-                        _bestDist = _d;
-                        _best = id;
-                }
+                global.__ldGrid = -1;
+                global.__ldGridRoom = -4;
+                global.__ldGridTimer = 0;
+                global.__ldPath = path_add();
         }
 
-        if(_best == noone)
-                return _chain;
+        global.__ldGridTimer--;
 
-        array_push(_chain, _best);
+        if(global.__ldGridTimer <= 0 || global.__ldGridRoom != room)
+        {
+                if(global.__ldGrid != -1)
+                        mp_grid_destroy(global.__ldGrid);
 
-        // --- extension de la cadena ---
+                var _cw = LIGHT_DASH_GRID_CELL;
+                var _hw = max(1, room_width div _cw);
+                var _hh = max(1, room_height div _cw);
+
+                global.__ldGrid = mp_grid_create(0, 0, _hw, _hh, _cw, _cw);
+
+                mp_grid_add_instances(global.__ldGrid, LIGHT_DASH_TERRAIN, true);
+
+                global.__ldGridRoom = room;
+                global.__ldGridTimer = LIGHT_DASH_GRID_REFRESH;
+        }
+
+        return global.__ldGrid;
+}
+
+// scr_light_dash_route(): el PATHFINDING A* del rayo (v5.10). Traza una
+// ruta AEREA de (x1,y1) a (x2,y2) por las celdas libres del mp_grid
+// (mp_grid_path: el A* nativo de GameMaker, con diagonales) y la
+// ENDEREZA con string pulling — tirar de la cuerda con la misma
+// scr_light_dash_clear (el "Theta* practico"): solo sobreviven los
+// quiebres con linea de vision REAL. Devuelve los PUNTOS DE QUIEBRE
+// (sin el inicio y sin la meta, que el llamador anade como anillo) o
+// [] si no hay camino o el recorrido completo se pasa de maxLen (el
+// presupuesto del desvio). El A* corre por CENTROS de celda: la celda
+// de salida y la de meta se desbloquean un momento (Amy pegada a un
+// muro / anillo apoyado en el suelo no deben ahogar el A*) y se vuelven
+// a bloquear despues, para no dejar agujeros en el mapa.
+function scr_light_dash_route(x1, y1, x2, y2, maxLen)
+{
+        var _grid = scr_light_dash_grid();
+
+        if(_grid == -1)
+                return [];
+
+        var _path = global.__ldPath;
+        var _cw = LIGHT_DASH_GRID_CELL;
+        var _hw = max(1, room_width div _cw);
+        var _hh = max(1, room_height div _cw);
+
+        // coordenadas dentro del grid
+        var _x1 = clamp(x1, 0, _hw * _cw - 1);
+        var _y1 = clamp(y1, 0, _hh * _cw - 1);
+        var _x2 = clamp(x2, 0, _hw * _cw - 1);
+        var _y2 = clamp(y2, 0, _hh * _cw - 1);
+
+        // desbloquear salida y meta un momento — y re-bloquear despues
+        // SOLO las que de verdad tienen terreno (collision_rectangle sobre
+        // la celda: misma semantica que mp_grid_add_instances). Re-bloquear
+        // a ciegas dejaria celdas FANTASMA en el aire libre cada vez que
+        // Amy o un anillo estan en sitio despejado, y el grid se llenaria
+        // de muros inexistentes hasta el proximo refresh.
+        var _c1h = _x1 div _cw;
+        var _c1v = _y1 div _cw;
+        var _c2h = _x2 div _cw;
+        var _c2v = _y2 div _cw;
+        var _b1 = collision_rectangle(_c1h * _cw, _c1v * _cw, (_c1h + 1) * _cw - 1, (_c1v + 1) * _cw - 1, LIGHT_DASH_TERRAIN, true, true);
+        var _b2 = collision_rectangle(_c2h * _cw, _c2v * _cw, (_c2h + 1) * _cw - 1, (_c2v + 1) * _cw - 1, LIGHT_DASH_TERRAIN, true, true);
+
+        mp_grid_clear_cell(_grid, _c1h, _c1v);
+        mp_grid_clear_cell(_grid, _c2h, _c2v);
+
+        var _ok = mp_grid_path(_grid, _path, _x1, _y1, _x2, _y2, true);
+
+        if(_b1)
+                mp_grid_add_cell(_grid, _c1h, _c1v);
+
+        if(_b2)
+                mp_grid_add_cell(_grid, _c2h, _c2v);
+
+        if(!_ok)
+                return [];
+
+        // --- string pulling: puntos del path (centros de celda) + la META
+        //     REAL al final; de la cuerda quedan solo los quiebres con
+        //     linea de vision (cada tramo conservado pasa clear) ---
+        var _n = path_get_number(_path);
+
+        if(_n <= 0)
+                return [];
+
+        var _pts = [];
+        var _ax = _x1;
+        var _ay = _y1;
+        var _i = 0;
+
+        while(_i <= _n)
+        {
+                var _far = _i;
+
+                for(var _j = _n; _j >= _i; _j--)
+                {
+                        var _qx = (_j == _n) ? _x2 : path_get_point_x(_path, _j);
+                        var _qy = (_j == _n) ? _y2 : path_get_point_y(_path, _j);
+
+                        if(scr_light_dash_clear(_ax, _ay, _qx, _qy))
+                        {
+                                _far = _j;
+                                break;
+                        }
+                }
+
+                var _lx = (_far == _n) ? _x2 : path_get_point_x(_path, _far);
+                var _ly = (_far == _n) ? _y2 : path_get_point_y(_path, _far);
+
+                array_push(_pts, [_lx, _ly]);
+
+                _ax = _lx;
+                _ay = _ly;
+                _i = _far + 1;
+        }
+
+        // presupuesto: el recorrido completo hasta la meta real
+        var _len = point_distance(_x1, _y1, _pts[0][0], _pts[0][1]);
+
+        for(var i = 1; i < array_length(_pts); i++)
+                _len += point_distance(_pts[i - 1][0], _pts[i - 1][1], _pts[i][0], _pts[i][1]);
+
+        if(_len > maxLen)
+                return [];
+
+        // devolver los QUIEBRES: todo menos la meta (el llamador la anade
+        // como anillo al final de la ruta)
+        array_delete(_pts, array_length(_pts) - 1, 1);
+
+        return _pts;
+}
+
+// scr_light_dash_find(): construye la RUTA del rayo (v5.10: anillos +
+// waypoints de desvio). El primer eslabon es el anillo vivo mas cercano
+// dentro del radio de captura; a partir de ahi, vecino mas cercano
+// encadenado (codicioso), con los topes de siempre (FIRST_RADIUS al
+// arrancar, LINK_DIST al extender, MAX_RINGS de tope). v5.9.5: cada
+// candidato exige linea de vision limpia (scr_light_dash_clear).
+// v5.10 — PATHFINDING A*: cuando el candidato mas cercano NO tiene
+// linea de vision pero existe un camino AEREO a su alrededor, el A*
+// nativo (mp_grid) traza el rodeo y el string pulling lo deja en
+// quiebres con linea de vision real: esos quiebres entran a la ruta
+// como WAYPOINTS ({x, y} structs) y el vuelo los sigue igual que a los
+// anillos — el rayo RODEA la pared aunque ningun anillo lo guie, con
+// un presupuesto de LIGHT_DASH_ROUTE_FACTOR x la distancia tope (si el
+// rodeo es mas largo, el candidato se descarta y se prueba el
+// siguiente). Con linea de vision directa no corre NINGUN A*: el caso
+// comun queda exactamente como v5.9.5. Devuelve la RUTA completa
+// (waypoints + anillos en orden de vuelo); scr_light_dash_step filtra
+// los anillos para la FLECHA.
+function scr_light_dash_find()
+{
+        var _route = [];  // lo que vuela: waypoints (structs) + anillos
+        var _chain = [];  // solo anillos (membresia / flecha)
+        var _px = x;      // punto actual de la ruta (arranca en Amy)
+        var _py = y;
+
         while(array_length(_chain) < LIGHT_DASH_MAX_RINGS)
         {
-                var _last = _chain[array_length(_chain) - 1];
-                var _next = noone;
-                var _nextDist = LIGHT_DASH_LINK_DIST;
+                // alcance del tramo: radio de captura al arrancar,
+                // tolerancia de eslabon al extender
+                var _reach = (array_length(_chain) == 0) ? LIGHT_DASH_FIRST_RADIUS : LIGHT_DASH_LINK_DIST;
+
+                // candidatos del tramo (vivos, fuera de la cadena y a
+                // menos de _reach del punto actual), con su distancia
+                var _cand = [];
 
                 with(obj_ring)
                 {
                         if(used || !visible || image_alpha < 1)
                                 continue;
 
-                        // ya esta en la cadena?
-                        var _inChain = false;
+                        // v5.10: higiene de candidatos — un anillo ENTERRADO
+                        // (centro dentro del terreno) no lo recoge nadie y el
+                        // A* no debe zambullirse a buscarlo
+                        if(collision_point(x, y, LIGHT_DASH_TERRAIN, true, true))
+                                continue;
+
+                        var _in = false;
 
                         for(var i = 0; i < array_length(_chain); i++)
                         {
                                 if(_chain[i] == id)
                                 {
-                                        _inChain = true;
+                                        _in = true;
                                         break;
                                 }
                         }
 
-                        if(_inChain)
+                        if(_in)
                                 continue;
 
-                        var _d = point_distance(x, y, _last.x, _last.y);
+                        var _d = point_distance(x, y, _px, _py);
 
-                        // v5.9.5: vecino mas cercano VISIBLE — el eslabon
-                        // que cruce el piso o un muro se salta y la cadena
-                        // sigue por el siguiente anillo con tramo limpio
-                        if(_d < _nextDist && scr_light_dash_clear(_last.x, _last.y, x, y))
+                        if(_d < _reach)
+                                array_push(_cand, [_d, id]);
+                }
+
+                if(array_length(_cand) == 0)
+                        break;
+
+                // 1) el mas cercano con linea de vision (caso normal:
+                //    cero A*, mismo comportamiento que v5.9.5)
+                var _next = noone;
+                var _nextD = _reach + 1;
+
+                for(var i = 0; i < array_length(_cand); i++)
+                {
+                        var _r = _cand[i][1];
+
+                        if(_cand[i][0] >= _nextD)
+                                continue;
+
+                        if(scr_light_dash_clear(_px, _py, _r.x, _r.y))
                         {
-                                _nextDist = _d;
-                                _next = id;
+                                _nextD = _cand[i][0];
+                                _next = _r;
+                        }
+                }
+
+                // 2) nadie visible: el mas cercano RUTABLE por A* — el
+                //    rodeo de "buscar el angulo posible para llegar"
+                var _wps = [];
+
+                if(_next == noone)
+                {
+                        var _pool = _cand;
+
+                        while(array_length(_pool) > 0 && _next == noone)
+                        {
+                                // extraer el candidato mas cercano
+                                var _mi = 0;
+
+                                for(var i = 1; i < array_length(_pool); i++)
+                                        if(_pool[i][0] < _pool[_mi][0])
+                                                _mi = i;
+
+                                var _r2 = _pool[_mi][1];
+
+                                array_delete(_pool, _mi, 1);
+
+                                _wps = scr_light_dash_route(_px, _py, _r2.x, _r2.y,
+                                        _reach * LIGHT_DASH_ROUTE_FACTOR);
+
+                                if(array_length(_wps) > 0)
+                                        _next = _r2;
                         }
                 }
 
                 if(_next == noone)
-                        break;
+                        break; // ni recto ni rodeando: la ruta termina aqui
 
+                // los quiebres del rodeo primero, luego el anillo
+                for(var i = 0; i < array_length(_wps); i++)
+                        array_push(_route, {x: _wps[i][0], y: _wps[i][1]});
+
+                array_push(_route, _next);
                 array_push(_chain, _next);
+
+                _px = _next.x;
+                _py = _next.y;
         }
 
-        return _chain;
+        return _route;
 }
