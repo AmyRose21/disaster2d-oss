@@ -1,8 +1,12 @@
 function scr_amy_canon_special()
 {
         // =================================================================
-        //  ATAQUE 3: ACOMETIDA DE MARTILLO (tecla C)
+        //  ATAQUE 3: ACOMETIDA DE MARTILLO (tecla C EN EL SUELO)
         //  Amy corre hacia adelante golpeando con el martillo.
+        //  v6.1: la C EN EL AIRE ya no cae aqui — es el LSA (scr_light
+        //  _dash): mismo boton, dos caras, mismo CD compartido (dashTimer).
+        //  El gate isGrounded de abajo es el que reparte: suelo = martillo,
+        //  aire = LSA.
         //  Ajusta DURACION / VELOCIDAD / CD en las macros
         //  AMY_CANON_DASH_* del Create_0.gml de obj_amy_canon.
         // =================================================================
@@ -161,8 +165,9 @@ function scr_amy_canon_special()
         }
         
         // --- ATAQUE 3: INICIO de la acometida ---
-        // Se activa con la tecla C (global.KeyC), solo en el suelo
-        // y cuando el CD (dashTimer) llego a 0.
+        // Se activa con la tecla C (global.KeyC), SOLO EN EL SUELO (en el
+        // aire la C es el LSA de scr_light_dash) y cuando el CD (dashTimer,
+        // compartido con el LSA) llega a 0.
         if(global.playerControls && !isDashing && isGrounded && !isLightDashing && keyboard_check_pressed(global.KeyC) && dashTimer <= 0)
         {
                 // Direccion: si aprietas izquierda/derecha al iniciar,

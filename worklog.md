@@ -4890,3 +4890,21 @@ LSA, salida y freno). Nuevas simulaciones: objetivo (6 filtros), homing
 golpe/esquiva, extension desde el exe, senal de stun, PIPELINE del bug
 del piso con y sin el seguro (sin: nunca llega; con: llega en ~11 frames),
 frenado con latch, i-frames en vuelo.
+
+---
+Task ID: 7
+Agent: Super Z (main agent)
+Task: Light Dash v6.1 — correccion de diseño del LSA de Amy Canon (C en el AIRE con cadena de enemigos; C en el suelo = martillo)
+
+Work Log:
+- Pull del fork (4bb95335): el v6.0 entregado antes tenia el diseño INVERTIDO (LSA terrestre con C en suelo, caida al martillo sin objetivo, un solo enemigo + anillos). El usuario corrigio las reglas: C en TIERRA = martillo, C en el AIRE = LSA con dash, cadena de enemigos que JAMAS repite objetivos, luego anillos, intercepcion por el camino, y nadie con i-frames como objetivo
+- scr_light_dash.gml: seccion 2 reescrita como LSA AEREO dentro de if(!isGrounded), ANTES que la Z (seccion 3, cuerpo intacto); la vieja seccion 3 terrestre eliminada (el suelo no activa nada: el martillo manda con su gate isGrounded del especial)
+- Nueva maquina de cadena: lsaHit (banda de objetivos golpeados/fallados — jamas se repiten), scr_lsa_find_target_at (buscador general con filtros Chocola + banda + skip), scr_lsa_leg_to (tramo recto o rodeo A* + eslabon vivo con homing), scr_lsa_next_leg (siguiente enemigo a <= LSA_NEXT_DIST o anillos de la zona desde el ultimo objetivo)
+- Intercepcion restringida a la FASE DE ANILLOS (descubierta en simulacion: sin restriccion, el rayo se desviaba a por un enemigo MAS LEJOS teniendo uno a 35 px — la cadena enemigo->enemigo ya secuencia sola); scr_lsa_hit con gate de i-frames ganados a mitad de vuelo
+- Macros nuevas: LSA_NEXT_DIST (= RANGE 400), LSA_INTERCEPT 140, LSA_MAX_TARGETS 6 (tope de seguridad); Create_0 declara lsaHit; comentarios del especial actualizados (gate intacto)
+- Checker check_v61_light_dash.py: 227/227 OK (hereda 197 del v6.0, cero regresiones). Sims nuevas: vuelo completo de la cadena (exe -> esbirro -> anillos, aliado intacto, cada enemigo exactamente 1 vez), intercepcion real (enemigo a 516 px del objetivo, inalcanzable por cadena, cae por el camino de los anillos), tope (8 enemigos -> 6), i-frames (arranque/re-plan/golpe) y vacio (sin bando exe no arranca)
+
+Stage Summary:
+- Reglas del usuario implementadas al pie de la letra: C aire = LSA (exe o minion mas cercano -> golpea uno, salta a otro, jamas repite -> anillos -> intercepta por el camino), C suelo = martillo, sin i-frames como objetivo en ningun punto del vuelo
+- Infraestructura v6.0 intacta (stun por senal snd_dash dirigida, homing con PURSUIT, contacto por PLAYER_ATTACKING, i-frames de vuelo + 2 s de salida, frenado X con latch, fix del piso, fix de rotacion, Z nunca dispara LSA)
+- Entregable: download/td2dr_light_dash_v61.zip (SOLO archivos modificados/creados: scr_light_dash.gml, Create_0.gml, scr_amy_canon_special.gml, check_v61_light_dash.py, LEEME_LIGHT_DASH_V61.txt, worklog.md); LEEME_V60 y check_v60 quedan obsoletos (borrables)

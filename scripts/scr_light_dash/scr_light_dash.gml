@@ -124,22 +124,22 @@
 //  y sigue marcando el anillo objetivo con el halo. Cero paquetes nuevos
 //  (la posicion ya viaja resuelta), cero objetos nuevos.
 //
-// v6.0 — LSA + I-FRAMES + FRENADO + FIXES (la habilidad completa):
-//  1. LIGHT SPEED ATTACK (tecla C, SOLO en el suelo): la misma maquina
-//     de vuelo pero DISPARADA A UN OBJETIVO del bando EXE (exe real o
-//     esbirro demonizado: el mas cercano a menos de LSA_RANGE, vivo,
-//     sin i-frames ni stun previo). El rayo va A POR EL con homing
+// v6.0 — LSA + I-FRAMES + FRENADO + FIXES (la habilidad completa;
+//     el DISEÑO del LSA se CORRIGIO en v6.1 — ver su bloque al final):
+//  1. LIGHT SPEED ATTACK (tecla C): la misma maquina de vuelo pero
+//     DISPARADA A UN OBJETIVO del bando EXE (exe real o esbirro
+//     demonizado: el mas cercano a menos de LSA_RANGE, vivo, sin
+//     i-frames ni stun previo). El rayo va A POR EL con homing
 //     (mientras no se aleje de LSA_PURSUIT: si corre, el eslabon se
-//     congela y el golpe no entra — esquivado), le pega al llegar (stun
-//     de 3 s por senal de red: snd_dash con shouldPlay=true al nid del
-//     objetivo, la rama del CLIENT_SOUND_EMIT la traduce en SU cliente,
-//     cero paquetes nuevos) y ENCADENA con los anillos que haya por la
-//     zona antes de salir disparada. Mientras vuela lleva isAttacking:
+//     congela y el golpe no entra — esquivado) y le pega al llegar
+//     (stun de 3 s por senal de red: snd_dash con shouldPlay=true al
+//     nid del objetivo, la rama del CLIENT_SOUND_EMIT la traduce en SU
+//     cliente, cero paquetes nuevos). Mientras vuela lleva isAttacking:
 //     cualquier exe que TOQUE el rayo queda aturdido por el sistema de
 //     contacto del juego (el mismo de la acometida). La Z NUNCA dispara
-//     el LSA (solo anillos) y la C sin objetivo cae a la acometida de
-//     martillo de siempre: mismo CD compartido (dashTimer). Sin version
-//     aerea: ese hueco lo tiene el impulso de tarot de la X.
+//     el LSA (solo anillos). (v6.0 lo lanzaba desde el suelo y la C sin
+//     objetivo caia al martillo; v6.1 lo mando al aire y devolvio la
+//     C del suelo al martillo: las reglas del usuario.)
 //  2. I-FRAMES: durante el vuelo (dash y LSA) es intocable (hurttime
 //     siempre > 0) y al SALIR quedan 2 s gratis (LIGHT_DASH_IFRAME_EXIT).
 //  3. FRENADO DE EMERGENCIA (X): SOLO el dash de anillos se frena en
@@ -157,6 +157,28 @@
 //     del manejo) y el Draw local forzaba angle = 0 con ese flag — el
 //     rayo volaba DE LADO hacia los anillos de ARRIBA sin girar. Ahora
 //     el dash manda: (isSpinning && !isLightDashing) ? 0 : angle.
+//
+// v6.1 — CORRECCION DE DISEÑO DEL LSA (las reglas de verdad del
+//  usuario, punto por punto):
+//  1. EL LSA ES AEREO: la C EN EL AIRE dispara el LSA con dash; la C
+//     EN EL SUELO es el MARTILLO de siempre (scr_amy_canon_special).
+//     El bloque del LSA vive DENTRO del if(!isGrounded), antes que la
+//     Z, para que sus caidas no le roben el turno a nadie.
+//  2. CADENA DE ENEMIGOS: "golpea a uno, salta a otro, JAMAS repite
+//     objetivos". Cada objetivo alcanzado se marca en lsaHit y el
+//     re-plan (scr_lsa_next_leg) engancha el SIGUIENTE enemigo valido
+//     mas cercano a menos de LSA_NEXT_DIST; cuando no queda nadie, se
+//     lanza por los ANILLOS de la zona (scr_light_dash_chain desde el
+//     ultimo objetivo).
+//  3. INTERCEPCION POR EL CAMINO: mientras vuela por ANILLOS (o waypoints
+//     del desvio), si aparece un enemigo no golpeado a menos de
+//     LSA_INTERCEPT, el resto de la ruta se descarta y el rayo se desvia
+//     a por el; tras golpearlo, la cadena sigue. En la fase
+//     enemigo->enemigo no hay intercepcion: la cadena secuencia sola.
+//  4. SIN I-FRAMES COMO OBJETIVO: el enemigo con isHurt (el
+//     semitransparente) JAMAS se detecta como objetivo — ni al arrancar,
+//     ni en el re-plan, ni en la intercepcion — y si el objetivo gana
+//     i-frames a mitad de vuelo, el golpe no entra (esquivado).
 // =====================================================================
 
 // --- PARAMETROS AJUSTABLES (60 frames = 1 segundo) -------------------
@@ -198,19 +220,29 @@
 #macro LIGHT_DASH_ROUTE_FACTOR 1.5
 #macro LIGHT_DASH_GRID_CELL 16
 #macro LIGHT_DASH_GRID_REFRESH 30
-// v6.0 — LSA (LIGHT SPEED ATTACK, tecla C en el suelo): la otra cara de
-// la habilidad. RANGE es el alcance de captura del objetivo (exe o
-// esbirro demonizado); PURSUIT es hasta donde persigue el homing antes
-// de congelar el eslabon (el contrajuego: CORRER); HIT_RADIUS es lo
-// cerca que tiene que estar el objetivo del eslabon al llegar para que
-// el golpe entre; STUN_TIME son los 3 s de aturdimiento; MAX_TIME es el
-// tope de vuelo propio del LSA (la ruta al exe + los anillos puede ser
-// mas larga que la de un dash normal de anillos).
+// v6.0 — LSA (LIGHT SPEED ATTACK, tecla C EN EL AIRE desde v6.1): la
+// otra cara de la habilidad. RANGE es el alcance de captura del
+// objetivo (exe o esbirro demonizado); PURSUIT es hasta donde persigue
+// el homing antes de congelar el eslabon (el contrajuego: CORRER);
+// HIT_RADIUS es lo cerca que tiene que estar el objetivo del eslabon al
+// llegar para que el golpe entre; STUN_TIME son los 3 s de
+// aturdimiento; MAX_TIME es el tope de vuelo propio del LSA (la cadena
+// de enemigos + los anillos puede ser mas larga que la de un dash
+// normal de anillos).
 #macro LSA_RANGE 400
 #macro LSA_PURSUIT (LSA_RANGE * 1.5)
 #macro LSA_HIT_RADIUS 48
 #macro LSA_STUN_TIME (60 * 3)
 #macro LSA_MAX_TIME 300
+// v6.1 — la CADENA de enemigos: NEXT_DIST es el alcance de captura del
+// SIGUIENTE objetivo desde la posicion del recien golpeado (la regla
+// "golpea a uno, salta a otro"); INTERCEPT es el radio de desvio a
+// mitad de vuelo ("si encuentra otro enemigo por el camino que no haya
+// sido golpeado, lo golpeara"); MAX_TARGETS es el tope de objetivos por
+// vuelo (seguridad: la cadena siempre termina).
+#macro LSA_NEXT_DIST LSA_RANGE
+#macro LSA_INTERCEPT 140
+#macro LSA_MAX_TARGETS 6
 // v6.0 — I-FRAMES del rayo: durante el vuelo hurttime se mantiene > 0
 // (intocable) y al SALIR quedan 2 segundos gratis (pedido del usuario).
 #macro LIGHT_DASH_IFRAME_EXIT (60 * 2)
@@ -248,6 +280,7 @@ function scr_light_dash_step()
                 lightDashAimDir = 0;     // v5.10: direccion del primer tramo
                 isLSA = false;           // v6.0: este vuelo es un LSA (C, ataque)
                 lightDashBrakeLatch = 0; // v6.0: silencio del impulso de tarot tras frenar
+                lsaHit = [];             // v6.1: objetivos ya golpeados (o fallados) en ESTE vuelo — JAMAS se repiten
         }
 
         // v5.9.2 — la FLECHA caduca sola cada frame: la repuebla el escaneo
@@ -322,6 +355,35 @@ function scr_light_dash_step()
                         }
                 }
 
+                // v6.1 — INTERCEPCION A MITAD DE VUELO (fase de anillos):
+                // "luego se lanza por rings; si encuentra otro enemigo por
+                // el camino que no haya sido golpeado, lo golpeara". Cuando
+                // el eslabon en curso NO es un objetivo (anillos o waypoints
+                // del desvio), cada frame se re-escanea un enemigo valido
+                // NO golpeado a menos de LSA_INTERCEPT de la posicion
+                // actual: si aparece, el resto de la ruta se DESCARTA y el
+                // rayo se desvia a por el — tras golpearlo, el re-plan
+                // decide (siguiente enemigo o anillos). En la fase
+                // enemigo->enemigo NO hay intercepcion: la cadena ya
+                // secuencia solita (primero el cercano, sin desviarse a
+                // por uno mas lejos). Con i-frames no hay objetivo.
+                if(isLSA && _tgt != noone && !(is_struct(_tgt) && variable_struct_exists(_tgt, "exe")) && array_length(lsaHit) < LSA_MAX_TARGETS)
+                {
+                        var _snap = scr_lsa_find_target_at(x, y, LSA_INTERCEPT, lsaHit, noone);
+
+                        if(_snap != noone)
+                        {
+                                var _leg = scr_lsa_leg_to(x, y, _snap);
+
+                                if(_leg != noone)
+                                {
+                                        lightDashChain = _leg;
+                                        lightDashIdx = 0;
+                                        _tgt = lightDashChain[0];
+                                }
+                        }
+                }
+
                 if(_tgt == noone)
                         return scr_light_dash_exit(); // cadena agotada: fuera con impulso
 
@@ -371,11 +433,25 @@ function scr_light_dash_step()
                                 }
                                 else if(variable_struct_exists(_tgt, "exe"))
                                 {
-                                        // v6.0 — LSA: LLEGADA al objetivo. El golpe
-                                        // (senal de stun + efectos) lo resuelve
-                                        // scr_lsa_hit; los waypoints normales del
-                                        // desvio no entran aqui (no tienen "exe").
+                                        // v6.0/v6.1 — LSA: LLEGADA a un objetivo. El
+                                        // golpe (senal de stun + efectos) lo resuelve
+                                        // scr_lsa_hit; los waypoints del desvio no
+                                        // entran aqui (no tienen "exe"). El objetivo
+                                        // queda MARCADO en lsaHit (golpeado o
+                                        // esquivado: JAMAS se repite un objetivo en
+                                        // este vuelo) y LA CADENA CONTINUA: el
+                                        // re-plan engancha el SIGUIENTE enemigo
+                                        // valido mas cercano, o los anillos de la
+                                        // zona si ya no queda nadie.
                                         scr_lsa_hit(_tgt);
+
+                                        if(instance_exists(_tgt.exe) && array_find_index(lsaHit, _tgt.exe.id) == -1)
+                                                array_push(lsaHit, _tgt.exe.id);
+
+                                        var _leg = scr_lsa_next_leg(_tgt.x, _tgt.y);
+
+                                        for(var i = 0; i < array_length(_leg); i++)
+                                                array_push(lightDashChain, _leg[i]);
                                 }
 
                                 _tgt = noone;
@@ -465,7 +541,7 @@ function scr_light_dash_step()
                 return true;
         }
 
-        // ============ GATES COMUNES (Z en el aire / LSA en el suelo) ============
+        // ============ GATES COMUNES (Z y LSA, los dos EN EL AIRE) ============
         if(global.character != CHARACTER_AMY_CANON)
                 return false;
 
@@ -478,8 +554,8 @@ function scr_light_dash_step()
         if(!global.playerControls)
                 return false;
 
-        // viva, sin estados que peleen el cuerpo (QUE este en aire o en
-        // suelo lo decide cada seccion: la Z es AEREA, el LSA TERRESTRE)
+        // viva, sin estados que peleen el cuerpo (las dos mitades viven
+        // EN EL AIRE: la Z a por anillos, la C a por enemigos)
         if(isDead || isHurt || shockedTimer > 0 || isZipline)
                 return false;
 
@@ -493,13 +569,83 @@ function scr_light_dash_step()
         if(isHiding)
                 return false;
 
-        // ================= 2. FLECHA + ACTIVACION (Z, SOLO EN EL AIRE) =================
-        // v6.0 — la Z es AEREA: todo el escaneo/arranque vive dentro de
-        // este if para que sus return false tempranos NO le roben el
-        // turno a la seccion 3 (el LSA terrestre comparte los gates de
-        // arriba, no los de aqui).
+        // ============ 2. LSA — LIGHT SPEED ATTACK (C, EN EL AIRE) ============
+        // v6.1 — LA CORRECCION DE DISEÑO PEDIDA: el LSA VUELA. La C EN EL
+        // AIRE con un objetivo del bando EXE a la vista (exe real o
+        // esbirro demonizado: el mas cercano a menos de LSA_RANGE, vivo,
+        // sin i-frames y sin stun previo — quien tiene i-frames JAMAS es
+        // objetivo) dispara el rayo A POR EL con la misma maquina de
+        // vuelo del dash. LA CADENA ES LA REGLA DE ORO: golpea a uno,
+        // salta a otro, JAMAS repite objetivos (lsaHit); cuando no queda
+        // nadie, se lanza por los ANILLOS de la zona; y a mitad de vuelo
+        // cualquier enemigo no golpeado que aparezca por el camino
+        // (LSA_INTERCEPT) tambien cae. La C EN EL SUELO es el MARTILLO
+        // de siempre (scr_amy_canon_special, que corre despues del hook y
+        // exige isGrounded): mismo boton, dos caras, mismo CD compartido
+        // (dashTimer, el del icono 3 del HUD). El bloque va PRIMERO
+        // dentro del aire: sus caidas (sin objetivo / sin CD / objetivo
+        // inalcanzable) no le roban el turno a la Z.
         if(!isGrounded)
         {
+                if(keyboard_check_pressed(global.KeyC) && dashTimer <= 0)
+                {
+                        lsaHit = [];       // vuelo NUEVO: la banda de la cadena nace limpia
+
+                        var _exe = scr_lsa_find_target();
+
+                        if(_exe != noone)
+                        {
+                                // ruta hasta el primer objetivo: RECTA con linea de
+                                // vision, o RODEO A* (waypoints, el mismo pathfinding
+                                // del dash) si hay un muro en medio
+                                var _lsaChain = scr_lsa_leg_to(x, y, _exe);
+
+                                if(_lsaChain != noone)
+                                {
+                                        // --- arrancar (mismo ritual del dash de la Z) ---
+                                        isLightDashing = true;
+                                        isLSA = true;
+                                        isAttacking = true; // el exe que TOQUE el rayo queda aturdido (sistema de contacto del juego, bit PLAYER_ATTACKING)
+                                        isTarotFloat = false;
+                                        isJumping = false;
+                                        isGrounded = false; // BUGFIX burbuja: despega de verdad
+                                        image_index = 0;
+
+                                        lightDashChain = _lsaChain;
+                                        lightDashIdx = 0;
+                                        lightDashTime = 0;
+                                        lightDashDeg = radtodeg(angle); // parte de la pose actual (0 en el aire)
+                                        lightDashFace = image_xscale >= 0 ? 1 : -1;
+                                        lightDashToX = x;
+                                        lightDashToY = y;
+
+                                        // velocidad PRE-FIJADA hacia el primer punto de la
+                                        // ruta (ritual del lunge de v5.9.3)
+                                        var _d0 = point_direction(x, y, _lsaChain[0].x, _lsaChain[0].y);
+                                        lightDashVX = lengthdir_x(LIGHT_DASH_SPEED, _d0);
+                                        lightDashVY = lengthdir_y(LIGHT_DASH_SPEED, _d0);
+
+                                        lightDashGhostTimer = 0;
+                                        scr_light_dash_ghost(x, y);
+
+                                        // CD COMPARTIDO con la acometida de martillo (el que
+                                        // muestra el icono 3 del HUD de Amy)
+                                        dashTimer = revivalTimes >= 2 ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
+
+                                        audio_play_sound(snd_dash, 0, false);
+                                        net_sound_emit(snd_dash);
+
+                                        // el vuelo real empieza el frame siguiente
+                                        return true;
+                                }
+                        }
+                }
+
+        // ================= 3. FLECHA + ACTIVACION (Z, SOLO EN EL AIRE) =================
+        // v6.1 — la Z sigue AEREA, ahora DETRAS del LSA dentro del mismo
+        // bloque del aire: sus return false tempranos ya no le roban el
+        // turno a nadie (la C ya se proceso arriba en su propio gate, y
+        // en el suelo este hook no activa nada: ahi manda el martillo).
                 // v5.9.2 — ESCANEO CONTINUO (la flecha): la cadena se busca SIEMPRE
                 // que un toque podria arrancar el rayo, no solo en el frame del
                 // toque. Con eso Draw_0 pinta la flecha sobre el primer anillo y el
@@ -594,94 +740,10 @@ function scr_light_dash_step()
                 return true;
         }
 
-        // ================= 3. LSA — LIGHT SPEED ATTACK (C, SUELO) =================
-        // v6.0 — la mitad TERRESTRE de la habilidad: la misma maquina de
-        // vuelo del dash, pero la dispara la C con un objetivo del bando
-        // EXE a la vista (exe real o esbirro demonizado, el mas cercano a
-        // menos de LSA_RANGE y sin i-frames ni stun previo). El rayo VA A
-        // POR EL (homing mientras no se aleje de LSA_PURSUIT), le pega al
-        // llegar (stun de LSA_STUN_TIME via la senal de red de siempre:
-        // cero paquetes nuevos) y ENCADENA con los anillos que haya por la
-        // zona antes de salir disparada. La Z NUNCA dispara esto (arriba:
-        // solo anillos), y la C SIN objetivo cae a la acometida de
-        // martillo de siempre (scr_amy_canon_special corre DESPUES del
-        // hook en scr_move_basic, ve isLightDashing en true y se calla):
-        // mismo boton, dos caras de la misma habilidad, mismo CD
-        // compartido (dashTimer, el del icono 3 del HUD). Sin version
-        // aerea: ese hueco lo ocupa el impulso de tarot de la X.
-        if(keyboard_check_pressed(global.KeyC) && dashTimer <= 0)
-        {
-                var _exe = scr_lsa_find_target();
-
-                if(_exe != noone)
-                {
-                        // ruta hasta el objetivo: RECTA con linea de vision,
-                        // RODEO A* (waypoints, el mismo pathfinding del dash)
-                        // si hay un muro en medio
-                        var _wps = [];
-                        var _direct = scr_light_dash_clear(x, y, _exe.x, _exe.y);
-
-                        if(!_direct)
-                                _wps = scr_light_dash_route(x, y, _exe.x, _exe.y, LSA_RANGE * LIGHT_DASH_ROUTE_FACTOR);
-
-                        if(_direct || array_length(_wps) > 0)
-                        {
-                                var _lsaChain = [];
-
-                                for(var i = 0; i < array_length(_wps); i++)
-                                        array_push(_lsaChain, {x: _wps[i][0], y: _wps[i][1]});
-
-                                // el eslabon del objetivo: struct VIVO (persigue al
-                                // exe durante el vuelo; el golpe lo aplica scr_lsa
-                                // _hit al llegar, en el bloque 1 de arriba)
-                                array_push(_lsaChain, {x: _exe.x, y: _exe.y, exe: _exe});
-
-                                // ...y luego los anillos que haya por la zona
-                                // (encadena DESDE la posicion del objetivo)
-                                var _rings = scr_light_dash_chain(_exe.x, _exe.y, LIGHT_DASH_LINK_DIST);
-
-                                for(var i = 0; i < array_length(_rings); i++)
-                                        array_push(_lsaChain, _rings[i]);
-
-                                // --- arrancar (mismo ritual del dash de la Z) ---
-                                isLightDashing = true;
-                                isLSA = true;
-                                isAttacking = true; // el exe que TOQUE el rayo queda aturdido (sistema de contacto del juego, bit PLAYER_ATTACKING)
-                                isTarotFloat = false;
-                                isJumping = false;
-                                isGrounded = false; // BUGFIX burbuja: despega de verdad
-                                image_index = 0;
-
-                                lightDashChain = _lsaChain;
-                                lightDashIdx = 0;
-                                lightDashTime = 0;
-                                lightDashDeg = radtodeg(angle); // parte de la pendiente donde pisaba
-                                lightDashFace = image_xscale >= 0 ? 1 : -1;
-                                lightDashToX = x;
-                                lightDashToY = y;
-
-                                // velocidad PRE-FIJADA hacia el primer punto de la
-                                // ruta (ritual del lunge de v5.9.3)
-                                var _d0 = point_direction(x, y, _lsaChain[0].x, _lsaChain[0].y);
-                                lightDashVX = lengthdir_x(LIGHT_DASH_SPEED, _d0);
-                                lightDashVY = lengthdir_y(LIGHT_DASH_SPEED, _d0);
-
-                                lightDashGhostTimer = 0;
-                                scr_light_dash_ghost(x, y);
-
-                                // CD COMPARTIDO con la acometida de martillo (el que
-                                // muestra el icono 3 del HUD de Amy)
-                                dashTimer = revivalTimes >= 2 ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
-
-                                audio_play_sound(snd_dash, 0, false);
-                                net_sound_emit(snd_dash);
-
-                                // el vuelo real empieza el frame siguiente
-                                return true;
-                        }
-                }
-        }
-
+        // En el SUELO este hook no activa nada con la C: el MARTILLO
+        // (acometida) vive en scr_amy_canon_special, que corre despues
+        // del hook en scr_move_basic y exige isGrounded (v6.1: mismo
+        // boton, dos caras de la misma habilidad).
         return false;
 }
 
@@ -1125,20 +1187,25 @@ function scr_light_dash_chain(_fromX, _fromY, _firstReach)
 }
 
 // =====================================================================
-//  v6.0 — LSA (LIGHT SPEED ATTACK): la mitad terrestre de la habilidad
-//  (tecla C en el suelo). Busqueda del objetivo, golpe y senal de stun.
+//  v6.0/v6.1 — LSA (LIGHT SPEED ATTACK): la mitad AEREA de la habilidad
+//  (tecla C EN EL AIRE). Busqueda del objetivo, la CADENA de enemigos
+//  (golpea uno, salta a otro, jamas repite), el tramo hasta cada uno y
+//  la senal de stun.
 // =====================================================================
 
-// scr_lsa_find_target(): el objetivo del LSA — el jugador del bando EXE
-// (exe real o esbirro demonizado) mas cercano a menos de LSA_RANGE, vivo,
-// sin i-frames, sin stun previo y visible (un exe invisible no se puede
-// fijar: no hay nada que apuntar). Mismos filtros que la deteccion de
-// Chocola (scr_chocola_find_exe / _find_minion: la convencion del juego
-// para "objetivo atacable del bando del exe"). Devuelve el puppet o noone.
-function scr_lsa_find_target()
+// scr_lsa_find_target_at(): el buscador de objetivos GENERALIZADO (v6.1)
+// — el jugador del bando EXE (exe real o esbirro demonizado) mas cercano
+// a (_fx, _fy) a menos de _maxD, vivo, sin i-frames, sin stun previo y
+// visible, EXCLUYENDO a los ya golpeados en este vuelo (_hitList: la
+// regla "JAMAS repite objetivos") y al que ya persigue el eslabon en
+// curso (_skipExe: la intercepcion no se desvia hacia su propio
+// destino). Mismos filtros que la deteccion de Chocola (la convencion
+// del juego para "objetivo atacable del bando del exe"). Devuelve el
+// puppet o noone.
+function scr_lsa_find_target_at(_fx, _fy, _maxD, _hitList, _skipExe)
 {
         var _best = noone;
-        var _bestD = LSA_RANGE;
+        var _bestD = _maxD;
 
         if(!instance_exists(obj_player_puppet))
                 return noone;
@@ -1157,7 +1224,13 @@ function scr_lsa_find_target()
                 if(character != CHARACTER_EXE && !isDemonized)
                         continue;   // solo el bando del exe
 
-                var _d = point_distance(x, y, other.x, other.y);
+                if(_skipExe != noone && id == _skipExe)
+                        continue;   // el que ya persigue este eslabon
+
+                if(array_find_index(_hitList, id) != -1)
+                        continue;   // JAMAS se repite un objetivo
+
+                var _d = point_distance(x, y, _fx, _fy);
 
                 if(_d < _bestD)
                 {
@@ -1169,15 +1242,85 @@ function scr_lsa_find_target()
         return _best;
 }
 
+// scr_lsa_find_target(): el PRIMER objetivo del LSA, desde Amy y a
+// alcance LSA_RANGE (v6.1: envoltorio fino del buscador general — el
+// vuelo todavia no ha golpeado a nadie, la banda va vacia).
+function scr_lsa_find_target()
+{
+        return scr_lsa_find_target_at(x, y, LSA_RANGE, lsaHit, noone);
+}
+
+// scr_lsa_leg_to(): el TRAMO del LSA hasta un objetivo (v6.1): RECTA si
+// hay linea de vision (scr_light_dash_clear) o RODEO A* con waypoints
+// (el mismo pathfinding del dash) si hay un muro en medio, + el ESLABON
+// del objetivo (struct VIVO {x, y, exe}: persigue al exe durante el
+// vuelo con el homing y el golpe lo aplica scr_lsa_hit al llegar).
+// Devuelve el array del tramo (waypoints + eslabon) o noone si el
+// objetivo es inalcanzable por el terreno.
+function scr_lsa_leg_to(_fx, _fy, _exe)
+{
+        if(!instance_exists(_exe))
+                return noone;
+
+        var _wps = [];
+        var _direct = scr_light_dash_clear(_fx, _fy, _exe.x, _exe.y);
+
+        if(!_direct)
+                _wps = scr_light_dash_route(_fx, _fy, _exe.x, _exe.y, LSA_RANGE * LIGHT_DASH_ROUTE_FACTOR);
+
+        if(!_direct && array_length(_wps) == 0)
+                return noone; // ni recto ni rodeando: inalcanzable
+
+        var _leg = [];
+
+        for(var i = 0; i < array_length(_wps); i++)
+                array_push(_leg, {x: _wps[i][0], y: _wps[i][1]});
+
+        array_push(_leg, {x: _exe.x, y: _exe.y, exe: _exe});
+
+        return _leg;
+}
+
+// scr_lsa_next_leg(): LA CADENA de enemigos del LSA (v6.1) — la regla de
+// oro del usuario: "golpea a uno, salta a otro, JAMAS repite objetivos,
+// y luego se lanza por rings". Desde la posicion (_fx, _fy) del objetivo
+// recien golpeado: 1) el SIGUIENTE enemigo valido mas cercano a menos
+// de LSA_NEXT_DIST que NO este en lsaHit (sin i-frames, sin stun, del
+// bando del exe); 2) si no queda nadie (o el siguiente es inalcanzable
+// por el terreno), LOS ANILLOS de la zona (scr_light_dash_chain, el
+// mismo buscador del dash de la Z). El tope LSA_MAX_TARGETS corta la
+// cadena solo: el vuelo siempre termina.
+function scr_lsa_next_leg(_fx, _fy)
+{
+        if(array_length(lsaHit) < LSA_MAX_TARGETS)
+        {
+                var _exe = scr_lsa_find_target_at(_fx, _fy, LSA_NEXT_DIST, lsaHit, noone);
+
+                if(_exe != noone)
+                {
+                        var _leg = scr_lsa_leg_to(_fx, _fy, _exe);
+
+                        if(_leg != noone)
+                                return _leg;
+
+                        // inalcanzable (muro cerrado): no bloquea los anillos
+                }
+        }
+
+        return scr_light_dash_chain(_fx, _fy, LIGHT_DASH_LINK_DIST);
+}
+
 // scr_lsa_hit(): el golpe del LSA al LLEGAR al eslabon del objetivo (lo
 // llama el vuelo en el bloque 1). El stun viaja como SENAL dirigida al
 // nid del objetivo (net_sound_emit_at de snd_dash con shouldPlay=true:
 // el mismo canal de senales del parry y de Chocola) y SU CLIENTE se
 // aturde a si mismo con scr_lsa_stun_signal — el modelo de confianza del
 // juego, cero paquetes nuevos. Si el objetivo corrio mas alla del
-// eslabon congelado (esquivo el rayo huyendo), no hay golpe. Efectos
-// locales del impacto: particula + shake de camara (el sonido canonico
-// lo emite el propio stun del receptor y llega en 3D para todos).
+// eslabon congelado (esquivo el rayo huyendo), no hay golpe; y si gano
+// I-FRAMES a mitad de vuelo, tampoco (v6.1: al transparente no se le
+// pega). Efectos locales del impacto: particula + shake de camara (el
+// sonido canonico lo emite el propio stun del receptor y llega en 3D
+// para todos).
 function scr_lsa_hit(_slot)
 {
         var _exe = _slot.exe;
@@ -1187,6 +1330,9 @@ function scr_lsa_hit(_slot)
 
         if(point_distance(_slot.x, _slot.y, _exe.x, _exe.y) > LSA_HIT_RADIUS)
                 return; // esquivo: el eslabon quedo congelado lejos del exe
+
+        if(_exe.isHurt)
+                return; // v6.1: gano i-frames a mitad de vuelo — el golpe no entra (esquivado)
 
         net_quick_effect(_exe.x, _exe.y, spr_shockparticle, false, 1, 0, 0, 1);
         scr_camera_shake(20, 2, 0.2);

@@ -156,6 +156,7 @@ lightDashAimY = 0;
 lightDashAimDir = 0;      // v5.10: direccion del primer tramo de la ruta
 isLSA = false;            // v6.0: true mientras el vuelo es un LSA (C, ataque)
 lightDashBrakeLatch = 0;  // v6.0: frames de silencio del impulso de tarot tras frenar el dash con X
+lsaHit = [];              // v6.1: objetivos del LSA ya golpeados (o fallados) en ESTE vuelo — JAMAS se repiten
 
 // --- Variables del ESTADO BURBUJA (secuestro, reglas canonicas) ---
 // Ver scr_amy_canon_bubble.gml para el significado y los valores
