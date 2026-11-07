@@ -575,10 +575,11 @@ if(instance_exists(global.player) && !global.player.isDead)
                 {
                         // SALLY CANON: tiene las mismas habilidades que Sally
                         // (scr_sally_special), asi que usa sus mismos iconos del
-                        // HUD: la PATADA aerea (tecla X, ver scr_sally_special) y
-                        // el ESCUDO (tecla C). El relleno de cada icono muestra el
-                        // CD que le falta; blanco = listo (la patada ademas exige
-                        // estar en el aire, igual que en el HUD de Sally).
+                        // HUD: la PATADA (tecla X, ver scr_sally_special) y el
+                        // ESCUDO (tecla C). El relleno de cada icono muestra el
+                        // CD que le falta; blanco = listo. La patada es AEREA en
+                        // fase 1 (roja en el suelo, como la de Sally); en fase
+                        // DUELISTA tambien vale en tierra (blanca en el suelo).
                         var val = global.player.revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
                         var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
 
@@ -586,12 +587,36 @@ if(instance_exists(global.player) && !global.player.isDead)
                         if(prog == 1.0)
                                 b = c_white;
 
-                        if(global.player.isGrounded)
+                        // v5.4: en fase duelista la patada en tierra existe:
+                        // el icono va listo aun parado
+                        if(global.player.isGrounded && !global.player.duelista)
                                 b = c_red;
 
                         drawKeyIcon(spr_gui_sallyattack, global.player.revivalTimes >= 2, 17, global.KeyB, prog * 10, 240 - _mob, b, prog, 0);
 
-                        val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
+                        // v5.4 DUELISTA: icono del SPINDASH (abajo + Z), mismo
+                        // patron que el de Sonic/Amelia (reusa su icono; sin
+                        // cooldown: el coste es el revolucioneo). Solo en fase
+                        // duelista: antes de su 1ra caida no tiene la habilidad.
+                        if(global.player.duelista)
+                        {
+                                var _sprSpin = asset_get_index("spr_gui_sonicspindash");
+                                
+                                if(_sprSpin >= 0)
+                                {
+                                        if(global.player.isSpinCharging)
+                                        {
+                                                var _charge = global.player.spinCharge / SALLY_CANON_SPINDASH_CHARGE_MAX;
+                                                drawKeyIcon(_sprSpin, 0, 33, global.KeyA, _charge * 10, 222 - _mob, _charge >= 1.0 ? c_white : c_red, 0.4 + _charge * 0.6, 0);
+                                        }
+                                        else
+                                                drawKeyIcon(_sprSpin, 0, 33, global.KeyA, 10, 222 - _mob, c_white, 1, 0);
+                                }
+                        }
+
+                        // v5.4: recarga propia del escudo canon (28 s, 2 menos
+                        // que la vanilla) — la barra del icono usa SU macro.
+                        val = SALLY_CANON_SHIELD_RECHARGE;
                         prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
                         drawKeyIcon(spr_gui_sallyshield, global.player.revivalTimes >= 2, 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;

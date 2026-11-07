@@ -258,7 +258,9 @@ global.player_anims[? CHARACTER_SALLY_CANON] =
         spr_sally_fase2_canon_pt1, //18 = FASE 2 pt1: golpe + retroceso
         spr_sally_fase2_canon_pt2, //19 = FASE 2 pt2: tirada en el suelo
         spr_sally_fase2_canon_pt3, //20 = FASE 2 pt3: salto (loop)
-        spr_sally_fase2_canon_pt4 //21 = FASE 2 pt4: recuperacion
+        spr_sally_fase2_canon_pt4, //21 = FASE 2 pt4: recuperacion
+        spr_sally_fase2_attack_canon, //22 = DUELISTA: patada en tierra (2 patadas)
+        spr_sally_spin_charger_canon //23 = DUELISTA: carga del spindash
 ];
 
 //Vanilla (mod): superviviente #10. Habilidades = Cream (scr_cream_special);
@@ -649,7 +651,9 @@ global.player_eanims[? CHARACTER_SALLY_CANON] =
         spr_sally_fase2_canon_pt1, //18
         spr_sally_fase2_canon_pt2, //19
         spr_sally_fase2_canon_pt3, //20
-        spr_sally_fase2_canon_pt4 //21
+        spr_sally_fase2_canon_pt4, //21
+        spr_sally_fase2_attack_canon, //22 = DUELISTA: patada en tierra
+        spr_sally_spin_charger_canon //23 = DUELISTA: carga del spindash
 ];
 
 //Vanilla (demonizada): no hay sprites demonizados suyos todavia;

@@ -33,6 +33,31 @@ function scr_move_basic()
         if(variable_instance_exists(id, "weakMarkCd") && weakMarkCd > 0)
                 weakMarkCd--;
         
+        // SALLY CANON v5.4 — ESCUDO GRUPAL (fase duelista): observacion
+        // por frame del bit del escudo de ella para re-armar la
+        // absorcion de ESTE jugador cuando su escudo se apaga (la
+        // absorcion es 1 golpe por ACTIVACION; sin esto, si ella
+        // recasteaba el escudo antes de que este jugador recibiera un
+        // golpe, el flag quedaba rancio y la nueva activacion no
+        // protegia). La variable solo existe en quien ya absorbio una
+        // vez (la crea scr_player_hurt): para el resto es gratis.
+        if(variable_instance_exists(id, "gsAbsorbDone") && gsAbsorbDone)
+        {
+                var _gsOn = false;
+                
+                with(obj_player_puppet)
+                {
+                        if(character == CHARACTER_SALLY_CANON && sallyShield)
+                        {
+                                _gsOn = true;
+                                break;
+                        }
+                }
+                
+                if(!_gsOn)
+                        gsAbsorbDone = false;
+        }
+        
         // If is dead, play dead animation
         if(isDead)
         {
@@ -668,6 +693,12 @@ function scr_move_basic()
                         // mientras carga (abajo + Z da revolucadas, no salto;
                         // ver scr_amelia_special).
                         if(global.character == CHARACTER_AMELIA && isSpinCharging)
+                                return;
+                        
+                        // SALLY CANON v5.4 (fase duelista): igual que Amelia,
+                        // no salta mientras carga el spindash (abajo + Z da
+                        // revolucadas; ver scr_sally_special).
+                        if(global.character == CHARACTER_SALLY_CANON && isSpinCharging)
                                 return;
                         
 

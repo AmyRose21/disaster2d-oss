@@ -112,6 +112,17 @@ with(global.player)
                                 if(shieldTimer > 0)
                                         bitflags |= PLAYER_SALLYSHIELD;
                         }
+
+                        // SALLY CANON fase DUELISTA (v5.4): tras su 1ra caida
+                        // manda PLAYER_POWERBOOST hasta el fin de la ronda. Los
+                        // puppets de los demas clientes lo guardan como
+                        // "duelista" (net_udpprocess) y con el ven: la patada
+                        // en tierra de 2 golpes, el spindash, la bola del salto,
+                        // las poses del escudo grupal y el pad +50% de la
+                        // patada aerea. OJO: no se toca powerBoost del puppet
+                        // (esa estela es solo de Sonic).
+                        if(global.character == CHARACTER_SALLY_CANON && duelista)
+                                bitflags |= PLAYER_POWERBOOST;
                 
                         buffer_write(buffer, buffer_u8, bitflags);
                         if(global.character == CHARACTER_TAILS)

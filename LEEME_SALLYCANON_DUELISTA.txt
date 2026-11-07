@@ -1,0 +1,186 @@
+SALLY CANON v5.4 — FASE DUELISTA («la Determinacion de la Princesa»)
+========================================================================
+
+QUE ES
+------
+El rework de Sally Canon pedido: su fase 2 (la de la 1ra caida) ya no
+es solo "se levanta con la vida llena". Al terminar la recuperacion
+(pt4) entra en la FASE DUELISTA para el resto de la ronda: pasa de
+defensiva a velocista-duelista. La fase 1 tambien recibe buffs para
+que no quede indefensa, y de paso se arregla el bloqueo LMS de Sonic.
+
+Contenido:
+  1. Buffs de FASE 1
+  2. FASE DUELISTA: patada en tierra (2 golpes), spindash, rodadura
+     y salto en bola, escudo grupal y pasiva de evasion
+  3. Fix del bloqueo LMS de Sonic
+  4. Valores ajustables (macros)
+  5. Instalacion y notas
+
+------------------------------------------------------------------------
+1) FASE 1 (desde el inicio de la ronda)
+------------------------------------------------------------------------
+* PATADA AEREA: hitbox +25% (SALLY_CANON_KICK_PCT_F1). La vanilla no
+  cambia en nada.
+* ESCUDO: recarga propia de 28 s (SALLY_CANON_SHIELD_RECHARGE), 2 s
+  mas rapida que la de Sally vanilla (30 s). Duracion igual (5 s).
+
+------------------------------------------------------------------------
+2) FASE DUELISTA (al levantarse de su 1ra caida, hasta fin de ronda)
+------------------------------------------------------------------------
+La marca "duelista" viaja por red con el bitflag PLAYER_POWERBOOST
+(el byte de bitflags iba lleno; ese bit solo lo usan Sonic/Vanilla/
+Metal/Blaze y jamas colisiona con Sally Canon). Los demas clientes la
+ven en su puppet como "duelista" (sticky). Cero paquetes nuevos.
+
+A) PATADA EN TIERRA (tecla X en el suelo)
+   - Animacion nueva: spr_sally_fase2_attack_canon (11 frames).
+     La 1a patada ocupa los frames 0-6 y la 2a entra del 7 en
+     adelante (mismo sprite que subiste).
+   - DOS hitboxes: la UNICA habilidad del juego que puede golpear al
+     bando EXE 2 veces (dos stuns de 3 s, doble merito).
+   - IGNORA todos los i-frames: puede stunear al exe aunque este ya
+     este inmune (shockedTimer / hurttime fuera).
+   - Si la 1a patada conecta: el exe se teletransporta al frente de
+     Sally (al alcance de la 2a patada, sin empujon) y la 2a le entra
+     segura. Si la 1a no conecta, la 2a puede conectar igual.
+   - Hitbox +30% (SALLY_CANON_KICK_PCT_F2_GROUND).
+   - La PATADA AEREA sigue igual en comportamiento, pero su hitbox
+     sube a +50% (SALLY_CANON_KICK_PCT_F2_AIR).
+   - El EXE invisible sigue sin poder ser golpeado por contacto
+     (consistente con la patada aerea y el resto del juego).
+   - Cooldown compartido con la aerea (15 s de siempre).
+
+B) SPINDASH (abajo + Z, igual que Amelia y Sonic)
+   - Carga: abajo + Z repetido parado (revolucadas con tono creciente
+     y polvo). Soltar ABAJO lanza la bola a (8 + carga) px/frame.
+   - Sprites: spr_sally_spin_charger_canon (carga) y
+     spr_sally_spindash_canon (bola).
+   - Sin cooldown: el coste es el tiempo de revolucioneo.
+   - El stun, el dano, esconderse, la tirolina y su propia fase 2
+     cortan la carga. No puede saltar mientras carga.
+
+C) RODADURA + SALTO EN BOLA
+   - canSpin = true: rodadura con ABAJO corriendo (la de Tails y los
+     demas).
+   - Su salto pasa a spr_sally_fase2_jump_canon (bola).
+
+D) ESCUDO GRUPAL (tecla C)
+   - Mientras su escudo esta activo, los companeros en un radio de
+     120 px (SALLY_CANON_GROUP_SHIELD_RADIUS) reciben EL MISMO efecto
+     que el escudo tiene sobre Sally: el golpe se absorbe entero y
+     ganan los MISMOS i-frames (5 s de SALLY_CANON_SHIELD_BREAK_INVULN).
+   - Cada companero absorbe 1 golpe por activacion del escudo.
+   - Poses propias del cuerpo: spr_sally_shield_canon (quieta),
+     spr_sally_shield_down_canon (agachada) y
+     spr_sally_shield_air_canon (en el aire). Caminando o corriendo
+     conserva su animacion normal y el efecto (burbuja) se dibuja SIN
+     animacion (frame fijo).
+   - La burbuja de su escudo ahora SI se ve en el puppet de los demas
+     clientes (antes no se dibujaba para nadie).
+   - NOTA de sync (limitacion intencional, cero paquetes nuevos): el
+     escudo de SALLY sigue su curso normal (5 s o hasta que a ELLA le
+     peguen); la absorcion de un companero no lo apaga en su pantalla.
+     Cada companero lleva su propia cuenta de "1 golpe absorbido".
+
+E) PASIVA «INSTINTO DE LA PRINCESA DUELISTA»
+   - 20% (SALLY_CANON_EVADE_CHANCE) de evadir TODO el dano de un
+     ataque: ni vida, ni anillos, ni retroceso; el escudo ni se
+     entera (la tirada va antes del check del escudo).
+   - Al evadir gana 2.5 s de i-frames (SALLY_CANON_EVADE_INVULN) que
+     se ACUMULAN a los que ya tenga (no los reemplazan).
+   - Solo se tira en la INSTANCIA DE DANO REAL (cuando el golpe de
+     verdad iba a entrar): nunca mientras ya esta inmune.
+
+HUD: en fase duelista el icono de la patada sale listo tambien en
+tierra, aparece el icono del SPINDASH (abajo + Z) y la barra del
+escudo usa la recarga canon de 28 s.
+
+------------------------------------------------------------------------
+3) FIX DEL BLOQUEO LMS DE SONIC
+------------------------------------------------------------------------
+El bloqueo del show (55%) se tiraba ANTES del guard de i-frames de
+scr_player_hurt: con Sonic ya inmune por un bloqueo anterior, cada
+roce con una fuente de dano re-tiraba el 55% y quedaba inmune
+practicamente para siempre pegado a un atacante. Ahora la tirada
+vive DESPUES del guard (y del parry) y solo ocurre cuando el golpe
+iba a entrar de verdad. Mismo principio que la evasion de Sally.
+
+------------------------------------------------------------------------
+4) VALORES AJUSTABLES (scripts/scr_sally_canon_fase2.gml)
+------------------------------------------------------------------------
+#macro SALLY_CANON_F2_KICK1_END 6            // ultimo frame 1a patada
+#macro SALLY_CANON_F2_KICK2_START 7          // 1er frame 2a patada
+#macro SALLY_CANON_KICK_PCT_F1 0.25          // patada aerea fase 1
+#macro SALLY_CANON_KICK_PCT_F2_GROUND 0.30   // patada tierra duelista
+#macro SALLY_CANON_KICK_PCT_F2_AIR 0.50      // patada aerea duelista
+#macro SALLY_CANON_F2_TP_FACTOR 0.5          // TP: media hitbox delante
+#macro SALLY_CANON_GROUP_SHIELD_RADIUS 120   // radio escudo grupal
+#macro SALLY_CANON_EVADE_CHANCE 20           // % evasion
+#macro SALLY_CANON_EVADE_INVULN (60 * 2.5)   // i-frames al evadir
+#macro SALLY_CANON_SPINDASH_BASE 8           // vel. base del spindash
+#macro SALLY_CANON_SPINDASH_CHARGE_MAX 10    // carga maxima
+(y el resto de SALLY_CANON_SPINDASH_* 1:1 con Amelia/Sonic).
+El CD del escudo canon (28 s) esta en objects/obj_sally_canon/Create_0.
+
+------------------------------------------------------------------------
+5) INSTALACION Y NOTAS
+------------------------------------------------------------------------
+* Reemplaza estos archivos del proyecto (rutas exactas del .yyp):
+
+  objects/obj_netclient/Step_2.gml
+  objects/obj_player_puppet/Create_0.gml
+  objects/obj_player_puppet/Draw_0.gml
+  objects/obj_player_puppet/Draw_72.gml
+  objects/obj_player_puppet/Step_0.gml
+  objects/obj_playerui/Draw_64.gml
+  objects/obj_sally_canon/Create_0.gml
+  objects/obj_sally_canon/Draw_0.gml
+  objects/obj_sally_canon/Draw_76.gml
+  objects/obj_sally_canon/Other_7.gml
+  objects/obj_sally_canon/Step_0.gml
+  objects/obj_sally_canon/Step_2.gml
+  scripts/net_udpprocess/net_udpprocess.gml
+  scripts/scr_lms/scr_lms.gml
+  scripts/scr_move_basic/scr_move_basic.gml
+  scripts/scr_player_hurt/scr_player_hurt.gml
+  scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.gml
+  scripts/scr_sally_special/scr_sally_special.gml
+  scripts/scr_survivors/scr_survivors.gml
+
+* No hay assets nuevos que copiar: los 7 sprites que subiste ya estan
+  en el repo (spr_sally_fase2_attack_canon, spr_sally_fase2_jump_canon,
+  spr_sally_shield_canon, spr_sally_shield_down_canon,
+  spr_sally_shield_air_canon, spr_sally_spin_charger_canon,
+  spr_sally_spindash_canon). Este zip solo cablea el codigo.
+* No hay cambios del server ni paquetes nuevos: todo viaja por el byte
+  de estado (22/23), bitflags existentes y efectos.
+* Sally VANILLA intacta: todos los cambios canon van detras de gates
+  por personaje (mismo patron de siempre).
+* La fase 3 (espada y escudo de energia) queda para la siguiente
+  tanda: este zip deja la estructura lista (flag duelista ya viaja por
+  red; agregar la fase final sera solo content y reglas nuevas encima).
+
+QUE PROBAR EN PARTIDA REAL
+--------------------------
+1. Fase 1: patada aerea con alcance notable (+25%); escudo vuelve a
+   los 28 s.
+2. 1ra caida: la secuencia de 4 partes igual que siempre y al
+   levantarse... DUELISTA (icono de spindash nuevo en el HUD).
+3. Patada en tierra al exe: 1a patada lo clava delante de Sally y la
+   2a lo sale despedida (doble stun + doble merito). Probar tambien
+   con un esbirro demonizado.
+4. Patada en tierra vs exe con i-frames: le entra igual.
+5. Spindash: cargar con abajo + Z, soltar abajo; comparar velocidad
+   con el de Amelia; rodar con abajo corriendo; saltar en bola.
+6. Escudo grupal: activarlo junto a un companero y que el exe golpee
+   AL COMPANERO (absorbe 1 golpe con efecto de escudo roto e i-frames);
+   volver a probar mientras el escudo sigue activo (ya no lo protege:
+   1 absorcion por activacion).
+7. Poses del escudo: quieta / agachada / en el aire (en su pantalla y
+   en la de los demas); caminando/corriendo con la burbuja fija.
+8. Evasion: en duelista, recibir golpes hasta ver el polvo de esquiva
+   (~1 de cada 5) y los i-frames de 2.5 s.
+9. Sonic LMS: con el show activo, pegado a una fuente de dano
+   continuo YA NO queda inmune para siempre: bloquea 55% de los golpes
+   que de verdad entran, y tras cada bloqueo hay 1.5 s limpios.

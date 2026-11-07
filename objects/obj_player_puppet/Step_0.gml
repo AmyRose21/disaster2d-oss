@@ -47,6 +47,15 @@ if(character == CHARACTER_SALLY_CANON)
         
         if(abs(f2Sq) < 0.01)
                 f2Sq = 0;
+        
+        // DUELISTA (v5.4): patada en tierra (estado 22) — al salir del
+        // estado se resetean los golpes de la ejecucion: la proxima
+        // patada vuelve a tener sus 2 ventanas limpias.
+        if(f2LastState != SALLY_CANON_F2_ATTACK)
+        {
+                f2atkHit1 = false;
+                f2atkHit2 = false;
+        }
 }
 
 // SONIC POWERBOOST (Nervios de Acero): el Sonic remoto deja estela
@@ -177,7 +186,22 @@ var _amyFuerzaPad = 0;
 if(character == CHARACTER_AMY && isAttacking && scr_amy_soul_otras())
         _amyFuerzaPad = ceil((bbox_right - bbox_left) * AMY_FUERZA_HITBOX * (1.0 + scr_amy_soul_bonus()));
 
-if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad) || (_amyFuerzaPad > 0 && distance_to_object(global.player) <= _amyFuerzaPad))
+// SALLY CANON (v5.4): hitbox de la patada ampliada segun la fase. La
+// patada de tierra (estado 22, duelista) +30% y la aerea +25% en fase
+// 1 / +50% en duelista. Mismo mecanismo de pad por distancia que el
+// golpe de Sonic y el martillo de Amy: % del ANCHO del bbox de Sally.
+// El pad solo AMPLIA el alcance del stuneo; el dano/no-amistoso y el
+// resto de reglas siguen igual que siempre.
+var _scKickPad = 0;
+if(character == CHARACTER_SALLY_CANON && isAttacking)
+{
+        if(state == SALLY_CANON_F2_ATTACK)
+                _scKickPad = ceil((bbox_right - bbox_left) * SALLY_CANON_KICK_PCT_F2_GROUND);
+        else if(state == SALLY_ATTACK)
+                _scKickPad = ceil((bbox_right - bbox_left) * (duelista ? SALLY_CANON_KICK_PCT_F2_AIR : SALLY_CANON_KICK_PCT_F1));
+}
+
+if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad) || (_amyFuerzaPad > 0 && distance_to_object(global.player) <= _amyFuerzaPad) || (_scKickPad > 0 && distance_to_object(global.player) <= _scKickPad))
 {
         // v5.0 LMS + FIX DJ (v2.15 arrastrado): este bloque de stun/contacto
         // exige isAttacking, pero (a) el DJ de Fleetway Amy NUNCA manda ese
@@ -364,6 +388,103 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         net_sound_emit(snd_buble);
                                         return;
                                 }
+                        }
+                        
+                        // =================================================
+                        //  PATADA EN TIERRA (Sally Canon duelista, v5.4):
+                        //  la UNICA habilidad del juego que golpea al bando
+                        //  EXE 2 veces. Ventanas por el frame SINCRONIZADO
+                        //  de la animacion (estado 22): 1a patada frames
+                        //  0-6, 2a patada frames 7+. IGNORA todos los
+                        //  i-frames (shockedTimer / hurttime): puede
+                        //  stunear al exe aunque ya este inmune. Si la 1a
+                        //  conecta, el exe se teletransporta al frente de
+                        //  Sally (al alcance de la 2a patada, sin empujon
+                        //  para que no escape) y la 2a le entra segura; si
+                        //  la 1a no conecta, la 2a puede conectar igual.
+                        //  Corre en el cliente de la victima, que es la
+                        //  autoridad de su propio jugador (mismo modelo
+                        //  que el stun normal). El EXE INVISIBLE no entra
+                        //  (lo corta el return de arriba, consistente con
+                        //  el resto de contactos).
+                        // =================================================
+                        if(character == CHARACTER_SALLY_CANON && state == SALLY_CANON_F2_ATTACK)
+                        {
+                                var _win1 = !f2atkHit1 && image_index <= SALLY_CANON_F2_KICK1_END;
+                                var _win2 = !f2atkHit2 && image_index >= SALLY_CANON_F2_KICK2_START;
+                                
+                                if(_win1 || _win2)
+                                {
+                                        var _f2pad = ceil((bbox_right - bbox_left) * SALLY_CANON_KICK_PCT_F2_GROUND);
+                                        var _edge = image_xscale > 0 ? bbox_right : bbox_left;
+                                        
+                                        if(_win1)
+                                        {
+                                                f2atkHit1 = true;
+                                                
+                                                // TP al frente de Sally, al borde de su
+                                                // bbox + media hitbox de la 2a patada.
+                                                // Sin empujon horizontal: la 2a patada
+                                                // (frames 7+) le entra segura.
+                                                global.player.x = _edge + image_xscale * (_f2pad * 0.5);
+                                                global.player.y = y;
+                                                global.player.xspd = 0;
+                                                global.player.yspd = -2;
+                                        }
+                                        else
+                                                f2atkHit2 = true;
+                                        
+                                        // STUN (mismo efecto y reports que la
+                                        // patada normal: 3 s). La 2a patada SI
+                                        // lleva el empujon de siempre.
+                                        var _f2stun = 3;
+                                        var _f2snd = snd_exe_stun;
+                                        
+                                        if(_win2)
+                                                global.player.xspd = -sign(x - global.player.x) * 4;
+                                        
+                                        global.player.yspd = -2;
+                                        global.player.isGrounded = false;
+                                        
+                                        if(global.character == CHARACTER_SALLY)
+                                                global.player.isSliding = false;
+                                        
+                                        global.player.shockedTimer = _f2stun * 60;
+                                        audio_play_sound(_f2snd, 0, false);
+                                        net_sound_emit(_f2snd);
+                                        
+                                        var buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
+                                        buffer_write(buffer, buffer_u16, master_id);
+                                        buffer_write(buffer, buffer_u16, x);
+                                        buffer_write(buffer, buffer_u16, y);
+                                        buffer_write(buffer, buffer_u16, _f2stun);
+                                        send_server_tcp(buffer);
+                                        
+                                        var pak = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
+                                        buffer_write(pak, buffer_u8, 1);
+                                        buffer_write(pak, buffer_u16, obj_netclient.nid);
+                                        buffer_write(pak, buffer_u16, master_id);
+                                        buffer_write(pak, buffer_u8, _f2stun);
+                                        send_server_tcp(pak);
+                                        
+                                        if(global.character == CHARACTER_EXE)
+                                        {
+                                                pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
+                                                buffer_write(pak, buffer_u16, master_id);
+                                                buffer_write(pak, buffer_u8, 1);
+                                                send_server_tcp(pak);
+                                                
+                                                scr_exe_stunsound();
+                                        }
+                                        
+                                        return;
+                                }
+                                
+                                // Estado 22 sin ventana activa (animacion aun
+                                // no llega al frame de golpe, o ya golpeo las
+                                // dos): no entra NUNCA por el camino normal de
+                                // abajo (ese es solo de la patada aerea).
+                                return;
                         }
                         
                         if(global.player.shockedTimer <= 0 && global.player.hurttime <= 0)

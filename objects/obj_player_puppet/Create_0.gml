@@ -72,3 +72,11 @@ potatoTimer = 0;
 // SALLY CANON fase 2: squash & stretch remoto (derivado del estado)
 f2Sq = 0;
 f2LastState = 0;
+
+// SALLY CANON fase DUELISTA (v5.4): la marca llega con el bitflag
+// PLAYER_POWERBOOST (sticky: una vez vista, se queda hasta el fin de
+// la ronda) y las dos patadas de la patada en tierra (estado 22) se
+// anotan aqui para no golpear 2 veces con la misma ventana.
+duelista = false;   // true tras su 1ra caida (fase duelista activa)
+f2atkHit1 = false;  // la 1a patada (frames 0-6) ya golpeo en esta ejecucion
+f2atkHit2 = false;  // la 2a patada (frames 7+) ya golpeo en esta ejecucion

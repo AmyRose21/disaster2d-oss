@@ -267,17 +267,12 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 return;
         }
 
-        // v5.0 LMS — «EL SHOW FUERTE» (Sonic, ultimo superviviente): 55% de
-        // probabilidad de BLOQUEAR TODO el daño de CADA golpe que le entra
-        // (ni vida ni anillos ni retroceso: escudo roto + 1 s de invulnera-
-        // bilidad, el mismo efecto del bloqueo de Chocola). El 45% restante
-        // entra completo por el camino de siempre. Corre en el cliente de
-        // la victima, que es quien aplica el daño (mismo lado que la Torre
-        // de FW Amy de arriba). Las muertes instantaneas (hoyos) no pasan
-        // por aqui, como siempre.
-        if(global.character == CHARACTER_SONIC && global.lmsActive
-        && damage > 0 && scr_lms_sonic_try_block())
-                return;
+        // (v5.4: el BLOQUEO del show LMS de Sonic vivia AQUI, antes del
+        // guard de hurttime: re-tiraba el 55% incluso mientras estaba
+        // inmune por un bloqueo anterior, y pegado a una fuente de daño
+        // continuo quedaba inmune practicamente para siempre. Ahora
+        // vive ABAJO, tras el guard: solo se tira en la instancia de
+        // daño REAL — cuando el golpe de verdad iba a entrar.)
 
         // === VANILLA V2 ===
         // PACIENCIA / MORIBUNDA: inmune a TODO mientras duran (enojada
@@ -311,6 +306,21 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         //  (scr_parry_try_stun_attacker) con los mismos datos sincronizados.
         // =============================================================
         if(exeSource && damage > 0 && scr_parry_negate_hit())
+                return;
+        
+        // v5.0 LMS / v5.4 FIX — «EL SHOW FUERTE» (Sonic, ultimo
+        // superviviente): 55% de BLOQUEAR TODO el daño del golpe. El
+        // bloqueo se tira SOLO en la instancia de daño REAL (aqui ya
+        // paso el guard de hurttime de arriba): mientras este inmune
+        // no se tira nada, asi una fuente de daño continuo no lo deja
+        // inmune para siempre — cada bloqueo se gana con una tirada
+        // limpia tras gastarse los i-frames del anterior. Bloqueado =
+        // ni vida ni anillos ni retroceso: escudo roto + 1.5 s de
+        // invulnerabilidad (LMS_BLOCK_INVULN), y tras ese 1.5 s el
+        // siguiente golpe es otra tirada limpia. Corre en el cliente
+        // de la victima (quien aplica el daño).
+        if(global.character == CHARACTER_SONIC && global.lmsActive
+        && damage > 0 && scr_lms_sonic_try_block())
                 return;
         
         // CHOCOLA (Vanilla v2): 65% de BLOQUEAR el dano del lado EXE.
@@ -353,10 +363,82 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 }
         }
         
+        // ESCUDO GRUPAL (Sally Canon duelista, v5.4): mientras el escudo
+        // de una Sally Canon en fase duelista esta activo, los companeros
+        // cercanos (radio SALLY_CANON_GROUP_SHIELD_RADIUS) reciben EL
+        // MISMO efecto que el escudo tiene sobre ella: el golpe se
+        // absorbe entero (ni vida ni anillos ni retroceso), efecto de
+        // escudo roto + los MISMOS i-frames (SALLY_CANON_SHIELD_BREAK_INVULN).
+        // Cada companero absorbe 1 golpe por activacion (hasta que el bit
+        // del escudo se apaga: roto por un golpe sobre ella o agotado su
+        // tiempo). Todo local al cliente de la victima (autoridad de su
+        // propia vida), dirigido por el bit PLAYER_SALLYSHIELD del puppet:
+        // cero paquetes nuevos.
+        if(global.character != CHARACTER_EXE && global.character != CHARACTER_SALLY_CANON
+        && damage > 0 && global.player.revivalTimes < 2)
+        {
+                var _gsActive = false;
+                var _gsNear = noone;
+                
+                with(obj_player_puppet)
+                {
+                        if(character != CHARACTER_SALLY_CANON)
+                                continue;
+                        
+                        if(sallyShield)
+                        {
+                                _gsActive = true;
+                                
+                                if(distance_to_object(global.player) <= SALLY_CANON_GROUP_SHIELD_RADIUS)
+                                        _gsNear = id;
+                        }
+                }
+                
+                if(!_gsActive)
+                {
+                        // su escudo se apago (golpe sobre ella o timeout):
+                        // re-arma la absorcion de este companero
+                        if(variable_instance_exists(global.player.id, "gsAbsorbDone"))
+                                global.player.gsAbsorbDone = false;
+                }
+                else if(_gsNear != noone
+                && !(variable_instance_exists(global.player.id, "gsAbsorbDone") && global.player.gsAbsorbDone))
+                {
+                        global.player.gsAbsorbDone = true;
+                        global.player.hurttime = SALLY_CANON_SHIELD_BREAK_INVULN;
+                        
+                        audio_play_sound(snd_sally_shieldbreak, 0, false);
+                        net_quick_effect(global.player.x, global.player.y, spr_shieldbreak, false, 1, 0, 0, 1);
+                        net_sound_emit(snd_sally_shieldbreak);
+                        return;
+                }
+        }
+        
         if(global.character != CHARACTER_EXE)
         {
                 if(damage > 0)
                 {
+                        // PASIVA INSTINTO DE LA PRINCESA DUELISTA (Sally Canon
+                        // fase duelista, v5.4): 20% de evadir TODO el daño del
+                        // ataque (ni vida ni anillos ni retroceso; el escudo ni
+                        // se entera: el ataque pasa de largo). Al evadir gana
+                        // 2.5 s de i-frames que se ACUMULAN a los que ya tenga
+                        // (no los reemplazan). Solo se tira AQUI — en la
+                        // instancia de daño real, ya pasado el guard de
+                        // hurttime: nunca mientras ya esta inmune (mismo fix
+                        // que el bloqueo LMS de Sonic de arriba).
+                        if(global.character == CHARACTER_SALLY_CANON && global.player.duelista
+                        && random(100) < SALLY_CANON_EVADE_CHANCE)
+                        {
+                                global.player.hurttime += SALLY_CANON_EVADE_INVULN;
+                                
+                                // esquiva: polvo en la direccion del golpe + pop
+                                net_quick_effect(global.player.x + sign(xpw) * -10, global.player.y + 14, spr_dust);
+                                audio_play_sound(snd_buble, 0, false);
+                                net_sound_emit(snd_buble);
+                                return;
+                        }
+                        
                         if((global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON) && global.player.shieldTimer > 0)
                         {
                                 if(global.character == CHARACTER_SALLY && global.player.revivalTimes < 2 && global.player.hp <= 20)

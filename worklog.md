@@ -3688,3 +3688,116 @@ escalera del mapa «...» con Sonic/Blaze (recuperar velocidad al
 soltar), tracker pisado por Metal Amy, muneco del fartzone, y que
 un Tails suelte con V a un Metal/Blaze/FW colgado.
 ---
+
+v5.4 — SALLY CANON: FASE DUELISTA («la Determinacion de la Princesa»)
+========================================================================
+Pedido: rework de Sally Canon. Su fase 2 (la de la 1ra caida) deja de
+ser solo "se levanta con la vida llena": al terminar pt4 entra en la
+FASE DUELISTA permanente (hasta el fin de la ronda), pasando de
+defensiva a velocista-duelista. Fase 1 tambien recibe buffs para no
+quedar indefensa, y de paso se arregla el bloqueo LMS de Sonic.
+
+- FASE 1 (buffs): patada aerea con hitbox +25%
+  (SALLY_CANON_KICK_PCT_F1) y escudo con recarga propia de 28 s
+  (SALLY_CANON_SHIELD_RECHARGE, 2 s menos que la vanilla). Solo Sally
+  Canon: la vanilla conserva sus 30 s y su patada normal.
+
+- FASE DUELISTA (flag "duelista", se activa al final de pt4 en
+  scr_sally_canon_fase2): viaja por red con el bitflag
+  PLAYER_POWERBOOST (el byte de bitflags va lleno; ese bit solo lo
+  usan Sonic/Vanilla/Metal/Blaze, jamas colisiona con ella). Los
+  puppets lo guardan como "duelista" STICKY (net_udpprocess). OJO: no
+  se toca powerBoost del puppet: la estela de fantasmas es solo de
+  Sonic.
+
+- PATADA EN TIERRA (X en el suelo, solo duelista): estado nuevo 22
+  (SALLY_CANON_F2_ATTACK) con spr_sally_fase2_attack_canon (11
+  frames: 1a patada 0-6, 2a patada 7+). La UNICA habilidad del juego
+  que golpea al bando EXE 2 veces. Ignora TODOS los i-frames
+  (shockedTimer/hurttime). Si la 1a conecta: el exe se TP al frente
+  de Sally (borde del bbox + media hitbox, sin empujon) y la 2a le
+  entra segura; si la 1a falla, la 2a puede conectar igual. Ventanas
+  por el image_index SINCRONIZADO de CLIENT_PLAYER_DATA (el puppet no
+  anima local: image_speed 0 en su Create). Corre en el cliente de la
+  victima (obj_player_puppet Step_0). Hitbox +30%
+  (SALLY_CANON_KICK_PCT_F2_GROUND); la aerea sube a +50%
+  (SALLY_CANON_KICK_PCT_F2_AIR) — patron pad por distancia como el
+  golpe de Sonic y el martillo de Amy (% del ancho del bbox).
+  El EXE INVISIBLE sigue sin poder ser golpeado (consistente con el
+  resto de contactos).
+
+- SPINDASH (abajo + Z, solo duelista): porte 1:1 del de Amelia/Sonic
+  (macros SALLY_CANON_SPINDASH_*): carga con revolucadas (tono
+  creciente + polvo), al soltar ABAJO sale en bola (estado SPIN) a
+  8+carga px/frame. Estado nuevo 23 (SALLY_CANON_SPINCHARGE) con
+  spr_sally_spin_charger_canon. No salta mientras carga (guard nuevo
+  en scr_move_basic junto al de Amelia). El stun y la propia fase 2
+  cortan la carga (Step_0 + fase2_start).
+
+- RODADURA + SALTO BOLA: canSpin pasa a true en duelista (rodadura
+  con ABAJO corriendo, la de Tails y los demas) y su salto usa
+  spr_sally_fase2_jump_canon (bola). Overrides de sprite en
+  obj_sally_canon/Draw_76 (local) y obj_player_puppet/Draw_72
+  (remoto), sin tocar las tablas en runtime (se reconstruyen al
+  iniciar el juego, nunca por ronda: mutarlas pegaria).
+
+- ESCUDO GRUPAL (C, solo duelista): mientras su escudo esta activo,
+  los companeros en un radio de 120 px
+  (SALLY_CANON_GROUP_SHIELD_RADIUS) reciben el MISMO efecto que el
+  escudo tiene sobre ella: golpe absorbido entero + los MISMOS
+  i-frames (SALLY_CANON_SHIELD_BREAK_INVULN, 5 s). Cada companero
+  absorbe 1 golpe por activacion (gsAbsorbDone, se re-arma cuando el
+  bit PLAYER_SALLYSHIELD se apaga). Todo en el cliente de la victima
+  (scr_player_hurt), dirigido por el bit del puppet: cero paquetes
+  nuevos. Poses propias: spr_sally_shield_canon (quieta),
+  _down_ (agachada), _air_ (aire); caminando/corriendo el efecto va
+  SIN animacion (burbuja fija frame 0). Su burbuja ahora SI se dibuja
+  en el puppet (antes no se veia para nadie: hueco arreglado).
+
+- PASIVA «INSTINTO DE LA PRINCESA DUELISTA» (solo duelista): 20% de
+  evadir TODO el dano de un ataque (SALLY_CANON_EVADE_CHANCE) + 2.5 s
+  de i-frames que se ACUMULAN a los existentes (hurttime += , no = ;
+  incluye el escudo). Se tira SOLO en la instancia de dano real
+  (tras el guard de hurttime en scr_player_hurt), nunca mientras ya
+  esta inmune. El escudo ni se entera de un golpe evadido (la tirada
+  va antes del check del escudo).
+
+- FIX BLOQUEO LMS DE SONIC (pedido explicito): scr_lms_sonic_try_block
+  se llamaba ANTES del guard de hurttime de scr_player_hurt: con
+  Sonic ya inmune por un bloqueo anterior, cada roce con una fuente
+  de dano re-tiraba el 55% y quedaba inmune para siempre pegado a un
+  atacante. Ahora se llama DESPUES del guard (y del parry) + doble
+  check defensivo dentro de la funcion: solo se tira cuando el golpe
+  iba a entrar de verdad.
+
+- ESCUDO GRUPAL, re-armado robusto: ademas del reset en scr_player_hurt,
+  scr_move_basic observa por frame el bit del escudo de ella (patron
+  del tick de weakMarkCd; solo corre para quien ya absorbio una vez,
+  la variable la crea scr_player_hurt) y re-arma gsAbsorbDone cuando
+  el escudo se apaga. Sin esto, si ella recasteaba antes de que el
+  companero recibiera un golpe, el flag quedaba rancio y la nueva
+  activacion no lo protegia.
+
+ARCHIVOS (19): scripts/scr_sally_canon_fase2 (macros duelista +
+activacion + corte de carga), scripts/scr_sally_special (patada en
+tierra, CD canon, spindash), scripts/scr_survivors (tablas +idx 22/23
+en player_anims y player_eanims), scripts/scr_player_hurt (evasion +
+escudo grupal + fix LMS), scripts/scr_lms (guard defensivo),
+scripts/scr_move_basic (no saltar cargando), scripts/net_udpprocess
+(bit duelista sticky), objects/obj_sally_canon (Create/Step_0/Step_2/
+Draw_0/Draw_76/Other_7), objects/obj_netclient/Step_2 (envio del bit),
+objects/obj_player_puppet (Create/Step_0/Draw_0/Draw_72),
+objects/obj_playerui/Draw_64 (HUD: patada lista en tierra en duelista
++ icono spindash + barra con CD canon 28 s).
+
+VERIFICACION: balance de llaves/parentesis OK en los 19 GML; 20 macros
+nuevas definidas; tablas SALLY_CANON con 24 entradas (estados 22/23
+sin colision); sprites nuevos presentes (attack 11f, jump 8f, shield
+5f, shield_down 7f, shield_air 4f, charger 5f, spindash 3f); ventanas
+kick1<=6/kick2>=7 contra sprite de 11 frames; Sally vanilla intacta
+(gates por personaje con short-circuit, mismo patron que
+nerviosState/isFloatRunning). Cero paquetes nuevos: todo por state
+byte (22/23), bitflags existentes (POWERBOOST/SALLYSHIELD) y effects.
+Pendiente partida real: TP del exe visible en ambos clientes, doble
+stun con merit x2, escudo grupal con un companero cerca, evasion 20%,
+spindash de Sally vs el de Amelia, poses del escudo en el puppet.

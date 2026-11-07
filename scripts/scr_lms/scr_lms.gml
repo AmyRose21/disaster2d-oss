@@ -81,12 +81,25 @@ function scr_lms_sonic_try_block()
 {
         // (PERSONAL DE SONIC) La tirada del show: 55% de BLOQUEAR TODO el
         // daño del golpe que acaba de entrar. Sale bloqueo -> escudo roto
-        // (visible y sonoro para todos via net_*) + 1 s de invulnerabilidad,
-        // para que el siguiente golpe sea otra tirada LIMPIA (sin esto, un
-        // contacto continuado re-tiraria cada frame y el 55% no significaria
-        // nada). Sale fallo -> el golpe entra COMPLETO por el camino normal
-        // de scr_player_hurt (que es quien llama aqui).
+        // (visible y sonoro para todos via net_*) + 1.5 s de invulnera-
+        // bilidad (LMS_BLOCK_INVULN), para que el siguiente golpe sea otra
+        // tirada LIMPIA (sin esto, un contacto continuado re-tiraria cada
+        // frame y el 55% no significaria nada). Sale fallo -> el golpe
+        // entra COMPLETO por el camino normal de scr_player_hurt (que es
+        // quien llama aqui).
+        // v5.4 FIX (pedido del usuario): la tirada SOLO ocurre en la
+        // instancia de daño REAL. Antes se llamaba desde antes del guard
+        // de hurttime de scr_player_hurt: con Sonic ya inmune por un
+        // bloqueo anterior, cada roce con una fuente de daño re-tiraba el
+        // 55% y quedaba inmune practicamente para siempre. Ahora el
+        // llamador vive tras el guard y este doble-check (por si algun
+        // camino futuro lo llama en otra posicion) devuelve false si ya
+        // esta inmune: SIN instancia de daño no hay tirada.
         if(global.character != CHARACTER_SONIC || !global.lmsActive)
+                return false;
+
+        // defensa extra: nunca se tira mientras ya tiene i-frames
+        if(global.player.hurttime > 0)
                 return false;
 
         if(random(100) >= LMS_BLOCK_CHANCE)

@@ -4,6 +4,11 @@
 // escudo; Sally Canon son 3 seg (los 2 seg extra pedidos).
 #macro SALLY_CANON_SHIELD_BREAK_INVULN (60 * 5)
 
+// Escudo de Sally Canon: recarga 2 seg MAS RAPIDA que la de Sally
+// (30 -> 28 s), para que la fase 1 no quede tan indefensa. Solo
+// afecta a Sally Canon: la vanilla conserva SU SALLY_SHIELD_RECHARGE.
+#macro SALLY_CANON_SHIELD_RECHARGE (60 * 28)
+
 //Variables
 gspd = 0;
 xspd = 0;
@@ -43,6 +48,21 @@ fase2Air = 0;                    // frames en el aire de pt3 (seguro de aterriza
 fase2HitX = 0;                   // direccion del ultimo golpe (retroceso de pt1)
 fase2Sq = 0;                     // squash & stretch de pt3/pt4 (0 = normal)
 
+// --- Variables de la FASE DUELISTA (tras la 1ra caida) ---
+// Ver scr_sally_canon_fase2.gml (bloque FASE DUELISTA). La marca se
+// activa al final de pt4 y viaja por red con PLAYER_POWERBOOST.
+duelista = false;   // true = fase duelista activa (patada en tierra,
+                    // spindash, rodadura, escudo grupal, pasiva evasion)
+groundKick = false; // true = la patada en curso es la de TIERRA (estado 22)
+
+// SPINDASH (duelista): mismas variables que Amelia/Sonic (patron de
+// scr_amelia_special; carga con abajo + Z, suelto abajo = lanzamiento).
+isSpinCharging = false;
+spinCharge = 0;           // carga actual (0..SALLY_CANON_SPINDASH_CHARGE_MAX)
+spinChargeDecay = 0;
+spinDustTimer = 0;
+spinRevSnd = -1;
+
 //General
 hp = 100;
 isGrounded = false;
@@ -67,7 +87,10 @@ edgeDir = 1;
 //Character flags (constants)
 canLookDown = true;
 canLookUp = true;
-canSpinDash = true;
+// El spindash y la rodadura son de la FASE DUELISTA: arrancan
+// apagados y se encienden al final de la fase 2 (ver
+// scr_sally_canon_fase2). La vanilla no cambia en nada.
+canSpinDash = false;
 canSpin = false;
 // Mismas habilidades que Sally (scr_sally_special no depende del
 // personaje). Los cambios de Sally Canon van por otro lado: el slide

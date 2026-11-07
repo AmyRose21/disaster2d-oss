@@ -162,6 +162,21 @@ function net_udpprocess(rbuff)
                                                 if(character == CHARACTER_SONIC)
                                                         powerBoost = bitflags & PLAYER_POWERBOOST;
 
+                                                // SALLY CANON fase DUELISTA (v5.4): viaja
+                                                // con el MISMO bit PLAYER_POWERBOOST (el
+                                                // byte va lleno y ese bit solo lo usan
+                                                // Sonic/Vanilla/Metal/Blaze: jamas
+                                                // colisiona con ella). Aqui NO se toca
+                                                // powerBoost (solo Sonic tiene estela):
+                                                // se guarda aparte como "duelista" y
+                                                // STICKY: una vez vista, se queda (la
+                                                // fase nunca se apaga hasta el fin de la
+                                                // ronda; el bit viaja vivo de todos
+                                                // modos, el sticky solo blinda contra
+                                                // un paquete perdido).
+                                                if(character == CHARACTER_SALLY_CANON && (bitflags & PLAYER_POWERBOOST))
+                                                        duelista = true;
+
                                                 // v2.15 «La Torre»: FW Amy volando con el DJ (el
                                                 // cliente del EXE lo necesita para el stun de 3,2 s)
                                                 if(character == CHARACTER_FLEETWAY_AMY)
