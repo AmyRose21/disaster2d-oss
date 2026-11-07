@@ -4908,3 +4908,79 @@ Stage Summary:
 - Reglas del usuario implementadas al pie de la letra: C aire = LSA (exe o minion mas cercano -> golpea uno, salta a otro, jamas repite -> anillos -> intercepta por el camino), C suelo = martillo, sin i-frames como objetivo en ningun punto del vuelo
 - Infraestructura v6.0 intacta (stun por senal snd_dash dirigida, homing con PURSUIT, contacto por PLAYER_ATTACKING, i-frames de vuelo + 2 s de salida, frenado X con latch, fix del piso, fix de rotacion, Z nunca dispara LSA)
 - Entregable: download/td2dr_light_dash_v61.zip (SOLO archivos modificados/creados: scr_light_dash.gml, Create_0.gml, scr_amy_canon_special.gml, check_v61_light_dash.py, LEEME_LIGHT_DASH_V61.txt, worklog.md); LEEME_V60 y check_v60 quedan obsoletos (borrables)
+
+---
+Task ID: 8
+Agent: Super Z (main agent)
+Task: FIX UDID — jugadores que no entran: RASSERT (Packet.c:195 out->len < 122/128) + (Server.c:181 &vgid/&udid) al conectarse SOLO ALGUNOS
+
+Work Log:
+- Pull del fork (d0323172): commits recientes solo cliente (Light Dash v6.x), server intacto desde el 3/11. El error no esta en lo nuevo: es del protocolo base
+- Diagnostico: el IDENTITY lleva nickname + UDID como strings sin prefijo (hasta '\0'). El cliente Android arma el UDID = "mod-" + VERSION+CPU_ABI+RELEASE+MODEL+DEVICE+MANUFACTURER+BOOTLOADER (net_indentity.gml): en varios modelos supera 128 chars; en PC es un GUID corto => por eso fallan "algunos" y no todos. packet_readstr tenia RAssert(out->len < 128) duro => PacketRead(udid) falla en Server.c:181 => solo quedaba un Debug invisible => el jugador colgaba hasta el timeout (el server no se caia)
+- REPRODUCCION: server compilado del codigo ORIGINAL + bot cliente ENet con UDID de 144 chars => log identico al reportado ((Packet.c:195) + (Server.c:181)) y el bot colgado 5 s. Causa 100% confirmada
+- Fix Packet.c/packet_readstr: fuera el assert de longitud; lee hasta el '\0' real (icon/pet/ticket quedan en sync) y guarda hasta sizeof(value)-1=249 con '\0' forzado + WRN si recorta
+- Fix Packet.c/packet_from (bug latente correlacionado): .len uint8_t hacia wrap %256 de paquetes ENet de 256+ bytes (256->0, 300->44 => lecturas desalineadas); ahora recorta a 255 con WRN
+- Fix Packet.c/string_new (bug latente): textos >249 (p. ej. MOTD de Config.json) desbordaban value[250]; ahora acota y fuerza '\0'
+- Fix states/Server.c dispatcher: identity fallido ahora desconecta CON MENSAJE al jugador (antes: colgado). Redirect de lobby lleno marca v->disconnecting=true para no desconectar de mas. Rutas que ya se desconectaban solas intactas (server_disconnect idempotente)
+- Fix cliente net_indentity.gml: UDID topeado a 100 chars con string_copy (el server ya tolera cualquier longitud, pero asi no revientan otros servers comunitarios sin fix)
+- Validacion: compilacion limpia (gcc -Wall, cero warnings nuevos), check_udid_fix.py 38/38 (patrones + simulacion byte-level + harness C con funciones literales extraidas), E2E con bot ENet real: UDID 144 chars ENTRA (joined en el log), UDID normal ENTRA (sin regresion), UDID 380 chars => recorte + desconectado con aviso al instante (antes colgaba)
+
+Stage Summary:
+- Causa raiz confirmada por reproduccion exacta del log del usuario: UDID Android largo (>=128 chars) vs assert duro de packet_readstr; solo afectaba a dispositivos con info larga
+- 5 cambios quirurgicos (84 lineas insertadas / 11 borradas): packet_readstr tolerante, packet_from sin wrap uint8, string_new acotado, desconexion limpia del identity fallido, tope de 100 chars en el cliente
+- Formato del IDENTITY, enum de paquetes y anticheat INTACTOS: clientes viejos/vanilla siguen compatibles sin actualizar
+- Entregable: download/td2dr_fix_udid_v1.zip (SOLO archivos modificados/creados: Packet.c, states/Server.c, net_indentity.gml, check_udid_fix.py, LEEME_FIX_UDID_V1.txt, worklog.md). REQUIERE recompilar el server (compilar_server.bat) y de paso el cliente (GameMaker)
+
+---
+Task ID: 9
+Agent: Super Z (main agent)
+Task: FIX CRASH LSA v6.1 — array_find_index(arr, VALOR) reventaba en runtime ("argument 1 is neither a method or a function") en obj_amy_canon al disparar el LSA (C en el aire)
+
+Work Log:
+- Reporte del usuario: ERROR Step_0 obj_amy_canon -> scr_lsa_find_target_at (line 1230) array_find_index :: argument 1 is neither a method or a function (stack: scr_lsa_find_target -> scr_light_dash_step -> scr_move_basic -> obj_amy_canon Step_0)
+- Pull: ya en d0323172 (nada nuevo en origin). El crash lo introdujo el propio v6.1: 2 usos de array_find_index(arr, VALOR) — lineas 448 (llegada del eslabon) y 1230 (buscador de objetivos) de scr_light_dash.gml
+- El runtime NO tiene array_find_index(arr, valor): exige predicado function(_element,_index) (numeracion 0-based del error: "argument 1" = segundo parametro). Ya sabido y resuelto en net_sounds v4.7 + net_projectile. array_contains(arr, valor) SI existe y se usa en 15+ archivos (Create de personajes, menus, logros)
+- Fix: ambas lineas son membresia pura ("ya golpeado en este vuelo?") -> array_contains; cero cambio de logica, mismo comportamiento previsto por el v6.1
+- Checker v61 actualizado IN-PLACE a v6.2: las 2 expectativas apuntan a las cadenas nuevas + check nuevo anti-regresion (fail si reaparece array_find_index(lsaHit,/array_find_index(_hitList,) + docstring (227 -> 228 checks). check_v59/check_v60 siguen obsoletos como ya estaban
+- Fix de portabilidad del checker: ROOT estaba hardcodeado a la carpeta del sandbox donde nacio el v6.1 (/home/z/my-project/disaster2d-oss) -> no corria en ninguna otra maquina (ni aqui ni la del usuario); ahora es relativo a la ubicacion del propio archivo. check_udid_fix.py ya era portable (ruta por argumento), sin cambios
+- Validacion: check_v61 (v6.2) 228/228 OK — todas las comprobaciones estaticas + las simulaciones completas del LSA (cadena, intercepcion, i-frames, tope, frenado)
+
+Stage Summary:
+- Causa raiz: sintaxis invalida en el runtime, NO logica — el v6.1 paso el checker (227/227) y las simulaciones pero nadie probo el LSA EN JUEGO con Amy canon
+- 2 lineas de codigo + comentarios v6.2; todo lo demas del LSA intacto (banda lsaHit, cadena enemigo->enemigo->anillos, intercepcion, i-frames, stun por senal, homing PURSUIT, frenado Z)
+- Entregable: download/td2dr_light_dash_v62.zip (SOLO archivos modificados/creados: scr_light_dash.gml, check_v61_light_dash.py, LEEME_LIGHT_DASH_V62.txt, worklog.md). Solo requiere recompilar el CLIENTE (GameMaker); el server NO se toca
+
+---
+Task ID: 10
+Agent: Super Z (main agent)
+Task: FIX LSA ANTICHEAT — el LSA de Amy Canon botaba al jugador con "nuh-uh!" (server.c, server_disconnect)
+
+Work Log:
+- Reporte del usuario: el LSA hace que el anticheat lo bote; log "server.c 547" con texto "Nu uh". Server.c:547 es la linea de Info() del server_disconnect -> el texto viene de un kick: "nuh-uh!" esta en states/Game.c:2201 (DR_KICKEDBYHOST)
+- Causa: el anticheat de duracion de ataque (states/Game.c) kickea si el bit PLAYER_ATTACKING llega continuo >= duration ms (2000 generico, 3000 Eggman). El LSA v6.x mantiene isAttacking = true TODO el vuelo (stun por contacto del kit, scr_light_dash ~611) y el vuelo dura hasta LSA_MAX_TIME = 300 frames = 5 s -> a los ~2 s de vuelo, kick. El dash de anillos de la Z NO setea isAttacking (solo el LSA): por eso solo el LSA botaba
+- Fix: case CH_AMY_CANON con duration = 6000 en el MISMO switch de Eggman (states/Game.c, game_state_handletcp) — patron existente del juego para personajes de ataque largo; el anticheat sigue vivo para Amy (6 s continuos = kick igual)
+- El Game.c de la raiz (disasterserver/Game.c) NO esta en el CMakeLists (solo states/) -> no se toca; idem el root Server.c
+- Validacion: gcc -fsyntax-only con ENet real (clone a /tmp, fuera del repo) EXIT=0 (warnings -Wswitch preexistentes; el fix elimina el de CH_AMY_CANON); check_lsa_anticheat.py 18/18 (estatica: case en el switch correcto por conteo de llaves, 6000 > 5000 ms, gate LSA exclusivo de Amy Canon, nuh-uh sigue existiendo; simulacion 1:1 del acumulador: 5 s con 2000 = kick [reproduce el bug], con 6000 = ok, Eggman 2.5 s ok / 3.33 s kick, reset al soltar, 6.6 s = kick)
+
+Stage Summary:
+- Causa raiz: interaccion diseño-vs-anticheat — el isAttacking continuo del vuelo LSA (intencional, stun por contacto) superaba el tope generico de 2 s del anticheat de ataque infinito
+- 1 case nuevo en el switch de duracion (mecanismo identico al de Eggman); anticheat NO apagado para nadie; cliente intacto
+- Entregable: download/td2dr_lsa_anticheat_v1.zip (SOLO archivos modificados/creados: states/Game.c, check_lsa_anticheat.py, LEEME_LSA_ANTICHEAT_V1.txt, worklog.md). REQUIERE recompilar el server (compilar_server.bat)
+
+---
+Task ID: 11
+Agent: Super Z (main agent)
+Task: FIX ACT9 SPAWN — "al spawnear los personajes aparecen en el suelo y cuenta como muerte porque la pared los aplasta" (mapa Act 9)
+
+Work Log:
+- Sandbox reciclado entre sesiones: repo y zips anteriores perdidos -> re-clone (d0323172, sin cambios en origin) y re-aplique al worklog las entradas Tasks 8-10 (el zip de este fix las lleva para que el worklog del usuario no pierda historial; los fixes en si NO se tocan en este entregable)
+- Diagnostico (cadena completa verificada en codigo): (1) states/Game.c game_state_handletcp marca plr.ready con CUALQUIER paquete TCP — los clicks de personaje spameados durante el fade de transicion ya cuentan como ready; (2) la partida (y los muros de Act 9) arrancaban mientras un cliente seguia en el fade (1,6 s) + cargando texturas; (3) ese cliente spawnneaba DENTRO del muro ya avanzado — spawnpoints del room: (304,512) cubierto por el muro izq a los ~28,7 s de barrido, (2856,256) por el der a los ~21,8 s, (3024,570) por el der a los ~8,7 s (ronda de 130 s); (4) obj_act9_wall/Step_1.gml lo aplastaba al aparecer: scr_player_instakill (CUENTA como muerte) + teletransporte a (1535,943) = "aparecen en el suelo"; (5) bonus: ese punto queda DENTRO del muro-techo al final de la ronda (off >= ~0,92) -> teletransporte al olivo
+- Verificado antes de concluir: TCP/ENet canal 0 es ordenado (la teoria de respuesta tardia de charselect estaba muerta), defaults cliente de los muros = posiciones iniciales seguras, puppets sin gravedad, exe spawns mas seguros que los de survivors, CMake compila entities/Act9Wall.c
+- Fix server (entities/Act9Wall.c): cada muro NO ARRANCA hasta que TODOS los participantes vivos hayan reportado su primera posicion (pos != 0,0 — misma convencion que ya usaba el check del muro), con tope de gracia ACT9_WALL_HOLD_SEC = 30 s (anti-zombi). Solo re-captura start_time: el barrido siempre termina justo al acabar la ronda, solo empieza mas tarde. Ignora espectadores (!in_game) y muertos (PLAYER_DEAD)
+- Fix cliente (obj_act9_wall/Step_1.gml): tras el aplastamiento, el teletransporte va al punto clasico (1535,943) SOLO si esta fuera de TODOS los muros (margen 24); si esta cubierto, escanea el suelo hacia los costados (paso 64 px, acotado 64..3008); si todo esta cubierto (fin de ronda) NO teletransporta. Los 3 branches (techo/izq/der) comparten el mismo calculo al inicio del step
+- Validacion: gcc -fsyntax-only (ENet real re-clonado a /tmp) EXIT=0 cero warnings; check_act9_spawn_fix.py 21/21 (estatica: hold + skips + math intacta + instakill intacto + llaves; simulacion 1:1 del reloj del muro: cliente lento de 12 s SIN fix spawnnea dentro del muro [reproduce el bug], CON fix todos los spawns seguros, el barrido igual termina completo al final de la ronda, nadie arranca con ventaja, anti-zombi, seleccion de teleport en 3 escenarios)
+
+Stage Summary:
+- Causa raiz: el "ready" de cualquier paquete TCP arrancaba los muros mientras los clientes lentos seguian cargando -> spawn dentro del muro avanzado -> instakill + teleport al suelo ("aparecen en el suelo, cuenta como muerte")
+- 2 cambios quirurgicos: hold del muro hasta primera posicion reportada (server) + teleport seguro tras aplastamiento (cliente); el diseño del mapa (barrer todo al final) queda INTACTO — solo se retrasa el arranque
+- Entregable: download/td2dr_act9_spawn_v1.zip (SOLO archivos modificados/creados: entities/Act9Wall.c, obj_act9_wall/Step_1.gml, check_act9_spawn_fix.py, LEEME_ACT9_SPAWN_V1.txt, worklog.md). REQUIERE recompilar el SERVER (compilar_server.bat) Y el CLIENTE (GameMaker)

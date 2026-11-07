@@ -445,7 +445,10 @@ function scr_light_dash_step()
                                         // zona si ya no queda nadie.
                                         scr_lsa_hit(_tgt);
 
-                                        if(instance_exists(_tgt.exe) && array_find_index(lsaHit, _tgt.exe.id) == -1)
+                                        // v6.2 FIX CRASH: array_find_index(arr, VALOR) no existe en
+                                        // este runtime (exige function(_element,_index), ver net_sounds
+                                        // v4.7) -> membresia pura con array_contains.
+                                        if(instance_exists(_tgt.exe) && !array_contains(lsaHit, _tgt.exe.id))
                                                 array_push(lsaHit, _tgt.exe.id);
 
                                         var _leg = scr_lsa_next_leg(_tgt.x, _tgt.y);
@@ -1227,7 +1230,9 @@ function scr_lsa_find_target_at(_fx, _fy, _maxD, _hitList, _skipExe)
                 if(_skipExe != noone && id == _skipExe)
                         continue;   // el que ya persigue este eslabon
 
-                if(array_find_index(_hitList, id) != -1)
+                // v6.2 FIX CRASH: idem que la llegada — array_contains (el
+                // array_find_index(arr, VALOR) del v6.1 crasheaba en runtime).
+                if(array_contains(_hitList, id))
                         continue;   // JAMAS se repite un objetivo
 
                 var _d = point_distance(x, y, _fx, _fy);

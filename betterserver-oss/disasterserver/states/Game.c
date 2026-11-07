@@ -2168,6 +2168,22 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                                 duration = 3000;
                                                 break;
                                         }
+
+                                        /* Amy Canon (LSA v6.x): el rayo lleva el bit
+                                           PLAYER_ATTACKING TODO el vuelo (hasta
+                                           LSA_MAX_TIME = 300 frames = 5 s a 60 fps)
+                                           para el stun por contacto del kit. Sin esta
+                                           excepcion el anticheat generico (2 s de
+                                           ataque continuo) la bota con "nuh-uh!" a
+                                           mitad de vuelo. Mismo mecanismo que la
+                                           excepcion de Eggman: subir el tepe, no
+                                           apagar el anticheat. 6000 ms cubre el
+                                           vuelo maximo (5000) con margen. */
+                                        case CH_AMY_CANON:
+                                        {
+                                                duration = 6000;
+                                                break;
+                                        }
                                 }
                         }
                         else

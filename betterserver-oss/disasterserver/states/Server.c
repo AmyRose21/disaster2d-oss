@@ -226,6 +226,11 @@ bool peer_identity(PeerData *v, Packet *packet)
                                 PacketWrite(&pack, packet_write32, relay_public_port(server->id));
                                 packet_send(v->peer, &pack, true);
 
+                                /* FIX UDID V1: marcar el peer como "cerrado" para que el
+                                   dispatcher sepa que este false ya esta manejado (el cliente
+                                   se va solo hacia el otro server) y no lo desconecte de mas. */
+                                v->disconnecting = true;
+
                                 Debug("Redirecting %d to another free server: %d", v->id, server->id);
                                 res = false;
                                 goto quit;
@@ -418,7 +423,22 @@ bool server_worker(Server *server)
                                 {
                                         if (!peer_identity(v, &packet))
                                         {
-                                                Debug("Identity failed for id %d", v->id);
+                                                /* FIX UDID V1: antes solo habia un Debug (invisible sin
+                                                   log_debug) y el jugador se quedaba colgado en
+                                                   "conectando..." hasta el timeout. Ahora se le
+                                                   desconecta con mensaje claro. Las rutas que ya se
+                                                   desconectaron solas (ban, version, lobby lleno,
+                                                   redirect...) saltan esta parte gracias al flag
+                                                   disconnecting. */
+                                                if (!v->disconnecting)
+                                                {
+                                                        Info("Identity failed for id %d: desconectando con aviso", v->id);
+                                                        server_disconnect(v->server, v->peer, DR_OTHER, "fallo al leer tu paquete de identidad (reinstala/actualiza el juego)");
+                                                }
+                                                else
+                                                {
+                                                        Debug("Identity failed for id %d (ya gestionado)", v->id);
+                                                }
                                         }
                                         break;
                                 }

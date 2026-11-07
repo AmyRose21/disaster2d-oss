@@ -14,12 +14,26 @@
 	#define BYTESWAP_64(x) _byteswap_uint64((x))
 #endif
 
+/* FIX UDID V1: string_new ahora acota a sizeof(str.value) (250). Antes un
+   texto largo (p. ej. un MOTD de Config.json de mas de 249 chars) desbordaba
+   value[] => comportamiento indefinido / crash del server. */
 String string_new(const char* value)
 {
+	String str = { .value = {0},  .len = 0};
 	size_t len = strlen(value) + 1;
-	String str = { .value = {0},  .len = (uint16_t)len};
-	memcpy(str.value, value, len);
 
+	if (len > sizeof(str.value))
+	{
+		len = sizeof(str.value);
+		memcpy(str.value, value, len);
+		str.value[len - 1] = '\0'; // asegura terminacion tras el recorte
+	}
+	else
+	{
+		memcpy(str.value, value, len);
+	}
+
+	str.len = (uint16_t)len;
 	return str;
 }
 
@@ -58,10 +72,25 @@ bool packet_new(Packet* packet, PacketType type)
 	return true;
 }
 
+/* FIX UDID V1: antes .len era uint8_t => un paquete ENet de 256+ bytes
+   quedaba con len = dataLength % 256 (256 -> 0, 300 -> 44) y el resto de
+   los campos se leia desalineado. Ahora se recorta a 255 (maximo que
+   soporta Packet) con aviso en el log; el paquete se descarta de forma
+   limpia en el handler en vez de desalinear la lectura. */
 Packet packet_from(ENetPacket* packet)
 {
-	Packet pack = (Packet) { .pos = 0,  .len = (uint8_t)packet->dataLength };
-	memcpy(pack.buff, packet->data, (uint8_t)packet->dataLength);
+	Packet pack = {0};
+
+	size_t data_len = packet->dataLength;
+	if (data_len > PACKET_MAXSIZE - 1)
+	{
+		Warn("packet_from: paquete de %zu bytes recortado a %d (se ignora el sobrante)", data_len, PACKET_MAXSIZE - 1);
+		data_len = PACKET_MAXSIZE - 1;
+	}
+
+	pack.pos = 0;
+	pack.len = (uint8_t)data_len;
+	memcpy(pack.buff, packet->data, data_len);
 	enet_packet_destroy(packet);
 	return pack;
 }
@@ -185,6 +214,15 @@ bool packet_readdouble(Packet* packet, double* out)
 	return true;
 }
 
+/* FIX UDID V1: los strings del protocolo vienen SIN prefijo de longitud
+   (terminan en '\0'). Si un cliente manda un string mas largo que el
+   buffer (p. ej. el UDID de Android = "mod-" + 7 campos de os_get_info,
+   que en varios modelos supera los 128 chars), antes estallaba el assert
+   de longitud (out->len < 128) => fallaba TODO el identity y el jugador
+   se quedaba colgado hasta el timeout. Ahora: se sigue consumiendo hasta
+   el '\0' (para dejar pos sincronizado con los campos siguientes: icono,
+   mascota, ticket anticheat) pero solo se guardan los primeros
+   sizeof(value)-1 chars. Log con Warn para diagnostico. */
 bool packet_readstr(Packet* packet, String* out)
 {
 	out->len = 0;
@@ -192,16 +230,25 @@ bool packet_readstr(Packet* packet, String* out)
 	while (1)
 	{
 		RAssert(packet->pos < packet->len);
-		RAssert(out->len < 128);
 
 		char ch = packet->buff[packet->pos];
-		out->value[out->len] = ch;
-
 		packet->pos++;
-		out->len++;
+
+		if (out->len < sizeof(out->value))
+			out->value[out->len++] = ch;
 
 		if (ch == '\0')
 			break;
+	}
+
+	// Cadena mas larga que el buffer: nunca se guardo el '\0' final.
+	if (out->len > 0 && out->value[out->len - 1] != '\0')
+	{
+		if (out->len >= sizeof(out->value))
+			out->len = sizeof(out->value) - 1;
+
+		out->value[out->len] = '\0';
+		Warn("packet_readstr: string recortada a %d chars", (int)out->len);
 	}
 
 	return true;

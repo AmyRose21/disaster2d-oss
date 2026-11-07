@@ -7,9 +7,15 @@ function net_identity()
 	buffer_write(pak, buffer_s32, obj_netclient.want_lobby);
 	buffer_write(pak, buffer_string, global.nickname);
 	
+	/* FIX UDID V1: el UDID de Android ("mod-" + 7 campos de os_get_info)
+	   supera los ~128 chars en varios modelos y los servers con el
+	   packet_readstr original reventaban (RASSERT out->len < 128) al
+	   leerlo => el jugador quedaba colgado en "conectando...". Tope de
+	   100 chars (suficiente para bans/uniqueness, seguro para cualquier
+	   server). */
 	if(os_type != os_android)
 	{
-		buffer_write(pak, buffer_string, $"mod-{osInfo[? "udid"]}");
+		buffer_write(pak, buffer_string, string_copy($"mod-{osInfo[? "udid"]}", 1, 100));
 	}
 	else
 	{
@@ -21,7 +27,7 @@ function net_identity()
 		udid += osInfo[? "MANUFACTURER"];
 		udid += osInfo[? "BOOTLOADER"];
 	
-		buffer_write(pak, buffer_string, $"mod-{udid}");
+		buffer_write(pak, buffer_string, string_copy($"mod-{udid}", 1, 100));
 	}
 	
 	buffer_write(pak, buffer_s8, obj_unlockables.lobbyIcon);

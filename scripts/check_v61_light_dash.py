@@ -18,7 +18,10 @@ TUNING DEL USUARIO pineado (SPEED 5 / RADIUS 220 / LINK 275 / RINGS 20 /
 TIME 200) para que nadie lo revierta sin darse cuenta. v6.1 anade:
 macros de la cadena, la C dentro del bloque AEREO (antes que la Z), el
 bloque del LSA separado de la Z, la banda lsaHit, la intercepcion, el
-gate de i-frames del golpe y el gate isGrounded del martillo.
+gate de i-frames del golpe y el gate isGrounded del martillo. v6.2 anade el fix del crash de
+runtime: los 2 array_find_index(arr, VALOR) del LSA pasan a
+array_contains (el runtime exige predicado function(_element,
+_index), como el findIndex de JS).
 
 Parte 2 (simulacion): la logica del dash porteada 1:1 a Python, con las
 constantes PARSEADAS del propio gml (unica fuente de verdad). v6.1 anade:
@@ -44,7 +47,9 @@ import os
 import re
 import sys
 
-ROOT = "/home/z/my-project/disaster2d-oss"
+# v6.2: raiz RELATIVA al propio checker (antes estaba hardcodeada a la
+# carpeta del sandbox donde nacio el v6.1 -> no corria en ninguna otra maquina)
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 fails = []
 
 
@@ -434,7 +439,7 @@ check("v6.1 scr_light_dash: intercepcion SOLO en fase de anillos (LSA_INTERCEPT)
 
 check("v6.1 scr_light_dash: la llegada marca al objetivo y encadena el siguiente",
       "array_push(lsaHit, _tgt.exe.id);" in ld
-      and "array_find_index(lsaHit, _tgt.exe.id) == -1" in ld
+      and "!array_contains(lsaHit, _tgt.exe.id)" in ld
       and "scr_lsa_next_leg(_tgt.x, _tgt.y);" in ld
       and "array_push(lightDashChain, _leg[i]);" in ld)
 
@@ -476,8 +481,14 @@ check("v6.0 scr_light_dash: objetivo = bando exe mas cercano (filtros Chocola)",
 
 check("v6.1 scr_light_dash: buscador general con banda y skip (jamas repetir)",
       "function scr_lsa_find_target_at(" in ld
-      and "array_find_index(_hitList, id) != -1" in ld
+      and "array_contains(_hitList, id)" in ld
       and "_skipExe != noone && id == _skipExe" in ld)
+
+check("v6.2 fix crash: array_find_index(arr, VALOR) eliminado del LSA (runtime: argument 1 is neither a method or a function)",
+      "array_find_index(lsaHit," not in ld
+      and "array_find_index(_hitList," not in ld
+      and "!array_contains(lsaHit, _tgt.exe.id)" in ld
+      and "array_contains(_hitList, id)" in ld)
 
 check("v6.1 scr_light_dash: el tramo al objetivo (leg_to) con A* y eslabon vivo",
       "function scr_lsa_leg_to(" in ld

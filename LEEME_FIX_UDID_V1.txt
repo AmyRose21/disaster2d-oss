@@ -1,0 +1,138 @@
+v1 — FIX UDID: JUGADORES QUE NO ENTRAN (RASSERT en Packet.c:195 / Server.c:181)
+===============================================================================
+
+EL SINTOMA (lo que viste)
+-------------------------
+Algunos jugadores (NO todos) se conectan y el server escupe:
+
+    (Packet.c:195): RAssert(out->len < 128) failed!
+    (Server.c:181): RAssert(packet_readstr(packet, (void*)&udid)) failed!
+
+(en tu binario figura "< 122" y "&vgid": es la misma funcion/campo con
+otros nombres/constantes de tu build local; las lineas 195/181 y el
+comportamiento son identicos)
+
+Y el jugador afectado se queda colgado en "conectando..." hasta que lo
+echa el timeout. El server NO se cae: el RAssert solo corta el parseo
+del paquete IDENTITY de ese jugador y el resto sigue jugando normal.
+
+LA CAUSA RAIZ (reproducida y confirmada)
+----------------------------------------
+El cliente manda su UDID dentro del paquete IDENTITY. En PC es corto
+("mod-" + GUID de Windows) pero en ANDROID se construye concatenando
+7 campos de os_get_info (scripts/net_indentity/net_indentity.gml):
+
+    "mod-" + VERSION + CPU_ABI + RELEASE + MODEL + DEVICE
+            + MANUFACTURER + BOOTLOADER
+
+En varios modelos Android eso pasa de 128 chars (CPU multi-ABI del tipo
+"arm64-v8a,armeabi-v7a,armeabi", nombres de modelo/fabricante largos,
+bootloader largo...). El packet_readstr del server tenia un assert
+duro de longitud:
+
+    RAssert(out->len < 128);   // <-- revienta con un UDID largo
+
+=> falla el PacketRead(udid) del peer_identity (Server.c:181) => el
+identity aborta => solo quedaba un Debug (invisible con log_debug en
+false) => el jugador cuelga hasta el timeout.
+
+POR ESO "SOLO ALGUNOS": solo los jugadores cuyo UDID supera el limite
+(modelos Android con info de dispositivo larga). Los de PC y los
+Android "normales" nunca lo alcanzan y entran sin problema.
+
+REPRODUCCION (evidencia, hecha en el sandbox)
+---------------------------------------------
+- Server compilado del codigo ORIGINAL + bot cliente ENet con un UDID
+  de 144 chars (como un Android real exagerado):
+      => (Packet.c:195) RAssert(out->len < 128) failed!   [EXACTO tu error]
+      => (Server.c:181) RAssert(packet_readstr(... &udid)) failed!
+      => el bot queda COLGADO 5+ segundos sin respuesta (tu bug)
+- Mismo server + UDID normal de 20 chars => entra perfecto (control).
+
+LOS CAMBIOS (5 en total, todos quirurgicos)
+-------------------------------------------
+SERVER (hay que recompilar con compilar_server.bat):
+
+1) betterserver-oss/disasterserver/Packet.c — packet_readstr:
+   - ELIMINADO el RAssert(out->len < 128).
+   - Ahora sigue leyendo hasta el '\0' real (deja el stream sincronizado:
+     icono, mascota y ticket anticheat se leen bien) pero solo guarda
+     hasta sizeof(value)-1 = 249 chars.
+   - Si recorta, fuerza el '\0' final (nada de basura) y avisa:
+     "packet_readstr: string recortada a 249 chars" (nivel WRN).
+   - Un UDID de 144 chars ahora se lee COMPLETO y el jugador ENTRA.
+
+2) Packet.c — packet_from: .len era uint8_t => un paquete ENet de 256+
+   bytes quedaba con len = dataLength % 256 (256 -> 0, 300 -> 44) y todo
+   lo demas se leia desalineado. Ahora se recorta a 255 (el maximo que
+   soporta Packet) con un WRN en el log. Este era un bug latente que
+   podia producir los MISMOS sintomas con paquetes grandes.
+
+3) Packet.c — string_new: no acotaba => un texto de mas de 249 chars
+   (p. ej. un MOTD largo de Config.json) desbordaba value[250] =
+   comportamiento indefinido. Ahora acota y fuerza '\0'. Bug latente
+   corregido de paso.
+
+4) betterserver-oss/disasterserver/states/Server.c — dispatcher:
+   - Si peer_identity falla y el peer NO esta ya desconectado/redirigido,
+     ahora se le desconecta CON MENSAJE ("fallo al leer tu paquete de
+     identidad...") en vez de dejarlo colgado. Se ve en el log como
+     "Identity failed for id N: desconectando con aviso".
+   - La ruta de redirect (lobby lleno -> otro server) ahora marca
+     v->disconnecting = true para que el dispatcher no le meta un
+     disconnect de mas al que ya se esta yendo solo.
+   - El resto de rutas (ban, version, lobby lleno...) ya se
+     desconectaban solas y no se tocan (server_disconnect es idempotente).
+
+CLIENTE (opcional pero recomendado, recompilar en GameMaker):
+
+5) scripts/net_indentity/net_indentity.gml: el UDID que se envia queda
+   topeado con string_copy(..., 1, 100). Razones: (a) tu server ya lo
+   tolera, pero asi el paquete identity queda chico para siempre;
+   (b) si tus jugadores entran a OTROS servers comunitarios que todavia
+   tienen el packet_readstr original, tampoco los revientan. 100 chars
+   sobra para bans/deteccion de duplicados.
+
+NO CAMBIA: el formato del paquete IDENTITY (los clientes viejos y los
+vanilla siguen compatibles), el orden del enum de paquetes, el
+anticheat (el ticket 2x u64 se sigue leyendo igual), bans/timeouts.
+
+INSTALACION
+-----------
+1) Copia los 3 archivos modificados a sus rutas (mantienen la estructura
+   del zip).
+2) Recompila el server: compilar_server.bat (como siempre).
+3) Recompila el cliente en GameMaker (por el punto 5; si te urge solo
+   el server, el punto 5 puede esperar: el fix del server ya resuelve
+   el bug por si solo).
+4) Reinicia el server. Los jugadores afectados entran sin hacer nada
+   especial (no necesitan actualizar el juego para ELLO; el tope del
+   cliente es solo el cinturon de seguridad extra).
+
+VERIFICACION (todo corrido en el sandbox, Linux + enet)
+-------------------------------------------------------
+- Server compila 100% limpio (gcc -Wall: cero warnings nuevos en los
+  archivos tocados) y arranca ("BetterServer v1101, Listening on 8606").
+- check_udid_fix.py: 38/38 OK (patrones del fix + simulacion byte-level
+  del algoritmo + harness C compilado con las funciones LITERALES de
+  Packet.c).
+- E2E con bot cliente ENet real contra el server compilado:
+    A) UDID de 144 chars  => ENTRA ("BotLargo (id 1) joined") [antes: tu error]
+    B) UDID normal        => ENTRA (sin regresion)
+    C) UDID de 380 chars (paquete de 418 bytes) => recortado + desconectado
+       CON AVISO al instante (antes: colgado hasta el timeout)
+- Contraste con el server ORIGINAL (sin fix): mismo bot A reproduce
+  EXACTAMENTE (Packet.c:195)+(Server.c:181) y cuelga. Causa confirmada.
+
+NOTAS
+-----
+- El "Packet.c:195 / Server.c:181" de tu log coincide con las lineas del
+  codigo actual del repo (packet_readstr / PacketRead(udid...)): tu
+  binario es una build con nombres ligeramente distintos (vgid, 122)
+  pero el bug y el fix son los mismos.
+- betterserver-oss/disasterserver/Server.c (el de la RAIZ, sin states/)
+  NO se compila (el CMake usa states/Server.c): no hace falta tocarlo.
+- El WRN "packet_from: paquete de N bytes recortado" en el log = alguien
+  mando un paquete de mas de 255 bytes (ya sea un cliente raro o mal
+  intencionado): el server lo recorta y sigue. Si aparece seguido con
+  el mismo jugador, revisalo.
