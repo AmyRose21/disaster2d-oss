@@ -1,5 +1,6 @@
 {
   "FolderOrderSettings":[
+    {"name":"MultiClient","order":3,"path":"folders/Extensions/MultiClient.yy",},
     {"name":"Sally Canon","order":2,"path":"folders/Objects/Player/Survivors/Sally Canon.yy",},
     {"name":"Vanilla Canon","order":3,"path":"folders/Objects/Player/Survivors/Vanilla Canon.yy",},
     {"name":"Blood","order":16,"path":"folders/Sprites/Effects/Blood.yy",},
@@ -14,6 +15,8 @@
     {"name":"Vanilla Canon","order":2,"path":"folders/Sprites/Player/Survivors/Vanilla Canon.yy",},
   ],
   "ResourceOrderSettings":[
+    {"name":"data","order":1,"path":"extensions/data/data.yy",},
+    {"name":"disnet","order":2,"path":"extensions/disnet/disnet.yy",},
     {"name":"Documentation","order":4,"path":"notes/Documentation/Documentation.yy",},
     {"name":"hitspark_area","order":1,"path":"objects/hitspark_area/hitspark_area.yy",},
     {"name":"hitsparkobject","order":3,"path":"objects/hitsparkobject/hitsparkobject.yy",},
