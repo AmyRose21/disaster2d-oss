@@ -40,7 +40,17 @@ if(instance_exists(obj_player_puppet))
                 image_angle = point_direction(global.player.x, global.player.y, target.x, target.y);
 }
 
-visible = (global.character != CHARACTER_EXE || global.player.invisTimer > 0 || (global.exeCharacter == 1 && global.player.slimeTimer > 0)) || redRings;
+// FIX SCAN v4.9: la condicion de la AGUJA (invisibilidad del EXE /
+// anillo rojo / slime de Chaos) pasa a la bandera propia `needle`. Antes
+// vivia en `visible`, la variable del MOTOR, y ahi estaba el bug del scan:
+// el indicador nace visible:false (el .yy) y para Metal Amy esta linea daba
+// false SIEMPRE (es el bando EXE, no usa invisibilidad, no es Chaos, sin
+// anillo rojo) — y una instancia invisible NO ejecuta su Draw GUI en este
+// runtime, asi que las siluetas del scan nunca se dibujaban (la v4.8.1
+// arreglo el gate que llena la lista, pero el evento de dibujo segua sin
+// correr). `visible` ahora solo es el interruptor del MOTOR y la enciende
+// el final del Step_2 con la aguja O el scan activo.
+needle = (global.character != CHARACTER_EXE || global.player.invisTimer > 0 || (global.exeCharacter == 1 && global.player.slimeTimer > 0)) || redRings;
 
 // v4.8 (SCAN de Metal Amy): mientras dura el revelado, UNA referencia por
 // cada superviviente VIVO (la aguja normal de arriba solo marca al mas
@@ -80,3 +90,11 @@ if(global.character == CHARACTER_EXE
                 other.scanCount++;
         }
 }
+
+// FIX SCAN v4.9 — EL INTERRUPTOR DEL MOTOR: mientras haya aguja que
+// senalar O revelado que dibujar, la instancia se hace VISIBLE para que
+// el motor corra su Draw GUI (la aguja la dibuja el bloque de abajo del
+// Draw_64 con su propia bandera `needle`, asi el scan no arrastra la
+// flecha consigo). Sin aguja y sin scan vuelve a false y el evento
+// deja de correr: cero costo en el frame comun.
+visible = needle || scanCount > 0;

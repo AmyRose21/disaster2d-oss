@@ -249,7 +249,17 @@ function scr_vanilla_v2_step()
     {
         gspd = 0;
         xspd = 0;
-        yspd = isGrounded ? 0 : VANILLA_PACIENCIA_LEVITATE;
+
+        // MINI FIX v2.2 (mismo que PACIENCIA): debilitada EN EL AIRE cae al
+        // suelo en vez de quedarse flotando en vilo; la levitacion queda
+        // SOLO para el hoyo de verdad (sin terreno en la columna de abajo).
+        if(isGrounded)
+                yspd = 0;
+        else if(!collision_line(x, y, x, room_height + 64, obj_floor_parent, true, true))
+                yspd = VANILLA_PACIENCIA_LEVITATE;
+        else
+                yspd = min(yspd + yAccel, maxYSpeed);
+
         isJumping = false;
         isFlying = false;
         isSpinning = false;
@@ -279,7 +289,25 @@ function scr_vanilla_v2_step()
         // caida fue a un hoyo levita suave hasta salir
         gspd = 0;
         xspd = 0;
-        yspd = isGrounded ? 0 : VANILLA_PACIENCIA_LEVITATE;
+
+        // MINI FIX v2.2 (pedido del usuario): "si la debilitan en el aire
+        // no se queda flotando, debe caer al suelo". Antes este bloque
+        // ponia yspd = LEVITATE siempre que no estuviera en el suelo, asi
+        // que una Vanilla debilitada EN EL AIRE sobre suelo normal se
+        // quedaba clavada flotando los 5 s enteros de la fase (la
+        // levitacion es para HOYOS). Ahora: (1) en el suelo, quieta como
+        // siempre; (2) con terreno en la columna de abajo CAE con su
+        // gravedad y su tope de caida (la fase la hace en el suelo, como
+        // pide el sprite de paciencia); (3) sin terreno debajo — el hoyo
+        // de siempre, el abismo que la mato en vilo — levita suave hasta
+        // salir, EXACTAMENTE como antes: cero cambio en los hoyos.
+        if(isGrounded)
+                yspd = 0;
+        else if(!collision_line(x, y, x, room_height + 64, obj_floor_parent, true, true))
+                yspd = VANILLA_PACIENCIA_LEVITATE;
+        else
+                yspd = min(yspd + yAccel, maxYSpeed);
+
         isJumping = false;
         isFlying = false;
         isSpinning = false;

@@ -43,7 +43,13 @@ if(scanCount > 0 && instance_exists(global.player) && instance_exists(obj_camera
         gpu_set_blendmode(bm_normal);
 }
 
-if(!visible)
+// FIX SCAN v4.9: la aguja se gatea con su bandera propia (`needle`, la
+// calcula el Step_2) y NO con `visible`: esa ahora es el interruptor del
+// MOTOR que tambien enciende el scan (el bloque de arriba), y si se
+// gateara aqui con visible, el revelado de Metal Amy arrastraria la
+// flecha consigo. Invisibilidad EXE / anillo rojo / slime de Chaos:
+// identico comportamiento de siempre (needle == la vieja condicion).
+if(!needle)
         return;
 
 if(!instance_exists(global.player))
