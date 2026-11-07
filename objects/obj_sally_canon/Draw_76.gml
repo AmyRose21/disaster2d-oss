@@ -3,25 +3,17 @@ sprite_index = arr[? CHARACTER_SALLY_CANON][state];
 
 // --- FASE DUELISTA: overrides de sprite ---
 // El salto pasa a la bola (spr_sally_fase2_jump_canon) y la rodadura
-// (SPIN) a su bola de spindash. El escudo grupal tiene poses propias
-// (quieta / agachada / en el aire); caminando o corriendo conserva el
-// sprite normal y el efecto se dibuja aparte sin animacion (Draw_0).
+// (SPIN) a su bola de spindash. El escudo ya NO toca el cuerpo: la
+// burbuja es un efecto aparte animado que se dibuja encima en
+// cualquier estado (Draw_0), igual que el escudo de la Sally
+// vanilla (v5.6: antes habia poses atadas al escudo y la burbuja
+// quedaba congelada o invisible segun el estado).
 if(duelista)
 {
         if(state == JUMP)
                 sprite_index = spr_sally_fase2_jump_canon;
         else if(state == SPIN)
                 sprite_index = spr_sally_spindash_canon;
-
-        if(shieldTimer > 0)
-        {
-                if(state == IDLE)
-                        sprite_index = spr_sally_shield_canon;
-                else if(state == LOOKDOWN)
-                        sprite_index = spr_sally_shield_down_canon;
-                else if(state == JUMP || state == FALL)
-                        sprite_index = spr_sally_shield_air_canon;
-        }
 }
 
 switch(state)
@@ -61,12 +53,12 @@ switch(state)
                 // sube + animacion de caida clavada en el ultimo frame) y la
                 // bola se quedaba congelada hasta que empezaba a caer. Misma
                 // velocidad de giro que la bola del salto de Sonic (1.1).
-                // Con el escudo grupal activo el sprite del aire es el del
-                // escudo (spr_sally_shield_air_canon) y ese SI conserva el
-                // comportamiento vanilla. El image_index viaja por red
+                // v5.6: con el escudo activo la bola gira igual y la burbuja
+                // se dibuja ENCIMA (Draw_0), como el escudo de la Sally
+                // vanilla sobre su salto. El image_index viaja por red
                 // (CLIENT_PLAYER_DATA), asi que el puppet en los demas
                 // clientes gira continuo igual.
-                if(duelista && shieldTimer <= 0)
+                if(duelista)
                 {
                         image_speed = 1.1;
                         break;

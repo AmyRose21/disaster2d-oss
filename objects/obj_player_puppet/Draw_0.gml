@@ -255,21 +255,15 @@ switch(character)
                 if(state == SALLY_ZIPLINE)
                         draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 23 - 19);
                 
-                // ESCUDO (v5.4): burbuja de su escudo activo (bitflag
-                // PLAYER_SALLYSHIELD). Fase 1: animada como la de la Sally
-                // vanilla (hasta hoy no se dibujaba nada en el puppet: hueco
-                // arreglado). Fase DUELISTA: quieta / agachada / en el aire
-                // el cuerpo usa la POSE (override del Draw_72), asi que la
-                // burbuja solo sale en los demas estados (caminando o
-                // corriendo) y SIN animacion (frame fijo), igual que en su
-                // propio cliente.
+                // ESCUDO (v5.6, fix reportado): burbuja animada SIEMPRE
+                // que el escudo este activo (bitflag PLAYER_SALLYSHIELD),
+                // igual que la Sally vanilla en su puppet: efecto aparte
+                // encima del cuerpo en cualquier estado (quieta, andando,
+                // saltando, cayendo...), sin atarlo a la animacion.
+                // (v5.4 lo ataba a poses de cuerpo y la burbuja quedaba
+                // congelada o invisible segun el estado; eso ya no existe.)
                 if(sallyShield)
-                {
-                        if(!duelista)
-                                draw_sprite(spr_sallyshield_canon, (current_time / 30) % 41, floor(x), floor(y));
-                        else if(state != IDLE && state != LOOKDOWN && state != JUMP && state != FALL)
-                                draw_sprite(spr_sallyshield_canon, 0, floor(x), floor(y));
-                }
+                        draw_sprite(spr_sallyshield_canon, (current_time / 30) % 41, floor(x), floor(y));
                 break;
                 
         case CHARACTER_VANILLA:

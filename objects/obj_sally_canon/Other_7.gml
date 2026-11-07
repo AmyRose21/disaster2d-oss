@@ -9,11 +9,10 @@ switch(state)
                 // de la Sally original: su idle de 90 frames tiene la
                 // respiracion justo en las ultimas 14; en el canon ese corte
                 // pillaba el gesto a medias y lo rebotaba sin parar.)
-                // DUELISTA: con el escudo grupal activo el cuerpo usa la POSE
-                // del escudo (spr_sally_shield_canon), que SI tiene que
-                // animarse en bucle: no se congela.
-                if(!(duelista && shieldTimer > 0))
-                        image_index = image_number - 2;
+                // v5.6: sin excepcion para el escudo; con el escudo activo
+                // el cuerpo hace SU idle normal y la burbuja va aparte
+                // encima (Draw_0), como la Sally vanilla.
+                image_index = image_number - 2;
                 break;
                 
         case EMOTION1:

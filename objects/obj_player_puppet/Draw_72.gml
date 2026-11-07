@@ -86,13 +86,15 @@ else
         
         // SALLY CANON fase DUELISTA (v5.4): overrides de sprite de la
         // fase, iguales a los del jugador local (obj_sally_canon/
-        // Draw_76): el salto pasa a la bola (spr_sally_fase2_jump_canon),
-        // la rodadura (SPIN) a su bola de spindash y el escudo grupal
-        // tiene poses propias (quieta / agachada / en el aire). Los
-        // estados 22/23 (patada en tierra y carga del spindash) van por
-        // la tabla normal de abajo (indices nuevos en scr_survivors).
-        // "duelista" llega sticky por el bitflag PLAYER_POWERBOOST
-        // (net_udpprocess) y "sallyShield" por PLAYER_SALLYSHIELD.
+        // Draw_76): el salto pasa a la bola (spr_sally_fase2_jump_canon)
+        // y la rodadura (SPIN) a su bola de spindash. Los estados 22/23
+        // (patada en tierra y carga del spindash) van por la tabla normal
+        // de abajo (indices nuevos en scr_survivors). "duelista" llega
+        // sticky por el bitflag PLAYER_POWERBOOST (net_udpprocess) y
+        // "sallyShield" por PLAYER_SALLYSHIELD.
+        // v5.6: el escudo ya NO cambia el cuerpo (adios poses quieta/
+        // agachada/aire); la burbuja animada se dibuja encima en
+        // cualquier estado desde el Draw_0, como la Sally vanilla.
         if(character == CHARACTER_SALLY_CANON && duelista)
         {
                 var _scSpr = -1;
@@ -101,16 +103,6 @@ else
                         _scSpr = spr_sally_fase2_jump_canon;
                 else if(state == SPIN)
                         _scSpr = spr_sally_spindash_canon;
-                
-                if(sallyShield)
-                {
-                        if(state == IDLE)
-                                _scSpr = spr_sally_shield_canon;
-                        else if(state == LOOKDOWN)
-                                _scSpr = spr_sally_shield_down_canon;
-                        else if(state == JUMP || state == FALL)
-                                _scSpr = spr_sally_shield_air_canon;
-                }
                 
                 if(_scSpr != -1)
                 {

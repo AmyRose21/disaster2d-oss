@@ -35,15 +35,13 @@ scr_palette_swap(global.palleteFrom, global.palleteTo);
 draw_sprite_ext(sprite_index, image_index, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
 shader_reset();
 
-// ESCUDO: en fase 1 es la burbuja animada de siempre. En fase
-// duelista el escudo es GRUPAL y con poses: quieta / agachada / en
-// el aire el cuerpo usa la pose (Draw_76) y NO se dibuja la burbuja;
-// caminando, corriendo (o cualquier otro estado en movimiento) el
-// efecto se dibuja SIN animacion (frame fijo), como pidio el diseno.
+// ESCUDO (v5.6, fix reportado): la burbuja animada se dibuja SIEMPRE
+// que el escudo este activo, igual que el escudo de la Sally vanilla
+// (y que el codigo original del canon): es un efecto APARTE que va
+// ENCIMA del cuerpo en cualquier estado (quieta, andando, corriendo,
+// saltando, cayendo, agachada...) y NO va atado a la animacion del
+// cuerpo. v5.4 lo habia atado a poses de cuerpo (quieta/agachada/
+// aire) y la burbuja quedaba congelada en un frame o directamente
+// invisible segun el estado; eso ya no existe.
 if(shieldTimer > 0)
-{
-        if(!duelista)
-                draw_sprite(spr_sallyshield_canon, (current_time / 30) % 41, floor(x), floor(y));
-        else if(state != IDLE && state != LOOKDOWN && state != JUMP && state != FALL)
-                draw_sprite(spr_sallyshield_canon, 0, floor(x), floor(y));
-}
+        draw_sprite(spr_sallyshield_canon, (current_time / 30) % 41, floor(x), floor(y));
