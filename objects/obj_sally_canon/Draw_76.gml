@@ -54,6 +54,24 @@ switch(state)
                 break;
                 
         case JUMP:
+                // v5.5 FIX (reporte del usuario): el salto DUELISTA es tipo
+                // SPIN (bola de 8 frames): tiene que girar CONTINUO durante
+                // TODO el arco del salto, subiendo y bajando. Antes heredaba
+                // el comportamiento del salto vanilla (pose fija mientras
+                // sube + animacion de caida clavada en el ultimo frame) y la
+                // bola se quedaba congelada hasta que empezaba a caer. Misma
+                // velocidad de giro que la bola del salto de Sonic (1.1).
+                // Con el escudo grupal activo el sprite del aire es el del
+                // escudo (spr_sally_shield_air_canon) y ese SI conserva el
+                // comportamiento vanilla. El image_index viaja por red
+                // (CLIENT_PLAYER_DATA), asi que el puppet en los demas
+                // clientes gira continuo igual.
+                if(duelista && shieldTimer <= 0)
+                {
+                        image_speed = 1.1;
+                        break;
+                }
+
                 if(yspd > 0)
                 {
                         image_speed = 1;

@@ -72,7 +72,15 @@ with(global.player)
                         if(redRingTimer > 0)
                                 bitflags |= PLAYER_REDRING;
                 
-                        if(global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) || global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON || global.character == CHARACTER_EGGMAN || global.character == CHARACTER_SONIC)
+                        // v2.8 (reporte del usuario) — METAL tambien viaja: sin
+                        // este bit el stun de contacto del overdrive y del spark
+                        // field era CODIGO MUERTO (el cliente del EXE jamas veia
+                        // al puppet atacando: el caso METAL de obj_player_puppet
+                        // Step_0 no se ejecutaba nunca, y de ahi el "no tiene
+                        // sentido que los haga"). Para Metal isAttacking solo
+                        // esta en true durante sus 2 ataques (scr_metal_special),
+                        // asi que el bit es exacto.
+                        if(global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) || global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON || global.character == CHARACTER_EGGMAN || global.character == CHARACTER_SONIC || global.character == CHARACTER_METAL)
                         {
                                 if(isAttacking)
                                         bitflags |= PLAYER_ATTACKING;

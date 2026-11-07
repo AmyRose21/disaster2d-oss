@@ -223,6 +223,21 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         // animacion: no puede recibir dano durante el uso de la habilidad.
         if(global.character == CHARACTER_SONIC && (global.player.nerviosState > 0 || global.player.isAttacking))
                 return;
+
+        // v2.8 (reporte del usuario) — I-FRAMES EN LOS 2 ATAQUES DE METAL:
+        // el OVERDRIVE y el SPARK FIELD son de contacto defensivo (su unico
+        // efecto es aturdir 3 s al killer que lo toque), pero un golpe a
+        // mitad del ataque los cortaba (isHurt corta metalDashing e
+        // isElectro) y el ataque moria sin haber servido de nada — de ahi
+        // el «no tiene sentido que los haga». Mientras dure cualquiera de
+        // los dos, Metal no recibe dano: mismo modelo que el golpe de Sonic
+        // o el dash/tarot de Amy Canon. El stun que el CAUSA corre en el
+        // cliente del EXE (obj_player_puppet, bit PLAYER_ATTACKING que
+        // ahora si viaja), asi que no depende de este guard. Los peligros
+        // que matan sin dano (caer al vacio, scr_player_instakill) siguen
+        // funcionando igual.
+        if(global.character == CHARACTER_METAL && (global.player.metalDashing > 0 || global.player.isElectro > 0))
+                return;
         
         // FASE 2 (Sally Canon): inmune a TODO durante las 4 partes
         // (desde el retroceso del golpe hasta levantarse ya con vida llena).

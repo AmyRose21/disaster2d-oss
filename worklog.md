@@ -3801,3 +3801,87 @@ byte (22/23), bitflags existentes (POWERBOOST/SALLYSHIELD) y effects.
 Pendiente partida real: TP del exe visible en ambos clientes, doble
 stun con merit x2, escudo grupal con un companero cerca, evasion 20%,
 spindash de Sally vs el de Amelia, poses del escudo en el puppet.
+
+---
+
+v5.5 + v2.8 — FIX SALTO DUELISTA + METAL: I-FRAMES EN SUS 2 ATAQUES
+========================================================================
+Pedido (post-prueba del v5.4): (1) el salto de la fase duelista de
+Sally Canon congelaba la animacion mientras subia (solo corria al
+empezar a caer) y siendo un salto tipo SPIN (bola) deberia girar
+continuo; (2) Metal Sonic debe tener i-frames en sus 2 ataques porque
+"si no no tiene sentido que los haga".
+
+- FIX SALTO DUELISTA (obj_sally_canon/Draw_76, case JUMP): el case
+  JUMP congelaba image_speed mientras yspd <= 0 y clavaba el ultimo
+  frame al caer — comportamiento pensado para el sprite vanilla de
+  salto (pose fija de subida + pose de caida), pero la bola de la fase
+  (spr_sally_fase2_jump_canon, 8 frames) heredaba el congelado y se
+  quedaba quieta en la subida. Ahora, en duelista y SIN escudo puesto,
+  image_speed = 1.1 constante durante TODO el arco (misma velocidad de
+  giro que la bola del salto de Sonic, obj_sonic/Draw_76). Con el
+  escudo grupal activo el sprite del aire es el del escudo
+  (spr_sally_shield_air_canon) y ese SI conserva el comportamiento
+  vanilla (pose de subida/caida). Fuera de la fase: intacto. El
+  image_index viaja por red en CLIENT_PLAYER_DATA (u8), asi que el
+  puppet de los demas clientes gira continuo sin tocar nada alli.
+
+- METAL, diagnostico doble: sus 2 ataques (OVERDRIVE tecla B, 2 s a
+  velocidad 16; SPARK FIELD tecla C, 1 s electrificado) solo existian
+  para aturdir 3 s al killer que lo tocara... pero (a) ese stun estaba
+  en CODIGO MUERTO: el bit PLAYER_ATTACKING jamas viajaba para Metal
+  (no estaba en la lista de envio de obj_netclient/Step_2 ni en la de
+  recepcion de net_udpprocess — solo Knux/Eggman/Amy/Amy_Canon/Sally/
+  Sally_Canon/Sonic), con lo que el cliente del EXE nunca veia al
+  puppet atacando y el caso METAL de obj_player_puppet Step_0 (con sus
+  sprites/snd_metal_electro propios) no se ejecutaba NUNCA; y (b) un
+  golpe cualquiera a mitad del ataque lo cortaba (isHurt corta
+  metalDashing e isElectro). Resultado: los ataques no aturdian a
+  nadie y encima se cancelaban solos — "no tiene sentido que los
+  haga".
+
+- METAL, fix (3 piezas):
+  1) obj_netclient/Step_2: CHARACTER_METAL anadido a la lista de envio
+     de PLAYER_ATTACKING. Para Metal isAttacking SOLO esta en true
+     durante sus 2 ataques (scr_metal_special lo enciende al activar y
+     lo apaga al terminar/cortar/ocultarse/anillo rojo/resorte), asi
+     que el bit es exacto: cero falso-positivos.
+  2) net_udpprocess: CHARACTER_METAL anadido a la lista de recepcion
+     del mismo bit (mismo patron que el fix del golpe de Sonic v4).
+     Con esto el puppet de Metal queda isAttacking en los clientes del
+     bando EXE y el stun de contacto (3 s, particulas + snd propio del
+     electro, empujon del overdrive) por fin se dispara.
+  3) scr_player_hurt: guard de i-frames — mientras metalDashing > 0 o
+     isElectro > 0, Metal no recibe dano (return temprano, mismo
+     modelo que el golpe de Sonic o el dash/tarot de Amy Canon: sin
+     vida, sin anillos, sin retroceso, sin cortar el ataque). La
+     reparacion del Genio Malvado y el resto del kit no cambian. Los
+     peligros que matan sin dano (caer al vacio, scr_player_instakill)
+     siguen funcionando. Revisa de mas: ni stuns (el stun que el CAUSA
+     corre en el cliente del EXE, no en el suyo) ni la rama demonizada
+     (el esbirro Metal conserva el mismo comportamiento que cualquier
+     esbirro atacante de otro personaje).
+
+  Coherencia revisada antes de tocar: el bit para Metal solo lo
+  consume la rama de stun de contacto de obj_player_puppet Step_0 en
+  clientes del bando EXE (sobrevivientes y Eggman-electroshield no se
+  ven afectados: Draw_0:204 es case CHARACTER_EGGMAN); entre
+  supervivores no pasa nada (globalExe false); esbirros que toquen a
+  un Metal atacante quedan aturdidos igual que con el martillo de Amy;
+  CLIENT_PLAYER_HURT recibido solo hace shake de camara (no corta su
+  ataque); Alarm_1/estados inactivos ya lo limpian.
+
+ARCHIVOS (4): objects/obj_sally_canon/Draw_76 (salto duelista
+continuo), objects/obj_netclient/Step_2 (envio del bit METAL),
+scripts/net_udpprocess (recepcion del bit METAL), scripts/scr_player_hurt
+(guard i-frames Metal). Cero paquetes nuevos, cero macros nuevas, cero
+estados nuevos: todo por el bit PLAYER_ATTACKING existente.
+
+VERIFICACION: balance de llaves/parentesis OK en los 4 GML; velocidades
+de giro cross-check (bola Sonic 1.1 = bola Sally 1.1); guard con
+short-circuit (global.player.metalDashing solo se lee si el personaje
+local es Metal); listas de envio/recepcion simetricas. Pendiente
+partida real: bola girando en la subida (local + pantalla del otro),
+EXE tocando a Metal en overdrive/electro y comerse el stun de 3 s con
+el sonido propio, golpe del EXE a mitad de overdrive SIN cortarlo, y
+que el esbirro no herede rarasas.
