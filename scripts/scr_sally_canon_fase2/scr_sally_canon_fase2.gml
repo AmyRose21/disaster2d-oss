@@ -33,6 +33,11 @@
 //                   golpear algo y que este salga despedido: X segun de
 //                   donde vino el golpe, Y negativa = despega hacia arriba.
 //  * PT2_TIME     = frames tirada en el suelo (210 = 3.5 seg)
+//  * PT2_FRICTION = cuanto frena el suelo por frame si la parte 2 la
+//                   pilla con velocidad (aterrizo DENTRO de pt2 tras
+//                   el hoyo/borde): 0.5 = de 5.5 a 0 en ~11 frames
+//                   (~0.2 seg). Un cuerpo tirado en el suelo frena
+//                   rapido; sin esto se deslizaria los 3.5 seg enteros.
 //  * PT3_AIRMIN   = frames minimos de pt3 antes de poder aterrizar
 //                   (evita que si el salto arranca rozando el suelo
 //                   salte directo a pt4 sin haber saltado).
@@ -49,6 +54,7 @@
 #macro SALLY_CANON_F2_PT1_KNOCK_Y -5             // PT1: despega hacia arriba
 #macro SALLY_CANON_F2_PT1_AIRMIN 8               // PT1: frames minimos en el aire
 #macro SALLY_CANON_F2_PT2_TIME 210               // PT2: en el suelo (3.5 seg)
+#macro SALLY_CANON_F2_PT2_FRICTION 0.5           // PT2: roce del suelo (frena el arrastre)
 #macro SALLY_CANON_F2_PT3_AIRMIN 8               // PT3: frames minimos en el aire
 #macro SALLY_CANON_F2_PT4_REGEN_TIME 90          // PT4: llenar la vida (1.5 seg)
 #macro SALLY_CANON_F2_PT4_INVULN 270             // PT4: inmunidad al final (4.5 seg)
@@ -241,7 +247,23 @@ function scr_sally_canon_fase2()
                         // impacto contra el suelo: polvo para todos (mismo
                         // patron que el aterrizaje del salto de pt3)
                         if(isGrounded)
+                        {
                                 net_quick_effect(x, y + 20, spr_dust);
+
+                                // FIX deslizamiento infinito: el impulso del
+                                // golpe MUERE al tocar el suelo. Antes el
+                                // aterrizaje solo cambiaba de estado: el xspd
+                                // del retroceso (5.5) sobrevivia y, como en
+                                // fase 2 no corre scr_move_basic (donde vive
+                                // la friccion normal), nada lo frenaba: se
+                                // quedaba deslizando en pose de vuelo hasta
+                                // chocar una pared o caerse otra vez. El
+                                // aterrizaje ya le pasa el xspd al gspd
+                                // (scr_collision_check_bottom): hay que
+                                // matar AMBOS, como hace el salto de pt3.
+                                gspd = 0;
+                                xspd = 0;
+                        }
 
                         fase2State = SALLY_CANON_F2_PT2;
                         fase2Timer = SALLY_CANON_F2_PT2_TIME;
@@ -251,6 +273,19 @@ function scr_sally_canon_fase2()
         }
         else if(fase2State == SALLY_CANON_F2_PT2)
         {
+                // FIX deslizamiento (red de seguridad): si el timer de pt1 se
+                // agoto en el aire (hoyo/borde), aterriza YA dentro de pt2 y
+                // el aterrizaje le hereda el xspd al gspd. Sin este freno se
+                // iria deslizando los 3.5 seg ENTEROS de la parte (mismo bug
+                // del pt1, por la otra puerta). Frena rapido, como un cuerpo
+                // tirado rozando el suelo: 0.5/frame = parada en ~0.2 seg.
+                // (sign(0) = 0: con la velocidad ya a 0 no mueve nada.)
+                if(isGrounded)
+                {
+                        gspd -= min(abs(gspd), SALLY_CANON_F2_PT2_FRICTION) * sign(gspd);
+                        xspd -= min(abs(xspd), SALLY_CANON_F2_PT2_FRICTION) * sign(xspd);
+                }
+
                 // PT2: tirada en el suelo esperando. Si el retroceso la dejo
                 // cayendo (hoyo, borde), la gravedad la baja sola: el timer corre
                 // igual y al acabarse salta desde donde este.

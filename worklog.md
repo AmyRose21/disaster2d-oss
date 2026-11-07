@@ -4091,3 +4091,55 @@ en estos archivos). Pendiente partida real: pose una vez al pulsar en
 quieta/agachada/aire, corte al caer al suelo a mitad de pose, NO
 re-sale al moverse/agacharse durante el escudo, burbuja animada
 encima durante la pose, misma cosa en el puppet del otro cliente.
+
+---
+Task ID: fix-fase2-slide-v1
+Agent: Super Z (main agent)
+Task: Bug reportado por el usuario: al golpear a Sally Canon en su pose
+de fase 2 pt1 (retroceso del golpe) se desliza hacia el lado contrario
+del golpe y NUNCA se detiene: solo la frena una pared, un precipicio, o
+caer de una altura (donde queda quierta tras el salto de pt3). Deberia
+frenar al tocar el piso.
+
+Work Log:
+- Leido el motor completo de la fase 2 (scr_sally_canon_fase2) + Step_0
+  de obj_sally_canon + scr_collision_basic (check_bottom, check lateral)
+  + la friccion del estado HURT de scr_move_basic (0.06/frame, referen-
+  cia de como frena el juego un knockback normal).
+- CAUSA RAIZ: scr_sally_canon_fase2_start da el retroceso (xspd = 5.5).
+  Al aterrizar, scr_collision_check_bottom pone isGrounded, yspd = 0 y
+  hereda gspd = xspd, pero NADA mata el impulso horizontal. Durante
+  toda la fase 2 Step_0 no llama a scr_move_basic (que es donde vive
+  la friccion normal), asi que el xspd queda congelado en 5.5 para
+  siempre y x += xspd cada frame = deslizamiento infinito en pose de
+  vuelo. Solo lo cortaban: una pared (check lateral pone xspd y gspd a
+  0), el salto de pt3 (pone gspd/xspd a 0 antes de saltar), o el abis-
+  mo (teleport + reset). Exactamente lo que el usuario veia.
+- FIX 1 (ruta principal): transicion PT1 -> PT2 por aterrizaje: dentro
+  del if(isGrounded) (junto al polvo que ya salia) se mata el impulso:
+  gspd = 0 y xspd = 0. Para en seco donde toco el suelo.
+- FIX 2 (red de seguridad, mismo bug por la otra puerta): si el timer
+  de pt1 (90 frames) se agota EN EL AIRE (hoyo/borde), aterriza ya
+  DENTRO de pt2 con la velocidad heredada: sin freno se deslizaria los
+  3.5 seg enteros de pt2. Nueva macro SALLY_CANON_F2_PT2_FRICTION
+  (0.5): mientras este en el suelo en pt2, gspd y xspd pierden 0.5 por
+  frame (de 5.5 a 0 en ~11 frames = ~0.2 seg, frenado de cuerpo tira-
+  do en el suelo). Mismo idiom de friccion del stun en Step_0
+  (min(abs(v), k) * sign(v); sign(0)=0 no mueve nada).
+- Documentada la macro en el bloque de PARAMETROS del cabecero del
+  script, con el estilo de las demas.
+
+VERIFICACION: scripts/check_fase2_slide.py (nuevo): chequeo estatico
+(balance {} 13/13, () 41/41, sin tabs, sangria 8 espacios, las 5
+modificaciones presentes) + simulacion frame a frame del motor (gravedad
+0.21875 y jumpForce 6.5 reales de Create_0, conversion gspd = xspd al
+aterrizar, orden fase2 -> colision del Step):
+  plano SIN FIX: tras aterrizar se desliza +1155 px (infinito hasta
+                 pared/precipicio) = bug reportado;
+  plano CON FIX: para EXACTO donde toco el suelo (+0 px);
+  hoyo  SIN FIX: aterriza dentro de pt2 y se desliza +1128 px;
+  hoyo  CON FIX: frena en seco tras 27.5 px (~5 frames).
+Pendiente partida real: golpearla en suelo plano (debe caer, polvo, y
+quedarse quieta ahi), derribarla sobre un hoyo profundo (debe aterrizar
+abajo y frenar en seco, no cruzarse el mapa deslizando), y confirmar
+que pt3/pt4 no cambiaron (el salto sigue igual).
