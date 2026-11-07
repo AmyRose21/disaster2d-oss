@@ -1,3 +1,12 @@
+// v4.9 — COYOTE TIME: frames de gracia para saltar despues de dejar
+// el suelo (borde, plataforma atravesable, pendiente que despega al
+// correr). 6 frames = 100 ms: el estandar comodo de los plataformas
+// modernos. En los clasicos de Genesis NO existia: ahi viene la
+// sensacion de "salto comido". La variable coyoteTimer se declara
+// lazy al inicio de scr_move_basic (mismo patron que weakMarkCd /
+// gsAbsorbDone: sin tocar el Create de los ~20 personajes).
+#macro PLAYER_COYOTE_FRAMES 6
+
 function scr_move_basic()
 {
         if(!obj_netclient.isServerReady || obj_netclient.sendTimeout > 0)
@@ -24,6 +33,13 @@ function scr_move_basic()
         justJumped = false;
         isLookingDown = false;
         isLookingUp = false;
+        
+        // v4.9 — COYOTE TIME: contador de gracia de salto (se rellena en
+        // el suelo, se gasta 1/frame en el aire; el salto lo acepta en
+        // el aire mientras quede). Declaracion lazy: la crea el 1er frame
+        // de este script, sin tocar el Create de ningun personaje.
+        if(!variable_instance_exists(id, "coyoteTimer"))
+                coyoteTimer = 0;
 
         // v4.8 — MARCA DE DEBILIDAD (pasiva 2 de Metal Amy): tick del CD
         // propio de 16 s por superviviente. La variable solo existe en
@@ -645,6 +661,18 @@ function scr_move_basic()
         
         specialFunc(); //Call special function so that character can do custom abilities
         
+        // v4.9 — COYOTE TIME: en el suelo el contador se rellena; en el
+        // aire se gasta 1 por frame. El bloque de salto (abajo) lo acepta
+        // si todavia queda. Mata los saltos falsos: te pasas del borde un
+        // instante y el Z que apretaste "ya no vale". Va DESPUES de
+        // specialFunc a proposito: los especiales aereos que consumen Z
+        // (vuelo de Tails, planeo de Knux, DJ de Fleetway) leen el valor
+        // del frame anterior y ceden el input a la ventana de salto.
+        if(isGrounded)
+                coyoteTimer = PLAYER_COYOTE_FRAMES;
+        else if(coyoteTimer > 0)
+                coyoteTimer--;
+        
         // In Air
         if(!isGrounded)
         {
@@ -673,66 +701,73 @@ function scr_move_basic()
                         }
                 }
         }
-        else
+        
+        // Jump — en el suelo, o EN EL AIRE dentro de la ventana coyote
+        // (v4.9): acaba de dejar el borde y todavia cae (yspd >= 0; nunca
+        // en pleno ascenso de un salto real: eso lo bloquea !isJumping y
+        // los propios 6 frames de la ventana). En tirolina no: su salto
+        // lo lleva el sistema de la tirolina. El mismo bloque y los
+        // mismos guards de siempre: solo se abre la puerta del aire.
+        if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isJumping
+        && (isGrounded || (coyoteTimer > 0 && yspd >= 0 && !isZipline)))
         {
-                // Jump
-                if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isJumping)
+                if(global.character == CHARACTER_EXE || global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON))
                 {
-                        if(global.character == CHARACTER_EXE || global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON))
-                        {
-                                if(isAttacking)
-                                        return;
-                        }
-                        
-                        // SONIC: no salta mientras pega, ni mientras carga el spindash
-                        // (abajo + Z da revolucadas, no salta; ver scr_sonic_special).
-                        if(global.character == CHARACTER_SONIC && (isAttacking || isSpinCharging))
+                        if(isAttacking)
                                 return;
-
-                        // AMELIA v2.6 (spindash de su placa TTB): no salta
-                        // mientras carga (abajo + Z da revolucadas, no salto;
-                        // ver scr_amelia_special).
-                        if(global.character == CHARACTER_AMELIA && isSpinCharging)
-                                return;
-                        
-                        // SALLY CANON v5.4 (fase duelista): igual que Amelia,
-                        // no salta mientras carga el spindash (abajo + Z da
-                        // revolucadas; ver scr_sally_special).
-                        if(global.character == CHARACTER_SALLY_CANON && isSpinCharging)
-                                return;
-                        
-
-                                // v2.2 (TTB): METAL no salta en pleno dash (la electro si
-                                // deja: es un campo pasivo alrededor).
-                                if(global.character == CHARACTER_METAL && metalDashing > 0)
-                                        return;
-                                
-                                // v2.2 (TTB): BLAZE no salta en la pose de disparo.
-                                if(global.character == CHARACTER_BLAZE && shootPose > 0 && isGrounded)
-                                        return;
-                        // CREAM/VANILLA (original del juego): no saltan
-                        // mientras invocan anillos.
-                        if((global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA) && ringsSpawn > 0)
-                                return;
-
-                        // VANILLA V2: en paciencia/moribunda no salta (quieta
-                        // e inmune). OJO: pacienciaState/moribundaState SOLO
-                        // existen en obj_vanilla — esta lectura debe ir en su
-                        // propia linea gated, NUNCA mezclada con la rama de
-                        // Cream de arriba (obj_cream no las define y leerlas
-                        // ahi crashea: bug v2.1.2, "Cream salto y tiro error").
-                        if(global.character == CHARACTER_VANILLA && (pacienciaState > 0 || moribundaState > 0))
-                                return;
-                        
-                        audio_play_sound(snd_jump, 0, false);
-                        net_sound_emit(snd_jump);
-                        isGrounded = false;
-                        isSpinning = false;
-                        isJumping = true;
-                        justJumped = true;
-                        image_index = 0;
-                        xspd -= jumpForce * sin(angle);
-                        yspd = -jumpForce * cos(angle);
                 }
+                
+                // SONIC: no salta mientras pega, ni mientras carga el spindash
+                // (abajo + Z da revolucadas, no salta; ver scr_sonic_special).
+                if(global.character == CHARACTER_SONIC && (isAttacking || isSpinCharging))
+                        return;
+
+                // AMELIA v2.6 (spindash de su placa TTB): no salta
+                // mientras carga (abajo + Z da revolucadas, no salto;
+                // ver scr_amelia_special).
+                if(global.character == CHARACTER_AMELIA && isSpinCharging)
+                        return;
+                
+                // SALLY CANON v5.4 (fase duelista): igual que Amelia,
+                // no salta mientras carga el spindash (abajo + Z da
+                // revolucadas; ver scr_sally_special).
+                if(global.character == CHARACTER_SALLY_CANON && isSpinCharging)
+                        return;
+                
+
+                // v2.2 (TTB): METAL no salta en pleno dash (la electro si
+                // deja: es un campo pasivo alrededor).
+                if(global.character == CHARACTER_METAL && metalDashing > 0)
+                        return;
+                
+                // v2.2 (TTB): BLAZE no salta en la pose de disparo.
+                if(global.character == CHARACTER_BLAZE && shootPose > 0 && isGrounded)
+                        return;
+                // CREAM/VANILLA (original del juego): no saltan
+                // mientras invocan anillos.
+                if((global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA) && ringsSpawn > 0)
+                        return;
+
+                // VANILLA V2: en paciencia/moribunda no salta (quieta
+                // e inmune). OJO: pacienciaState/moribundaState SOLO
+                // existen en obj_vanilla — esta lectura debe ir en su
+                // propia linea gated, NUNCA mezclada con la rama de
+                // Cream de arriba (obj_cream no las define y leerlas
+                // ahi crashea: bug v2.1.2, "Cream salto y tiro error").
+                if(global.character == CHARACTER_VANILLA && (pacienciaState > 0 || moribundaState > 0))
+                        return;
+                
+                audio_play_sound(snd_jump, 0, false);
+                net_sound_emit(snd_jump);
+                isGrounded = false;
+                isSpinning = false;
+                isJumping = true;
+                justJumped = true;
+                image_index = 0;
+                xspd -= jumpForce * sin(angle);
+                yspd = -jumpForce * cos(angle);
+                
+                // v4.9: el salto consumio la ventana coyote (si la uso)
+                coyoteTimer = 0;
         }
 }

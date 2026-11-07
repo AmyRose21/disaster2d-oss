@@ -103,14 +103,20 @@ function scr_sonic_special()
         //  px/frame (los EXE corren a 12: la bola llena los deja atras).
         // =================================================================
         
-        // --- Revolucadas: abajo + Z (solo en el suelo, parado) ---
+        // --- Revolucadas: abajo + Z (solo en el suelo, parada) ---
         // UN solo camino para la 1a pulsacion y las siguientes (v3).
         // (parryState == 0: idem golpe, no durante el parry; escondido o
         // anillo rojo puesto: tampoco, igual que el golpe)
+        // v4.9 (manejo): ya no exige gspd == 0 EXACTO: con |gspd| <
+        // SONIC_SPINDASH_START_MAX (2) arranca frenando en seco (mata el
+        // Z perdido/salto accidental al apretar abajo+Z frenando). A
+        // partir de 2, abajo = rodadura (umbral de scr_move_basic):
+        // !isSpinning evita arrancar la carga desde una rodadura lenta
+        // (ahi Z = salto fuera de la bola, como en los clasicos).
         if(global.playerControls && isGrounded && !isAttacking && !isHurt
         && !isDead && shockedTimer <= 0 && !isZipline && parryState == 0
         && !isHiding && redRingTimer <= 0
-        && keyboard_check(global.KeyDown) && gspd == 0 && keyboard_check_pressed(global.KeyA))
+        && keyboard_check(global.KeyDown) && abs(gspd) < SONIC_SPINDASH_START_MAX && !isSpinning && keyboard_check_pressed(global.KeyA))
         {
                 isSpinCharging = true;
                 spinCharge = min(spinCharge + SONIC_SPINDASH_REV, SONIC_SPINDASH_CHARGE_MAX);
@@ -137,7 +143,12 @@ function scr_sonic_special()
         if(isSpinCharging)
         {
                 // Quieto mientras carga, pero puede girar la mirada.
+                // v4.9 (manejo): xspd TAMBIEN a 0 — el codigo de pendiente
+                // de scr_move_basic corre antes que este script y ya
+                // arrastro el xspd con el empujon de la cuesta; sin esto
+                // la carga se deslizaba ladera abajo.
                 gspd = 0;
+                xspd = 0;
                 
                 if(keyboard_check(global.KeyLeft))
                         image_xscale = -1;

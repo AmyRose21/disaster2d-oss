@@ -1,0 +1,128 @@
+FIX v4.9 — MANEJO DEL SPINDASH + COYOTE TIME
+============================================
+
+LOS 2 FIXES PEDIDOS
+-------------------
+1) SPINDASH con mejor interaccion/manejo (menos "tosco", menos CD):
+   arranque con margen + anclaje en pendientes.
+2) COYOTE TIME: 6 frames (100 ms) de gracia para saltar despues de
+   dejar el suelo. Reduce significativamente los saltos falsos.
+
+======================================================================
+1) SPINDASH — QUE TENIA DE "TOSCO" (Sonic, Amelia, Sally Canon)
+======================================================================
+El arranque de la carga exigia gspd == 0 EXACTO. Pero el umbral de
+rodadura (abajo mientras corres) es |gspd| >= 2. Resultado: en la
+"zona gris" 0 < |gspd| < 2 (frenando), apretar abajo+Z no hacia
+NADA... y como el gate no capturaba el Z, el bloque de salto lo
+pillaba: SALTO ACCIDENTAL en plena agachadilla. Eso es el control
+"tosco" estilo CD: el input se siente comido o traicionero.
+
+ADEMAS: el codigo de pendientes de scr_move_basic corre ANTES que el
+script del spindash; llegaba tarde el gspd = 0 y la carga se
+deslizaba ladera abajo (lento, pero se movia).
+
+LOS CAMBIOS (en los 3 spindash del juego):
+* *_SPINDASH_START_MAX = 2 (macro nueva por personaje): con
+  |gspd| < 2 el abajo+Z ARRANCA LA CARGA frenando en seco. Encaja
+  exacto con el umbral de rodadura: por debajo de 2 = carga, a partir
+  de 2 = rodar (como siempre).
+* !isSpinning en el gate: no se arranca la carga desde una rodadura
+  lenta (ahi Z = salto fuera de la bola, como en los clasicos).
+* xspd = 0 en el bloque de carga: anclada en pendientes.
+
+Archivos:
+  scripts/scr_sonic_special/scr_sonic_special.gml
+  objects/obj_sonic/Create_0.gml                    (macro SONIC_*)
+  scripts/scr_amelia_special/scr_amelia_special.gml (macro AMELIA_*)
+  scripts/scr_sally_special/scr_sally_special.gml
+  scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.gml
+                                                    (macro SALLY_CANON_*)
+
+QUE NO CAMBIA: la fuerza del lanzamiento (BASE 8 + carga, de 10 a 18),
+las revolucadas (2 por pulsacion, max 10), el decaimiento, el polvo,
+los sonidos, el drop dash de Sonic, ni la rodadura con abajo corriendo.
+
+======================================================================
+2) COYOTE TIME — 6 FRAMES DE GRACIA PARA SALTAR
+======================================================================
+Te pasas del borde un instante y apretas Z: antes el Z "ya no valia"
+(salto falso/comido). Ahora hay una ventana de 6 frames (100 ms, el
+estandar comodo) tras dejar el suelo en la que el Z todavia salta.
+
+* Macro PLAYER_COYOTE_FRAMES 6 en scr_move_basic.
+* coyoteTimer: se rellena en el suelo, se gasta 1/frame en el aire.
+* El bloque de salto acepta aire SOLO si: coyoteTimer > 0 (ventana
+  viva) && yspd >= 0 (cayendo: NUNCA en pleno ascenso de un salto
+  real) && !isZipline. Al saltar se consume. Imposible doble saltar.
+* BONUS: tambien arregla el salto comido al correr cuesta abajo
+  fuerte (los frames que la pendiente te despega del suelo).
+
+PRIORIDAD DE INPUT (importante): los especiales que usan Z en el aire
+sin exigir salto previo ceden el input a la ventana:
+* Tails: Z dentro de la ventana = SALTO normal; la siguiente
+  pulsacion = vuelo (como en los clasicos).
+* Knux: idem con el planeo.
+* Amy Fleetway: idem con el doble salto.
+Los que exigen salto previo (Blaze, Cream, Vanilla, EXEs, etc.) ya
+nunca chocan: al caer de un borde isJumping es false. El drop dash de
+Sonic arma tambien con saltos coyote. El carry y la tirolina ya usan
+keyboard_key_release: sin conflicto.
+
+Archivo: scripts/scr_move_basic/scr_move_basic.gml
+         scripts/scr_tails_special/scr_tails_special.gml
+         scripts/scr_knux_special/scr_knux_special.gml
+         scripts/scr_amy_fleetway_special/scr_amy_fleetway_special.gml
+
+======================================================================
+VERIFICADO (simulacion frame a frame con el orden real del Step)
+======================================================================
+Coyote: Z en frames de aire 1-5 = salta; 6+ = no. Salto real + Z en
+ascenso = no hay doble salto. Tails: Z frame 2 = salto, frame 10 =
+vuelo. Spindash: abajo+Z con gspd 1.5 = carga sin salto (antes: Z
+perdido + salto accidental); gspd 3 = rodadura igual que siempre;
+carga en pendiente 30 = quieta (antes se deslizaba); lanzamiento
+intacto. Balance de llaves/parentesis OK en los 8 archivos; sin tabs.
+
+======================================================================
+SOBRE LOS MOTORES (tu pregunta)
+======================================================================
+Clickteam Fusion es el motor de los Sonic.exe disaster clasicos y de
+Spirit of Hell: hoja de eventos, sin control fino frame a frame — por
+eso sus fisicas se sienten limitadas (lo que te dijo Gemini).
+GameMaker no trae "fisicas de Sonic" de fabrica tampoco, pero te da
+control TOTAL por frame: este proyecto ya tiene un motor clasico de
+Sonic hecho a mano (gspd/xspd/angulo con sensores, el enfoque Genesis
+de verdad, en scr_move_basic + scr_collision_basic). Los kits de
+referencia open source en GameMaker son Sonic MAX y similares. Con
+estos 2 fixes el feel queda al nivel de esos kits, sin cambiar de
+motor ni tocar la red (cero paquetes nuevos).
+
+======================================================================
+INSTALACION
+======================================================================
+1) Cerrar GameMaker.
+2) Copiar las carpetas "scripts" y "objects" del zip DENTRO de la
+   carpeta del proyecto, reemplazando:
+   - scripts/scr_move_basic/scr_move_basic.gml
+   - scripts/scr_sonic_special/scr_sonic_special.gml
+   - scripts/scr_amelia_special/scr_amelia_special.gml
+   - scripts/scr_sally_special/scr_sally_special.gml
+   - scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.gml
+   - scripts/scr_tails_special/scr_tails_special.gml
+   - scripts/scr_knux_special/scr_knux_special.gml
+   - scripts/scr_amy_fleetway_special/scr_amy_fleetway_special.gml
+   - objects/obj_sonic/Create_0.gml
+3) Reemplazar worklog.md si quieres mantener el historial.
+4) Abrir el proyecto y compilar.
+
+PRUEBA EN PARTIDA
+-----------------
+A) Correr y soltar: apretar Z justo despues de pasarte de un borde
+   (hasta ~100 ms) = debe saltar. Pasado ese margen = no salta.
+B) Correr cuesta abajo fuerte y apretar Z: ya no se come el salto.
+C) Spindash: venir frenando y apretar abajo+Z ANTES de parar del todo
+   = la carga arranca en seco (antes: salto accidental o nada).
+D) Cargar el spindash en una cuesta: quieta, no resbala.
+E) Tails/Knux/Fleetway: Z justo al borde = salto normal; Z mas tarde
+   = vuelo/planeo/DJ como siempre.

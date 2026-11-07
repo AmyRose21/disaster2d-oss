@@ -66,8 +66,16 @@ function scr_amy_fleetway_special()
         }
 
         // --- Habilidad 1: DJ DOBLE SALTO (tecla A, SOLO en el aire) ---
+        // v4.9 (COYOTE): si acaba de dejar el suelo y esta dentro de la
+        // ventana de salto (coyote, cayendo), el Z se lo lleva el SALTO
+        // normal — lo da scr_move_basic justo despues de este script —:
+        // asi no se come el input del borde. El DJ sale con la SIGUIENTE
+        // pulsacion. (coyoteTimer la declara scr_move_basic en su 1er
+        // frame; el guard de variable_instance_exists es por si este
+        // special corre antes del 1er frame de move_basic.)
         if(global.playerControls && !isDead && !isHurt && shockedTimer <= 0 &&
-        keyboard_check_pressed(global.KeyA) && !isGrounded && djTimer == 0)
+        keyboard_check_pressed(global.KeyA) && !isGrounded && djTimer == 0
+        && !(variable_instance_exists(id, "coyoteTimer") && coyoteTimer > 0 && yspd >= 0))
         {
                 isDJ = true;
                 isJumping = false;

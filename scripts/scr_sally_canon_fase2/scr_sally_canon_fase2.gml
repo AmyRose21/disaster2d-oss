@@ -146,6 +146,13 @@
 #macro SALLY_CANON_SPINDASH_BURST_MIN 3
 #macro SALLY_CANON_SPINDASH_BURST_MAX 8
 
+// v4.9 (manejo): velocidad MAXIMA desde la que puede ARRANCAR la
+// carga frenando en seco (antes exigia gspd == 0 exacto: apretar
+// abajo+Z frenando se perdia, o peor, saltabas sin querer). Encaja
+// con el umbral de rodadura de scr_move_basic: < 2 = carga, >= 2 =
+// rodar (la rodadura la tiene la fase duelista: canSpin).
+#macro SALLY_CANON_SPINDASH_START_MAX 2
+
 function scr_sally_canon_fase2_start(hitDir = 0)
 {
         // --- ENTRA EN FASE 2 (1ra caida de Sally Canon) ---

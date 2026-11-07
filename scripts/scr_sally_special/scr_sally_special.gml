@@ -109,12 +109,16 @@ function scr_sally_special()
         // spr_sally_spindash_canon). Porte 1:1 del de Amelia/Sonic con
         // los mismos valores (SALLY_CANON_SPINDASH_*): sin cooldown, el
         // coste es el tiempo de revolucioneo.
+        // v4.9 (manejo): arranque con margen — |gspd| < START_MAX (2)
+        // frena en seco y carga (antes: gspd == 0 exacto y el Z se perdia
+        // frenando); !isSpinning para no arrancar desde una rodadura
+        // lenta (ahi Z = salto fuera de la bola, clasico).
         if(global.character == CHARACTER_SALLY_CANON && duelista)
         {
                 if(global.playerControls && isGrounded && !isAttacking && !isHurt
                 && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
                 && redRingTimer <= 0
-                && keyboard_check(global.KeyDown) && gspd == 0 && keyboard_check_pressed(global.KeyA))
+                && keyboard_check(global.KeyDown) && abs(gspd) < SALLY_CANON_SPINDASH_START_MAX && !isSpinning && keyboard_check_pressed(global.KeyA))
                 {
                         isSpinCharging = true;
                         spinCharge = min(spinCharge + SALLY_CANON_SPINDASH_REV, SALLY_CANON_SPINDASH_CHARGE_MAX);
@@ -136,7 +140,12 @@ function scr_sally_special()
                 if(isSpinCharging)
                 {
                         // Quieta mientras carga, pero puede girar la mirada.
+                        // v4.9 (manejo): xspd TAMBIEN a 0 — el empujon de
+                        // la pendiente (scr_move_basic corre antes)
+                        // arrastraba el xspd y la carga se deslizaba
+                        // ladera abajo.
                         gspd = 0;
+                        xspd = 0;
 
                         if(keyboard_check(global.KeyLeft))
                                 image_xscale = -1;

@@ -4143,3 +4143,89 @@ Pendiente partida real: golpearla en suelo plano (debe caer, polvo, y
 quedarse quieta ahi), derribarla sobre un hoyo profundo (debe aterrizar
 abajo y frenar en seco, no cruzarse el mapa deslizando), y confirmar
 que pt3/pt4 no cambiaron (el salto sigue igual).
+
+---
+Task ID: fix-v4.9-manejo
+Agent: Super Z (main agent)
+Task: 2 fixes pedidos por el usuario: (1) mejorar el manejo del
+spindash general ("su control es un poco tosco, recuerda mucho a CD")
+y (2) anadir un tiempo de coyote para reducir los saltos falsos.
+
+Work Log:
+- Mapeado el sistema completo: spindash de Sonic/Amelia/Sally Canon
+  (3 portes del mismo gate), bloque de salto de scr_move_basic, y TODOS
+  los especiales que consumen la tecla Z en el aire (grep de KeyA en
+  los 19 specials + objetos): Tails (vuelo), Knux (planeo), Amy
+  Fleetway (DJ) la consumen SIN exigir isJumping; el resto (Blaze,
+  Cream, Vanilla, EXEs, Egg, MetalAmy, Chaos) la exigen y isJumping es
+  false al caer de un borde: sin conflicto.
+- CAUSA del spindash "tosco": el gate de arranque exigia gspd == 0
+  EXACTO. En la "zona gris" 0 < |gspd| < 2 (frenando) apretar abajo+Z
+  no arrancaba la carga... y como el gate no capturaba el Z, el bloque
+  de salto de move_basic lo pillaba: SALTO ACCIDENTAL en plena
+  agachadilla (el input se sentia comido/tr traicionero). Encima, el
+  umbral de rodadura (abajo corriendo) es |gspd| >= 2: entre 0 y 2
+  abajo no hacia NADA (ni agacharse ni rodar ni cargar).
+- FIX SPINDASH A (arranque con margen): nueva macro por personaje
+  (*_SPINDASH_START_MAX = 2, junto a sus demas macros): con
+  |gspd| < 2 el gate arranca la carga frenando en seco (el bloque de
+  carga ya clava gspd = 0); !isSpinning evita arrancar desde una
+  rodadura lenta (ahi Z = salto fuera de la bola, como los clasicos).
+  Encaja exacto con el umbral de rodadura: < 2 = carga, >= 2 = rodar.
+  Aplicado a Sonic (scr_sonic_special + macro en obj_sonic/Create_0),
+  Amelia (scr_amelia_special) y Sally Canon (scr_sally_special, macro
+  en scr_sally_canon_fase2).
+- FIX SPINDASH B (anclaje en pendientes): el codigo de pendiente de
+  scr_move_basic corre ANTES que specialFunc y ya habia arrastrado el
+  xspd con el empujon de la cuesta (gspd = 0 llegaba tarde): la carga
+  se deslizaba ladera abajo. Ahora el bloque de carga tambien clava
+  xspd = 0 (los 3 personajes).
+- FIX COYOTE (scr_move_basic): macro PLAYER_COYOTE_FRAMES 6 (100 ms).
+  coyoteTimer se declara lazy al inicio de scr_move_basic con el
+  patron variable_instance_exists del proyecto (weakMarkCd/
+  gsAbsorbDone): sin tocar el Create de los ~20 personajes. Se rellena
+  en el suelo, se gasta 1/frame en el aire. El bloque de salto salio
+  del else (solo contenia eso) y ahora es un if standalone con la
+  puerta de aire: (isGrounded || (coyoteTimer > 0 && yspd >= 0 &&
+  !isZipline)). yspd >= 0 + !isJumping + ventana de 6 frames =
+  imposible doble saltar; al saltar se consume (coyoteTimer = 0).
+  Mismos guards de siempre, mismo orden, nada mas cambia la puerta.
+- PRIORIDAD DE INPUT: el grant/decrement va DESPUES de specialFunc a
+  proposito. Tails/Knux/Fleetway ceden el Z a la ventana de salto con
+  un gate nuevo (!(variable_instance_exists(id, "coyoteTimer") &&
+  coyoteTimer > 0 && yspd >= 0)): Z dentro de la ventana = SALTO
+  normal; la siguiente pulsacion = vuelo/planeo/DJ, como en los
+  clasicos. El guard de variable_instance_exists es obligatorio:
+  specialFunc tambien corre suelto con canMove == false (obj_tails
+  Step_0) antes del 1er frame de move_basic. El saltito del carry y el
+  de la tirolina ya usan keyboard_key_release + isJumping = true: sin
+  conflicto. El drop dash de Sonic arma tambien con saltos coyote
+  (latch por isJumping en el aire): consistente.
+
+VERIFICACION: scripts/check_v49_manejo.py: balance {} () en los 8
+archivos (93/93, 18/18, 15/15, 29/29, 13/13, 12/12, 22/22, 22/22,
+14 parejas), indentacion limpia (8 espacios, cero tabs; los comentarios
+anadidos en scr_tails/scr_knux_special quedaron con espacios, igual
+que el archivo), presencia de los 17 cambios. Simulacion frame a frame
+con el orden real del Step (specialFunc -> grant/decrement -> salto ->
+collision): Z en frames de aire 1-5 = salta, 6+ = no; salto real + Z
+en ascenso = no hay doble; Tails: Z en frame 2 = salto, frame 10 =
+vuelo. Spindash: abajo+Z con gspd 1.5 = arranca carga SIN salto
+(antes: Z perdido + salto accidental); con gspd 3.0 = rodadura igual
+que siempre; carga en pendiente 30 = xspd 0.0 (antes -0.062/frame de
+deslizamiento); lanzamiento intacto (BASE 8 + carga). Pendiente
+partida real: borde + Z justo despues (los 6 frames), pendiente fuerte
+cuesta abajo (el coyote tambien arregla el salto comido al despegarse
+corriendo), spindash frenando/apretando abajo+Z antes de parar del
+todo, carga en cuesta, y Tails/Knux/Fleetway: Z al borde = salto, Z
+tardio = habilidad.
+
+NOTA MOTORES (pregunta del usuario): Clickteam Fusion es el motor de
+los Sonic.exe disaster clasicos y SOH (hoja de eventos, sin control
+frame a frame fino: por eso sus fisicas se sienten limitadas).
+GameMaker no trae "fisicas de Sonic" de fabrica tampoco, pero da
+control total por frame — este proyecto YA tiene un motor clasico de
+Sonic propio (gspd/xspd/angulo/sensores en scr_move_basic +
+scr_collision_basic, el enfoque Genesis de verdad); los engines de
+referencia en GM son Sonic MAX y afines (open source). Con estos dos
+fixes el feel queda al nivel de esos kits sin cambiar de motor.

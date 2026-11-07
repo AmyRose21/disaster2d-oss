@@ -75,6 +75,13 @@
 #macro AMELIA_SPINDASH_DUST_EVERY 10
 #macro AMELIA_SPINDASH_BURST_MIN 3
 #macro AMELIA_SPINDASH_BURST_MAX 8
+
+// v4.9 (manejo): velocidad MAXIMA desde la que puede ARRANCAR la
+// carga frenando en seco (antes exigia gspd == 0 exacto: apretar
+// abajo+Z frenando se perdia, o peor, saltabas sin querer — el Z
+// muerto de la "zona gris" 0 < |gspd| < 2). Encaja con el umbral de
+// rodadura de scr_move_basic: < 2 = carga, >= 2 = rodar.
+#macro AMELIA_SPINDASH_START_MAX 2
 #macro AMELIA_ROLL_SPEED_CAP 18
 
 // v2.12 (PASIVA AURAVISIÓN, «los ojos de Nate»): la pasiva de su
@@ -193,10 +200,14 @@ function scr_amelia_special()
         // SPINDASH). UN solo camino para la 1a pulsacion y las
         // siguientes: este bloque se re-dispara con cada Z porque la
         // carga mantiene gspd == 0.
+        // v4.9 (manejo): arranque con margen — |gspd| < START_MAX (2)
+        // frena en seco y carga (antes: gspd == 0 exacto y el Z se perdia
+        // frenando); !isSpinning para no arrancar desde una rodadura
+        // lenta (ahi Z = salto fuera de la bola, clasico).
         if(global.playerControls && isGrounded && !isAttacking && !isHurt
         && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
         && redRingTimer <= 0
-        && keyboard_check(global.KeyDown) && gspd == 0 && keyboard_check_pressed(global.KeyA))
+        && keyboard_check(global.KeyDown) && abs(gspd) < AMELIA_SPINDASH_START_MAX && !isSpinning && keyboard_check_pressed(global.KeyA))
         {
                 isSpinCharging = true;
                 spinCharge = min(spinCharge + AMELIA_SPINDASH_REV, AMELIA_SPINDASH_CHARGE_MAX);
@@ -220,7 +231,11 @@ function scr_amelia_special()
         if(isSpinCharging)
         {
                 // Quieta mientras carga, pero puede girar la mirada.
+                // v4.9 (manejo): xspd TAMBIEN a 0 — el empujon de la
+                // pendiente (scr_move_basic corre antes) arrastraba el
+                // xspd y la carga se deslizaba ladera abajo.
                 gspd = 0;
+                xspd = 0;
 
                 if(keyboard_check(global.KeyLeft))
                         image_xscale = -1;

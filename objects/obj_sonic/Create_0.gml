@@ -55,6 +55,16 @@
 #macro SONIC_SPINDASH_CHARGE_MAX 10
 #macro SONIC_SPINDASH_DECAY 90
 
+// v4.9 (manejo): velocidad MAXIMA desde la que puede ARRANCAR la
+// carga frenando en seco. Antes exigia gspd == 0 exacto: si apretabas
+// abajo+Z frenando (0 < |gspd| < 2) el Z se perdia (y como el gate
+// no arrancaba, el bloque de salto lo pillaba: salto accidental en
+// plena agachadilla, el control "tosco"). Con < 2 y !isSpinning:
+// debajo de 2 arranca la carga (frena en seco: gspd/xspd a 0); a
+// partir de 2 abajo = rodadura, como siempre. Encaja justo con el
+// umbral de rodadura de scr_move_basic (abs(gspd) >= 2).
+#macro SONIC_SPINDASH_START_MAX 2
+
 // =====================================================================
 //  JUGO del spindash (v3): tono y polvo
 //  PITCH_STEP: cuanto SUBE el tono de cada revolucada (snd_spin). El
