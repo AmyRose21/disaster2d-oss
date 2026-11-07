@@ -12,6 +12,9 @@ switch(state)
                 // v5.6: sin excepcion para el escudo; con el escudo activo
                 // el cuerpo hace SU idle normal y la burbuja va aparte
                 // encima (Draw_0), como la Sally vanilla.
+                // v5.8: la pose de ACTIVACION del escudo tampoco necesita
+                // excepcion: no toca el image_index (la dibuja Draw_0 con
+                // contador propio), asi que este clamp es incondicional.
                 image_index = image_number - 2;
                 break;
                 

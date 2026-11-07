@@ -138,11 +138,26 @@ if(isHiding && character == CHARACTER_AMELIA && global.character == CHARACTER_EX
 // sin registrar en el .yyp = asset fantasma), cae al palette swap de
 // siempre: se dibuja normal y NUNCA mas salta el "not set before
 // reading it".
+// POSES DEL ESCUDO (v5.8): mientras dura la animacion de ACTIVACION
+// (los primeros frames tras el flanco de subida del bitflag) el
+// cuerpo se dibuja con la pose quieta/agachada/aire y su contador
+// propio (shieldPoseT, que avanza en el Step de este puppet). No se
+// toca sprite_index ni image_index: un solo pase y el cuerpo vuelve
+// a su sprite normal. La burbuja animada sigue encima (abajo).
+var _poseBodySpr = sprite_index;
+var _poseBodyIdx = image_index;
+
+if(shieldPoseOn)
+{
+        _poseBodySpr = shieldPoseSpr;
+        _poseBodyIdx = floor(shieldPoseT);
+}
+
 if(variable_global_exists("scr_amy_cyber"))
-        scr_amy_cyber(character, fromPallete, toPallete, is_cheating ? spr_merfurmu : sprite_index, image_index);
+        scr_amy_cyber(character, fromPallete, toPallete, is_cheating ? spr_merfurmu : _poseBodySpr, _poseBodyIdx);
 else
         scr_palette_swap(fromPallete, toPallete);
-draw_sprite_ext(is_cheating ? spr_merfurmu : sprite_index, image_index, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, _hideAlpha);
+draw_sprite_ext(is_cheating ? spr_merfurmu : _poseBodySpr, _poseBodyIdx, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, _hideAlpha);
 shader_reset();
 
 if(_pb)

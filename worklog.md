@@ -3885,3 +3885,209 @@ partida real: bola girando en la subida (local + pantalla del otro),
 EXE tocando a Metal en overdrive/electro y comerse el stun de 3 s con
 el sonido propio, golpe del EXE a mitad de overdrive SIN cortarlo, y
 que el esbirro no herede rarasas.
+
+---
+
+v5.6 — FIX ESCUDO CANON: BURBUJA ANIMADA, SIEMPRE VISIBLE, SIN ATAR
+A LA ANIMACION DEL CUERPO (como el escudo de la Sally vanilla)
+========================================================================
+Pedido (post-prueba del v5.5): con el escudo activo en fase duelista
+(1) al quedarse quieta hacia la animacion de "activacion de escudo"
+en bucle infinito; (2) la burbuja no se animaba (frame congelado) al
+caminar/correr; (3) en idle la burbuja ni aparecia; en salto y suelo
+igual. Diagnostico del usuario: "el escudo esta atado a la animacion,
+cosa que no pasa con el escudo original vanilla de Sally".
+
+CAUSA RAIZ: el v5.4 habia introducido overrides de sprite de CUERPO
+por estado (spr_sally_shield_canon en IDLE, _down_ en LOOKDOWN, _air_
+en JUMP/FALL) para el escudo grupal. Esos sprites de pose son anims
+de cuerpo (levantar el brazo) SIN burbuja completa (VLM: solo un arco
+rojo sobre la cabeza), y al colgarlos del estado: en IDLE loopeaban
+sin parar (Other_7 hacia excepcion al clamp de reposo), en movimiento
+la burbuja se dibujaba con frame fijo 0, y en los estados con pose ni
+se dibujaba. El escudo quedaba visualmente rehén de la animacion del
+cuerpo, justo lo que el usuario reporta. El juego original (upstream,
+pre-rework) hacia EXACTAMENTE lo que el usuario pide: burbuja animada
+aparte, en cualquier estado, sin tocar el cuerpo.
+
+FIX (volver al comportamiento vanilla/original, en 5 GML):
+- obj_sally_canon/Draw_0: la burbuja spr_sallyshield_canon se dibuja
+  SIEMPRE que shieldTimer > 0, con (current_time / 30) % 41 (misma
+  expresion exacta que la Sally vanilla en su Draw_0 y que el codigo
+  original del canon). Sin branching por fase ni por estado.
+- obj_sally_canon/Draw_76: fuera los overrides de pose del escudo
+  (solo quedan bola de salto y bola de spindash, que son de la fase,
+  no del escudo). El case JUMP duelista gira a 1.1 tambien CON escudo
+  (antes frenaba el giro al activarlo): burbuja encima, como el
+  escudo vanilla sobre el salto de Sally.
+- obj_sally_canon/Other_7: el clamp del idle (image_number - 2) vuelve
+  a ser incondicional; con escudo el cuerpo hace SU idle normal.
+- obj_player_puppet/Draw_72: mismo recorte de poses para el puppet
+  (los demas clientes ven bola + burbuja, o cuerpo normal + burbuja).
+- obj_player_puppet/Draw_0: burbuja animada siempre que llegue el
+  bitflag PLAYER_SALLYSHIELD, misma expresion vanilla.
+
+NOTAS: los sprites de pose (spr_sally_shield_canon/_down_canon/
+_air_canon) siguen EN el proyecto como assets upstream (no se tocan
+los .yy), solo dejan de usarse. La mecanica del escudo (grupal, 5 s,
+recarga 28 s, rompe = 5 s i-frames, expira = auto-rotura + i-frames,
+EXE lo rompe = stun 3 s) NO cambia: es 100% visual. Cero paquetes
+nuevos; el bitflag PLAYER_SALLYSHIELD sigue siendo lo unico que viaja.
+
+VERIFICACION: balance llaves/parentesis OK en los 5 GML; diff revisado
+linea a linea (solo se eliminan los bloques de pose y la condicion
+shieldTimer <= 0 del giro); el patron de dibujo queda identico al de
+la Sally vanilla (draw tras shader_reset, floor(x), floor(y)); sin
+referencias residuales a los sprites de pose en objects/ ni scripts/
+(grep). Pendiente partida real: burbuja animada quieta/andando/
+saltando en local y en el puppet del otro cliente, idle en pose de
+reposo con burbuja encima, bola del salto girando bajo la burbuja.
+
+---
+
+v5.7 — FIX ESCUDO (parte 2): VUELVEN LAS POSES, UNA VEZ Y CLAVADAS
+(= el diseño original del usuario), burbuja animada siempre encima
+========================================================================
+Pedido (aclaracion del usuario tras probar v5.6): "las animaciones
+(poses del escudo) son esenciales, por eso las cree. Si Sally cambia
+de pose la animacion se interrumpe y solo se hace UNA vez por
+habilidad: no entran en loop". O sea: el v5.6 quito las poses por
+completo (overcorrection) y habia que reponerlas con la semantica
+correcta, manteniendo el fix de la burbuja del v5.6.
+
+IMPLEMENTACION (semantica una-vez-y-clavada):
+- Create_0: variable nueva "shieldPoseSpr" (-1 = sin pose). Detecta
+  cambios de pose en Draw_76: sirve tanto para cambiar de pose como
+  para activar/desactivar el escudo.
+- Draw_76: bloque de poses ANTES del switch (la pose manda sobre el
+  sprite del estado y se asigna antes para que los clamps de los
+  cases trabajen con el image_number de la POSE). Deteccion de
+  cambio: image_index = 0 al entrar en una pose (la animacion
+  anterior se INTERRUMPE y la nueva se ve desde el frame 0). Al SALIR
+  de una pose se devuelve image_speed = 1 (el hold la deja en 0; los
+  estados sin case propio en el switch, p.ej. la tirolina,
+  heredarian ese 0 y quedarian congelados). Tras el switch, bloque
+  final: image_speed = 1 y al llegar al ultimo frame se CLAVA
+  (image_index = image_number - 1, image_speed = 0): nunca loopea.
+  Guards: FALL no llama a scr_fall_anim con pose activa (le fijaria
+  sus propios frames), JUMP no toca ni bola ni vanilla con pose
+  activa (la pose del aire lleva su propia animacion).
+- Other_7: el clamp del idle normal (image_number - 2) solo corre
+  SIN pose activa (la pose se administra sola en Draw_76).
+- Puppet Draw_72: vuelve la seleccion de sprite de pose (quieta /
+  agachada / aire) cuando duelista + sallyShield. Nada de logica de
+  animacion ahi: el image_index llega SINCRONIZADO por
+  CLIENT_PLAYER_DATA (u8) y el puppet tiene image_speed = 0 (no anima
+  solo), asi que en las demas pantallas la pose se ve una vez y
+  clavada identico. La burbuja animada del v5.6 sigue encima siempre
+  (Draw_0 del puppet, sin cambios).
+
+COMPORTAMIENTO FINAL DEL ESCUDO DUELISTA (visual):
+- Quieta: animacion de activacion UNA vez → clavada en la pose final.
+- Agachada: pose una vez → clavada. Aire (salto/caida con escudo):
+  pose una vez → clavada durante todo el arco. Cambios de pose:
+  interrupcion + nueva animacion desde frame 0.
+- Andar/correr/spindash/tirolina/etc.: sprites normales.
+- Burbuja animada SIEMPRE encima, en cualquier estado (v5.6 intacto).
+- Salto SIN escudo: bola girando a 1.1 (v5.5 intacto).
+- Fase 1: igual que vanilla (burbuja animada, sin poses).
+
+ARCHIVOS (4 GML cambiados): obj_sally_canon/Create_0 (var nueva),
+obj_sally_canon/Draw_76 (poses + guards), obj_sally_canon/Other_7
+(guard del clamp), obj_player_puppet/Draw_72 (sprites de pose). Los
+2 Draw_0 van en el zip sin cambios (son el v5.6, incluidos para que
+el zip sea completo venga de v5.4/v5.5 o v5.6).
+
+VERIFICACION: balance OK en los 4 GML; referencias de shieldPoseSpr
+coherentes (Create declara, Draw_76 administra, Other_7 consulta);
+scr_fall_anim y la bola del salto quedan fuera del camino con pose
+activa; el hold usa el mismo patron clamp que LOOKDOWN/DEAD del
+juego base + image_speed = 0 (sin wrap posible => sin Animation End
+=> sin riesgo de re-loop). Pendiente partida real: activacion una
+vez y clavada en idle, crouch, salto con escudo (pose del aire, no
+bola), interrupciones al cambiar de pose, todo igual en el puppet.
+
+---
+
+v5.8 — FIX ESCUDO (parte 3): POSES DE ACTIVACION DE UN SOLO USO
+(una reproduccion al pulsar C y YA), cortadas por cambio de animacion
+========================================================================
+Pedido (post-prueba del v5.7, aclaracion definitiva del usuario): la
+pose NO debe vivir atada a la vida del escudo. "Las animaciones de
+activar el escudo deben ser de un solo uso: se reproduce una vez y
+punto listo, no se vuelve a repetir en loop. Lo que ocurre es que se
+repite mientras dura el escudo; si se va el escudo la animacion
+termina, y asi no debe ser: la animacion solo debe aparecer cuando se
+PRESIONA la habilidad, no durante la vida del escudo. Si la activo en
+el aire pero caigo al piso (cambia su animacion), inmediatamente la
+animacion [se corta]." El v5.7 ademas dejaba la pose CLAVADA en su
+ultimo frame mientras duraba el escudo y re-disparaba una reproduccion
+por cada cambio de estado con escudo (la de agacharse "se repetia una
+y otra vez").
+
+IMPLEMENTACION (pase unico al pulsar, contador propio, cero contacto
+con sprite_index/image_index — ahi estaban todos los loops):
+- scr_sally_special (NUEVO en el zip): al pulsar C (mismo sitio donde
+  se pone shieldTimer) se arranca la pose: categoria segun el estado
+  del momento (JUMP/FALL = aire, LOOKDOWN = agachada, resto = tierra)
+  y sprite acorde (spr_sally_shield_air_canon / _down_canon /
+  _canon). Gate canon+duelista+sano (la Sally vanilla comparte el
+  script: corta antes de tocar las vars canon, mismo patron que
+  groundKick).
+- obj_sally_canon/Create_0 (NUEVO en el zip): macro
+  SALLY_CANON_POSE_VEL 0.5 (frames de pose por frame de juego: cada
+  frame de pose dura 2 frames de juego; ajustable) + vars
+  shieldPoseOn/Spr/Cat/T.
+- obj_sally_canon/Step_2 (NUEVO en el zip): la pose avanza UNA vez
+  (shieldPoseT += VEL hasta sprite_get_number(pose)) y se CORTA si
+  cambia la familia de animacion (aire <-> suelo <-> agachada), si la
+  interrumpen dano/stun/muerte/fase 2 o si el escudo se apaga. Va al
+  principio del End Step: lee el estado fresco del frame anterior
+  (el mismo con el que se eligio al pulsar).
+- obj_sally_canon/Draw_0: mientras shieldPoseOn el cuerpo se dibuja
+  con la pose (floor(shieldPoseT)) en vez del sprite del estado,
+  MISMO draw_sprite_ext (palette swap, facing, escala fase 2, alpha):
+  identico look, cero cambios de mecanica. La burbuja animada del
+  v5.6 sigue SIEMPRE encima (la pose es del cuerpo, la burbuja del
+  escudo).
+- obj_sally_canon/Draw_76 y Other_7: vuelven al v5.6 PURO (solo nota
+  de comentario v5.8). Al no pasar la pose por sprite_index, ni el
+  switch con sus clamps ni el Animation End pueden congelarla,
+  reiniciarla o loopearla: la causa raiz de v5.4-v5.7 desaparece.
+- Puppet (Create_0/Step_0 NUEVOS en el zip, Draw_0 editado, Draw_72
+  al v5.6 puro): flanco de subida del bitflag PLAYER_SALLYSHIELD =
+  "acaba de pulsar C". El estado llega en el MISMO paquete, asi que
+  la categoria elegida coincide con la local siempre; desde ahi corre
+  su propio contador con los mismos cortes (cambio de familia, escudo
+  off, HURT/DEAD). Draw_0 del puppet dibuja la pose igual que el
+  local. Ya NO depende del image_index sincronizado (el v5.7 si):
+  cada cliente la anima solo, sin paquetes nuevos.
+
+COMPORTAMIENTO FINAL DEL ESCUDO DUELISTA (visual):
+- Al pulsar C: pose de activacion UNA vez (tierra/agachada/aire segun
+  el momento) y YA: no loopea, no se clava, no vuelve a salir durante
+  la vida del escudo. Solo la PROXIMA pulsacion (tras recarga) la
+  trae de vuelta.
+- Cambio de animacion a mitad de pose (ej. aire → suelo): corte en
+  seco inmediato, cuerpo vuelve a su sprite normal.
+- Resto del escudo: sprites normales (andar/correr/agacharse/bola)
+  con la burbuja animada encima en cualquier estado (v5.6 intacto).
+- Salto SIN escudo: bola girando a 1.1 (v5.5 intacto). Fase 1: igual
+  que vanilla. Mecanica del escudo: INTACTA (100% visual).
+
+ARCHIVOS (10 GML): scr_sally_special, obj_sally_canon/Create_0,
+Step_2, Draw_0, Draw_76, Other_7; obj_player_puppet/Create_0, Step_0,
+Draw_0, Draw_72.
+
+VERIFICACION: balance llaves/parentesis OK en los 10 GML (script
+scripts/check_balance_v58.py, con check anti-tabs: estos archivos
+llevan sangria de 8 espacios, no tabs); diff bafeab82 (v5.6
+comiteado por el usuario) revisado archivo por archivo; grep de
+shieldPose* coherente (seteo solo tras gate canon+duelista; obj_sally
+vanilla con 0 referencias; Draw_76/Other_7/puppet Draw_72 sin
+referencias); sin vars duplicadas (_poseCat/_poseCatNow declaradas
+una vez por evento); em-dashes solo en comentarios (uso ya existente
+en estos archivos). Pendiente partida real: pose una vez al pulsar en
+quieta/agachada/aire, corte al caer al suelo a mitad de pose, NO
+re-sale al moverse/agacharse durante el escudo, burbuja animada
+encima durante la pose, misma cosa en el puppet del otro cliente.

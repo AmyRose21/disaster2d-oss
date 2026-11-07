@@ -9,6 +9,13 @@
 // afecta a Sally Canon: la vanilla conserva SU SALLY_SHIELD_RECHARGE.
 #macro SALLY_CANON_SHIELD_RECHARGE (60 * 28)
 
+// POSES DEL ESCUDO (v5.8): velocidad de la animacion de ACTIVACION
+// del escudo (frames de pose por frame de juego). 0.5 = cada frame
+// de la pose dura 2 frames de juego (quieta 5f ~ 0.17 s, agachada
+// 7f ~ 0.23 s, aire 4f ~ 0.13 s): se lee bien sin frenar el juego.
+// A 1 es el ritmo "de motor" (mas rapido); mas abajo, mas lenta.
+#macro SALLY_CANON_POSE_VEL 0.5
+
 //Variables
 gspd = 0;
 xspd = 0;
@@ -54,6 +61,23 @@ fase2Sq = 0;                     // squash & stretch de pt3/pt4 (0 = normal)
 duelista = false;   // true = fase duelista activa (patada en tierra,
                     // spindash, rodadura, escudo grupal, pasiva evasion)
 groundKick = false; // true = la patada en curso es la de TIERRA (estado 22)
+
+// POSES DEL ESCUDO (v5.8): animacion de ACTIVACION del escudo, de
+// UN SOLO USO. Al pulsar la habilidad (scr_sally_special) se
+// reproduce UNA vez la pose que toca segun el momento (quieta /
+// agachada / en el aire) y punto: no loopea, no se queda clavada en
+// el ultimo frame y NO vuelve a salir mientras dura el escudo —
+// solo al pulsar OTRA VEZ la habilidad. Si cambia la familia de la
+// animacion (ej. activarla en el aire y caer al suelo) se corta en
+// seco al instante. Draw_0 dibuja la pose con SU propio contador
+// (shieldPoseT): no toca sprite_index ni image_index, asi que ni los
+// clamps del switch de Draw_76 ni Other_7 (Animation End) pueden
+// cortarla o reiniciarla (eran la causa de los loops y reinicios de
+// las v5.4-v5.7).
+shieldPoseOn = false;   // true = se esta viendo la pose de activacion
+shieldPoseSpr = -1;     // spr_sally_shield_canon / _down_canon / _air_canon
+shieldPoseCat = -1;     // 0 = tierra / 1 = agachada / 2 = aire
+shieldPoseT = 0;        // frames de pose reproducidos (avanza SALLY_CANON_POSE_VEL)
 
 // SPINDASH (duelista): mismas variables que Amelia/Sonic (patron de
 // scr_amelia_special; carga con abajo + Z, suelto abajo = lanzamiento).

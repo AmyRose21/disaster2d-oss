@@ -95,6 +95,10 @@ else
         // v5.6: el escudo ya NO cambia el cuerpo (adios poses quieta/
         // agachada/aire); la burbuja animada se dibuja encima en
         // cualquier estado desde el Draw_0, como la Sally vanilla.
+        // v5.8: la pose de ACTIVACION (un solo pase al pulsar la
+        // habilidad) tampoco se elige aqui: la dibuja el Draw_0 con
+        // contador propio (ver Step_0 del puppet, flanco de subida del
+        // bitflag PLAYER_SALLYSHIELD).
         if(character == CHARACTER_SALLY_CANON && duelista)
         {
                 var _scSpr = -1;

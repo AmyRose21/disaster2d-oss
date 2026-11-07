@@ -80,3 +80,13 @@ f2LastState = 0;
 duelista = false;   // true tras su 1ra caida (fase duelista activa)
 f2atkHit1 = false;  // la 1a patada (frames 0-6) ya golpeo en esta ejecucion
 f2atkHit2 = false;  // la 2a patada (frames 7+) ya golpeo en esta ejecucion
+
+// SALLY CANON POSES DEL ESCUDO (v5.8): contador propio de la
+// animacion de ACTIVACION (un solo pase al pulsar la habilidad; el
+// flanco de subida del bitflag la dispara en el Step de este
+// puppet). Mismas variables que el jugador local.
+shieldPoseOn = false;
+shieldPoseSpr = -1;
+shieldPoseCat = -1;     // 0 = tierra / 1 = agachada / 2 = aire
+shieldPoseT = 0;
+shieldPosePrev = false; // valor anterior de sallyShield (flanco)

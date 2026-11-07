@@ -31,8 +31,24 @@ if(fase2Sq != 0)
 
 //Actual draw
 
+// POSES DEL ESCUDO (v5.8): mientras dura la animacion de ACTIVACION
+// (los primeros frames tras pulsar la habilidad) el cuerpo se dibuja
+// con la pose (quieta / agachada / aire) usando SU propio contador
+// shieldPoseT — no se toca sprite_index ni image_index, asi que
+// ningun clamp (el switch de Draw_76, el Other_7 de Animation End)
+// puede congelarla, cortarla o reiniciarla. Se ve UNA vez y el cuerpo
+// vuelve a su sprite normal. La burbuja animada va siempre encima.
+var _bodySpr = sprite_index;
+var _bodyIdx = image_index;
+
+if(shieldPoseOn)
+{
+        _bodySpr = shieldPoseSpr;
+        _bodyIdx = floor(shieldPoseT);
+}
+
 scr_palette_swap(global.palleteFrom, global.palleteTo);
-draw_sprite_ext(sprite_index, image_index, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
+draw_sprite_ext(_bodySpr, _bodyIdx, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
 shader_reset();
 
 // ESCUDO (v5.6, fix reportado): la burbuja animada se dibuja SIEMPRE
@@ -42,6 +58,8 @@ shader_reset();
 // saltando, cayendo, agachada...) y NO va atado a la animacion del
 // cuerpo. v5.4 lo habia atado a poses de cuerpo (quieta/agachada/
 // aire) y la burbuja quedaba congelada en un frame o directamente
-// invisible segun el estado; eso ya no existe.
+// invisible segun el estado; eso ya no existe. (v5.8: durante la pose
+// de activacion la burbuja sigue encima igual: la pose es del cuerpo,
+// la burbuja es del escudo.)
 if(shieldTimer > 0)
         draw_sprite(spr_sallyshield_canon, (current_time / 30) % 41, floor(x), floor(y));

@@ -1,4 +1,8 @@
-SALLY CANON v5.4 — FASE DUELISTA («la Determinacion de la Princesa»)
+SALLY CANON v5.8 — FASE DUELISTA («la Determinacion de la Princesa»)
++ FIX v5.8: poses del escudo de UN SOLO USO — se reproducen UNA vez
+  al pulsar la habilidad y ya (sin loop, sin quedarse clavadas, no vuelven
+  a salir mientras dura el escudo) — y la burbuja animada SIEMPRE encima,
+  aparte, como el escudo vanilla
 ========================================================================
 
 QUE ES
@@ -71,13 +75,27 @@ D) ESCUDO GRUPAL (tecla C)
      que el escudo tiene sobre Sally: el golpe se absorbe entero y
      ganan los MISMOS i-frames (5 s de SALLY_CANON_SHIELD_BREAK_INVULN).
    - Cada companero absorbe 1 golpe por activacion del escudo.
-   - Poses propias del cuerpo: spr_sally_shield_canon (quieta),
-     spr_sally_shield_down_canon (agachada) y
-     spr_sally_shield_air_canon (en el aire). Caminando o corriendo
-     conserva su animacion normal y el efecto (burbuja) se dibuja SIN
-     animacion (frame fijo).
-   - La burbuja de su escudo ahora SI se ve en el puppet de los demas
-     clientes (antes no se dibujaba para nadie).
+   - v5.8: POSES DE ACTIVACION (las que diseñaste): al PULSAR la
+     habilidad se reproduce UNA SOLA VEZ la pose que toca segun el
+     momento — quieta (spr_sally_shield_canon) en tierra, agachada
+     (spr_sally_shield_down_canon) si la activas agachada y en el aire
+     (spr_sally_shield_air_canon) si la activas saltando/cayendo — y
+     PUNTO: no loopea, no se queda clavada en el ultimo frame y NO
+     vuelve a salir durante la vida del escudo (solo al pulsar OTRA
+     VEZ la habilidad). Si mientras se reproduce cambia la animacion
+     (ej. activarla en el aire y caer al suelo), la pose se CORTA en
+     seco al instante. Despues del pase el cuerpo vuelve a su sprite
+     normal (andar, correr, agacharse, bola del salto...) con la
+     burbuja encima.
+   - v5.6: la burbuja (spr_sallyshield_canon) se dibuja SIEMPRE que el
+     escudo este activo, ANIMADA y ENCIMA del cuerpo en cualquier
+     estado, exactamente igual que el escudo de la Sally vanilla: es
+     un efecto aparte, no una pose. (v5.4 la congelaba en un frame,
+     la ocultaba en idle o loopeaba la activacion sin parar.)
+   - La pose de activacion se ve IGUAL en el puppet de los demas
+     clientes (el puppet detecta el flanco de subida del bitflag del
+     escudo y corre su propio contador; el estado llega en el mismo
+     paquete, asi que la pose elegida coincide siempre con la local).
    - NOTA de sync (limitacion intencional, cero paquetes nuevos): el
      escudo de SALLY sigue su curso normal (5 s o hasta que a ELLA le
      peguen); la absorcion de un companero no lo apaga en su pantalla.
@@ -120,8 +138,11 @@ iba a entrar de verdad. Mismo principio que la evasion de Sally.
 #macro SALLY_CANON_EVADE_INVULN (60 * 2.5)   // i-frames al evadir
 #macro SALLY_CANON_SPINDASH_BASE 8           // vel. base del spindash
 #macro SALLY_CANON_SPINDASH_CHARGE_MAX 10    // carga maxima
-(y el resto de SALLY_CANON_SPINDASH_* 1:1 con Amelia/Sonic).
-El CD del escudo canon (28 s) esta en objects/obj_sally_canon/Create_0.
+( y el resto de SALLY_CANON_SPINDASH_* 1:1 con Amelia/Sonic).
+El CD del escudo canon (28 s) y la VELOCIDAD de la animacion de
+activacion de las poses (SALLY_CANON_POSE_VEL, 0.5 = cada frame de
+pose dura 2 frames de juego; a 1 va al ritmo del motor, mas rapido)
+estan en objects/obj_sally_canon/Create_0.
 
 ------------------------------------------------------------------------
 5) INSTALACION Y NOTAS
@@ -148,11 +169,37 @@ El CD del escudo canon (28 s) esta en objects/obj_sally_canon/Create_0.
   scripts/scr_sally_special/scr_sally_special.gml
   scripts/scr_survivors/scr_survivors.gml
 
+* IMPORTANTISIMO v5.8: si ya instalaste el paquete duelista (v5.4 a
+  v5.7), este zip solo ACTUALIZA 10 archivos:
+
+  objects/obj_sally_canon/Create_0.gml   (macro SALLY_CANON_POSE_VEL)
+  objects/obj_sally_canon/Step_2.gml     (NUEVO en el zip: corte/fin
+                                          de la pose, 1 vez)
+  objects/obj_sally_canon/Draw_0.gml     (dibuja la pose 1 vez)
+  objects/obj_sally_canon/Draw_76.gml    (vuelve al v5.6 puro)
+  objects/obj_sally_canon/Other_7.gml    (vuelve al v5.6 puro)
+  objects/obj_player_puppet/Create_0.gml (NUEVO en el zip: vars)
+  objects/obj_player_puppet/Step_0.gml   (NUEVO en el zip: flanco del
+                                          bitflag + contador)
+  objects/obj_player_puppet/Draw_0.gml   (dibuja la pose 1 vez)
+  objects/obj_player_puppet/Draw_72.gml  (vuelve al v5.6 puro)
+  scripts/scr_sally_special/scr_sally_special.gml (NUEVO en el zip:
+                                          dispara la pose al pulsar C)
+
+  (mas este LEEME y el worklog). El resto de archivos de la lista de
+  arriba NO cambian desde v5.4/v5.5: si ya los tienes, no los toques.
+  Nota para el editor del proyecto: los .gml de este repo van con
+  sangria de ESPACIOS (8 por nivel), sin tabs.
 * No hay assets nuevos que copiar: los 7 sprites que subiste ya estan
   en el repo (spr_sally_fase2_attack_canon, spr_sally_fase2_jump_canon,
   spr_sally_shield_canon, spr_sally_shield_down_canon,
   spr_sally_shield_air_canon, spr_sally_spin_charger_canon,
   spr_sally_spindash_canon). Este zip solo cablea el codigo.
+  (v5.6: los 3 sprites de POSE del escudo dejaron de atarse al cuerpo
+  —el escudo va como el vanilla: burbuja aparte encima—.)
+  (v5.7/v5.8: los 3 sprites de POSE se usan como ANIMACION DE
+  ACTIVACION: un solo pase al pulsar la tecla, elegida por el estado
+  del momento (quieta / agachada / aire).)
 * No hay cambios del server ni paquetes nuevos: todo viaja por el byte
   de estado (22/23), bitflags existentes y efectos.
 * Sally VANILLA intacta: todos los cambios canon van detras de gates
@@ -177,10 +224,54 @@ QUE PROBAR EN PARTIDA REAL
    AL COMPANERO (absorbe 1 golpe con efecto de escudo roto e i-frames);
    volver a probar mientras el escudo sigue activo (ya no lo protege:
    1 absorcion por activacion).
-7. Poses del escudo: quieta / agachada / en el aire (en su pantalla y
-   en la de los demas); caminando/corriendo con la burbuja fija.
+7. Escudo (v5.8): activarlo y comprobar la ANIMACION DE ACTIVACION:
+   quieta → la pose quieta se reproduce UNA vez y el cuerpo vuelve a
+   su idle normal (SIN loop, SIN quedarse clavada); agachada → pose de
+   agachada una vez; en el aire → pose del aire una vez, y si caes al
+   suelo a mitad de la pose se CORTA al instante. Durante el resto
+   del escudo: sprites normales andando/corriendo/agachada y burbuja
+   animada encima en cualquier estado. NO vuelve a salir la pose
+   hasta pulsar C de nuevo (tras la recarga). Igual en la pantalla de
+   los demas jugadores (puppet).
 8. Evasion: en duelista, recibir golpes hasta ver el polvo de esquiva
    (~1 de cada 5) y los i-frames de 2.5 s.
 9. Sonic LMS: con el show activo, pegado a una fuente de dano
    continuo YA NO queda inmune para siempre: bloquea 55% de los golpes
    que de verdad entran, y tras cada bloqueo hay 1.5 s limpios.
+
+------------------------------------------------------------------------
+CAMBIOS POST-PRUEBAS (van ENCIMA de este paquete)
+------------------------------------------------------------------------
+v5.5 — El salto duelista (bola) gira continuo durante todo el arco
+  (antes congelaba en la subida). Metal Sonic gana i-frames en sus
+  2 ataques.
+
+v5.6 — FIX ESCUDO (parte 1): la burbuja del escudo se dibuja ANIMADA
+  y SIEMPRE visible, en cualquier estado y fase, como un efecto
+  aparte encima del cuerpo — exactamente como el escudo de la Sally
+  vanilla y como iba el canon original. Fuera las poses de cuerpo
+  atadas al escudo: en idle loopeaban la animacion de activacion sin
+  parar, la burbuja iba congelada al andar/correr y en idle/salto
+  ni aparecia. La mecanica del escudo (grupal, i-frames, stuns) no
+  cambia: fix 100% visual.
+
+v5.7 — FIX ESCUDO (parte 2): vuelven las POSES de cuerpo del escudo
+  (quieta / agachada / aire): cada pose se ve UNA vez al entrar en
+  ella y queda CLAVADA en su frame final; al cambiar de pose la
+  animacion se interrumpe y la nueva empieza del frame 0. La burbuja
+  animada del v5.6 se mantiene SIEMPRE encima. Fix 100% visual.
+
+v5.8 — FIX ESCUDO (parte 3, este zip): la pose pasa a ser una
+  ANIMACION DE ACTIVACION de UN SOLO USO, como pidio el usuario:
+  se reproduce UNA vez al PULSAR la habilidad y ya — no loopea, no
+  se queda clavada en el ultimo frame y NO vuelve a salir durante la
+  vida del escudo (antes la pose vivia atada al escudo: se quedaba
+  hay congelada y cada cambio de estado la re-disparaba). Si cambia
+  la animacion a mitad de pose (ej. aire → suelo) se corta en seco.
+  Tecnica: la pose ya NO pasa por sprite_index/image_index (ahi
+  estaban los loops: los clamps del switch de Draw_76 y el Other_7
+  de Animation End la reiniciaban/congelaban); ahora Draw_0 la
+  dibuja con un contador propio (shieldPoseT, velocidad ajustable
+  SALLY_CANON_POSE_VEL). El puppet la replica solo, con el flanco de
+  subida del bitflag del escudo (mismo paquete que el estado: la pose
+  elegida coincide siempre). Burbuja y mecanica intactas.

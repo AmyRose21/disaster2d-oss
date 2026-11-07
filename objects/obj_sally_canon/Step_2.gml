@@ -1,3 +1,31 @@
+// POSES DEL ESCUDO (v5.8): la animacion de ACTIVACION (la pose quieta
+// / agachada / aire que sale al pulsar la habilidad) vive su propia
+// vida: se corta en seco si cambia la familia de animacion con la que
+// empezo (aire <-> suelo <-> agachada; ej. activarla en el aire y caer
+// al suelo la corta al instante), si la interrumpen dano / stun /
+// muerte / fase 2 o si el escudo se apaga; y termina sola al
+// reproducirse UNA vez (shieldPoseT llega al final). Mientras dure,
+// Draw_0 dibuja la pose en vez del cuerpo; despues el cuerpo vuelve a
+// su sprite normal y la pose NO vuelve a salir hasta la proxima
+// activacion. Ni loopea ni se queda clavada: un solo pase y punto.
+if(shieldPoseOn)
+{
+        var _poseCat = 0;
+        if(state == JUMP || state == FALL)
+                _poseCat = 2;
+        else if(state == LOOKDOWN)
+                _poseCat = 1;
+
+        if(_poseCat != shieldPoseCat || shieldTimer <= 0 || isHurt || isDead || shockedTimer > 0 || fase2State != SALLY_CANON_F2_OFF)
+                shieldPoseOn = false;
+        else
+        {
+                shieldPoseT += SALLY_CANON_POSE_VEL;
+                if(shieldPoseT >= sprite_get_number(shieldPoseSpr))
+                        shieldPoseOn = false;
+        }
+}
+
 // Los estados de la fase 2 (SALLY_CANON_F2_PT1..PT4, valores 18-21)
 // estan definidos en scripts/scr_sally_canon_fase2.gml y usan los
 // indices 18-21 del array player_anims de CHARACTER_SALLY_CANON.

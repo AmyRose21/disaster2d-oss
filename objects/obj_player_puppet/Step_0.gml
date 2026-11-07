@@ -56,6 +56,64 @@ if(character == CHARACTER_SALLY_CANON)
                 f2atkHit1 = false;
                 f2atkHit2 = false;
         }
+
+        // POSES DEL ESCUDO (v5.8): animacion de ACTIVACION de un solo
+        // uso, igual que en la pantalla del jugador. El bitflag
+        // PLAYER_SALLYSHIELD y el "state" llegan en el MISMO paquete
+        // (CLIENT_PLAYER_DATA), asi que en el flanco de subida el
+        // estado es el mismo con el que el jugador pulso la tecla: la
+        // pose elegida coincide siempre con la local. Despues del pase
+        // el cuerpo vuelve a su sprite normal y la burbuja animada
+        // sigue encima (Draw_0 del puppet).
+        if(duelista)
+        {
+                // flanco de subida del escudo = acaba de activarlo
+                if(sallyShield && !shieldPosePrev)
+                {
+                        var _poseCat = 0;
+                        if(state == JUMP || state == FALL)
+                                _poseCat = 2;
+                        else if(state == LOOKDOWN)
+                                _poseCat = 1;
+
+                        shieldPoseCat = _poseCat;
+                        shieldPoseT = 0;
+
+                        switch(_poseCat)
+                        {
+                                case 1: shieldPoseSpr = spr_sally_shield_down_canon; break;
+                                case 2: shieldPoseSpr = spr_sally_shield_air_canon; break;
+                                default: shieldPoseSpr = spr_sally_shield_canon; break;
+                        }
+
+                        shieldPoseOn = true;
+                }
+
+                shieldPosePrev = sallyShield;
+
+                if(shieldPoseOn)
+                {
+                        var _poseCatNow = 0;
+                        if(state == JUMP || state == FALL)
+                                _poseCatNow = 2;
+                        else if(state == LOOKDOWN)
+                                _poseCatNow = 1;
+
+                        if(_poseCatNow != shieldPoseCat || !sallyShield || state == HURT || state == DEAD)
+                                shieldPoseOn = false;
+                        else
+                        {
+                                shieldPoseT += SALLY_CANON_POSE_VEL;
+                                if(shieldPoseT >= sprite_get_number(shieldPoseSpr))
+                                        shieldPoseOn = false;
+                        }
+                }
+        }
+        else
+        {
+                shieldPoseOn = false;
+                shieldPosePrev = false;
+        }
 }
 
 // SONIC POWERBOOST (Nervios de Acero): el Sonic remoto deja estela

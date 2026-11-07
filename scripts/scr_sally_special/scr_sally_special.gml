@@ -214,6 +214,37 @@ function scr_sally_special()
                 shieldTimer = 5 * 60;
                 // Canon: recarga propia (28 s, 2 menos que la vanilla).
                 shieldRechrage = global.character == CHARACTER_SALLY_CANON ? SALLY_CANON_SHIELD_RECHARGE : (revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE);
+
+                // v5.8: POSE DE ACTIVACION (un solo uso). Al pulsar la
+                // habilidad se reproduce UNA vez la pose que toca segun
+                // el momento (quieta / agachada / en el aire) y ya: no
+                // loopea, no se queda clavada y no vuelve a salir mientras
+                // dura el escudo (solo al pulsar OTRA VEZ la habilidad).
+                // Solo Sally Canon en fase duelista: la Sally vanilla no
+                // tiene estas variables y el gate corta antes de leerlas
+                // (mismo patron que groundKick alla arriba). El "state"
+                // leido aqui es el del frame anterior — justo la pose que
+                // el jugador esta VIENDO al pulsar la tecla.
+                if(global.character == CHARACTER_SALLY_CANON && duelista && !isHurt && !isDead && shockedTimer <= 0 && fase2State == SALLY_CANON_F2_OFF)
+                {
+                        var _poseCat = 0;
+                        if(state == JUMP || state == FALL)
+                                _poseCat = 2;
+                        else if(state == LOOKDOWN)
+                                _poseCat = 1;
+
+                        shieldPoseCat = _poseCat;
+                        shieldPoseT = 0;
+
+                        switch(_poseCat)
+                        {
+                                case 1: shieldPoseSpr = spr_sally_shield_down_canon; break;
+                                case 2: shieldPoseSpr = spr_sally_shield_air_canon; break;
+                                default: shieldPoseSpr = spr_sally_shield_canon; break;
+                        }
+
+                        shieldPoseOn = true;
+                }
         }
 
         if(global.playerControls && abs(xspd) >= 2.5 && keyboard_check_pressed(global.KeyDown) && isGrounded && !isSliding)

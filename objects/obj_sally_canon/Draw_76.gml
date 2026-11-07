@@ -8,6 +8,11 @@ sprite_index = arr[? CHARACTER_SALLY_CANON][state];
 // cualquier estado (Draw_0), igual que el escudo de la Sally
 // vanilla (v5.6: antes habia poses atadas al escudo y la burbuja
 // quedaba congelada o invisible segun el estado).
+// v5.8: las poses de ACTIVACION del escudo (un solo pase al pulsar
+// la habilidad) TAMPOCO pasan por aqui: las dibuja Draw_0 con un
+// contador propio, sin tocar sprite_index ni image_index — asi este
+// switch y sus clamps no pueden cortarlas ni reiniciarlas (era el
+// origen de los loops de las v5.4-v5.7).
 if(duelista)
 {
         if(state == JUMP)
