@@ -47,6 +47,13 @@ function scr_amy_canon_special()
                 isTarotFloat = false;
         }
         
+        // v6.0 — LATCH DEL FRENADO del light dash: los 2 frames despues de
+        // frenar el dash con la X, el impulso de tarot no puede encenderse
+        // con ESE mismo toque (frenar no es encadenar; lo arma
+        // scr_light_dash_brake en scr_light_dash.gml).
+        if(lightDashBrakeLatch > 0)
+                lightDashBrakeLatch--;
+
         // --- Habilidad 1: SALTO DE MARTILLO (ABAJO + Z, SOLO en el suelo) ---
         // Entrada estilo Amy original: mantener ABAJO y pulsar Z. PERO a
         // diferencia de la original, Amy Canon tambien puede hacerlo EN
@@ -122,7 +129,8 @@ function scr_amy_canon_special()
         // tambien DESPUES de salir de la burbuja, solo se bloquea DENTRO.
         if(global.playerControls && bubbleState != AMY_BUBBLE_ACTIVE && !isGrounded
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isDashing
-        && !isAttacking && !isHJ && !isTarotDashing && !isLightDashing && keyboard_check_pressed(global.KeyB)
+        && !isAttacking && !isHJ && !isTarotDashing && !isLightDashing && lightDashBrakeLatch <= 0
+        && keyboard_check_pressed(global.KeyB)
         && attackTimer <= 0)
         {
                 // Direccion: si aprietas izquierda/derecha, mira hacia ese lado;

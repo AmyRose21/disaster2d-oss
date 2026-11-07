@@ -154,6 +154,8 @@ lightDashAimX = 0;        // v5.10: primer punto de la RUTA (flecha; con
                          // desvio A* es el primer quiebre, no el anillo)
 lightDashAimY = 0;
 lightDashAimDir = 0;      // v5.10: direccion del primer tramo de la ruta
+isLSA = false;            // v6.0: true mientras el vuelo es un LSA (C, ataque)
+lightDashBrakeLatch = 0;  // v6.0: frames de silencio del impulso de tarot tras frenar el dash con X
 
 // --- Variables del ESTADO BURBUJA (secuestro, reglas canonicas) ---
 // Ver scr_amy_canon_bubble.gml para el significado y los valores

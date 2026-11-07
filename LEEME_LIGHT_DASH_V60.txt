@@ -1,0 +1,116 @@
+v6.0 — LIGHT DASH + LSA: LA HABILIDAD COMPLETA (LSA, i-frames, frenado y 2 fixes)
+================================================================================
+
+QUE CAMBIA (lo que pediste, punto por punto)
+--------------------------------------------
+1) EL LSA (LIGHT SPEED ATTACK) VIVE EN LA MISMA HABILIDAD — tecla C,
+   SOLO EN EL SUELO:
+   - La C con un objetivo del bando EXE a la vista (el exe real o un
+     esbirro demonizado mas cercano, a menos de LSA_RANGE = 400 px,
+     vivo, sin i-frames y sin stun previo) dispara el RAYO A POR EL:
+     homing mientras el objetivo no se aleje de LSA_PURSUIT.
+   - AL LLEGAR LE PEGA: stun de 3 segundos (LSA_STUN_TIME). El stun
+     viaja por la senal de red de siempre (el mismo canal del parry y
+     de Chocola: cero paquetes nuevos) y lo aplica el cliente del
+     objetivo, con su golpe canonico + grito + dedup.
+   - LUEGO VA A BUSCAR RINGS: encadena los anillos que haya por la
+     zona (a menos de LIGHT_DASH_LINK_DIST de la posicion del objetivo)
+     y sale disparada igual que el dash de la Z.
+   - DE SOBRA: mientras vuela lleva isAttacking — cualquier exe que
+     TOQUE el rayo queda aturdido por el sistema de contacto del juego
+     (el mismo de la acometida de martillo). El exe no puede hacerle
+     body-block al rayo.
+   - LA Z NUNCA DISPARA EL LSA (punto de tu pedido): el dash de la Z
+     es y sigue siendo SOLO anillos. Y la C SIN objetivo a la vista
+     cae a la ACOMETIDA DE MARTILLO de siempre: mismo boton, dos caras
+     de la misma habilidad, mismo CD compartido (dashTimer, el del
+     icono 3 del HUD). Si prefieres que la C sea SOLO LSA (sin caer a
+     la acometida), es una linea: borrar el gate de dashTimer en
+     scr_amy_canon_special o avisarme y te lo cambio.
+   - SIN VERSION AEREA, como pediste: ese hueco lo ocupa el impulso
+     de tarot de la X.
+   - CONTRAJUEGO: si el exe CORRE cuando ve el rayo y se aleja de
+     LSA_PURSUIT (600 px de Amy), el eslabon se congela y el golpe NO
+     entra (esquivado). Y el LSA no se puede frenar: es un ataque
+     comprometido.
+
+2) FIX DEL DASH PEGADO AL PISO (el bug "parecido a la burbuja"):
+   tenias razon, era EXACTAMENTE el mismo pozo. El Step_0 de Amy corre
+   scr_collision_basic OTRA VEZ despues del pose del dash, y con
+   isGrounded en true su rama de suelo (y = winner) le pisaba la
+   elevacion cada frame: el dash que tocaba el piso persiguiendo
+   anillos bajos quedaba CONGELADO ahi hasta que se agotaba el tiempo
+   de paciencia. El seguro de la burbuja (isGrounded = false) ahora se
+   aplica CADA FRAME en el pose (scr_light_dash_pose): la rama aerea
+   solo aterriza cayendo de verdad, nunca clava.
+
+3) I-FRAMES (LSA y dash):
+   - DURANTE el vuelo: intoCable (hurttime siempre > 0).
+   - AL SALIR (cualquier salida: cadena agotada, cancelacion, tope de
+     tiempo o frenado): 2 SEGUNDOS gratis (LIGHT_DASH_IFRAME_EXIT).
+     Se ve con el semitransparente de siempre (alpha 0.5), igual que
+     cualquier invulnerabilidad del juego.
+
+4) FRENADO DE EMERGENCIA (solo el dash de la Z): X en pleno vuelo
+   detiene el rayo EN SECO — parada total (sin impulso de salida,
+   cae normal) y con sus 2 s de i-frames igualmente. El LSA NO se
+   puede frenar (es un ataque comprometido). OJO: la X durante el
+   vuelo NO enciende el impulso de tarot (latch de 2 frames): frenar
+   no es encadenar.
+
+5) FIX DE LA ROTACION INVISIBLE: saltar EN BOLA conserva isSpinning
+   (el fix v5.3 del manejo) y el Draw local forzaba angle = 0 con ese
+   flag — el rayo volaba DE LADO hacia los anillos de ARRIBA sin
+   girar (el puppet remoto si giraba: tu pantalla era la unica ciega).
+   Ahora el dash manda sobre la bola: si vuela como rayo, SIEMPRE
+   rota.
+
+DONDE ESTA CADA COSA
+--------------------
+El corazon sigue en UN archivo:
+
+  scripts/scr_light_dash/scr_light_dash.gml
+    - Macros LSA_* (RANGE 400 / PURSUIT 600 / HIT_RADIUS 48 /
+      STUN_TIME 3 s / MAX_TIME 300) + LIGHT_DASH_IFRAME_EXIT (2 s).
+    - Seccion 3 del step: activacion del LSA (C + objetivo).
+    - scr_lsa_find_target / scr_lsa_hit / scr_lsa_stun_signal.
+    - scr_light_dash_brake (el frenado).
+    - scr_light_dash_chain (el buscador de anillos, ahora reutilizable
+      desde la posicion del objetivo).
+
+  objects/obj_amy_canon/Create_0.gml      -> declara isLSA + latch
+  objects/obj_amy_canon/Draw_0.gml        -> fix de la rotacion
+  scripts/scr_amy_canon_special/...       -> latch del frenado (la X
+     del freno no enciende el impulso de tarot)
+  scripts/net_state_game/net_state_game.gml -> la rama que traduce la
+     senal snd_dash dirigida en stun del LSA (3 lineas, mismo patron
+     del parry/Chocola)
+
+RED: CERO paquetes nuevos. La posicion/estela/rotacion viajan como
+siempre (estado 25 + angle s16), el stun va por la senal dirigida al
+nid del objetivo y el contacto por el bit PLAYER_ATTACKING que ya
+viajaba para la acometida.
+
+VERIFICACION
+------------
+checker v6.0: 197/197 OK (hereda los 121 del v5.9-v5.10: cero
+regresiones). Nuevos: macros pineadas, funciones LSA/freno/chain,
+separacion Z/LSA (la seccion de la Z no toca la C ni objetivos),
+gates comunes, homing con tope, golpe con cercania real, senal
+antes-del-dedup, rama de net_state_game, fix del pose, fix del Draw,
+latch en el especial. Simulaciones nuevas: buscador de objetivo
+(filtros del bando exe), homing/golpe/esquiva-por-huida, extension de
+anillos desde el exe, senal de stun (modelo Chocola), EL PIPELINE DEL
+BUG DEL PISO reproducido con y sin el seguro (sin seguro: clavado
+para siempre; con seguro: alcanza el anillo de arriba), frenado
+(parada total + latch) e i-frames (nunca caen a 0 en vuelo, 120 al
+salir).
+
+AJUSTE FINO (macros nuevas en scr_light_dash.gml):
+- LSA_RANGE 400: alcance de captura del objetivo.
+- LSA_PURSUIT (LSA_RANGE * 1.5): hasta donde persigue antes de
+  congelar el eslabon (el contrajuego: correr).
+- LSA_HIT_RADIUS 48: cercania objetivo-eslabon para que el golpe entre.
+- LSA_STUN_TIME (60 * 3): los 3 segundos de stun.
+- LSA_MAX_TIME 300: tope de vuelo del LSA (la ruta es mas larga).
+- LIGHT_DASH_IFRAME_EXIT (60 * 2): los 2 s de i-frames al salir.

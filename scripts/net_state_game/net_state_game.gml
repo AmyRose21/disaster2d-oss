@@ -2184,6 +2184,18 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         // Vanilla: scr_survivor_revive + CLIENT_VANILLA_DEDEMONIZE_PROGRESS).
                                         scr_chocola_stun_signal(global.character == CHARACTER_EXE ? VANILLA_CHOCOLA_ATTACK_STUN : VANILLA_CHOCOLA_MINION_STUN);
                                 }
+                                else if(global.net_snds[sid] == snd_dash)
+                                {
+                                        // LSA (Amy Canon v6.0): senal de GOLPE — la emite el
+                                        // cliente de Amy cuando su Light Speed Attack llega
+                                        // hasta ESTE jugador del bando EXE (exe o esbirro
+                                        // demonizado). Mismo modelo de confianza que el parry
+                                        // y Chocola: la victima se aturde a si misma
+                                        // (scr_lsa_stun_signal, con dedup y sonidos propios).
+                                        // OJO: el snd_dash BROADCAST (shouldPlay=false) del
+                                        // arranque del rayo jamas entra por esta rama.
+                                        scr_lsa_stun_signal();
+                                }
                                 else
                                         audio_play_sound(global.net_snds[sid], false, 0);
                         }

@@ -4809,3 +4809,84 @@ AJUSTE FINO (macros nuevas en scr_light_dash.gml):
   pegados al muro, mas caro).
 - LIGHT_DASH_GRID_REFRESH 30: cada cuantos frames se reconstruye el
   grid (terreno movil).
+
+2026-11-07 — LIGHT DASH v6.0: LSA + I-FRAMES + FRENADO + 2 FIXES
+Task ID: light-dash-v6-lsa
+Pedido: "Incluye el LSA en la misma habilidad (exe en el camino -> golpe
++ stun 3 s -> luego rings), tecla C para que no salga por accidente, la
+Z nunca lo dispara, terrestre y sin version aerea (X = tarot). I-frames
+en dash y LSA + 2 s gratis al salir. Frenado prematuro del dash con X.
+Fix del dash que se queda pegado al pisar el piso (el pozo de la
+burbuja). Fix de la rotacion que no se nota al ir por anillos arriba."
+
+Diagnostico del bug del piso (confirmado el paralelo con la burbuja):
+- obj_amy_canon/Step_0.gml:50 corre scr_collision_basic() OTRA VEZ
+  despues del hook de scr_move_basic (que ya corrio collision + pose del
+  dash). Con isGrounded=true (aterrizo persiguiendo anillos bajos), la
+  rama de suelo del segundo collision hace y=winner CADA FRAME y le
+  pisa la elevacion: el vuelo sube 5 px, el snap la devuelve -> CLAVADA
+  hasta agotar MAX_TIME. Es exactamente "la burbuja activada con Amy en
+  el suelo no se elevaba" (fix de entonces: isGrounded=false).
+- Fix: scr_light_dash_pose() re-afirma isGrounded=false CADA FRAME
+  (mejor que una sola vez en la activacion: cubre aterrizajes
+  mid-vuelo). La rama aerea del collision solo aterriza cayendo de
+  verdad (yspd>0) y nunca clava.
+
+Diagnostico de la rotacion invisible:
+- Draw_0 local: isSpinning ? 0 : radtodeg(angle). Saltar en BOLA
+  conserva isSpinning (v5.3 del manejo) y el rayo viajaba con angle
+  forzado a 0 (de lado hacia los anillos de arriba). El puppet remoto
+  dibuja angle directo y si rotaba. Fix: (isSpinning &&
+  !isLightDashing) ? 0 : radtodeg(angle).
+
+LSA (Light Speed Attack, tecla C, suelo):
+- scr_light_dash_step seccion 3 (gates comunes arriba; la Z envuelta en
+  if(!isGrounded) para que sus return tempranos no roben el turno).
+- Objetivo: scr_lsa_find_target (puppet bando EXE mas cercano a
+  LSA_RANGE 400, vivo, sin i-frames, sin state DEAD, visible; mismos
+  filtros que Chocola).
+- Ruta: recta con LOS o rodeo A* (scr_light_dash_route, presupuesto
+  LSA_RANGE*ROUTE_FACTOR); eslabon del objetivo = struct {x, y, exe}
+  VIVO con homing mientras dist(Amy, exe) < LSA_PURSUIT (600).
+- Golpe en la llegada: scr_lsa_hit -> efectos locales (shockparticle +
+  shake) + senal net_sound_emit_at(snd_dash, nid) con shouldPlay=true;
+  rama nueva en CLIENT_SOUND_EMIT (net_state_game) -> scr_lsa_stun_signal
+  en el cliente del objetivo (modelo Chocola: sonido ANTES del dedup,
+  shockedTimer = 180, knockback, CLIENT_PLAYER_HURT + stats). Esquiva:
+  si el exe huye y el eslabon queda a > LSA_HIT_RADIUS del exe real, no
+  hay golpe.
+- Extension: scr_light_dash_chain(exe.x, exe.y, LINK_DIST) encadena
+  anillos desde el objetivo (find() quedo como envoltorio del chain).
+- isAttacking=true durante el vuelo (bit PLAYER_ATTACKING ya viaja para
+  Amy Canon): el exe que TOQUE el rayo queda stuneado por el sistema de
+  contacto del juego (obj_player_puppet, 3 s).
+- Convivencia con la acometida (misma tecla C, mismo CD dashTimer): el
+  hook corre ANTES que specialFunc en scr_move_basic -> con objetivo el
+  LSA arranca y la acometida ve isLightDashing y se calla; sin objetivo
+  la C cae a la acometida de siempre. La Z arranca con isLSA=false
+  (defensivo) y jamas busca objetivos.
+- Sin version aerea (X = impulso de tarot, como pidio el usuario).
+
+I-frames: hurttime = max(hurttime, 2) cada frame de vuelo (intocable;
+  el Step la baja 1 y el vuelo repone) y hurttime =
+  LIGHT_DASH_IFRAME_EXIT (120) en TODAS las salidas.
+
+Frenado (solo dash de la Z): X en vuelo -> scr_light_dash_brake: parada
+  total (xspd=yspd=gspd=0), i-frames de salida, ultima estela, snap +
+  latch lightDashBrakeLatch=2 para que ese mismo toque de X no encienda
+  el impulso de tarot (scr_amy_canon_special: gate +
+  lightDashBrakeLatch <= 0, decremento al inicio). El LSA no se frena.
+
+Archivos: scr_light_dash.gml (macros LSA_* + seccion 3 + homing +
+  golpe + brake + chain + pose fix + exit), Create_0 (isLSA + latch),
+  Draw_0 (rotacion), scr_amy_canon_special (latch), net_state_game
+  (rama snd_dash dirigido). Cero paquetes nuevos (senal por el canal
+  CLIENT_SOUND_EMIT existente, contacto por PLAYER_ATTACKING existente).
+
+Entrega: td2dr_light_dash_v600.zip (LEEME + 5 gml + checker + worklog).
+VERIFICACION: check_v60_light_dash.py 197/197 OK (los 121 del v59-v5.10
+sin regresiones; el conteo de fantasmas pasa de 2 a 4: arranque Z, arranque
+LSA, salida y freno). Nuevas simulaciones: objetivo (6 filtros), homing
+golpe/esquiva, extension desde el exe, senal de stun, PIPELINE del bug
+del piso con y sin el seguro (sin: nunca llega; con: llega en ~11 frames),
+frenado con latch, i-frames en vuelo.
