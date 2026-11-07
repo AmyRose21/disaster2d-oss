@@ -78,14 +78,39 @@
 //  en false justo en el frame de salida: el ultimo tramo jamas dejaba
 //  fantasma y por eso la estela "solo salia al agarrar el anillo".
 //  Con fantasma por frame a 10 px/frame el rayo queda continuo.
+//
+// v5.9.5 — PATHFINDING DEL RAYO (cadena consciente del terreno): la cadena
+//  codiciosa de v5.9.3 no veia el mapa y armaba lineas que cruzaban el
+//  piso o un muro (anillo en el suelo, anillo al otro lado de la pared):
+//  el vuelo REAPLICA la posicion por encima del collision
+//  (scr_light_dash_pose), asi que Amy atravesaba el terreno y quedaba
+//  ATASCADA dentro o del otro lado. Solucion: un anillo solo encadena si
+//  el tramo hasta el esta LIMPIO de terreno (linea de vision con
+//  collision_line contra LIGHT_DASH_TERRAIN, el padre universal de
+//  pisos/muros/pendientes/puertas/plataformas). Es el pathfinding
+//  natural de esta mecanica: en el Sonic clasico el diseñador coloca los
+//  anillos por caminos limpios; aqui se exige en codigo. La FLECHA usa
+//  la misma cadena, asi que lo que ves sigue siendo lo que vuela:
+//  anillo tras muro = sin flecha = sin rayo — PERO si ese anillo tiene
+//  otros anillos visibles que rodean el obstaculo, la cadena los sigue
+//  ALREDEDOR y llega hasta el: «si hay una pared, buscar el angulo
+//  posible para rodear y llegar» es el comportamiento emergente del
+//  encadenado visible (ver scr_light_dash_find). Los tramos se prueban
+//  con LIGHT_DASH_LOS_TRIM px de margen en cada extremo para no castigar
+//  a los anillos que APOYAN sobre una superficie (el lunge de recogida de
+//  un anillo caido sigue funcionando: vuela hasta el, lo recoge y
+//  aterriza). Y si un hijo MOVIL del terreno (una puerta, un bloque de
+//  hielo) cierra sobre el rayo a mitad de vuelo, NO hay rescate propio:
+//  el juego ya tiene su sistema anti-atasco que saca al jugador de
+//  dentro del solido, y ese sistema la rescata igual que a cualquiera.
 // =====================================================================
 
 // --- PARAMETROS AJUSTABLES (60 frames = 1 segundo) -------------------
 #macro LIGHT_DASH_SPEED 5         // px/frame del vuelo (v5.9.4: era 16, muy rapida)
-#macro LIGHT_DASH_FIRST_RADIUS 155  // radio de captura del PRIMER anillo (v5.9.3: era 56)
-#macro LIGHT_DASH_LINK_DIST 175     // dist max entre eslabones (v5.9.3: era 48; no hace falta que esten pegados)
+#macro LIGHT_DASH_FIRST_RADIUS 220  // radio de captura del PRIMER anillo (v5.9.3: era 56)
+#macro LIGHT_DASH_LINK_DIST 275     // dist max entre eslabones (v5.9.3: era 48; no hace falta que esten pegados)
 #macro LIGHT_DASH_MAX_RINGS 20     // tope de anillos por cadena (seguridad)
-#macro LIGHT_DASH_MAX_TIME 320     // tope de frames de vuelo (v5.9.4: 180, por la velocidad menor)
+#macro LIGHT_DASH_MAX_TIME 200     // tope de frames de vuelo (v5.9.4: 180, por la velocidad menor)
 #macro LIGHT_DASH_TURN 0.35        // suavizado del volteo (1 = instantaneo)
 #macro LIGHT_DASH_ANIMSPD 0.5      // velocidad de la animacion del rayo
 // v5.9.1 — ESTELA FANTASMAL (efecto de rayo): un obj_quickeffect_fade
@@ -100,6 +125,15 @@
 // la direccion del primer tramo + el keycap de la tecla REAL de salto.
 #macro LIGHT_DASH_ARROW_DIST 16     // px del anillo al ancla de la flecha
 #macro LIGHT_DASH_ARROW_SIZE 7      // largo de la punta de la flecha (px)
+// v5.9.5 — PATHFINDING: el terreno que corta la cadena y el margen de los
+// tramos. TERRAIN es el padre universal (pisos, muros, pendientes
+// obj_majong_slope, puertas obj_hd_door, bloques de hielo, plataformas
+// obj_platform_jumptrough): todo lo que scr_collision_basic trata de
+// solido cuelga de el. TRIM recorta cada extremo del tramo probado para
+// que un anillo APOYADO en el suelo (su centro puede rozar la mascara)
+// siga encadenando: el rayo llega AL anillo, no lo atraviesa.
+#macro LIGHT_DASH_TERRAIN obj_floor_parent
+#macro LIGHT_DASH_LOS_TRIM 8
 
 // scr_light_dash_step(): activacion + viaje. Devuelve true si ESTE
 // frame lo controla el dash. Las variables lazy siguen el patron de
@@ -150,6 +184,11 @@ function scr_light_dash_step()
                 || redRingTimer > 0 || x <= 1 || x >= room_width - 1
                 || y > room_height + 60 || lightDashTime > LIGHT_DASH_MAX_TIME)
                         return scr_light_dash_exit();
+
+                // (v5.9.5 NOTA: aqui NO hay rescate propio contra terreno
+                // movil que cierre sobre el rayo — el juego ya tiene su
+                // sistema anti-atasco que saca al jugador de dentro del
+                // solido, y ese sistema la rescata igual que a cualquiera.)
 
                 // --- objetivo vivo? (el EXE pudo reventarlo / un aliado
                 //     recogerlo: se salta el eslabon y se sigue) ---
@@ -463,6 +502,32 @@ function scr_light_dash_exit()
 // del angulo renderizado R, dentro de scr_light_dash_step: ver el
 // bloque de pose y su comentario).
 
+// scr_light_dash_clear(): true si el tramo (x1,y1)->(x2,y2) se puede
+// volar sin atravesar terreno — la LINEA DE VISION del pathfinding del
+// rayo (v5.9.5). collision_line contra LIGHT_DASH_TERRAIN con colision
+// precisa (las pendientes obj_majong_slope son mascaras diagonales). Los
+// extremos se recortan LIGHT_DASH_LOS_TRIM px: un anillo APOYADO en el
+// suelo tiene el centro rozando la mascara del piso y Amy despegandose de
+// un muro puede arrancar a 2 px de la cara — el rayo llega AL anillo, no
+// lo atraviesa, y esos pixeles finales no deben condenar el tramo. Un
+// muro de verdad (mas de 2*TRIM px de terreno en medio) SI corta.
+function scr_light_dash_clear(x1, y1, x2, y2)
+{
+        var _d = point_distance(x1, y1, x2, y2);
+
+        if(_d <= LIGHT_DASH_LOS_TRIM * 2)
+                return true; // tramo cortisimo: no cabe un muro en medio
+
+        var _nx = (x2 - x1) / _d;
+        var _ny = (y2 - y1) / _d;
+
+        return !collision_line(x1 + _nx * LIGHT_DASH_LOS_TRIM,
+                               y1 + _ny * LIGHT_DASH_LOS_TRIM,
+                               x2 - _nx * LIGHT_DASH_LOS_TRIM,
+                               y2 - _ny * LIGHT_DASH_LOS_TRIM,
+                               LIGHT_DASH_TERRAIN, true, true);
+}
+
 // scr_light_dash_find(): construye la cadena de anillos. El primer
 // eslabon es el anillo vivo mas cercano dentro del radio de captura
 // (en CUALQUIER direccion: asi las columnas verticales se pescan
@@ -471,11 +536,20 @@ function scr_light_dash_exit()
 // de 80 px — con las lineas/columnas/arcos de los mapas (anillos a
 // 24-36 px) sigue el camino exacto, pero ahora tambien engancha
 // lineas sueltas o dispersas y UN anillo solo forma cadena (lunge).
+// v5.9.5: cada candidato exige ADEMAS linea de vision limpia
+// (scr_light_dash_clear): el vecino mas cercano DETRAS de un muro no
+// encadena y la cadena pasa al mas cercano VISIBLE — si los anillos
+// rodean un obstaculo, el rayo los sigue ALREDEDOR (pathfinding real
+// por donde el diseñador puso los anillos). Si nadie es visible, la
+// cadena termina ahi: Amy sale con el impulso del ultimo tramo limpio
+// y nunca queda incrustada en el terreno.
 function scr_light_dash_find()
 {
         var _chain = [];
 
-        // --- primer anillo ---
+        // --- primer anillo (v5.9.5: el mas cercano VISIBLE — el tramo
+        // desde Amy tambien se prueba: un anillo al otro lado de la pared
+        // o bajo el borde del piso ya no se pesca) ---
         var _best = noone;
         var _bestDist = LIGHT_DASH_FIRST_RADIUS;
 
@@ -486,7 +560,7 @@ function scr_light_dash_find()
 
                 var _d = point_distance(x, y, other.x, other.y);
 
-                if(_d < _bestDist)
+                if(_d < _bestDist && scr_light_dash_clear(other.x, other.y, x, y))
                 {
                         _bestDist = _d;
                         _best = id;
@@ -527,7 +601,10 @@ function scr_light_dash_find()
 
                         var _d = point_distance(x, y, _last.x, _last.y);
 
-                        if(_d < _nextDist)
+                        // v5.9.5: vecino mas cercano VISIBLE — el eslabon
+                        // que cruce el piso o un muro se salta y la cadena
+                        // sigue por el siguiente anillo con tramo limpio
+                        if(_d < _nextDist && scr_light_dash_clear(_last.x, _last.y, x, y))
                         {
                                 _nextDist = _d;
                                 _next = id;

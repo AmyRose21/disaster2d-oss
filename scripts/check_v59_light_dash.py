@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 check_v59_light_dash.py — verificacion del LIGHT DASH de Amy Canon
-(v5.9 -> v5.9.4: fix del crash de primer frame, estela fantasmal,
-flecha indicadora de la Z, alcance ampliado y ritmo a 10 px/frame
-con estela continua nacida en el step).
+(v5.9 -> v5.9.5: fix del crash de primer frame, estela fantasmal,
+flecha indicadora de la Z, alcance ampliado, ritmo a 10 px/frame con
+estela continua nacida en el step y PATHFINDING: cadena consciente
+del terreno que ya no se mete en el piso ni cruza muros).
 
 Parte 1 (estatica): brackets balanceados en todos los archivos tocados,
 los 8 puntos de integracion presentes, colision de estados evitada
@@ -20,6 +21,12 @@ Parte 2 (simulacion): la logica del dash porteada 1:1 a Python:
     vivos atras (recogida directa) y el impulso de salida es el tramo.
   - SALIDAS: anillo roto por el EXE a mitad de cadena (se salta), dano
     (sale con impulso), y los gates de activacion.
+  - PATHFINDING v5.9.5: los anillos detras de un muro o enterrados en el
+    piso NO encadenan (linea de vision con margen), los que apoyan en el
+    suelo SI (lunge intacto) y si hay una pared la cadena BUSCA EL ANGULO
+    POSIBLE: sigue los anillos VISIBLES que rodean el obstaculo y llega
+    hasta el anillo de atras. Terreno movil que cierra a mitad de vuelo:
+    sin rescate propio, lo cubre el sistema anti-atasco del juego.
 """
 
 import math
@@ -242,6 +249,27 @@ check("v5.9.4 scr_light_dash: arranque y salida dejan su fantasma (2 llamadas x,
 check("v5.9.4 Draw_0: el Draw ya NO spawnea la estela (sin dobles)",
       "obj_quickeffect_fade" not in d0 and "lightDashGhostTimer" not in d0)
 
+# --- v5.9.5: pathfinding — cadena consciente del terreno ---
+check("v5.9.5 scr_light_dash: macro del terreno (padre universal)",
+      re.search(r"#macro\s+LIGHT_DASH_TERRAIN\s+obj_floor_parent", ld) is not None)
+check("v5.9.5 scr_light_dash: macro del margen de los tramos",
+      re.search(r"#macro\s+LIGHT_DASH_LOS_TRIM\s+8\b", ld) is not None)
+check("v5.9.5 scr_light_dash: funcion scr_light_dash_clear (linea de vision)",
+      re.search(r"function\s+scr_light_dash_clear\(x1,\s*y1,\s*x2,\s*y2\)", ld) is not None
+      and ld.count("collision_line(") >= 1)
+check("v5.9.5 scr_light_dash: el tramo se prueba recortado (guard 2*TRIM)",
+      "LIGHT_DASH_LOS_TRIM * 2" in ld and ld.count("LIGHT_DASH_LOS_TRIM") >= 5)
+check("v5.9.5 scr_light_dash: primer anillo = el mas cercano VISIBLE",
+      "if(_d < _bestDist && scr_light_dash_clear(other.x, other.y, x, y))" in ld)
+check("v5.9.5 scr_light_dash: eslabones = vecino mas cercano VISIBLE",
+      "if(_d < _nextDist && scr_light_dash_clear(_last.x, _last.y, x, y))" in ld)
+check("v5.9.5 scr_light_dash: SIN rescate propio (lo cubre el anti-atasco del juego)",
+      "collision_point(x, y, LIGHT_DASH_TERRAIN" not in ld
+      and "sistema anti-atasco" in ld)
+check("v5.9.5 scr_light_dash: cabecera documenta el pathfinding",
+      "PATHFINDING DEL RAYO" in ld
+      and ld.find("buscar el angulo") != -1)
+
 yyp = open(os.path.join(ROOT, "Sonicexe The Disaster 2D Remake.yyp"), encoding="utf-8").read()
 check("yyp: script registrado", '"scr_light_dash"' in yyp)
 check("yyp: sprite registrado", '"spr_amy_light_speed_canon"' in yyp)
@@ -275,6 +303,7 @@ LINK_DIST = 80.0
 MAX_RINGS = 16
 MAX_TIME = 180
 TURN = 0.35
+TRIM = 8.0  # v5.9.5: LIGHT_DASH_LOS_TRIM
 
 
 def point_direction(x1, y1, x2, y2):
@@ -325,14 +354,16 @@ class Player:
         self.packets = []         # CLIENT_RING_COLLECTED enviados
 
 
-def find_chain(px, py, rings):
+def find_chain(px, py, rings, terrain=None):
+    """Puerto 1:1 de scr_light_dash_find (v5.9.5: con terreno, exige
+    linea de vision limpia — terrain = lista de rects (x, y, w, h))."""
     chain = []
     best, best_d = None, FIRST_RADIUS
     for r in rings:
         if r.used or not r.visible or r.alpha < 1:
             continue
         d = point_distance(px, py, r.x, r.y)
-        if d < best_d:
+        if d < best_d and seg_clear(px, py, r.x, r.y, terrain):
             best, best_d = r, d
     if best is None:
         return chain
@@ -346,12 +377,42 @@ def find_chain(px, py, rings):
             if r in chain:
                 continue
             d = point_distance(last.x, last.y, r.x, r.y)
-            if d < nxt_d:
+            if d < nxt_d and seg_clear(last.x, last.y, r.x, r.y, terrain):
                 nxt, nxt_d = r, d
         if nxt is None:
             break
         chain.append(nxt)
     return chain
+
+
+def seg_clear(x1, y1, x2, y2, terrain):
+    """Puerto 1:1 de scr_light_dash_clear: tramo recortado TRIM px en
+    cada extremo y muestreo denso (0.5 px) contra los rects de terreno
+    (equivalente del collision_line preciso contra LIGHT_DASH_TERRAIN)."""
+    if not terrain:
+        return True
+    d = point_distance(x1, y1, x2, y2)
+    if d <= TRIM * 2:
+        return True  # tramo cortisimo: no cabe un muro en medio
+    nx, ny = (x2 - x1) / d, (y2 - y1) / d
+    ax, ay = x1 + nx * TRIM, y1 + ny * TRIM
+    bx, by = x2 - nx * TRIM, y2 - ny * TRIM
+    steps = max(2, int(point_distance(ax, ay, bx, by) * 2))
+    for i in range(steps + 1):
+        t = i / steps
+        px, py = ax + (bx - ax) * t, ay + (by - ay) * t
+        for (rx, ry, rw, rh) in terrain:
+            if rx <= px <= rx + rw and ry <= py <= ry + rh:
+                return False
+    return True
+
+
+def point_in_terrain(px, py, terrain):
+    """Puerto del rescate: collision_point del centro contra el terreno."""
+    for (rx, ry, rw, rh) in terrain:
+        if rx <= px <= rx + rw and ry <= py <= ry + rh:
+            return True
+    return False
 
 
 def travel_frame(p, rings):
@@ -670,6 +731,79 @@ while travel_frame(p, rings) and frames < 100:
     frames += 1
 check("v5.9.4: el lunge de 1 anillo tambien deja estela (>= 3 fantasmas)",
       frames + 2 >= 3, f"{frames + 2} fantasmas")
+
+# --- 2.9: v5.9.5 — PATHFINDING: la cadena ve el terreno ---
+print("-- v5.9.5: pathfinding (anillos tras muros / en el suelo) --")
+
+# (a) EL CASO DEL USUARIO: anillo al otro lado de la pared. Muro de 12 px
+# entre Amy y el anillo (a 90 px: dentro del radio de captura). Antes la
+# cadena lo pescaba igual y el rayo la dejaba dentro/detras del muro.
+wall = [(40, -100, 12, 200)]  # x 40..52, y -100..100
+rings = [Ring(90, 0, 9, 909)]
+check("v5.9.5: anillo DETRAS del muro no encadena (sin flecha, sin rayo)",
+      len(find_chain(0, 0, rings, wall)) == 0)
+# ...y sin el muro SI encadena: el bloqueo es el terreno, no la distancia
+check("v5.9.5: el mismo anillo sin muro encadena (regresion del radio)",
+      len(find_chain(0, 0, rings)) == 1)
+
+# (b) EL OTRO CASO: anillo APOYADO en el suelo (los que caen al recibir
+# dano). Piso con superficie en y=390, anillo a 12 px encima. El margen
+# de LIGHT_DASH_LOS_TRIM no lo condena: el lunge de recogida funciona.
+floor = [(0, 390, 400, 110)]
+rings = [Ring(100, 378, 10, 1010)]
+p = Player(100, 300)
+p.chain = find_chain(p.x, p.y, rings, floor)
+check("v5.9.5: anillo APOYADO en el suelo SI encadena (lunge intacto)",
+      len(p.chain) == 1)
+frames = 0
+while travel_frame(p, rings) and frames < 100:
+    frames += 1
+check("v5.9.5: el lunge al anillo del suelo lo recoge y termina AFUERA",
+      rings[0].used and len(p.packets) == 1 and not point_in_terrain(p.x, p.y, floor),
+      f"pos final ({p.x:.0f},{p.y:.0f})")
+
+# (c) cadena que se zambullia en el piso: eslabon en el aire + eslabon
+# ENTERRADO (centro 10 px por debajo de la superficie). La cadena corta
+# antes: Amy sale con el impulso del ultimo tramo limpio, nunca toca el
+# piso. Antes volaba hasta el segundo y quedaba incrustada.
+rings = [Ring(200, 350, 11, 1011), Ring(240, 400, 12, 1012)]
+p = Player(200, 300)
+p.chain = find_chain(p.x, p.y, rings, floor)
+check("v5.9.5: eslabon ENTERRADO se salta: la cadena corta en el visible",
+      len(p.chain) == 1 and p.chain[0] is rings[0])
+frames = 0
+while travel_frame(p, rings) and frames < 100:
+    frames += 1
+check("v5.9.5: recoge el visible y NUNCA entra en el piso (sin rescate)",
+      rings[0].used and not rings[1].used and not point_in_terrain(p.x, p.y, floor))
+
+# (d) EL PUNTO 2 DEL USUARIO: "si hay una pared busque algun angulo
+# posible para rodear y llegar". El anillo MAS CERCANO queda DETRAS del
+# muro (50 px, bloqueado en linea recta), pero hay otro anillo VISIBLE
+# por encima (a 60 px): la cadena arranca por el visible, RODEA el muro
+# y LLEGA hasta el de atras. El viaje completa sin tocar terreno.
+wall2 = [(30, -10, 12, 70)]  # x 30..42, y -10..60 (hueco por arriba)
+rings = [Ring(50, 0, 13, 1013), Ring(40, -45, 14, 1014)]
+p = Player(0, 0)
+p.chain = find_chain(p.x, p.y, rings, wall2)
+check("v5.9.5: pared: el mas cercano bloqueado NO arranca (va al visible)",
+      len(p.chain) == 2 and p.chain[0] is rings[1] and p.chain[1] is rings[0])
+frames = 0
+touched = False
+while travel_frame(p, rings) and frames < 100:
+    frames += 1
+    if point_in_terrain(p.x, p.y, wall2):
+        touched = True
+check("v5.9.5: RODEA el muro por arriba, LLEGA al anillo de atras (11 f)",
+      frames == 11 and rings[0].used and rings[1].used and not touched,
+      f"{frames} frames")
+
+# (e) limite documentado: eslabones pegadisimos (<= 2*TRIM) no prueban
+# el tramo — el guard de "no cabe un muro en medio" mantiene la cadena
+# fluida en las lineas densas de los mapas (anillos a 24-36 px).
+rings = [Ring(0, 0, 30, 1030), Ring(12, 0, 31, 1031)]
+check("v5.9.5: eslabones pegados (12 px) encadenan sin drama del margen",
+      len(find_chain(-4, 0, rings, [(5, -5, 2, 10)])) == 2)
 
 print()
 if fails:

@@ -4645,3 +4645,74 @@ ARCHIVO PARA MODIFICAR (pregunta del usuario): TODO el ajuste fino
 vive en scripts/scr_light_dash/scr_light_dash.gml, macros al inicio
 del archivo (SPEED, FIRST_RADIUS, LINK_DIST, MAX_TIME, TURN,
 GHOST_EVERY, GHOST_FADE, ARROW_*).
+
+## v5.9.5 (2026-11-07) — LIGHT DASH: PATHFINDING — la cadena ve el terreno (adios al atasco en muros y pisos)
+
+PEDIDO DEL USUARIO: "Amy puede atascarse en el piso tratando de
+buscar un ring que esta en el suelo o al otro lado de la pared, no
+se le puede colocar una especie de pathfinding?" + aclaracion tras
+la primer entrega: "lo del rescate movil no hace falta xq el juego
+ya tiene un sistema de rescate anti atascos" y "la 2 me refiero a
+que si hay una pared busque algun angulo posible para rodear y
+llegar".
+
+DIAGNOSTICO: la cadena de scr_light_dash_find era codiciosa pura
+(vecino mas cercano, v5.9.3) y NO veia el mapa: un anillo en el
+suelo o detras de un muro entraba igual a la cadena, y como el
+vuelo REAPLICA la posicion por encima del collision
+(scr_light_dash_pose, para conservar la pose rotada), Amy cruzaba
+el terreno como fantasma y quedaba incrustada dentro del muro, en
+el piso o del otro lado — de ahi el atasco.
+
+FIX — LINEA DE VISION (el pathfinding natural del rayo): un A*/mp_grid
+no encaja en un light dash porque el rayo SOLO puede viajar por
+anillos; su equivalente de pathfinding es encadenar anillos VISIBLES
+entre si (en el Sonic clasico lo garantiza el disenador colocando
+los anillos; aqui se exige en codigo):
+- Nueva funcion scr_light_dash_clear(x1,y1,x2,y2): collision_line
+  contra LIGHT_DASH_TERRAIN (= obj_floor_parent, el padre universal:
+  pisos, muros, pendientes obj_majong_slope, puertas obj_hd_door,
+  bloques de hielo, plataformas obj_platform_jumptrough) con
+  colision precisa. Los extremos del tramo se recortan
+  LIGHT_DASH_LOS_TRIM (8) px para no condenar a los anillos que
+  APOYAN sobre una superficie (los caidos al recibir dano: su centro
+  roza la mascara) ni a Amy despegandose pegada a un muro: el rayo
+  llega AL anillo, no lo atraviesa. Guard: tramos <= 2*TRIM px se
+  dan por limpios (no cabe un muro).
+- scr_light_dash_find: el PRIMER anillo es el mas cercano VISIBLE
+  (el tramo desde Amy tambien se prueba — el anillo al otro lado de
+  la pared ya no se pesca) y cada eslabon exige vecino mas cercano
+  VISIBLE. ESTO ES EL PUNTO 2 ACLARADO POR EL USUARIO: "si hay una
+  pared, buscar el angulo posible para rodear y llegar" — cuando el
+  anillo mas cercano queda bloqueado por el muro, la cadena arranca
+  por el primer anillo VISIBLE y sigue los visibles ALREDEDOR del
+  obstaculo hasta LLEGAR al anillo de atras; solo si no existe
+  ningun camino de anillos visibles no encadena (y sin flecha el
+  jugador ya sabe que no hay rayo).
+- TERRENO MOVIL (puertas, bloques de hielo) que cierre sobre el rayo
+  a mitad de vuelo: SIN rescate propio a peticion del usuario — el
+  juego ya tiene su sistema anti-atasco que saca al jugador de
+  dentro del solido, y ese sistema la rescata igual que a cualquiera
+  (queda nota en el propio script para que nadie lo vuelva a
+  anadir).
+- La FLECHA indicadora no cambia archivo: usa la misma cadena
+  (lightDashAim), asi que anillo tras muro = sin flecha = sin rayo:
+  lo que ves sigue siendo lo que vuela. Cero cambios de red, cero
+  objetos nuevos.
+
+VERIFICACION: checker en 121/121 OK: 9 estaticos nuevos
+(macros TERRAIN/TRIM, funcion clear con guard 2*TRIM, los 2 gates
+de visibilidad, SIN rescate propio, cabecera) + 9 de simulacion
+con terreno porteado 1:1: anillo tras muro no encadena (y sin muro
+si: el bloqueo es el terreno), anillo APOYADO en el suelo encadena
+y el lunge termina afuera, eslabon ENTERRADO se salta, y el caso
+CLARADO del usuario: anillo mas cercano DETRAS del muro + anillo
+visible por encima -> la cadena arranca por el visible, RODEA el
+muro y LLEGA al de atras (11 frames sin tocar terreno), mas
+eslabones pegados (12 px) sin drama del margen. Los 104 checks de
+v5.9.0-v5.9.4 siguen OK (regresion cero).
+
+AJUSTE FINO: LIGHT_DASH_LOS_TRIM en scripts/scr_light_dash/
+scr_light_dash.gml — subirlo encadena mas agresivo cerca de
+superficies, bajarlo mas estricto (8 = el radio visual de un
+anillo apoyado).
