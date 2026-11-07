@@ -59,34 +59,15 @@ if(parryState == 2)
         gpu_set_blendmode(bm_normal);
 }
 
-// v5.9.1 — LIGHT DASH: ESTELA FANTASMAL mientras recorre la cadena de
-// anillos (misma tecnica que la estela del float run de Vanilla y la
-// del powerboost de Sonic): un obj_quickeffect_fade cada 2 frames
-// copiando la pose ROTADA actual — image_angle = radtodeg(angle), el
-// mismo metodo de las inclinaciones que usa el cuerpo, asi la estela
-// sube las columnas girando igual que Amy y no hay fantasmas "planos"
-// en los tramos verticales. Con la paleta propia del jugador (igual
-// que el fantasma del effectTime de arriba).
-if(isLightDashing)
-{
-        lightDashGhostTimer++;
-        
-        if(lightDashGhostTimer mod LIGHT_DASH_GHOST_EVERY == 0)
-        {
-                var _ghost = instance_create_depth(x, y, 0, obj_quickeffect_fade);
-                _ghost.sprite_index = sprite_index;
-                _ghost.image_index = image_index;
-                _ghost.image_xscale = image_xscale;
-                _ghost.image_yscale = 1;
-                _ghost.image_angle = isSpinning ? 0 : radtodeg(angle);
-                _ghost.fadeSpeed = LIGHT_DASH_GHOST_FADE;
-                _ghost.depth = depth + 1; // detras del jugador
-                _ghost.palleteFrom = global.palleteFrom;
-                _ghost.palleteTo = global.palleteTo;
-        }
-}
-else
-        lightDashGhostTimer = 0;
+// v5.9.4 — LIGHT DASH: la ESTELA FANTASMAL ya NO nace aqui: la pinta el
+// propio scr_light_dash (scr_light_dash_ghost: un fantasma en el
+// arranque, uno por CADA frame de vuelo y uno final al salir). Antes
+// nacia en este Draw y el frame de salida llegaba con isLightDashing ya
+// en false — el ultimo tramo se quedaba sin estela y se veia "solo al
+// agarrar el anillo" (y a 16 px/frame el viaje entero duraba 2-3
+// frames). Ahora, a 10 px/frame y con fantasma por frame, el rayo es
+// continuo de punta a punta. La pose rotada de cada fantasma sale de
+// lightDashDeg/lightDashFace (lo mismo que dibuja el cuerpo).
 
 //Actual draw
 // AMY CYBER: mismo palette swap de siempre pero envuelto en el shader

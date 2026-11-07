@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 check_v59_light_dash.py — verificacion del LIGHT DASH de Amy Canon
-(v5.9 -> v5.9.3: fix del crash de primer frame, estela fantasmal,
-flecha indicadora de la Z y alcance ampliado: radio 96, eslabones a
-80 y UN anillo basta — lunge de recogida).
+(v5.9 -> v5.9.4: fix del crash de primer frame, estela fantasmal,
+flecha indicadora de la Z, alcance ampliado y ritmo a 10 px/frame
+con estela continua nacida en el step).
 
 Parte 1 (estatica): brackets balanceados en todos los archivos tocados,
 los 8 puntos de integracion presentes, colision de estados evitada
@@ -155,20 +155,19 @@ check("v5.9.1 Create: declara TODAS las vars del dash (11)",
           "isLightDashing", "lightDashChain", "lightDashIdx", "lightDashTime",
           "lightDashDeg", "lightDashFace", "lightDashToX", "lightDashToY",
           "lightDashVX", "lightDashVY", "lightDashGhostTimer"]))
-check("v5.9.1 scr_light_dash: macros de la estela",
-      re.search(r"#macro\s+LIGHT_DASH_GHOST_EVERY\s+2", ld) is not None
-      and re.search(r"#macro\s+LIGHT_DASH_GHOST_FADE\s+0\.06", ld) is not None)
+check("v5.9.1 scr_light_dash: macros de la estela (FADE)",
+      re.search(r"#macro\s+LIGHT_DASH_GHOST_FADE\s+0\.06", ld) is not None)
 check("v5.9.1 scr_light_dash: lazy declara el ghostTimer tambien",
-      "lightDashGhostTimer = 0; // contador de la estela (Draw_0)" in ld)
+      "lightDashGhostTimer = 0; // contador de la estela (scr_light_dash_ghost)" in ld)
 
 d0 = sources.get("objects/obj_amy_canon/Draw_0.gml", "")
-check("v5.9.1 Draw_0 amy: estela local presente (quickeffect + cadencia)",
-      "obj_quickeffect_fade" in d0 and "LIGHT_DASH_GHOST_EVERY" in d0
-      and "LIGHT_DASH_GHOST_FADE" in d0)
-check("v5.9.1 Draw_0 amy: la estela copia la pose ROTADA (radtodeg(angle))",
-      re.search(r"_ghost\.image_angle\s*=\s*isSpinning\s*\?\s*0\s*:\s*radtodeg\(angle\)", d0) is not None)
-check("v5.9.1 Draw_0 amy: la estela lleva la paleta del jugador",
-      "_ghost.palleteFrom = global.palleteFrom;" in d0)
+check("v5.9.1->v5.9.4 scr_light_dash: estela local presente (quickeffect + cadencia)",
+      "obj_quickeffect_fade" in ld and "LIGHT_DASH_GHOST_EVERY" in ld
+      and "LIGHT_DASH_GHOST_FADE" in ld)
+check("v5.9.1->v5.9.4 scr_light_dash: la estela copia la pose ROTADA (lightDashDeg)",
+      re.search(r"_ghost\.image_angle\s*=\s*lightDashDeg;", ld) is not None)
+check("v5.9.1->v5.9.4 scr_light_dash: la estela lleva la paleta del jugador",
+      "_ghost.palleteFrom = global.palleteFrom;" in ld)
 
 pp = sources.get("objects/obj_player_puppet/Step_0.gml", "")
 check("v5.9.1 puppet: estela remota presente (estado 25, sin bytes de red)",
@@ -224,6 +223,25 @@ check("v5.9.3 Draw_0: flecha tambien con UN solo anillo (>= 1)",
       "array_length(lightDashAim) >= 1" in d0
       and "array_length(lightDashAim) >= 2" not in d0)
 
+# --- v5.9.4: ritmo a 10 + estela continua (nace en el step) ---
+check("v5.9.4 scr_light_dash: velocidad bajada a 10 (era 16: teletransporte)",
+      re.search(r"#macro\s+LIGHT_DASH_SPEED\s+10\b", ld) is not None)
+check("v5.9.4 scr_light_dash: tope de tiempo subido a 180 (speed menor)",
+      re.search(r"#macro\s+LIGHT_DASH_MAX_TIME\s+180", ld) is not None)
+check("v5.9.4 scr_light_dash: fantasma CADA frame (EVERY 1, rayo continuo)",
+      re.search(r"#macro\s+LIGHT_DASH_GHOST_EVERY\s+1\b", ld) is not None)
+check("v5.9.4 scr_light_dash: funcion scr_light_dash_ghost (nace en el step)",
+      "function scr_light_dash_ghost(" in ld)
+check("v5.9.4 scr_light_dash: fantasma en cada frame de vuelo (lightDashToX/Y)",
+      "scr_light_dash_ghost(lightDashToX, lightDashToY);" in ld)
+_exit_fn = ld.find("function scr_light_dash_exit()")
+check("v5.9.4 scr_light_dash: arranque y salida dejan su fantasma (2 llamadas x,y)",
+      ld.count("scr_light_dash_ghost(x, y);") == 2
+      and _exit_fn != -1
+      and ld.find("scr_light_dash_ghost(x, y);", _exit_fn) != -1)
+check("v5.9.4 Draw_0: el Draw ya NO spawnea la estela (sin dobles)",
+      "obj_quickeffect_fade" not in d0 and "lightDashGhostTimer" not in d0)
+
 yyp = open(os.path.join(ROOT, "Sonicexe The Disaster 2D Remake.yyp"), encoding="utf-8").read()
 check("yyp: script registrado", '"scr_light_dash"' in yyp)
 check("yyp: sprite registrado", '"spr_amy_light_speed_canon"' in yyp)
@@ -251,11 +269,11 @@ check("sprite: layers de GMS2 presentes (1 carpeta por frame)",
 print()
 print("=== PARTE 2: SIMULACIÓN ===")
 
-SPEED = 16.0
+SPEED = 10.0
 FIRST_RADIUS = 96.0
 LINK_DIST = 80.0
 MAX_RINGS = 16
-MAX_TIME = 120
+MAX_TIME = 180
 TURN = 0.35
 
 
@@ -508,7 +526,7 @@ while travel_frame(p, rings) and frames < 100:
     frames += 1
 check("fila 4x28: todo recogido",
       all(r.used for r in rings) and len(p.collected) == 4)
-check("fila 4x28: sale disparada hacia la derecha a 16",
+check("fila 4x28: sale disparada a la velocidad del dash",
       abs(p.vx - SPEED) < 0.01 and abs(p.vy) < 0.01)
 check("fila 4x28: termino pasando por el ultimo anillo",
       abs(p.x - 84) < 0.01 and abs(p.y) < 0.01,
@@ -623,6 +641,35 @@ check("v5.9.3: primer anillo capturado a 90 px (radio 96)",
 rings = [Ring(120, 0)]
 check("v5.9.3: a 120 px sigue fuera del radio",
       len(find_chain(0, 0, rings)) == 0)
+
+# --- 2.8: v5.9.4 — estela durante TODO el camino + ritmo a 10 ---
+print("-- v5.9.4: estela continua y ritmo --")
+
+# 5 anillos a 30 px = 140 px de camino: a 10 px/frame son 14 frames de
+# vuelo — a 16 eran 9, y con fantasma cada 2 frames nacido en el Draw
+# la estela entera eran ~4 fantasmas sueltos ("solo al agarrar").
+# Ahora: 1 de arranque + 14 de vuelo + 1 de salida = 16 fantasmas.
+rings = [Ring(i * 30, 0) for i in range(5)]
+p = Player(-20, 0)
+p.chain = find_chain(p.x, p.y, rings)
+frames = 0
+while travel_frame(p, rings) and frames < 100:
+    frames += 1
+check("v5.9.4: a 10 px/frame el viaje de 140 px dura 14 frames (a 16 eran 9)",
+      frames == 14, f"{frames} frames")
+check("v5.9.4: estela completa — arranque + vuelo + salida = 16 fantasmas",
+      frames + 2 == 16, f"{frames + 2} fantasmas")
+
+# hasta el lunge mas corto (1 anillo cerca) deja estela: arranque +
+# vuelo + salida, minimo 3 fantasmas
+rings = [Ring(40, 0)]
+p = Player(0, 0)
+p.chain = find_chain(p.x, p.y, rings)
+frames = 0
+while travel_frame(p, rings) and frames < 100:
+    frames += 1
+check("v5.9.4: el lunge de 1 anillo tambien deja estela (>= 3 fantasmas)",
+      frames + 2 >= 3, f"{frames + 2} fantasmas")
 
 print()
 if fails:

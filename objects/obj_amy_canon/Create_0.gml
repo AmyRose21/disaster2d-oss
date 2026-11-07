@@ -147,7 +147,7 @@ lightDashToX = 0;         // posicion objetivo de este frame
 lightDashToY = 0;
 lightDashVX = 0;          // velocidad del tramo (para la red y la salida)
 lightDashVY = 0;
-lightDashGhostTimer = 0;  // v5.9.1: contador de la estela fantasmal (Draw_0)
+lightDashGhostTimer = 0;  // v5.9.1: contador de la estela (lo usa scr_light_dash_ghost)
 lightDashAim = [];        // v5.9.2: cadena visible para la FLECHA (Draw_0)
 lightDashAimLife = 0;     // v5.9.2: vida de la flecha (caduca sola, 1 frame)
 

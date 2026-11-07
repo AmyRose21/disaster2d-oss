@@ -69,20 +69,31 @@
 //  anillo suelto, saliendo disparada hacia el con la velocidad del
 //  tramo (pre-fijada al arrancar, para que un anillo encima no la
 //  deje parada muerta en el aire).
+//
+//  v5.9.4 — RITMO Y ESTELA CONTINUA: velocidad 16 -> 10 px/frame (a 16
+//  se sentia teletransporte: "esta ahi y ya agarro el anillo") y la
+//  estela ahora nace en el PROPIO STEP (scr_light_dash_ghost: un
+//  fantasma en el arranque, en CADA frame de viaje y uno final al
+//  salir) — antes nacia en el Draw, que corria con isLightDashing ya
+//  en false justo en el frame de salida: el ultimo tramo jamas dejaba
+//  fantasma y por eso la estela "solo salia al agarrar el anillo".
+//  Con fantasma por frame a 10 px/frame el rayo queda continuo.
 // =====================================================================
 
 // --- PARAMETROS AJUSTABLES (60 frames = 1 segundo) -------------------
-#macro LIGHT_DASH_SPEED 16         // px/frame del vuelo (un spindash lleno)
+#macro LIGHT_DASH_SPEED 8         // px/frame del vuelo (v5.9.4: era 16, muy rapida)
 #macro LIGHT_DASH_FIRST_RADIUS 96  // radio de captura del PRIMER anillo (v5.9.3: era 56)
 #macro LIGHT_DASH_LINK_DIST 80     // dist max entre eslabones (v5.9.3: era 48; no hace falta que esten pegados)
-#macro LIGHT_DASH_MAX_RINGS 16     // tope de anillos por cadena (seguridad)
-#macro LIGHT_DASH_MAX_TIME 120     // tope de frames de vuelo (seguridad)
+#macro LIGHT_DASH_MAX_RINGS 20     // tope de anillos por cadena (seguridad)
+#macro LIGHT_DASH_MAX_TIME 200     // tope de frames de vuelo (v5.9.4: 180, por la velocidad menor)
 #macro LIGHT_DASH_TURN 0.35        // suavizado del volteo (1 = instantaneo)
 #macro LIGHT_DASH_ANIMSPD 0.5      // velocidad de la animacion del rayo
 // v5.9.1 — ESTELA FANTASMAL (efecto de rayo): un obj_quickeffect_fade
 // copiando la pose ROTADA cada N frames, igual que la estela del float
-// run de Vanilla y la del powerboost de Sonic (misma tecnica).
-#macro LIGHT_DASH_GHOST_EVERY 2     // frames entre fantasmas de la estela
+// run de Vanilla y la del powerboost de Sonic (misma tecnica). v5.9.4:
+// la estela la spawnea el PROPIO script (scr_light_dash_ghost) en el
+// arranque + cada frame de vuelo + la salida, y la cadencia es 1.
+#macro LIGHT_DASH_GHOST_EVERY 1     // frames entre fantasmas (1 = rayo continuo)
 #macro LIGHT_DASH_GHOST_FADE 0.06   // velocidad de desvanecido (1/0.06 ~ 17f)
 // v5.9.2 — FLECHA INDICADORA: mientras un toque podria arrancar el
 // rayo, Draw_0 marca el primer anillo de la cadena con una flecha en
@@ -115,7 +126,7 @@ function scr_light_dash_step()
                 lightDashToY = y;
                 lightDashVX = 0;        // velocidad del tramo (para red/salida)
                 lightDashVY = 0;
-                lightDashGhostTimer = 0; // contador de la estela (Draw_0)
+                lightDashGhostTimer = 0; // contador de la estela (scr_light_dash_ghost)
                 lightDashAim = [];       // v5.9.2: cadena para la FLECHA (Draw_0)
                 lightDashAimLife = 0;    // v5.9.2: vida de la flecha (caduca sola)
         }
@@ -280,6 +291,10 @@ function scr_light_dash_step()
                 xspd = 0;
                 yspd = 0;
 
+                // v5.9.4: estela de ESTE frame de vuelo, en la posicion donde
+                // acaba el movimiento (el hook aplica la pose justo despues)
+                scr_light_dash_ghost(lightDashToX, lightDashToY);
+
                 return true;
         }
 
@@ -364,6 +379,13 @@ function scr_light_dash_step()
         lightDashVX = lengthdir_x(LIGHT_DASH_SPEED, _d0);
         lightDashVY = lengthdir_y(LIGHT_DASH_SPEED, _d0);
 
+        // v5.9.4: primer fantasma del rayo (arranque). La estela nace AQUI
+        // en el step y no en el Draw: el frame de salida llegaba al Draw con
+        // isLightDashing ya en false y el tramo final se quedaba sin
+        // fantasmas. Contador a cero: la cadencia arranca limpia.
+        lightDashGhostTimer = 0;
+        scr_light_dash_ghost(x, y);
+
         audio_play_sound(snd_dash, 0, false);
         net_sound_emit(snd_dash);
 
@@ -391,6 +413,32 @@ function scr_light_dash_pose()
         yspd = lightDashVY;
 }
 
+// scr_light_dash_ghost(): deja UN fantasma de la estela en (xx, yy) con
+// la pose rotada actual del dash. v5.9.4: la estela nace en el STEP (la
+// llama este script en el arranque, en CADA frame de vuelo y al salir)
+// y no en el Draw — el Draw corria cuando isLightDashing ya podia estar
+// en false (frame de salida) y el tramo final jamas dejaba fantasma: por
+// eso la estela "solo salia al agarrar el anillo". Con fantasma por
+// frame (LIGHT_DASH_GHOST_EVERY 1) y 10 px/frame, el rayo es continuo.
+function scr_light_dash_ghost(xx, yy)
+{
+        lightDashGhostTimer++;
+
+        if(lightDashGhostTimer mod LIGHT_DASH_GHOST_EVERY != 0)
+                return;
+
+        var _ghost = instance_create_depth(xx, yy, 0, obj_quickeffect_fade);
+        _ghost.sprite_index = sprite_index;
+        _ghost.image_index = image_index;
+        _ghost.image_xscale = lightDashFace;
+        _ghost.image_yscale = 1;
+        _ghost.image_angle = lightDashDeg; // grados, ya canonizado
+        _ghost.fadeSpeed = LIGHT_DASH_GHOST_FADE;
+        _ghost.depth = depth + 1; // detras del jugador
+        _ghost.palleteFrom = global.palleteFrom;
+        _ghost.palleteTo = global.palleteTo;
+}
+
 // scr_light_dash_exit(): fin del dash. Deja el impulso del ultimo
 // tramo en xspd/yspd (y gspd por si termina rozando el suelo) y
 // devuelve false: la fisica normal toma el relevo ESTE frame.
@@ -401,6 +449,11 @@ function scr_light_dash_exit()
         xspd = lightDashVX;
         yspd = lightDashVY;
         gspd = lightDashVX;
+
+        // v5.9.4: ultima estela del rayo (con la pose del ultimo tramo):
+        // sin esta, el final se quedaba sin fantasma justo en el frame en
+        // que el Draw ya no veia el dash activo
+        scr_light_dash_ghost(x, y);
 
         // el angle vuelve a 0 solo en el bloque de aire de scr_move_basic
         return false;

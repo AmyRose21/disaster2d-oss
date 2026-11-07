@@ -4596,3 +4596,52 @@ px/frame; eslabones a 70 px encadenan con tolerancia 80; captura a
 viejos actualizados al comportamiento nuevo (1 anillo SI, > 96 NO,
 fade-in excluido igual). Toda la simulacion previa (rotacion,
 presupuesto, contra-jugada, flecha) intacta y pasando.
+
+## v5.9.4 (2026-11-07) — LIGHT DASH: RITMO A 10 PX/FRAME + ESTELA CONTINUA (nace en el step)
+
+PEDIDO DEL USUARIO: "La velocidad es muy rapida... cuando va hacia el
+ring no deja estelas fantasma, solamente sale cuando agarra el ring,
+deberia dejarla cuando va de camino. Y va demasiado rapida: esta ahi
+de repente ya agarro el ring en un milisegundo. Y donde esta el
+archivo para modificar?"
+
+FIX 1 — VELOCIDAD: LIGHT_DASH_SPEED 16 -> 10 px/frame. A 16 el viaje
+entero de una cadena tipica duraba 2-4 frames: se leia como
+teletransporte. A 10 (600 px/s) el mismo camino dura ~40% mas y se
+ve el rayo recorrerlo. El tope de seguridad MAX_TIME sube 120 -> 180
+para que una cadena larga dispersa (16 eslabones x 80 px = 1280 px)
+no se quede corta a 10 px/frame.
+
+FIX 2 — ESTELA CONTINUA (bug real de arquitectura): los fantasmas
+nacian en el Draw de Amy, pero en el frame en que se agarra el
+ULTIMO anillo scr_light_dash_exit() ya puso isLightDashing = false
+ANTES de que el Draw corra: ese frame no pintaba fantasma. Sumado a
+la cadencia cada 2 frames y al viaje de 2-3 frames, el resultado era
+exactamente lo que describia el usuario: estela "solo al agarrar".
+Solucion: la estela pasa a nacer en el PROPIO STEP — nueva funcion
+scr_light_dash_ghost(xx, yy) llamada en (a) el arranque, (b) CADA
+frame de vuelo (en lightDashToX/Y, el final del movimiento del
+frame) y (c) la salida (exit), con la pose de lightDashDeg/
+lightDashFace (lo mismo que dibuja el cuerpo). Cadencia
+LIGHT_DASH_GHOST_EVERY 2 -> 1: fantasma por frame = rayo continuo
+(10 px entre fantasmas, ~170 px de estela visible con el fade de
+siempre). El bloque del Draw_0 se retira ( comentario explicativo)
+y el contador lightDashGhostTimer lo gasta ahora el script (reset a
+0 en el arranque). El puppet remoto no cambia archivo: usa la misma
+macro y su estela se densifica sola.
+
+VERIFICACION: checker ampliado a 104/104 OK: 8 checks estaticos
+nuevos de v5.9.4 (speed 10, MAX_TIME 180, EVERY 1, funcion ghost,
+llamada en vuelo/arranque/salida, Draw sin spawneos) + 3 de
+simulacion (140 px = 14 frames exactos a 10 px/frame; estela
+completa = arranque + vuelo + salida = 16 fantasmas donde antes eran
+~4; hasta el lunge de 1 anillo deja >= 3 fantasmas). Los checks
+v5.9.1 de la estela re-apuntados al script (la pose rotada ahora se
+verifica como image_angle = lightDashDeg, equivalente al
+radtodeg(angle) del cuerpo porque pose() escribe angle =
+degtorad(lightDashDeg)).
+
+ARCHIVO PARA MODIFICAR (pregunta del usuario): TODO el ajuste fino
+vive en scripts/scr_light_dash/scr_light_dash.gml, macros al inicio
+del archivo (SPEED, FIRST_RADIUS, LINK_DIST, MAX_TIME, TURN,
+GHOST_EVERY, GHOST_FADE, ARROW_*).
