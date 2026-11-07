@@ -14,7 +14,7 @@
 // de la pose dura 2 frames de juego (quieta 5f ~ 0.17 s, agachada
 // 7f ~ 0.23 s, aire 4f ~ 0.13 s): se lee bien sin frenar el juego.
 // A 1 es el ritmo "de motor" (mas rapido); mas abajo, mas lenta.
-#macro SALLY_CANON_POSE_VEL 0.5
+#macro SALLY_CANON_POSE_VEL 0.1
 
 //Variables
 gspd = 0;
