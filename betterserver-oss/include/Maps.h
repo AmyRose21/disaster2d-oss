@@ -18,7 +18,11 @@ typedef struct
 	uint8_t  ring_count;
 } Map;
 
-#define MAP_COUNT 23
+/* 21 mapas (0-20): los dos portes de Sonic MAX ("SMax Green Hill" 21
+ * y "SMax Emerald Hill" 22) fueron RETIRADOS de la seleccion porque
+ * estaban corruptos (la descripcion del 22 quedaba fuera de rango en
+ * el lobby y crasheaba a los clientes). El "Hill" original es el 12. */
+#define MAP_COUNT 21
 extern Map g_mapList[MAP_COUNT];
 
 bool map_init 	(Server* server);
@@ -32,7 +36,5 @@ bool map_ring (Server* server, int ringcoff);
 /* v4.7: sortea un mapa al azar (mapas activos del Config.json, sin
  * repetir el ultimo): lo usan las rutas de practica */
 int8_t map_pick_random (Server* server);
-
-bool smap_init (Server* server);
 
 #endif

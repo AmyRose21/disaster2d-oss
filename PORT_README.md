@@ -1,5 +1,15 @@
 # Porte de mapas de Sonic MAX Engine → TD2D Remake
 
+> **[REMOVIDOS DE LA SELECCIÓN — RETIRA SMAX v1]** Los dos mapas de este
+> porte ("SMax Green Hill" //21 y "SMax Emerald Hill" //22) fueron retirados
+> de toda vía de selección (votación, .map, .sp/.vp, UI del server) porque
+> estaban corruptos: `global.levelDescriptions` quedó con 22 entradas para 23
+> mapas y el id 22 leía fuera de rango en el lobby, crasheando a los clientes.
+> `MAP_COUNT` volvió a 21. Los rooms/sprites siguen en el proyecto (inalcanzables)
+> por si algún día se arregla el porte. Ver `LEEME_RETIRA_SMAX_V1.txt`,
+> `check_retira_smax_v1.py` y la entrada del worklog. **Este documento queda
+> como referencia histórica de cómo se hizo el porte.**
+
 Porte 1:1 de los dos primeros niveles del **Sonic MAX Engine** a tu proyecto
 *Sonic.exe The Disaster 2D Remake*, pensado para testear cómo reacciona el juego
 (mapas largos, muchas instancias, sincronía de anillos, anticheat) en niveles

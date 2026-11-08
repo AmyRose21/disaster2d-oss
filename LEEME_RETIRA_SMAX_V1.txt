@@ -1,0 +1,96 @@
+RETIRA SMAX v1 (SMax Green Hill 21 y SMax Emerald Hill 22 fuera de la seleccion)
+================================================================================
+(CLIENTE + SERVIDOR — recompilar AMBOS a la vez, como en el porte original.
+ Mapas corruptos: no borrados del proyecto, solo INALCANZABLES desde la
+ seleccion. El "Hill" original [12] y el Fart Zone [20] quedan INTACTOS.)
+
+
+EL PEDIDO
+---------
+- "¿Esta Emerald Hill y Green Hills incluidos? Ojo no confundas con Hill
+  Green hills. Smax, y es asi elimina esas 2 zonas de la seleccion, esos
+  estan corruptos"
+- Los dos mapas de testeo porteados de Sonic MAX ("SMax Green Hill" //21,
+  room_smax_greenhill, y "SMax Emerald Hill" //22, room_smax_emeraldhill)
+  salen de TODA via de seleccion. NO se toca el "Hill" original del juego
+  (indice 12, room_greenhill, con sus ghz_* de siempre) ni el resto.
+
+
+POR QUE "CORRUPTOS" (lo que se encontro al revisar)
+---------------------------------------------------
+- El lobby del cliente crasheaba al sortir el 22: global.levelDescriptions
+  tenia 22 entradas para 23 mapas (la del SMax Emerald Hill quedaba FUERA
+  DE RANGO: obj_lobby/Draw_0.gml:77 lee global.levelDescriptions[_map] al
+  pasar el cursor sobre el candidato de votacion -> error de indice del
+  runtime en CADA cliente).
+- Ademas la del 20 (Fart) quedaba pisada por la del SMax GH y la del 21
+  mostraba el texto del EH (desalineacion de 1 del porte).
+- Con esta retirada las listas cliente/servidor quedan 21/21 alineadas
+  1:1 y ya no existe ningun id de mapa sin descripcion.
+
+
+QUE SE TOCO (10 archivos)
+-------------------------
+CLIENTE (GameMaker):
+- scripts/scr_globals/scr_globals.gml — global.levels: fuera las entradas
+  21/22 (queda en 21, 0-20). levelDescriptions: fuera las 2 del porte y
+  ANADIDA una para el 20 (Fart Zone, "the original practice sandbox..."):
+  el juego original nunca le puso descripcion (nunca salia votado), asi
+  que ahora el array queda 21/21 y es imposible el indice fuera de rango
+  aunque un operador active el Fart desde la UI del server.
+- objects/obj_lobby_prolet/Create_0.gml — mapData: fuera los previews 21
+  y 22 (spr_pr_ehz / la reutilizacion de los ghz).
+
+SERVIDOR (betterserver-oss):
+- include/Maps.h — MAP_COUNT 23 -> 21; fuera la declaracion de smap_init.
+- disasterserver/Maps.c — fuera las 2 entradas de g_mapList y la funcion
+  smap_init (solo la usaban ellos).
+- include/Zone.h + disasterserver/Zone.c — g_mapZone/g_mapZoneSize a [21];
+  fuera los arrays anticheat room_smax_greenhill[] (97 rects) y
+  room_smax_emeraldhill[] (141 rects) y sus entradas en las 2 listas.
+- include/Config.h + disasterserver/Config.c — map_list[21] y defaults a
+  21 bools (0-19 true, 20 Fart false, como siempre).
+- disasterserver/states/Lobby.c — bound del comando .map: era
+  "ind >= MAP_COUNT+1" (permitia .map 24 = g_mapList[23] fuera de rango,
+  bug heredado del upstream); ahora es "ind >= MAP_COUNT" (1-21) y el
+  texto de error dice "between 1 and 21".
+- disasterserver/states/Server.c — el texto de ayuda del .map acorde
+  ("choose map (1-21)").
+
+QUE NO SE TOCO
+--------------
+- room_smax_greenhill / room_smax_emeraldhill y sus sprites
+  (spr_smax_gh_tiles, spr_smax_eh_tiles, spr_guide_gh/eh, spr_pr_ehz*,
+  background_ehz_*): siguen en el .yyp por si algun dia se arreglan; al
+  no estar en ninguna lista ya no se puede llegar a ellos (ni votacion,
+  ni .map, ni .sp/.vp de practica, ni UI del server).
+- spr_mapvote conserva sus 23 frames: los 2 ultimos quedan sin usar (nadie
+  los dibuja ya); tocar el .yy del sprite era riesgo gratis.
+- El mapa "Hill" (12, room_greenhill), Fart Zone (20, room_fartzone, mapa
+  de practica), el resto de mapas, el fallback 20 de map_pick_random y el
+  macro MAP_FART 20 del cliente: intactos.
+
+VALIDACION
+----------
+- check_retira_smax_v1.py (raiz del repo): 14/14 OK — cuenta entradas
+  reales de g_mapList/global.levels/levelDescriptions/mapData/g_mapZone/
+  g_mapZoneSize/map_list default, exige 21 en todas y las posiciones 12
+  (Hill) y 20 (Fart), cero referencias smap/smax en codigo (fuera de
+  comentarios), bound del .map corregido y llaves/estructura sanas.
+- Sintaxis C: los 21 .c del CMake (los que compila el exe real) mas los
+  10 .c de la UI SDL pasan -fsyntax-only limpios (con stub local de
+  enet/SDL2; en este entorno no hay libenet-dev, pero Maps.c/Zone.c/
+  Config.c/states validan los tamaños de array en compilacion real).
+- g_mapZone/g_mapZoneSize/g_mapList/map_list quedan del mismo largo que
+  su declaracion (un exceso de inicializadores seria error de compilacion
+  en el build de siempre).
+
+COMO APLICAR / PROBAR
+---------------------
+1. Cliente y server a la vez (un cliente viejo que reciba un id 21/22 ya
+   no puede pasar: el server nuevo nunca los manda).
+2. Recompilar el server (compilar_server.bat / build_android.sh).
+3. Probar: votacion (solo salen los 21 de siempre, nunca un SMax),
+   .map 21 = Fart Zone, .map 22 = "map should be between 1 and 21",
+   .sp / .vp siguen sorteando entre los activos, y el hover de los 3
+   candidatos dibuja su descripcion sin error (el crash del 22, muerto).

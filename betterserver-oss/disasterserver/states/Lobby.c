@@ -238,10 +238,10 @@ bool lobby_state_handle(PeerData* v, Packet* packet)
 					}
 					
 					ind--;
-					if (ind < 0 || ind >= MAP_COUNT+1)
+					if (ind < 0 || ind >= MAP_COUNT)
 					{
 						char msg[128];
-						snprintf(msg, 128, CLRCODE_RED "map should be between 1 and %d", MAP_COUNT + 1);
+						snprintf(msg, 128, CLRCODE_RED "map should be between 1 and %d", MAP_COUNT);
 						RAssert(server_send_msg(v->server, v->peer, msg));
 						break;
 					}

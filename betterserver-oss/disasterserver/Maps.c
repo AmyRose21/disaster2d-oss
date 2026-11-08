@@ -49,8 +49,8 @@ Map g_mapList[MAP_COUNT] =
 	{ CLRCODE_RED "Mystic Wood",		{ wd_init,  map_tick, map_tcpmsg, map_left }, 1, 26 }, //18
 	{ CLRCODE_GRN "Echidna Ruins",		{ mj_init,  map_tick, map_tcpmsg, map_left }, 1, 28+5 }, //19
 	{ CLRCODE_BLU "Fart Zone",			{ ft_init,	map_tick, ft_tcpmsg,  map_left }, 1, 15 }, //20
-	{ CLRCODE_GRN "SMax Green Hill",		{ smap_init, map_tick, map_tcpmsg, map_left }, 1, 30 }, //21
-	{ CLRCODE_GRN "SMax Emerald Hill",	{ smap_init, map_tick, map_tcpmsg, map_left }, 1, 30 }, //22
+	/* RETIRADOS (mapas corruptos): //21 "SMax Green Hill" y //22
+	 * "SMax Emerald Hill" (portes de Sonic MAX). Ver include/Maps.h. */
 };
 
 bool map_init(Server* server)
@@ -141,13 +141,4 @@ bool map_ring(Server* server, int ringcoff)
 	
 	return true;
 }
-/* Mapas de testeo porteados de Sonic MAX (portes 1:1 GH1/EH1):
- * mapas muy largos (10-11k px) -> 4 min base + 25 s por jugador
- * y 6 anillos por jugador para que la partida respire. */
-bool smap_init(Server* server)
-{
-	RAssert(map_time(server, 4 * TICKSPERSEC, 25));
-	RAssert(map_ring(server, 6));
-
-	return true;
-}
+/* (smap_init de los mapas SMax retirado junto a ellos) */

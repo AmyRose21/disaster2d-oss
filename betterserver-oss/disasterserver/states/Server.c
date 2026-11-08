@@ -882,7 +882,7 @@ bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *
 
                 if (v->op)
                 {
-                        snprintf(lobby_msg, 128, CLRCODE_GRA CLRCODE_GRA ".map" CLRCODE_RST " choose map (1-%d)", MAP_COUNT + 1);
+                        snprintf(lobby_msg, 128, CLRCODE_GRA CLRCODE_GRA ".map" CLRCODE_RST " choose map (1-%d)", MAP_COUNT);
                         RAssert(server_send_msg(v->server, v->peer, lobby_msg));
 
                         RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".sp" CLRCODE_RST " survivor practice (no exe)"));

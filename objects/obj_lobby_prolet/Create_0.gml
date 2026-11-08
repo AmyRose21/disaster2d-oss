@@ -23,9 +23,8 @@ mapData =
 	
 	{ tiles: [ spr_pr_hd, spr_pr_hd2, spr_pr_hd3 ], bg: background_test, side: [ false, false, false ] },
 	
-	{ tiles: [ spr_pr_ghz, spr_pr_ghz2, spr_pr_ghz3 ], bg: spr_pr_ghzbg, side: [ false, false, false ] },
-	{ tiles: [ spr_pr_ehz ], bg: spr_pr_ehzbg, side: [ false ] },
-	
+	// SMax Green Hill (21) y SMax Emerald Hill (22): REMOVIDOS de la
+	// seleccion (mapas corruptos; ver scr_globals.gml). Previews fuera.
 ];
 
 setZone = function(_map)
