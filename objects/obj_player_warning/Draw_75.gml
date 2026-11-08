@@ -1,7 +1,18 @@
 if(global.timeMinutes < 1)
 	moved = true;
-	
-if(global.player.isDead || global.player.revivalTimes >= 2)
+
+// v1 FIX CRASH "Unable to find instance for object index 300": en el frame
+// de transicion de fin de ronda el codigo de red reescribe global.player
+// (noone en game over; obj_exe, INDICE de objeto, al volver a vote/lobby)
+// ANTES de que el cambio de room destruya este aviso, y leer una variable
+// de algo que ya no es una instancia viva mataba el Draw GUI (line 4).
+// Mismo guard de la casa que scr_player_hurt / scr_player_slow /
+// net_state_game (game over): sin player vivo se toma el MISMO camino que
+// "muerto" -> fade-out y autodestruccion limpia (el CleanUp restaura la
+// musica).
+if(!instance_exists(global.player))
+	moved = true;
+else if(global.player.isDead || global.player.revivalTimes >= 2)
 	moved = true;
 
 if(!moved)
