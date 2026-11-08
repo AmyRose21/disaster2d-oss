@@ -28,7 +28,7 @@ SERVER_API Config g_config =
 
         .log_debug = false,
         .log_file = false,
-        .map_list = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true },
+        .map_list = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, true, true },
         .motd = "",
         .anticheat = true,
         .pride = true,

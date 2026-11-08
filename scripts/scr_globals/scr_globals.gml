@@ -87,6 +87,8 @@ global.levels =
         { group: "WoodDream", rid: room_weedzone, bg: background_weed, music: mus_weedzone, chaseMusic: mus_weedzone_chase },
         { group: "Marijuna", rid: room_marijuna, bg: background_weed, music: mus_marijuna, chaseMusic: mus_marijuna_chase },
         { group: "Fart", rid: room_fartzone, bg: background_test, music: mus_fartzone, chaseMusic: mus_fartzone_chase },
+        { group: "Hill", rid: room_smax_greenhill, bg: background_greenhill, music: mus_hill, chaseMusic: mus_hill_chase },
+        { group: "Hill", rid: room_smax_emeraldhill, bg: background_ehz_sky, music: mus_kindandfair, chaseMusic: mus_kindandfair_chase },
 ];
 
 global.levelDescriptions = 
@@ -110,7 +112,9 @@ global.levelDescriptions =
         "don't stand under stalactites, they will fall if you walk under them. every 10 \nseconds it gets dark for a while, at this time try not to run into the owner  \nof this place |+25 sec.",
         "you will be able to open the passages by activating the crystals. hold the jump  \nor up on special springs so that they throw you higher, and most importantly, \ndo not wake up |+25 sec.",
         "be careful on conveyor belts and get to ignited lanterns to banish spirit that \nhaunts the forest, before things get even darker |-25 sec",
-        "you better not touch the crystals releasing the phantom energy, otherwise it \nwill be difficult for you to move and avoid traps of the ancient temple \n|+25 sec"
+        "you better not touch the crystals releasing the phantom energy, otherwise it \nwill be difficult for you to move and avoid traps of the ancient temple \n|+25 sec",
+        "straight port of Sonic MAX green Hill act 1 for long-map testing:       \n10240 px of rolling hills, slopes and high routes, 153 rings ported,     \nsprings on the hills, rain included |test map",
+        "straight port of Sonic MAX emerald Hill act 1 for long-map testing:    \n11264 px of curvy terrain, waterfalls and one-way platforms, 210 rings   \nported, side springs to climb back |test map"
 ];
 
 // Operador del server: lo setea el server al conectarte

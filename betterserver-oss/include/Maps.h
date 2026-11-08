@@ -18,8 +18,8 @@ typedef struct
 	uint8_t  ring_count;
 } Map;
 
-#define MAP_COUNT 20
-extern Map g_mapList[MAP_COUNT+1];
+#define MAP_COUNT 23
+extern Map g_mapList[MAP_COUNT];
 
 bool map_init 	(Server* server);
 bool map_tick 	(Server* server);
@@ -32,5 +32,7 @@ bool map_ring (Server* server, int ringcoff);
 /* v4.7: sortea un mapa al azar (mapas activos del Config.json, sin
  * repetir el ultimo): lo usan las rutas de practica */
 int8_t map_pick_random (Server* server);
+
+bool smap_init (Server* server);
 
 #endif
