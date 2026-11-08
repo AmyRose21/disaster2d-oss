@@ -22,10 +22,11 @@ de 10-11 mil píxeles.
 - `sprites/background_ehz_sky/` — cielo EHZ animado (10 frames, del MAX)
 - `sprites/background_ehz_far/` — montañas EHZ (320×256)
 - `sprites/spr_pr_ehz/` + `sprites/spr_pr_ehzbg/` — preview del lobby (grupo Prolet)
+- `sprites/spr_guide_gh/` + `sprites/spr_guide_eh/` — **capa guía del editor** (ver abajo)
 
 **Archivos MODIFICADOS** (reemplazan a los existentes):
 
-- `Sonicexe The Disaster 2D Remake.yyp` — registra rooms/sprites nuevos (+9 recursos, +2 RoomOrderNodes)
+- `Sonicexe The Disaster 2D Remake.yyp` — registra rooms/sprites nuevos (+11 recursos, +2 RoomOrderNodes)
 - `scripts/scr_globals/scr_globals.gml` — `global.levels` índices **21 y 22** + 2 descripciones
 - `objects/obj_lobby_prolet/Create_0.gml` — `mapData` índices 21 y 22 (previews)
 - `sprites/spr_mapvote/` — **23 frames** (antes 21): iconos de voto nuevos en los frames 21 y 22
@@ -92,6 +93,24 @@ de 10-11 mil píxeles.
 4. Cascadas animadas: se horneó el frame 0 (estáticas).
 5. Música: GH usa `mus_hill`; EH usa `mus_kindandfair` para distinguir mapas
    de oído. Cámbialo en el RoomCreationCode si prefieres otra.
+
+## Capa "Guide" (editar en el Room Editor con referencia visual)
+
+El terreno visible NO vive en el room (lo dibuja `scr_level_split` en runtime),
+así que el editor se veía vacío. Para poder diseñar, cada room trae ahora una
+capa **`Guide`** justo debajo de `Instances` con el mapa completo pintado
+(mitad de resolución, escala 2x, alineado al píxel con la colisión):
+
+- **En el editor**: se ve el mapa detrás de los bloques de colisión (cajas
+  azul semitransparente = `obj_solid_block` invisibles).
+- **En el juego**: se oculta sola desde el `RoomCreationCode`
+  (`layer_set_visible(layer_get_id("Guide"), false)`) — coste cero de dibujo.
+- **Recomendado**: cámbiale el candado 🔒 en el panel de capas para no
+  seleccionarla por accidente al hacer clic; el ojo 👁 la muestra/oculta
+  solo en el editor (y como ya se oculta en runtime, no afecta al juego).
+- Si algún día quieres quitarla del todo: borra la capa `Guide` en el panel
+  de capas y las 2 líneas del RoomCreationCode. Los sprites `spr_guide_*`
+  puedes desregistrarlos entonces.
 
 ## Cómo probar rápido
 
