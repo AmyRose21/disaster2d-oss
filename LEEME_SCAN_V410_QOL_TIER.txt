@@ -1,0 +1,156 @@
+=====================================================================
+ SCAN DE METAL AMY v4.10 + QoL DE SUITE v6 + TIERLIST V5
+ (un solo paquete: scan mas visible y de 8 a 12 s · Suite con QoL ·
+  tier list limpiada, actualizada y con el top de poder)
+=====================================================================
+
+PARTE 1 — SCAN DE METAL AMY v4.10 (pedido del usuario)
+------------------------------------------------------
+"Mejora al scan de metal amy: hacer las siluetas de lejos un poco
+mas visibles en mapas con mucha iluminacion, no se notan (cuando
+estan lejos lejos de metal amy, no cuando estan a su vista). Y su
+scan durara de 8 a 12 seg de duracion."
+
+1A) DURACION «de 8 a 12 s»
+    - La V manual pasa de 8 s a 12 s:
+        #macro METALAMY_SCAN_TIME (60 * 12)
+    - La ventana PASIVA de la marca de la cazadora (con 1 vivo) queda
+      en 8 s con macro PROPIA (antes usaba la del manual):
+        #macro METALAMY_HUNT_WINDOW (60 * 8)
+      y el Step_0 de obj_metalamy la usa en sus 2 sitios.
+    - El ciclo de la cazadora no cambia: ventana 8 s + CD 14 s
+      (METALAMY_HUNT_TIME intacto). El HUD tampoco: sus barras leen
+      SCAN_RECHARGE y HUNT_TIME, que no se tocan.
+
+1B) SILUETAS LEJANAS EN MAPAS CLAROS (obj_exe_indicator/Draw_64.gml)
+    - CAUSA: la silueta fuera de la vista 480x270 era un fantasma
+      ADITIVO (bm_add) con alpha *0.45. En un mapa con mucha luz,
+      sumarle rojo a un fondo casi blanco mueve un solo canal y
+      encima SATURADO (+19 en R, clamped): un tinte rosado sin forma
+      ni sombra. Matematicamente "no se notan" — lo reproduce el
+      checker con la formula exacta de GameMaker.
+    - FIX (solo la silueta LEJANA, la de dentro de la vista queda
+      bit a bit identica a la v4.8, como pidio el usuario):
+        pasada 1 — CONTORNO oscuro (blend normal, 4 offsets de 2 px,
+                   color rgb(56,8,8), alpha 0.9): el contraste que
+                   faltaba contra fondos claros;
+        pasada 2 — RELLENO rojo vivo (blend normal, rgb(255,72,72),
+                   alpha 0.62+0.33*pulso): solido, se lee igual en
+                   claros y oscuros;
+        pasada 3 — BRILLO aditivo suave (alpha 0.35*pulso): conserva
+                   el pulso "vivo" del scan en mapas oscuros.
+    - Resultado del checker (peor caso, pulso en su valle): contraste
+      nuevo 349 vs 19 del viejo sobre fondo claro — mas de 18x.
+    - Archivos: scripts/scr_metalamy_special (macros + comentarios),
+      obj_metalamy/Step_0 (ventana de la cazadora),
+      obj_metalamy/Create_0 (comentario), obj_exe_indicator/Draw_64
+      (las 3 pasadas). Nada mas: cero paquetes de red, server intacto.
+    - Validacion: check_scan_v410_fix.py 45/45 OK (estatica completa,
+      simulacion 1:1 del dibujo con la matematica de blends del
+      runtime, simulacion del ciclo cazadora/V en una ronda de 130 s,
+      regresiones: Step_2/Create_0/.yy/HUD byte a byte vs HEAD) y el
+      check_scan_vanilla_fix.py de la v4.9 sigue 50/50 OK.
+
+PARTE 2 — QoL VISUAL Y TECNICO DE LA SUITE (Suite_TD2D.html)
+-------------------------------------------------------------
+Tecnico:
+  - «Reabrir ultima carpeta»: al abrir el proyecto, el handle del
+    directorio se guarda en IndexedDB; en la siguiente sesion aparece
+    un boton "Reabrir «<carpeta>»" que recupera el permiso de
+    escritura con UN clic (queryPermission -> requestPermission ->
+    attachFs, el camino oficial). Si el navegador capa IndexedDB
+    (file:// en algunos Chromium), el boton simplemente no aparece.
+  - Buscador de personajes (#char-search, como el de sprites):
+    filtra la lista por nombre O por objeto (prueba "amy" o
+    "obj_metalamy"); los data-char siguen apuntando al indice REAL
+    del array, asi que filtrar no descuadra la seleccion. Con "zzz"
+    muestra "Sin resultados".
+  - Memoria de sesion: la Suite recuerda el ULTIMO MODULO usado
+    (td2d_module) y las sub-pestañas de Enfriamientos y Arte, y al
+    arrancar las recupera SIMULANDO EL CLIC en el boton de la nav
+    (camino oficial de switchModule, nunca un atajo).
+Visual:
+  - Scrollbars finas y oscuras (doradas al pasar el cursor).
+  - Foco de teclado visible (:focus-visible, accesibilidad).
+  - Micro-transiciones en botones/navs/listas y elevacion sutil.
+  - Toasts con entrada suave.
+  - Respeta prefers-reduced-motion.
+  - meta theme-color + meta description.
+  - TODO es aditivo y con try/catch: los 9 bloques <script> pasan
+    node --check, el autochequeo de arranque v3.8.1 sigue intacto y
+    el arranque en navegador dio 0 errores y 0 banners de fallo.
+  - Verificado EN VIVO (headless): demo -> filtro "cha"/"zzz"/vacio,
+    cambio a Enfriamientos -> recarga -> vuelve a Enfriamientos solo.
+
+PARTE 3 — TIERLIST V5 (TierList_Mejoras_V5_0.html, NUEVA)
+----------------------------------------------------------
+"Para el apartado de Tier: actualizala y borra los datos y cosas
+que en si sean inutiles o que ya no tengan relevancia. Y monta tu
+top de los mas poderosos."
+
+FUERA (3,39 MB -> 0,17 MB, un 95% menos):
+  - 3,0 MB de SONIDOS embebidos (12 efectos + musica del lobby) y
+    130 KB de tiras de animacion: el 93% del peso de la pagina era
+    el reproductor de la v4.8, bloqueado de todos modos por la
+    politica de autoplay de los navegadores.
+  - Motor de escenas canvas (7 escenas del changelog v3.x-v4.4),
+    planificador, bateria de cooldowns, demos estaticos, VSDATA,
+    EXEDATA y el reproductor de musica.
+  - Pestañas "Mejoras v3.2 + v4.8", "VS el EXE", "Impresiones" y
+    "Las pasivas de Amelia": el changelog de parches ya absorbidos
+    por el juego (todo eso vive en el worklog y los LEEME).
+  - PROPS (propuestas viejas), los 4 banners de movimientos v3.0/
+    v3.2/v4.4/v4.8 y 46 clases de CSS muerto (9,8 KB).
+
+DENTRO (actualizado al juego v4.10):
+  - Tier list, fichas, matriz comparativa, solitarios/suditos y
+    canon contra MOD — sin cambiar una coma de su logica.
+  - Metal Amy: velocidad limpia a 13 (el "tras el pull: 12" era un
+    dato viejo contradictorio) y el SCAN al dia (12 s la V / 8 s la
+    cazadora / borde legible en mapas claros).
+  - Sally Canon: A+ -> S con la Fase Duelista v5.8 (patada de dos
+    golpes, spindash, rodadura, salto en bola, escudo grupal,
+    evasion) — su fase 1 sigue siendo defensiva, la artilleria
+    llega tras la primera caida.
+  - Amy Canon: LSA aereo v6.1/v6.2 (C en el aire: cadena de hasta
+    6 objetivos sin repetir, intercepcion a 140 px, ruta por
+    anillos al acabar).
+  - Vanilla: fix v2.2 anotado (la fase moribunda ya no flota).
+  - Contador real de 14 supervivientes (decia 13), fechas al dia y
+    enlaces a TierList_Comentarios_V2 (la V1 ya no existe).
+
+NUEVO — la pestana "El top" (la primera):
+  El ranking de los mas poderosos con el juego al dia, criterio
+  "impacto global en la ronda": podio (1 Amy Canon, 2 Metal Amy,
+  3 Vanilla) + tabla 4-10 (Chaos, Sally Canon, Amelia, Sonic,
+  Fleetway Amy, Exeller, Sonic.exe), cada fila abre su ficha.
+  6 supervivientes + 4 EXE: es el reparto real de tiers (3 S + 3 A+
+  contra 2 S + 2 A+). Con menciones del escalon siguiente (Blaze,
+  Metal Sonic, Cream) y de quien cierra (Exetior).
+  - Validacion: check_qol_tier_v5.py 81/81 OK + render verificado en
+    navegador (podio de 3, tabla de 7, 14 fichas, matriz de 70
+    celdas, Sally Canon en la fila S, 0 errores JS).
+
+INSTALACION
+-----------
+  1) Descomprime el zip sobre la RAIZ del proyecto (las rutas del
+     zip ya van relativas a la raiz).
+  2) TierList_Mejoras_V5_0.html y Suite_TD2D.html: abrelas y ya esta
+     (la V4_8 queda como historico; borrala cuando quieras).
+  3) El scan v4.10 toca el CLIENTE: recompila en GameMaker. El
+     server NO se toca.
+  4) (Opcional) python3 check_scan_v410_fix.py y
+     python3 check_qol_tier_v5.py para re-verificarlo todo.
+
+ARCHIVOS DEL PAQUETE (solo los modificados/creados de esta tarea)
+-----------------------------------------------------------------
+  scripts/scr_metalamy_special/scr_metalamy_special.gml   (mod)
+  objects/obj_metalamy/Step_0.gml                          (mod)
+  objects/obj_metalamy/Create_0.gml                        (mod)
+  objects/obj_exe_indicator/Draw_64.gml                    (mod)
+  Suite_TD2D.html                                          (mod)
+  TierList_Mejoras_V5_0.html                               (nuevo)
+  check_scan_v410_fix.py                                   (nuevo)
+  check_qol_tier_v5.py                                     (nuevo)
+  LEEME_SCAN_V410_QOL_TIER.txt                             (nuevo)
+  worklog.md                                               (mod)

@@ -16,16 +16,17 @@
 //     que el laser exe de Tails: lo tick-ea el server, el dano lo
 //     aplica el cliente de la victima y el parry de Sonic puede
 //     desviarlo). Recarga 8 s.
-//   * SCAN (tecla V, v4.7/v4.8): «visión de supervivientes». Mientras
+//   * SCAN (tecla V, v4.7/v4.8/v4.10): «visión de supervivientes». Mientras
 //     dura el revelado se VE a cada superviviente vivo: su silueta se
 //     dibuja BRILLANTE A TRAVES DE PAREDES, TERRENO Y ESCONDITES (la
 //     dibuja obj_exe_indicator en la capa GUI, encima de todo el mapa),
 //     y si esta FUERA de la vista de 480x270 su silueta aparece fijada
-//     al borde de la pantalla apuntando hacia donde esta. Dura 8 s
-//     (v4.8: antes 3 s y eran agujas tipo tracker; pedido del usuario:
-//     "no es como el invisible de exe o chaos, debe dar vision"). Pose
-//     propia (spr_metalamy_scan, slot 21) y enfriamiento de 20 s.
-//     Cero paquetes: los puppets ya viajan sincronizados.
+//     al borde de la pantalla apuntando hacia donde esta. Dura de 8 a
+//     12 s (v4.10, pedido del usuario): 12 s la V manual y 8 s la
+//     ventana pasiva de la cazadora (v4.8: antes 3 s y eran agujas tipo
+//     tracker). Pose propia (spr_metalamy_scan, slot 21) y
+//     enfriamiento de 20 s. Cero paquetes: los puppets ya viajan
+//     sincronizados.
 //  Stats: identicos a Exeller (12 / 0.056875).
 // =====================================================================
 #macro METALAMY_BULLET_RECHARGE (60 * 3)
@@ -40,10 +41,11 @@
 #macro METALAMY_DASH_HSPD 12          // velocidad horizontal (patron chaos)
 #macro METALAMY_DASH_VSPD 8           // velocidad vertical (patron chaos)
 
-// v4.7/v4.8 — SCAN (tecla V): «visión» de supervivientes
+// v4.7/v4.8/v4.10 — SCAN (tecla V): «visión» de supervivientes
 #macro METALAMY_SCAN_RECHARGE (60 * 20) // 20 s de enfriamiento (uso manual)
-#macro METALAMY_SCAN_TIME (60 * 8)      // 8 s de revelado (v4.8: antes 3)
-#macro METALAMY_SCAN_POSE 48            // 0,8 s de pose de escaneo (spr_metalamy_scan, slot 21)
+#macro METALAMY_SCAN_TIME (60 * 12)      // 12 s de revelado con la V (v4.10: antes 8)
+#macro METALAMY_HUNT_WINDOW (60 * 8)     // 8 s de ventana pasiva de la cazadora (v4.10)
+#macro METALAMY_SCAN_POSE 48             // 0,8 s de pose de escaneo (spr_metalamy_scan, slot 21)
 
 // v4.8 — PASIVAS DE METAL AMY
 #macro METALAMY_EXEC_HP 30              // Ejecución: láser + vida < 30% = derribo directo
@@ -193,12 +195,13 @@ function scr_metalamy_special()
                 shootPose = 24;
         }
 
-        // ---- SCAN (tecla V, v4.7/v4.8): «visión» de supervivientes ----
-        // Revela a TODOS los supervivientes vivos durante 8 s: sus siluetas
-        // se ven a traves de paredes y escondites (las dibuja
+        // ---- SCAN (tecla V, v4.7/v4.8/v4.10): «visión» de supervivientes ----
+        // Revela a TODOS los supervivientes vivos durante 12 s (v4.10): sus
+        // siluetas se ven a traves de paredes y escondites (las dibuja
         // obj_exe_indicator sobre el mapa; fuera de vista, fijadas al borde
-        // de la pantalla). Puro visual: los puppets ya viajan sincronizados,
-        // NO hace falta ningun paquete nuevo. El sonido es el del rastreador
+        // de la pantalla con contorno legible hasta en mapas claros). Puro
+        // visual: los puppets ya viajan sincronizados, NO hace falta
+        // ningun paquete nuevo. El sonido es el del rastreador
         // (snd_egg_tracker). Sin gateo de invisibilidad: el scan es
         // informacion, no un ataque.
         // v4.8 — MARCA DE LA CAZADORA: con 1 solo superviviente vivo el scan

@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f1114">
+<meta name="description" content="Suite TD2D — editor de animaciones, recargas, imágenes, enfriamientos, botones, shows LMS y muelles del remake de Sonic.exe The Disaster 2D.">
 <title>Suite TD2D · editor del juego</title>
 <style>
 :root{
@@ -63,7 +65,7 @@ aside,#center{min-height:0}
 .stbtn .fc{color:var(--gold);font-size:11px;font-family:var(--mono)}
 .stbtn:hover{border-color:var(--line)}
 .stbtn.sel{border-color:var(--gold);background:#2a2415}
-#spr-search{margin:6px;width:calc(100% - 12px)}
+#spr-search,#char-search{margin:6px;width:calc(100% - 12px)}
 
 /* ---- visor ---- */
 #viewer-wrap{position:relative;background:#0b0c0f;border:1px solid var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;flex:1;min-height:160px}
@@ -370,6 +372,25 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 .chkline{display:flex;align-items:center;gap:5px;font-size:12.5px}
 .filebtn{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:5px 12px;cursor:pointer;font-size:13px;background:#1a1a22;margin:4px 0}
 .filebtn:hover{border-color:var(--acc)}
+/* ===== v6 QoL — pulido visual y técnico (añadido, sin tocar lo de arriba) =====
+   Scrollbars finas y oscuras (los listados laterales son larguísimos), foco
+   de teclado visible, micro-transiciones en botones/navs, toasts con entrada
+   suave y respeto a prefers-reduced-motion. */
+:root{color-scheme:dark}
+*{scrollbar-width:thin;scrollbar-color:#39404e transparent}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:#39404e;border-radius:6px;border:2px solid var(--bg)}
+*::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+button,.tab,.mnav,.subnav-btn,.charbtn,.sprbtn,.stbtn{transition:background-color .12s ease,color .12s ease,border-color .12s ease,box-shadow .12s ease}
+button:hover:not(:disabled){transform:translateY(-1px)}
+button:active:not(:disabled){transform:translateY(0)}
+#topbar{box-shadow:0 6px 16px #0006}
+#brand b{text-shadow:0 0 16px #e8b84b55}
+.toast{animation:toast-in .18s ease}
+@keyframes toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -388,6 +409,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes · enfriamientos · botones</span></div>
   <button id="btn-open" class="btn primary">Abrir carpeta del proyecto</button>
   <button id="btn-open-ro" class="btn">Elegir carpeta (solo lectura)</button>
+  <button id="btn-reopen" class="btn hidden" title="Vuelve a abrir la última carpeta del proyecto usada en esta Suite con un clic (sin volver a buscarla)">↺ Reabrir última carpeta</button>
   <button id="btn-demo" class="btn">Demo</button>
   <button id="btn-yypfix" class="btn" title="Diagnostica y repara el .yyp del proyecto si GameMaker dice que está corrupto (copia de seguridad incluida)">🔧 Reparar .yyp</button>
   <span id="music-ctl" class="hidden">
@@ -430,6 +452,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
       <button class="tab" data-tab="sprites">Sprites</button>
     </div>
     <div id="tab-chars" class="tabpane" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <input id="char-search" placeholder="Buscar personaje… (ej: amy, obj_metalamy)">
       <div id="char-list"></div>
       <div id="state-block" class="hidden">
         <div class="side-head"><span id="state-title">Estados</span></div>
@@ -1878,6 +1901,63 @@ async function safeReadRoot(root, rel) {
 
 /* ------------------------------ abrir el proyecto ------------------------------ */
 
+/* ================= v6 QoL — «Reabrir última carpeta» =================
+   El handle del directorio se guarda en IndexedDB (los handles
+   serializan ahí de serie). En la siguiente sesión aparece un botón
+   «↺ Reabrir …» que recupera el permiso de escritura con UN clic en
+   vez de navegar el selector de carpetas hasta la raíz del proyecto.
+   Si el navegador capa IndexedDB (algunos file://), la función
+   simplemente no aparece: cero riesgo para el resto de la Suite. */
+function idbOpenDb() {
+  return new Promise(function (res, rej) {
+    var rq = indexedDB.open('td2d_suite', 1);
+    rq.onupgradeneeded = function () { rq.result.createObjectStore('kv'); };
+    rq.onsuccess = function () { res(rq.result); };
+    rq.onerror = function () { rej(rq.error); };
+  });
+}
+async function idbSet(k, v) {
+  try {
+    var db = await idbOpenDb();
+    await new Promise(function (res, rej) {
+      var tx = db.transaction('kv', 'readwrite');
+      tx.objectStore('kv').put(v, k);
+      tx.oncomplete = function () { res(true); };
+      tx.onerror = function () { rej(tx.error); };
+    });
+    return true;
+  } catch (e) { return false; }
+}
+async function idbGet(k) {
+  try {
+    var db = await idbOpenDb();
+    return await new Promise(function (res, rej) {
+      var rq = db.transaction('kv', 'readonly').objectStore('kv').get(k);
+      rq.onsuccess = function () { res(rq.result); };
+      rq.onerror = function () { rej(rq.error); };
+    });
+  } catch (e) { return null; }
+}
+function showReopenButton(handle) {
+  var b = $('#btn-reopen');
+  if (!b || !handle || !handle.name) return;
+  b.textContent = '↺ Reabrir «' + handle.name + '»';
+  b.classList.remove('hidden');
+}
+async function reopenLastFolder() {
+  var h = await idbGet('lastRoot');
+  if (!h) { toast('No hay ninguna carpeta recordada todavía: usa «Abrir carpeta del proyecto».', 'warn'); return; }
+  try {
+    var perm = h.queryPermission ? await h.queryPermission({ mode: 'readwrite' }) : 'granted';
+    if (perm !== 'granted' && h.requestPermission) perm = await h.requestPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') { toast('Permiso denegado: usa «Abrir carpeta del proyecto».', 'warn'); return; }
+    await attachFs(h);
+    toast('Proyecto reabierto: ' + h.name + '.');
+  } catch (e) {
+    toast('No pude reabrir la carpeta («' + (e && e.message ? e.message : e) + '»). Ábrela con el botón de siempre.', 'err');
+  }
+}
+
 async function openFs() {
   if (!window.showDirectoryPicker) {
     toast('Este navegador no soporta abrir carpetas con escritura. Usa Chrome o Edge, o "Elegir carpeta (solo lectura)".', 'err');
@@ -1893,6 +1973,8 @@ async function openFs() {
   }
   S.mode = 'fs'; S.rootHandle = root; S.files = null;
   await scanProject();
+  idbSet('lastRoot', root);      // v6 QoL — recordar la carpeta para «Reabrir»
+  showReopenButton(root);
 }
 
 async function openFiles(fileList) {
@@ -2313,21 +2395,32 @@ const CELL_W = 58;
 
 function renderCharList() {
   const host = $('#char-list');
+  // v6 QoL — filtro de personajes: busca en nombre y objeto (vacío = todos).
+  // Los data-char/data-exe siguen apuntando al índice REAL del array
+  // (indexOf), así que filtrar no descuadra la selección.
+  const qEl = $('#char-search');
+  const q = (qEl ? qEl.value : '').trim().toLowerCase();
+  const match = (c) => !q || String(c.name || '').toLowerCase().indexOf(q) >= 0
+                      || String(c.obj || '').toLowerCase().indexOf(q) >= 0;
+  const surv = S.chars.filter(match);
+  const killers = S.exes.filter(match);
   let html = '';
-  html += '<div class="grp">Supervivientes</div>';
-  for (const c of S.chars) {
+  if (surv.length || !q) html += '<div class="grp">Supervivientes</div>';
+  for (const c of surv) {
     const sel = (S.char === c && !S.isExe) ? ' sel' : '';
     html += '<button class="charbtn' + sel + '" data-char="' + S.chars.indexOf(c) + '">' +
       esc(c.name) + '<span class="obj">' + esc(c.obj || '?') + '</span></button>';
   }
-  if (S.exes.length) {
+  if (killers.length || (!q && S.exes.length)) {
     html += '<div class="grp">Killers (exe)</div>';
-    for (const e of S.exes) {
+    for (const e of killers) {
       const sel = (S.char === e && S.isExe) ? ' sel' : '';
       html += '<button class="charbtn exe' + sel + '" data-exe="' + S.exes.indexOf(e) + '">' +
         esc(e.name) + '<span class="obj">' + esc(e.obj || '?') + '</span></button>';
     }
   }
+  if (q && !surv.length && !killers.length)
+    html += '<div class="muted" style="padding:8px">Sin resultados para «' + esc(q) + '»</div>';
   host.innerHTML = html;
 }
 
@@ -2854,6 +2947,9 @@ function syncControls() {
 
 function init() {
   $('#btn-open').addEventListener('click', openFs);
+  // v6 QoL — reabrir la última carpeta recordada (si IndexedDB la guardó)
+  $('#btn-reopen').addEventListener('click', reopenLastFolder);
+  idbGet('lastRoot').then(showReopenButton).catch(function () { });
   $('#btn-open-ro').addEventListener('click', () => $('#dir-input').click());
   $('#btn-yypfix').addEventListener('click', () => {
     // v3.8.1 — repairYypAction vive en el script 5 (módulo Arte): se resuelve al
@@ -2872,6 +2968,7 @@ function init() {
     $$('.tabpane').forEach(p => p.classList.toggle('hidden', p.id !== 'tab-' + t.dataset.tab));
   }));
   $('#spr-search').addEventListener('input', renderSpriteList);
+  $('#char-search').addEventListener('input', renderCharList); // v6 QoL
 
   // listas (delegación)
   $('#char-list').addEventListener('click', (e) => {
@@ -3029,6 +3126,7 @@ function switchModule(mod) {
   S.module = mod;
   S.cdSub = S.cdSub || 'tune';
   S.arteSub = S.arteSub || 'placas';
+  try { localStorage.setItem('td2d_module', mod); } catch (e) { } // v6 QoL — recordar módulo
   $$('#modnav .mnav').forEach(b => b.classList.toggle('sel', b.dataset.mod === mod));
   const arteImg = (mod === 'arte' && S.arteSub === 'habilidades');
   $('#mod-anim').classList.toggle('hidden', mod !== 'anim');
@@ -3062,6 +3160,7 @@ window.setCdSub = function (sub) {
     S.pendingFiles = {}; S.edits = [];
   }
   S.cdSub = sub;
+  try { localStorage.setItem('td2d_cdsub', sub); } catch (e) { } // v6 QoL — recordar sub-pestaña
   $$('#subnav-cd .subnav-btn').forEach(b => b.classList.toggle('sel', b.dataset.cdsub === sub));
   $('#mod-tune').classList.toggle('hidden', sub !== 'tune');
   $('#mod-srv').classList.toggle('hidden', sub !== 'srv');
@@ -9694,6 +9793,7 @@ initKeys();
         S.pendingFiles = {}; S.edits = [];
       }
       S.arteSub = sub;
+      try { localStorage.setItem('td2d_artesub', sub); } catch (e) { } // v6 QoL — recordar sub-pestaña
       $$('#subnav-arte .subnav-btn').forEach(x => x.classList.toggle('sel', x === b));
       $$('.arte-subpane').forEach(p => p.classList.toggle('hidden', p.dataset.sub !== sub));
       const showImg = (sub === 'imagenes');
@@ -11214,6 +11314,25 @@ else initMuelles();
     d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#c0392b;color:#fff;font:13px/1.5 system-ui,sans-serif;padding:8px 14px;text-align:center';
     document.body.appendChild(d);
   }
+  /* v6 QoL — reabrir el último módulo usado (y su sub-pestaña) tras cargar
+     TODO: se simula el clic en el botón de la nav para recorrer el camino
+     oficial (switchModule), nunca un atajo directo. Sin memoria disponible
+     (localStorage capado en file://) simplemente arranca en Animaciones. */
+  try {
+    var T = window.__animtool;
+    var cs = localStorage.getItem('td2d_cdsub');
+    var as = localStorage.getItem('td2d_artesub');
+    if (T && T.S) {
+      if (cs === 'srv' || cs === 'tune') T.S.cdSub = cs;
+      if (as) T.S.arteSub = as;
+    }
+    var mod = localStorage.getItem('td2d_module');
+    var valid = { anim: 1, cd: 1, arte: 1, keys: 1, lms: 1, muelles: 1 };
+    if (mod && valid[mod] && mod !== 'anim') {
+      var b = document.querySelector('#modnav .mnav[data-mod="' + mod + '"]');
+      if (b) b.click();
+    }
+  } catch (e) { }
 })();
 </script>
 </body>

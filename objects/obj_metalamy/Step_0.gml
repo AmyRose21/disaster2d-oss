@@ -91,9 +91,10 @@ if(scanPose > 0)
 
 // ---- MARCA DE LA CAZADORA: el ultimo superviviente ----
 // Al quedar exactamente 1 vivo (esbirros y agonizantes fuera del conteo),
-// la V se apaga (huntMode) y el rastreo sale solo: ventana de 8 s, luego
-// 14 s de enfriamiento — que arranca cuando la ventana TERMINA — y vuelta
-// a empezar. Reviven a alguien (2+ vivos) -> vuelve al scan manual.
+// la V se apaga (huntMode) y el rastreo sale solo: ventana de 8 s
+// (METALAMY_HUNT_WINDOW; la V manual dura 12 s — v4.10: "de 8 a 12 s"),
+// luego 14 s de enfriamiento — que arranca cuando la ventana TERMINA — y
+// vuelta a empezar. Reviven a alguien (2+ vivos) -> vuelve al scan manual.
 var _alive = 0;
 
 if(instance_exists(obj_player_puppet))
@@ -116,8 +117,8 @@ if(_alive == 1)
         {
                 huntMode = true;
                 huntCd = 0;
-                scanRecharge = 0;                  // la V queda lista para si vuelve el modo manual
-                scanTimer = METALAMY_SCAN_TIME;    // la primera ventana sale YA
+                scanRecharge = 0;                      // la V queda lista para si vuelve el modo manual
+                scanTimer = METALAMY_HUNT_WINDOW;      // la primera ventana sale YA (v4.10: 8 s, la V manual son 12)
 
                 audio_play_sound(snd_egg_tracker, 0, false); // aviso local, sin emitir
         }
@@ -139,7 +140,7 @@ if(huntMode)
 
                 if(huntCd == 0)
                 {
-                        scanTimer = METALAMY_SCAN_TIME;
+                        scanTimer = METALAMY_HUNT_WINDOW; // v4.10: ventana pasiva de 8 s (la V manual son 12)
 
                         audio_play_sound(snd_egg_tracker, 0, false);
                 }

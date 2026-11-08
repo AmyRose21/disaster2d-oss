@@ -30,8 +30,8 @@ shards = 0;
 bulletTimer = 0;
 shootPose = 0;
 
-// METAL AMY v4.7/v4.8: scan (tecla V)
-scanTimer = 0;    // revelado activo (METALAMY_SCAN_TIME)
+// METAL AMY v4.7/v4.8/v4.10: scan (tecla V)
+scanTimer = 0;    // revelado activo (V manual: METALAMY_SCAN_TIME, 12 s · cazadora: METALAMY_HUNT_WINDOW, 8 s)
 scanRecharge = 0; // enfriamiento restante (20 s)
 scanPose = 0;     // frames de pose de escaneo restantes
 
