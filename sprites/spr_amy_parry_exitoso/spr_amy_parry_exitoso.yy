@@ -1,7 +1,7 @@
 {
   "$GMSprite":"v2",
   "%Name":"spr_amy_parry_exitoso",
-  "bboxMode":0,
+  "bboxMode":2,
   "bbox_bottom":45,
   "bbox_left":6,
   "bbox_right":43,
