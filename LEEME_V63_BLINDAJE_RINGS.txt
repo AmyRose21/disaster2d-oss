@@ -1,0 +1,77 @@
+=====================================================================
+v6.3 «BLINDAJE DE ANILLOS» — cura sin perder el excedente + regla
+de dano con anillos (pedido del usuario)
+=====================================================================
+
+EL BUG (lo que pasaba)
+----------------------
+La conversion «10 anillos -> +20 de vida» tenia 3 caminos en el juego:
+vasijas de Volcano Valley, anillos normales (pickup) y el bonus de las
+slimes de Ravine Mist. SOLO el de las vasijas restaba 10; los otros 2
+VACIABAN el contador (rings = 0).
+
+Como con la vida llena la conversion no corre (hace falta hp < 100),
+los anillos se acumulan por encima de 10 SOLO cuando tienes la vida
+full — y al recibir dano y recoger el siguiente anillo, la cura se
+tragaba TODO el excedente: 25 anillos -> +20 de vida y te quedabas en
+0 (en vez de quedarte 16).
+
+LA REGLA NUEVA DE DANO (lo que pediste)
+---------------------------------------
+En scr_player_hurt (vale para TODO golpe con dano: exe, esbirros,
+pinchos, entorno):
+
+  * Tiene 10 o MAS anillos (15, 20, lo que sea):
+        el dano solo le quita EXACTAMENTE 10 anillos.
+        La vida NI SE TOCA. El excedente se queda.
+        (Sin sangre: los anillos ya dispersan con su efecto propio;
+         el golpe sigue dando retroceso e i-frames.)
+
+  * Tiene MENOS de 10:
+        pierde todos los anillos Y recibe el dano, como siempre.
+
+  * Pasivas intactas (siguen siendo mejores que la regla comun):
+        Vanilla pierde solo el 15% (minimo 3);
+        Cream pierde el 30% si Vanilla esta en la partida.
+        Con 10+ anillos ellas TAMBIEN absorben el golpe (sin dano
+        de vida), solo que pierden menos de 10.
+
+COHERENCIA: el juego YA usaba esta regla en los «bring rings»
+(SERVER_BRING_COLLECTED: <10 -> -20 de vida; si no -> -10 anillos).
+Este fix hace que el dano normal funcione igual.
+
+DETALLES FINOS
+---------------
+- Golpe absorbido NO reporta CLIENT_STATS_REPORT al server: ese
+  paquete solo alimenta la stat «damage_taken» de la pantalla final;
+  no reportarlo es exactamente correcto (no hubo dano de vida).
+- Un golpe absorbido SIGUE contando como «golpeado» para el logro #11
+  (completar ronda sin recibir golpes): te golpearon, los anillos solo
+  salvaron la vida. Si prefieres que absorber NO rompa ese logro, es
+  una linea: mover el «obj_achivements.wasHurt = true;» dentro del
+  if(!_ringAbsorb).
+- Al curarte: 25 anillos -> +20 de vida y te quedan 16. Con 10
+  exactos -> quedan 0.
+- Tope de 119 anillos y anticheat del server: intactos (la absorcion
+  solo RESTA anillos).
+
+INSTALACION
+-----------
+Copiar 2 archivos modificados (reemplazar):
+
+  scripts/scr_player_hurt/scr_player_hurt.gml
+  scripts/net_state_game/net_state_game.gml
+
+Recompilar SOLO el cliente (CERO cambios en el server C ni en los
+paquetes). El check_v62_blindaje_rings.py es la validacion (23/23 OK:
+sintaxis, las 3 conversiones, la regla de dano y simulacion de los
+escenarios).
+
+PRUEBA RAPIDA EN PARTIDA
+------------------------
+1. Junta 15+ anillos con la vida full y deja que te peguen:
+   pierdes 10 exactos, la vida intacta, suena el scatter de anillos.
+2. Baja de 10 y deja que te peguen: pierdes todos + dano.
+3. Vanillla con 50 anillos golpeada: pierde 7 (15%), vida intacta.
+4. Recoge anillos con vida baja: la cura gasta 10 y el sobrante
+   se queda en el contador.

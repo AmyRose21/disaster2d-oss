@@ -42,7 +42,7 @@ typedef struct
         bool    log_file;
         bool    anticheat;
         bool    pride;
-        bool    map_list[22];
+        bool    map_list[23];
         Mutex   map_list_lock;
         char    motd[256];
         bool    random_mode;

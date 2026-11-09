@@ -1142,6 +1142,41 @@ Zone room_skybase[] =
  { 48, 1296, BLOCK_SIZE * 1.13, BLOCK_SIZE * 0.245 },
 };
 
+/* NegagenTemple: zonas anticheat = rects exactos de los bloques solidos
+ * del room (obj_solid_block, sprite 128x128 origen 0,0), 1 zone por
+ * instancia (estilo act9/angelisland/skybase, sin fusion). Excluidos a
+ * proposito: los 5 bloques rotados +/-45 (bounding box con aire legitimo,
+ * misma regla que los slopes de skybase), plataformas one-way, rampas
+ * angleanuller/eggsafe, decoracion y escondites (hiding_parent). */
+Zone room_alphagentemple[] =
+{
+ { 0, -160, BLOCK_SIZE * 22, BLOCK_SIZE * 0.75 },
+ { 0, -64, BLOCK_SIZE * 1, BLOCK_SIZE * 10.5 },
+ { 1408, -64, BLOCK_SIZE * 1, BLOCK_SIZE * 2.75 },
+ { 2688, -64, BLOCK_SIZE * 1, BLOCK_SIZE * 7.5 },
+ { 640, 192, BLOCK_SIZE * 2, BLOCK_SIZE * 1.5 },
+ { 2048, 240, BLOCK_SIZE * 0.867, BLOCK_SIZE * 1.25 },
+ { 128, 384, BLOCK_SIZE * 11, BLOCK_SIZE * 0.25 },
+ { 1664, 384, BLOCK_SIZE * 1, BLOCK_SIZE * 0.75 },
+ { 1792, 384, BLOCK_SIZE * 2, BLOCK_SIZE * 0.25 },
+ { 2048, 399, BLOCK_SIZE * 1.75, BLOCK_SIZE * 0.633 },
+ { 2272, 480, BLOCK_SIZE * 1, BLOCK_SIZE * 0.5 },
+ { 2464, 576, BLOCK_SIZE * 0.25, BLOCK_SIZE * 0.25 },
+ { 2496, 624, BLOCK_SIZE * 0.5, BLOCK_SIZE * 0.125 },
+ { 1536, 640, BLOCK_SIZE * 1, BLOCK_SIZE * 1 },
+ { 1664, 640, BLOCK_SIZE * 1, BLOCK_SIZE * 4.25 },
+ { 1792, 640, BLOCK_SIZE * 0.555, BLOCK_SIZE * 0.25 },
+ { 128, 768, BLOCK_SIZE * 1.25, BLOCK_SIZE * 1.75 },
+ { 463, 768, BLOCK_SIZE * 1.398, BLOCK_SIZE * 0.25 },
+ { 640, 768, BLOCK_SIZE * 8, BLOCK_SIZE * 0.75 },
+ { 1920, 896, BLOCK_SIZE * 3, BLOCK_SIZE * 0.25 },
+ { 2304, 896, BLOCK_SIZE * 4, BLOCK_SIZE * 3 },
+ { 128, 992, BLOCK_SIZE * 5, BLOCK_SIZE * 0.5 },
+ { 896, 992, BLOCK_SIZE * 1, BLOCK_SIZE * 2.25 },
+ { 1792, 1088, BLOCK_SIZE * 3, BLOCK_SIZE * 0.25 },
+ { 0, 1280, BLOCK_SIZE * 22, BLOCK_SIZE * 2 },
+};
+
 Zone room_torturecave[] =
 {
  { 960, -504, BLOCK_SIZE * 1, BLOCK_SIZE * 3.9375 },
@@ -1393,7 +1428,7 @@ Zone room_youcantrun[] =
  { 832, 960, BLOCK_SIZE * 1, BLOCK_SIZE * 0.39062476 },
 };
 
-Zone* g_mapZone[22] =
+Zone* g_mapZone[23] =
 {
   room_hideandseek2,
   room_ravinemist,
@@ -1416,10 +1451,11 @@ Zone* g_mapZone[22] =
   room_weedzone,
   room_marijuna,
   room_fartzone,
-  room_skybase
+  room_skybase,
+  room_alphagentemple
 };
 
-size_t g_mapZoneSize[22] =
+size_t g_mapZoneSize[23] =
 {
   ARRAY_SIZE(room_hideandseek2),
   ARRAY_SIZE(room_ravinemist),
@@ -1442,6 +1478,7 @@ size_t g_mapZoneSize[22] =
   ARRAY_SIZE(room_weedzone),
   ARRAY_SIZE(room_marijuna),
   ARRAY_SIZE(room_fartzone),
-  ARRAY_SIZE(room_skybase)
+  ARRAY_SIZE(room_skybase),
+  ARRAY_SIZE(room_alphagentemple)
 };
 #endif

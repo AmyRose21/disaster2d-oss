@@ -18,13 +18,14 @@ typedef struct
         uint8_t  ring_count;
 } Map;
 
-/* 22 mapas (0-21): [21] SkyBase, porte del mod abandonado "TD2DR:
- * Project SkyBase" de ColdestTea (GameJolt 855567). Los dos portes de
- * Sonic MAX ("SMax Green Hill" 21 y "SMax Emerald Hill" 22) siguen
- * RETIRADOS de la seleccion porque estaban corruptos (la descripcion del
+/* 23 mapas (0-22): [21] SkyBase (porte del mod "TD2DR: Project SkyBase" de
+ * ColdestTea) y [22] Negagen Temple (porte del mod "TD2DR NU Project" de
+ * Remodify Studios, GameJolt 1015209: unico mapa NUEVO del mod, los otros
+ * 3 son reworks de mapas que ya tenemos). Los dos portes de Sonic MAX
+ * siguen RETIRADOS de la seleccion (mapas corruptos: la descripcion del
  * 22 quedaba fuera de rango en el lobby y crasheaba a los clientes).
  * El "Hill" original es el 12. */
-#define MAP_COUNT 22
+#define MAP_COUNT 23
 extern Map g_mapList[MAP_COUNT];
 
 bool map_init   (Server* server);

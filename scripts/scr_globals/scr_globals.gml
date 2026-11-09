@@ -91,6 +91,10 @@ global.levels =
         // ColdestTea (mapa 100% custom, room_skybase). Los SMax siguen
         // retirados (mapas corruptos); el "Hill" original sigue siendo el 12.
         { group: "SkyBase", rid: room_skybase, bg: background_skybase2, music: mus_skybase, chaseMusic: mus_skybase_chase },
+        // [22] Negagen Temple: porte del mod abandonado "TD2DR NU Project" (Remodify
+        // Studios, GameJolt 1015209). El UNICO mapa nuevo del mod: los otros 3 (SarksHills,
+        // DeezTwin, Nastya) son reworks de Hill/DesertTown/NastyParadise que ya tenemos.
+        { group: "NegagenTemple", rid: room_alphagentemple, bg: spr_bg_nt, music: mus_alphagentemple, chaseMusic: mus_alphagentemple_chase },
 ];
 
 global.levelDescriptions = 
@@ -122,6 +126,9 @@ global.levelDescriptions =
         "the original practice sandbox: a small flat test map with rings and springs  \n|practice map",
         // [21] SkyBase: mismo formato de ancho fijo que el resto.
         "floating base above the clouds: five gaps lead straight to the void, watch \nthe propellers when you hide behind the pillars, escape rings are hidden    \nacross the base",
+        // [22] Negagen Temple: texto del propio mod (wiki td2dr-mods.fandom), mismo
+        // formato de ancho fijo (75/76/15).
+        "a temple in a deep wave-like blue color: statues of the temples master  \nare scattered throughout, offering plenty of hiding spots across the   \nmap |+25 sec.",
 ];
 
 // Operador del server: lo setea el server al conectarte

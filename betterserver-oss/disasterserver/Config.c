@@ -28,7 +28,7 @@ SERVER_API Config g_config =
 
         .log_debug = false,
         .log_file = false,
-        .map_list = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, true }, /* 22 mapas: [20] Fart fuera del voto como siempre, [21] SkyBase activo */
+        .map_list = { true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, false, true, true }, /* 23 mapas: [20] Fart fuera del voto como siempre, [21] SkyBase y [22] Negagen Temple activos */
         .motd = "",
         .anticheat = true,
         .pride = true,

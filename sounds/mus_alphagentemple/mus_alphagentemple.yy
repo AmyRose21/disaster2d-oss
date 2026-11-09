@@ -1,0 +1,26 @@
+{
+    "$GMSound":"v2",
+    "%Name":"mus_alphagentemple",
+    "audioGroupId":{
+      "name":"audiogroup_default",
+      "path":"audiogroups/audiogroup_default",
+    },
+    "bitDepth":1,
+    "channelFormat":1,
+    "compression":3,
+    "compressionQuality":4,
+    "conversionMode":0,
+    "duration":92.287937,
+    "exportDir":"",
+    "name":"mus_alphagentemple",
+    "parent":{
+      "name":"Music",
+      "path":"folders/Sounds/Music.yy",
+    },
+    "preload":false,
+    "resourceType":"GMSound",
+    "resourceVersion":"2.0",
+    "sampleRate":44100,
+    "soundFile":"mus_alphagentemple.ogg",
+    "volume":1.0,
+  }

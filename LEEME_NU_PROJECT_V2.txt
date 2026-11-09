@@ -1,0 +1,56 @@
+════════════════════════════════════════════════════════════════════
+NU PROJECT v2 — FIX DEL ERROR DE CARGA DEL ROOM (1 solo archivo)
+Error: rooms\room_alphagentemple\room_alphagentemple.yy(3,3):
+       Field "%Name": expected
+════════════════════════════════════════════════════════════════════
+
+QUÉ PASÓ
+────────
+El room del pack V1 traía la línea 3 escrita así:
+
+    "%%Name":"room_alphagentemple",
+
+...con DOBLE porcentaje. Eso es JSON perfectamente válido (por eso mi
+chequeo de sintaxis del V1 lo dio por bueno), pero GameMaker exige la
+clave EXACTA "%Name" (un solo %). Al no encontrarla, aborta la carga
+del proyecto entero.
+
+Es un typo mío de 1 carácter en 1 línea. Nada más del pack está mal.
+
+QUÉ HAY QUE HACER
+─────────────────
+Reemplazar UN solo archivo por el de este zip:
+
+  rooms\room_alphagentemple\room_alphagentemple.yy
+
+Nada más: ni el .yyp, ni los sprites, ni la música, ni los objetos,
+ni el server cambian en esta versión.
+
+VERIFICACIÓN (check_nu_v2_room.py — 122/122 OK)
+─────────────
+• La línea 3 es la ÚNICA línea que cambia respecto al zip V1
+  (de las 298 del archivo) — parche quirúrgico
+• El room mantiene TODO igual: isDnd, 9 capas, 113 instancias,
+  2816x1536, mismo número de líneas
+• Barrido anti-"%%" en TODOS los .yy del proyecto: limpio
+• Los otros 18 recursos nuevos del pack revisados uno por uno
+  (primer campo exacto, parent registrado, presencia en el .yyp):
+  todos OK — este room era el único defectuoso
+• El registro del mapa como seleccionable [22] del V1 queda intacto:
+  levels, descripciones, preview del lobby, icono del voto,
+  server con MAP_COUNT 23 y 25 zonas anticheat
+• check_nu_port.py re-corrido: 79/81 OK (los 2 FAIL son los
+  srand/rand preexistentes del upstream en Server.c/Mapvote.c,
+  intocados, iguales que en V1)
+
+SIGUE PENDIENTE (lo mismo que decía el V1)
+──────────────────────────────────────────
+Este fix es SOLO de carga del IDE. La recompilación de CLIENTE y
+SERVIDOR JUNTOS sigue siendo necesaria (cliente viejo + id 22 =
+crash de levels fuera de rango):
+  1. GameMaker: compilar el cliente
+  2. betterserver-oss: compilar_server.bat
+
+Después de abrir: ronda de prueba del templo (votación con el icono
+22, escondites detrás de las estatuas, 26 spawners de anillos, anillos
+de escape, anticheat de 25 zonas).

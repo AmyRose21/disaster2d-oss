@@ -25,6 +25,9 @@ mapData =
 
         // [21] SkyBase: preview del lobby prolet (grupo Prolet), 1 tile horizontal.
         { tiles: [ spr_pr_skybase ], bg: spr_pr_skybasebg, side: [ false ] },
+        // [22] Negagen Temple: previews PROPIOS del mod (spr_pr_nt_*, grupo
+        // Prolet), 3 tiles horizontales como ghz.
+        { tiles: [ spr_pr_nt_tile, spr_pr_nt_tile2, spr_pr_nt_tile3 ], bg: spr_pr_bg_nt, side: [ false, false, false ] },
 
         // SMax Green Hill y SMax Emerald Hill siguen REMOVIDOS de la
         // seleccion (mapas corruptos; ver scr_globals.gml). Previews fuera.

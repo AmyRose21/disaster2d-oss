@@ -429,6 +429,15 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 }
         }
         
+        // v6.3 «BLINDAJE DE ANILLOS» (pedido del usuario): con 10 o mas
+        // anillos en el contador un golpe NO toca la vida — se absorbe:
+        // abajo se restan EXACTAMENTE 10 anillos (o menos con la pasiva %
+        // de Vanilla/Cream) y el golpe sigue dando retroceso, i-frames y
+        // sonido de anillos perdidos. Con MENOS de 10 cae al flujo
+        // original: pierde la vida y todos los anillos que le queden.
+        // Se declara aqui para que viva en todo el alcance de la funcion.
+        var _ringAbsorb = (damage > 0 && global.player.rings >= 10);
+        
         if(global.character != CHARACTER_EXE)
         {
                 if(damage > 0)
@@ -492,23 +501,29 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                         // ahora vive ARRIBA con las pasivas de inmunicion total:
                         // llegados aqui ya no es FW superviviente pura.)
                         
-                        global.player.hp -= damage;
-                        
-                        if(global.player.hp <= 0)
+                        // v6.3: si el golpe se absorbe con anillos, la vida
+                        // NI SE TOCA y no hay reporte al server (no hubo
+                        // dano para las stats de «damage_taken»).
+                        if(!_ringAbsorb)
                         {
+                                global.player.hp -= damage;
+                        
+                                if(global.player.hp <= 0)
+                                {
+                                        var pak = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
+                                        buffer_write(pak, buffer_u8, 3);
+                                        buffer_write(pak, buffer_u8, global.player.hp + damage);
+                                        send_server_tcp(pak);
+                        
+                                        scr_player_instakill();
+                                        return;
+                                }
+                        
                                 var pak = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
                                 buffer_write(pak, buffer_u8, 3);
-                                buffer_write(pak, buffer_u8, global.player.hp + damage);
+                                buffer_write(pak, buffer_u8, damage);
                                 send_server_tcp(pak);
-                                
-                                scr_player_instakill();
-                                return;
                         }
-                        
-                        var pak = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
-                        buffer_write(pak, buffer_u8, 3);
-                        buffer_write(pak, buffer_u8, damage);
-                        send_server_tcp(pak);
                 }
         }
         else
@@ -523,7 +538,9 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 // el 15% de sus anillos al ser golpeada (minimo 3); Cream
                 // pierde el 30%, pero SOLO si Vanilla esta en la partida
                 // (la presencia de su madre la protege). El resto de
-                // personajes pierde todos, como siempre.
+                // personajes: con 10+ anillos el golpe se absorbe y cuesta
+                // EXACTAMENTE 10 (v6.3); con menos de 10 los pierde todos,
+                // como siempre.
                 var _fortLoss = -1;
                 
                 if(global.character == CHARACTER_VANILLA)
@@ -533,6 +550,10 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 
                 if(_fortLoss > 0)
                         global.player.rings = max(0, global.player.rings - min(_fortLoss, global.player.rings));
+                else if(global.player.rings >= 10)
+                        // golpe absorbido (v6.3): cuesta EXACTAMENTE 10,
+                        // el excedente se queda en el contador
+                        global.player.rings -= 10;
                 else
                         global.player.rings = 0;
                 
@@ -554,7 +575,12 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         {
                 global.player.isHurt = true;
                 global.player.isJumping = false;
-                net_quick_effect(global.player.x, global.player.y, blood, false, sign(xpw), 0, 0, 1);
+                
+                // v6.3: golpe absorbido por anillos = sin sangre (los
+                // anillos ya dispersan con spr_ringlose arriba); la sangre
+                // es la marca del dano REAL de vida.
+                if(!_ringAbsorb)
+                        net_quick_effect(global.player.x, global.player.y, blood, false, sign(xpw), 0, 0, 1);
         }
         
         global.player.isGrounded = false;
