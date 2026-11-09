@@ -95,6 +95,14 @@ global.levels =
         // Studios, GameJolt 1015209). El UNICO mapa nuevo del mod: los otros 3 (SarksHills,
         // DeezTwin, Nastya) son reworks de Hill/DesertTown/NastyParadise que ya tenemos.
         { group: "NegagenTemple", rid: room_alphagentemple, bg: spr_bg_nt, music: mus_alphagentemple, chaseMusic: mus_alphagentemple_chase },
+        // [23] Wood Zone: porte del mod "Wood zone in td2dr!! MAP MOD!" de
+        // DeklynTDH (GameJolt 865011): rework del layout de "..." con tiles
+        // de madera y musica propia. Se incluye como mapa variante.
+        { group: "WoodZone", rid: room_woodzone, bg: background_woodzone, music: mus_woodzone, chaseMusic: mus_woodzone_chase },
+        // [24] SkySanctuary: porte del mod "TD2DR SkySanctuaryZone mod!" de
+        // CranberryStudios (GameBanana 495859): rework del layout de Hide and
+        // Seek Act 2 con ruinas flotantes. Mapa variante, musica hs2 original.
+        { group: "SkySanctuary", rid: room_skysanctuary, bg: background_skysanc, music: mus_hideandseek2, chaseMusic: mus_hideandseek2_chase },
 ];
 
 global.levelDescriptions = 
@@ -129,6 +137,10 @@ global.levelDescriptions =
         // [22] Negagen Temple: texto del propio mod (wiki td2dr-mods.fandom), mismo
         // formato de ancho fijo (75/76/15).
         "a temple in a deep wave-like blue color: statues of the temples master  \nare scattered throughout, offering plenty of hiding spots across the   \nmap |+25 sec.",
+        // [23] Wood Zone: texto propio del porte (mismo formato de ancho fijo).
+        "wooden valley from the sonic 2 beta: plank platforms and log rails    \nfloat above the abyss, lava pits and moving spikes guard the springs    \n|+25 sec.",
+        // [24] SkySanctuary: texto propio del porte (mismo formato de ancho fijo).
+        "sanctuary floating above the clouds: green vines cover the marble     \nruins, springs link the floating islands, hide inside the columns       \n|+25 sec.",
 ];
 
 // Operador del server: lo setea el server al conectarte

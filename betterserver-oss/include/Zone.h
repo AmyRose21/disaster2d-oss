@@ -8,7 +8,7 @@ typedef struct
         double x, y, w, h;
 } Zone;
 
-extern Zone*    g_mapZone[23];
-extern size_t   g_mapZoneSize[23];
+extern Zone*    g_mapZone[25];
+extern size_t   g_mapZoneSize[25];
 
 #endif

@@ -51,6 +51,10 @@ Map g_mapList[MAP_COUNT] =
         { CLRCODE_BLU "Fart Zone",                      { ft_init,      map_tick, ft_tcpmsg,  map_left }, 1, 15 }, //20
         { CLRCODE_BLU "SkyBase",                        { map_init, map_tick, map_tcpmsg, map_left }, 1, 12 }, //21
         { CLRCODE_BLU "Negagen Temple",           { map_init, map_tick, map_tcpmsg, map_left }, 1, 26 }, //22
+        // [23] Wood Zone: variante del 2 ("..."), reglas genericas.
+        { CLRCODE_GRN "Wood Zone",            { map_init, map_tick, map_tcpmsg, map_left }, 1, 25 }, //23
+        // [24] SkySanctuary: variante del 0 (Hide and Seek 2), reglas genericas.
+        { CLRCODE_BLU "SkySanctuary",         { map_init, map_tick, map_tcpmsg, map_left }, 1, 22 }, //24
         /* RETIRADOS (mapas corruptos): los SMax Green Hill/Emerald Hill de la
          * era 21/22. Ver include/Maps.h y LEEME_RETIRA_SMAX_V1.txt. */
 };

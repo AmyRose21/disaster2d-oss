@@ -28,6 +28,12 @@ mapData =
         // [22] Negagen Temple: previews PROPIOS del mod (spr_pr_nt_*, grupo
         // Prolet), 3 tiles horizontales como ghz.
         { tiles: [ spr_pr_nt_tile, spr_pr_nt_tile2, spr_pr_nt_tile3 ], bg: spr_pr_bg_nt, side: [ false, false, false ] },
+        // [23] Wood Zone: previews del propio mod (spr_pr_dot* re-skinneados
+        // a madera), mismo formato 3-tiles del "...".
+        { tiles: [ spr_pr_wood, spr_pr_wood2, spr_pr_wood3 ], bg: background_woodzone, side: [ false, false, false ] },
+        // [24] SkySanctuary: previews del propio mod (spr_pr_hst* re-skinneados
+        // a cielo/ruinas), mismo formato 3-tiles del hs2.
+        { tiles: [ spr_pr_skysanc, spr_pr_skysanc2, spr_pr_skysanc3 ], bg: spr_pr_skysancbg, side: [ true, false, false ] },
 
         // SMax Green Hill y SMax Emerald Hill siguen REMOVIDOS de la
         // seleccion (mapas corruptos; ver scr_globals.gml). Previews fuera.
