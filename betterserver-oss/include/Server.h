@@ -197,7 +197,7 @@ static const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {
         { CH_TAILS, 1, { 205 } },
         { CH_KNUX, 2, { 251, 140 } },
         { CH_EGGMAN, 1, { 195 } },
-        { CH_AMY, 1, { 195 } },
+        { CH_AMY, 2, { 195, 235 } },
         { CH_CREAM, 1, { 218 } },
         { CH_SALLY, 1, { 130 } },
         { CH_AMY_CANON, 1, { 163 } },
