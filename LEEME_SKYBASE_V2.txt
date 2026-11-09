@@ -1,0 +1,161 @@
+SKYBASE V2 — FIX del room (isDnd) + INCLUSION en la seleccion
+=============================================================
+(2 partes: primero el arreglo del error que te escupio GameMaker al
+ abrir el proyecto, luego el registro de SkyBase como mapa jugable en
+ TODAS las vias. Cliente y server HAY que actualizarlos JUNTOS, ver
+ "OJO" al final.)
+
+EL ERROR QUE REPORTASTE
+----------------------
+  Failed to load project: ... room_skybase.yy(140,3):
+  Error: Field "isDnd": expected.
+
+Causa: el .yy del room que genero el porte V1 tenia todos los campos
+del objeto raiz MENOS "isDnd":false. GameMaker lee los campos del room
+EN ORDEN ALFABETICO ESTRICTO: despues de "instanceCreationOrder" viene
+"isDnd" y recien ahi "layers". Al toparse con "layers" en la linea 140
+sin haber visto "isDnd", el IDE aborta la carga DEL PROYECTO ENTERO
+(era el unico .yy defectuoso: compare campo por campo contra
+room_limpcity y todos los demas objetos del room —instancias, capas,
+graphics— estaban 1:1 con el formato de la casa; solo faltaba ese
+campo raiz).
+
+Fix: UNA linea insertada ("isDnd": false, entre el cierre del
+instanceCreationOrder y "layers"). El validador
+check_skybase_port.py ahora chequea ese campo para que no se cuelen
+mas .yy con campos faltantes (seccion 2).
+
+INCLUSION EN LA SELECCION (indice 21, listas 22/22 alineadas)
+-------------------------------------------------------------
+Mismo camino que el porte SMax (PORT_README.md), con la leccion del
+RETIRA aplicada: la unica regla critica es que global.levels,
+global.levelDescriptions, mapData, g_mapList, g_mapZone y map_list
+quedan del MISMO largo (el crash de los SMax fue 22 descripciones para
+23 mapas).
+
+CLIENTE (GameMaker):
+- scripts/scr_globals/scr_globals.gml — global.levels[21] =
+  { group:"SkyBase", rid:room_skybase, bg:background_skybase2,
+  music:mus_skybase, chaseMusic:mus_skybase_chase } +
+  levelDescriptions[21] ("floating base above the clouds: five gaps
+  lead straight to the void..."). 22/22.
+- objects/obj_lobby_prolet/Create_0.gml — mapData[21] =
+  { tiles:[spr_pr_skybase], bg:spr_pr_skybasebg, side:[false] }. 22/22.
+- sprites/spr_pr_skybase/ (NUEVO, 630x270) — tile del preview del
+  lobby prolet: el mapa completo 3500x1500 reducido 1:1 de aspecto.
+- sprites/spr_pr_skybasebg/ (NUEVO, 512x288) — bg del preview: la banda
+  de cielo del propio mapa (background_skybase2) apilada espejada,
+  tileable horizontal como en el room. Ambos en el texturegroup
+  "Prolet" (como TODAS las previews: se cargan con el lobby, no con el
+  mapa).
+- sprites/spr_mapvote — el icono 123x104 del frame 21 REUTILIZADO
+  (era el icono huerfano del SMax Green Hill, dibujado naranja plano
+  e inalcanzable desde el RETIRA): ahora es un screenshot real del
+  mapa con esquinas transparentes y el nombre "SkyBase" arriba, como
+  los iconos stock. CERO cambios al .yy del sprite (23 frames como
+  quedo).
+- .yyp — +2 recursos (los 2 sprites de preview), 100% aditivo.
+
+SERVER (betterserver-oss):
+- include/Maps.h — MAP_COUNT 21 -> 22.
+- disasterserver/Maps.c — g_mapList[21] = "SkyBase", callbacks
+  GENERICOS { map_init, map_tick, map_tcpmsg, map_left } (como
+  "..."/DesertTown/Hide and Seek/Echidna Ruins/Fart: nada del mapa
+  necesita logica de server), spawn_red_rings 1 y ring_count 12
+  (= las 12 obj_ring_spawner del room, la misma regla 1:1 que
+  limpcity 23 / act9 38 / angelisland 21).
+- include/Zone.h + disasterserver/Zone.c — arrays a [22] +
+  room_skybase[] con 40 zonas anticheat: rects EXACTOS de los 40
+  bloques solidos (38 obj_solid_block + 2 muros obj_solid_block2,
+  sprite 128x128 origen 0,0), 1 zone por instancia, el mismo estilo
+  de act9/angelisland (BLOCK_SIZE * escala). Excluidos a proposito:
+  plataformas one-way (se puede estar dentro legalmente), pilares
+  (obj_hiding_parent: se ENTRA a esconderse), slopes (mascara
+  diagonal: su bounding box contiene aire legitimo) y gaps/abyss
+  (caida legal). Verificado contra el patron stock: act9 tiene 12
+  instancias "sobre el tope" de zonas y angelisland 15; skybase 11 —
+  mismo caso, seguro (el pos que reporta el cliente siempre queda
+  por encima del tope del bloque).
+- include/Config.h + disasterserver/Config.c — map_list[22], defaults:
+  [21] SkyBase ACTIVO en el voto, [20] Fart sigue fuera como siempre.
+- disasterserver/states/Lobby.c y Server.c — INTACTOS: sus textos
+  ("map should be between 1 and %d", ".map choose map (1-%d)") usan
+  MAP_COUNT dinamico y se ajustan solos a 22.
+
+OJO: ACTUALIZAR CLIENTE Y SERVER A LA VEZ (como siempre en esta serie)
+-----------------------------------------------------------------------
+- Cliente VIEJO + server NUEVO: si sale votado SkyBase, el cliente
+  viejo recibe id 21, no tiene global.levels[21] -> crash del lobby.
+- Server VIEJO + cliente nuevo: el server nunca manda el 21, no
+  pasa nada (pero no lo vas a poder jugar).
+- Recompila el server (compilar_server.bat / build_android.sh) y
+  recompila el cliente con el proyecto ya parcheado.
+
+COMO PROBARLO
+-------------
+1. Descomprime el zip sobre la raiz del proyecto (merge; los
+   MODIFICADOS reemplazan, los NUEVOS se agregan).
+2. Abre el proyecto: esta vez carga (el fix del isDnd).
+3. Recompila cliente y server.
+4. Votacion: SkyBase sale en el sorteo con su icono nuevo; al pasar
+   el cursor muestra la descripcion sin error (el check del crash).
+5. Lobby prolet: el preview scrollea el mapa con el cielo detras.
+6. .map 22 = SkyBase; .map 23 = "map should be between 1 and 22".
+7. .sp/.vp pueden sortearlo (esta en map_list activo).
+8. En ronda: anillos (12 spawners, ~10% rojos), escape con los 3
+   anillos grandes, caida a los gaps con respawn en abyss_target,
+   escondites en pilares, springs — y que el anticheat NO expulse a
+   nadie normal (las zonas son los bloques solidos y nada mas).
+
+PAQUETE (solo tocados por ESTA tarea)
+-------------------------------------
+NUEVOS:
+- sprites/spr_pr_skybase/            .yy + frame png (630x270)
+- sprites/spr_pr_skybasebg/          .yy + frame png (512x288)
+- LEEME_SKYBASE_V2.txt               este archivo
+- check_skybase_port.py              validador v2 (328 checks)
+
+MODIFICADOS:
+- rooms/room_skybase/room_skybase.yy  FIX: +1 linea "isDnd": false
+- scripts/scr_globals/scr_globals.gml levels[21] + descripcion[21]
+- objects/obj_lobby_prolet/Create_0.gml  mapData[21]
+- Sonicexe The Disaster 2D Remake.yyp    +2 recursos
+- sprites/spr_mapvote/79ae9d9e-...png    icono frame 21 reescrito
+- betterserver-oss/include/Maps.h        MAP_COUNT 22
+- betterserver-oss/disasterserver/Maps.c entrada //21
+- betterserver-oss/include/Zone.h        arrays [22]
+- betterserver-oss/disasterserver/Zone.c room_skybase[] 40 zonas
+- betterserver-oss/include/Config.h      map_list[22]
+- betterserver-oss/disasterserver/Config.c defaults 22
+- worklog.md                             entrada V2
+
+(NO van en este zip los archivos del V1 que ya tienes: room/sprites/
+sonidos/docs del porte original — solo si aun no aplicaste el V1,
+aplica ese zip primero.)
+
+VALIDACION
+----------
+- check_skybase_port.py: 328/328 OK — se anaden al V1: campo raiz
+  isDnd del room, conteos 22 en las 6 listas (levels/descriptions/
+  mapData/g_mapList/arrays de zonas/map_list), entrada //21 con
+  ring_count 12, 40 zonas 1:1 contra los solidos del room, posiciones
+  correctas en g_mapZone/g_mapZoneSize, Fart [20] fuera y [21] activo,
+  previews en grupo Prolet, icono mapvote 123x104 con esquinas
+  transparentes y contenido variado del mapa, .yyp 2073 recursos sin
+  duplicados.
+- C: Maps.c/Zone.c/Config.c pasan -fsyntax-only incluso con
+  -std=c17 estricto; los consumidores (Lobby/Server/Mapvote/Game/
+  Ring/Player) compilan IDENTICO a HEAD del repo (diff de errores del
+  entorno: cero diferencias; los unicos avisos son implicit-decl de
+  libc preexistentes del upstream).
+- Zonas anticheat contrastadas con el mismo test contra act9 y
+  angelisland (ver arriba): mismo patron de superficie, cero riesgo
+  nuevo.
+
+CREDITOS
+--------
+Igual que V1: mapa "SkyBase" de "TD2DR: Project SkyBase" v3.1 por
+ColdestTea (GameJolt 855567, abandonado ~2 anos), recreacion del
+SkyBase de "Sonic.exe: The Spirits of Hell". El SFX snd_skybase_target
+sigue portado pero sin hook de reproduccion (pendiente de tu
+decision, ver LEEME V1).

@@ -1,0 +1,158 @@
+ROOM: room_skybase 3500x1500 persistent=False
+CreationCodeId: none
+Flags/DrawOrder: False bgcolor=4278190080
+LAYER: Assets_2 type=Assets depth=-200 visible=True
+  (legacytiles: 0)
+  SPR name=graphic_14A7147F sprite=spr_skybase_propeller x=442 y=100 sx=1 sy=1 rot=0 frame=1
+  SPR name=graphic_52B795D0 sprite=spr_skybase_propeller x=1564 y=100 sx=1 sy=1 rot=0 frame=1
+  SPR name=graphic_7317000E sprite=spr_skybase_propeller x=2008 y=100 sx=1 sy=1 rot=0 frame=1
+  SPR name=graphic_23418BBA sprite=spr_skybase_propeller x=3079 y=100 sx=1 sy=1 rot=0 frame=1
+  SPR name=graphic_1EFB2DF sprite=spr_skybase_propeller x=1034 y=100 sx=1 sy=1 rot=0 frame=1
+  SPR name=graphic_2DE45C06 sprite=spr_skybase_propeller x=2552 y=100 sx=1 sy=1 rot=0 frame=1
+  SPR name=graphic_6F219491 sprite=spr_skybase_myhole x=3312 y=1024 sx=1 sy=1 rot=0 frame=1
+LAYER: Collisions type=Instances depth=-100 visible=True
+  INST id=104719 obj=obj_solid_block x=224 y=1200 sx=0.75 sy=1.12 rot=0
+  INST id=104720 obj=obj_solid_block x=192 y=1232 sx=0.25 sy=0.87 rot=0
+  INST id=104721 obj=obj_solid_block x=48 y=1296 sx=1.13 sy=0.245 rot=0
+  INST id=104722 obj=obj_solid_block x=320 y=1136 sx=0.75 sy=1 rot=0
+  INST id=104723 obj=obj_solid_block x=352 y=1104 sx=0.5 sy=0.25 rot=0
+  INST id=104724 obj=obj_platform_jumptrough x=416 y=1104 sx=1 sy=0.441 rot=0
+  INST id=104725 obj=obj_platform_jumptrough x=464 y=1248 sx=1 sy=0.44 rot=0
+  INST id=104726 obj=obj_solid_block x=528 y=1248 sx=1.25 sy=0.881 rot=0
+  INST id=104727 obj=obj_solid_block x=688 y=1280 sx=1.74 sy=0.498 rot=0
+  INST id=104728 obj=obj_platform_jumptrough x=911 y=1280 sx=1 sy=0.44 rot=0
+  INST id=104729 obj=obj_solid_block x=1104 y=1264 sx=1.5 sy=0.87 rot=0
+  INST id=104730 obj=obj_solid_block x=1296 y=1200 sx=0.635 sy=1 rot=0
+  INST id=104731 obj=obj_solid_block x=1377 y=1168 sx=0.74 sy=1.12 rot=0
+  INST id=104732 obj=obj_platform_jumptrough x=1472 y=1168 sx=2.24 sy=0.44 rot=0
+  INST id=104733 obj=obj_platform_jumptrough x=1231 y=1024 sx=6 sy=0.49 rot=0
+  INST id=104734 obj=obj_solid_block x=1615 y=1024 sx=0.5 sy=1.49 rot=0
+  INST id=104735 obj=obj_solid_block x=1679 y=1056 sx=0.25 sy=1.25 rot=0
+  INST id=104736 obj=obj_platform_jumptrough x=1824 y=1072 sx=1 sy=0.44 rot=0
+  INST id=104737 obj=obj_platform_jumptrough x=1888 y=1072 sx=1 sy=0.44 rot=0
+  INST id=104738 obj=obj_platform_jumptrough x=1952 y=1120 sx=1 sy=0.44 rot=0
+  INST id=104739 obj=obj_platform_jumptrough x=2016 y=1168 sx=1 sy=0.44 rot=0
+  INST id=104740 obj=obj_platform_jumptrough x=2080 y=1168 sx=1 sy=0.44 rot=0
+  INST id=104741 obj=obj_platform_jumptrough x=2224 y=1200 sx=1 sy=0.44 rot=0
+  INST id=104742 obj=obj_platform_jumptrough x=2480 y=1200 sx=1 sy=0.44 rot=0
+  INST id=104743 obj=obj_solid_block x=2288 y=1200 sx=1.502 sy=0.747 rot=0
+  INST id=104744 obj=obj_platform_jumptrough x=2624 y=1168 sx=1 sy=0.44 rot=0
+  INST id=104745 obj=obj_solid_block x=2688 y=1168 sx=4.877 sy=0.997 rot=0
+  INST id=104746 obj=obj_platform_jumptrough x=2992 y=928 sx=4 sy=0.503 rot=0
+  INST id=104747 obj=obj_platform_jumptrough x=960 y=960 sx=3 sy=0.44 rot=0
+  INST id=104748 obj=obj_solid_block x=640 y=896 sx=1.798 sy=0.247 rot=0
+  INST id=104749 obj=obj_solid_block x=528 y=824 sx=0.884 sy=0.747 rot=0
+  INST id=104750 obj=obj_solid_block x=464 y=760 sx=0.502 sy=1.247 rot=0
+  INST id=104751 obj=obj_platform_jumptrough x=336 y=760 sx=2 sy=0.44 rot=0
+  INST id=104752 obj=obj_platform_jumptrough x=2688 y=752 sx=1 sy=0.44 rot=0
+  INST id=104753 obj=obj_platform_jumptrough x=2496 y=688 sx=2 sy=0.44 rot=0
+  INST id=104754 obj=obj_platform_jumptrough x=2320 y=608 sx=2 sy=0.44 rot=0
+  INST id=104755 obj=obj_platform_jumptrough x=2144 y=560 sx=2 sy=0.44 rot=0
+  INST id=104756 obj=obj_solid_block x=2017 y=560 sx=0.994 sy=0.247 rot=0
+  INST id=104757 obj=obj_solid_block x=1599 y=488 sx=3.267 sy=0.802 rot=0
+  INST id=104758 obj=obj_solid_block x=1248 y=560 sx=1.752 sy=0.505 rot=0
+  INST id=104759 obj=obj_solid_block x=992 y=528 sx=2.009 sy=0.752 rot=0
+  INST id=104760 obj=obj_solid_block x=897 y=463 sx=0.752 sy=1.247 rot=0
+  INST id=104761 obj=obj_platform_jumptrough x=320 y=544 sx=3 sy=0.44 rot=0
+  INST id=104762 obj=obj_platform_jumptrough x=608 y=576 sx=3 sy=0.44 rot=0
+  INST id=104763 obj=obj_platform_jumptrough x=624 y=416 sx=2 sy=0.44 rot=0
+  INST id=104764 obj=obj_platform_jumptrough x=336 y=385 sx=3 sy=0.44 rot=0
+  INST id=104765 obj=obj_platform_jumptrough x=256 y=232 sx=9 sy=0.44 rot=0
+  INST id=104766 obj=obj_platform_jumptrough x=992 y=304 sx=3 sy=0.44 rot=0
+  INST id=104767 obj=obj_platform_jumptrough x=1264 y=224 sx=20 sy=0.44 rot=0
+  INST id=104768 obj=obj_platform_jumptrough x=2576 y=288 sx=3 sy=0.44 rot=0
+  INST id=104769 obj=obj_platform_jumptrough x=2988 y=232 sx=8 sy=0.44 rot=0
+  INST id=104770 obj=obj_platform_jumptrough x=2528 y=480 sx=1 sy=0.44 rot=0
+  INST id=104771 obj=obj_platform_jumptrough x=2224 y=416 sx=3 sy=0.44 rot=0
+  INST id=104772 obj=obj_solid_block x=2592 y=480 sx=1.744 sy=0.247 rot=0
+  INST id=104773 obj=obj_solid_block x=2912 y=480 sx=0.627 sy=0.255 rot=0
+  INST id=104774 obj=obj_solid_block x=2992 y=416 sx=0.259 sy=0.755 rot=0
+  INST id=104775 obj=obj_solid_block x=3024 y=384 sx=0.994 sy=1.005 rot=0
+  INST id=104776 obj=obj_platform_jumptrough x=3344 y=384 sx=2.438 sy=0.44 rot=0
+  INST id=104777 obj=obj_solid_block x=3150 y=384 sx=1.517 sy=0.747 rot=0
+  INST id=104778 obj=obj_solid_block x=236 y=-87 sx=23.689 sy=1.677 rot=0
+  INST id=104779 obj=obj_solid_block x=3312 y=928 sx=1.002 sy=0.872 rot=0
+  INST id=104780 obj=obj_solid_block x=3342 y=1039 sx=0.767 sy=0.763 rot=0
+  INST id=104781 obj=obj_solid_block x=3312 y=1136 sx=1.002 sy=0.505 rot=0
+  INST id=104782 obj=obj_solid_block x=2799 y=800 sx=0.502 sy=0.997 rot=0
+  INST id=104783 obj=obj_solid_block x=2863 y=832 sx=0.252 sy=0.747 rot=0
+  INST id=104784 obj=obj_solid_block x=2895 y=896 sx=0.259 sy=0.255 rot=0
+  INST id=104785 obj=obj_solid_block x=1471 y=560 sx=0.994 sy=0.508 rot=0
+  INST id=104786 obj=obj_solid_block x=640 y=927 sx=1.002 sy=0.633 rot=0
+  INST id=104787 obj=obj_solid_block x=3268 y=-13 sx=1.783 sy=0.102 rot=0
+  INST id=104788 obj=obj_solid_block x=0 y=-12 sx=1.845 sy=0.102 rot=0
+LAYER: Instances type=Instances depth=0 visible=True
+  INST id=104789 obj=obj_ringspawn x=3392 y=160 sx=1 sy=1 rot=0
+  INST id=104790 obj=obj_spawnpoint x=512 y=232 sx=1 sy=1 rot=0
+  INST id=104791 obj=obj_exespawn x=624 y=1248 sx=1 sy=1 rot=0
+  INST id=104792 obj=obj_soundemitter x=464 y=128 sx=1 sy=1 rot=0
+  INST id=104793 obj=obj_solid_block2 x=-56 y=0 sx=0.438 sy=11.7 rot=0
+  INST id=104794 obj=obj_solid_block2 x=3496 y=0 sx=0.563 sy=11.7 rot=0
+  INST id=104795 obj=obj_abyss x=1363 y=1500 sx=29.813 sy=0.813 rot=0
+  INST id=104796 obj=obj_abyss x=2364 y=1500 sx=32.813 sy=0.813 rot=0
+  INST id=104797 obj=obj_abyss x=135 y=1500 sx=12 sy=0.813 rot=0
+  INST id=104798 obj=obj_abyss x=607 y=1500 sx=17.5 sy=0.813 rot=0
+  INST id=104799 obj=obj_abyss x=3228 y=1500 sx=21.25 sy=0.813 rot=0
+  INST id=104800 obj=obj_abyss_target x=115 y=1296 sx=1 sy=1 rot=0
+  INST id=104801 obj=obj_abyss_target x=1192 y=1265 sx=1 sy=1 rot=0
+  INST id=104802 obj=obj_abyss_target x=2390 y=1200 sx=1 sy=1 rot=0
+  INST id=104803 obj=obj_abyss_target x=3380 y=927 sx=1 sy=1 rot=0
+  INST id=104804 obj=obj_abyss_target x=497 y=1248 sx=1 sy=1 rot=0
+  INST id=104805 obj=obj_yspring_up x=521 y=1248 sx=1 sy=1 rot=0
+  INST id=104806 obj=obj_yspring_up x=1406 y=1168 sx=1 sy=1 rot=0
+  INST id=104807 obj=obj_yspring_up x=3215 y=1168 sx=1 sy=1 rot=0
+  INST id=104808 obj=obj_yspring_up x=388 y=760 sx=1 sy=1 rot=0
+  INST id=104809 obj=obj_yspring_up x=3200 y=384 sx=1 sy=1 rot=0
+  INST id=104810 obj=obj_yspring_up x=684 y=576 sx=1 sy=1 rot=0
+  INST id=104811 obj=obj_spring_up x=1079 y=527 sx=1 sy=1 rot=0
+  INST id=104812 obj=obj_spring_up x=2649 y=480 sx=1 sy=1 rot=0
+  INST id=104813 obj=obj_ringspawn x=1544 y=1128 sx=1 sy=1 rot=0
+  INST id=104814 obj=obj_ringspawn x=432 y=336 sx=1 sy=1 rot=0
+  INST id=104815 obj=obj_spawnpoint x=2252 y=416 sx=1 sy=1 rot=0
+  INST id=104816 obj=obj_spawnpoint x=1388 y=560 sx=1 sy=1 rot=0
+  INST id=104817 obj=obj_spawnpoint x=3332 y=232 sx=1 sy=1 rot=0
+  INST id=104818 obj=obj_exespawn x=2832 y=1168 sx=1 sy=1 rot=0
+  INST id=104819 obj=obj_exespawn x=584 y=824 sx=1 sy=1 rot=0
+  INST id=104820 obj=obj_exespawn x=1583 y=1025 sx=1 sy=1 rot=0
+  INST id=104821 obj=obj_ring_spawner x=804 y=1257 sx=1 sy=1 rot=0
+  INST id=104822 obj=obj_ring_spawner x=832 y=1257 sx=1 sy=1 rot=0
+  INST id=104823 obj=obj_ring_spawner x=1746 y=460 sx=1 sy=1 rot=0
+  INST id=104824 obj=obj_ring_spawner x=1448 y=993 sx=1 sy=1 rot=0
+  INST id=104825 obj=obj_ring_spawner x=1793 y=460 sx=1 sy=1 rot=0
+  INST id=104826 obj=obj_ring_spawner x=2900 y=1141 sx=1 sy=1 rot=0
+  INST id=104827 obj=obj_ring_spawner x=2718 y=1141 sx=1 sy=1 rot=0
+  INST id=104828 obj=obj_ring_spawner x=376 y=519 sx=1 sy=1 rot=0
+  INST id=104829 obj=obj_ring_spawner x=446 y=519 sx=1 sy=1 rot=0
+  INST id=104830 obj=obj_ring_spawner x=392 y=200 sx=1 sy=1 rot=0
+  INST id=104831 obj=obj_ring_spawner x=1803 y=200 sx=1 sy=1 rot=0
+  INST id=104832 obj=obj_ring_spawner x=2944 y=449 sx=1 sy=1 rot=0
+  INST id=104833 obj=obj_skybase_pillar x=1041 y=447 sx=1 sy=1 rot=0
+  INST id=104834 obj=obj_skybase_pillar x=1205 y=1183 sx=1 sy=1 rot=0
+  INST id=104835 obj=obj_skybase_pillar x=1936 y=408 sx=1 sy=1 rot=0
+  INST id=104836 obj=obj_skybase_pillar x=3087 y=304 sx=1 sy=1 rot=0
+  INST id=104837 obj=obj_parallax x=9 y=-1451 sx=1 sy=1 rot=0
+  INST id=104838 obj=obj_skybase_slope x=641 y=824 sx=1 sy=1 rot=0
+  INST id=104839 obj=obj_skybase_slope x=2017 y=488 sx=1 sy=1 rot=0
+  INST id=104840 obj=obj_skybase_slope x=1599 y=488 sx=-1 sy=1 rot=0
+  INST id=104841 obj=obj_warning x=24 y=1264 sx=1 sy=1 rot=0
+  INST id=104842 obj=obj_warning x=440 y=1216 sx=1 sy=1 rot=0
+  INST id=104843 obj=obj_warning x=1920 y=1160 sx=1 sy=1 rot=0
+  INST id=104844 obj=obj_warning x=1768 y=1088 sx=1 sy=1 rot=0
+  INST id=104845 obj=obj_warning x=1040 y=1296 sx=1 sy=1 rot=0
+  INST id=104846 obj=obj_warning x=2168 y=1240 sx=1 sy=1 rot=0
+  INST id=104847 obj=obj_warning x=2592 y=1232 sx=1 sy=1 rot=0
+  INST id=104848 obj=obj_warning x=3464 y=896 sx=1 sy=1 rot=0
+LAYER: Assets_1 type=Assets depth=100 visible=True
+  (legacytiles: 0)
+  SPR name=graphic_658A47DC sprite=spr_skybase_telepod x=1320 y=537 sx=1 sy=1 rot=0 frame=1
+  SPR name=graphic_178B8D25 sprite=spr_skybase_telepod x=2790 y=1145 sx=1 sy=1 rot=0 frame=1
+  SPR name=graphic_1877306E sprite=spr_skybase_telepod x=3326 y=361 sx=1 sy=1 rot=0 frame=1
+  SPR name=graphic_31FD753A sprite=spr_skybase_telepod x=744 y=1257 sx=1 sy=1 rot=0 frame=1
+LAYER: Background3 type=Background depth=200 visible=True
+  BG sprite=background_skybase2 CalcScaleX=0 CalcScaleY=0 Visible=True Foreground=False Sprite=background_skybase2 (UndertaleSprite) TiledHorizontally=True TiledVertically=False Stretch=False Color=4294967295 FirstFrame=0 AnimationSpeed=30 AnimationSpeedType=FPS XOffset=0 YOffset=0
+LAYER: Background2 type=Background depth=300 visible=True
+  BG sprite=background_skybase3 CalcScaleX=0 CalcScaleY=0 Visible=True Foreground=False Sprite=background_skybase3 (UndertaleSprite) TiledHorizontally=True TiledVertically=False Stretch=False Color=4294967295 FirstFrame=0 AnimationSpeed=30 AnimationSpeedType=FPS XOffset=0 YOffset=0
+LAYER: Background1 type=Background depth=400 visible=True
+  BG sprite=background_skybase1 CalcScaleX=0 CalcScaleY=0 Visible=True Foreground=False Sprite=background_skybase1 (UndertaleSprite) TiledHorizontally=True TiledVertically=False Stretch=False Color=4294967295 FirstFrame=0 AnimationSpeed=30 AnimationSpeedType=FPS XOffset=48 YOffset=5
+LAYER: Background type=Background depth=500 visible=True
+  BG sprite= CalcScaleX=0 CalcScaleY=0 Visible=True Foreground=False TiledHorizontally=False TiledVertically=False Stretch=False Color=4282916864 FirstFrame=0 AnimationSpeed=15 AnimationSpeedType=FPS XOffset=0 YOffset=0

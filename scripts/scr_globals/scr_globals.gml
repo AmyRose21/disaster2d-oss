@@ -87,9 +87,10 @@ global.levels =
         { group: "WoodDream", rid: room_weedzone, bg: background_weed, music: mus_weedzone, chaseMusic: mus_weedzone_chase },
         { group: "Marijuna", rid: room_marijuna, bg: background_weed, music: mus_marijuna, chaseMusic: mus_marijuna_chase },
         { group: "Fart", rid: room_fartzone, bg: background_test, music: mus_fartzone, chaseMusic: mus_fartzone_chase },
-        // v5.x: SMax Green Hill (21) y SMax Emerald Hill (22) REMOVIDOS de la
-        // seleccion (mapas corruptos). El "Hill" original sigue siendo el 12.
-        // Los rooms/sprites del porte no se borraron por si se arreglan luego.
+        // [21] SkyBase: porte del mod abandonado "TD2DR: Project SkyBase" de
+        // ColdestTea (mapa 100% custom, room_skybase). Los SMax siguen
+        // retirados (mapas corruptos); el "Hill" original sigue siendo el 12.
+        { group: "SkyBase", rid: room_skybase, bg: background_skybase2, music: mus_skybase, chaseMusic: mus_skybase_chase },
 ];
 
 global.levelDescriptions = 
@@ -119,6 +120,8 @@ global.levelDescriptions =
         // 1:1 con global.levels y no pueda indexarse fuera de rango si un
         // operador lo activa desde la UI del server.
         "the original practice sandbox: a small flat test map with rings and springs  \n|practice map",
+        // [21] SkyBase: mismo formato de ancho fijo que el resto.
+        "floating base above the clouds: five gaps lead straight to the void, watch \nthe propellers when you hide behind the pillars, escape rings are hidden    \nacross the base",
 ];
 
 // Operador del server: lo setea el server al conectarte

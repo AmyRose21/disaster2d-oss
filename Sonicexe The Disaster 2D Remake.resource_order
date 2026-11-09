@@ -45,8 +45,6 @@
     {"name":"room_notperfect","order":12,"path":"rooms/room_notperfect/room_notperfect.yy",},
     {"name":"room_pricelessfreedom","order":15,"path":"rooms/room_pricelessfreedom/room_pricelessfreedom.yy",},
     {"name":"room_ravinemist","order":2,"path":"rooms/room_ravinemist/room_ravinemist.yy",},
-    {"name":"room_smax_emeraldhill","order":21,"path":"rooms/room_smax_emeraldhill/room_smax_emeraldhill.yy",},
-    {"name":"room_smax_greenhill","order":22,"path":"rooms/room_smax_greenhill/room_smax_greenhill.yy",},
     {"name":"room_torturecave","order":4,"path":"rooms/room_torturecave/room_torturecave.yy",},
     {"name":"room_volcanovalley","order":17,"path":"rooms/room_volcanovalley/room_volcanovalley.yy",},
     {"name":"room_weedzone","order":7,"path":"rooms/room_weedzone/room_weedzone.yy",},
