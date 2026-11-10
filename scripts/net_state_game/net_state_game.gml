@@ -2840,6 +2840,13 @@ function net_state_game(rbuff, nps, isPasstrough)
                         else if(_lmsChar < 0)
                                 _lmsChar = CHARACTER_SONIC;    // v5.0: sin payload
                         
+                        // FIX LMS musica de mapa (v1): "...", Wood Zone y Act9
+                        // tocan su musica por FUERA de global.music; sin esto
+                        // seguia sonando la del mapa ENCIMA de la del show
+                        // (dos canciones a la vez). Vale igual para el
+                        // broadcast y para el re-envio al que se reconecta.
+                        scr_stop_map_music();
+
                         scr_lms_play_song(_lmsChar, _lmsSong);
                         instance_create_depth(0, 0, 0, obj_lms_banner);
                         
@@ -3116,12 +3123,16 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 // reemplaza (el anillo sigue apareciendo normal).
                                 if(!global.lmsActive)
                                 {
-                                        if(room == room_dotdotdot)
+                                        // FIX LMS musica de mapa (v1): Wood Zone tambien suena
+                                        // con las layers de mus_dotdotdot (monta obj_dotdotdot_i),
+                                        // asi que entra en la misma rama: se paran igual y su
+                                        // persecucion es la de SU entrada de levels.
+                                        if(room == room_dotdotdot || room == room_woodzone)
                                         {
                                                 audio_stop_sound(mus_dotdotdot);
                                                 audio_stop_sound(mus_dotdotdot2);
                                                 
-                                                scr_play_music(mus_dotdotdot_chase);
+                                                scr_play_music(room == room_dotdotdot ? mus_dotdotdot_chase : global.levels[lvlId].chaseMusic);
                                         }
                                         else if(room == room_act9)
                                         {
@@ -4238,6 +4249,12 @@ function net_state_game(rbuff, nps, isPasstrough)
                 case PacketType.SERVER_RESULTS:
                 {
                         lvlId = buffer_read_s(rbuff, buffer_u8);
+                        
+                        // FIX LMS musica de mapa (v1): en "...", Wood Zone y
+                        // Act9 la musica del mapa es un loop directo que no
+                        // se muere solo con el cambio de room — sin esto se
+                        // colaba ENCIMA de la musica del ending.
+                        scr_stop_map_music();
                         
                         gameEnds = true;
                         isReady = true;

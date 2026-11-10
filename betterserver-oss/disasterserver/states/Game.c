@@ -2731,9 +2731,82 @@ bool game_state_tick(Server* server)
 
                         if (show)
                         {
+                                /* v5.3.2 — FIX LMS VARIEDAD V1: la cancion ya
+                                   NO sale de rand() % songs (con listas de
+                                   2/4 repetia la misma el 50%/25% de las
+                                   veces SEGUIDAS y sonaba a "siempre la
+                                   misma cancion"). Sale de una BOLSA por
+                                   personaje (shuffle-bag) que vive en el
+                                   Server (persiste entre rondas): cada show
+                                   saca una, y la bolsa solo se rellena cuando
+                                   se vacia -> suenan TODAS las del personaje
+                                   antes de repetir NINGUNA. */
+                                uint8_t* bag = server->lms_bag[show->ch];
+                                uint8_t* bag_left = &server->lms_bag_left[show->ch];
+                                uint8_t* bag_count = &server->lms_bag_count[show->ch];
+                                bool refilled = false;
+
+                                if (*bag_count != show->songs || *bag_left == 0)
+                                {
+                                        /* bolsa vacia (o la tabla cambio de
+                                           tamaño via el Suite): rellenar con
+                                           0..songs-1 y mezclar (Fisher-Yates) */
+                                        *bag_count = show->songs;
+                                        *bag_left = show->songs;
+                                        refilled = true;
+
+                                        for (uint8_t j = 0; j < *bag_left; j++)
+                                                bag[j] = j;
+
+                                        for (uint8_t j = *bag_left - 1; j > 0; j--)
+                                        {
+                                                uint8_t k = (uint8_t)(rand() % (j + 1));
+                                                uint8_t tmp = bag[j];
+                                                bag[j] = bag[k];
+                                                bag[k] = tmp;
+                                        }
+                                }
+
+                                uint8_t pick;
+                                if (refilled && show->songs > 1)
+                                {
+                                        /* ANTI-ECO entre ciclos: sin esto, la
+                                           primera extraccion tras rellenar
+                                           podia caer (1 de N) en la misma
+                                           cancion que cerro el ciclo anterior
+                                           -> "la misma DOS VECES SEGUIDAS".
+                                           Se sortea entre las otras N-1. */
+                                        uint8_t skip = 0xFF;
+                                        for (uint8_t j = 0; j < *bag_left; j++)
+                                        {
+                                                if (bag[j] == server->lms_last[show->ch])
+                                                {
+                                                        skip = j;
+                                                        break;
+                                                }
+                                        }
+
+                                        if (skip != 0xFF)
+                                        {
+                                                pick = (uint8_t)(rand() % (*bag_left - 1));
+                                                if (pick >= skip)
+                                                        pick++;
+                                        }
+                                        else
+                                                pick = (uint8_t)(rand() % *bag_left);
+                                }
+                                else
+                                        pick = (uint8_t)(rand() % *bag_left);
+
                                 server->game.lms = true;
                                 server->game.lms_char = show->ch;
-                                server->game.lms_song = (uint8_t)(rand() % show->songs);
+                                server->game.lms_song = bag[pick];
+                                server->lms_last[show->ch] = bag[pick];
+
+                                /* la sacada se reemplaza por la ultima
+                                   pendiente (quedan bag_left-1 sin ella) */
+                                bag[pick] = bag[*bag_left - 1];
+                                (*bag_left)--;
 
                                 uint16_t song_sec = show->sec[server->game.lms_song];
                                 if (server->game.time_sec < song_sec)

@@ -273,6 +273,26 @@ typedef struct Server
         int8_t last_map;
         int16_t map_pickrates[30];
 
+        /* v5.3.2 — FIX LMS VARIEDAD V1: bolsa anti-repeticion de las
+           canciones del show, POR PERSONAJE. Vive en Server (no en Game)
+           para NO resetearse entre rondas: cada show saca una cancion de
+           la bolsa y la bolsa solo se rellena cuando se vacia, asi las
+           canciones de un personaje NO se repiten hasta que han sonado
+           TODAS (shuffle-bag). Con rand() puro una lista de 2 repetia la
+           misma el 50% de las veces seguidas (4: el 25%) y sonaba como
+           "siempre la misma cancion". lms_bag_count guarda el tamaño de
+           la lista con la que se relleno (si el Suite cambia la tabla,
+           la bolsa se rellena sola). */
+        uint8_t lms_bag[CH_FLEETWAY_AMY + 1][LMS_MAX_SONGS];
+        uint8_t lms_bag_left[CH_FLEETWAY_AMY + 1];
+        uint8_t lms_bag_count[CH_FLEETWAY_AMY + 1];
+
+        /* v5.3.2: ultima cancion que SONO por personaje (para el anti-eco
+           entre ciclos de la bolsa: la primera extraccion tras rellenar
+           no puede caer en la misma que cerro el ciclo anterior). Se
+           inicializa a 0xFF en server_new (Lib.c). */
+        uint8_t lms_last[CH_FLEETWAY_AMY + 1];
+
         double delta;
         DyList peers;
         ENetHost *host;

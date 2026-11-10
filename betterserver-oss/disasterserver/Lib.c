@@ -39,6 +39,12 @@ bool allocate_server(uint16_t base_port, uint16_t n)
         for (int i = 0; i < MAP_COUNT; i++)
                 server->map_pickrates[i] = 255;
 
+        /* v5.3.2 — FIX LMS VARIEDAD V1: lms_last arranca en 0xFF ("ninguna")
+           por personaje: la bolsa se rellena y la primera extraccion puede
+           caer en cualquier cancion. */
+        for (int i = 0; i <= CH_FLEETWAY_AMY; i++)
+                server->lms_last[i] = 0xFF;
+
         // Init lobby
         MutexCreate(server->state_lock);
         RAssert(dylist_create(&server->peers, 7));
