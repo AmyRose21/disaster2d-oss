@@ -29,30 +29,30 @@
 //     sincronizados.
 //  Stats: identicos a Exeller (12 / 0.056875).
 // =====================================================================
-#macro METALAMY_BULLET_RECHARGE (60 * 3)
+#macro METALAMY_BULLET_RECHARGE (60 * 5)
 #macro METALAMY_MAXSPEED 13
 #macro METALAMY_ACC 0.056875
 
 // v4.6 — DASH (tecla X)
 #macro METALAMY_DASH_MAX 3            // cargas maximas
-#macro METALAMY_DASH_RECHARGE (60 * 5) // 5 s de recarga POR carga
+#macro METALAMY_DASH_RECHARGE (60 * 3.75) // 5 s de recarga POR carga
 #macro METALAMY_DASH_GAP (60 * 0.5)   // 0,5 s entre usos (gatea attackTimer)
 #macro METALAMY_DASH_BOOST 18         // frames de impulso a velocidad alta
 #macro METALAMY_DASH_HSPD 12          // velocidad horizontal (patron chaos)
 #macro METALAMY_DASH_VSPD 8           // velocidad vertical (patron chaos)
 
 // v4.7/v4.8/v4.10 — SCAN (tecla V): «visión» de supervivientes
-#macro METALAMY_SCAN_RECHARGE (60 * 20) // 20 s de enfriamiento (uso manual)
-#macro METALAMY_SCAN_TIME (60 * 12)      // 12 s de revelado con la V (v4.10: antes 8)
+#macro METALAMY_SCAN_RECHARGE (60 * 14.5) // 20 s de enfriamiento (uso manual)
+#macro METALAMY_SCAN_TIME (60 * 15.5)      // 12 s de revelado con la V (v4.10: antes 8)
 #macro METALAMY_HUNT_WINDOW (60 * 8)     // 8 s de ventana pasiva de la cazadora (v4.10)
 #macro METALAMY_SCAN_POSE 48             // 0,8 s de pose de escaneo (spr_metalamy_scan, slot 21)
 
 // v4.8 — PASIVAS DE METAL AMY
 #macro METALAMY_EXEC_HP 30              // Ejecución: láser + vida < 30% = derribo directo
-#macro METALAMY_WEAKMARK_TIME (60 * 6)  // Marca de debilidad: +6 s a los enfriamientos
+#macro METALAMY_WEAKMARK_TIME (60 * 8)  // Marca de debilidad: +6 s a los enfriamientos
 #macro METALAMY_WEAKMARK_CD (60 * 16)   // ...con CD propio de 16 s POR superviviente
-#macro METALAMY_HUNT_TIME (60 * 14)     // Marca de la cazadora: ciclo de 14 s (rastreo pasivo)
-#macro METALAMY_ADAPT_WINDOW (60 * 3)   // Adaptabilidad: 3 s tras perder la inmunidad por golpe
+#macro METALAMY_HUNT_TIME (60 * 11.25)     // Marca de la cazadora: ciclo de 14 s (rastreo pasivo)
+#macro METALAMY_ADAPT_WINDOW (60 * 5.5)   // Adaptabilidad: 3 s tras perder la inmunidad por golpe
 
 function scr_metalamy_special()
 {

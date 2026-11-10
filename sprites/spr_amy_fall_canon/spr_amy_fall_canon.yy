@@ -23,7 +23,7 @@
   ],
   "name":"spr_amy_fall_canon",
   "nineSlice":null,
-  "origin":9,
+  "origin":4,
   "parent":{
     "name":"Amy Canon",
     "path":"folders/Sprites/Player/Survivors/Amy Canon.yy",
@@ -75,7 +75,7 @@
     ],
     "visibleRange":null,
     "volume":1.0,
-    "xorigin":16,
+    "xorigin":15,
     "yorigin":20,
   },
   "swatchColours":null,

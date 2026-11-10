@@ -7,7 +7,7 @@
 // Escudo de Sally Canon: recarga 2 seg MAS RAPIDA que la de Sally
 // (30 -> 28 s), para que la fase 1 no quede tan indefensa. Solo
 // afecta a Sally Canon: la vanilla conserva SU SALLY_SHIELD_RECHARGE.
-#macro SALLY_CANON_SHIELD_RECHARGE (60 * 28)
+#macro SALLY_CANON_SHIELD_RECHARGE (60 * 13.5)
 
 // POSES DEL ESCUDO (v5.8): velocidad de la animacion de ACTIVACION
 // del escudo (frames de pose por frame de juego). 0.5 = cada frame

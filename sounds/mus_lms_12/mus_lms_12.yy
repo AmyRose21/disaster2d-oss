@@ -10,7 +10,7 @@
   "compression":3,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":242.9504,
+  "duration":205.656,
   "exportDir":"",
   "name":"mus_lms_12",
   "parent":{

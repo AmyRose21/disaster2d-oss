@@ -27,7 +27,7 @@
   ],
   "name":"spr_sally_shield_canon",
   "nineSlice":null,
-  "origin":4,
+  "origin":9,
   "parent":{
     "name":"Fase2",
     "path":"folders/Sprites/Player/Survivors/Sally Canon/Fase2.yy",
@@ -92,7 +92,7 @@
     "visibleRange":null,
     "volume":1.0,
     "xorigin":20,
-    "yorigin":23,
+    "yorigin":24,
   },
   "swatchColours":null,
   "swfPrecision":2.525,

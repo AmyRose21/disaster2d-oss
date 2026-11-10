@@ -31,7 +31,7 @@
   ],
   "name":"spr_sonic_attack2_tierra2",
   "nineSlice":null,
-  "origin":9,
+  "origin":4,
   "parent":{
     "name":"Sonic Canon",
     "path":"folders/Sprites/Player/Survivors/Sonic Canon.yy",
@@ -107,7 +107,7 @@
     ],
     "visibleRange":null,
     "volume":1.0,
-    "xorigin":24,
+    "xorigin":22,
     "yorigin":28,
   },
   "swatchColours":null,

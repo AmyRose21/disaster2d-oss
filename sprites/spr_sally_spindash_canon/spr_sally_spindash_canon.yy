@@ -25,7 +25,7 @@
   ],
   "name":"spr_sally_spindash_canon",
   "nineSlice":null,
-  "origin":4,
+  "origin":9,
   "parent":{
     "name":"Fase2",
     "path":"folders/Sprites/Player/Survivors/Sally Canon/Fase2.yy",
@@ -84,7 +84,7 @@
     "visibleRange":null,
     "volume":1.0,
     "xorigin":20,
-    "yorigin":20,
+    "yorigin":18,
   },
   "swatchColours":null,
   "swfPrecision":2.525,
