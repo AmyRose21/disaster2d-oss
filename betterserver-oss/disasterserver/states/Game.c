@@ -593,7 +593,46 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         break;
                         
                 case CLIENT_PLAYER_POTATER:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        server_broadcast_ex(v->server, packet, true,  v->id);
+                        break;
+                }
+
                 case CLIENT_SOUND_EMIT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+
+                        /* v5.2 FIX "blud used a portal gun lmfao" (server-side,
+                         * GENERICO — no depende del mapa, vale para los actuales
+                         * y para cualquiera futuro): cuando un jugador cae en un
+                         * pozo (obj_abyss) el cliente lo teletransporta al punto
+                         * de retorno y SE HACE 20 DE DANO EN EL MISMO FRAME. Ese
+                         * dano SIEMPRE viaja como sonido de dolor (snd_hurt) o de
+                         * anillos perdidos (snd_ringlose) via net_sound_emit, para
+                         * TODOS los personajes (exe incluido) y con o sin anillos.
+                         * El server no simula pozos ni conoce la geometria de las
+                         * salas, pero si puede ver esa senal y usarla como
+                         * corroboracion de que el teleport fue mecanica del juego
+                         * y no trampa. Indices = posicion en global.net_snds
+                         * (scripts/net_sounds/net_sounds.gml); la convencion del
+                         * proyecto es anadir sonidos NUEVOS solo AL FINAL del
+                         * array, asi que 6 y 9 son estables. Leer nid/sndidx no
+                         * rompe el rebroadcast: packet_send resetea pos=0 y envia
+                         * buff[0..len] completo. */
+                        PacketRead(nid, packet, packet_read16, uint16_t);
+                        PacketRead(sndidx, packet, packet_read8, uint8_t);
+
+                        if (nid == v->id && (sndidx == 6 /* snd_ringlose */ || sndidx == 9 /* snd_hurt */))
+                        {
+                                time_start(&v->plr.last_self_hurt);
+                                v->plr.portal_pending = 0;
+                        }
+
+                        server_broadcast_ex(v->server, packet, true,  v->id);
+                        break;
+                }
+
                 case CLIENT_SPAWN_EFFECT: 
                 case CLIENT_PET_PALETTE:
                 case CLIENT_SPRING_USE:
@@ -725,6 +764,20 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 {
                                         PacketRead(dmg, packet, packet_read8, uint8_t);
                                         v->plr.stats.damage_taken += dmg / 20;
+
+                                        /* v5.2 FIX "blud used a portal gun lmfao":
+                                         * corroboracion por dano propio reportado.
+                                         * El pozo hace exactamente 20; vale cualquier
+                                         * golpe >= 20. Cubre al superviviente sin
+                                         * anillos (con 10+ el golpe se absorbe y NO
+                                         * hay reporte, pero entonces el snd_ringlose
+                                         * del CLIENT_SOUND_EMIT si viaja) y cualquier
+                                         * otro dano ambiente. */
+                                        if (dmg >= 20)
+                                        {
+                                                time_start(&v->plr.last_self_hurt);
+                                                v->plr.portal_pending = 0;
+                                        }
                                         break;
                                 }
                         }
@@ -2232,6 +2285,31 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 {
                                         if (v->plr.ex_teleport == 0)
                                         {
+                                                /* v5.2 FIX "blud used a portal gun lmfao"
+                                                 * (server-side, GENERICO: cualquier mapa
+                                                 * actual o futuro): los saltos >700px
+                                                 * LEGITIMOS del juego (pozos de obj_abyss
+                                                 * y caidas por debajo de la sala) van
+                                                 * SIEMPRE acompanados de dano propio en el
+                                                 * mismo frame (scr_player_hurt(20,0,0)), y
+                                                 * ese dano llega al server como
+                                                 * CLIENT_STATS_REPORT(3) y/o
+                                                 * CLIENT_SOUND_EMIT(snd_hurt/snd_ringlose).
+                                                 * Con corroboracion reciente (ventana de 3 s:
+                                                 * cubre los i-frames de hasta 3 s, durante
+                                                 * los que el pozo teleporta sin sonido ni
+                                                 * dano) el salto se PERDONA. Sin ella, el
+                                                 * kick se DIFIERE 1.5 s (portal_pending)
+                                                 * porque la senal de dano viaja por TCP y
+                                                 * puede llegar DESPUES del paquete UDP de
+                                                 * posicion. Un segundo salto grande sin
+                                                 * corroborar mientras hay uno pendiente =
+                                                 * trampa: kick inmediato. La exencion de los
+                                                 * mapas 15/13/8/6 se CONSERVA (warps
+                                                 * legitimos SIN dano de los mapas
+                                                 * originales). */
+                                                bool corroborated = v->plr.last_self_hurt != 0.0 && time_end(&v->plr.last_self_hurt) <= 3000.0;
+
                                                 if (dist > 700)
                                                 {
                                                         switch (v->server->game.map)
@@ -2241,14 +2319,30 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                                                 case 8:
                                                                 case 6:
                                                                         break;
-                                
-                                                                default:
-                                                                        server_disconnect(v->server, v->peer, DR_OTHER, "blud used a portal gun lmfao");
-                                                                        return true;
+
+                                                        default:
+                                                                        if (corroborated)
+                                                                                break;
+
+                                                                        if (v->plr.portal_pending > 0)
+                                                                        {
+                                                                                server_disconnect(v->server, v->peer, DR_OTHER, "blud used a portal gun lmfao");
+                                                                                return true;
+                                                                        }
+
+                                                                        /* sin corroborar TODAVIA: kick diferido
+                                                                         * (expira en game_player_tick) */
+                                                                        v->plr.portal_pending = 1.5 * TICKSPERSEC;
+                                                                        break;
                                                         }
                                                 }
-                                
-                                                if (dist > 60)
+
+                                                /* El error de "dial-up" (dist > 60) no se
+                                                 * acumula mientras el salto esta pendiente
+                                                 * de corroborar ni cuando ya esta
+                                                 * corroborado: una caida legitima al pozo
+                                                 * no es "lag". */
+                                                if (dist > 60 && !corroborated && v->plr.portal_pending <= 0)
                                                 {
                                                         if (!player_add_error(v->server, v, 500))
                                                                 return true;
@@ -2415,6 +2509,28 @@ bool game_player_tick(Server* server)
                         continue;
 
                 player_check_zone(server, data);
+
+                /* v5.2 FIX "blud used a portal gun lmfao": expiracion del kick
+                 * diferido. Si en 1.5 s no llego ninguna senal de dano propio
+                 * (CLIENT_STATS_REPORT(3) / snd_hurt / snd_ringlose) que
+                 * justifique el salto >700px, era un teleport de verdad:
+                 * desconectar con el mismo mensaje de siempre. A un jugador
+                 * muerto no se le expira nada (no hay nada que corroborar). */
+                if (data->plr.portal_pending > 0)
+                {
+                        if (data->plr.flags & PLAYER_DEAD)
+                                data->plr.portal_pending = 0;
+                        else
+                        {
+                                data->plr.portal_pending -= server->delta;
+                                if (data->plr.portal_pending <= 0)
+                                {
+                                        data->plr.portal_pending = 0;
+                                        server_disconnect(server, data->peer, DR_OTHER, "blud used a portal gun lmfao");
+                                        continue;
+                                }
+                        }
+                }
 
                 // ping check
                 if (server->delta < 2.5)

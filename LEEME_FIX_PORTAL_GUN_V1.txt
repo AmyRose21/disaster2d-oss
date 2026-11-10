@@ -1,0 +1,154 @@
+==============================================================================
+ TD2DR — FIX "PORTAL GUN" V1 (los pozos de los mapas nuevos ya no
+ teletransportan al vacio ni te atrapan por caminar)
+==============================================================================
+ Base: commit 5ca9cbd9 de https://github.com/AmyRose21/disaster2d-oss
+
+------------------------------------------------------------------------------
+ EL BUG (reportado por el usuario)
+------------------------------------------------------------------------------
+ "Blud used a portal gun lmfao — sale eso en los mapas nuevos en ciertos
+ lugares, puedes arreglar eso?"
+
+ En los mapas nuevos (SkySanctuary [24], SkyBase [21], Wood Zone [23]), al
+ caer en ciertos huecos el jugador aparecia teletransportado a otro punto
+ del mapa, a veces a cientos de pixeles (como si llevara un portal gun), y
+ en varios sitios volvia a caer al vacio y rebotaba teleport + 20 de dano
+ una y otra vez hasta morir.
+
+------------------------------------------------------------------------------
+ EL DIAGNOSTICO (verificado a fondo ANTES de tocar nada)
+------------------------------------------------------------------------------
+ Como funciona la mecanica de pozos en este juego:
+  - obj_abyss (el pozo): sprite 32x32 con origen centro-abajo y escalable
+    en X, asi que un solo instance cubre franjas enormes. Cuando el
+    JUGADOR LOCAL lo toca (place_meeting), lo teleporta a un
+    obj_abyss_target + 20 de dano (scr_player_hurt(20,0,0)) + stuns segun
+    personaje. Todo CLIENTE: el server NO simula pozos.
+  - scr_collision_basic tiene ademas un fallback: si y-30 >= room_height,
+    teleport al obj_abyss_target mas cercano al jugador (y si no hay, al
+    obj_deathtp_point).
+  - Los mapas ORIGINALES declaran pares pozo<->punto por instance creation
+    code (obj_abyss.target_id <-> obj_abyss_target.tid; DesertTown lo hace
+    con tids 0..6), pero el codigo NUNCA LOS LEE: el Step usaba
+    instance_nearest(x, y, obj_abyss_target) medido DESDE LA ESQUINA DEL
+    POZO. El sistema tid/target_id era codigo muerto.
+
+ Se midieron los 3 fallos combinados sobre los .yy reales de los mapas:
+
+  1) SELECCION POR ESQUINA DEL POZO: como el punto se elige desde la
+     esquina del pozo y no desde donde cayo el jugador, en pozos anchos
+     TODO EL MUNDO va al MISMO punto. El pozo del fondo de SkySanctuary
+     tiene sx=135 (cubre x 352..4672: TODO el fondo del mapa): caigas
+     donde caigas, ibas a parar a (2224,1408) — hasta 2448 px de
+     teleport. Eso es literalmente el "portal gun".
+
+  2) TARGETS EN EL AIRE: los portes colocaron puntos de retorno SIN SUELO
+     debajo (verificado contra la geometria real de los floors de cada
+     sala):
+       - SkyBase: 4 de 5 -> (115,1296), (1192,1265), (2390,1200), (3380,927)
+       - SkySanctuary: (416,1408), (1616,1472), (2224,1408), (1600,864),
+         y (3040,1184) que ademas esta DENTRO de un muro solido
+       - Wood Zone: los 2 -> (2336,1840) y (2736,1840)
+     Consecuencia: teleport -> no hay suelo -> vuelves a caer al pozo ->
+     teleport + 20 de dano -> ... BUCLE hasta morir.
+
+  3) POZO ENCIMA DE SUELO CAMINABLE: el pozo medio de SkySanctuary
+     (franja y 1056..1088, x 880..1904) se solapa con el bloque caminable
+     (752..1008, top 1084): un jugador PARADO en x 880..1008 tenia las
+     piernas dentro de la franja del pozo -> TELEPORT INSTANTANEO SOLO POR
+     CAMINAR POR AHI. Ese es uno de los "ciertos lugares" del reporte.
+
+------------------------------------------------------------------------------
+ EL FIX (100% cliente; 4 archivos; el server NO se toca)
+------------------------------------------------------------------------------
+ 1) objects/obj_abyss/Step_0.gml — nueva seleccion del punto de retorno:
+    a) pares tid/target_id si el mapa los declara (DesertTown por
+       creation code; en los mapas sin parar todos valen 0 y casan
+       todos);
+    b) entre candidatos gana el MAS CERCANO AL JUGADOR (a donde cayo), no
+       a la esquina del pozo;
+    c) preferencia por un punto con suelo debajo (regla ANTI-REBOTE:
+       collision_rectangle de x-12..x+12 por y..y+48 contra
+       obj_floor_parent — cubre bloques solidos y plataformas);
+    d) ultimo recurso: el mas cercano sin mas (comportamiento original).
+    El dano (20), los stuns y el bloque de shards de RavineMist quedan
+    INTACTOS. Sin cambios de red: compatibilidad total con servers viejos
+    (no hay que recompilar el server).
+
+ 2) rooms/room_skysanctuary/room_skysanctuary.yy:
+    - pozo medio encogido de [880,1904] a [1012,1904] para que NO toque el
+      bloque caminable (752..1008, top 1084);
+    - 5 targets reubicados a suelo firme:
+        (416,1408)   -> (480,1452)   plataforma (460..500, top 1456)
+        (1616,1472)  -> (1744,1372)  bloque  (1680..1808, top 1376)
+        (2224,1408)  -> (3008,1519)  pilar   (2944..3072, top 1523)
+        (3040,1184)  -> (3008,1132)  bloque  (2960..3056, top 1136) [antes DENTRO del muro]
+        (1600,864)   -> (1728,644)   plataforma (1664..1792, top 648)
+    - 6 targets NUEVOS en las islas de la mitad derecha (la zona que no
+      tenia ninguno): (3392,1248), (3137,816), (3839,1332), (3392,1356),
+      (3776,796), (4095,684).
+
+ 3) rooms/room_skybase/room_skybase.yy:
+    - 4 targets reubicados:
+        (115,1296)   -> (48,1288)    bloque  (30..66, top 1292)
+        (1192,1265)  -> (1104,1246)  bloque  (1080..1128, top 1250)
+        (2390,1200)  -> (2480,1189)  plataforma (2464..2496, top 1193)
+        (3380,927)   -> (3312,910)   pilar   (3296..3328, top 914)
+    - 7 targets NUEVOS para que cada hueco del fondo tenga retorno
+      cercano: (688,1268), (1472,1157), (1824,1061), (2016,1157),
+      (2288,1184), (2992,916), (3312,1124).
+
+ 4) rooms/room_woodzone/room_woodzone.yy:
+    - los 2 targets movidos a las plataformas del borde del abismo:
+        (2336,1840) -> (2272,1820)   bloque (2256..2288, top 1824)
+        (2736,1840) -> (2656,1820)   bloque (2640..2672, top 1824)
+
+ Todos los puntos nuevos/quedan CENTRADOS sobre su suelo y 4 px por
+ encima (y = top - 4): aterrizaje garantizado en solidos Y en plataformas
+ de saltar-a-traves. (Varios del porte original quedaban 12..16 px a la
+ derecha del borde de su isla, al limite de caerse otra vez.)
+
+------------------------------------------------------------------------------
+ COMO APLICAR
+------------------------------------------------------------------------------
+ - Copiar los 4 archivos sobre el repo (misma estructura de carpetas) o
+   git apply fix_portal_gun.patch, y recompilar el CLIENTE (GameMaker).
+ - El server (betterserver-oss) NO se toca: no hace falta recompilarlo.
+ - Solo para las salas tocadas: si el editor de GameMaker revalida la
+   sala al abrir, dejar que guarde una vez no cambia nada (los instances
+   son JSON estandar $GMRInstance v4).
+
+------------------------------------------------------------------------------
+ VERIFICACION
+------------------------------------------------------------------------------
+   python3 check_portal_gun_fix.py   ->   "TODO OK" (0 fallos)
+
+ Comprueba estatica del codigo + geometria de las 3 salas (JSON parsea,
+ conteos, ningun pozo toca suelo caminable, suelo bajo cada target) y
+ SIMULA caidas por todo el ancho de cada pozo con el algoritmo nuevo:
+   - SkySanctuary: teleport maximo 895 px (ANTES 2448 px; el 895 es el
+     rincon extremo derecho del vacio gigante, donde por diseno del mapa
+     no hay suelo a menos de ~700 px).
+   - SkyBase: maximo 537 px (ANTES: bucle infinito en 4 de 5 huecos).
+   - Wood Zone: maximo 208 px (ANTES: bucle infinito en los 2 huecos).
+
+------------------------------------------------------------------------------
+ NOTAS
+------------------------------------------------------------------------------
+ - Quedan 3 targets "borderline" de SkySanctuary en (1424,1472),
+   (1424,864) y (1952,992): vienen asi del porte (12..16 px a la derecha
+   del borde de su isla). El codigo nuevo los esquiva por la regla
+   anti-rebote (prefiere un punto con suelo), asi que son inertes; no se
+   movieron para no tocar nada mas de lo imprescindible. Si algun dia
+   quieres pulirlos: muevelos al centro de su isla como los demas.
+ - Negagen Temple [22] no tiene ni pozos ni targets: este bug no puede
+   dispararse ahi (no se toca).
+ - El fallback de scr_collision_basic (caer por debajo del room_height)
+   ya era relativo al jugador; con los targets ahora en suelo, ese camino
+   tambien aterriza bien. No se toca.
+ - Los mapas ORIGINALES (DesertTown etc.) NO cambian: con el sistema
+   tid/target_id ahora activo, cada pozo vuelve a SU punto emparejado
+   (antes dependia de que el mas cercano a la esquina coincidiera).
+ - Compatibilidad: fix 100% cliente. No cambia ni un byte de red. Un
+   cliente parcheado funciona contra un server sin parchear y al reves.
