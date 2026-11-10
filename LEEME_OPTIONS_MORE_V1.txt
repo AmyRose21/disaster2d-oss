@@ -1,0 +1,143 @@
+=====================================================================
+ OPTIONS MORE v1 — PESTANA "MORE" DEL PORT WEB EN TU CLIENTE
+ (porte de Options > More de sonicweb.dr2.site, el port web de TD2DR)
+=====================================================================
+
+QUE ES
+------
+La pestana MORE que tiene el port web (by PenguinEhis) en su menu
+Options, portada a tu cliente GameMaker como una vista mas del menu
+Options: GENERAL | CONTROLS | MORE | BACK, con sus 12 ajustes
+FUNCIONANDO de verdad sobre el juego, no solo el menu.
+
+Los valores se guardan en el 1.bson junto al resto de tu config, y
+los por defecto conservan la experiencia original del juego (todo
+visible, volumenes al maximo, camara vanilla sin look-ahead).
+
+LAS 12 FILAS (rangos verificados una a una en el port en vivo)
+--------------------------------------------------------------
+ 0  BACKGROUNDS        on/off   oculta las capas de fondo del nivel
+ 1  PARALLAX SCROLLING on/off   capas pegadas a la camara (1:1, fijas)
+ 2  EFFECTS            on/off   polvo, chispas y efectos de golpe
+ 3  WEATHER            on/off   lluvia (Green Hill), nieve (Nasty
+                                Paradise) y el sonido de la lluvia
+ 4  SCREEN OVERLAYS    on/off   vineta ambiental y overlays de
+                                pantalla (los velos de juego como
+                                esconderse/sangre NO se tocan)
+ 5  PERFORMANCE        on/off   fps + ms por frame en el HUD (verde
+                                < 17 ms, amarillo < 34, rojo a partir
+                                de ahi)
+ 6  MUSIC VOLUME       0-10     wrap 10 -> 0 como el port
+ 7  SOUND VOLUME       0-10     idem
+ 8  LOOK AHEAD         off/5%..50%  cuanto mira adelante la camara
+                                (cada 5% = 12 px = 5% de media vista,
+                                exacto como el port: 35% = 84 px)
+ 9  LOOK AHEAD BY      facing/speed  facing = siempre hacia donde
+                                miras; speed = mas cuanto mas rapido
+10  TURN SPEED         1-5      lo rapido que bascula el offset al
+                                girar
+11  CAMERA LAG         off/low/medium/high  camara clasica: a toda
+                                velocidad se queda atras y alcanza
+
+NAVEGACION
+----------
+- Teclado (la de siempre del juego): arriba/abajo filas, izquierda/
+  derecha ciclar el valor, Z activar/ciclar, X salir.
+- Con el teclado llegas a More asi: en Options (General), baja hasta
+  la fila de pestañas y dale a la derecha (General -> Controls ->
+  More -> Back, ciclo de toda la vida).
+- Raton: clic en la pestaña MORE (añadida en General, Controls y
+  Back), clic en una fila para ciclar, clic en las pestañas de abajo
+  para cambiar de vista.
+- La lista scrollea con la seleccion y muestra "..." arriba/abajo,
+  con la descripcion del ajuste seleccionado abajo en gris, igual
+  que el port.
+
+COMO ESTA HECHO (resumen tecnico)
+---------------------------------
+- La vista se construye POR CODIGO al entrar al menu (patron de
+  auto-curacion v4.2 de special3): room_menu.yy NO se toca. La capa
+  OptionsMore se crea con 9 filas reciclables de 17 px (obj_menu_
+  valuebutton, hijo de obj_menu_button) + 4 pestañas, y la pestana
+  MORE se anade por codigo a las vistas General/Controls/Back.
+- El sprite nuevo spr_menu_more (12 frames, fuente de pixel del
+  propio juego) y el frame 68 "MORE" de spr_menu_buttons estan
+  generados con los glifos originales, pixel-perfect.
+- MUSIC/SOUND VOLUME usan audio_sound_gain con el ID del ASSET (los
+  91 de musica + los 231 de sonido: TODOS los del proyecto), que
+  cambia las instancias sonando Y las futuras. Los 6 puntos del
+  codigo que fijaban gain 1 absoluto (scr_music, dotdotdot, player
+  warning, net_state_game, room_act9) ahora multiplican por el
+  volumen, asi ninguno pisa el ajuste.
+- LOOK AHEAD/TURN SPEED/CAMERA LAG viven en obj_camera (modo follow)
+  y se apagan por completo con look ahead = off (camara vanilla).
+- BACKGROUNDS/PARALLAX en obj_parallax (la lista global.parallax de
+  cada mapa), EFFECTS en scr_effect_quick, WEATHER en los
+  controladores de lluvia/nieve, OVERLAYS en obj_level/obj_dotdotdot_
+  i, PERFORMANCE en el HUD de obj_level.
+- El guardado viejo (sin estos campos) carga sin romperse: cada
+  campo nuevo tiene su try/catch con valor por defecto, igual que
+  hacia el juego con la tecla idle.
+
+QUE NO SE PORTA (deliberadamente)
+----------------------------------
+- MODDING (abre el "Mod Studio" del port: cosa de la version web).
+- ACCOUNT (inicio de sesion del port web: cosa de la version web).
+
+ARCHIVOS
+--------
+NUEVOS:
+  sprites/spr_menu_more/                      (sprite, 12 frames)
+  objects/obj_menu_valuebutton/               (objeto fila+valor)
+  scripts/scr_menu_more/                      (build/cycle/valores)
+MODIFICADOS:
+  Sonicexe The Disaster 2D Remake.yyp         (registra lo nuevo)
+  sprites/spr_menu_buttons/spr_menu_buttons.yy (frame 68 "MORE")
+  objects/obj_menu/Create_0.gml               (integracion de la vista)
+  objects/obj_menu/Alarm_0.gml                (construye la pestana)
+  objects/obj_config/Create_0.gml             (campos, load/save, volumenes)
+  objects/obj_camera/Create_0.gml             (estado del look-ahead)
+  objects/obj_camera/Draw_76.gml              (look-ahead/turn/lag)
+  objects/obj_parallax/Draw_72.gml            (backgrounds/parallax)
+  scripts/scr_effect_quick/scr_effect_quick.gml (gate EFFECTS)
+  objects/obj_ghz_controller/Create_0.gml     (lluvia: sonido)
+  objects/obj_ghz_controller/Step_0.gml       (lluvia: gotas)
+  objects/obj_nap_controller/Step_0.gml       (nieve: copos)
+  objects/obj_level/Create_0.gml              (media de frame time)
+  objects/obj_level/Draw_64.gml               (vineta + HUD perf)
+  objects/obj_dotdotdot_i/Create_0.gml        (gain x volumen)
+  objects/obj_dotdotdot_i/Step_0.gml          (gain x volumen)
+  objects/obj_dotdotdot_i/Draw_64.gml         (gate overlays)
+  objects/obj_player_warning/CleanUp_0.gml    (gain x volumen)
+  scripts/scr_music/scr_music.gml             (gain x volumen)
+  scripts/net_state_game/net_state_game.gml   (gain x volumen)
+  rooms/room_act9/RoomCreationCode.gml        (gain x volumen)
+
+Cargar el proyecto en GameMaker y compilar: no hay que tocar nada
+mas. Si el IDE compila una cache vieja de spr_menu_buttons (sin el
+frame 68), la pestana MORE sale con el label "OPTIONS" de respaldo
+hasta que importe la carpeta del sprite — todo lo demas funciona
+igual (mismo patron de respaldo de los frames 66/67).
+
+---------------------------------------------------------------------
+FIX v1.1 (10-11-2026) — ERROR AL ABRIR EL PROYECTO
+---------------------------------------------------------------------
+El .yy del sprite nuevo spr_menu_more venia sin el campo "name" a
+nivel raiz, y el IDE de GameMaker al cargar decape con:
+
+  sprites/spr_menu_more/spr_menu_more.yy(35,3):
+  Error: Field "name": expected.
+
+CORREGIDO: campo "name":"spr_menu_more" anadido donde va (entre
+"layers" y "nineSlice", orden alfabetico del formato). Verificado
+ademas contra los .yy originales del proyecto que el resto de la
+estructura fuera identica (frames, keyframes, PNGs, capas, grupo de
+texturas, carpetas padre y registro en el .yyp): todo consistente.
+
+Si ya habias aplicado el zip v1, solo tienes que reemplazar UN
+archivo:
+
+  sprites/spr_menu_more/spr_menu_more.yy
+
+(el resto del zip no cambia). Vuelve a abrir el proyecto y deberia
+cargar entero.

@@ -7,7 +7,8 @@ function scr_play_music(bid)
                 scr_stop_music();
         
         global.music = audio_play_sound(bid, 0, true);
-        audio_sound_gain(global.music, 1, 0);
+        // v1 OPTIONS MORE: 1 -> volumen de musica del Options > More
+        audio_sound_gain(global.music, obj_config.musicVolume * 0.1, 0);
 }
 
 function scr_stop_music()

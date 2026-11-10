@@ -1,6 +1,10 @@
 if(!instance_exists(global.player))
 	return;
 
+// v1 OPTIONS MORE: WEATHER off = sin copos de nieve
+if(!obj_config.optWeather)
+	return;
+
 with(global.player)
 {
 	if(place_meeting(x, y, obj_nap_trigger))

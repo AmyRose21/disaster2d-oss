@@ -1,1 +1,1 @@
-audio_sound_gain(global.music, 1, 500);
+audio_sound_gain(global.music, obj_config.musicVolume * 0.1, 500); // v1 OPTIONS MORE

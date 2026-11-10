@@ -11,6 +11,9 @@ bloodFade = 0;
 hideFade = 0;
 
 titleCard = 0;
+
+// v1 OPTIONS MORE: media movible del tiempo de frame (PERFORMANCE on)
+perfAvg = 0;
 cardX = 480;
 cardY = -270;
 depth = -1000;

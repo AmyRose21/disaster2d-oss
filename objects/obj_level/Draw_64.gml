@@ -15,7 +15,9 @@ switch(room)
                 break;
                 
         default:
-                draw_sprite_ext(spr_screenoverlay, 0, 0, 0, 1, 1, 0, c_white, 0.7);
+                // v1 OPTIONS MORE: SCREEN OVERLAYS off = sin viñeta ambiental
+                if(obj_config.optOverlays)
+                        draw_sprite_ext(spr_screenoverlay, 0, 0, 0, 1, 1, 0, c_white, 0.7);
                 break;
                 
 }
@@ -257,6 +259,21 @@ if(global.showHud)
         
         if(obj_config.showFps)
                 scr_text_spr(4, 10, string(floor(fps_real)) + "fps");
+        
+        // v1 OPTIONS MORE: PERFORMANCE = tiempos de frame en pantalla (fps +
+        // ms por frame con media movible; verde < 17ms, amarillo < 34, rojo
+        // a partir de ahi — dos frames por segundo de presupuesto)
+        if(obj_config.optPerf)
+        {
+                var _dt = delta_time / 1000; // microsegundos -> ms
+                perfAvg = perfAvg == 0 ? _dt : lerp(perfAvg, _dt, 0.05);
+                
+                var _pclr = #0fff39;
+                if(perfAvg >= 34) _pclr = #ff0001;
+                else if(perfAvg >= 17) _pclr = #ffc400;
+                
+                scr_text_spr(4, 16, string(floor(fps_real)) + "fps " + string_format(perfAvg, 1, 1) + "ms", _pclr);
+        }
 }
 
 //tab

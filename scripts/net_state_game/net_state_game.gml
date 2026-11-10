@@ -3137,7 +3137,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         else if(room == room_act9)
                                         {
                                                 audio_sound_gain(mus_act9, 0, 1000);
-                                                audio_sound_gain(mus_act9_chase, 1, 1000);
+                                                audio_sound_gain(mus_act9_chase, obj_config.musicVolume * 0.1, 1000); // v1 OPTIONS MORE
                                         }
                                         else
                                                 scr_play_music(global.levels[lvlId].chaseMusic);

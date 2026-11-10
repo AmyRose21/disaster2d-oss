@@ -14,6 +14,11 @@ spectatingInd = 0;
 spectatingObj = noone;
 locked = false;
 
+// v1 OPTIONS MORE: estado del look-ahead horizontal (Options > More).
+// laOffset es el desplazamiento actual; se suaviza hacia el objetivo con
+// la TURN SPEED del jugador y se aplica solo en el modo follow (0).
+laOffset = 0;
+
 //setup viewport
 view_camera[0] = camera_create_view(0, 0, 480, 270);
 view_enabled[0] = true;

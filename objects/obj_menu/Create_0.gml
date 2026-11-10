@@ -35,6 +35,9 @@
 // Página de información de Amy Canon en el menú (id 48: el 47 ya lo usa JOIN_MOBILE)
 #macro SUBMENU_CHAR_AMY_CANON 48
 
+// v1 OPTIONS MORE: pestana More de options (id 49: el siguiente libre, 47/48 ya usados)
+#macro SUBMENU_OPTIONSMORE 49
+
 #macro SUBMENU_EXTRA_ACHIVEMENTS 30
 #macro SUBMENU_EXTRA_TAILS 31
 #macro SUBMENU_EXTRA_KNUX 32
@@ -72,6 +75,9 @@ bindBtn = 0;
 ignoreButtons = false;
 
 mobSelectedButton = 0;
+
+// v1 OPTIONS MORE: scroll de la lista de la pestana More (primera fila visible)
+moreScroll = 0;
 
 findButton = function(_tid)
 {
@@ -160,7 +166,9 @@ buttonListed = function(_bid, _bcolumn, _dir)
 		
 			if(_dir)
 			{
-				changeSubmenu(SUBMENU_OPTIONSBACK);
+				// v1 OPTIONS MORE: el ciclo de pestañas pasa ahora
+				// por More: General -> Controls -> More -> Back
+				changeSubmenu(SUBMENU_OPTIONSMORE);
 				buttonSelected(0, -1, 0, true);
 			}
 			else
@@ -169,6 +177,33 @@ buttonListed = function(_bid, _bcolumn, _dir)
 				buttonSelected(4, -1, 0, true);
 			}
 			return true;
+			
+		case SUBMENU_OPTIONSMORE:
+			// v1 OPTIONS MORE: filas = ciclar valor; pestaña MORE
+			// (bid 14) = navegar entre vistas (Controls <- MORE -> Back)
+			if(_bid == 14)
+			{
+				if(_dir)
+				{
+					changeSubmenu(SUBMENU_OPTIONSBACK);
+					buttonSelected(0, -1, 0, true);
+				}
+				else
+				{
+					changeSubmenu(SUBMENU_OPTIONSCONTROLS);
+					buttonSelected(10, -1, -1, true);
+				}
+				
+				return true;
+			}
+			
+			if(_bid >= 0 && _bid <= 11)
+			{
+				scr_menu_more_cycle(_bid, _dir);
+				return true;
+			}
+			
+			break;
 			
 		case SUBMENU_OPTIONSBACK:
 			if(_dir)
@@ -564,6 +599,11 @@ buttonSelected = function(_bid, _bcolumn, _dir, _anim)
 {       
 	if(bind)
 		return;
+			
+	// v1 OPTIONS MORE: la lista recicla sus filas: antes de resaltar,
+	// ajusta el scroll para que la fila _bid exista en pantalla
+	if(submenu == SUBMENU_OPTIONSMORE)
+		scr_menu_more_ensure_visible(_bid);
 		
 	bSelected = _bid;
 	
@@ -817,6 +857,13 @@ buttonPressed = function(_bid, _bcolumn)
 				obj_config.save();
 			}
 			
+			// v1 OPTIONS MORE: pestaña MORE anadida a esta vista
+			if(_bid == 6)
+			{
+				changeSubmenu(SUBMENU_OPTIONSMORE);
+				buttonSelected(0, -1, 0, false);
+			}
+			
 			if(_bcolumn == 1)
 			{
 				if(_bid == 4)
@@ -833,6 +880,14 @@ buttonPressed = function(_bid, _bcolumn)
 			break;
 			
 		case SUBMENU_OPTIONSCONTROLS:
+			// v1 OPTIONS MORE: pestaña MORE anadida a esta vista
+			if(_bid == 11)
+			{
+				changeSubmenu(SUBMENU_OPTIONSMORE);
+				buttonSelected(0, -1, 0, false);
+				break;
+			}
+			
 			if(_bcolumn == 2)
 			{
 				if(_bid == 9)
@@ -983,7 +1038,13 @@ buttonPressed = function(_bid, _bcolumn)
 			break;
 			
 		case SUBMENU_OPTIONSBACK:
-			if(_bid == 1)
+			if(_bid == 3)
+			{
+				// v1 OPTIONS MORE: pestaña MORE anadida a esta vista
+				changeSubmenu(SUBMENU_OPTIONSMORE);
+				buttonSelected(0, -1, 0, false);
+			}
+			else if(_bid == 1)
 			{
 				changeSubmenu(SUBMENU_OPTIONSGENERAL);
 				buttonSelected(4, -1, 0, false);
@@ -997,6 +1058,26 @@ buttonPressed = function(_bid, _bcolumn)
 			}
 			else
 				changeSubmenu(SUBMENU_NONE);
+			break;
+			
+		case SUBMENU_OPTIONSMORE:
+			// v1 OPTIONS MORE: pestañas 12-15, filas 0-11
+			if(_bid == 12)
+			{
+				changeSubmenu(SUBMENU_OPTIONSGENERAL);
+				buttonSelected(4, -1, 0, false);
+			}
+			else if(_bid == 13)
+			{
+				changeSubmenu(obj_controls.isMobile ? SUBMENU_OPTIONSCONTROLSMOBILE : SUBMENU_OPTIONSCONTROLS);
+				
+				if(os_type != os_android)
+					buttonSelected(10, -1, -1, true);
+			}
+			else if(_bid == 15)
+				changeSubmenu(SUBMENU_NONE);
+			else if(_bid >= 0 && _bid <= 11)
+				scr_menu_more_cycle(_bid, 1);
 			break;
 			
 		case SUBMENU_ABOUT_CREDITS:
@@ -1592,6 +1673,21 @@ changeSubmenu = function(_menu)
 			bColumnCount = 0;
 			scheme = true;
 			layer_set_visible(layer_get_id("OptionsBack"), true);
+			break;
+			
+		case SUBMENU_OPTIONSMORE:
+			// v1 OPTIONS MORE: 12 ajustes (0-11) + 4 pestañas (12-15)
+			layer_background_sprite(bars, spr_menu_bars);
+			layer_background_index(bars, 2);
+			bCount = 16;
+			bColumnCount = 0;
+			scheme = true;
+			
+			if(!layer_exists("OptionsMore"))
+				scr_menu_more_build(); // respaldo: aqui nunca deberia faltar
+			
+			layer_set_visible(layer_get_id("OptionsMore"), true);
+			scr_menu_more_ensure_visible(bSelected);
 			break;
 			
 		case SUBMENU_MECH_SPIN:

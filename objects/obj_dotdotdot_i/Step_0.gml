@@ -33,7 +33,7 @@ if(position_meeting(x, y, obj_dotdotdot_trigger3))
                 // a subir gains de mus_dotdotdot. El fondo sigue cruzando normal.
                 if(!global.lmsActive)
                 {
-                        audio_sound_gain(mus_dotdotdot2, 1, 2000);
+                        audio_sound_gain(mus_dotdotdot2, obj_config.musicVolume * 0.1, 2000); // v1 OPTIONS MORE
                         audio_sound_gain(mus_dotdotdot, 0, 2000);
                 }
                 
@@ -63,7 +63,7 @@ if(position_meeting(x, y, obj_dotdotdot_trigger))
                 if(!global.lmsActive)
                 {
                         audio_sound_gain(mus_dotdotdot2, 0, 2000);
-                        audio_sound_gain(mus_dotdotdot, 1, 2000);
+                        audio_sound_gain(mus_dotdotdot, obj_config.musicVolume * 0.1, 2000); // v1 OPTIONS MORE
                 }
                 
                 fadeB = true;

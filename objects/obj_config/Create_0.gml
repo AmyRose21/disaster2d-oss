@@ -7,6 +7,23 @@ _buffer = {
 	showFps: false,
 	showPing: true,
 	
+	// v1 OPTIONS MORE: ajustes de la pestana More. Los valores por defecto
+	// conservan la experiencia original del juego (todo visible, volumen
+	// al maximo, camara sin look-ahead ni lag); los cambia el usuario desde
+	// Options > More y se guardan aqui igual que el resto.
+	optBackgrounds: true,
+	optParallax: true,
+	optEffects: true,
+	optWeather: true,
+	optOverlays: true,
+	optPerf: false,
+	musicVolume: 10,
+	soundVolume: 10,
+	lookAhead: 0,    // 0 = off; 1-10 = 5%-50% de la mitad de la vista
+	lookAheadBy: 0,  // 0 = facing, 1 = speed
+	turnSpeed: 3,    // 1-5 (solo aplica con look-ahead activo)
+	cameraLag: 0,    // 0 = off, 1 = low, 2 = medium, 3 = high
+	
 	left: vk_left,
 	right: vk_right,
 	up: vk_up,
@@ -99,6 +116,20 @@ ip = _buffer.ip;
 showFps = _buffer.showFps;
 showPing = _buffer.showPing;
 
+// v1 OPTIONS MORE
+optBackgrounds = _buffer.optBackgrounds;
+optParallax = _buffer.optParallax;
+optEffects = _buffer.optEffects;
+optWeather = _buffer.optWeather;
+optOverlays = _buffer.optOverlays;
+optPerf = _buffer.optPerf;
+musicVolume = _buffer.musicVolume;
+soundVolume = _buffer.soundVolume;
+lookAhead = _buffer.lookAhead;
+lookAheadBy = _buffer.lookAheadBy;
+turnSpeed = _buffer.turnSpeed;
+cameraLag = _buffer.cameraLag;
+
 // Keys
 global.KeyLeft = _buffer.left;
 global.KeyRight = _buffer.right;
@@ -186,6 +217,22 @@ load = function(filename)
 	ip = _buffer.ip;
 	showFps = _buffer.showFps;
 	showPing = _buffer.showPing;
+
+	// v1 OPTIONS MORE: igual que KeyIdle mas arriba, cada campo nuevo se
+	// lee con su propio try/catch para que un guardado viejo (sin la
+	// pestana More) no rompa la carga: cae al valor por defecto.
+	try { optBackgrounds = _buffer.optBackgrounds; } catch(ex) { optBackgrounds = true; _buffer.optBackgrounds = true; }
+	try { optParallax = _buffer.optParallax; } catch(ex) { optParallax = true; _buffer.optParallax = true; }
+	try { optEffects = _buffer.optEffects; } catch(ex) { optEffects = true; _buffer.optEffects = true; }
+	try { optWeather = _buffer.optWeather; } catch(ex) { optWeather = true; _buffer.optWeather = true; }
+	try { optOverlays = _buffer.optOverlays; } catch(ex) { optOverlays = true; _buffer.optOverlays = true; }
+	try { optPerf = _buffer.optPerf; } catch(ex) { optPerf = false; _buffer.optPerf = false; }
+	try { musicVolume = _buffer.musicVolume; } catch(ex) { musicVolume = 10; _buffer.musicVolume = 10; }
+	try { soundVolume = _buffer.soundVolume; } catch(ex) { soundVolume = 10; _buffer.soundVolume = 10; }
+	try { lookAhead = _buffer.lookAhead; } catch(ex) { lookAhead = 0; _buffer.lookAhead = 0; }
+	try { lookAheadBy = _buffer.lookAheadBy; } catch(ex) { lookAheadBy = 0; _buffer.lookAheadBy = 0; }
+	try { turnSpeed = _buffer.turnSpeed; } catch(ex) { turnSpeed = 3; _buffer.turnSpeed = 3; }
+	try { cameraLag = _buffer.cameraLag; } catch(ex) { cameraLag = 0; _buffer.cameraLag = 0; }
 
 	// Keys
 	global.KeyLeft = _buffer.left;
@@ -313,6 +360,21 @@ save = function()
 	_buffer.ip = ip;
 	_buffer.showFps = showFps;
 	_buffer.showPing = showPing;
+	
+	// v1 OPTIONS MORE
+	_buffer.optBackgrounds = optBackgrounds;
+	_buffer.optParallax = optParallax;
+	_buffer.optEffects = optEffects;
+	_buffer.optWeather = optWeather;
+	_buffer.optOverlays = optOverlays;
+	_buffer.optPerf = optPerf;
+	_buffer.musicVolume = musicVolume;
+	_buffer.soundVolume = soundVolume;
+	_buffer.lookAhead = lookAhead;
+	_buffer.lookAheadBy = lookAheadBy;
+	_buffer.turnSpeed = turnSpeed;
+	_buffer.cameraLag = cameraLag;
+	
 	_buffer.left = global.KeyLeft;
 	_buffer.right = global.KeyRight;
 	_buffer.up = global.KeyUp;
@@ -475,3 +537,9 @@ if(!global.configInit)
 	global.configInit = true;
 	applyRes();
 }
+
+// v1 OPTIONS MORE: fija el gain por asset de musica/sonido segun la
+// config cargada (o los valores por defecto). audio_sound_gain con el
+// ID del asset afecta a las instancias sonando ahora Y a las futuras,
+// asi que con esto basta y no hay que tocar ningun audio_play_sound.
+scr_menu_more_apply_volumes();

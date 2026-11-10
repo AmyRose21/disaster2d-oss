@@ -1,7 +1,7 @@
 //Level setup code
 
 audio_play_sound(mus_act9, 0, true);
-audio_sound_gain(mus_act9, 1, 0);
+audio_sound_gain(mus_act9, obj_config.musicVolume * 0.1, 0); // v1 OPTIONS MORE
 audio_play_sound(mus_act9_chase, 0, true);
 audio_sound_gain(mus_act9_chase, 0, 0);
 

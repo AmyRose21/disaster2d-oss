@@ -23,5 +23,10 @@ else if(bgnew == background_dotdotdot3)
 		fade2 -= 0.025;
 }
 
-draw_sprite_ext(spr_screenoverlay2, 0, 0, 0, 1, 1, 0, c_white, fade2); 
-draw_sprite_ext(spr_screenoverlay2, 1, 0, 0, 1, 1, 0, c_white, fade3); 
+// v1 OPTIONS MORE: SCREEN OVERLAYS off = sin overlays de pantalla (los
+// fundidos siguen actualizandose para que al reactivarlos esten en su sitio)
+if(obj_config.optOverlays)
+{
+	draw_sprite_ext(spr_screenoverlay2, 0, 0, 0, 1, 1, 0, c_white, fade2); 
+	draw_sprite_ext(spr_screenoverlay2, 1, 0, 0, 1, 1, 0, c_white, fade3); 
+}
