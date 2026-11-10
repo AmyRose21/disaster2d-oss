@@ -179,21 +179,27 @@ buttonListed = function(_bid, _bcolumn, _dir)
 			return true;
 			
 		case SUBMENU_OPTIONSMORE:
-			// v1 OPTIONS MORE: filas = ciclar valor; pestaña MORE
-			// (bid 14) = navegar entre vistas (Controls <- MORE -> Back)
-			if(_bid == 14)
+			// v1.2 FIX CURSOR CONGELADO: antes este caso solo
+			// atendia la pestana 14 (y con un salto de vista raro:
+			// izquierda -> vista BACK vacia). Las pestanas 12/13/15
+			// no tenian handler, asi que en la barra de tabs
+			// izquierda/derecha no movian NADA y la seleccion se
+			// quedaba clavada donde estaba.
+			//
+			// Ahora, como en el port web: en las FILAS (0-11)
+			// izquierda/derecha cicla el valor; en la BARRA de
+			// pestanas (12-15) izquierda/derecha MUEVE la seleccion
+			// al tab adyacente (con wrap 12<->15). La vista se cambia
+			// con Z o clic sobre la pestana (buttonPressed). Se fija
+			// bSelectedColumn = -1 para que el buttonSelected() que
+			// viene despues en Step encuentre el tab nuevo (los tabs
+			// tienen bcolumn 0: entran por la excepcion "bcolumn != 0"
+			// del filtro de columnas) y lo resalte igual que las
+			// vistas nativas.
+			if(_bid >= 12 && _bid <= 15)
 			{
-				if(_dir)
-				{
-					changeSubmenu(SUBMENU_OPTIONSBACK);
-					buttonSelected(0, -1, 0, true);
-				}
-				else
-				{
-					changeSubmenu(SUBMENU_OPTIONSCONTROLS);
-					buttonSelected(10, -1, -1, true);
-				}
-				
+				bSelectedColumn = -1;
+				bSelected = 12 + (((_bid - 12) + (_dir > 0 ? 1 : 3)) mod 4);
 				return true;
 			}
 			
@@ -1560,6 +1566,16 @@ changeSubmenu = function(_menu)
 	layer_set_visible(layer_get_id("OptionsControls"), false);
 	layer_set_visible(layer_get_id("OptionsControlsMobile"), false);
 	layer_set_visible(layer_get_id("OptionsBack"), false);
+
+	// v1.2 FIX MENU CORRUPTO AL SALIR: la capa OptionsMore (creada por
+	// codigo en runtime) falta en esta lista, asi que al salir de la
+	// pestana MORE sus 12 filas y 4 pestanas seguian dibujandose encima
+	// de la vista de destino (el fondo del menu principal con la barra
+	// GAME/OPTIONS/EXTRA/QUIT: por eso se leia "GENERALGAME" y
+	// "OPTIONSCONTROLEXTRA"). Se guarda con layer_exists porque la capa
+	// no existe hasta que Alarm_0 llama a scr_menu_more_build().
+	if(layer_exists("OptionsMore"))
+		layer_set_visible(layer_get_id("OptionsMore"), false);
 	layer_set_visible(layer_get_id("AboutSpin"), false);
 	layer_set_visible(layer_get_id("AboutHit"), false);
 	layer_set_visible(layer_get_id("AboutPar"), false);
