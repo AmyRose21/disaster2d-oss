@@ -4262,6 +4262,55 @@ function net_state_game(rbuff, nps, isPasstrough)
                         room_goto(room_results);
                         return true;
                 }
+                
+                case PacketType.CLIENT_CHAT_MESSAGE:
+                {
+                        // [v1.2 IN-GAME CHAT] chat dentro de la partida, SOLO
+                        // supervivientes: el server (Game.c, mod v1.2)
+                        // reenvia cada mensaje a los jugadores de la ronda
+                        // MENOS al emisor (eco local) y MENOS al EXE (no
+                        // ve el chat). Mismo payload que el lobby (u16
+                        // nid + string msg). El HUD solo existe en los
+                        // clientes supervivientes (obj_level/Create v1.2).
+                        if(isPasstrough)
+                                break;
+                        
+                        var _cid = buffer_read_s(rbuff, buffer_u16);
+                        var _cmsg = buffer_read_s(rbuff, buffer_string);
+                        
+                        if(!instance_exists(obj_game_chat))
+                                break;
+                        
+                        if(_cid == 0)
+                        {
+                                with(obj_game_chat)
+                                        addMsg("(server)", _cmsg);
+                                break;
+                        }
+                        
+                        // [v1.2] el propio mensaje no se pinta aqui: el
+                        // emisor ya tiene su eco local (chatClose). Defensa
+                        // por si un server viejo reenvia al emisor.
+                        if(_cid == obj_netclient.nid)
+                                break;
+                        
+                        if(!ds_map_exists(players, _cid))
+                                break;
+                        
+                        var _cnick = players[? _cid].nickname;
+                        
+                        // el EXE en rojo (codigo de color de scr_text_spr).
+                        // Inalcanzable de normal: el server v1.2 rechaza al
+                        // EXE como emisor. Queda por si se reactiva el chat
+                        // del EXE mas adelante ("por ahora") o cliente mod.
+                        if(_cid == exeId)
+                                _cnick = "\\" + _cnick + "~";
+                        
+                        with(obj_game_chat)
+                                addMsg(_cnick, _cmsg);
+                        
+                        break;
+                }
         }
         
         return false;

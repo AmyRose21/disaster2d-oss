@@ -19,6 +19,14 @@ cardY = -270;
 depth = -1000;
 instance_create_depth(0, 0, 0, obj_playerui);
 
+// [v1.2 IN-GAME CHAT] HUD de chat SOLO para supervivientes: el EXE no ve
+// ni usa el chat en partida (por ahora). exeId ya viene asignado de la
+// votacion (antes del charselect), asi que aqui ya se sabe si el local es
+// el EXE; por si cambiara a mitad de ronda, obj_game_chat/Step tambien se
+// autodestruye como blindaje (ver objects/obj_game_chat).
+if(obj_netclient.exeId != obj_netclient.nid)
+        instance_create_depth(0, 0, -1200, obj_game_chat);
+
 drawPing = function(char, exeCharacter, ping, revival, name, index)
 {       
         var hchar = char - 1;

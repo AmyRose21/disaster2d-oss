@@ -2125,18 +2125,59 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 
                 case CLIENT_CHAT_MESSAGE:
                 {
-                        if (v->in_game)
-                                break;
-
+                        /* [v1.2 IN-GAME CHAT] Antes: `if (v->in_game) break;`
+                           bloqueaba el chat a los jugadores DENTRO de la
+                           ronda (solo hablaban los de la sala de espera).
+                           Ahora los SUPERVIVIENTES chatean entre ellos:
+                             - el EXE no envia ni recibe chat en partida
+                             - el emisor no recibe su propio mensaje (el
+                               cliente ya pinta el eco local al enviar)
+                             - la sala de espera conserva su canal propio
+                               (emisor y destinatarios del mismo lado) */
                         v->timeout = 0;
 
                         PacketRead(pid, packet, packet_read16, uint16_t);
                         PacketRead(msg, packet, packet_readstr, String);
-                        AssertOrDisconnect(v->server, string_length(&msg) <= 40);
+                        /* 48: tope del HUD del cliente (obj_game_chat/Step);
+                           antes 40, y un mensaje de 41-48 desconectaba al
+                           jugador por este assert */
+                        AssertOrDisconnect(v->server, string_length(&msg) <= 48);
 
                         Info("%s " LOG_RST "(id %d): %s", v->nickname.value, v->id, msg.value);
-                        if (!server_cmd_handle(v->server, server_cmd_parse(&msg), v, &msg) && g_config.chatfix)
-                                server_broadcast_msg(v->server, v->id, msg.value);
+
+                        if (server_cmd_handle(v->server, server_cmd_parse(&msg), v, &msg))
+                                break;
+
+                        if (!g_config.chatfix)
+                                break;
+
+                        /* el EXE no usa el chat (por ahora) */
+                        if (v->id == v->server->game.exe)
+                                break;
+
+                        Packet pack;
+                        PacketCreate(&pack, CLIENT_CHAT_MESSAGE);
+                        PacketWrite(&pack, packet_write16, v->id);
+                        PacketWrite(&pack, packet_writestr, msg);
+
+                        for (size_t i = 0; i < v->server->peers.capacity; i++)
+                        {
+                                PeerData* w = (PeerData*)v->server->peers.ptr[i];
+                                if (!w)
+                                        continue;
+
+                                if (w->id == v->id)
+                                        continue; /* eco local en el cliente */
+
+                                if (w->id == v->server->game.exe)
+                                        continue; /* el EXE no ve el chat */
+
+                                if (w->in_game != v->in_game)
+                                        continue; /* partida vs sala de espera */
+
+                                if (!packet_send(w->peer, &pack, true))
+                                        server_disconnect(v->server, w->peer, DR_SERVERTIMEOUT, NULL);
+                        }
 
                         break;
                 }
