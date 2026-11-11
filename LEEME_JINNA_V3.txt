@@ -1,0 +1,246 @@
+JINNA V3 "EL PORTAL TRAMPA" + AMY FW PUBLICA + 2 FIXES DE PANTALLA
+==================================================================
+
+QUE ES
+------
+Tres cosas en un paquete (todo pedido del usuario tras probar la
+v2 en partida):
+
+1) FIX del ERROR de la PANTALLA DE RESULTADOS: la fila del EXE
+   salia como ruido de colores (textura basura) cuando el EXE
+   era Jinna — el switch de iconos solo cubria a los killers
+   0..4 y el case de Jinna (5) faltaba, asi que el icono quedaba
+   en el sprite 0 y su draw animado llenaba la fila de estatica
+   RGB. Mismo fix aplicado a la pantalla de espera del menu
+   (obj_menu_waiting) y al marcador TAB (ahi Jinna salia con la
+   cara de Sonic por la formula; ahora usa la fila 15, la X
+   misteriosa de Metal Amy — killer exclusiva, cara oculta).
+
+2) FIX del ICONO DE SELECCION DE JINNA "muy arriba": su sprite
+   spr_lobby_exeicon7 venia con el origen ABAJO (yorigin 61 en
+   vez de 30, el centro): al dibujarse por el origen quedaba 31
+   px mas alto que los demas exeicon. Corregido al centro, como
+   el resto (29,30 + preset 4).
+
+3) AMY FW (Fleetway Amy) PASA A SER PUBLICA + su pasiva LA
+   TORRE nerfeada; y JINNA recibe su kit v3 completo: teleport
+   potenciado, 2 pasivas nuevas de lore y la habilidad V
+   reworkeada como PORTAL TRAMPA con absorcion de Vanilla.
+
+
+------------------------------------------------------------------------------
+A) AMY FW PUBLICA + NERF DE LA TORRE
+------------------------------------------------------------------------------
+"la amy fw sera publica; su pasiva de torre sera nef(a) a solamente
+poder hacer el bloqueo y la I-frame solo cuando vaya a recibir daño
+de verdad y su porcentaje reducira 10%"
+
+* PUBLICA: sale del token de Amy. Ya NO esta en scr_char_locked
+  (cliente) ni en el rechazo de CharSelect.c (server): cualquiera
+  la elige y el server se la da. Amy Canon, Sally Canon y Vanilla
+  siguen reservadas igual que siempre.
+
+* NERF DE LA TORRE (scr_player_hurt), dos partes:
+  - El bloqueo ahora se evalua SOLO cuando el golpe iba a entrar
+    DE VERDAD: el check se mudo DEBAJO del guard de hurttime
+    (antes re-destellaba el escudo con i-frames ya activos, el
+    mismo bug que tenia el bloqueo LMS de Sonic antes del fix
+    v5.4). Con i-frames puestos, la Torre ya no "gasta" nada.
+  - Ya no es infalible: fwTowerPct arranca en 100% y CADA bloqueo
+    consumido le resta 10 (100 -> 90 -> 80 -> ... -> 0). Mientras
+    la tirada (irandom 0..99 < pct) aguante, el golpe se detiene
+    entero como siempre (ni vida ni anillos ni retroceso); cuando
+    falla, el daño entra completo. Se resetea cada ronda. La FW
+    demonizada sigue perdiendo la pasiva, como siempre.
+
+------------------------------------------------------------------------------
+B) JINNA V3 — TELETRANSPORTE POTENCIADO (tecla C)
+------------------------------------------------------------------------------
+"Jina cada que use su habilidad de teleport le dara Iframe por
+3 seg al aparecer, ella ralentiza a los objetivos alrededor por
+3 seg, la hitbox de su ataque basico aumentara 25%"
+
+* I-FRAMES 3 s AL APARECER: hurttime = 180 al aterrizar (el
+  mismo gate que bloquea los ataques de los supervivientes en
+  obj_player_puppet; durante la ventana Jinna se ve translucida
+  parpadeando — es el aviso visual de la inmunidad).
+
+* SLOW EN AREA 3 s: al validar el teleport, el SERVER calcula
+  todos los supervivientes VIVOS en 90 px de la llegada (con las
+  posiciones que ya sincroniza, nada de confiar en la lista del
+  cliente) y a cada uno le manda SERVER_JINNA_TELE_AOE: cada
+  victima aplica el slow del 40% sobre su propio jugador
+  (scr_player_slow, el de la trampa de Amelia).
+
+* HITBOX DEL GOLPE +25%: durante esa misma ventana de 3 s
+  (global.jinnaTelePower, la abren los portales del server en
+  TODOS los clientes), la hitbox del golpe basico de Jinna crece
+  un 25% del ancho de su bbox — mismo mecanismo de pad por
+  distancia que el golpe de Sonic / el tarot de Amy Canon / la
+  patada de Sally Canon (obj_player_puppet).
+
+------------------------------------------------------------------------------
+C) JINNA V3 — PASIVAS DE LORE (creacion de las 3)
+------------------------------------------------------------------------------
+"Ella tendria conexion con las 3 indicadas en su lore: amy, sally
+y cream... poseera una version mejorada de la pasiva de poner en
+CD las habilidades del enemigo (como tiene metal amy) pero el
+tiempo de espera de la pasiva en cuestion es un poco menor pero
+sigue siendo por personaje y no una global... otra pasiva: se
+adaptara a los aturdimientos hasta 50% de resistencia
+(aumentara 10% de resistencias)"
+
+* MARCA MEJORADA (la de Metal Amy, mejorada): cuando un golpe,
+  el agarre o la trampa de Jinna cala de verdad, TODAS las
+  habilidades de la victima entran en 8 s de recarga forzada
+  (identico a Metal Amy). La mejora: su enfriamiento POR
+  PERSONAJE es menor — 13 s en vez de 16 (weakMarkCd). Sigue
+  siendo por personaje (marcar a Tails no enfria a Knuckles) y
+  sigue sin ser global. Se reusa scr_weak_mark_hit con el CD por
+  parametro.
+
+* ADAPTACION A ATURDIMIENTOS: cada stun que recibe le ensena —
+  +10% de resistencia por stun recibido, tope 50%. La
+  resistencia recorta la DURACION de cada stun nuevo: el primer
+  stun de la ronda entra entero, el segundo sale al 90%, el
+  tercero al 80%... y del sexto en adelante al 50% (para
+  siempre en la ronda; no decae). Detecta cualquier fuente de
+  stun (trampa de Amelia, parry de Sonic, electro de Metal,
+  ballesta de FW...) porque todas escriben shockedTimer en su
+  cliente y el detector compara el valor esperado frame a frame.
+
+------------------------------------------------------------------------------
+D) JINNA V3 — LA V REWORKEADA: AGARRE (V) / PORTAL TRAMPA (V+ABAJO)
+------------------------------------------------------------------------------
+"al usar v hacia abajo dejara un portal trampa... si alguien cae
+en la trampa se le hara daño y se tp hasta ella... no le dara
+I-frame al jugador que cayo en la trampa y aparte que si este
+tenia I-frame al momento de tocar la trampa recibira el daño
+igual y se le removera"
+
+* V SOLO = AGARRE (como siempre). V + ABAJO = PORTAL TRAMPA en
+  sus pies. Comparten la misma recarga de 12 s (una habilidad,
+  dos modos: elegir es parte del juego).
+
+* LA TRAMPA: entidad del server (entities/JinnaTrap.c, patron de
+  la de Amelia) con 20 s de vida, replicada a todos como un
+  portal algo mas pequeño que el del teleport. La pisa cualquier
+  superviviente vivo (el EXE, esbirros y muertos no la activan)
+  — y PISA IGUAL TENIENDO I-FRAMES: la inmunidad no salva de
+  caer.
+
+* VICTIMA NORMAL: daño (15) + teletransporte HASTA JINNA (a su
+  posicion ACTUAL segun el server) SIN i-frames de ningun tipo:
+  los que tuviera se le REMUEVEN antes del golpe y el golpe no
+  regala los suyos (hurttime = 0 despues tambien) — cae pegada
+  a la killer y a merced del follow-up. El daño respeta las
+  reglas universales (el parry de Sonic puede negarlo; con 10+
+  anillos lo absorben los anillos como cualquier golpe).
+
+* SI LA VICTIMA ES VANILLA — ABSORCION (la mecanica de lore):
+  - En SU cliente corre la animacion: su sprite
+    (spr_vanilla_absorb_trap) se hace mas pequeño hasta
+    desaparecer EN EL CENTRO del portal (que NO se va
+    inmediatamente), y luego el portal se encoge hasta
+    eliminarse (obj_jinna_absorb, ~1,7 s en total).
+  - Al terminar queda FUERA DE JUEGO: muerte directa (el
+    flujo estandar de CLIENT_PLAYER_DEATH_STATE; sus
+    salvaciones de paciencia/moribunda NO aplican — la
+    absorcion no es daño, es la trampa). Su UI queda como si
+    hubiera muerto (camara de espectador), el server la marca
+    PLAYER_DEAD: no cuenta para el win pendiente del EXE y
+    nadie puede revivirla. "Muerta sin estar muerta".
+  - El resto de supervivientes (y otros exes, si algun dia
+    hay doble trouble) NO ven nada: su puppet desaparece
+    sin sangre ni cuerpo.
+  - Sobre la cabeza de JINNA aparece spr_vanilla_caught (la
+    vista de ella atrapada en la otra dimension), SOLO en el
+    cliente de la jugadora de Jinna, flotando hasta el fin de
+    ronda.
+
+* VANILLA ATRAPADA = JINNA POTENCIADA ("dara fuertes aumentos en
+  los efectos de jina en este estado"), en TODOS los clientes
+  hasta el fin de ronda:
+  - Golpe basico: 20 -> 30 (el pad de hitbox del teleport no
+    cambia).
+  - Agarre: 10 -> 15.
+  - Trampa: 15 -> 22.
+  - Slow del teleport: 3 s -> 4,5 s.
+
+------------------------------------------------------------------------------
+CAMBIOS (26 archivos: 15 cliente modificados + 4 cliente nuevos +
+5 server modificados/nuevos + yyp + LEEME)
+------------------------------------------------------------------------------
+FIXES DE PANTALLA:
+* scripts/net_state_results/net_state_results.gml: case 5 ->
+  spr_lobby_exeicon7 (el fix del ruido RGB en resultados).
+* objects/obj_menu_waiting/Draw_64.gml: case 5 -> exeicon7
+  (pantalla de espera del menu).
+* objects/obj_level/Create_0.gml: Jinna usa la fila 15 del
+  marcador TAB (la X misteriosa) + reset por ronda de
+  global.jinnaTelePower / global.jinnaCaughtVanilla.
+* sprites/spr_lobby_exeicon7/spr_lobby_exeicon7.yy: origen al
+  centro (29,30; antes 29,61) + preset 4 — el fix del "muy
+  arriba".
+
+AMY FW PUBLICA + TORRE:
+* scripts/scr_survivors/scr_survivors.gml: scr_char_locked sin
+  Fleetway Amy.
+* betterserver-oss/disasterserver/states/CharSelect.c: sin el
+  rechazo por token de CH_FLEETWAY_AMY.
+* scripts/scr_player_hurt/scr_player_hurt.gml: La Torre tras el
+  guard de hurttime + porcentaje decayente + scr_weak_mark_hit
+  con CD por parametro (13 s Jinna).
+* objects/obj_amy_fleetway/Create_0.gml: fwTowerPct = 100.
+
+JINNA V3 (cliente):
+* scripts/scr_jinna_special/scr_jinna_special.gml: macros nuevas,
+  I-frames del teleport, V con dos modos (agarre / trampa).
+* objects/obj_jinna/Create_0 + Step_0 + Draw_0: adaptacion a
+  stuns, delay de la atrapada, spr_vanilla_caught sobre su
+  cabeza.
+* objects/obj_player_puppet/Step_0.gml: pad de hitbox +25% en la
+  ventana del teleport, marca mejorada por contacto, golpe 30 con
+  Vanilla atrapada.
+* scripts/net_packets/net_packets.gml: 5 paquetes nuevos (AL
+  FINAL, mismo orden que Packet.h).
+* scripts/net_state_game/net_state_game.gml: ventana de poder en
+  el broadcast de portales, agarre con marca + 15 con atrapada,
+  y los handlers TRAP_STATE / TRAP_HIT / TELE_AOE.
+* objects/obj_netclient/Create_0 + Step_0: globals de ronda de
+  Jinna (init + tick de la ventana de poder).
+* objects/obj_jinna_trap/ (NUEVO): la trampa en cada cliente
+  (visual + deteccion de pisada del jugador local).
+* objects/obj_jinna_absorb/ (NUEVO): la secuencia de absorcion
+  de Vanilla (su cliente).
+
+JINNA V3 (server betterserver-oss):
+* include/Packet.h: los 5 paquetes nuevos (mismo orden).
+* disasterserver/states/Game.c: rafaga de slow del teleport (90
+  px, server-side) + CLIENT_JINNA_TRAP (spawn de la entidad) +
+  CLIENT_JINNA_TRAP_HIT (valida pisada: trampa viva + victima
+  encima + viva; emite el hit con la posicion actual de Jinna).
+* include/entities/JinnaTrap.h + disasterserver/entities/
+  JinnaTrap.c (NUEVOS): la entidad trampa (20 s, patron
+  AmeliaTrap).
+* disasterserver/CMakeLists.txt: JinnaTrap.c en SOURCES.
+
+OTROS:
+* Sonicexe The Disaster 2D Remake.yyp: registrados obj_jinna_trap
+  y obj_jinna_absorb.
+
+IMPORTANTE
+----------
+* RECOMPILAR CLIENTE Y SERVER JUNTOS (los 5 paquetes nuevos
+  cambian el enum en los dos lados; un cliente nuevo contra un
+  server viejo —o al reves— desincroniza TODOS los paquetes de
+  Jinna).
+* Balance ajustable en un vistazo (macros de scr_jinna_special):
+  JINNA_TELE_IFRAME (180), JINNA_TELE_HITBOX (0.25),
+  JINNA_TELE_SLOW_TIME (3), JINNA_WEAKMARK_CD (13),
+  JINNA_TRAP_DAMAGE (15), JINNA_TRAP_LIFE (20 s),
+  JINNA_TRAP_RADIUS (28). En el server: el radio del slow (90)
+  y la tolerancia de pisada (64) viven en Game.c; la vida de la
+  trampa (20 s) en JinnaTrap.h.
+* La trampa y el agarre comparten la V (12 s): si aprietas V+ABAJO
+  sin querer, gastas la recarga del agarre — intencional.

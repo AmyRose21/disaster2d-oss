@@ -7,378 +7,369 @@
 
 bool charselect_check_state(Server *server)
 {
-	RAssert(server);
+        RAssert(server);
 
-	bool should = true;
-	for (size_t i = 0; i < server->peers.capacity; i++)
-	{
-		PeerData *peer = (PeerData *)server->peers.ptr[i];
-		if (!peer)
-			continue;
+        bool should = true;
+        for (size_t i = 0; i < server->peers.capacity; i++)
+        {
+                PeerData *peer = (PeerData *)server->peers.ptr[i];
+                if (!peer)
+                        continue;
 
-		if (!peer->in_game)
-			continue;
+                if (!peer->in_game)
+                        continue;
 
-		if (peer->exe_char == CH_NONE && peer->surv_char == EX_NONE)
-			should = false;
-	}
+                if (peer->exe_char == CH_NONE && peer->surv_char == EX_NONE)
+                        should = false;
+        }
 
-	if (should)
-		return game_init(server->lobby.exe, server->lobby.map, server);
+        if (should)
+                return game_init(server->lobby.exe, server->lobby.map, server);
 
-	return true;
+        return true;
 }
 
 bool charselect_choose_exe(Server *server, uint16_t *id)
 {
-	RAssert(server);
+        RAssert(server);
 
-	uint32_t weight = 0;
+        uint32_t weight = 0;
 
-	for (size_t i = 0; i < server->peers.capacity; i++)
-	{
-		PeerData *peer = (PeerData *)server->peers.ptr[i];
-		if (!peer)
-			continue;
+        for (size_t i = 0; i < server->peers.capacity; i++)
+        {
+                PeerData *peer = (PeerData *)server->peers.ptr[i];
+                if (!peer)
+                        continue;
 
-		if (!peer->in_game)
-			continue;
+                if (!peer->in_game)
+                        continue;
 
-		// Reset all characters
-		peer->exe_char = EX_NONE;
-		peer->surv_char = CH_NONE;
+                // Reset all characters
+                peer->exe_char = EX_NONE;
+                peer->surv_char = CH_NONE;
 
-		weight += peer->exe_chance;
-	}
+                weight += peer->exe_chance;
+        }
 
-	if (weight == 0)
-		weight++;
+        if (weight == 0)
+                weight++;
 
-	uint32_t rnd = rand() % weight;
-	for (size_t i = 0; i < server->peers.capacity; i++)
-	{
-		PeerData *peer = (PeerData *)server->peers.ptr[i];
-		if (!peer)
-			continue;
+        uint32_t rnd = rand() % weight;
+        for (size_t i = 0; i < server->peers.capacity; i++)
+        {
+                PeerData *peer = (PeerData *)server->peers.ptr[i];
+                if (!peer)
+                        continue;
 
-		if (!peer->in_game)
-			continue;
+                if (!peer->in_game)
+                        continue;
 
-		if (peer->exe_chance >= 100)
-		{
-			*id = peer->id;
-			return true;
-		}
+                if (peer->exe_chance >= 100)
+                {
+                        *id = peer->id;
+                        return true;
+                }
 
-		if (rnd < peer->exe_chance && !peer->mod_tool)
-		{
-			Info("%s (id %d, c %d) is exe!", peer->nickname.value, peer->id, peer->exe_chance);
+                if (rnd < peer->exe_chance && !peer->mod_tool)
+                {
+                        Info("%s (id %d, c %d) is exe!", peer->nickname.value, peer->id, peer->exe_chance);
 
-			peer->exe_chance = 1 + rand() % 1;
-			*id = peer->id;
+                        peer->exe_chance = 1 + rand() % 1;
+                        *id = peer->id;
 
-			return true;
-		}
+                        return true;
+                }
 
-		rnd -= peer->exe_chance;
-	}
+                rnd -= peer->exe_chance;
+        }
 
-	*id = -1;
-	return false;
+        *id = -1;
+        return false;
 }
 
 bool charselect_state_handle(PeerData *v, Packet *packet)
 {
-	// Read header
-	PacketRead(passtrough, packet, packet_read8, uint8_t);
-	PacketRead(type, packet, packet_read8, uint8_t);
+        // Read header
+        PacketRead(passtrough, packet, packet_read8, uint8_t);
+        PacketRead(type, packet, packet_read8, uint8_t);
 
-	bool res = true;
-	Packet pack;
-	switch (type)
-	{
-	case CLIENT_REQUEST_EXECHARACTER:
-	{
-		if (!v->in_game)
-			break;
+        bool res = true;
+        Packet pack;
+        switch (type)
+        {
+        case CLIENT_REQUEST_EXECHARACTER:
+        {
+                if (!v->in_game)
+                        break;
 
-		// Sanity check
-		AssertOrDisconnect(v->server, v->server->lobby.exe == v->id);
-		PacketRead(id, packet, packet_read8, uint8_t);
+                // Sanity check
+                AssertOrDisconnect(v->server, v->server->lobby.exe == v->id);
+                PacketRead(id, packet, packet_read8, uint8_t);
 
-		id--; // id - 1
+                id--; // id - 1
 
-		AssertOrDisconnect(v->server, id >= 0);
-		AssertOrDisconnect(v->server, id <= EX_JINNA);
+                AssertOrDisconnect(v->server, id >= 0);
+                AssertOrDisconnect(v->server, id <= EX_JINNA);
 
-		/* v2 (D.I.B.): Jinna es una killer RESERVADA - exclusiva
-		   del token de Amy (pedido del usuario: NO se elige como
-		   killer normal, al contrario que Metal Amy). Solo el
-		   jugador con el token valido (amy_authed, el mismo
-		   CLIENT_AMY_AUTH que Amy Canon / Vanilla / Fleetway Amy)
-		   puede elegirla; a los demas se les responde result=0
-		   (el cliente nuevo suena nono y no la selecciona, igual
-		   que el rechazo "como ocupada" de los personajes
-		   reservados) y no se registra ni difunde nada. El
-		   cliente sin token ademas ni pasa por su slot al ciclar
-		   (scr_exe_locked): doble seguro. */
-		if (id == EX_JINNA && !v->amy_authed)
-		{
-			PacketCreate(&pack, SERVER_LOBBY_EXECHARACTER_RESPONSE);
-			PacketWrite(&pack, packet_write8, id);
-			PacketWrite(&pack, packet_write8, 0); /* v2: result = rechazada */
-			RAssert(packet_send(v->peer, &pack, true));
+                /* v2 (D.I.B.): Jinna es una killer RESERVADA - exclusiva
+                   del token de Amy (pedido del usuario: NO se elige como
+                   killer normal, al contrario que Metal Amy). Solo el
+                   jugador con el token valido (amy_authed, el mismo
+                   CLIENT_AMY_AUTH que Amy Canon / Vanilla / Fleetway Amy)
+                   puede elegirla; a los demas se les responde result=0
+                   (el cliente nuevo suena nono y no la selecciona, igual
+                   que el rechazo "como ocupada" de los personajes
+                   reservados) y no se registra ni difunde nada. El
+                   cliente sin token ademas ni pasa por su slot al ciclar
+                   (scr_exe_locked): doble seguro. */
+                if (id == EX_JINNA && !v->amy_authed)
+                {
+                        PacketCreate(&pack, SERVER_LOBBY_EXECHARACTER_RESPONSE);
+                        PacketWrite(&pack, packet_write8, id);
+                        PacketWrite(&pack, packet_write8, 0); /* v2: result = rechazada */
+                        RAssert(packet_send(v->peer, &pack, true));
 
-			Info("%s (id %d) tried to pick [Jinna] without unlock!", v->nickname.value, v->id);
-			return true;
-		}
+                        Info("%s (id %d) tried to pick [Jinna] without unlock!", v->nickname.value, v->id);
+                        return true;
+                }
 
-		v->exe_char = id;
+                v->exe_char = id;
 
-		PacketCreate(&pack, SERVER_LOBBY_EXECHARACTER_RESPONSE);
-		PacketWrite(&pack, packet_write8, id);
-		PacketWrite(&pack, packet_write8, 1); /* v2: result = aceptada */
-		RAssert(packet_send(v->peer, &pack, true));
+                PacketCreate(&pack, SERVER_LOBBY_EXECHARACTER_RESPONSE);
+                PacketWrite(&pack, packet_write8, id);
+                PacketWrite(&pack, packet_write8, 1); /* v2: result = aceptada */
+                RAssert(packet_send(v->peer, &pack, true));
 
-		PacketCreate(&pack, SERVER_LOBBY_CHARACTER_CHANGE);
-		PacketWrite(&pack, packet_write16, v->id);
-		PacketWrite(&pack, packet_write8, id);
-		server_broadcast(v->server, &pack, true);
+                PacketCreate(&pack, SERVER_LOBBY_CHARACTER_CHANGE);
+                PacketWrite(&pack, packet_write16, v->id);
+                PacketWrite(&pack, packet_write8, id);
+                server_broadcast(v->server, &pack, true);
 
-		const char *exes[] = {
-			"Classic Exe",
-			"Chaos",
-			"Exetior",
-			"Exeller",
-			"Metal Amy", /* v2.2 (TTB) */
-			"Jinna"}; /* v1 (D.I.B.) */
+                const char *exes[] = {
+                        "Classic Exe",
+                        "Chaos",
+                        "Exetior",
+                        "Exeller",
+                        "Metal Amy", /* v2.2 (TTB) */
+                        "Jinna"}; /* v1 (D.I.B.) */
 
-		Info("%s " LOG_RST "(id %d) choses [" LOG_RED "%s" LOG_RST "]!", v->nickname.value, v->id, exes[id]);
-		return charselect_check_state(v->server) || lobby_init(v->server);
-	}
+                Info("%s " LOG_RST "(id %d) choses [" LOG_RED "%s" LOG_RST "]!", v->nickname.value, v->id, exes[id]);
+                return charselect_check_state(v->server) || lobby_init(v->server);
+        }
 
-	case CLIENT_REQUEST_CHARACTER:
-	{
-		if (!v->in_game)
-			break;
+        case CLIENT_REQUEST_CHARACTER:
+        {
+                if (!v->in_game)
+                        break;
 
-		if (v->surv_char != CH_NONE)
-			break;
+                if (v->surv_char != CH_NONE)
+                        break;
 
-		// Sanity check
-		AssertOrDisconnect(v->server, v->server->lobby.exe != v->id);
-		PacketRead(id, packet, packet_read8, uint8_t);
-		id--; // id - 1
+                // Sanity check
+                AssertOrDisconnect(v->server, v->server->lobby.exe != v->id);
+                PacketRead(id, packet, packet_read8, uint8_t);
+                id--; // id - 1
 
-		AssertOrDisconnect(v->server, id >= 0);
-		AssertOrDisconnect(v->server, id <= CH_FLEETWAY_AMY);
+                AssertOrDisconnect(v->server, id >= 0);
+                AssertOrDisconnect(v->server, id <= CH_FLEETWAY_AMY);
 
-		/* Amy Canon: personaje RESERVADO. Solo el jugador con el
-		   token valido (CLIENT_AMY_AUTH, ver states/Server.c)
-		   puede usarla; a los demas se les responde igual que si
-		   estuviera ocupada (el cliente la tacha y suena nono). */
-		if (id == CH_AMY_CANON && !v->amy_authed)
-		{
-			PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
-			PacketWrite(&pack, packet_write8, id + 1);
-			PacketWrite(&pack, packet_write8, 0);
-			RAssert(packet_send(v->peer, &pack, true));
+                /* Amy Canon: personaje RESERVADO. Solo el jugador con el
+                   token valido (CLIENT_AMY_AUTH, ver states/Server.c)
+                   puede usarla; a los demas se les responde igual que si
+                   estuviera ocupada (el cliente la tacha y suena nono). */
+                if (id == CH_AMY_CANON && !v->amy_authed)
+                {
+                        PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+                        PacketWrite(&pack, packet_write8, id + 1);
+                        PacketWrite(&pack, packet_write8, 0);
+                        RAssert(packet_send(v->peer, &pack, true));
 
-			Info("%s (id %d) tried to pick [Amy Canon] without unlock!", v->nickname.value, v->id);
-			return true;
-		}
+                        Info("%s (id %d) tried to pick [Amy Canon] without unlock!", v->nickname.value, v->id);
+                        return true;
+                }
 
-		/* Sally Canon: personaje RESERVADO. Solo pueden usarla los
-		   OPERADORES del server (Operators.json / .op). Sonic quedo
-		   libre para todos y Amy Canon sigue siendo solo del token
-		   (bloque de arriba). A los demas se les responde igual que
-		   si estuviera ocupada: el cliente ademas ni se la muestra
-		   al ciclar (ver scr_char_locked), pero si alguien edita su
-		   cliente para pedirla, el server la rechaza igual.
-		   Doble seguro. */
-		if (id == CH_SALLY_CANON && !v->op)
-		{
-			PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
-			PacketWrite(&pack, packet_write8, id + 1);
-			PacketWrite(&pack, packet_write8, 0);
-			RAssert(packet_send(v->peer, &pack, true));
+                /* Sally Canon: personaje RESERVADO. Solo pueden usarla los
+                   OPERADORES del server (Operators.json / .op). Sonic quedo
+                   libre para todos y Amy Canon sigue siendo solo del token
+                   (bloque de arriba). A los demas se les responde igual que
+                   si estuviera ocupada: el cliente ademas ni se la muestra
+                   al ciclar (ver scr_char_locked), pero si alguien edita su
+                   cliente para pedirla, el server la rechaza igual.
+                   Doble seguro. */
+                if (id == CH_SALLY_CANON && !v->op)
+                {
+                        PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+                        PacketWrite(&pack, packet_write8, id + 1);
+                        PacketWrite(&pack, packet_write8, 0);
+                        RAssert(packet_send(v->peer, &pack, true));
 
-			Info("%s (id %d) tried to pick [Sally Canon] without unlock!", v->nickname.value, v->id);
-			return true;
-		}
+                        Info("%s (id %d) tried to pick [Sally Canon] without unlock!", v->nickname.value, v->id);
+                        return true;
+                }
 
-		/* Vanilla: personaje RESERVADO. Solo el jugador con el token
-		   de Amy (mismo CLIENT_AMY_AUTH que Amy Canon) puede usarla;
-		   ni operadores ni publica. A los demas se les responde igual
-		   que si estuviera ocupada (el cliente ademas ni se la muestra
-		   al ciclar: ver scr_char_locked). Doble seguro. */
-		if (id == CH_VANILLA && !v->amy_authed)
-		{
-			PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
-			PacketWrite(&pack, packet_write8, id + 1);
-			PacketWrite(&pack, packet_write8, 0);
-			RAssert(packet_send(v->peer, &pack, true));
+                /* Vanilla: personaje RESERVADO. Solo el jugador con el token
+                   de Amy (mismo CLIENT_AMY_AUTH que Amy Canon) puede usarla;
+                   ni operadores ni publica. A los demas se les responde igual
+                   que si estuviera ocupada (el cliente ademas ni se la muestra
+                   al ciclar: ver scr_char_locked). Doble seguro. */
+                if (id == CH_VANILLA && !v->amy_authed)
+                {
+                        PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+                        PacketWrite(&pack, packet_write8, id + 1);
+                        PacketWrite(&pack, packet_write8, 0);
+                        RAssert(packet_send(v->peer, &pack, true));
 
-			Info("%s (id %d) tried to pick [Vanilla] without unlock!", v->nickname.value, v->id);
-			return true;
-		}
+                        Info("%s (id %d) tried to pick [Vanilla] without unlock!", v->nickname.value, v->id);
+                        return true;
+                }
 
-		/* Fleetway Amy (v2.14): personaje RESERVADO. Solo el jugador con
-		   el token de Amy (mismo CLIENT_AMY_AUTH que Amy Canon y Vanilla).
-		   A los demas se les responde igual que si estuviera ocupada (el
-		   cliente ademas ni se la muestra al ciclar: scr_char_locked).
-		   Doble seguro. */
-		if (id == CH_FLEETWAY_AMY && !v->amy_authed)
-		{
-			PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
-			PacketWrite(&pack, packet_write8, id + 1);
-			PacketWrite(&pack, packet_write8, 0);
-			RAssert(packet_send(v->peer, &pack, true));
+                /* v3 (D.I.B.): Fleetway Amy PASO A SER PUBLICA (pedido de
+                   la duena: "la amy fw sera publica"). Este bloque de
+                   rechazo por token se retira — el cliente tampoco la
+                   bloquea ya (scr_char_locked). Cualquiera puede pedirla;
+                   su pasiva de torre se nerfeo a cambio (bloqueo solo con
+                   daño real + porcentaje decayente, ver scr_player_hurt). */
 
-			Info("%s (id %d) tried to pick [Fleetway Amy] without unlock!", v->nickname.value, v->id);
-			return true;
-		}
+                uint8_t avail = v->server->lobby.avail[id];
+                if (avail)
+                        v->server->lobby.avail[id] = 0;
 
-		uint8_t avail = v->server->lobby.avail[id];
-		if (avail)
-			v->server->lobby.avail[id] = 0;
+                PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+                PacketWrite(&pack, packet_write8, id + 1);
+                PacketWrite(&pack, packet_write8, avail);
+                RAssert(packet_send(v->peer, &pack, true));
 
-		PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
-		PacketWrite(&pack, packet_write8, id + 1);
-		PacketWrite(&pack, packet_write8, avail);
-		RAssert(packet_send(v->peer, &pack, true));
+                if (avail)
+                {
+                        v->surv_char = id;
 
-		if (avail)
-		{
-			v->surv_char = id;
+                        PacketCreate(&pack, SERVER_LOBBY_CHARACTER_CHANGE);
+                        PacketWrite(&pack, packet_write16, v->id);
+                        PacketWrite(&pack, packet_write8, id + 1);
+                        server_broadcast(v->server, &pack, true);
+                }
 
-			PacketCreate(&pack, SERVER_LOBBY_CHARACTER_CHANGE);
-			PacketWrite(&pack, packet_write16, v->id);
-			PacketWrite(&pack, packet_write8, id + 1);
-			server_broadcast(v->server, &pack, true);
-		}
+                const char *survs[] = {
+                        "Tails",
+                        "Knuckles",
+                        "Eggman",
+                        "Amy",
+                        "Cream",
+                        "Sally",
+                        "Amy Canon",
+                        "Sonic",
+                        "Sally Canon",
+                        "Vanilla",
+                        "Metal Sonic", /* v2.2 (TTB) */
+                        "Amelia",
+                        "Blaze",
+                        "Fleetway Amy"}; /* v2.14 */
 
-		const char *survs[] = {
-			"Tails",
-			"Knuckles",
-			"Eggman",
-			"Amy",
-			"Cream",
-			"Sally",
-			"Amy Canon",
-			"Sonic",
-			"Sally Canon",
-			"Vanilla",
-			"Metal Sonic", /* v2.2 (TTB) */
-			"Amelia",
-			"Blaze",
-			"Fleetway Amy"}; /* v2.14 */
+                Info("%s " LOG_RST "(id %d) choses [" LOG_GRN "%s" LOG_RST "]!", v->nickname.value, v->id, survs[id]);
+                return charselect_check_state(v->server) || lobby_init(v->server);
+        }
 
-		Info("%s " LOG_RST "(id %d) choses [" LOG_GRN "%s" LOG_RST "]!", v->nickname.value, v->id, survs[id]);
-		return charselect_check_state(v->server) || lobby_init(v->server);
-	}
+        case CLIENT_CHAT_MESSAGE:
+        {
+                PacketRead(pid, packet, packet_read16, uint16_t);
+                PacketRead(msg, packet, packet_readstr, String);
+                AssertOrDisconnect(v->server, string_length(&msg) <= 40);
 
-	case CLIENT_CHAT_MESSAGE:
-	{
-		PacketRead(pid, packet, packet_read16, uint16_t);
-		PacketRead(msg, packet, packet_readstr, String);
-		AssertOrDisconnect(v->server, string_length(&msg) <= 40);
+                v->timeout = 0;
 
-		v->timeout = 0;
+                Info("%s " LOG_RST "(id %d): %s", v->nickname.value, v->id, msg.value);
+                if (!server_cmd_handle(v->server, server_cmd_parse(&msg), v, &msg) && g_config.chatfix)
+                        server_broadcast_msg(v->server, v->id, msg.value);
 
-		Info("%s " LOG_RST "(id %d): %s", v->nickname.value, v->id, msg.value);
-		if (!server_cmd_handle(v->server, server_cmd_parse(&msg), v, &msg) && g_config.chatfix)
-			server_broadcast_msg(v->server, v->id, msg.value);
+                break;
+                }
 
-		break;
-		}
+        default:
+                RAssert(server_msg_handle(v->server, type, v, packet));
+                break;
+        }
 
-	default:
-		RAssert(server_msg_handle(v->server, type, v, packet));
-		break;
-	}
-
-	return res;
+        return res;
 }
 
 bool charselect_state_tick(Server *server)
 {
-	if (server->lobby.countdown <= 0)
-	{
-		server->lobby.countdown += TICKSPERSEC;
+        if (server->lobby.countdown <= 0)
+        {
+                server->lobby.countdown += TICKSPERSEC;
 
-		if (--server->lobby.countdown_sec == 0)
-		{
-			for (size_t i = 0; i < server->peers.capacity; i++)
-			{
-				PeerData *peer = (PeerData *)server->peers.ptr[i];
-				if (!peer)
-					continue;
+                if (--server->lobby.countdown_sec == 0)
+                {
+                        for (size_t i = 0; i < server->peers.capacity; i++)
+                        {
+                                PeerData *peer = (PeerData *)server->peers.ptr[i];
+                                if (!peer)
+                                        continue;
 
-				if (!peer->in_game)
-					continue;
+                                if (!peer->in_game)
+                                        continue;
 
-				if (peer->exe_char == EX_NONE && peer->surv_char == CH_NONE)
-					server_disconnect(server, peer->peer, DR_AFKTIMEOUT, NULL);
-			}
-		}
+                                if (peer->exe_char == EX_NONE && peer->surv_char == CH_NONE)
+                                        server_disconnect(server, peer->peer, DR_AFKTIMEOUT, NULL);
+                        }
+                }
 
-		Packet pack;
-		PacketCreate(&pack, SERVER_CHAR_TIME_SYNC);
-		PacketWrite(&pack, packet_write8, server->lobby.countdown_sec);
-		server_broadcast(server, &pack, true);
-	}
+                Packet pack;
+                PacketCreate(&pack, SERVER_CHAR_TIME_SYNC);
+                PacketWrite(&pack, packet_write8, server->lobby.countdown_sec);
+                server_broadcast(server, &pack, true);
+        }
 
-	server->lobby.countdown -= server->delta;
-	return true;
+        server->lobby.countdown -= server->delta;
+        return true;
 }
 
 bool charselect_init(int8_t map, Server *server)
 {
-	Debug("Attepting to enter ST_CHARSELECT...");
-	RAssert(server);
-	RAssert(charselect_choose_exe(server, &server->lobby.exe));
+        Debug("Attepting to enter ST_CHARSELECT...");
+        RAssert(server);
+        RAssert(charselect_choose_exe(server, &server->lobby.exe));
 
-	if (server->lobby.exe == -1)
-	{
-		Err("Failed to pick exe for some reason!");
-		return lobby_init(server);
-	}
+        if (server->lobby.exe == -1)
+        {
+                Err("Failed to pick exe for some reason!");
+                return lobby_init(server);
+        }
 
-	server->state = ST_CHARSELECT;
-	server->lobby.countdown_sec = g_config.charselect_time;
-	server->lobby.countdown = TICKSPERSEC;
-	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_FLEETWAY_AMY + 1)); /* v2.14: hasta Fleetway Amy */
+        server->state = ST_CHARSELECT;
+        server->lobby.countdown_sec = g_config.charselect_time;
+        server->lobby.countdown = TICKSPERSEC;
+        memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_FLEETWAY_AMY + 1)); /* v2.14: hasta Fleetway Amy */
 
-	Packet pack;
-	PacketCreate(&pack, SERVER_LOBBY_EXE);
-	PacketWrite(&pack, packet_write16, server->lobby.exe);
-	PacketWrite(&pack, packet_write16, map);
-	server_broadcast(server, &pack, true);
+        Packet pack;
+        PacketCreate(&pack, SERVER_LOBBY_EXE);
+        PacketWrite(&pack, packet_write16, server->lobby.exe);
+        PacketWrite(&pack, packet_write16, map);
+        server_broadcast(server, &pack, true);
 
-	PacketCreate(&pack, SERVER_CHAR_TIME_SYNC);
-	PacketWrite(&pack, packet_write8, server->lobby.countdown_sec);
-	server_broadcast(server, &pack, true);
+        PacketCreate(&pack, SERVER_CHAR_TIME_SYNC);
+        PacketWrite(&pack, packet_write8, server->lobby.countdown_sec);
+        server_broadcast(server, &pack, true);
 
-	Info(LOG_YLW "Server is now in " LOG_PUR "Character Select");
-	server->lobby.map = map;
+        Info(LOG_YLW "Server is now in " LOG_PUR "Character Select");
+        server->lobby.map = map;
 
-	for (size_t i = 0; i < server->peers.capacity; i++)
-	{
-		PeerData *data = (PeerData *)server->peers.ptr[i];
+        for (size_t i = 0; i < server->peers.capacity; i++)
+        {
+                PeerData *data = (PeerData *)server->peers.ptr[i];
 
-		if (!data)
-			continue;
+                if (!data)
+                        continue;
 
-		if (data->in_game)
-			continue;
+                if (data->in_game)
+                        continue;
 
-		char msg[256];
-		snprintf(msg, 100, "map: %s" CLRCODE_RST, g_mapList[map].name);
-		server_send_msg(server, data->peer, msg);
-	}
+                char msg[256];
+                snprintf(msg, 100, "map: %s" CLRCODE_RST, g_mapList[map].name);
+                server_send_msg(server, data->peer, msg);
+        }
 
-	return true;
+        return true;
 }
 
 /* v4.7 (pedido del usuario): la practica de supervivientes (.sp)
@@ -387,93 +378,93 @@ bool charselect_init(int8_t map, Server *server)
  * ultimo jugado. Sin votacion (es un modo solo): un sorteo directo. */
 bool charselect_init_survpractice(Server *server)
 {
-	Debug("Attepting to enter ST_CHARSELECT (survivor practice)...");
-	RAssert(server);
+        Debug("Attepting to enter ST_CHARSELECT (survivor practice)...");
+        RAssert(server);
 
-	/* v4.7: mapa sorteado (antes: 20 fijo = Fart Zone eterno) */
-	int8_t map = map_pick_random(server);
+        /* v4.7: mapa sorteado (antes: 20 fijo = Fart Zone eterno) */
+        int8_t map = map_pick_random(server);
 
-	/* charselect_choose_exe() normally resets these for us. */
-	for (size_t i = 0; i < server->peers.capacity; i++)
-	{
-		PeerData *peer = (PeerData *)server->peers.ptr[i];
-		if (!peer)
-			continue;
+        /* charselect_choose_exe() normally resets these for us. */
+        for (size_t i = 0; i < server->peers.capacity; i++)
+        {
+                PeerData *peer = (PeerData *)server->peers.ptr[i];
+                if (!peer)
+                        continue;
 
-		if (!peer->in_game)
-			continue;
+                if (!peer->in_game)
+                        continue;
 
-		peer->exe_char = EX_NONE;
-		peer->surv_char = CH_NONE;
-	}
+                peer->exe_char = EX_NONE;
+                peer->surv_char = CH_NONE;
+        }
 
-	/* Practice with no EXE: use an id that matches no peer,
-	 * so every player gets the SURVIVOR select screen. */
-	server->lobby.exe = 0xFFFF;
+        /* Practice with no EXE: use an id that matches no peer,
+         * so every player gets the SURVIVOR select screen. */
+        server->lobby.exe = 0xFFFF;
 
-	server->state = ST_CHARSELECT;
-	server->lobby.countdown_sec = g_config.practice_time;
-	server->lobby.countdown = TICKSPERSEC;
-	memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_FLEETWAY_AMY + 1)); /* v2.14: hasta Fleetway Amy */
+        server->state = ST_CHARSELECT;
+        server->lobby.countdown_sec = g_config.practice_time;
+        server->lobby.countdown = TICKSPERSEC;
+        memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_FLEETWAY_AMY + 1)); /* v2.14: hasta Fleetway Amy */
 
-	Packet pack;
+        Packet pack;
 
-	/* Fake "EXE" player: survivors read players[? exeId].exeCharacter
-	 * on SERVER_LOBBY_GAME_START and crash if the id is not in their
-	 * players map. Removed again in game_init() right after the game
-	 * starts. */
-	PacketCreate(&pack, SERVER_PLAYER_JOINED);
-	PacketWrite(&pack, packet_write16, 0xFFFF);
-	PacketWrite(&pack, packet_writestr, __Str("EXE"));
-	PacketWrite(&pack, packet_write8, 24); /* SonicExe lobby icon */
-	PacketWrite(&pack, packet_write8, -1); /* no pet */
-	server_broadcast(server, &pack, true);
+        /* Fake "EXE" player: survivors read players[? exeId].exeCharacter
+         * on SERVER_LOBBY_GAME_START and crash if the id is not in their
+         * players map. Removed again in game_init() right after the game
+         * starts. */
+        PacketCreate(&pack, SERVER_PLAYER_JOINED);
+        PacketWrite(&pack, packet_write16, 0xFFFF);
+        PacketWrite(&pack, packet_writestr, __Str("EXE"));
+        PacketWrite(&pack, packet_write8, 24); /* SonicExe lobby icon */
+        PacketWrite(&pack, packet_write8, -1); /* no pet */
+        server_broadcast(server, &pack, true);
 
-	PacketCreate(&pack, SERVER_LOBBY_EXE);
-	PacketWrite(&pack, packet_write16, server->lobby.exe);
-	PacketWrite(&pack, packet_write16, map);
-	server_broadcast(server, &pack, true);
+        PacketCreate(&pack, SERVER_LOBBY_EXE);
+        PacketWrite(&pack, packet_write16, server->lobby.exe);
+        PacketWrite(&pack, packet_write16, map);
+        server_broadcast(server, &pack, true);
 
-	PacketCreate(&pack, SERVER_CHAR_TIME_SYNC);
-	PacketWrite(&pack, packet_write8, server->lobby.countdown_sec);
-	server_broadcast(server, &pack, true);
+        PacketCreate(&pack, SERVER_CHAR_TIME_SYNC);
+        PacketWrite(&pack, packet_write8, server->lobby.countdown_sec);
+        server_broadcast(server, &pack, true);
 
-	Info(LOG_YLW "Server is now in " LOG_PUR "Character Select " LOG_YLW "(survivor practice)");
-	Info("Map is [" LOG_BLU "%s" LOG_RST "]", g_mapList[map].name);
-	server->lobby.map = map;
-	server->last_map = map;
+        Info(LOG_YLW "Server is now in " LOG_PUR "Character Select " LOG_YLW "(survivor practice)");
+        Info("Map is [" LOG_BLU "%s" LOG_RST "]", g_mapList[map].name);
+        server->lobby.map = map;
+        server->last_map = map;
 
-	for (size_t i = 0; i < server->peers.capacity; i++)
-	{
-		PeerData *data = (PeerData *)server->peers.ptr[i];
+        for (size_t i = 0; i < server->peers.capacity; i++)
+        {
+                PeerData *data = (PeerData *)server->peers.ptr[i];
 
-		if (!data)
-			continue;
+                if (!data)
+                        continue;
 
-		if (data->in_game)
-			continue;
+                if (data->in_game)
+                        continue;
 
-		char msg[256];
-		snprintf(msg, 100, CLRCODE_GRN "map: %s" CLRCODE_RST, g_mapList[map].name);
-		server_send_msg(server, data->peer, msg);
-		server_send_msg(server, data->peer, CLRCODE_GRN "survivor practice:~ pick your character!");
-	}
+                char msg[256];
+                snprintf(msg, 100, CLRCODE_GRN "map: %s" CLRCODE_RST, g_mapList[map].name);
+                server_send_msg(server, data->peer, msg);
+                server_send_msg(server, data->peer, CLRCODE_GRN "survivor practice:~ pick your character!");
+        }
 
-	return true;
+        return true;
 }
 
 bool charselect_state_join(PeerData *v)
 {
-	return true;
+        return true;
 }
 
 bool charselect_state_left(PeerData *v)
 {
-	if (v->surv_char != CH_NONE)
-		v->server->lobby.avail[v->surv_char] = true;
+        if (v->surv_char != CH_NONE)
+                v->server->lobby.avail[v->surv_char] = true;
 
-	if (server_ingame(v->server) <= 1 || v->id == v->server->lobby.exe)
-		return lobby_init(v->server);
+        if (server_ingame(v->server) <= 1 || v->id == v->server->lobby.exe)
+                return lobby_init(v->server);
 
-	return charselect_check_state(v->server) || lobby_init(v->server);
+        return charselect_check_state(v->server) || lobby_init(v->server);
 }

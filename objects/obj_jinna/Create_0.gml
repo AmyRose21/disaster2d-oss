@@ -51,9 +51,25 @@ jinnaTeleWindup = 0;   // frames de telegraph (flecha sobre el objetivo)
 jinnaTeleTarget = noone; // puppet objetivo durante el telegraph
 jinnaTelePose = 0;     // frames de pose de tele tras aterrizar
 
-// JINNA: agarre (tecla V)
-jinnaGrabCd = 0;       // enfriamiento restante
+// JINNA: agarre (tecla V) / portal trampa (V + ABAJO)
+jinnaGrabCd = 0;       // enfriamiento restante (ambos modos de la V)
 jinnaGrabVisual = 0;   // frames de pose de agarre (attack2)
+
+// JINNA v3 — ADAPTACION A ATURDIMIENTOS (pasiva de lore): cada stun que
+// recibe le ensena a resistirlos: +10% de resistencia por stun recibido
+// (tope 50%). La resistencia RECORTEA la duracion de cada stun NUEVO (el
+// primero entra entero; del segundo en adelante cada vez mas corto). No
+// decae: se resetea al empezar la ronda.
+jinnaStunResist = 0;   // 0..50 (%)
+jinnaShockNext = 0;    // valor esperado de shockedTimer el proximo frame (deteccion de stuns NUEVOS)
+
+// JINNA v3 — VANILLA ATRAPADA: cuando Vanilla cae en el portal trampa,
+// sobre la cabeza de Jinna aparece spr_vanilla_caught (solo visible para
+// SU jugadora) tras la animacion de absorcion. jinnaCaughtDelay cuenta
+// esa espera (~1,7 s) y jinnaCaughtShow la deja fijada hasta el fin de
+// ronda; dibujado en Draw_0.
+jinnaCaughtDelay = 0;    // frames hasta mostrar a la atrapada (0 = nada pendiente)
+jinnaCaughtShow = false; // true = Vanilla ya esta dibujada sobre su cabeza
 
 // JINNA: misc
 jinnaGoSnd = false;            // la linea de arranque suena 1 vez (ver Step_0)

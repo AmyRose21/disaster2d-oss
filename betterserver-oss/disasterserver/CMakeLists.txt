@@ -61,6 +61,7 @@ set(SOURCES
         "entities/ExellerClone.c"
         "entities/AmeliaBanana.c"
         "entities/AmeliaTrap.c"
+        "entities/JinnaTrap.c"
         "entities/BlazeFireball.c"
         "entities/MetalAmyBullet.c"
         "entities/RMZSlug.c"

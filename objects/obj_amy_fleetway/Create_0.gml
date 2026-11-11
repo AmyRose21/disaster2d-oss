@@ -97,6 +97,12 @@ attackTimer = 0;     // puño/patada (tecla B)
 djTimer = 0;         // DJ doble salto: 0 listo, -1..-30 volando, >0 recargando
 crossBow = 0;        // v2.15: CD corto entre disparos (FW_ARROW_SHOT_CD)
 cbTimer = 0;         // frames restantes con la ballesta EN LA MANO (sprites cbamy)
+// v3 (D.I.B.) — LA TORRE nerf (FW publica): porcentaje de bloqueo de la
+// pasiva. Arranca en 100% y CADA bloqueo consumido le resta 10 (100 ->
+// 90 -> ... -> 0). Se evalua SOLO con daño real que iba a entrar (ver
+// scr_player_hurt, tras el guard de hurttime). Se resetea cada ronda
+// (este Create corre al empezar).
+fwTowerPct = 100;
 // v2.15 («La Torre»): cargador de la ballesta
 fwArrows = FW_ARROW_MAX;        // flechas disponibles (0..3)
 fwArrowReload = 0;              // recarga de la siguiente flecha (0 = cargador lleno)

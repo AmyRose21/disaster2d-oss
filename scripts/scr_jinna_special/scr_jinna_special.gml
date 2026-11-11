@@ -34,12 +34,33 @@
 #macro JINNA_TELEPORT_POSE 32             // ~0,53 s de pose al aterrizar
 #macro JINNA_TELEPORT_OFFSET 34           // px detras del objetivo
 #macro JINNA_TELEPORT_MAX_RANGE 1200      // no caza a traves de todo el mapa
+// v3 — teleport potenciado
+#macro JINNA_TELE_IFRAME (60 * 3)         // 3 s de I-frames al aparecer
+#macro JINNA_TELE_HITBOX 0.25             // +25% hitbox del golpe basico (ventana de 3 s)
+#macro JINNA_TELE_SLOW_TIME 3             // 3 s de ralentizacion a los objetivos alrededor (server)
 
-// AGARRE (tecla V)
-#macro JINNA_GRAB_RECHARGE (60 * 12)      // 12 s de enfriamiento
+// v3 — MARCA MEJORADA (pasiva de lore: creacion de las 3 — Amy, Sally
+// y Cream). Version mejorada de la Marca de Debilidad de Metal Amy:
+// mismo efecto (8 s de recarga forzada de TODAS las habilidades de la
+// victima), pero su enfriamiento POR PERSONAJE es menor (13 s vs 16 s).
+#macro JINNA_WEAKMARK_CD (60 * 13)
+
+// AGARRE (tecla V) — v3: la V ahora tiene DOS modos: sola = agarre,
+// con ABAJO = portal trampa. Comparten la misma recarga de 12 s.
+#macro JINNA_GRAB_RECHARGE (60 * 12)      // 12 s de enfriamiento (agarre Y trampa)
 #macro JINNA_GRAB_RANGE 46                // px de alcance cuerpo a cuerpo
 #macro JINNA_GRAB_LOCK (60 * 1.6)         // 1,6 s de victima bloqueada
-#macro JINNA_GRAB_DAMAGE 10               // "1 HP" (la placa oficial)
+#macro JINNA_GRAB_DAMAGE 10               // "1 HP" (la placa oficial; 15 con Vanilla atrapada)
+
+// v3 — PORTAL TRAMPA (V + ABAJO): se planta en los pies de Jinna. Quien
+// caiga recibe daño y es teletransportado HASTA ELLA (sin I-frames para
+// la victima: si los tenia, el daño entra igual y se le REMUEVEN). Si
+// quien cae es VANILLA, es ABSORBIDA a la otra dimension (obj_jinna_absorb
+// + spr_vanilla_absorb_trap): fuera de juego "muerta sin estar muerta" y
+// Jinna queda POTENCIADA (spr_vanilla_caught sobre su cabeza; ver LEEME).
+#macro JINNA_TRAP_DAMAGE 15               // daño al caer en la trampa (22 con Vanilla atrapada)
+#macro JINNA_TRAP_LIFE (60 * 20)          // vida maxima del portal trampa (la lleva el server)
+#macro JINNA_TRAP_RADIUS 22               // radio de pisada (bbox del portal)
 
 // GOLPE (tecla X): commit del swing
 #macro JINNA_ATTACK_LOCK 12               // ~0,2 s frenando el impulso
@@ -130,6 +151,19 @@ function scr_jinna_special()
                                 jinnaTelePose = JINNA_TELEPORT_POSE;
                                 jinnaTeleTarget = noone;
 
+                                // v3 — APARICION POTENCIADA: 3 s de I-frames
+                                // (hurttime: el gate de los ataques de los
+                                // supervivientes en obj_player_puppet; el
+                                // parpadeo translucido del Draw es el aviso
+                                // visual de la inmunidad). La ralentizacion
+                                // a los objetivos alrededor la calcula y
+                                // reparte el SERVER con las posiciones que
+                                // ya sincroniza (SERVER_JINNA_TELE_AOE), y la
+                                // ventana de +25% de hitbox del golpe basico
+                                // la abre el broadcast de los portales en
+                                // TODOS los clientes (global.jinnaTelePower).
+                                hurttime = JINNA_TELE_IFRAME;
+
                                 audio_play_sound(snd_teleport, 0, false);
                                 net_sound_emit(snd_teleport);
 
@@ -175,9 +209,34 @@ function scr_jinna_special()
         // (el conteo del telegraph corre en Step_0 junto al resto de
         // timers: nunca se congela aturdida — leccion v4.8 de Metal Amy)
 
-        // ---- AGARRE (tecla V) ----
+        // ---- AGARRE (tecla V) / PORTAL TRAMPA (V + ABAJO) ----
+        // v3: la V ahora tiene dos modos que comparten la misma recarga
+        // (12 s): sola agarra al objetivo cercano (como siempre) y con
+        // ABAJO plantará un PORTAL TRAMPA en sus pies (CLIENT_JINNA_TRAP:
+        // el server lo valida, spawnea la entidad y la replica a todos).
         if(global.playerControls && keyboard_check_pressed(global.KeyV) && jinnaGrabCd <= 0 && shockedTimer <= 0 && !won && !lost)
         {
+                if(keyboard_check(global.KeyDown))
+                {
+                        // ---- MODO TRAMPA (V + ABAJO) ----
+                        jinnaGrabCd = JINNA_GRAB_RECHARGE;
+                        jinnaGrabVisual = 24; // pose de agarre ~0,4 s
+
+                        if(keyboard_check(global.KeyLeft))
+                                image_xscale = -1;
+                        else if(keyboard_check(global.KeyRight))
+                                image_xscale = 1;
+
+                        var _trap = cpacket_tcp(PacketType.CLIENT_JINNA_TRAP, false);
+                        buffer_write(_trap, buffer_u16, max(1, floor(x)));
+                        buffer_write(_trap, buffer_u16, max(1, floor(y)));
+                        send_server_tcp(_trap);
+
+                        audio_play_sound(snd_teleport, 0, false);
+                        net_sound_emit(snd_teleport);
+                }
+                else
+                {
                 var _g = noone;
                 var _gD = JINNA_GRAB_RANGE;
 
@@ -216,6 +275,7 @@ function scr_jinna_special()
 
                         audio_play_sound(snd_jina_ready, 0, false);
                 }
+                } // fin del modo agarre (else de la trampa)
         }
 
         if(attackTimer > 0)

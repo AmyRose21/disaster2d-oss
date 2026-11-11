@@ -354,6 +354,13 @@ function net_state_game(rbuff, nps, isPasstrough)
                         var _nx = buffer_read_s(rbuff, buffer_u16);
                         var _ny = buffer_read_s(rbuff, buffer_u16);
 
+                        // v3 — VENTANA DE PODER del teleport (3 s) para TODOS los
+                        // clientes (incluida la propia Jinna): durante estos frames la
+                        // hitbox del golpe basico de Jinna crece +25% (el pad lo aplica
+                        // obj_player_puppet con el puppet atacante). obj_netclient/Step_0
+                        // lo hace bajar; obj_level/Create lo resetea por ronda.
+                        global.jinnaTelePower = JINNA_TELE_IFRAME;
+
                         if(_jpid != obj_netclient.nid)
                         {
                                 instance_create_depth(_ox, _oy, 0, obj_jinna_portal);
@@ -389,7 +396,17 @@ function net_state_game(rbuff, nps, isPasstrough)
 
                                         // el golpe: misma via que los golpes del exe
                                         // (exeSource=true: el parry de Sonic puede negarlo)
-                                        scr_player_hurt(JINNA_GRAB_DAMAGE, 0, 0, snd_hurt, spr_blood3, false, true);
+                                        // v3: con VANILLA ATRAPADA el agarre pega 15 (10 +5
+                                        // de la potenciacion del kit)
+                                        var _hpB4 = global.player.hp;
+                                        scr_player_hurt(JINNA_GRAB_DAMAGE + (global.jinnaCaughtVanilla ? 5 : 0), 0, 0, snd_hurt, spr_blood3, false, true);
+
+                                        // v3 — MARCA MEJORADA de Jinna: el agarre que calo
+                                        // tambien mete las habilidades de la victima en
+                                        // recarga (13 s por personaje; el contacto la aplica
+                                        // en obj_player_puppet)
+                                        if(global.player.hp < _hpB4 || global.player.isHurt)
+                                                scr_weak_mark_hit(JINNA_WEAKMARK_CD);
                                 }
                         }
                         else if(instance_exists(obj_player_puppet))
@@ -406,6 +423,157 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         break;
                                 }
                         }
+                        break;
+                }
+
+                // v3 JINNA — PORTAL TRAMPA: replica de la entidad del server
+                // (entities/JinnaTrap.c). 0 = spawn del portal en (x, y); 1 =
+                // retirada (vida agotada / fin de ronda); 2 = PISADA: la
+                // trampa se consume (los efectos sobre la victima llegan con
+                // SERVER_JINNA_TRAP_HIT justo detras).
+                case PacketType.SERVER_JINNA_TRAP_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+
+                        var _tstate = buffer_read_s(rbuff, buffer_u8);
+                        var _tid = buffer_read_s(rbuff, buffer_u16);
+                        var _tx = buffer_read_s(rbuff, buffer_u16);
+                        var _ty = buffer_read_s(rbuff, buffer_u16);
+
+                        if(_tstate == 0)
+                        {
+                                var _trapInst = instance_create_depth(_tx, _ty, 0, obj_jinna_trap);
+                                _trapInst.nid = _tid;
+                        }
+                        else
+                        {
+                                with(obj_jinna_trap)
+                                {
+                                        if(nid != _tid)
+                                                continue;
+
+                                        instance_destroy();
+                                        break;
+                                }
+
+                                if(_tstate == 2)
+                                {
+                                        audio_play_sound(snd_teleport, 0, false);
+                                        net_sound_emit(snd_teleport);
+                                        net_quick_effect(_tx, _ty - 20, spr_shockparticle, true, 1, 0, 0, 1.5);
+                                        scr_camera_shake(20, 1, 0.2);
+                                }
+                        }
+                        break;
+                }
+
+                // v3 JINNA — ALGUIEN CAYO EN LA TRAMPA. kind 0 = victima
+                // normal: su cliente la teletransporta HASTA JINNA (jx/jy =
+                // posicion de ella segun el server) y le hace el dano SIN
+                // regalarle i-frames (si los tenia, se los REMUEVE). kind 1 =
+                // VANILLA: absorbida a la otra dimension — su cliente corre
+                // la animacion (obj_jinna_absorb + spr_vanilla_absorb_trap)
+                // y al terminar queda FUERA DE JUEGO (muerte directa: su UI
+                // como si hubiera muerto); el resto deja de verla y Jinna
+                // queda POTENCIADA (global.jinnaCaughtVanilla en todos).
+                case PacketType.SERVER_JINNA_TRAP_HIT:
+                {
+                        if(isPasstrough)
+                                break;
+
+                        var _hpid = buffer_read_s(rbuff, buffer_u16);
+                        var _hkind = buffer_read_s(rbuff, buffer_u8);
+                        var _hjx = buffer_read_s(rbuff, buffer_u16);
+                        var _hjy = buffer_read_s(rbuff, buffer_u16);
+
+                        // todos los clientes: el flag de Vanilla atrapada activa
+                        // los AUMENTOS del kit de Jinna (golpe 30, agarre 15,
+                        // trampa 22, slow 4,5 s) hasta el fin de la ronda
+                        if(_hkind == 1)
+                        {
+                                global.jinnaCaughtVanilla = true;
+
+                                // la propia Jinna vera a la atrapada sobre su
+                                // cabeza (spr_vanilla_caught) al terminar la
+                                // animacion de absorcion de SU cliente (~1,7 s:
+                                // 72 frames de succion + 30 del portal cerrando)
+                                if(instance_exists(obj_jinna))
+                                        obj_jinna.jinnaCaughtDelay = 102;
+                        }
+
+                        if(_hpid == obj_netclient.nid)
+                        {
+                                if(_hkind == 1)
+                                {
+                                        // VANILLA (yo): secuencia de absorcion
+                                        if(instance_exists(global.player) && !global.player.isDead)
+                                        {
+                                                var _abs = instance_create_depth(global.player.x, global.player.y, 0, obj_jinna_absorb);
+                                                _abs.jinnaX = _hjx;
+                                                _abs.jinnaY = _hjy;
+                                        }
+                                }
+                                else if(instance_exists(global.player) && !global.player.isDead)
+                                {
+                                        // VICTIMA NORMAL (yo): portal de salida + dano SIN
+                                        // i-frames + TP hasta Jinna
+                                        instance_create_depth(global.player.x, global.player.y, 0, obj_jinna_portal);
+
+                                        global.player.hurttime = 0; // los que tuviera: REMOVIDOS
+                                        var _hpB4t = global.player.hp;
+                                        scr_player_hurt(global.jinnaCaughtVanilla ? 22 : JINNA_TRAP_DAMAGE, 0, 0, snd_hurt, spr_blood3, false, true);
+                                        global.player.hurttime = 0; // la trampa JAMAS regala i-frames
+
+                                        // la marca mejorada tambien entra por la trampa
+                                        if(global.player.hp < _hpB4t || global.player.isHurt)
+                                                scr_weak_mark_hit(JINNA_WEAKMARK_CD);
+
+                                        // teleport hasta ELLA (si el dano no la mato)
+                                        if(instance_exists(global.player) && !global.player.isDead)
+                                        {
+                                                global.player.x = _hjx;
+                                                global.player.y = _hjy;
+                                                global.player.xspd = 0;
+                                                global.player.yspd = 0;
+                                                global.player.gspd = 0;
+                                                global.player.isGrounded = false;
+                                                instance_create_depth(_hjx, _hjy, 0, obj_jinna_portal);
+                                        }
+                                }
+                        }
+                        else if(_hkind == 1)
+                        {
+                                // el resto: Vanilla YA no es de este mundo — su
+                                // puppet se oculta al instante (el paquete de
+                                // muerte la retirara del todo en un momento)
+                                with(obj_player_puppet)
+                                {
+                                        if(master_id != _hpid)
+                                                continue;
+
+                                        visible = false;
+                                        break;
+                                }
+                        }
+                        break;
+                }
+
+                // v3 JINNA — RAFAGA DEL TELETRANSPORTE: el server detecto a
+                // este cliente (pid) dentro del radio de la llegada de Jinna:
+                // ralentizacion sobre el jugador LOCAL (la autoridad de cada
+                // victima es su propio cliente, patron de la trampa de Amelia).
+                // 3 s normales / 4,5 s si Vanilla esta atrapada (potenciacion).
+                case PacketType.SERVER_JINNA_TELE_AOE:
+                {
+                        if(isPasstrough)
+                                break;
+
+                        var _spid = buffer_read_s(rbuff, buffer_u16);
+
+                        if(_spid == obj_netclient.nid && instance_exists(global.player) && !global.player.isDead)
+                                scr_player_slow(global.jinnaCaughtVanilla ? 4.5 : JINNA_TELE_SLOW_TIME);
+
                         break;
                 }
 

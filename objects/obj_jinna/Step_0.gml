@@ -1,4 +1,34 @@
 /// @description General movement (Jinna, plantilla obj_metalamy v2.2)
+
+// =====================================================================
+//  v3 — ADAPTACION A ATURDIMIENTOS (pasiva de lore de JINNA).
+//  Todas las fuentes de stun del juego escriben shockedTimer SOBRE el
+//  cliente del EXE (trampa de Amelia, parry de Sonic, electro de Metal,
+//  ballesta de FW...), asi que aqui se detecta cualquier stun NUEVO con
+//  un solo comparador: si shockedTimer subio por encima de lo que el
+//  conteo normal dejaba esperado, acabo de entrar un stun fresco.
+//  Efecto: la resistencia ACTUAL recorta su duracion y luego aprende
+//  +10% (tope 50%). El primer stun de la ronda entra entero; el segundo
+//  sale al 90%, el tercero al 80%... y del sexto en adelante al 50%.
+// =====================================================================
+if(shockedTimer > jinnaShockNext)
+{
+        shockedTimer = max(1, round(shockedTimer * (100 - jinnaStunResist) / 100));
+        jinnaStunResist = min(50, jinnaStunResist + 10);
+}
+jinnaShockNext = (shockedTimer > 0) ? shockedTimer - 1 : 0;
+
+// v3 — VANILLA ATRAPADA: espera de la animacion de absorcion; al terminar
+// se fija jinnaCaughtShow (Draw_0 dibuja spr_vanilla_caught sobre su cabeza
+// hasta el fin de ronda). El flag global (los aumentos del kit) lo activa
+// el propio handler del paquete en TODOS los clientes.
+if(jinnaCaughtDelay > 0)
+{
+        jinnaCaughtDelay--;
+        if(jinnaCaughtDelay == 0)
+                jinnaCaughtShow = true;
+}
+
 if(shockedTimer <= 0)
 {
         scr_move_basic();

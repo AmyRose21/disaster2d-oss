@@ -296,7 +296,31 @@ typedef enum
         CLIENT_JINNA_TELEPORT,
         CLIENT_JINNA_GRAB,
         SERVER_JINNA_PORTAL_STATE,
-        SERVER_JINNA_GRAB_STATE
+        SERVER_JINNA_GRAB_STATE,
+
+        /* v3 JINNA (D.I.B.) — teleport potenciado + PORTAL TRAMPA.
+           CLIENT_JINNA_TRAP (u16 x, u16 y): la V+ABAJO planta la trampa;
+           el server valida (exe + Jinna + cooldown de la V compartido con
+           el agarre) y spawnea la entidad JinnaTrap, que replica
+           SERVER_JINNA_TRAP_STATE 0 spawn (id, x, y) / 1 remove (id) /
+           2 pisada (id, x, y) a todos.
+           CLIENT_JINNA_TRAP_HIT (u16 id, u16 pid): aviso de pisada desde
+           el cliente de la victima; el server valida (trampa viva +
+           victima superviviente viva) y reenvia SERVER_JINNA_TRAP_HIT
+           (u16 pid, u8 kind, u16 jx, u16 jy): kind 0 = daño + TP hasta
+           Jinna SIN i-frames para la victima (si los tenia, se le
+           remueven); kind 1 = VANILLA absorbida a la otra dimension
+           (fuera de juego + potenciacion del kit de Jinna en todos).
+           SERVER_JINNA_TELE_AOE (u16 pid): rafaga del teleport — el
+           server ralentiza a los supervivientes vivos en radio de la
+           llegada del CLIENT_JINNA_TELEPORT; la victima aplica el slow
+           sobre su propio jugador. Mismo orden que el enum del cliente
+           (net_packets.gml); anadido AL FINAL en los DOS lados. */
+        CLIENT_JINNA_TRAP,
+        CLIENT_JINNA_TRAP_HIT,
+        SERVER_JINNA_TRAP_STATE,
+        SERVER_JINNA_TRAP_HIT,
+        SERVER_JINNA_TELE_AOE
 } PacketType;
 
 typedef struct

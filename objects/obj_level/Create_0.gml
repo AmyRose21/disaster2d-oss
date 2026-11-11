@@ -2,6 +2,16 @@ global.timeSeconds = 0;
 global.timeMinutes = 0;
 global.ringFrame = 0;
 global.lmsActive = false;
+
+// v3 (D.I.B.) — estado de ronda de JINNA (se resetea en cada arranque):
+//  * jinnaTelePower: frames restantes de la ventana de poder del tele-
+//    transporte (3 s: hitbox del golpe basico +25% en los clientes de
+//    las victimas; la abre SERVER_JINNA_PORTAL_STATE).
+//  * jinnaCaughtVanilla: true cuando Vanilla cayo en el portal trampa
+//    (absorbida a la otra dimension): activa los aumentos del kit de
+//    Jinna en todos los clientes (ver LEEME_JINNA_V3).
+global.jinnaTelePower = 0;
+global.jinnaCaughtVanilla = false;
 state = 0;
 showSurvivors = false;
 survivorTimer = 0;
@@ -48,6 +58,13 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
                 // Amy (superviviente) — y en el marcador TAB la asesina salia
                 // con la cara equivocada.
                 if(exeCharacter == EXE_METALAMY)
+                        char = 15;
+                // v3 (D.I.B.): Jinna (6.a killer, EXE_JINNA=5) TAMBIEN usa
+                // la fila 15 (la X misteriosa de Metal Amy): sin este caso la
+                // formula la mandaba a la 11 (la fila de Sonic) y salia con
+                // cara ajena en el marcador TAB. Killer exclusiva = fila
+                // misteriosa, mismo criterio que Metal Amy.
+                if(exeCharacter == EXE_JINNA)
                         char = 15;
         }
         else if(char == CHARACTER_AMY_CANON)

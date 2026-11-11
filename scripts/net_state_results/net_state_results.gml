@@ -74,7 +74,15 @@ function net_state_results(rbuff, nps, isPasstrough)
                                                         // este case el icono quedaba en 0 (sprite incorrecto).
                                                         _inst.icon = spr_lobby_exeicon6;
                                                         break;
-                                                        
+
+                                                case 5:
+                                                        // v3 (D.I.B.): Jinna (6.a killer, EXE_JINNA=5). FIX
+                                                        // del ruido de colores en esta pantalla: sin este
+                                                        // case el icono quedaba en 0 y el draw animado sin
+                                                        // sprite valido llenaba la fila de textura basura.
+                                                        _inst.icon = spr_lobby_exeicon7;
+                                                        break;
+
                                         }
                                         break;
                                 }

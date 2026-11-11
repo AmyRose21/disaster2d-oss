@@ -54,6 +54,12 @@ if(!obj_minigame.ingame)
                                                 // quedaba el icono por defecto (spr_lobby_dicon).
                                                 sprite = spr_lobby_exeicon6;
                                                 break;
+
+                                        case 5:
+                                                // v3 (D.I.B.): Jinna (6.a killer, EXE_JINNA=5);
+                                                // mismo fix que Metal Amy en esta pantalla.
+                                                sprite = spr_lobby_exeicon7;
+                                                break;
                                 }
                         }
                         else

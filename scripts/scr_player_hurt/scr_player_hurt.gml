@@ -261,26 +261,14 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         if(global.character == CHARACTER_AMY && global.player.isAttacking && scr_amy_soul_otras())
                 return;
 
-        // v4.10 («La Torre») — PASIVA LA TORRE (Fleetway Amy): BLOQUEO
-        // COMPLETO del daño (orden de la dueña: «bloquear TODO el daño»,
-        // no reducirlo — la v2.15 lo rebajaba un 33-40% y seguia perdiendo
-        // vida). Todo golpe que iba a caer se detiene en el escudo: ni
-        // HP ni anillos ni retroceso ni animacion de daño; solo el
-        // destello del escudo (y su sonido) para que el EXE vea que su
-        // golpe conectó pero fue bloqueado. El stun y los peligros
-        // ambiente que matan sin daño (caer al vacio) SIGUEN funcionando:
-        // la Torre bloquea daño, no la gravedad. Solo superviviente pura:
-        // la FW demonizada (revival >= 2) pelea para el exe y pierde la
-        // pasiva.
-        if(global.character == CHARACTER_FLEETWAY_AMY
-        && global.player.revivalTimes < 2
-        && damage > 0)
-        {
-                audio_play_sound(snd_sally_shieldbreak, 0, false);
-                net_sound_emit(snd_sally_shieldbreak);
-                net_quick_effect(global.player.x, global.player.y - 20, spr_shieldbreak, false, 1, 0, 0, 1);
-                return;
-        }
+        // v4.10 («La Torre») — PASIVA LA TORRE (Fleetway Amy): el bloqueo
+        // COMPLETO vivia aqui, ANTES del guard de hurttime: re-destellaba
+        // (sonido + escudo) incluso con i-frames ya activos de un golpe
+        // anterior, igual que le pasaba al bloqueo LMS de Sonic antes del
+        // fix v5.4. v3 (D.I.B.): la pasiva se NERFEO y se mudo ABAJO, tras
+        // el guard — solo se evalua cuando el daño iba a entrar de verdad,
+        // y su porcentaje decae 10% por bloqueo consumido (ver el bloque
+        // nuevo mas abajo).
 
         // (v5.4: el BLOQUEO del show LMS de Sonic vivia AQUI, antes del
         // guard de hurttime: re-tiraba el 55% incluso mientras estaba
@@ -303,11 +291,37 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                         global.player.isSpinning = false;
                         global.player.isLookingDown = false;
                         global.player.isLookingUp = false;
-                        
+
                         global.player.xspd = xpw;
                         global.player.yspd = ypw;
                 }
-                
+
+                return;
+        }
+
+        // v3 (D.I.B.) — LA TORRE (Fleetway Amy), version nerf para su
+        // salida a PUBLICA: el bloqueo SOLO se evalua cuando el golpe
+        // iba a entrar DE VERDAD (ya paso el guard de hurttime: nada de
+        // destellos de escudo con i-frames ya activos — mismo fix que el
+        // bloqueo LMS de Sonic en v5.4) y ya no es infalible: fwTowerPct
+        // arranca en 100% y CADA bloqueo consumido le resta 10% (100 ->
+        // 90 -> 80 -> ... -> 0; se resetea al empezar la ronda). Mientras
+        // la tirada aguante, el golpe se detiene entero (ni vida ni
+        // anillos ni retroceso: solo el destello + su sonido); cuando
+        // falla, el daño entra completo. El stun y los peligros ambiente
+        // que matan sin daño (caer al vacio) SIGUEN funcionando: la Torre
+        // bloquea daño, no la gravedad. La FW demonizada (revival >= 2)
+        // pelea para el exe y pierde la pasiva, como siempre.
+        if(global.character == CHARACTER_FLEETWAY_AMY
+        && global.player.revivalTimes < 2
+        && damage > 0
+        && irandom(99) < global.player.fwTowerPct)
+        {
+                global.player.fwTowerPct = max(0, global.player.fwTowerPct - 10);
+
+                audio_play_sound(snd_sally_shieldbreak, 0, false);
+                net_sound_emit(snd_sally_shieldbreak);
+                net_quick_effect(global.player.x, global.player.y - 20, spr_shieldbreak, false, 1, 0, 0, 1);
                 return;
         }
         
@@ -612,8 +626,12 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
 //  en el cliente de la victima sobre su propio jugador, como el dano.
 //  Aviso LOCAL con snd_metal_cd (la marca es invisible para los demas:
 //  el marcado lo nota porque sus iconos de habilidad se ponen rojos).
+//  v3 (D.I.B.): _cd opcional — la MARCA MEJORADA de JINNA reusa esta
+//  misma funcion con su propio enfriamiento (JINNA_WEAKMARK_CD, 13 s:
+//  "un poco menor" que los 16 de Metal Amy, pero igual POR PERSONAJE,
+//  no global). El efecto (los 8 s de recarga forzada) es identico.
 // =====================================================================
-function scr_weak_mark_hit()
+function scr_weak_mark_hit(_cd = METALAMY_WEAKMARK_CD)
 {
         if(!instance_exists(global.player))
                 return;
@@ -649,7 +667,9 @@ function scr_weak_mark_hit()
         if(global.player.weakMarkCd > 0)
                 return;
 
-        global.player.weakMarkCd = METALAMY_WEAKMARK_CD;
+        // v3 (D.I.B.): el enfriamiento POR SUPERVIVIENTE llega por
+        // parametro (16 s Metal Amy / 13 s Jinna, su version mejorada)
+        global.player.weakMarkCd = _cd;
 
         var _t = METALAMY_WEAKMARK_TIME;
 

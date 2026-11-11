@@ -935,10 +935,11 @@ function scr_char_locked(ch)
         if(ch == CHARACTER_VANILLA && global.amyCanonToken == "")
                 return true;
 
-        // Fleetway Amy (v2.14): exclusiva de la duena del token,
-        // igual que Amy Canon y Vanilla ("otra version de mi").
-        if(ch == CHARACTER_FLEETWAY_AMY && global.amyCanonToken == "")
-                return true;
+        // v3 (D.I.B.): Fleetway Amy PASA A SER PUBLICA (pedido de la
+        // duena: "la amy fw sera publica"). Salio del token — ahora
+        // es un personaje normal del carrusel para todos. Su pasiva
+        // de torre se nerfeo a cambio (ver scr_player_hurt: bloqueo
+        // solo con daño real + porcentaje que cae 10% por bloqueo).
 
         return false;
 }

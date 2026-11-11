@@ -15,6 +15,7 @@
 #include <entities/TailsProjectile.h>
 #include <entities/AmeliaBanana.h>
 #include <entities/AmeliaTrap.h>
+#include <entities/JinnaTrap.h>
 #include <entities/BlazeFireball.h>
 #include <entities/FwBolt.h>
 #include <entities/MetalAmyBullet.h>
@@ -1707,6 +1708,37 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         PacketWrite(&pack, packet_write16, ty);
                         server_broadcast(v->server, &pack, true);
 
+                        /* v3 — RAFAGA DEL TELETRANSPORTE: todos los
+                         * supervivientes VIVOS dentro de un radio de 90 px
+                         * de la llegada quedan ralentizados 3 s (el slow
+                         * lo aplica el cliente de cada victima sobre su
+                         * propio jugador al recibir SERVER_JINNA_TELE_AOE;
+                         * 4,5 s si Jinna ya atrapo a Vanilla). El server
+                         * computa el area con las posiciones que ya
+                         * sincroniza: nada de confiar en la lista de la
+                         * cliente. */
+                        #define JINNA_TELE_SLOW_RANGE 90.0f
+                        for (size_t it = 0; it < v->server->peers.capacity; it++)
+                        {
+                                PeerData* surv = (PeerData*)v->server->peers.ptr[it];
+                                if (!surv || !surv->in_game)
+                                        continue;
+                                if (surv->id == v->server->game.exe)
+                                        continue;
+                                if (surv->plr.flags & (PLAYER_DEAD | PLAYER_ESCAPED | PLAYER_DEMONIZED))
+                                        continue;
+
+                                float sdx = surv->plr.pos.x - (float)tx;
+                                float sdy = surv->plr.pos.y - (float)ty;
+                                if (sdx * sdx + sdy * sdy > JINNA_TELE_SLOW_RANGE * JINNA_TELE_SLOW_RANGE)
+                                        continue;
+
+                                Packet slow;
+                                PacketCreate(&slow, SERVER_JINNA_TELE_AOE);
+                                PacketWrite(&slow, packet_write16, surv->id);
+                                server_broadcast(v->server, &slow, true);
+                        }
+
                         v->plr_cooldowns[JINNA_TELEPORT] = 8 * TICKSPERSEC;
                         v->plr.ex_teleport = 60;
                         break;
@@ -1743,6 +1775,96 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         server_broadcast(v->server, &pack2, true);
 
                         v->plr_cooldowns[JINNA_GRAB] = 12 * TICKSPERSEC;
+                        break;
+                }
+
+                /* v3 (D.I.B.) JINNA: PORTAL TRAMPA (tecla V+ABAJO). La
+                 * jugadora la planta en sus pies; aqui se valida (exe +
+                 * Jinna + recarga de la V — compartida con el agarre: una
+                 * sola habilidad, dos modos) y se spawnea la entidad
+                 * JinnaTrap (20 s de vida), que se replica sola a todos
+                 * con SERVER_JINNA_TRAP_STATE 0. */
+                case CLIENT_JINNA_TRAP:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id == v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->exe_char == EX_JINNA);
+
+                        if (v->plr_cooldowns[JINNA_GRAB] > 0)
+                                break;
+
+                        PacketRead(x, packet, packet_read16, uint16_t);
+                        PacketRead(y, packet, packet_read16, uint16_t);
+
+                        RAssert(game_spawn(v->server, (Entity*)&(MakeJinnaTrap(x, y, v->id)), sizeof(JinnaTrap), NULL));
+                        v->plr_cooldowns[JINNA_GRAB] = 12 * TICKSPERSEC;
+                        break;
+                }
+
+                /* v3 (D.I.B.) JINNA: alguien piso el PORTAL TRAMPA. El
+                 * aviso llega DESDE el cliente de la victima (cada cliente
+                 * es la autoridad de su propio jugador). Se valida: el
+                 * reportero ES la victima (superviviente vivo), la trampa
+                 * existe y el esta encima (radio anti-reporte-remoto). Se
+                 * consume la trampa (state 2 a todos) y se emite
+                 * SERVER_JINNA_TRAP_HIT (pid, kind, jx, jy) con la posicion
+                 * ACTUAL de Jinna: la victima aplica dano + teletransporte
+                 * en SU cliente (SIN i-frames: si los tenia, el dano entra
+                 * igual y se le remueven). kind 1 = VANILLA: absorcion a
+                 * la otra dimension (fuera de juego + potenciacion). */
+                case CLIENT_JINNA_TRAP_HIT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+                        AssertOrDisconnect(v->server, !(v->plr.flags & (PLAYER_DEAD | PLAYER_ESCAPED | PLAYER_DEMONIZED)));
+
+                        PacketRead(tid, packet, packet_read16, uint16_t);
+                        PacketRead(pid, packet, packet_read16, uint16_t);
+                        AssertOrDisconnect(v->server, v->id == pid);
+
+                        Entity* target = NULL;
+                        for (size_t it = 0; it < v->server->game.entities.capacity; it++)
+                        {
+                                Entity* ent = (Entity*)v->server->game.entities.ptr[it];
+
+                                if (ent && strcmp(ent->tag, "jtrap") == 0 && ent->id == tid)
+                                {
+                                        target = ent;
+                                        break;
+                                }
+                        }
+
+                        if (!target)
+                                break; /* ya consumida, expirada o paquete repetido */
+
+                        /* anti-reporte remoto: la victima tiene que estar
+                         * ENCIMA de la trampa (64 px de tolerancia por la
+                         * latencia del estado de posicion) */
+                        float rdx = v->plr.pos.x - target->pos.x;
+                        float rdy = v->plr.pos.y - target->pos.y;
+                        if (rdx * rdx + rdy * rdy > 64.0f * 64.0f)
+                                break;
+
+                        /* a donde cae la victima: la posicion ACTUAL de Jinna */
+                        PeerData* exe = server_find_peer(v->server, v->server->game.exe);
+                        if (!exe || !exe->in_game)
+                        {
+                                game_despawn(v->server, NULL, target->id);
+                                break;
+                        }
+
+                        uint8_t kind = (v->surv_char == CH_VANILLA) ? 1 : 0;
+
+                        jinna_trap_trigger(v->server, target);
+                        game_despawn(v->server, NULL, target->id);
+
+                        Packet pack3;
+                        PacketCreate(&pack3, SERVER_JINNA_TRAP_HIT);
+                        PacketWrite(&pack3, packet_write16, pid);
+                        PacketWrite(&pack3, packet_write8, kind);
+                        PacketWrite(&pack3, packet_write16, (uint16_t)exe->plr.pos.x);
+                        PacketWrite(&pack3, packet_write16, (uint16_t)exe->plr.pos.y);
+                        server_broadcast(v->server, &pack3, true);
                         break;
                 }
 

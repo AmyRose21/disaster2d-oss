@@ -28,7 +28,7 @@
   ],
   "name":"spr_lobby_exeicon7",
   "nineSlice":null,
-  "origin":9,
+  "origin":4,
   "parent":{
     "name":"Lobby",
     "path":"folders/Sprites/Lobby.yy",
@@ -96,7 +96,7 @@
     "visibleRange":null,
     "volume":1.0,
     "xorigin":29,
-    "yorigin":31,
+    "yorigin":30,
   },
   "swatchColours":null,
   "swfPrecision":2.525,
