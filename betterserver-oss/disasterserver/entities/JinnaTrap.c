@@ -1,11 +1,11 @@
 #include <entities/JinnaTrap.h>
 
-/* v3 (D.I.B.): portal trampa de Jinna. La vida maxima (20 s) la lleva
-   el server: al agotarse se retira en silencio (state 1) y al pisarla
-   un superviviente (CLIENT_JINNA_TRAP_HIT desde el cliente de la
-   victima) se reenvia state 2 a todos y Game.c emite SERVER_JINNA_TRAP
-   _HIT con los efectos (dano + TP hasta Jinna sin i-frames, o la
-   absorcion si la victima es Vanilla). */
+/* v3 (D.I.B.): portal trampa de Jinna. La vida maxima (v4: 70 s, era
+   20 s) la lleva el server: al agotarse se retira en silencio (state
+   1) y al pisarla un superviviente (CLIENT_JINNA_TRAP_HIT desde el
+   cliente de la victima) se reenvia state 2 a todos y Game.c emite
+   SERVER_JINNA_TRAP_HIT con los efectos (dano + TP hasta Jinna sin
+   i-frames, o la absorcion si la victima es Vanilla). */
 
 bool jinna_trap_trigger(Server* server, Entity* entity)
 {
@@ -48,7 +48,7 @@ bool jinna_trap_tick(Server* server, Entity* entity)
         trap->timer -= server->delta;
 
         if (trap->timer <= 0)
-                return false; /* 20 s agotados: retirada silenciosa (state 1) */
+                return false; /* 70 s agotados (v4): retirada silenciosa (state 1) */
 
         return true;
 }

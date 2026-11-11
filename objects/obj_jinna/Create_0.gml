@@ -52,9 +52,9 @@ jinnaTeleTarget = noone; // puppet objetivo durante el telegraph
 jinnaTelePose = 0;     // frames de pose de tele tras aterrizar
 
 // JINNA: agarre (tecla V) / portal trampa (V + ABAJO)
-jinnaGrabCd = 0;       // enfriamiento restante del AGARRE
+jinnaGrabCd = 0;       // enfriamiento restante (ambos modos de la V)
 jinnaGrabVisual = 0;   // frames de pose de agarre (attack2)
-jinnaTrapCd = 0;       // v4: enfriamiento restante del PORTAL TRAMPA (independiente del agarre)
+jinnaTrapVisual = 0;   // v4: frames de pose al plantar la trampa (spr_jinna_tele)
 
 // JINNA v3 — ADAPTACION A ATURDIMIENTOS (pasiva de lore): cada stun que
 // recibe le ensena a resistirlos: +10% de resistencia por stun recibido
@@ -64,18 +64,13 @@ jinnaTrapCd = 0;       // v4: enfriamiento restante del PORTAL TRAMPA (independi
 jinnaStunResist = 0;   // 0..50 (%)
 jinnaShockNext = 0;    // valor esperado de shockedTimer el proximo frame (deteccion de stuns NUEVOS)
 
-// JINNA v3/v4 — ATRAPADA EN EL PORTAL TRAMPA: cuando Vanilla o AMY CANON
-// caen en el portal trampa, sobre la cabeza de Jinna aparece su senal
-// (solo visible para SU jugadora) tras la animacion de absorcion.
-// jinnaCaughtDelay cuenta esa espera (~1,7 s) y jinnaCaughtShow la deja
-// fijada hasta el fin de ronda; dibujado en Draw_0. v4: jinnaCaughtKind
-// separa a la atrapada — 1 = VANILLA (pantalla completa, mejoras fuertes
-// de la v3) / 2 = AMY CANON (version SEMI-TRANSPARENTE de ella: aun no
-// tiene pantalla propia; senal de las "mejoras mas arduas", la mitad de
-// los aumentos — ver JINNA_CAUGHT_* en scr_jinna_special).
+// JINNA v3 — VANILLA ATRAPADA: cuando Vanilla cae en el portal trampa,
+// sobre la cabeza de Jinna aparece spr_vanilla_caught (solo visible para
+// SU jugadora) tras la animacion de absorcion. jinnaCaughtDelay cuenta
+// esa espera (~1,7 s) y jinnaCaughtShow la deja fijada hasta el fin de
+// ronda; dibujado en Draw_0.
 jinnaCaughtDelay = 0;    // frames hasta mostrar a la atrapada (0 = nada pendiente)
-jinnaCaughtShow = false; // true = la atrapada ya esta dibujada sobre su cabeza
-jinnaCaughtKind = JINNA_CAUGHT_NONE; // 0 = nadie / 1 = Vanilla / 2 = Amy Canon
+jinnaCaughtShow = false; // true = Vanilla ya esta dibujada sobre su cabeza
 
 // JINNA: misc
 jinnaGoSnd = false;            // la linea de arranque suena 1 vez (ver Step_0)

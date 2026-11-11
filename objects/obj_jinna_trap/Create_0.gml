@@ -4,7 +4,8 @@
 //  que replica el spawn a TODOS los clientes con este objeto (patron de
 //  la trampa de Amelia). Es un portal (spr_jinna_portal) algo mas pequeno
 //  que el del teleport, plantado en los pies de Jinna y con vida propia
-//  (20 s; la retirada real la manda el server con state 1).
+//  (v4: 70 s, antes 20 s; la retirada real la manda el server con
+//  state 1).
 //
 //  PISADA: cada cliente es la autoridad de su propio jugador — cuando el
 //  jugador LOCAL superviviente (vivo, sin demonizar; el EXE y los

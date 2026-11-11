@@ -56,6 +56,15 @@ if(jinnaTelePose > 0)
         return;
 }
 
+// v4 — pose de PLANTAR LA TRAMPA: mismo sprite del tele (spr_jinna_tele),
+// pedido de la duena ("la animacion al poner la trampa sera esta
+// spr_jinna_tele"): Jina se agacha al portal que deja en sus pies.
+if(jinnaTrapVisual > 0)
+{
+        state = JINNA_TELE;
+        return;
+}
+
 if(jinnaGrabVisual > 0 && isGrounded)
 {
         state = JINNA_ATTACK2;

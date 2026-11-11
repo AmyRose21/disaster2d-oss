@@ -239,11 +239,6 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 // (spr_gui_jinateleport / spr_gui_jinagrub) traen la
                                 // tecla horneada del mod: se recorta y se dibuja la
                                 // REAL (mecanismo v4.3, como en el resto del HUD).
-                                // v4: el hueco V tiene DOS modos — agarre (V sola) y
-                                // portal trampa (V + ABAJO) — con recargas INDEPENDIENTES
-                                // e iconos que se INTERCAMBIAN al presionar abajo (patron
-                                // del chaos aereo / exellerclone2; sprite nuevo
-                                // spr_gui_jinatrap: portal + "▼+").
                                 case EXE_JINNA:
                                 {
                                         // X: golpe (dano 20 via PLAYER_ATTACKING)
@@ -260,25 +255,15 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         var _jteleAct = global.player.jinnaTeleWindup > 0;
                                         drawKeyIcon(spr_gui_jinateleport, 0, 25, global.KeyC, _jprog * 4, 250 - _mob, (_jprog >= 1.0 || _jteleAct) ? c_white : c_red, _jteleAct ? 1 : _jprog, 0);
 
-                                        // v4 — V: DOS modos con enfriamientos INDEPENDIENTES
-                                        // (v3 BUG: C y V se dibujaban ambos en x = prog*4 y
-                                        // quedaban MONTADOS uno encima del otro; el hueco V
-                                        // pasa a la derecha, patron Metal Amy). El icono
-                                        // CAMBIA al presionar ABAJO: garra = agarre con SU
-                                        // recarga; portal + "▼+" = trampa con la SUYA.
-                                        if(keyboard_check(global.KeyDown))
-                                        {
-                                                // MODO TRAMPA (V + ABAJO): icono del portal
-                                                // trampa (spr_gui_jinatrap) y SU recarga propia
-                                                _jprog = 1.0 - (global.player.jinnaTrapCd / JINNA_TRAP_RECHARGE);
-                                                drawKeyIcon(spr_gui_jinatrap, 0, 32, global.KeyV, 44 + _jprog * 10, 250 - _mob, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
-                                        }
-                                        else
-                                        {
-                                                // MODO AGARRE (V sola): garra del mod
-                                                _jprog = 1.0 - (global.player.jinnaGrabCd / JINNA_GRAB_RECHARGE);
-                                                drawKeyIcon(spr_gui_jinagrub, 0, 26, global.KeyV, 44 + _jprog * 10, 250 - _mob, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
-                                        }
+                                        // V: agarre (icono del mod: garra).
+                                        // v4 FIX: antes se dibujaba en (_jprog * 4, 250) —
+                                        // EXACTAMENTE encima del icono de la C (los dos
+                                        // sprite a sprite, ilegibles). Ahora vive a la
+                                        // derecha de la C en la misma fila (patron Metal
+                                        // Amy v4.7/v4.8: C y V comparten fila como en el
+                                        // teclado): 44 + _jprog * 10.
+                                        _jprog = 1.0 - (global.player.jinnaGrabCd / JINNA_GRAB_RECHARGE);
+                                        drawKeyIcon(spr_gui_jinagrub, 0, 26, global.KeyV, 44 + _jprog * 10, 250 - _mob, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
                                         break;
                                 }
                         }

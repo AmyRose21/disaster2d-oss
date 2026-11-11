@@ -1,221 +1,160 @@
-JINNA V4 "EL ARREGLO DEL KIT DE LA TRAMPA" + AMY CANON ATRAPABLE
+JINNA V4 "LA V QUE FUNCIONA" — FIX DEL AGARRE + POSE DE LA TRAMPA
++ TRAMPA DE 70 S + FIX DE LOS ICONOS C/V
 ==================================================================
 
 QUE ES
 ------
-Los 6 arreglos pedidos por la duena tras probar la v3 del portal
-trampa en partida (todo en un paquete; REQUIERE recompilar cliente
-Y server JUNTOS):
+Respuesta directa al reporte de la duena tras probar la v3 en partida:
 
-1) FIX: los iconos de C y V estaban MONTADOS uno encima del otro.
-2) El portal trampa YA NO comparte enfriamiento con la V normal.
-3) Al presionar ABAJO, el icono de la V INTERCAMBIA al combo de la
-   trampa (portal + "▼+V"), como el chaos aereo con las 8
-   direcciones.
-4) La pantalla de Vanilla atrapada queda MAS PEQUENA (72%) y
-   AJUSTADA encima de Jinna (antes tamano completo flotando 38 px
-   sobre su cabeza: tapaba media pantalla).
-5) Cuando el portal trampa TRAE al jugador, su sprite se dibuja
-   DETRAS de los personajes (antes salia por delante).
-6) AMY CANON ahora puede ser afectada como Vanilla: cae en el
-   portal y es ABSORBIDA (spr_amy_capture_canon), pero como aun
-   no tiene pantalla propia, sobre Jinna flota una version de ella
-   SEMI-TRANSPARENTE como senal de las MEJORAS ARDUAS (la mitad
-   de la potenciacion de Vanilla).
+"tengo una duda la V para que sirve presisamente? xq no ve que haga
+nada. a decir verdad la V hacia abajo si se lo que hace pero la V
+normal no de cerca no hace nada" + "la animacion al poner la trampa
+sera esta spr_jinna_tele y el tiempo de la trampa durara hasta 70
+seg" + "debes anadir cambios y demas al suite para que este
+actualizado y al dia (y fix algunos bugs)".
+
+Cuatro cosas: (1) el FIX de la V normal (el agarre estaba ROTO por un
+paquete incompleto — por eso "no hacia nada"), (2) la pose de plantar
+la trampa pasa a ser spr_jinna_tele, (3) la trampa dura 70 s y (4) el
+FIX de los iconos C y V que se dibujaban uno encima del otro en el
+HUD. El suite (este LEEME + worklog) queda al dia.
 
 
 ------------------------------------------------------------------------------
-1) FIX DEL HUD: ICONOS C Y V MONTADOS (obj_playerui)
+A) PARA QUE SIRVE LA V (la respuesta de la duda)
 ------------------------------------------------------------------------------
-"los iconos de la habilidad C y V estan montadas una encima de la
-otra"
+La tecla V tiene DOS modos desde la v3 (comparten la recarga de 12 s;
+elegir es parte del juego):
 
-La C (teleport) y la V (agarre) se dibujaban AMBAS en x = prog*4:
-el icono de la V tapaba al de la C (bug de la v3). La V pasa a la
-derecha con el patron de Metal Amy (C quieta a la izquierda, V en
-x = 44 + prog*10 deslizandose al recargar). Misma fila (y=250),
-misma tecla dinamica real del remapeo (mecanismo v4.3).
+* V SOLTA = AGARRE. Al superviviente que este a menos de 46 px
+  (cuerpo a cuerpo) lo BLOQUEA 1,6 s en el sitio (la garra de Jina lo
+  sujeta: obj_jinna_grab_effect sobre la victima) y le hace 10 de
+  dano (el "1 HP" de su placa oficial; 15 con Vanilla atrapada). Si
+  el agarre cala de verdad, ademas entra la MARCA MEJORADA: TODAS las
+  habilidades de la victima quedan en 8 s de recarga forzada. Es el
+  setup del follow-up: agarra -> suelta el golpe potenciado (o el
+  portal trampa debajo).
 
-------------------------------------------------------------------------------
-2) ENFRIAMIENTO PROPIO DEL PORTAL TRAMPA
-------------------------------------------------------------------------------
-"el portal trampa no compartira enfriamiento con la habilidad V
-normal"
+* V + ABAJO = PORTAL TRAMPA (esa si la conocia la duena): planta el
+  portal en sus pies, 70 s de vida (antes 20 s). Quien lo pise (vivo,
+  con o sin I-frames) recibe 15 de dano y cae teletransportado HASTA
+  JINNA sin i-frames de ningun tipo; si quien cae es VANILLA, es
+  absorbida a la otra dimension y Jinna queda potenciada el resto de
+  la ronda.
 
-Antes la V sola y la V+ABAJO gastaban el MISMO cooldown de 12 s
-(una sola habilidad, dos modos). Ahora cada modo tiene el suyo:
-
-  * AGARRE (V sola): 12 s (igual que siempre) -> jinnaGrabCd
-  * PORTAL TRAMPA (V+ABAJO): 15 s PROPIOS -> jinnaTrapCd (nuevo)
-
-Cliente (scr_jinna_special + obj_jinna): variable nueva
-jinnaTrapCd con su macro JINNA_TRAP_RECHARGE (60*15); el gate del
-pressed-V separa los modos (ABAJO mira jinnaTrapCd, el agarre
-mira jinnaGrabCd) y cada uno arranca SU recarga al usarse.
-
-Servidor (Game.c + Server.h): indice de cooldown nuevo
-#define JINNA_TRAP 13 (PLAYER_COOLCOUNT 13 -> 14). El handler de
-CLIENT_JINNA_TRAP valida y asigna 15 s del SUYO; el agarre sigue
-con sus 12 s. La trampa vive 20 s en el suelo: con 15 s de
-recarga puede haber DOS trampas a la vez durante ~5 s (cada una
-con su id; el server las lleva independientes, patron AmeliaTrap).
-
-NOTA de compatibilidad: cliente nuevo + server viejo = la trampa
-la validaria con el cooldown viejo del agarre (12 s compartidos;
-no rompe nada, solo el balance). Server nuevo + cliente viejo =
-igual al reves. Lo ideal (y lo probado): los DOS recompilados
-juntos, como siempre en este mod.
-
-------------------------------------------------------------------------------
-3) EL ICONO DE LA V INTERCAMBIA AL PRESIONAR ABAJO
-------------------------------------------------------------------------------
-"cuando jina este presionando abajo la habilidad V intercambiara
-con los botones de la trampa... parecido a lo que pasa con chaos
-cuando esta en el aire que su combinacion de boton cambia"
-
-Mismo patron del chaos aereo (frame del icono cambia en el aire)
-y del exellerclone2 (icono del clon cambia con abajo/arriba):
-
-  * SIN abajo:  [garra + portal]-V  (agarre, recarga 12 s)
-  * CON abajo:  [portal ▼ +]-V      (trampa, recarga 15 s)
-
-Sprite NUEVO spr_gui_jinatrap (32x14, carpeta GUI/Recharge):
-compuesto desde arte del propio proyecto — el anillo de portal
-del icono del teleport + los glifos "▼+" del icono del spindash
-de Sonic. La tecla V NO va horneada: la dibuja drawKeyIcon
-dinamica igual que todos los iconos desde v4.3 (respeta el
-remapeo de controles y se ve tambien en Android, v5.5).
-
-Detalle tecnico (leccion v4.3b): el PNG es TODO contenido, sin un
-solo pixel de margen transparente en los 4 lados, para que
-GameMaker no recorte nada al empaquetar la textura y
-draw_sprite_part_ext nunca pida una zona inexistente (el bug que
-hacia invisible la trampa de Amelia). Registrado en el .yyp junto
-a sus hermanos jina* (insercion quirurgica de texto, sin
-re-serializar el proyecto).
-
-La condicion del intercambio es la MISMA que la del special
-(keyboard_check(global.KeyDown)): el icono muestra exactamente lo
-que va a pasar si pulsas V en ese momento.
-
-------------------------------------------------------------------------------
-4) PANTALLA DE VANILLA MAS PEQUENA Y AJUSTADA
-------------------------------------------------------------------------------
-"arreglo a la pantalla de vanilla debe ser un poco mas pequeña y
-ajustada encima de jina"
-
-Antes: spr_vanilla_caught (170x94) a tamano completo, flotando
-con el borde inferior 38 px por encima de la cabeza de Jinna —
-tapaba media pantalla de juego. Ahora:
-
-  * escala 72% (122x68 px)
-  * borde inferior a 4 px de su cabeza (y-44; su sprite tiene la
-    cabeza en y-40), pegada a ella con el mismo balanceo suave
-    (sin(current_time/300)*3) y su alfa 0.85 de siempre
-
-------------------------------------------------------------------------------
-5) PORTALES DEL TRAER-JUGADOR DETRAS DE LOS PERSONAJES
-------------------------------------------------------------------------------
-"cuando el portal trampa haga su funcion de traer al jugador el
-sprite no debe estar por delante de los jugadores"
-
-Los portales visuales que aparecen al PISAR la trampa (el de
-salida en la victima + el de llegada junto a Jinna) heredaban el
-depth -50 del obj_jinna_portal ("sobre el jugador") y tapaban a
-los personajes. Ahora esos DOS portales concretos se crean con
-depth = 5 (el mismo del agujero-trampa: DETRAS de los personajes
-— un portal es un agujero en el suelo, no una capa encima).
-
-Ojo: los portales del TELETRANSPORTE (tecla C) siguen igual
-(depth -50, sobre el jugador): ese es su look desde la v1 y la
-duena no pidio cambiarlo. La animacion de absorcion de la victima
-(obj_jinna_absorb) tambien conserva su depth -50: es un plano que
-se dibuja sobre todo lo demas a proposito.
-
-------------------------------------------------------------------------------
-6) AMY CANON ATRAPABLE COMO VANILLA
-------------------------------------------------------------------------------
-"ahora amy puede ser afectada como vanilla spr_amy_capture_canon
-pero ella aun no tiene pantalla asi que basicamente seria una
-version de ella pero semi transparente que estaria como senal de
-mejoras mas arduas para jina"
-
-Si AMY CANON pisa el portal trampa, es ABSORBIDA a la otra
-dimension igual que Vanilla (misma animacion de succion con su
-pose de secuestro spr_amy_capture_canon, misma muerte directa
-"muerta sin estar muerta", su puppet desaparece para los demas).
-La diferencia es la RECOMPENSA para Jinna:
-
-  quien cayo   | senal sobre Jinna                | potenciacion
-  -------------|----------------------------------|----------------
-  nadie        | —                                | kit base
-  AMY CANON    | ELLA MISMA SEMI-TRANSPARENTE     | MEJORAS ARDUAS
-               | (spr_amy_capture_canon, alfa .5) | (la MITAD)
-  VANILLA      | su pantalla al 72% (alfa .85)    | fuertes (v3)
-
-Niveles (JINNA_CAUGHT_NONE/AMY/VANILLA = 0/1/2 en
-scr_jinna_special; global.jinnaCaughtTier sustituye al bool
-jinnaCaughtVanilla de la v3):
-
-  habilidad            base   + AMY (arduas)   + VANILLA (fuertes)
-  golpe basico (X)      20    -> 25            -> 30
-  agarre (V)            10    -> 12            -> 15
-  portal trampa        15     -> 18            -> 22
-  slow del teleport     3 s   -> 3,75 s        -> 4,5 s
-
-El nivel solo SUBE (max): pillar a Amy y luego a Vanilla llega al
-tope, y la senal visual tambien escala sola (la pantalla de
-Vanilla nunca es tapada por el fantasma de Amy).
-
-Por que Amy Canon y no la Amy normal: el sprite de secuestro
-(spr_amy_capture_canon, estados 19-21 de su array de anims) es de
-AMY CANON — la Amy normal no tiene pose de captura. Si algun dia
-la duena le hace arte de pantalla a Amy (su "spr_amy_capture"
-propio estilo vanilla_caught), el sistema ya esta listo: es
-añadir el sprite y una linea en el Draw de obj_jinna.
-
-Servidor: CLIENT_JINNA_TRAP_HIT manda kind 2 para CH_AMY_CANON
-(kind 1 = Vanilla, kind 0 = victima normal). Cero paquetes
-nuevos: el byte de kind ya viajaba desde la v3. Clientes viejos
-con server nuevo: kind 2 les caeria al "else" de victima normal
-(dano + TP en vez de absorcion) — otra razon mas para actualizar
-cliente y server JUNTOS.
+POR QUE "LA V NO HACIA NADA": BUG DEL PAQUETE INCOMPLETO (el fix de
+esta version). El server lee CLIENT_JINNA_GRAB como (u16 pid, s8
+dir) — asi esta en Packet.h desde la v1 — pero el cliente solo
+escribia el pid. El packet_read8 del dir no encontraba mas bytes, el
+RAssert reventaba y el handler del server se cortaba EN SILENCIO: el
+agarre jamas llegaba a emitir el SERVER_JINNA_GRAB_STATE. En partida
+se veia exactamente lo que describio la duena: Jina hace la pose de
+agarre (la pose es local, sale igual), la victima no sufre NADA — y
+de propina el cooldown solo se gastaba en el cliente de Jinna (el
+server nunca llegaba a registrar el uso). FIX: el cliente ahora manda
+el dir de verdad (sign de image_xscale, con fallback a 1 si fuera 0:
+un dir 0 dejaria la garra del efecto invisible al dibujarse con
+image_xscale 0). El server no se toca: ya leia bien.
 
 
 ------------------------------------------------------------------------------
-ARCHIVOS TOCADOS
+B) POSE DE PLANTAR LA TRAMPA = spr_jinna_tele
 ------------------------------------------------------------------------------
-CLIENTE (proyecto GameMaker):
-  * objects/obj_playerui/Draw_64.gml      — fix C/V montados + intercambio
-  * scripts/scr_jinna_special/scr_jinna_special.gml — macros (trap cd,
-    tiers) + gates separados de la V
-  * objects/obj_jinna/Create_0.gml        — jinnaTrapCd, jinnaCaughtKind
-  * objects/obj_jinna/Step_0.gml          — decrementa jinnaTrapCd
-  * objects/obj_jinna/Draw_0.gml          — Vanilla 72% ajustada + Amy
-                                            semi-transparente
-  * objects/obj_jinna_absorb/Create_0.gml — absorbVictim (sprite por victima)
-  * objects/obj_jinna_absorb/Draw_0.gml   — dibuja absorbVictim
-  * objects/obj_netclient/Create_0.gml    — global.jinnaCaughtTier
-  * objects/obj_level/Create_0.gml        — global.jinnaCaughtTier (reset)
-  * objects/obj_player_puppet/Step_0.gml  — golpe 20/25/30
-  * scripts/net_state_game/net_state_game.gml — kind 2, tiers de dano,
-                                            portales depth 5
-  * scripts/net_packets/net_packets.gml   — doc del protocolo actualizada
-  * sprites/spr_gui_jinatrap/ (NUEVO)     — icono portal ▼+V (+ .yyp)
-  * Sonicexe The Disaster 2D Remake.yyp   — registro del sprite nuevo
+"la animacion al poner la trampa sera esta spr_jinna_tele".
 
-SERVIDOR (betterserver-oss):
-  * include/Server.h                      — #define JINNA_TRAP 13,
-                                            PLAYER_COOLCOUNT 14
-  * disasterserver/states/Game.c          — cooldown propio de la trampa
-                                            (15 s) + kind 2 Amy Canon
+Antes, al plantar el portal (V+ABAJO), Jina hacia la pose de AGARRE
+(spr_jinna_attack2, la de "garra al frente") ~0,4 s. Ahora hace la
+pose de TELETRANSPORTE (spr_jinna_tele, la misma del aterrizaje del
+C) ~0,53 s (JINNA_TRAP_POSE 32 frames): coherente con el lore — esta
+abriendo un portal, no agarrando a nadie.
 
-VALIDACION: check_jinna_v4.py 62/62 OK; gcc -fsyntax-only en
-Game.c con los mismos 7 errores PREEXISTENTES del upstream (rand/
-free/malloc implicitos + stub enet), cero nuevos; balance de
-llaves/parentesis OK en los 13 GML tocados (sin comentarios);
-enum de paquetes append-only intacto en los dos lados.
+* Variable nueva jinnaTrapVisual (obj_jinna): cuenta los frames de la
+  pose, igual que jinnaTelePose/jinnaGrabVisual. Se inicia en
+  Create_0, baja en Step_0 (corre SIEMPRE, tambien aturdida — leccion
+  v4.8 de Metal Amy), se corta con el stun y al ganar/perder, y en
+  Step_2 manda al estado JINNA_TELE (el estado existente que dibuja
+  spr_jinna_tele — cero sprites nuevos, cero estados nuevos).
+* La deteccion de pisada, la replica del server y los efectos NO
+  cambian en nada: es solo la pose de Jina al plantarla.
 
-Valores ajustables en un minuto (macros de scr_jinna_special):
-JINNA_TRAP_RECHARGE (15 s), JINNA_TRAP_LIFE (20 s), los danos de
-la tabla y los JINNA_CAUGHT_* si se quiere otro reparto.
+
+------------------------------------------------------------------------------
+C) LA TRAMPA DURA 70 S (antes 20 s)
+------------------------------------------------------------------------------
+"el tiempo de la trampa durara hasta 70 seg".
+
+* Server: JINNA_TRAP_LIFE_S 20 -> 70 en include/entities/JinnaTrap.h
+  (la entidad JinnaTrap vive 70 s y luego se retira en silencio con
+  state 1, igual que antes pero mas tarde).
+* Cliente: JINNA_TRAP_LIFE (60 * 20) -> (60 * 70) en scr_jinna_special
+  (la vida VISUAL del obj_jinna_trap: si el paquete de retirada del
+  server se pierde, el portal se desvanece solo — patron Amelia).
+* Nada mas cambia: mismo dano (15 / 22 con Vanilla atrapada), mismo
+  radio de pisada, misma recarga compartida de la V (12 s), mismos
+  paquetes. Un portal que aguanta 70 s da para tender emboscadas de
+  verdad: plantarlo en un pasillo de vuelta obligada y volver a cazar
+  con el teleport mientras el mapa "trabaja para ella".
+
+
+------------------------------------------------------------------------------
+D) FIX DE LOS ICONOS C Y V SOLAPADOS EN EL HUD
+------------------------------------------------------------------------------
+Bug reportado en la sesion anterior: los dos iconos de habilidad de
+Jina se dibujaban EXACTAMENTE en el mismo sitio (_jprog * 4, 250): el
+portal de la C y la garra de la V uno encima del otro, ilegibles.
+
+Ahora la V vive a la derecha de la C en la misma fila (44 + _jprog *
+10): el patron establecido por Metal Amy v4.7/v4.8 ("C y V comparten
+fila, como en el teclado; la vista es 480x270 y una cuarta fila
+apilada caeria fuera de pantalla"). El anillo del icono V sigue
+mostrando la recarga compartida (agarre Y trampa: una habilidad, dos
+modos).
+
+
+------------------------------------------------------------------------------
+CAMBIOS (10 archivos: 7 cliente + 3 server + suite)
+------------------------------------------------------------------------------
+* scripts/scr_jinna_special/scr_jinna_special.gml: EL FIX de la V
+  (buffer_write del dir en CLIENT_JINNA_GRAB) + JINNA_TRAP_LIFE a
+  70 s + macro JINNA_TRAP_POSE + el modo trampa usa la pose tele.
+* objects/obj_jinna/Create_0.gml: init de jinnaTrapVisual.
+* objects/obj_jinna/Step_0.gml: tick de jinnaTrapVisual + corte con
+  el stun.
+* objects/obj_jinna/Step_2.gml: jinnaTrapVisual -> estado JINNA_TELE
+  (spr_jinna_tele al plantar la trampa).
+* objects/obj_playerui/Draw_64.gml: icono V separado de la C
+  (44 + _jprog * 10, misma fila).
+* scripts/net_packets/net_packets.gml: el comentario de protocolo de
+  CLIENT_JINNA_GRAB documenta el (u16 pid, s8 dir) que el server
+  siempre esperó y el fix v4.
+* betterserver-oss/include/entities/JinnaTrap.h: JINNA_TRAP_LIFE_S
+  20 -> 70.
+* betterserver-oss/disasterserver/entities/JinnaTrap.c: comentario de
+  la vida (70 s).
+* betterserver-oss/disasterserver/states/Game.c: comentario del spawn
+  (70 s).
+* objects/obj_jinna_trap/Create_0.gml: comentario de la vida (70 s).
+* LEEME_JINNA_V4.txt (este) + worklog.md: el suite al dia.
+
+
+IMPORTANTE
+----------
+* RECOMPILAR CLIENTE Y SERVER JUNTOS. El enum de paquetes NO cambia
+  (ningun paquete nuevo), pero la vida de la trampa vive en el server
+  (JinnaTrap.h): un server viejo con cliente nuevo deja la trampa en
+  20 s reales (el cliente la desvaneceria a los 70 s solo si el
+  remove nunca llega), y un cliente viejo con server nuevo la
+  desvaneceria visualmente a los 20 s aunque el server la mantenga
+  viva (pisada "invisible" a los 30+ s). Ambos lados, misma build.
+* El fix del agarre NO necesita server nuevo (el server ya leia
+  pid+dir bien desde la v1): con solo recompilar el CLIENTE, la V ya
+  agarra — pero recompila los dos igualmente por la vida de 70 s.
+* Balance ajustable en un vistazo (macros de scr_jinna_special):
+  JINNA_TRAP_LIFE (70 s), JINNA_TRAP_POSE (32), JINNA_GRAB_RANGE
+  (46), JINNA_GRAB_LOCK (1,6 s), JINNA_GRAB_DAMAGE (10), JINNA_GRAB_
+  RECHARGE (12 s). En el server: JINNA_TRAP_LIFE_S (70) en
+  JinnaTrap.h.
+* La recarga de la V SIGUE siendo compartida entre agarre y trampa
+  (decision de diseno de la v3: "una habilidad, dos modos: elegir es
+  parte del juego"). Si algun dia se quiere separar, es un cooldown
+  nuevo (enum de Server.h) + un macro nuevo — pedido y se hace.
