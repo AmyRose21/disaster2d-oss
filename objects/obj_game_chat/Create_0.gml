@@ -52,6 +52,14 @@ dragOffY = 0;
 wasJuse = true;    // jUse/bUse de obj_controls antes del arrastre
 wasBuse = true;
 
+// [v1.5] boton ENVIAR con el chat abierto (Android): en vez de quedarse en
+// su sitio de siempre (columna derecha, mitad inferior — TAPADO por el
+// teclado virtual), sube junto a la caja de entrada de arriba. Coordenadas
+// fijas de la franja libre de la zona alta (ver Draw para el mapa).
+sendX = 320;
+sendY = 47;
+dragOnSend = false; // el dedo nacio sobre ese ENVIAR (al soltar no reabre)
+
 // ancho maximo de linea (en caracteres) antes de partir el mensaje
 wrapLen = 34;
 

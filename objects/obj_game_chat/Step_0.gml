@@ -59,6 +59,12 @@ if(touchUI)
 {
         if(dragId == -1)
         {
+                // [v1.5] con el chat abierto el boton vive ARRIBA, junto a la
+                // caja de entrada (sendX/sendY): su posicion normal (la
+                // arrastrable) queda tapada por el teclado virtual.
+                var _bx = chatMode ? sendX : btnX;
+                var _by = chatMode ? sendY : btnY;
+
                 // dedo nuevo: empezar a seguirlo si nacio sobre el boton
                 for(var m = 0; m < 4; m++)
                 {
@@ -68,12 +74,13 @@ if(touchUI)
                         var _mx = device_mouse_x_to_gui(m);
                         var _my = device_mouse_y_to_gui(m);
 
-                        if(point_in_rectangle(_mx, _my, btnX, btnY, btnX + btnW, btnY + btnH))
+                        if(point_in_rectangle(_mx, _my, _bx, _by, _bx + btnW, _by + btnH))
                         {
                                 dragId = m;
                                 dragging = false;
-                                dragOffX = _mx - btnX;
-                                dragOffY = _my - btnY;
+                                dragOnSend = chatMode; // nacio sobre el ENVIAR de arriba
+                                dragOffX = _mx - _bx;
+                                dragOffY = _my - _by;
                                 break;
                         }
                 }
@@ -124,6 +131,16 @@ if(touchUI)
                                 obj_controls.bUse = wasBuse;
                         }
                 }
+                else if(dragOnSend)
+                {
+                        // [v1.5] toque corto sobre el ENVIAR de arriba: envia
+                        // y cierra. Si el chat ya se cerro solo (teclado
+                        // muerto por mantener el dedo >0.1 s — ver
+                        // scr_controls_update_touch), el mensaje ya se envio
+                        // por esa via y este toque NO reabre el chat.
+                        if(chatMode)
+                                chatClose(true);
+                }
                 else
                 {
                         // fue un toque corto: alternar abrir/enviar (v1.3)
@@ -135,5 +152,6 @@ if(touchUI)
 
                 dragId = -1;
                 dragging = false;
+                dragOnSend = false;
         }
 }

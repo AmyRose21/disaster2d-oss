@@ -30,8 +30,12 @@
 //  - En PC se ve siempre la tecla actual del remapeo (letra, numero o
 //    nombre corto: space, shift, enter, ...). Se actualiza al instante
 //    porque se consulta global.KeyX en cada fotograma.
-//  - En Android NO se dibuja letra: alli el control son los botones
-//    tactiles de la pantalla (el arte del icono se sigue mostrando).
+//  - v5.5: en Android TAMBIEN se dibuja la letra. v4.3 la ocultaba alli
+//    ("el control son los botones tactiles") y el icono quedaba con el
+//    hueco vacio, "sin tecla aparente" — pero los botones tactiles
+//    A/B/C/V SIMULAN estas mismas teclas (scr_controls_init_touch hace
+//    keyboard_key_press(global.KeyB) etc.), asi que la letra es igual de
+//    cierta en el movil y sirve para saber que hace cada boton del HUD.
 //  - Las pistas horneadas que NO son teclas (flechas de direccion, el +
 //    de los combos, las flechas del walldash) se conservan como arte o se
 //    redibujan detras de la letra dinamica.
@@ -76,10 +80,9 @@ drawKeyIcon = function(_spr, _frame, _artW, _key, _xx, _yy, _col, _alpha, _hintX
         if(_artW > 0)
                 draw_sprite_part_ext(_spr, _frame, _ox, _oy, _artW - _ox, _ih, _xx + _ox, _yy + _oy, 1, 1, _col, _alpha);
 
-        // 2) tecla REAL de la configuracion (solo PC; en Android mandan los botones)
-        var _tw = 0;
-        if(os_type != os_android)
-                _tw = scr_text_spr(_xx + _artW + 2, _yy + floor((_h - 6) / 2), scr_controls_keycode_to_key(_key), _col, _alpha);
+        // 2) tecla REAL de la configuracion (v5.5: tambien en Android —
+        //    los botones tactiles simulan estas teclas, ver cabecera)
+        var _tw = scr_text_spr(_xx + _artW + 2, _yy + floor((_h - 6) / 2), scr_controls_keycode_to_key(_key), _col, _alpha);
 
         // 3) pista horneada posterior (flechas del walldash / golpe aereo),
         //    si la hay y cae dentro del contenido del sprite
@@ -246,11 +249,11 @@ if(instance_exists(global.player) && !global.player.isDead)
                         prog = 1.0 - (global.player.attackTimer / val);
                         var _tcol = prog == 1.0 ? c_white : c_red;
                         draw_sprite_part_ext(spr_gui_tailsattack, 0, 0, 0, 25, 11, prog * 12, 250 - _mob, 1, 1, _tcol, prog);
-                        if(os_type != os_android)
-                        {
-                                scr_text_spr(prog * 12 + 27, 250 - _mob + 2, scr_controls_keycode_to_key(global.KeyB), _tcol, prog);
-                                scr_text_spr(prog * 12 + 3, 250 - _mob + 12, "(hold)", _tcol, prog);
-                        }
+
+                        // v5.5: tecla y "(hold)" tambien en Android (mismo
+                        // criterio que drawKeyIcon)
+                        scr_text_spr(prog * 12 + 27, 250 - _mob + 2, scr_controls_keycode_to_key(global.KeyB), _tcol, prog);
+                        scr_text_spr(prog * 12 + 3, 250 - _mob + 12, "(hold)", _tcol, prog);
                         break;
                 }
 
@@ -634,12 +637,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                 var _ey = 222 - _mob;
                 draw_sprite(spr_gui_emotions, 0, 470, _ey);
 
-                // tecla REAL de cada emocion (remapeable), solo PC
-                if(os_type != os_android)
-                {
-                        scr_text_spr(463, _ey + 3,  scr_controls_keycode_to_key(global.KeyEm1), c_white, 1);
-                        scr_text_spr(463, _ey + 17, scr_controls_keycode_to_key(global.KeyEm2), c_white, 1);
-                        scr_text_spr(463, _ey + 31, scr_controls_keycode_to_key(global.KeyEm3), c_white, 1);
-                }
+                // tecla REAL de cada emocion (remapeable) — v5.5: tambien
+                // en Android (los botones tactiles D/E/F simulan KeyEm1/2/3)
+                scr_text_spr(463, _ey + 3,  scr_controls_keycode_to_key(global.KeyEm1), c_white, 1);
+                scr_text_spr(463, _ey + 17, scr_controls_keycode_to_key(global.KeyEm2), c_white, 1);
+                scr_text_spr(463, _ey + 31, scr_controls_keycode_to_key(global.KeyEm3), c_white, 1);
         }
 }
