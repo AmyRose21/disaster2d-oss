@@ -102,6 +102,14 @@ _buffer = {
 		opacity: 0.6
 	},
 	
+	// [v1.4 IN-GAME CHAT] boton tactil de chat (centro xx/yy, como el
+	// resto). Se arrastra en partida (obj_game_chat/Step) y la posicion
+	// se persiste aqui igual que los demas botones.
+	chatTouch: {
+		xx: 473,
+		yy: 144
+	},
+	
 	gTouch: {
 		xx: 23,
 		yy: 36+15+30,
@@ -195,6 +203,11 @@ bVX = _buffer.vTouch.xx;
 bVY = _buffer.vTouch.yy;
 bVScale = _buffer.vTouch.scale;
 bVOpacity = _buffer.vTouch.opacity;
+
+// [v1.4 IN-GAME CHAT] centro del boton de chat (por defecto: hueco entre
+// F y V en la columna derecha - ver obj_game_chat/Create)
+bChatX = _buffer.chatTouch.xx;
+bChatY = _buffer.chatTouch.yy;
 
 global.nickname = scr_nickname_validate(nickname);
 
@@ -350,6 +363,24 @@ load = function(filename)
 		bVOpacity = _buffer.vTouch.opacity;
 	}
 
+	// [v1.4 IN-GAME CHAT] guardados viejos (pre-chat) no traen la
+	// entrada: cae al hueco por defecto entre F y V
+	try
+	{
+		bChatX = _buffer.chatTouch.xx;
+		bChatY = _buffer.chatTouch.yy;
+	}
+	catch(ex) 
+	{
+		_buffer.chatTouch = {
+			xx: 473,
+			yy: 144
+		};
+		
+		bChatX = _buffer.chatTouch.xx;
+		bChatY = _buffer.chatTouch.yy;
+	}
+
 	global.nickname = scr_nickname_validate(nickname);
 }
 
@@ -439,6 +470,10 @@ save = function()
 	_buffer.vTouch.yy = bVY;
 	_buffer.vTouch.scale = bVScale;
 	_buffer.vTouch.opacity = bVOpacity;
+	
+	// [v1.4 IN-GAME CHAT]
+	_buffer.chatTouch.xx = bChatX;
+	_buffer.chatTouch.yy = bChatY;
 	
 	try
 	{

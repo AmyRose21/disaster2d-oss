@@ -6,7 +6,13 @@
 // autodestruye si el local resulta ser el EXE.
 //
 // Entrada:  Enter abre/envia (PC) o el boton tactil (Android, columna
-//           derecha). Mientras se escribe el jugador queda CONGELADO
+//           derecha; al SOLTAR el dedo — ver Step). Con el chat abierto el
+//           boton pasa a ser ENVIAR. En Android el teclado puede morir por
+//           cualquier via (Done sin Enter, boton atras, el auto-hide
+//           global de scr_controls_update_touch al tocar pantalla): el
+//           Step lo detecta (keyboard_virtual_status) y cierra el chat
+//           enviando lo escrito — el jugador nunca queda colgado.
+//           Mientras se escribe el jugador queda CONGELADO
 //           (global.playerControls = false): sin movimiento, habilidades
 //           ni emotes — scr_move_basic y los specials ya respetan ese
 //           flag (lo usan la zipline y los cutscenes).
@@ -22,14 +28,29 @@ chatTime = [];   // current_time de cada linea (para el fade)
 chatMode = false;
 chatMsg = "";
 wasControls = true;
+kbGrace = 0; // [v1.3] frames de gracia hasta que sube el teclado virtual
 
-// boton tactil: columna derecha, en el hueco entre el boton F (y~98-130)
-// y el boton V de Amy Canon (y~176). Solo se dibuja en Android.
-btnX = 466;
-btnY = 142;
+// boton tactil: columna derecha, en el hueco de ~19 px entre el boton F
+// (circulo y~90-134) y el boton V del parry de Amy Canon (y~154-198).
+// v1 lo ponia en y 142-170: la mitad inferior pisaba el circulo del V y
+// un tap en el chat disparaba tambien el parry.
+// [v1.4] La posicion vive en obj_config.chatTouch (CENTRO, como los
+// demas botones) y se puede ARRASTRAR en partida: mantener el dedo y
+// moverlo mas de 12 px = mover el boton (se guarda al soltar); toque
+// corto = abrir/enviar. Solo se dibuja en Android.
 btnW = 14;
-btnH = 28;
+btnH = 17;
+btnX = obj_config.bChatX - btnW / 2;
+btnY = obj_config.bChatY - btnH / 2;
 touchUI = (os_type == os_android);
+
+// estado del arrastre (ver Step)
+dragId = -1;       // dispositivo tactil que empezo en el boton (-1 = nadie)
+dragging = false;  // supero el umbral: es arrastre, no toque
+dragOffX = 0;      // agarre: distancia dedo -> esquina del boton
+dragOffY = 0;
+wasJuse = true;    // jUse/bUse de obj_controls antes del arrastre
+wasBuse = true;
 
 // ancho maximo de linea (en caracteres) antes de partir el mensaje
 wrapLen = 34;
@@ -129,6 +150,10 @@ chatOpen = function()
 
         keyboard_string = chatMsg; // recupera el borrador
         keyboard_virtual_show(kbv_type_default, kbv_returnkey_done, kbv_autocapitalize_none, true);
+
+        // [v1.3] margen para que el teclado suba antes de que el Step
+        // empiece a vigilar keyboard_virtual_status (dispositivos lentos)
+        kbGrace = 45;
 };
 
 chatClose = function(send)

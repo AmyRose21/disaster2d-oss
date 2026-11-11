@@ -57,19 +57,42 @@ if(chatMode)
         scr_text_spr(4, 260, _cur);
 }
 
-// boton tactil de chat (Android): burbuja en la columna derecha
+// boton tactil de chat (Android): burbuja en la columna derecha; con el
+// chat abierto se convierte en flecha de ENVIO (tap = enviar y cerrar).
+// [v1.4] Mientras se arrastra: marco blanco y alpha pleno.
 if(touchUI)
 {
         draw_set_color(make_color_rgb(16, 16, 24));
-        draw_set_alpha(chatMode ? 0.9 : 0.55);
+        draw_set_alpha(dragging ? 1 : (chatMode ? 0.9 : 0.55));
         draw_rectangle(btnX, btnY, btnX + btnW, btnY + btnH, false);
 
-        // tres puntitos = burbuja de dialogo
         draw_set_color(c_white);
-        draw_set_alpha(chatMode ? 1 : 0.8);
+        draw_set_alpha(dragging ? 1 : (chatMode ? 1 : 0.8));
 
-        for(var d = 0; d < 3; d++)
-                draw_rectangle(btnX + 3 + d * 4, btnY + btnH / 2 - 1, btnX + 4 + d * 4, btnY + btnH / 2, false);
+        if(chatMode)
+        {
+                // flecha de envio: palo vertical + punta
+                var _cx = btnX + btnW / 2;
+                var _cy = btnY + btnH / 2;
+
+                draw_rectangle(_cx - 1, _cy - 5, _cx + 1, _cy + 4, false); // palo
+                draw_rectangle(_cx - 4, _cy - 2, _cx - 1, _cy + 1, false); // punta <
+                draw_rectangle(_cx + 1, _cy - 2, _cx + 4, _cy + 1, false); // punta >
+        }
+        else
+        {
+                // tres puntitos = burbuja de dialogo
+                for(var d = 0; d < 3; d++)
+                        draw_rectangle(btnX + 3 + d * 4, btnY + btnH / 2 - 1, btnX + 4 + d * 4, btnY + btnH / 2, false);
+        }
+
+        if(dragging)
+        {
+                // marco de "moviendo": contorno blanco alrededor del boton
+                draw_set_color(c_white);
+                draw_set_alpha(1);
+                draw_rectangle(btnX - 1, btnY - 1, btnX + btnW + 1, btnY + btnH + 1, true);
+        }
 
         draw_set_alpha(1);
         draw_set_color(c_white);
