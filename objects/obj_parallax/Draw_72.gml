@@ -11,6 +11,44 @@
 		[ layer_get_id("Background"), 0.3, 0 ]
 	];
 */
+// v1.2 OPTIONS MORE: BACKGROUNDS off = ademas quita el heat haze de las
+// capas de nivel (tiles/assets). Sin el fondo del escenario, la
+// distorsion animada del filtro se nota como un "barrido" sobre el negro
+// del fondo solido, y cada filtro es un pase de shader a pantalla
+// completa (el juego original ya los quita en Android por lo mismo).
+// Solo VV y AI ponen heat haze en capas que siguen visibles con el
+// toggle activado; se limpia una sola vez por entrada a la sala porque
+// layer_clear_fx no se puede deshacer sin recargarla.
+if(!obj_config.optBackgrounds && !bgFxDone)
+{
+	bgFxDone = true;
+	
+	var _fxl;
+	switch(room)
+	{
+		case room_volcanovalley:
+			_fxl = ["Tiles", "Tiles2", "TilesFore", "Assets_1", "Assets_2", "Bochki"];
+			break;
+		
+		case room_angelisland:
+			_fxl = ["Tiles", "TilesFore", "Assets_1", "Assets_2"];
+			break;
+		
+		default:
+			_fxl = [];
+			break;
+	}
+	
+	for(var j = 0; j < array_length(_fxl); j++)
+	{
+		var _lid = layer_get_id(_fxl[j]);
+		if(is_undefined(_lid) || _lid == -1)
+			continue;
+		
+		layer_clear_fx(_lid);
+	}
+}
+
 for(var i = 0; i < array_length(global.parallax); i++)
 {
 	var lay = global.parallax[i][0];
