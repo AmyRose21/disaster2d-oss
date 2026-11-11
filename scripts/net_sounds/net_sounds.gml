@@ -167,7 +167,18 @@ global.net_snds =
         // de Blaze, proyectil de Tails). Mismo patron del final: indice
         // nuevo, un cliente viejo que lo reciba lo ignora (115 >= su
         // array_length -> break en el receptor). ---
-        snd_metal_stun     // 115 (real)
+        snd_metal_stun,    // 115 (real)
+
+        // --- JINNA v1 (D.I.B.): voces que viajan (net_sound_emit del
+        // scr_jinna_special / taunts / victoria). Mismo patron del final:
+        // indices nuevos (116-122), un cliente viejo los ignora. ---
+        snd_jina_go,       // 116: arranque de ronda
+        snd_jina_kill1,    // 117: voz de kill
+        snd_jina_laugh,    // 118: risa de seleccion
+        snd_jina_ready,    // 119: telegraph del tele / agarre
+        snd_jina_taunt1,   // 120
+        snd_jina_taunt2,   // 121
+        snd_jina_taunt3    // 122: linea de victoria
 ];
 global.tmp_sndid = 0;
 

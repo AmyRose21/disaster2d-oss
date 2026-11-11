@@ -96,7 +96,11 @@ global.sfxList = [
         snd_spike, snd_spin, snd_spring, snd_spring_reverb, snd_suddendeath, snd_survivor_win,
         snd_tails_charge, snd_tails_fly, snd_tails_hit, snd_tails_shoot, snd_tailsball, snd_tailsball_chase,
         snd_tailsball_jumpscare, snd_tailsball_jumpscare2, snd_teleport, snd_thunder, snd_vasebreak, snd_waterdrops,
-        snd_watersplash, snd_wdarms, snd_wdlamp
+        snd_watersplash, snd_wdarms, snd_wdlamp,
+
+        // v1 (D.I.B.): voces de Jinna
+        snd_jina_go, snd_jina_kill1, snd_jina_laugh, snd_jina_ready,
+        snd_jina_taunt1, snd_jina_taunt2, snd_jina_taunt3
 ];
 
 // ============================================================================

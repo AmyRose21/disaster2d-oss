@@ -1,0 +1,95 @@
+// Estados propios de JINNA (plantilla obj_metalamy; macros de slot al
+// estilo BALANCING+N para no tocar los base 0-13).
+#macro JINNA_ATTACK1 BALANCING+1   // 14: golpe en tierra (spr_jinna_attack1)
+#macro JINNA_ATTACK2 BALANCING+2   // 15: golpe aereo / pose de agarre (attack2)
+#macro JINNA_SHOCKED BALANCING+3   // 16
+#macro JINNA_WON BALANCING+4       // 17
+#macro JINNA_LOST BALANCING+5      // 18
+#macro JINNA_ZIPLINE BALANCING+6   // 19
+#macro JINNA_LOST2 BALANCING+7     // 20: derrota alterna (spr_jinna_lost2)
+#macro JINNA_TELE BALANCING+8      // 21: pose de teletransporte (spr_jinna_tele)
+
+if(!emotion)
+        state = IDLE;
+
+if(won)
+{
+        if(isGrounded)
+        {
+                state = JINNA_WON;
+
+                // su linea de victoria (una sola vez)
+                if(!jinnaWonSnd)
+                {
+                        jinnaWonSnd = true;
+                        audio_play_sound(snd_jina_taunt3, 0, false);
+                        net_sound_emit(snd_jina_taunt3);
+                }
+        }
+}
+
+if(lost)
+{
+        if(isGrounded)
+                state = jinnaLostState; // derrota aleatoria (patron chaos: lost/lost2)
+}
+
+if(isHurt)
+{
+        state = HURT;
+        return;
+}
+
+if(shockedTimer > 0)
+{
+        if(!isGrounded)
+                state = HURT;
+        else
+                state = JINNA_SHOCKED;
+
+        return;
+}
+
+if(jinnaTelePose > 0)
+{
+        state = JINNA_TELE;
+        return;
+}
+
+if(jinnaGrabVisual > 0 && isGrounded)
+{
+        state = JINNA_ATTACK2;
+        return;
+}
+
+if(isAttacking)
+{
+        state = isGrounded ? JINNA_ATTACK1 : JINNA_ATTACK2;
+        return;
+}
+
+if(!isGrounded)
+{
+        if(yspd < 0)
+                state = JUMP;
+        else
+                state = FALL;
+}
+else if(abs(gspd) > 0.5 || abs(xspd) > 0.5)
+{
+        if(abs(gspd) >= maxHSpeed * 0.95 || abs(xspd) >= maxHSpeed * 0.95)
+                state = RUN;
+        else
+                state = WALK;
+}
+else if(isLookingUp)
+        state = LOOKUP;
+else if(isLookingDown)
+        state = LOOKDOWN;
+else if(isOnEdge)
+        state = BALANCING;
+else if(isZipline)
+        state = JINNA_ZIPLINE;
+
+if(isSpinning)
+        state = SPIN;

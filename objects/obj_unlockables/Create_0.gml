@@ -286,3 +286,7 @@ if(!ds_map_exists(palettes, CHARACTER_FLEETWAY_AMY + PALETTE_DEMON))
 // EXE_METALAMY + PALETTE_EXE (patron de los otros killers).
 if(!ds_map_exists(palettes, EXE_METALAMY + PALETTE_EXE))
         palettes[? EXE_METALAMY + PALETTE_EXE] = { name: "default", custom: false, character: EXE_METALAMY + PALETTE_EXE, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
+
+// v1 (D.I.B.): paleta default de Jinna (patron de los otros killers)
+if(!ds_map_exists(palettes, EXE_JINNA + PALETTE_EXE))
+        palettes[? EXE_JINNA + PALETTE_EXE] = { name: "default", custom: false, character: EXE_JINNA + PALETTE_EXE, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };

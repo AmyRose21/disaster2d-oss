@@ -278,7 +278,25 @@ typedef enum
            personales de Sonic). Se re-envia en game_state_join para
            reconexiones. Mismo orden que el enum del cliente
            (net_packets.gml); anadido AL FINAL en los DOS lados. */
-        SERVER_GAME_LMS
+        SERVER_GAME_LMS,
+
+        /* v1 JINNA (killer de D.I.B.): teletransporte y agarre.
+           CLIENT_JINNA_TELEPORT (u16 x, u16 y): la jugadora ya se movio
+           en su cliente; el server valida cooldown, abre el grace del
+           anticheat (ex_teleport = 60, mismo que el tele de Exeller a
+           su clon) y replica los DOS portales (salida = su ultima pos
+           conocida aqui, llegada = la del paquete) a todos.
+           CLIENT_JINNA_GRAB (u16 pid, s8 dir): agarre al superviviente
+           pid; el server valida (exe + cooldown + victima viva) y
+           reenvia SERVER_JINNA_GRAB_STATE (u16 pid, s8 dir): la victima
+           se congela y sufre el dano EN SU cliente (la autoridad de su
+           propio jugador), el resto crea el efecto visual. Mismo orden
+           que el enum del cliente (net_packets.gml); anadido AL FINAL
+           en los DOS lados. */
+        CLIENT_JINNA_TELEPORT,
+        CLIENT_JINNA_GRAB,
+        SERVER_JINNA_PORTAL_STATE,
+        SERVER_JINNA_GRAB_STATE
 } PacketType;
 
 typedef struct

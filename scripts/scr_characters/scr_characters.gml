@@ -45,8 +45,8 @@
 // Total de slots de personaje (exe + supervivientes).
 #macro CHARACTER_COUNT (CHARACTER_SURV_MAX + 1)
 
-// Total de killers (scr_exe). EXE_METALAMY es el ultimo macro.
-#macro EXE_CHAR_COUNT (EXE_METALAMY + 1)
+// Total de killers (scr_exe). EXE_JINNA es el ultimo macro (v1 D.I.B.).
+#macro EXE_CHAR_COUNT (EXE_JINNA + 1)
 
 // Entradas que necesita chars[] del lobby: los supervivientes
 // (indices 0..SURV_MAX-1) + los killers (offset SURV_MAX).
@@ -72,6 +72,8 @@ function scr_char_name(ch)
                 case CHARACTER_AMELIA: return "Amelia";
                 case CHARACTER_BLAZE: return "Blaze";
                 case CHARACTER_FLEETWAY_AMY: return "Fleetway Amy";
+                // (los killers se identifican por EXE_*, no por CHARACTER_*:
+                // sus valores colisionarian con los de supervivientes)
         }
 
         return "desconocido #" + string(ch);

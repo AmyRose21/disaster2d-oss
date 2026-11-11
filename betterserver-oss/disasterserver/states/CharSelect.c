@@ -110,7 +110,7 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 		v->exe_char = id;
 
 		AssertOrDisconnect(v->server, id >= 0);
-		AssertOrDisconnect(v->server, id <= EX_METALAMY);
+		AssertOrDisconnect(v->server, id <= EX_JINNA);
 
 		PacketCreate(&pack, SERVER_LOBBY_EXECHARACTER_RESPONSE);
 		PacketWrite(&pack, packet_write8, id);
@@ -126,7 +126,8 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 			"Chaos",
 			"Exetior",
 			"Exeller",
-			"Metal Amy"}; /* v2.2 (TTB) */
+			"Metal Amy", /* v2.2 (TTB) */
+			"Jinna"}; /* v1 (D.I.B.) */
 
 		Info("%s " LOG_RST "(id %d) choses [" LOG_RED "%s" LOG_RST "]!", v->nickname.value, v->id, exes[id]);
 		return charselect_check_state(v->server) || lobby_init(v->server);

@@ -56,6 +56,14 @@ function scr_exe_checkwin()
 					scr_audio_play_3d(emitter, _snd, 0, false);
 					break;
 				}
+
+				// v1 (D.I.B.): "Keep running, I love watching you..."
+				case EXE_JINNA:
+				{
+					net_sound_emit_at(snd_jina_kill1, master_id);
+					scr_audio_play_3d(emitter, snd_jina_kill1, 0, false);
+					break;
+				}
 			}
 			
 			var pak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);

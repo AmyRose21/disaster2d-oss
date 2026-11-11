@@ -63,6 +63,11 @@ function net_state_charselect(rbuff, nps, isPasstrough)
                                 case EXE_METALAMY:
                                         audio_play_sound(snd_metal_laugh, 0, false);
                                         break;
+
+                                // v1 (D.I.B.): la risa de Jinna
+                                case EXE_JINNA:
+                                        audio_play_sound(snd_jina_laugh, 0, false);
+                                        break;
                         }
                         break;
                 }
@@ -161,6 +166,11 @@ function net_state_charselect(rbuff, nps, isPasstrough)
                                         case EXE_METALAMY:
                                                 sprite_index = spr_lobby_exeicon6;
                                                 break;
+
+                                        // v1 (D.I.B.): Jinna (6.a killer)
+                                        case EXE_JINNA:
+                                                sprite_index = spr_lobby_exeicon7;
+                                                break;
                                 }
                                 
                                 image_index = 0;
@@ -232,6 +242,11 @@ function net_state_charselect(rbuff, nps, isPasstrough)
                                                 // demas clientes ven el "?" al elegirla de asesina.
                                                 case EXE_METALAMY:
                                                         sprite_index = spr_lobby_exeicon6;
+                                                        break;
+
+                                                // v1 (D.I.B.): Jinna — mismo fix v4.10
+                                                case EXE_JINNA:
+                                                        sprite_index = spr_lobby_exeicon7;
                                                         break;
                                         }
                                         

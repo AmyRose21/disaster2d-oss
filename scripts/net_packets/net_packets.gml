@@ -277,7 +277,26 @@ enum PacketType
            personaje del show; las pasivas de bloqueo/stuns son
            personales de Sonic). Anadido AL FINAL en los DOS lados
            (mismo orden que include/Packet.h). */
-        SERVER_GAME_LMS
+        SERVER_GAME_LMS,
+
+        /* v1 JINNA (killer de D.I.B.): teletransporte y agarre.
+           CLIENT_JINNA_TELEPORT (u16 x, u16 y): la jugadora de Jinna ya
+           se movio en su cliente (killers = cliente-autoritativos, como
+           el tele de Exeller a su clon); el server valida cooldown,
+           abre el grace del anticheat (ex_teleport) y replica LOS DOS
+           portales (salida = ultima pos conocida del server, llegada =
+           la del paquete) a todos.
+           CLIENT_JINNA_GRAB (u16 pid): agarre al superviviente pid; el
+           server valida (exe + cooldown + victima viva) y reenvia
+           SERVER_JINNA_GRAB_STATE (u16 pid): la victima se congela
+           (JINNA_GRAB_LOCK) y sufre el dano EN SU CLIENTE (autoridad de
+           su propio jugador), el resto crea el efecto visual.
+           Anadido AL FINAL en los DOS lados (mismo orden que
+           include/Packet.h). */
+        CLIENT_JINNA_TELEPORT,
+        CLIENT_JINNA_GRAB,
+        SERVER_JINNA_PORTAL_STATE,
+        SERVER_JINNA_GRAB_STATE
 }
 
 #macro STATE_PENDING -1

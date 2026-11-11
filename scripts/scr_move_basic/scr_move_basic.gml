@@ -438,6 +438,13 @@ function scr_move_basic()
                                                 emotionSnd = audio_play_sound(snd_exeller_taunt3, 0, false);
                                                 net_sound_emit(snd_exeller_taunt3);
                                                 break;
+
+                                        // v1 (D.I.B.): "You really thought you could
+                                        // leave me behind? How foolish!"
+                                        case EXE_JINNA:
+                                                emotionSnd = audio_play_sound(snd_jina_taunt1, 0, false);
+                                                net_sound_emit(snd_jina_taunt1);
+                                                break;
                                 }
                         }
                 }
@@ -489,6 +496,13 @@ function scr_move_basic()
                                                 snd = choose(snd_exeller_taunt1, snd_exeller_taunt2);
                                                 emotionSnd = audio_play_sound(snd, 0, false);
                                                 net_sound_emit(snd);
+                                                break;
+
+                                        // v1 (D.I.B.): "You thought you escaped the
+                                        // nightmare, but the nightmare followed you."
+                                        case EXE_JINNA:
+                                                emotionSnd = audio_play_sound(snd_jina_taunt2, 0, false);
+                                                net_sound_emit(snd_jina_taunt2);
                                                 break;
                                 }
                         }

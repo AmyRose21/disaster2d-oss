@@ -1676,6 +1676,76 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         break;
                 }
 
+                /* v1 JINNA (D.I.B.): teletransporte hacia el superviviente
+                 * mas cercano. La jugadora YA se movio en su cliente
+                 * (killers cliente-autoritativos): aqui solo se valida el
+                 * cooldown, se abre el grace del anticheat (ex_teleport,
+                 * mismo que el tele de Exeller a su clon) y se replican los
+                 * DOS portales (salida = ultima pos conocida del server,
+                 * llegada = la del paquete) a todos los clientes. */
+                case CLIENT_JINNA_TELEPORT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id == v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->exe_char == EX_JINNA);
+
+                        if (v->plr_cooldowns[JINNA_TELEPORT] > 0)
+                                break;
+
+                        PacketRead(tx, packet, packet_read16, uint16_t);
+                        PacketRead(ty, packet, packet_read16, uint16_t);
+
+                        uint16_t ox = (uint16_t)v->plr.pos.x;
+                        uint16_t oy = (uint16_t)v->plr.pos.y;
+
+                        Packet pack;
+                        PacketCreate(&pack, SERVER_JINNA_PORTAL_STATE);
+                        PacketWrite(&pack, packet_write16, (uint16_t)v->id);
+                        PacketWrite(&pack, packet_write16, ox);
+                        PacketWrite(&pack, packet_write16, oy);
+                        PacketWrite(&pack, packet_write16, tx);
+                        PacketWrite(&pack, packet_write16, ty);
+                        server_broadcast(v->server, &pack, true);
+
+                        v->plr_cooldowns[JINNA_TELEPORT] = 8 * TICKSPERSEC;
+                        v->plr.ex_teleport = 60;
+                        break;
+                }
+
+                /* v1 JINNA: agarre. Valida (exe + cooldown + que la victima
+                 * este en la partida y viva) y reenvia a todos: la victima
+                 * se congela y sufre el dano EN SU cliente (la autoridad de
+                 * su propio jugador, mismo lado que el stun), el resto
+                 * crea el efecto visual sobre su puppet. */
+                case CLIENT_JINNA_GRAB:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id == v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->exe_char == EX_JINNA);
+
+                        if (v->plr_cooldowns[JINNA_GRAB] > 0)
+                                break;
+
+                        PacketRead(pid, packet, packet_read16, uint16_t);
+                        PacketRead(dir, packet, packet_read8, int8_t);
+                        AssertOrDisconnect(v->server, dir >= -1 && dir <= 1);
+
+                        PeerData* victim = server_find_peer(v->server, pid);
+                        AssertOrDisconnect(v->server, victim != NULL);
+                        AssertOrDisconnect(v->server, victim->in_game);
+                        AssertOrDisconnect(v->server, victim->id != v->server->game.exe);
+                        AssertOrDisconnect(v->server, !(victim->plr.flags & (PLAYER_DEAD | PLAYER_ESCAPED | PLAYER_DEMONIZED)));
+
+                        Packet pack2;
+                        PacketCreate(&pack2, SERVER_JINNA_GRAB_STATE);
+                        PacketWrite(&pack2, packet_write16, pid);
+                        PacketWrite(&pack2, packet_write8, (int8_t)dir);
+                        server_broadcast(v->server, &pack2, true);
+
+                        v->plr_cooldowns[JINNA_GRAB] = 12 * TICKSPERSEC;
+                        break;
+                }
+
                 case CLIENT_METALAMY_BULLET:
                 {
                         AssertOrDisconnect(v->server, v->in_game);

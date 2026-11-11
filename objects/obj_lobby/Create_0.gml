@@ -34,6 +34,7 @@ chars =
         spr_menu_exetior,
         spr_menu_exeller,
         spr_menu_metalamy, // 17: Metal Amy (v2.2)
+        spr_menu_jinna, // 18: Jinna (v1, D.I.B.)
 ];
 
 // Vote

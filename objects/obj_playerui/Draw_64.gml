@@ -233,6 +233,33 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         }
                                         break;
                                 }
+
+                                // v1 (D.I.B.): JINNA — golpe X (puno basico, commit),
+                                // teletransporte C y agarre V. Sus dos iconos propios
+                                // (spr_gui_jinateleport / spr_gui_jinagrub) traen la
+                                // tecla horneada del mod: se recorta y se dibuja la
+                                // REAL (mecanismo v4.3, como en el resto del HUD).
+                                case EXE_JINNA:
+                                {
+                                        // X: golpe (dano 20 via PLAYER_ATTACKING)
+                                        var _jprog = 1.0 - (global.player.attackTimer / 120.0);
+                                        drawKeyIcon(spr_gui_exeattack, 0, 19, global.KeyB, _jprog * 10, 240 - _mob, _jprog == 1.0 ? c_white : c_red, _jprog, 0);
+
+                                        // Z: salto libre de los killers
+                                        _jprog = (global.player.hurttime <= 0 && global.player.shockedTimer <= 0) ? 1.0 : 0.0;
+                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, _jprog ? c_white : c_red, _jprog ? 1 : 0.5, 0);
+
+                                        // C: teletransporte (icono del mod: portal)
+                                        var _jt = global.player.jinnaTeleCd;
+                                        _jprog = 1.0 - (_jt / JINNA_TELEPORT_RECHARGE);
+                                        var _jteleAct = global.player.jinnaTeleWindup > 0;
+                                        drawKeyIcon(spr_gui_jinateleport, 0, 25, global.KeyC, _jprog * 4, 250 - _mob, (_jprog >= 1.0 || _jteleAct) ? c_white : c_red, _jteleAct ? 1 : _jprog, 0);
+
+                                        // V: agarre (icono del mod: garra)
+                                        _jprog = 1.0 - (global.player.jinnaGrabCd / JINNA_GRAB_RECHARGE);
+                                        drawKeyIcon(spr_gui_jinagrub, 0, 26, global.KeyV, _jprog * 4, 250 - _mob, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
+                                        break;
+                                }
                         }
 
                         break;

@@ -337,6 +337,78 @@ function net_state_game(rbuff, nps, isPasstrough)
                         }
                         break;
                 }
+
+                // v1 JINNA (D.I.B.): portales gemelos del teletransporte.
+                // El server replica salida + llegada: cada cliente planta
+                // los DOS obj_jinna_portal (puro visual, sin colision). La
+                // jugadora de Jinna ya vio el suyo localmente: el pid evita
+                // duplicarlo en su pantalla.
+                case PacketType.SERVER_JINNA_PORTAL_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+
+                        var _jpid = buffer_read_s(rbuff, buffer_u16);
+                        var _ox = buffer_read_s(rbuff, buffer_u16);
+                        var _oy = buffer_read_s(rbuff, buffer_u16);
+                        var _nx = buffer_read_s(rbuff, buffer_u16);
+                        var _ny = buffer_read_s(rbuff, buffer_u16);
+
+                        if(_jpid != obj_netclient.nid)
+                        {
+                                instance_create_depth(_ox, _oy, 0, obj_jinna_portal);
+                                instance_create_depth(_nx, _ny, 0, obj_jinna_portal);
+                        }
+                        break;
+                }
+
+                // v1 JINNA: agarre. La VICTIMA se congela (JINNA_GRAB_LOCK)
+                // y sufre el dano EN SU cliente (la autoridad de su propio
+                // jugador, mismo lado que el stun y que los golpes del exe);
+                // la garra se ve en todos: sobre el puppet en los clientes
+                // ajenos y sobre el jugador real en el de la victima (el
+                // local no tiene puppet de si mismo — obj_netclient/Other_4).
+                case PacketType.SERVER_JINNA_GRAB_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+
+                        var _gpid = buffer_read_s(rbuff, buffer_u16);
+                        var _gdir = buffer_read_s(rbuff, buffer_s8);
+
+                        if(_gpid == obj_netclient.nid)
+                        {
+                                // VICTIMA: bloqueo + dano sobre mi jugador real
+                                if(instance_exists(global.player) && !global.player.isDead)
+                                {
+                                        var _fx = instance_create_depth(global.player.x, global.player.y, 0, obj_jinna_grab_effect);
+                                        _fx.target = global.player;
+                                        _fx.image_xscale = _gdir;
+                                        _fx.locked = true;
+                                        _fx.timer = JINNA_GRAB_LOCK;
+
+                                        // el golpe: misma via que los golpes del exe
+                                        // (exeSource=true: el parry de Sonic puede negarlo)
+                                        scr_player_hurt(JINNA_GRAB_DAMAGE, 0, 0, snd_hurt, spr_blood3, false, true);
+                                }
+                        }
+                        else if(instance_exists(obj_player_puppet))
+                        {
+                                // resto: garra visual sobre el puppet de la victima
+                                with(obj_player_puppet)
+                                {
+                                        if(master_id != _gpid)
+                                                continue;
+
+                                        var _fx2 = instance_create_depth(x, y, 0, obj_jinna_grab_effect);
+                                        _fx2.target = id;
+                                        _fx2.image_xscale = _gdir;
+                                        break;
+                                }
+                        }
+                        break;
+                }
+
                 case PacketType.SERVER_METALAMY_BULLET_STATE:
                 {
                         if(isPasstrough)

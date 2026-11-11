@@ -149,6 +149,8 @@ else if(state == 2 || state == 3)
                 _infoFrame = sprInd - (CHARACTER_FLEETWAY_AMY - 7);
                 if(sprInd == CHARACTER_FLEETWAY_AMY + 4)
                         _infoFrame = 15; // metal amy (v2.2): su propia placa
+                if(sprInd == CHARACTER_FLEETWAY_AMY + 5)
+                        _infoFrame = 16; // jinna (v1 D.I.B.): su placa del mod
         }
         // [Suite TD2D v5.1] Sally Canon (8) y Vanilla (9) ya NO se remapean:
         // dibujan sus placas PROPIAS (spr_char_info_sallycanon/vanilla)

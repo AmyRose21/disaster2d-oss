@@ -27,8 +27,12 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 
                 if(obj_netclient.exeId == master_id)
                 {
+                        // v1 (D.I.B.): 6 killers — y FIX del wrap izquierdo
+                        // (quedaba en 4 desde la epoca de 4 killers: al
+                        // ciclar hacia atras desde Exe se saltaba a Metal
+                        // Amy y a Jinna)
                         if(selected < 1)
-                                selected = 4;
+                                selected = 6;
                 }
                 else
                 {
@@ -55,8 +59,8 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 
                 if(obj_netclient.exeId == master_id)
                 {
-                        // v2.2: 5 killers (Metal Amy es el 5.o)
-                        if(selected > 5)
+                        // v1 (D.I.B.): 6 killers (Jinna es la 6.a)
+                        if(selected > 6)
                                 selected = 1;
                 }
                 else
@@ -112,6 +116,11 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                         case 5:
                                 // v2.2 (TTB): Metal Amy
                                 sprite_index = spr_lobby_exeicon6;
+                                break;
+
+                        case 6:
+                                // v1 (D.I.B.): Jinna
+                                sprite_index = spr_lobby_exeicon7;
                                 break;
                 }
                 

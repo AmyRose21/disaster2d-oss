@@ -6,6 +6,9 @@
 /* v2.2 — killer rescatado de TD2D Through the Blood. Mismo orden
    que el EX_* del server (betterserver-oss/include/Server.h). */
 #macro EXE_METALAMY 4
+/* v1 — killer rescatado de TD2DR Darkness In Blood (D.I.B., GameJolt
+   1104339). Mismo orden que el EX_* del server. */
+#macro EXE_JINNA 5
 
 global.player_exesanims = ds_map_create();
 global.player_exesanims[? EXE_ORIGINAL] = 
@@ -199,6 +202,37 @@ global.player_exesanims[? EXE_METALAMY] =
         spr_metalamy_scan  //21 = METALAMY_SCAN: pose de escaneo (tecla V, v4.7)
 ];
 
+/* v1 (D.I.B.): JINNA — 22 slots. Los base 0-19 y DOS propios:
+   20 = JINNA_LOST2 (derrota alterna, patron chaos) y
+   21 = JINNA_TELE (pose de teletransporte, tecla C). Los estados
+   se declaran en obj_jinna/Step_2 (JINNA_* = BALANCING+N). */
+global.player_exesanims[? EXE_JINNA] = 
+[
+        //Visible
+        spr_jinna_idle, //0
+        spr_jinna_walk, //1
+        spr_jinna_run, //2
+        spr_jinna_jump, //3
+        spr_jinna_fall, //4
+        spr_jinna_hurt, //5
+        spr_jinna_jump, //6
+        spr_jinna_lookup, //7
+        spr_jinna_lookdown, //8
+        spr_jinna_emotion, // 9
+        spr_jinna_emotion2, //10
+        spr_jinna_emotion3, //11
+        spr_jinna_jump, //12
+        spr_jinna_balancing, //13
+        spr_jinna_attack1, //14 = golpe en tierra (JINNA_ATTACK1)
+        spr_jinna_attack2, //15 = golpe aereo / pose de agarre (JINNA_ATTACK2)
+        spr_jinna_shocked, //16
+        spr_jinna_won, //17
+        spr_jinna_lost, //18
+        spr_jinna_zipline, //19
+        spr_jinna_lost2, //20 = JINNA_LOST2: derrota alterna (patron chaos)
+        spr_jinna_tele //21 = JINNA_TELE: pose de teletransporte (tecla C)
+];
+
 
 function player_getexe(ind)
 {
@@ -218,5 +252,8 @@ function player_getexe(ind)
 
                 case 4:
                         return obj_metalamy;
+
+                case 5:
+                        return obj_jinna;
         }
 }

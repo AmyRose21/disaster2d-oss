@@ -1,0 +1,164 @@
+JINNA V1 — 6.a killer rescatada de TD2DR "Darkness In Blood" (D.I.B.)
+====================================================================
+
+QUE ES
+------
+Porte de JINNA, la unica killer nueva de "TD2DR Darkness In Blood
+(D.I.B.)" de DIFFF (GameJolt 1104339, build 2043080), como la 6.a
+asesina seleccionable (EXE_JINNA = 5 / EX_JINNA en el server), igual
+que Metal Amy fue la 5.a rescatada de Through the Blood.
+
+El mod esta compilado YYC (sin chunk CODE en el data.win: su GML es
+codigo nativo del exe), asi que el kit se RECONSTRUYO con los assets
+originales 1:1 + la descripcion oficial del propio mod (la pantalla
+About del D.I.B., extraida de sus strings) + las variables internas
+que el YYC deja legibles (jinnaGrabbing, jinnaGrabTimer,
+jinnaGrabVisualTimer, jinnaTeleportDelay, jinnaAttackLock).
+
+LA KILLER (descripcion oficial del mod, traducida)
+-------------------------------------------------
+"jinna is a fast killer who uses portals and demonic magic to control
+the chase. she can teleport toward the nearest survivor, quickly
+closing distance and forcing victims out of safe positions. her grab
+can lock a survivor in place for a short time, stopping their movement
+and leaving them open to follow-up pressure. with her speed, direct
+attack and sudden repositioning, jinna is strongest when she cuts off
+escape routes and punishes survivors who get separated from the group."
+
+EL KIT (teclas de la casa: Z salto / X golpe / C especial / V extra)
+--------------------------------------------------------------------
+* GOLPE (X): patron del exe basico (isAttacking + attackTimer 1 s
+  tierra / 2 s aire, dano 20 por la via existente de PLAYER_ATTACKING)
+  con COMMIT: JINNA_ATTACK_LOCK (0,2 s) frena su impulso durante el
+  swing — golpe honesto, no drive-by. attack1 en tierra, attack2 en
+  el aire.
+* TELETRANSPORTE (C): marca al superviviente MAS CERCANO (flecha
+  parpadeante spr_jinna_clonearrow sobre el durante el telegraph de
+  0,42 s) y aparece DETRAS de el (34 px) con portales gemelos
+  (obj_jinna_portal en salida y llegada, spr_jinna_portal 20 frames)
+  y la pose de tele (spr_jinna_tele). Cooldown 8 s. El server abre
+  el grace del anticheat (ex_teleport = 60, el mismo del tele de
+  Exeller a su clon) y replica los dos portales a todos.
+* AGARRE (V): al superviviente en rango melee (46 px) lo BLOQUEA
+  1,6 s (sin input: ni correr, ni saltar, ni atacar; la gravedad
+  sigue) con la garra encima (obj_jinna_grab_effect) y le hace 10 de
+  dano ("1 HP" en su placa oficial), por la misma via que los golpes
+  del exe (el parry de Sonic puede negarlo). Cooldown 12 s.
+* STATS: la mas rapida del bando EXE (13; Exe/Exeller van a 12,
+  Metal Amy 13), misma aceleracion que Metal Amy (0.056875).
+* VOCES (las 7 del mod, en ingles): risa de seleccion
+  (snd_jina_laugh), linea de arranque de ronda (snd_jina_go, suena
+  cuando se habilitan los controles), voz de kill (snd_jina_kill1:
+  "Keep running, I love watching you..."), taunts A y D
+  (snd_jina_taunt1 "You really thought you could leave me behind?
+  How foolish!" / taunt2 "You thought you escaped the nightmare, but
+  the nightmare followed you."), linea de VICTORIA (snd_jina_taunt3
+  "...to me, you will always be the one I love", suena al ganar) y
+  la risita de caza (snd_jina_ready, al marcar el tele y al agarrar).
+
+CONTENIDO DEL PAQUETE
+---------------------
+NUEVOS (40 archivos .yy + PNGs/WAVs + GML):
+- sprites/spr_jinna_* (22): idle(147f!) walk run jump fall hurt
+  lookup lookdown emotion(3) balancing attack1 attack2 shocked won
+  lost lost2 zipline tele portal(20f, 126x125) clonearrow
+- sprites/spr_menu_jinna (17f, retrato animado del lobby)
+- sprites/spr_gui_jinagrub + spr_gui_jinateleport (iconos de HUD)
+- sprites/spr_lobby_exeicon7 (6f: el icono glitch de jinna del mod,
+  registrado como nuestro 7.o exeicon)
+- sounds/snd_jina_* (7, WAV 44.1k mono del propio mod)
+- objects/obj_jinna (8 eventos) + obj_jinna_portal (3) +
+  obj_jinna_grab_effect (5, con el patron finishGrab del mod)
+- scripts/scr_jinna_special (macros + las 3 habilidades)
+
+MODIFICADOS (cliente):
+- .yyp (+40 lineas: 26 sprites, 7 sonidos, 3 objetos, 1 script,
+  3 carpetas "Jinna" — parche QUIRURGICO, nada re-serializado)
+- sprites/spr_char_info (16 -> 17 frames: la placa oficial de jinna
+  del propio mod como frame 16)
+- scripts/scr_exe.gml (EXE_JINNA + sus 22 slots de anim + case 5 en
+  player_getexe)
+- scripts/net_packets.gml (+4 paquetes AL FINAL: ver abajo)
+- scripts/net_state_game.gml (2 cases: portales + agarre)
+- scripts/net_state_charselect.gml (risa + icono en los 3 spots)
+- scripts/net_sounds.gml (+7 sonidos con indice 116-122: un cliente
+  viejo los ignora)
+- scripts/scr_move_basic.gml (taunts A/D), scr_exe_checkwin.gml
+  (voz de kill)
+- scripts/scr_characters.gml (EXE_CHAR_COUNT auto)
+- scripts/scr_menu_more.gml (sfxList: los 7 sonidos responden al
+  volumen del menu Options > MORE)
+- objects/obj_lobby (chars[] 19 + placa frame 16), obj_lobby_icon
+  (ciclo 6 killers + case 6 + FIX del wrap izquierdo que quedaba en
+  4 desde la epoca de 4 killers: ahora no se salta a Metal Amy/Jinna
+  al ciclar hacia atras), obj_playerui (iconos X/Z/C/V con cooldown
+  vivo), obj_unlockables (paleta default)
+
+MODIFICADOS (server betterserver-oss):
+- include/Server.h (EX_JINNA al final del enum, cooldowns
+  JINNA_TELEPORT=11 / JINNA_GRAB=12, PLAYER_COOLCOUNT 11 -> 13)
+- include/Packet.h (+4 paquetes AL FINAL, mismo orden que el cliente)
+- states/CharSelect.c (assert hasta EX_JINNA + "Jinna" en exes[])
+- states/Game.c (2 cases: tele con grace de anticheat + grab con
+  validacion de victima viva)
+
+RED (4 paquetes nuevos, al FINAL en los dos lados):
+- CLIENT_JINNA_TELEPORT (u16 x, u16 y): la jugadora ya se movio
+  (killers cliente-autoritativos, patron del tele de Exeller); el
+  server valida cooldown, abre ex_teleport=60 y replica los DOS
+  portales (SERVER_JINNA_PORTAL_STATE: u16 pid + x2/y2 salida y
+  llegada) a todos.
+- CLIENT_JINNA_GRAB (u16 pid, s8 dir) -> SERVER_JINNA_GRAB_STATE
+  (u16 pid, s8 dir): la victima se congela y sufre el dano EN SU
+  cliente (la autoridad de su propio jugador, mismo lado que el stun
+  y los golpes del exe); el resto solo ve la garra sobre su puppet.
+
+DECISIONES DOCUMENTADAS
+-----------------------
+* El idle es de 147 frames (14,7 s a 10 fps): gesto -> pose
+  sostenida; hace bucle completo (Other_7).
+* lost/lost2: derrota ALEATORIA entre las dos poses (patron chaos).
+* La placa dice "PUNCH (2 HP) / GRAB (1 HP)": es la notacion estandar
+  de las placas de killers de la casa (dano por bloques de la barra),
+  y coincide: golpe 20 (= exe) y agarre 10.
+* Los taunts usan los IDs de trade del PROPIO mod (tjinna0/tjinna1)
+  pero NO estan en la tienda de taunts (el menu tiene 8 slots en la
+  room y Metal Amy tampoco esta: mismo precedente; funcionan si se
+  conceden por save/admin).
+* snd_jina_ready es la risita de caza del telegraph/agarre; el sonido
+  del tele en si es el snd_teleport generico del juego (el mod no
+  trae uno propio de jinna).
+* Clientes VIEJOS (sin jinna) en un server nuevo: los sonidos viajan
+  con indice nuevo (se ignoran), pero el puppet de una jinna no
+  existiria en su player_exesanims — misma limitacion que hubo con
+  Metal Amy: actualizar cliente y server JUNTOS.
+
+COMO PROBARLO
+-------------
+1. Recompilar CLIENTE y SERVER juntos (los dos cambian).
+2. Lobby: el host cicla killers (derecha/izquierda): 6 iconos, el
+   de jinna es la cara glitch animada; su retrato y placa (frame 17
+   de la tira) en el carrusel.
+3. Al confirmarla: risa (snd_jina_laugh).
+4. Ronda: al arrancar suena su linea "go"; C marca al mas cercano
+   (flecha) y teletransporta con portales; V agarra al que tengas
+   encima (se congela + 10 de dano + garra); X el golpe con commit.
+5. HUD: iconos con cooldown vivo (C portal, V garra).
+6. Matar a alguien: su voz de kill; ganar la ronda: su linea de
+   victoria; emociones A/S/D con sus 2 taunts (si estan concedidos).
+
+VALIDACION
+----------
+check_jinna_port.py: 1366/1366 OK (.yyp sin duplicados y apuntando a
+archivos reales, 26 sprites con frames==keyframes==length==PNGs y
+layers dobles, 7 sonidos, eventos de objetos completos, balance GML
+en 31 archivos, referencias de assets todas existentes, paridad
+EXACTA de los enums de paquetes cliente/server, gcc -fsyntax-only
+limpio en Game.c y CharSelect.c, spr_char_info 17 frames, y los 30+
+parches de integracion presentes). PNGs verificados 1:1 contra el
+decode del data.win del mod (idle 147/147, jump 4/4, portal 20/20,
+attack1 5/5, menu 17/17). check_gml.py de la casa: TODO BALANCEADO.
+
+Nota: el exeicon6 del MOD es jinna (alli Metal Amy no existe y su 5.a
+killer es ella); aqui se registro como spr_lobby_exeicon7 siguiendo
+la numeracion de nuestra casa (exeicon6 = Metal Amy).

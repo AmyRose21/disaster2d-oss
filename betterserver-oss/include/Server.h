@@ -33,7 +33,7 @@ struct auth_peer_data;
    2.o en usarla dentro de la ventana fallaba y el server lo desconectaba
    (y su cliente crasheaba leyendo `type` sin definir en net_tcpprocess:
    fix cliente v2.1.3). */
-#define PLAYER_COOLCOUNT 11
+#define PLAYER_COOLCOUNT 13
 // Cooldown indices (dentro de PeerData.plr_cooldowns)
 #define TAILS_RECHARGE 0
 #define CREAM_RING_SPAWN 1
@@ -48,6 +48,9 @@ struct auth_peer_data;
 #define METALAMY_BULLET 9
 /* v2.14: Fleetway Amy */
 #define FWBOLT_SPAWN 10
+/* v1 (D.I.B.): habilidades de Jinna */
+#define JINNA_TELEPORT 11
+#define JINNA_GRAB 12
 
 typedef struct PeerData
 {
@@ -123,7 +126,11 @@ typedef struct PeerData
                 EX_EXELLER,
 
                 /* v2.2 (TTB): killer #5 rescatado de TD2D Through the Blood */
-                EX_METALAMY
+                EX_METALAMY,
+
+                /* v1 (D.I.B.): killer #6 rescatado de TD2DR Darkness In
+                   Blood (GameJolt 1104339) */
+                EX_JINNA
                 } exe_char;
 
         bool should_timeout;
