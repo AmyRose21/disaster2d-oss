@@ -1,7 +1,8 @@
-// ABSORCION DE VANILLA — dos fases:
-//  0: el portal abierto (spr_jinna_portal, animado) + Vanilla
-//     (spr_vanilla_absorb_trap) encogiendose hacia el centro del portal.
-//  1: el portal encogiendo hasta eliminarse (Vanilla ya no se dibuja).
+// ABSORCION DE LA VICTIMA — dos fases:
+//  0: el portal abierto (spr_jinna_portal, animado) + la victima
+//     (absorbVictim: Vanilla o Amy Canon, v4) encogiendose hacia el
+//     centro del portal.
+//  1: el portal encogiendo hasta eliminarse (la victima ya no se dibuja).
 var _portalCY = y - 22; // centro visual del portal a escala 0.55
 
 // frame del portal a 20 fps (el objeto no tiene sprite: avanza a mano)
@@ -15,13 +16,14 @@ if(phase == 1)
 if(_pscale > 0)
         draw_sprite_ext(spr_jinna_portal, _pframe, floor(x), floor(y), _pscale, _pscale, 0, c_white, 1);
 
-// Vanilla succionandose: escala 1 -> 0 con deriva hacia el centro del
-// portal (spr_vanilla_absorb_trap, 31x46, origen centrado)
+// La victima succionandose: escala 1 -> 0 con deriva hacia el centro
+// del portal (absorbVictim: spr_vanilla_absorb_trap 31x46 para Vanilla,
+// spr_amy_capture_canon 37x41 para Amy Canon — origenes centrados)
 if(phase == 0)
 {
         var _prog = 1 - max(0, timer) / 72;          // 0 -> 1
         var _vscale = (1 - _prog) * (1 - _prog);      // ease-in: se acelera al caer
         var _vy = lerp(y - 14, _portalCY, _prog);     // deriva al centro del portal
 
-        draw_sprite_ext(spr_vanilla_absorb_trap, 0, floor(x), floor(_vy), _vscale, _vscale, 0, c_white, 1);
+        draw_sprite_ext(absorbVictim, 0, floor(x), floor(_vy), _vscale, _vscale, 0, c_white, 1);
 }

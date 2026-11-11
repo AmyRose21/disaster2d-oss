@@ -1778,30 +1778,30 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         break;
                 }
 
-                /* v3 (D.I.B.) JINNA: PORTAL TRAMPA (tecla V+ABAJO). La
+                /* v3/v4 (D.I.B.) JINNA: PORTAL TRAMPA (tecla V+ABAJO). La
                  * jugadora la planta en sus pies; aqui se valida (exe +
-                 * Jinna + recarga de la V — compartida con el agarre: una
-                 * sola habilidad, dos modos) y se spawnea la entidad
-                 * JinnaTrap (20 s de vida), que se replica sola a todos
-                 * con SERVER_JINNA_TRAP_STATE 0. */
+                 * Jinna + recarga PROPIA de la trampa — v4: ya NO comparte
+                 * la del agarre, cada modo de la V tiene su cooldown) y se
+                 * spawnea la entidad JinnaTrap (20 s de vida), que se
+                 * replica sola a todos con SERVER_JINNA_TRAP_STATE 0. */
                 case CLIENT_JINNA_TRAP:
                 {
                         AssertOrDisconnect(v->server, v->in_game);
                         AssertOrDisconnect(v->server, v->id == v->server->game.exe);
                         AssertOrDisconnect(v->server, v->exe_char == EX_JINNA);
 
-                        if (v->plr_cooldowns[JINNA_GRAB] > 0)
+                        if (v->plr_cooldowns[JINNA_TRAP] > 0)
                                 break;
 
                         PacketRead(x, packet, packet_read16, uint16_t);
                         PacketRead(y, packet, packet_read16, uint16_t);
 
                         RAssert(game_spawn(v->server, (Entity*)&(MakeJinnaTrap(x, y, v->id)), sizeof(JinnaTrap), NULL));
-                        v->plr_cooldowns[JINNA_GRAB] = 12 * TICKSPERSEC;
+                        v->plr_cooldowns[JINNA_TRAP] = 15 * TICKSPERSEC;
                         break;
                 }
 
-                /* v3 (D.I.B.) JINNA: alguien piso el PORTAL TRAMPA. El
+                /* v3/v4 (D.I.B.) JINNA: alguien piso el PORTAL TRAMPA. El
                  * aviso llega DESDE el cliente de la victima (cada cliente
                  * es la autoridad de su propio jugador). Se valida: el
                  * reportero ES la victima (superviviente vivo), la trampa
@@ -1811,7 +1811,10 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                  * ACTUAL de Jinna: la victima aplica dano + teletransporte
                  * en SU cliente (SIN i-frames: si los tenia, el dano entra
                  * igual y se le remueven). kind 1 = VANILLA: absorcion a
-                 * la otra dimension (fuera de juego + potenciacion). */
+                 * la otra dimension (fuera de juego + potenciacion fuerte).
+                 * kind 2 = AMY CANON (v4): misma absorcion, pero su cliente
+                 * la dibuja con su pose de secuestro y la potenciacion es
+                 * la "ardua" (la mitad de los aumentos). */
                 case CLIENT_JINNA_TRAP_HIT:
                 {
                         AssertOrDisconnect(v->server, v->in_game);
@@ -1853,7 +1856,11 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 break;
                         }
 
-                        uint8_t kind = (v->surv_char == CH_VANILLA) ? 1 : 0;
+                        uint8_t kind = 0;
+                        if (v->surv_char == CH_VANILLA)
+                                kind = 1;
+                        else if (v->surv_char == CH_AMY_CANON) /* v4: Amy Canon tambien es absorbida (spr_amy_capture_canon) */
+                                kind = 2;
 
                         jinna_trap_trigger(v->server, target);
                         game_despawn(v->server, NULL, target->id);

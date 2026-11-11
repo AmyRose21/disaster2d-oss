@@ -33,7 +33,7 @@ struct auth_peer_data;
    2.o en usarla dentro de la ventana fallaba y el server lo desconectaba
    (y su cliente crasheaba leyendo `type` sin definir en net_tcpprocess:
    fix cliente v2.1.3). */
-#define PLAYER_COOLCOUNT 13
+#define PLAYER_COOLCOUNT 14
 // Cooldown indices (dentro de PeerData.plr_cooldowns)
 #define TAILS_RECHARGE 0
 #define CREAM_RING_SPAWN 1
@@ -51,6 +51,9 @@ struct auth_peer_data;
 /* v1 (D.I.B.): habilidades de Jinna */
 #define JINNA_TELEPORT 11
 #define JINNA_GRAB 12
+/* v4 (D.I.B.): el portal trampa YA NO comparte cooldown con el agarre
+   (peticion de la duena tras probar la v3): indice propio. */
+#define JINNA_TRAP 13
 
 typedef struct PeerData
 {

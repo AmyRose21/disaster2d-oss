@@ -18,10 +18,12 @@ if(shockedTimer > jinnaShockNext)
 }
 jinnaShockNext = (shockedTimer > 0) ? shockedTimer - 1 : 0;
 
-// v3 — VANILLA ATRAPADA: espera de la animacion de absorcion; al terminar
-// se fija jinnaCaughtShow (Draw_0 dibuja spr_vanilla_caught sobre su cabeza
-// hasta el fin de ronda). El flag global (los aumentos del kit) lo activa
-// el propio handler del paquete en TODOS los clientes.
+// v3/v4 — ATRAPADA EN EL PORTAL TRAMPA: espera de la animacion de
+// absorcion; al terminar se fija jinnaCaughtShow (Draw_0 dibuja la senal
+// sobre su cabeza hasta el fin de ronda: pantalla de Vanilla o Amy
+// semi-transparente, segun jinnaCaughtKind). El flag global de nivel de
+// potenciacion (los aumentos del kit) lo activa el propio handler del
+// paquete en TODOS los clientes.
 if(jinnaCaughtDelay > 0)
 {
         jinnaCaughtDelay--;
@@ -117,12 +119,15 @@ if(!jinnaGoSnd && global.playerControls)
 //  v4.8 de Metal Amy: si viven en el special se congelan aturdida).
 // =====================================================================
 
-// enfriamientos
+// enfriamientos (v4: la trampa YA NO comparte el del agarre)
 if(jinnaTeleCd > 0)
         jinnaTeleCd--;
 
 if(jinnaGrabCd > 0)
         jinnaGrabCd--;
+
+if(jinnaTrapCd > 0)
+        jinnaTrapCd--;
 
 // pose de tele (se sostiene mientras aterriza)
 if(jinnaTelePose > 0)

@@ -3,15 +3,16 @@ global.timeMinutes = 0;
 global.ringFrame = 0;
 global.lmsActive = false;
 
-// v3 (D.I.B.) — estado de ronda de JINNA (se resetea en cada arranque):
+// v3/v4 (D.I.B.) — estado de ronda de JINNA (se resetea en cada arranque):
 //  * jinnaTelePower: frames restantes de la ventana de poder del tele-
 //    transporte (3 s: hitbox del golpe basico +25% en los clientes de
 //    las victimas; la abre SERVER_JINNA_PORTAL_STATE).
-//  * jinnaCaughtVanilla: true cuando Vanilla cayo en el portal trampa
-//    (absorbida a la otra dimension): activa los aumentos del kit de
-//    Jinna en todos los clientes (ver LEEME_JINNA_V3).
+//  * jinnaCaughtTier (v4): nivel de potenciacion tras el portal trampa —
+//    0 = nadie cayo / 1 = AMY CANON absorbida ("mejoras mas arduas": la
+//    mitad de los aumentos) / 2 = VANILLA absorbida (los fuertes de la
+//    v3). Lo alimenta SERVER_JINNA_TRAP_HIT en TODOS los clientes.
 global.jinnaTelePower = 0;
-global.jinnaCaughtVanilla = false;
+global.jinnaCaughtTier = JINNA_CAUGHT_NONE;
 state = 0;
 showSurvivors = false;
 survivorTimer = 0;

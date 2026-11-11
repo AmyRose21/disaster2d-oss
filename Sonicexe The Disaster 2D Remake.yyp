@@ -1720,6 +1720,7 @@
     {"id":{"name":"spr_gui_exetiorring","path":"sprites/spr_gui_exetiorring/spr_gui_exetiorring.yy",},},
     {"id":{"name":"spr_gui_jinagrub","path":"sprites/spr_gui_jinagrub/spr_gui_jinagrub.yy",},},
     {"id":{"name":"spr_gui_jinateleport","path":"sprites/spr_gui_jinateleport/spr_gui_jinateleport.yy",},},
+    {"id":{"name":"spr_gui_jinatrap","path":"sprites/spr_gui_jinatrap/spr_gui_jinatrap.yy",},},
     {"id":{"name":"spr_gui_keycap","path":"sprites/spr_gui_keycap/spr_gui_keycap.yy",},},
     {"id":{"name":"spr_gui_keyletter","path":"sprites/spr_gui_keyletter/spr_gui_keyletter.yy",},},
     {"id":{"name":"spr_gui_knuxattack","path":"sprites/spr_gui_knuxattack/spr_gui_knuxattack.yy",},},

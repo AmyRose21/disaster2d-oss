@@ -387,14 +387,15 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                                         break;
                                         }
 
-                                        // v3 (D.I.B.) — VANILLA ATRAPADA (portal trampa):
+                                        // v3/v4 (D.I.B.) — ATRAPADA EN EL PORTAL TRAMPA:
                                         // con Vanilla absorbida en la otra dimension, el
                                         // golpe basico de Jinna pega un 50% mas (20 -> 30).
-                                        // Uno de los "fuertes aumentos en los efectos de
-                                        // Jina en este estado"; los demas viven en el
-                                        // agarre, la trampa y el slow del teleport.
-                                        if(exeCharacter == EXE_JINNA && global.jinnaCaughtVanilla)
-                                                damage = 30;
+                                        // v4: con AMY CANON absorbida son las "mejoras
+                                        // arduas": 20 -> 25 (la mitad del aumento).
+                                        // Los demas aumentos viven en el agarre, la trampa
+                                        // y el slow del teleport (net_state_game).
+                                        if(exeCharacter == EXE_JINNA && global.jinnaCaughtTier > JINNA_CAUGHT_NONE)
+                                                damage = (global.jinnaCaughtTier == JINNA_CAUGHT_VANILLA) ? 30 : 25;
                                 }
                                 
                                 if(character == CHARACTER_EGGMAN && global.player.hurttime <= 0)

@@ -39,13 +39,13 @@ pings = ds_map_create();
 
 players = ds_map_create();
 
-// v3 (D.I.B.) — estado de JINNA (persistentes durante la partida; el
+// v3/v4 (D.I.B.) — estado de JINNA (persistentes durante la partida; el
 // reset por ronda lo hace obj_level/Create_0): la ventana de poder del
-// teleport (frames) y el flag de Vanilla absorbida por el portal trampa.
+// teleport (frames) y el nivel de potenciacion del portal trampa.
 // Se declaran aqui para que existan desde el arranque (antes del primer
 // obj_level) en todos los clientes.
 global.jinnaTelePower = 0;
-global.jinnaCaughtVanilla = false;
+global.jinnaCaughtTier = JINNA_CAUGHT_NONE; // v4: 0 = nadie / 1 = Amy Canon (mejoras arduas) / 2 = Vanilla (fuertes)
 
 // Slots de personajes libres/ocupados. Se dimensiona SOLO segun
 // los macros de personaje: ver scr_characters (scr_avchars_reset).

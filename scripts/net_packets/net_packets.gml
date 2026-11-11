@@ -300,19 +300,20 @@ enum PacketType
 
         /* v3 JINNA (D.I.B.) — teleport potenciado + PORTAL TRAMPA.
            CLIENT_JINNA_TRAP (u16 x, u16 y): la V+ABAJO planta la trampa
-           en sus pies; el server valida (exe + Jinna + cooldown de la V,
-           compartido con el agarre) y spawnea la entidad JinnaTrap, que
-           replica SERVER_JINNA_TRAP_STATE 0 spawn (id, x, y) / 1 remove
-           (id) / 2 pisada (id, x, y) a todos.
+           en sus pies; el server valida (exe + Jinna + cooldown PROPIO
+           de la trampa — v4: ya no lo comparte con el agarre) y spawnea
+           la entidad JinnaTrap, que replica SERVER_JINNA_TRAP_STATE 0
+           spawn (id, x, y) / 1 remove (id) / 2 pisada (id, x, y) a todos.
            CLIENT_JINNA_TRAP_HIT (u16 id, u16 pid): el cliente de la
            victima avisa de la pisada; el server valida (trampa viva +
            victima superviviente viva) y reenvia SERVER_JINNA_TRAP_HIT
            (u16 pid, u8 kind, u16 jx, u16 jy): kind 0 = daño + TP hasta
            Jinna (jx/jy = posicion actual de ella segun el server) SIN
            i-frames para la victima (si los tenia, se le remueven); kind
-           1 = VANILLA: absorbida a la otra dimension (animacion local
-           de la victima + fuera de juego + potenciacion del kit de
-           Jinna en todos los clientes).
+           1 = VANILLA y kind 2 = AMY CANON (v4): absorbida a la otra
+           dimension (animacion local de la victima + fuera de juego +
+           potenciacion del kit de Jinna en todos los clientes — fuerte
+           con Vanilla, "ardua"/la mitad con Amy Canon).
            SERVER_JINNA_TELE_AOE (u16 pid): la rafaga del teleport — el
            server, al validar el CLIENT_JINNA_TELEPORT, ralentiza a
            todos los supervivientes vivos en radio de la llegada; la
