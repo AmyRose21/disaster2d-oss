@@ -5250,3 +5250,21 @@ Stage Summary:
 - Jinna es la 6.a killer seleccionable: la mas rapida del bando EXE, con teletransporte a portales hacia el superviviente mas cercano, agarre bloqueante de 1,6 s y golpe con commit — todo su arte y sus 7 voces originales del mod D.I.B.
 - El formato QOI de GameMaker (variante DogScepter) quedo documentado y decodificado en scripts/ (qoi_gm.py + extract_dib.py): reutilizable para cualquier futuro data.win YYC de GM 2023.x
 - Proximo paso natural: recompilar cliente+server juntos (junto con las pendientes de NU/WoodZone/SkySanctuary/Options More/Welcome Pack) y probar la ronda de jinna en server real (votarla de killer, probar C y V sobre supervivientes reales)
+
+---
+Task: JINNA v2 — de killer normal a EXCLUSIVA del token de Amy (amy_canon.token); pedido del usuario: "Jina sera una Killer exclusiva del codigo que desbloquea a amy ok.? No podra ser elegida como killer normal Como pasa con Metal amy"
+
+Work Log:
+- Recuperacion tras reciclado de sandbox: repo re-clonado desde origin (todo lo aplicado por el usuario ya vive ahi: welcome pack v1, jinna v1 con su LEEME, etc.); el "pull" pedido quedo cubierto con el clone — origin no trae nada que el usuario no tenga
+- Sistema elegido: el mismo token de Amy Canon (amy_canon.token -> global.amyCanonToken -> CLIENT_AMY_AUTH -> amy_authed en el server), que ya protege a Amy Canon / Vanilla / Fleetway Amy. Interpretacion del pedido documentada: Metal Amy SI sigue siendo killer normal; Jinna queda solo para la dueña del token
+- Cliente (4 archivos): scr_exe_locked(exe) nueva en scr_exe.gml (la scr_char_locked de killers, while-ready para futuras reservadas); obj_lobby_icon salta el slot en ambas direcciones (2 while + piso defensivo en la izquierda) y la KeyA no la pide (nono); obj_lobby oculta retrato+placa sin token (exe = sprInd - CHARACTER_FLEETWAY_AMY); net_state_charselect por fin USA el byte result que leia desde v4.10 en SERVER_LOBBY_EXECHARACTER_RESPONSE (0 = nono sin seleccionar; -1 = server viejo = exito)
+- Server (states/CharSelect.c, el unico que compila): rechazo de EX_JINNA sin amy_authed con result=0 antes de registrar exe_char (antes se asignaba incluso antes de los asserts), result=1 en la respuesta de exito, log "tried to pick [Jinna] without unlock!". CERO paquetes nuevos: el byte viaja al final del paquete existente
+- Incidente corregido a mitad de tarea: la primera edicion del CharSelect.c reescribio todo el archivo (tabs->espacios + guiones UTF-8 en un archivo ASCII); rehecho con parche python byte-exacto (parcha_charselect_v2.py): +25/-1, TABS y ASCII puro, leccion del worklog de options more aplicada
+- Compatibilidad documentada en el LEEME: cliente nuevo + server viejo OK (result ausente = exito); server nuevo + cliente v1 de jinna: el v1 ignoraria el rechazo y quedaria esperando (AFK kick si no elige otra) — actualizar cliente y server JUNTOS, mismo requisito que la v1
+- Validacion: check_jinna_v2.py 16/16 OK; gcc -fsyntax-only limpio (stub enet en /tmp); simulacion del ciclo: sin token 1..5 sin cuelgues en ambas direcciones, con token 1..6; scr_char_locked y asserts/exes[] del server intactos
+- Entregable: download/td2dr_jinna_v2_exclusiva.zip (MODIFICADOS: scripts/scr_exe/scr_exe.gml, objects/obj_lobby_icon/Draw_0.gml, objects/obj_lobby/Draw_0.gml, scripts/net_state_charselect/net_state_charselect.gml, betterserver-oss/disasterserver/states/CharSelect.c; NUEVOS: LEEME_JINNA_V2.txt; worklog). REQUIERE recompilar cliente Y server juntos
+
+Stage Summary:
+- Jinna deja de ser la 6.a killer publica: sin el token de Amy no existe en el ciclo (ni icono, ni retrato, ni placa, ni peticion), y el server la rechaza por si solo; con el token se juega exactamente igual que en la v1
+- El patron "personaje reservado" ya cubre killers y supervivientes con una sola llave (el token), y el byte result del EXECHARACTER_RESPONSE queda activado para futuros rechazos de killers
+- Proximo paso natural: recompilar cliente+server (junto con las pendientes NU/WoodZone/SkySanctuary/Options More/Welcome Pack/jinna v1) y probar el ciclo con y sin amy_canon.token

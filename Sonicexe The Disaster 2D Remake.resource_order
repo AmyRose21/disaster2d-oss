@@ -275,6 +275,8 @@
     {"name":"spr_sonic_parry_exitoso","order":5,"path":"sprites/spr_sonic_parry_exitoso/spr_sonic_parry_exitoso.yy",},
     {"name":"spr_sonic_parry_inicio","order":6,"path":"sprites/spr_sonic_parry_inicio/spr_sonic_parry_inicio.yy",},
     {"name":"spr_tailscharge","order":1,"path":"sprites/spr_tailscharge/spr_tailscharge.yy",},
+    {"name":"spr_vanilla_absorb_trap","order":26,"path":"sprites/spr_vanilla_absorb_trap/spr_vanilla_absorb_trap.yy",},
+    {"name":"spr_vanilla_caught","order":27,"path":"sprites/spr_vanilla_caught/spr_vanilla_caught.yy",},
     {"name":"spr_vanilla_chocola_attack","order":23,"path":"sprites/spr_vanilla_chocola_attack/spr_vanilla_chocola_attack.yy",},
     {"name":"spr_vanilla_chocola_Idle","order":25,"path":"sprites/spr_vanilla_chocola_Idle/spr_vanilla_chocola_Idle.yy",},
     {"name":"spr_vanilla_chocola_move","order":20,"path":"sprites/spr_vanilla_chocola_move/spr_vanilla_chocola_move.yy",},

@@ -134,6 +134,14 @@ else if(state == 2 || state == 3)
         
         var _amyHidden = scr_char_locked(sprInd + 1);
         
+        // v2 (D.I.B.): killer RESERVADA (Jinna, token de Amy): quien no
+        // puede usarla tampoco ve su retrato ni su placa en el carrusel
+        // de killers — mismo doble seguro que Amy Canon. Los killers
+        // viven en chars[CHARACTER_FLEETWAY_AMY..+5]: el exe es
+        // sprInd - CHARACTER_FLEETWAY_AMY (enum 0..5 de scr_exe).
+        if(obj_netclient.exeId == obj_netclient.nid && sprInd >= CHARACTER_FLEETWAY_AMY && scr_exe_locked(sprInd - CHARACTER_FLEETWAY_AMY))
+                _amyHidden = true;
+        
         if(!_amyHidden && (obj_netclient.exeId == obj_netclient.nid || scr_avchar_get(sprInd + 1)))
                 draw_sprite(chars[sprInd], charIndex, 132, 230);
         

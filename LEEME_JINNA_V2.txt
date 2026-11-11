@@ -1,0 +1,105 @@
+JINNA V2 — de killer normal a EXCLUSIVA del token de Amy
+========================================================
+
+QUE ES
+------
+Cambia la regla de Jinna (la 6.a killer, porte v1 de D.I.B.): deja
+de ser elegible como killer normal y pasa a ser EXCLUSIVA del
+"codigo que desbloquea a Amy" — el mismo token de Amy Canon (el
+archivo amy_canon.token del cliente contra el amy_canon_token del
+Config.json del server). Pedido del usuario: "Jina sera una Killer
+exclusiva del codigo que desbloquea a amy. No podra ser elegida
+como killer normal como pasa con Metal Amy" — es decir, al
+contrario que Metal Amy, que SI sigue siendo una killer normal
+para todos. El ciclo publico queda en 5 killers (Exe, Chaos,
+Exetior, Exeller, Metal Amy) y Jinna solo aparece para quien
+tiene el token.
+
+(Nota de lore que le va como anillo al dedo: en la wiki de
+Nightmare Universe, Jinna / "la Embrella V1" es una creacion de
+PERVISION hecha de mortales demonizados con 3 sub-personalidades
+— una de ellas el lado de AMY — y la unica que gano el corazon de
+Exetior. Una killer hecha en parte de Amy, tras el token de Amy.)
+
+EL SISTEMA (el mismo de Amy Canon / Vanilla / Fleetway Amy)
+-----------------------------------------------------------
+* CLIENTE: si existe amy_canon.token junto al juego (o en
+  %USERPROFILE%), su frase secreta queda en global.amyCanonToken y
+  se envia al server al conectar (CLIENT_AMY_AUTH).
+* SERVER: la compara con "amy_canon_token" de su Config.json; si
+  coincide marca amy_authed al peer. Ya protegia a los 3 personajes
+  reservados de supervivientes; ahora tambien a la killer.
+* QUIEN TIENE EL TOKEN: cicla 6 killers (Jinna incluida) y la
+  elige normal — kit v1 completo (portales, agarre, voces).
+* QUIEN NO: el ciclo salta su slot en AMBAS direcciones (de Metal
+  Amy a la derecha cae directo a Exe; desde Exe a la izquierda
+  cae a Metal Amy), no ve su retrato ni su placa, y si un cliente
+  editado la pide igual, el server se la rechaza: doble seguro,
+  patron de la casa (scr_char_locked + CharSelect.c).
+
+CAMBIOS (5 archivos, +97/-2 lineas)
+-----------------------------------
+CLIENTE:
+* scripts/scr_exe.gml: NUEVA scr_exe_locked(exe) — la
+  scr_char_locked de los killers (hoy: Jinna solo con token;
+  escrita en while para aguantar mas reservadas en el futuro).
+* objects/obj_lobby_icon/Draw_0.gml: el ciclo del EXE salta los
+  killers reservados en ambas direcciones (2 while nuevos con
+  piso defensivo) y la KeyA ya no la pide (nono, como los
+  personajes reservados).
+* objects/obj_lobby/Draw_0.gml: doble seguro del retrato y la
+  placa — sin token no se dibujan (exe = sprInd -
+  CHARACTER_FLEETWAY_AMY, el enum 0..5 de scr_exe).
+* scripts/net_state_charselect.gml: el handler de
+  SERVER_LOBBY_EXECHARACTER_RESPONSE por fin USA el byte result
+  que ya leia desde v4.10: result 0 = rechazada (nono y no se
+  selecciona). Los servers viejos no mandan el byte:
+  buffer_read_s devuelve -1 y se toma como exito (compatibilidad
+  hacia atras).
+SERVER (betterserver-oss):
+* states/CharSelect.c (el de states/, el UNICO que compila el
+  CMakeLists; disasterserver/CharSelect.c raiz es una copia vieja
+  sin uso): CLIENT_REQUEST_EXECHARACTER rechaza EX_JINNA sin
+  amy_authed con result=0 — no registra exe_char, no difunde
+  nada y loguea "tried to pick [Jinna] without unlock!". La
+  respuesta de exito ahora manda result=1. v->exe_char = id se
+  movio a DESPUES del rechazo (antes se registraba incluso antes
+  de los asserts de rango).
+
+RED
+---
+CERO paquetes nuevos: el byte result viaja al final del
+SERVER_LOBBY_EXECHARACTER_RESPONSE existente.
+* Cliente nuevo + server viejo: todo funciona (result ausente =
+  exito; el gate local del ciclo ya impide pedir a Jinna sin
+  token, asi que ni se nota).
+* Server nuevo + cliente v1 (jinna): el v1 puede ciclar hasta
+  Jinna sin token y pediria; el server se la rechaza pero el v1
+  ignora el result y creeria que la eligio (icono local en
+  jinna, nada registrado en el server): si no elige otra cosa,
+  el countdown lo echa por AFK. Actualizar cliente y server
+  JUNTOS — exactamente el mismo requisito que ya traia la v1.
+
+COMO PROBARLO
+-------------
+1. Recompilar CLIENTE y SERVER juntos.
+2. SIN amy_canon.token: ser elegida EXE y ciclar — 5 killers,
+   Jinna nunca aparece (icono, retrato ni placa); de Metal Amy a
+   la derecha cae directo a Exe.
+3. CON amy_canon.token (el de Amy Canon) y el server con el
+   mismo amy_canon_token en su Config.json: el ciclo muestra los
+   6 y Jinna se elige y juega normal (risa, kit, voces).
+4. Truco rapido de server: ver el log "tried to pick [Jinna]
+   without unlock!" solo es posible con cliente editado.
+
+VALIDACION
+----------
+check_jinna_v2.py 16/16 OK: balance GML de los 4 archivos,
+scr_exe_locked definida y usada en los 3 puntos del ciclo + el
+doble seguro del retrato, rechazo del server ANTES de registrar
+exe_char, asserts de rango y tabla exes[] intactos,
+scr_char_locked intacta. gcc -fsyntax-only limpio en
+states/CharSelect.c (stub enet). Simulacion del ciclo: sin token
+cicla 1..5 en ambas direcciones sin saltos ni cuelgues, con token
+1..6. Parche del server +25/-1 respetando TABS y ASCII puro (el
+archivo original es ASCII con indentacion TAB — nada re-serializado).

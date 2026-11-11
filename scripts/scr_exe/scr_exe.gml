@@ -257,3 +257,25 @@ function player_getexe(ind)
                         return obj_jinna;
         }
 }
+
+/// Killers RESERVADAS (v2 D.I.B.): lo mismo que scr_char_locked hace
+/// por los supervivientes, pero para el carrusel de killers del EXE.
+/// Devuelve true si ESTE cliente no puede usar a la killer `exe`
+/// (enum 0-based de scr_exe: EXE_ORIGINAL..EXE_JINNA):
+///   * Jinna: SOLO con el token local de Amy (amy_canon.token, el
+///     mismo "codigo que desbloquea a Amy" de Amy Canon / Vanilla /
+///     Fleetway Amy — ver scr_char_locked). Pedido del usuario: es
+///     una killer EXCLUSIVA del token, no se elige como killer
+///     normal (asi Metal Amy SI sigue siendo una killer normal).
+/// Quien no cumple NO pasa por su slot al ciclar (obj_lobby_icon),
+/// no ve su retrato ni su placa (obj_lobby), no puede pedirla (KeyA);
+/// y si igual la pide con un cliente editado, el server la rechaza
+/// por si solo (states/CharSelect.c del betterserver: doble seguro).
+function scr_exe_locked(exe)
+{
+        // Jinna: solo el token de Amy
+        if(exe == EXE_JINNA && global.amyCanonToken == "")
+                return true;
+
+        return false;
+}

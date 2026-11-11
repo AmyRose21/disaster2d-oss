@@ -33,6 +33,21 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                         // Amy y a Jinna)
                         if(selected < 1)
                                 selected = 6;
+
+                        // v2 (D.I.B.): killers RESERVADAS tampoco se ciclan
+                        // (mismo patron que los personajes reservados de
+                        // arriba, pero con el enum de killers: selected-1).
+                        // Jinna es exclusiva del token de Amy: sin el
+                        // token, el wrap a la 6.a se sigue de largo
+                        // (aqui solo hay una reservada, el while aguanta
+                        // varias en el futuro)
+                        while(selected >= 1 && selected <= 6 && scr_exe_locked(selected - 1))
+                                selected--;
+
+                        // defensivo: si TODAS las killers quedaran
+                        // reservadas, piso en Exe (no quedar colgado)
+                        if(selected < 1)
+                                selected = 1;
                 }
                 else
                 {
@@ -62,6 +77,15 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                         // v1 (D.I.B.): 6 killers (Jinna es la 6.a)
                         if(selected > 6)
                                 selected = 1;
+
+                        // v2 (D.I.B.): killers reservadas se saltan por
+                        // completo al ciclar (Jinna sin token: de Metal
+                        // Amy se cae directo a Exe)
+                        while(selected >= 1 && selected <= 6 && scr_exe_locked(selected - 1))
+                                selected++;
+
+                        if(selected > 6)
+                                selected = 1;
                 }
                 else
                 {
@@ -83,9 +107,13 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 // Personajes reservados (Amy Canon / Sally Canon):
                 // sin permiso ni siquiera se piden al server (que tambien los
                 // rechaza por si solo: doble seguro; ver scr_char_locked).
+                // v2 (D.I.B.): Jinna es igual pero de killers: sin el token
+                // de Amy ni se pide (scr_exe_locked; el server tambien la
+                // rechaza por si solo: doble seguro).
                 // Lectura del slot blindada (scr_characters): nunca fuera
                 // de rango aunque haya pjs mas nuevos en el server.
-                if(obj_netclient.exeId == master_id || (scr_avchar_get(selected) && !scr_char_locked(selected)))
+                if((obj_netclient.exeId == master_id && !scr_exe_locked(selected - 1))
+                || (obj_netclient.exeId != master_id && scr_avchar_get(selected) && !scr_char_locked(selected)))
                 {
                         buffer_write(packet, buffer_u8, selected);
                         send_server_tcp(packet);

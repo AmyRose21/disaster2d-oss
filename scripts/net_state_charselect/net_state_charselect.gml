@@ -129,6 +129,19 @@ function net_state_charselect(rbuff, nps, isPasstrough)
                         var char = buffer_read_s(rbuff, buffer_u8);
                         var result = buffer_read_s(rbuff, buffer_bool);
                         
+                        // v2 (D.I.B.): result 0 = killer RECHAZADA por el
+                        // server (Jinna sin el token de Amy): suena nono y
+                        // no se selecciona — igual que el rechazo "como
+                        // ocupada" de los personajes reservados. Los servers
+                        // viejos no mandan este byte y buffer_read_s
+                        // devuelve -1: se toma como exito (compatibilidad
+                        // hacia atras; result ya se leia desde v4.10).
+                        if(result == 0)
+                        {
+                                audio_play_sound(snd_nono, 0, false);
+                                break;
+                        }
+                        
                         global.character = CHARACTER_EXE;
                         global.exeCharacter = char;
                         global.player = player_getexe(char);

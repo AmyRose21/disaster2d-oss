@@ -107,13 +107,37 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
 		PacketRead(id, packet, packet_read8, uint8_t);
 
 		id--; // id - 1
-		v->exe_char = id;
 
 		AssertOrDisconnect(v->server, id >= 0);
 		AssertOrDisconnect(v->server, id <= EX_JINNA);
 
+		/* v2 (D.I.B.): Jinna es una killer RESERVADA - exclusiva
+		   del token de Amy (pedido del usuario: NO se elige como
+		   killer normal, al contrario que Metal Amy). Solo el
+		   jugador con el token valido (amy_authed, el mismo
+		   CLIENT_AMY_AUTH que Amy Canon / Vanilla / Fleetway Amy)
+		   puede elegirla; a los demas se les responde result=0
+		   (el cliente nuevo suena nono y no la selecciona, igual
+		   que el rechazo "como ocupada" de los personajes
+		   reservados) y no se registra ni difunde nada. El
+		   cliente sin token ademas ni pasa por su slot al ciclar
+		   (scr_exe_locked): doble seguro. */
+		if (id == EX_JINNA && !v->amy_authed)
+		{
+			PacketCreate(&pack, SERVER_LOBBY_EXECHARACTER_RESPONSE);
+			PacketWrite(&pack, packet_write8, id);
+			PacketWrite(&pack, packet_write8, 0); /* v2: result = rechazada */
+			RAssert(packet_send(v->peer, &pack, true));
+
+			Info("%s (id %d) tried to pick [Jinna] without unlock!", v->nickname.value, v->id);
+			return true;
+		}
+
+		v->exe_char = id;
+
 		PacketCreate(&pack, SERVER_LOBBY_EXECHARACTER_RESPONSE);
 		PacketWrite(&pack, packet_write8, id);
+		PacketWrite(&pack, packet_write8, 1); /* v2: result = aceptada */
 		RAssert(packet_send(v->peer, &pack, true));
 
 		PacketCreate(&pack, SERVER_LOBBY_CHARACTER_CHANGE);
