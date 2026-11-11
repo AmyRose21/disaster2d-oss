@@ -1140,6 +1140,7 @@
     {"id":{"name":"spr_amelia_emotion1","path":"sprites/spr_amelia_emotion1/spr_amelia_emotion1.yy",},},
     {"id":{"name":"spr_amelia_emotion2","path":"sprites/spr_amelia_emotion2/spr_amelia_emotion2.yy",},},
     {"id":{"name":"spr_amelia_emotion3","path":"sprites/spr_amelia_emotion3/spr_amelia_emotion3.yy",},},
+    {"id":{"name":"spr_amelia_fall_1","path":"sprites/spr_amelia_fall_1/spr_amelia_fall_1.yy",},},
     {"id":{"name":"spr_amelia_fall_2","path":"sprites/spr_amelia_fall_2/spr_amelia_fall_2.yy",},},
     {"id":{"name":"spr_amelia_fall","path":"sprites/spr_amelia_fall/spr_amelia_fall.yy",},},
     {"id":{"name":"spr_amelia_fly","path":"sprites/spr_amelia_fly/spr_amelia_fly.yy",},},

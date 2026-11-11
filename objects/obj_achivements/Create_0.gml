@@ -1,5 +1,21 @@
 depth = -9999;
 
+// [WELCOME PACK v1] Paquete de bienvenida (SOLO Android). Al reinstalar
+// el APK (o cambiar de telefono) Android borra /data y con el el guardado
+// 3.bin: el jugador volvia a empezar con 0 monedas. Una instalacion LIMPIA
+// (sin 3.bin) arranca ahora con este pack para no empezar de cero.
+// - PC sigue arrancando en 0: su guardado sobrevive a reinstalaciones.
+// - Instalar ENCIMA (actualizar) no da el pack: el 3.bin viejo existe y
+//   manda. Lo mismo si Android Auto Backup (v1.4 del chat) restauro el
+//   guardado: vuelve tu progreso real, mejor que cualquier pack.
+// - Monto: 500 mercoins (~varias partidas de recompensas; iconos 25-75).
+//   Para cambiarlo, edita solo esta linea.
+// - OJO: es un regalo LOCAL; bucle desinstalar->reinstalar (o borrar
+//   datos de la app) lo farmea. La version a prueba de farmeo seria
+//   concederlo por cuenta en el server (uid); dime si la quieres.
+welcomePack = (os_type == os_android ? 500 : 0);
+welcomeTimer = 0; // frames restantes del popup (ver Draw_64)
+
 mercoins = 0;
 exeWins = 0;
 survWins = 0;
@@ -129,7 +145,9 @@ if(!file_exists($"{game_save_id}/3.bin"))
 	{
 		var _buffer = buffer_create(12, buffer_grow, 1);
 	
-		buffer_write(_buffer, buffer_u64, 0);
+		// [WELCOME PACK v1] instalacion limpia: arrancar con el
+		// pack de bienvenida (500 en Android, 0 en PC) — ver top
+		buffer_write(_buffer, buffer_u64, welcomePack);
 		buffer_write(_buffer, buffer_u32, 0);
 		buffer_write(_buffer, buffer_u32, 0);
 		buffer_write(_buffer, buffer_u32, 0);
@@ -155,6 +173,11 @@ if(!file_exists($"{game_save_id}/3.bin"))
 		buffer_delete(_buffer);
 		
 		load($"{game_save_id}/3.bin");
+
+		// [WELCOME PACK v1] hubo regalo: mostrar el popup (~5,3 s:
+		// arranca sobre el logo y termina ya en el menu; ver Draw_64)
+		if(welcomePack > 0)
+			welcomeTimer = 320;
 	}
 	catch(error)
 	{
