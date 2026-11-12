@@ -6,11 +6,11 @@
     "path":"audiogroups/audiogroup_default",
   },
   "bitDepth":1,
-  "channelFormat":1,
-  "compression":3,
+  "channelFormat":0,
+  "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":20.204062,
+  "duration":134.49599,
   "exportDir":"",
   "name":"mus_lobby",
   "parent":{
@@ -21,6 +21,6 @@
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
   "sampleRate":44100,
-  "soundFile":"mus_lobby.ogg",
-  "volume":0.3,
+  "soundFile":"mus_lobby.mp3",
+  "volume":1.0,
 }

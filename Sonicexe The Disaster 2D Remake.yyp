@@ -795,6 +795,7 @@
     {"id":{"name":"mus_lms_7","path":"sounds/mus_lms_7/mus_lms_7.yy",},},
     {"id":{"name":"mus_lms_8","path":"sounds/mus_lms_8/mus_lms_8.yy",},},
     {"id":{"name":"mus_lms_9","path":"sounds/mus_lms_9/mus_lms_9.yy",},},
+    {"id":{"name":"mus_lobby_1","path":"sounds/mus_lobby_1/mus_lobby_1.yy",},},
     {"id":{"name":"mus_lobby_epic","path":"sounds/mus_lobby_epic/mus_lobby_epic.yy",},},
     {"id":{"name":"mus_lobby","path":"sounds/mus_lobby/mus_lobby.yy",},},
     {"id":{"name":"mus_logo","path":"sounds/mus_logo/mus_logo.yy",},},

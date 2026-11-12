@@ -3460,7 +3460,18 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 with(obj_deserttown_i)
                                         show = false;
                                 
-                        audio_play_sound(snd_exe_wins, 0, false);
+                        // v1 (D.I.B.): si la killer es Jinna, su victoria suena
+                        // con su risa (snd_jina_laugh) en vez del jingle generico
+                        // de exe. Mismo patron que la risa de inicio de partida
+                        // (net_state_charselect): exe local via global.exeCharacter,
+                        // exe remoto via su entrada del players map.
+                        var _exeChar = -1;
+                        if(global.character == CHARACTER_EXE)
+                                _exeChar = global.exeCharacter;
+                        else if(ds_map_exists(players, exeId))
+                                _exeChar = players[? exeId].exeCharacter;
+                        
+                        audio_play_sound(_exeChar == EXE_JINNA ? snd_jina_laugh : snd_exe_wins, 0, false);
                         var inst = instance_create_depth(0, 0, -9999, obj_ending);
                         
                         if(global.character == CHARACTER_EXE)
@@ -3617,7 +3628,15 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 
                         global.playerControls = false;
                         
-                        audio_play_sound(snd_exe_wins, 0, false);
+                        // v1 (D.I.B.): igual que en EXE_WINS — si la killer es
+                        // Jinna, la victoria por tiempo suena con su risa.
+                        var _exeChar = -1;
+                        if(global.character == CHARACTER_EXE)
+                                _exeChar = global.exeCharacter;
+                        else if(ds_map_exists(players, exeId))
+                                _exeChar = players[? exeId].exeCharacter;
+                        
+                        audio_play_sound(_exeChar == EXE_JINNA ? snd_jina_laugh : snd_exe_wins, 0, false);
                         var inst = instance_create_depth(0, 0, -9999, obj_ending);
                         inst.sprite_index = spr_timeover;
                                                 

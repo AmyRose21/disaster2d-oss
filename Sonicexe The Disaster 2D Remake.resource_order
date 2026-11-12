@@ -91,6 +91,7 @@
     {"name":"hitspark_snd_hit8","order":28,"path":"sounds/hitspark_snd_hit8/hitspark_snd_hit8.yy",},
     {"name":"hitspark_snd_hit9","order":29,"path":"sounds/hitspark_snd_hit9/hitspark_snd_hit9.yy",},
     {"name":"hitspark_snd_LOUD","order":30,"path":"sounds/hitspark_snd_LOUD/hitspark_snd_LOUD.yy",},
+    {"name":"mus_lobby","order":2,"path":"sounds/mus_lobby/mus_lobby.yy",},
     {"name":"mus_undefeatable","order":1,"path":"sounds/mus_undefeatable/mus_undefeatable.yy",},
     {"name":"Perfect_Parry","order":1,"path":"sounds/Perfect_Parry/Perfect_Parry.yy",},
     {"name":"snd_chocola_dive","order":1,"path":"sounds/snd_chocola_dive/snd_chocola_dive.yy",},

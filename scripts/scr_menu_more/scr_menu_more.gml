@@ -48,7 +48,7 @@ global.musList = [
         mus_lms_12, mus_lms_13, mus_lms_14, mus_lms_15, mus_lms_16, mus_lms_17,
         mus_lms_18, mus_lms_19, mus_lms_2, mus_lms_20, mus_lms_21, mus_lms_22,
         mus_lms_23, mus_lms_24, mus_lms_3, mus_lms_4, mus_lms_5, mus_lms_6,
-        mus_lms_7, mus_lms_8, mus_lms_9, mus_lobby, mus_lobby_epic, mus_logo,
+        mus_lms_7, mus_lms_8, mus_lms_9, mus_lobby_1, mus_lobby_epic, mus_logo,
         mus_majinforest, mus_majinforest_chase, mus_marijuna, mus_marijuna_chase, mus_menu, mus_mindfuck,
         mus_minigame, mus_nastyparadise, mus_nastyparadise_chase, mus_notperfect, mus_notperfect_chase, mus_pricelessfreedom,
         mus_pricelessfreedom_chase, mus_ravimemist, mus_ravimemist_chase, mus_skybase, mus_skybase_chase, mus_survwin,

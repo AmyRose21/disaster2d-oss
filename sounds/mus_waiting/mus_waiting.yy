@@ -10,7 +10,7 @@
   "compression":3,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":30.766459,
+  "duration":30.766462,
   "exportDir":"",
   "name":"mus_waiting",
   "parent":{
