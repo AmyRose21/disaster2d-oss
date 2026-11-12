@@ -1,9 +1,48 @@
 ==========================================================================
- BLOOM + POST PROCESS (bloom_postfx_v1) — Sonic.exe The Disaster 2D
+ BLOOM + POST PROCESS (bloom_postfx_v2) — Sonic.exe The Disaster 2D
 ==========================================================================
 
-QUE HACE
----------
+v2 ARREGLA EL CRASH DE LA v1
+----------------------------
+Error que daba la v1 justo al arrancar (en el logo):
+
+  ERROR in action number 1
+  of Create Event for object obj_achivements:
+  Unbalanced surface stack. You MUST use surface_reset_target() for each
+  set. {5}
+
+CAUSA: en el blur (Draw_77 de obj_postfx) habia 6 surface_set_target()
+seguidos (las 3 iteraciones horizontal/vertical encadenadas) con UN solo
+surface_reset_target() al final. En GameMaker cada surface_set_target()
+APILA el destino de dibujo y cada surface_reset_target() lo desapila uno
+a uno: quedaban 5 apilados por frame — de ahi el {5} del error.
+
+OJO: el evento que senala el error es enganoso (es lo tipico de este
+error en GameMaker): lo reporta en el siguiente evento que corre, no en
+el culpable. obj_achivements (el guardado) no tiene ni una llamada a
+surfaces; el culpable era obj_postfx/Draw_77.gml.
+
+ARREGLO: cada pasada del blur ahora cierra con su surface_reset_target()
+antes del siguiente set (set -> uniforms -> draw -> reset; 7 sets / 7
+resets, pila en 0 al final de cada frame). Bonus: con la pila sucia, la
+composicion final (base con grading + glow) dibujaba sobre la superficie
+equivocada y nunca llegaba a la ventana — la v2 es la primera version en
+que el efecto se ve de verdad en pantalla.
+
+COMO APLICAR (ya tienes la v1 puesta: solo se reemplaza 1 archivo)
+------------------------------------------------------------------
+  1. Cierra GameMaker.
+  2. Reemplaza objects/obj_postfx/Draw_77.gml por el de este zip.
+     (Opcional: scripts/check_postfx.py y este LEEME tambien cambiaron;
+      el worklog.md es el registro de trabajo.)
+  3. Abre el proyecto y corre con F5: el logo ya no aborta.
+  4. F9 alterna el efecto en caliente para comparar con/sin.
+
+NADA MAS CAMBIA: los 3 shaders, el Create (ajustes), el Step (F9), el
+CleanUp, el spawn en obj_logo y el .yyp de la v1 quedan IGUAL.
+
+QUE HACE (igual que la v1)
+--------------------------
 Efecto visual a pantalla completa (solo cliente, el server no interviene):
 
   1. BLOOM: todo lo brillante (anillos, ojos del exe, fuego, luces del
@@ -17,19 +56,19 @@ Efecto visual a pantalla completa (solo cliente, el server no interviene):
 
 TODO EL EFECTO SE ALTERNA CON F9 (en caliente, para comparar con/sin).
 
-COMO SE INTEGRA
----------------
-  * obj_logo crea a obj_postfx al arrancar (es persistente: vive toda
-    la sesion, en todas las rooms).
+INTEGRACION
+-----------
+  * obj_logo crea a obj_postfx al arrancar (persistente: vive toda la
+    sesion, en todas las rooms).
   * obj_postfx dibuja en el evento Draw_77, el MISMO que ya usa el juego
-    para su propio efecto de shader del mapa marijuna
+    para su efecto de shader del mapa marijuna
     (obj_marijuna_crystalcontroller): probado y funcionando en tu juego.
   * El mapa marijuna SE SALTA el efecto (tiene su propio shader a
     pantalla completa y no se pisan).
   * En Android se aplica el mismo letterbox que usa el juego.
 
-AJUSTES (objects/obj_postfx/Create_0.gml)
------------------------------------------
+AJUSTES (objects/obj_postfx/Create_0.gml — igual que la v1)
+-----------------------------------------------------------
   threshold  = 0.72   // luminancia minima para brillar (mas bajo = brilla
                       //   mas cosa; 0.6 = casi todo lo claro resplandece)
   softKnee   = 0.35   // suavidad del umbral (0 = corte duro)
@@ -43,46 +82,20 @@ AJUSTES (objects/obj_postfx/Create_0.gml)
   vignette   = 0.28   // oscurecido de bordes (0.5 = muy oscuro)
   aberration = 1.5    // separacion RGB (0 = sin aberracion)
 
-Si tocas algo y quieres volver al look original: threshold 0.72,
-bloomPower 0.60, saturation 1.14, contrast 1.06, liftS 0.030, liftH 0.025,
-vignette 0.28, aberration 1.5.
+Valores originales para volver atras: 0.72 / 0.35 / 0.60 / 1.14 / 1.06 /
+0.030 / 0.025 / 0.28 / 1.5.
 
-ARCHIVOS
---------
-NUEVOS:
-  shaders/shd_bloom/  (extraccion de brillo)
-  shaders/shd_blur/   (blur gaussiano separable)
-  shaders/shd_grade/  (grading final)
-  objects/obj_postfx/ (controlador: Create/Step/CleanUp/Draw_77)
-  scripts/check_postfx.py   (validador, 197 checks)
-  preview_bloom_postfx.png  (antes/despues SIMULADO numericamente — no es
-                             captura real del juego)
+ARCHIVOS DE ESTE ZIP (solo los modificados por la v2)
+-----------------------------------------------------
 MODIFICADOS:
-  "Sonicexe The Disaster 2D Remake.yyp"  (+4 lineas: registra los 3 shaders
-                                          y el objeto; si tu .yyp local
-                                          tiene cambios propios, copia las
-                                          4 lineas a mano — estan al final
-                                          de este LEEME)
-  objects/obj_logo/Create_0.gml  (+4 lineas arriba: crea obj_postfx)
-
-COMO APLICAR
-------------
-  1. Cierra GameMaker.
-  2. Copia el contenido del zip sobre la raiz del proyecto (los archivos
-     nuevos se anaden; .yyp, Create_0.gml y worklog.md se reemplazan).
-  3. Abre el proyecto en GameMaker (version 2026) y corre con F5.
-  4. F9 alterna el efecto para comparar.
-
-Las 4 lineas del .yyp (por si prefieres anadirlas a mano), una detras de
-la entrada de shd_inverse para los shaders:
-
-    {"id":{"name":"shd_bloom","path":"shaders/shd_bloom/shd_bloom.yy",},},
-    {"id":{"name":"shd_blur","path":"shaders/shd_blur/shd_blur.yy",},},
-    {"id":{"name":"shd_grade","path":"shaders/shd_grade/shd_grade.yy",},},
-
-y una detras de la entrada de obj_logo para el objeto:
-
-    {"id":{"name":"obj_postfx","path":"objects/obj_postfx/obj_postfx.yy",},},
+  objects/obj_postfx/Draw_77.gml   <- EL FIX (5 lineas: el reset de cada
+                                       pasada del blur)
+  scripts/check_postfx.py           <- validador v2 (204 checks; nueva
+                                       seccion G: simula la pila de
+                                       surfaces para que esto no vuelva
+                                       a colarse)
+  LEEME_BLOOM_POSTFX.txt            <- este archivo
+  worklog.md                        <- registro de trabajo
 
 NOTAS
 -----

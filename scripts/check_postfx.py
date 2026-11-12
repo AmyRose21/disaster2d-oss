@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-check_postfx.py — Validador del mod BLOOM + POST PROCESS (bloom_postfx_v1)
+check_postfx.py — Validador del mod BLOOM + POST PROCESS (bloom_postfx_v2)
 para "Sonicexe The Disaster 2D Remake" (GameMaker Studio 2, IDE 2026.0.0.16).
+
+v2 arregla el crash de la v1 al arrancar ("Unbalanced surface stack. You
+MUST use surface_reset_target() for each set. {5}"): cada pasada del blur
+cierra ahora con su surface_reset_target() (7 sets / 7 resets; la v1 dejaba
+5 sets sin reset por frame).
 
 Comprueba:
   A. Archivos nuevos: existencia, formato (.yy JSON5 sin \\n final, .gml TABS
@@ -13,13 +18,18 @@ Comprueba:
      existe como uniform en el .fsh correspondiente; cada shader_set() apunta
      a un shader registrado en el .yyp.
   D. Parches: .yyp con 2166 recursos y las 4 entradas nuevas x1 con formato
-     exacto; obj_logo/Create_0.gml con el spawn x1 antes del guard y diff
-     git +4/-0; git status sin archivos tocados fuera de lo previsto.
+     exacto; obj_logo/Create_0.gml con el spawn x1 antes del guard; en v2
+     obj_logo y .yyp intactos respecto a HEAD y git status solo los 4 del fix.
   E. Regresiones: shaders y .yy originales intactos; referencias a obj_postfx
      solo donde toca.
   F. Simulacion numerica del pipeline (numpy) sobre una imagen sintetica
      480x270: pesos de los kernels, curva soft-knee, vineta, split-tone y
      pipeline completo (halo, rango, esquinas oscurecidas) + preview PNG.
+  G. Balance del stack de surfaces (el bug de la v1): simulador que recorre
+     Draw_77.gml en orden de ejecucion apilando/desapilando targets — sin
+     underflow, balance 0 al final, profundidad maxima 1 (nada anidado),
+     cada set cerrado antes del siguiente, ningun draw con 2+ apilados y
+     los early-returns antes de apilar nada.
 """
 import os, re, sys, json, subprocess
 
@@ -145,10 +155,11 @@ for m in re.finditer(r"shader_set_uniform_f\((\w+),", draw77):
         ok(False, f"Draw_77 setea uniform desconocido '{var}'")
 
 # estado GPU restaurado
-# (7 surface_set_target: 1 bloom + 6 blur (3 iteraciones); los blur
-#  consecutivos no necesitan reset entre ellos, solo 2 reset_target)
-ok(draw77.count("surface_set_target(") == 7 and draw77.count("surface_reset_target(") == 2,
-   "7 set_target / 2 reset_target en Draw_77")
+# [v2] 7 surface_set_target (1 bloom + 6 blur) y 7 surface_reset_target:
+# en GameMaker cada set APILA el destino de dibujo y cada reset lo desapila
+# 1 a 1 — la v1 dejaba 6 sets / 1 reset = 5 apilados por frame (el {5})
+ok(draw77.count("surface_set_target(") == 7 and draw77.count("surface_reset_target(") == 7,
+   "7 set_target / 7 reset_target en Draw_77")
 ok(len(re.findall(r"uBlurWidth, (1\.0|2\.2|4\.4)\)", draw77)) == 6,
    "3 iteraciones de blur (1.0/2.2/4.4 x H+V)")
 ok("gpu_set_blendmode(bm_normal);" in draw77 and "gpu_set_blendmode(bm_add);" in draw77,
@@ -185,32 +196,32 @@ ok(logo.count("instance_create_depth(0, 0, -99999, obj_postfx)") == 1,
    "spawn de obj_postfx x1 en obj_logo")
 ok(logo.index("instance_create_depth") < logo.index("if(!global.init)"),
    "spawn antes del guard global.init (cubre re-entradas al logo)")
+# [v2] la v1 ya esta commiteada en el HEAD de la duena: obj_logo y .yyp
+# deben llegar INTACTOS (su contenido ya se valido arriba con los checks
+# de spawn y de recursos); el fix v2 solo toca sus 4 archivos
 r = subprocess.run(["git", "diff", "--numstat", "--", "objects/obj_logo/Create_0.gml"],
                    cwd=REPO, capture_output=True, text=True)
-parts = r.stdout.split()
-ok(len(parts) >= 2 and parts[0] == "4" and parts[1] == "0",
-   "diff git obj_logo = +4/-0 (quirurgico)", r.stdout.strip())
+ok(r.stdout.strip() == "", "obj_logo intacto respecto a HEAD (v2 no lo toca)",
+   r.stdout.strip())
 r = subprocess.run(["git", "diff", "--numstat", "--", "Sonicexe The Disaster 2D Remake.yyp"],
                    cwd=REPO, capture_output=True, text=True)
-parts = r.stdout.split()
-ok(len(parts) >= 2 and parts[0] == "4" and parts[1] == "0",
-   "diff git .yyp = +4/-0 (solo las 4 entradas)", r.stdout.strip())
+ok(r.stdout.strip() == "", ".yyp intacto respecto a HEAD (v2 no lo toca)",
+   r.stdout.strip())
 r = subprocess.run(["git", "status", "--short"], cwd=REPO, capture_output=True, text=True)
 touched = [l for l in r.stdout.split("\n") if l.strip()]
 touched_paths = set(l[3:].strip('"') for l in touched)
-expected_paths = {"Sonicexe The Disaster 2D Remake.yyp", "objects/obj_logo/Create_0.gml",
-                  "worklog.md", "LEEME_BLOOM_POSTFX.txt", "scripts/check_postfx.py",
-                  "objects/obj_postfx/", "shaders/shd_bloom/", "shaders/shd_blur/",
-                  "shaders/shd_grade/"}
-ok(touched_paths == expected_paths, "git status toca SOLO lo previsto", str(touched_paths))
+allowed_paths = {"objects/obj_postfx/Draw_77.gml", "scripts/check_postfx.py",
+                 "LEEME_BLOOM_POSTFX.txt", "worklog.md"}
+ok(touched_paths <= allowed_paths,
+   "git status toca SOLO lo previsto (los 4 del fix v2)", str(touched_paths))
 
 # ============================================================================
 print("== E. Regresiones ==")
 r = subprocess.run(["git", "diff", "--name-only"], cwd=REPO, capture_output=True, text=True)
 mod = set(l for l in r.stdout.split("\n") if l.strip())
-ok(mod == {"Sonicexe The Disaster 2D Remake.yyp", "objects/obj_logo/Create_0.gml",
-           "worklog.md"},
-   "archivos MODIFICADOS = solo .yyp, obj_logo y worklog", str(mod))
+ok(mod <= {"objects/obj_postfx/Draw_77.gml", "scripts/check_postfx.py",
+           "LEEME_BLOOM_POSTFX.txt", "worklog.md"},
+   "archivos MODIFICADOS = solo los 4 del fix v2", str(mod))
 for sh in ("shd_inverse", "shd_colour", "shd_blackwhite", "shd_amy_cyber"):
     p = f"shaders/{sh}/{sh}.yy"
     r2 = subprocess.run(["git", "diff", "--name-only", "--", p], cwd=REPO,
@@ -394,6 +405,57 @@ try:
        f"{left[ry, rx].mean():.3f} vs {right[ry, rx].mean():.3f}")
 except Exception as e:
     ok(False, "preview PNG", str(e))
+
+# ============================================================================
+print("== G. Balance del stack de surfaces (bug v1: 'Unbalanced ... {5}') ==")
+# En GameMaker surface_set_target() APILA el destino de dibujo y
+# surface_reset_target() lo desapila 1 a 1: el evento debe dejar la pila
+# en 0. La v1 encadenaba los 6 sets del blur con 1 solo reset -> +5 por
+# frame = el {5} del crash al arrancar.
+clean77 = re.sub(r"//[^\n]*", "", draw77)
+toks = re.findall(r"surface_set_target\(|surface_reset_target\(", clean77)
+ok(len(toks) == 14, "14 ops de stack (7 set + 7 reset)", str(len(toks)))
+depth = 0
+maxd = 0
+underflow = False
+for t in toks:
+    depth += 1 if t == "surface_set_target(" else -1
+    maxd = max(maxd, depth)
+    if depth < 0:
+        underflow = True
+ok(not underflow, "sin reset_target sin su set (no underflow)")
+ok(depth == 0, "stack en 0 al final del evento (balance por frame)",
+   f"depth final={depth}")
+ok(maxd == 1, "sin anidado: cada pase es set->draw->reset (prof. max 1)",
+   f"max={maxd}")
+
+# reconstruccion linea a linea: ningun draw con 2+ targets apilados
+depth = 0
+bad_draws = 0
+for line in clean77.split("\n"):
+    has_set = "surface_set_target(" in line
+    has_reset = "surface_reset_target(" in line
+    if "draw_surface" in line and depth > 1:
+        bad_draws += 1
+    if has_set:
+        depth += 1
+    elif has_reset:
+        depth -= 1
+ok(bad_draws == 0, "ningun draw con 2+ targets apilados", str(bad_draws))
+
+# cada set debe cerrarse ANTES del siguiente set (pases cerrados)
+segs = clean77.split("surface_set_target(")[1:]
+ok(all("surface_reset_target(" in s.split("surface_set_target(")[0] for s in segs),
+   "cada set_target se cierra antes del siguiente set_target")
+
+# los early-returns ocurren antes de apilar ningun target (si un return
+# saltara a mitad de un pase, el stack quedaria sucio ese frame)
+first_set = clean77.index("surface_set_target(")
+early = [l for l in clean77[:first_set].split("\n")
+         if l.strip().startswith("return")]
+ok(len(early) == 3,
+   "3 early-returns (F9 off / sin app surface / mapa marijuna) antes de apilar",
+   str(len(early)))
 
 print(f"\nRESULTADO: {PASS} OK / {FAIL} FAIL")
 sys.exit(1 if FAIL else 0)
