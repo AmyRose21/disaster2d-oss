@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":3.843469,
+  "duration":3.8434694,
   "exportDir":"",
   "name":"hitspark_snd_echo",
   "parent":{

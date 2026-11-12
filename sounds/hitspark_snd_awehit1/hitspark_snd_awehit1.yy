@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":0.653061,
+  "duration":0.6530612,
   "exportDir":"",
   "name":"hitspark_snd_awehit1",
   "parent":{

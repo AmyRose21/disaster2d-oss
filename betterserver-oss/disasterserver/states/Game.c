@@ -1814,7 +1814,9 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                  * la otra dimension (fuera de juego + potenciacion fuerte).
                  * kind 2 = AMY CANON (v4): misma absorcion, pero su cliente
                  * la dibuja con su pose de secuestro y la potenciacion es
-                 * la "ardua" (la mitad de los aumentos). */
+                 * la "ardua" (la mitad de los aumentos). kind 3 = SALLY
+                 * CANON (v4.1): igual que Amy Canon (tier "arduas") con
+                 * su spr_sally_capture_canon. */
                 case CLIENT_JINNA_TRAP_HIT:
                 {
                         AssertOrDisconnect(v->server, v->in_game);
@@ -1861,6 +1863,8 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 kind = 1;
                         else if (v->surv_char == CH_AMY_CANON) /* v4: Amy Canon tambien es absorbida (spr_amy_capture_canon) */
                                 kind = 2;
+                        else if (v->surv_char == CH_SALLY_CANON) /* v4.1: Sally Canon tambien (spr_sally_capture_canon), mismo tier "arduas" que Amy */
+                                kind = 3;
 
                         jinna_trap_trigger(v->server, target);
                         game_despawn(v->server, NULL, target->id);

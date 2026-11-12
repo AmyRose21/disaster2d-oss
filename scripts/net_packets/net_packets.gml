@@ -286,11 +286,14 @@ enum PacketType
            abre el grace del anticheat (ex_teleport) y replica LOS DOS
            portales (salida = ultima pos conocida del server, llegada =
            la del paquete) a todos.
-           CLIENT_JINNA_GRAB (u16 pid): agarre al superviviente pid; el
+           CLIENT_JINNA_GRAB (u16 pid, s8 dir): agarre al superviviente
+           pid mirando hacia dir (-1/1; v4.1 FIX: sin este byte el
+           server rechazaba el paquete y el agarre no calaba); el
            server valida (exe + cooldown + victima viva) y reenvia
-           SERVER_JINNA_GRAB_STATE (u16 pid): la victima se congela
-           (JINNA_GRAB_LOCK) y sufre el dano EN SU CLIENTE (autoridad de
-           su propio jugador), el resto crea el efecto visual.
+           SERVER_JINNA_GRAB_STATE (u16 pid, s8 dir): la victima se
+           congela (JINNA_GRAB_LOCK) y sufre el dano + HITSPARK EN SU
+           CLIENTE (autoridad de su propio jugador) y al soltarla sale
+           empujada en dir (v4.1); el resto crea el efecto visual.
            Anadido AL FINAL en los DOS lados (mismo orden que
            include/Packet.h). */
         CLIENT_JINNA_TELEPORT,
@@ -310,10 +313,11 @@ enum PacketType
            (u16 pid, u8 kind, u16 jx, u16 jy): kind 0 = daño + TP hasta
            Jinna (jx/jy = posicion actual de ella segun el server) SIN
            i-frames para la victima (si los tenia, se le remueven); kind
-           1 = VANILLA y kind 2 = AMY CANON (v4): absorbida a la otra
-           dimension (animacion local de la victima + fuera de juego +
+           1 = VANILLA, kind 2 = AMY CANON (v4) y kind 3 = SALLY CANON
+           (v4.1): absorbidas a la otra dimension (animacion local de
+           la victima con su sprite canon + fuera de juego +
            potenciacion del kit de Jinna en todos los clientes — fuerte
-           con Vanilla, "ardua"/la mitad con Amy Canon).
+           con Vanilla, "ardua"/la mitad con Amy o Sally Canon).
            SERVER_JINNA_TELE_AOE (u16 pid): la rafaga del teleport — el
            server, al validar el CLIENT_JINNA_TELEPORT, ralentiza a
            todos los supervivientes vivos en radio de la llegada; la

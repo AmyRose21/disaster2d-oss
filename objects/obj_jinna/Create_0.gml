@@ -65,18 +65,20 @@ jinnaTrapVisual = 0;   // v4: frames de pose al PLANTAR la trampa (spr_jinna_tel
 jinnaStunResist = 0;   // 0..50 (%)
 jinnaShockNext = 0;    // valor esperado de shockedTimer el proximo frame (deteccion de stuns NUEVOS)
 
-// JINNA v3/v4 — ATRAPADA EN EL PORTAL TRAMPA: cuando Vanilla o AMY CANON
-// caen en el portal trampa, sobre la cabeza de Jinna aparece su senal
-// (solo visible para SU jugadora) tras la animacion de absorcion.
-// jinnaCaughtDelay cuenta esa espera (~1,7 s) y jinnaCaughtShow la deja
-// fijada hasta el fin de ronda; dibujado en Draw_0. v4: jinnaCaughtKind
-// separa a la atrapada — 1 = VANILLA (pantalla completa, mejoras fuertes
-// de la v3) / 2 = AMY CANON (version SEMI-TRANSPARENTE de ella: aun no
-// tiene pantalla propia; senal de las "mejoras mas arduas", la mitad de
-// los aumentos — ver JINNA_CAUGHT_* en scr_jinna_special).
+// JINNA v3/v4 — ATRAPADA EN EL PORTAL TRAMPA: cuando Vanilla, AMY CANON
+// o SALLY CANON (v4.1) caen en el portal trampa, sobre la cabeza de
+// Jinna aparece su senal (solo visible para SU jugadora) tras la
+// animacion de absorcion. jinnaCaughtDelay cuenta esa espera (~1,7 s)
+// y jinnaCaughtShow la deja fijada hasta el fin de ronda; dibujado en
+// Draw_0. jinnaCaughtKind es el TIER de potenciacion (JINNA_CAUGHT_NONE
+// /AMY/VANILLA = 0/1/2 en scr_jinna_special): Amy y Sally Canon son el
+// tier "arduas" (la mitad de los aumentos) y Vanilla el fuerte. El
+// sprite concreto de la senal viaja en jinnaCaughtSprite (pantalla de
+// Vanilla o pose canon de Amy/Sally semi-transparente).
 jinnaCaughtDelay = 0;    // frames hasta mostrar a la atrapada (0 = nada pendiente)
 jinnaCaughtShow = false; // true = la atrapada ya esta dibujada sobre su cabeza
-jinnaCaughtKind = JINNA_CAUGHT_NONE; // 0 = nadie / 1 = Vanilla / 2 = Amy Canon
+jinnaCaughtKind = JINNA_CAUGHT_NONE; // tier: 0 = nadie / 1 = Amy o Sally (arduas) / 2 = Vanilla (fuerte)
+jinnaCaughtSprite = spr_vanilla_caught; // v4.1: sprite de la senal (Vanilla / Amy / Sally Canon, lo fija el handler del paquete)
 
 // JINNA: misc
 jinnaGoSnd = false;            // la linea de arranque suena 1 vez (ver Step_0)

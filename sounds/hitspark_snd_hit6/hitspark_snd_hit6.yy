@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":1.339708,
+  "duration":1.3397279,
   "exportDir":"",
   "name":"hitspark_snd_hit6",
   "parent":{

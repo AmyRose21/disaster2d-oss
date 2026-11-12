@@ -287,12 +287,13 @@ typedef enum
            su clon) y replica los DOS portales (salida = su ultima pos
            conocida aqui, llegada = la del paquete) a todos.
            CLIENT_JINNA_GRAB (u16 pid, s8 dir): agarre al superviviente
-           pid; el server valida (exe + cooldown + victima viva) y
-           reenvia SERVER_JINNA_GRAB_STATE (u16 pid, s8 dir): la victima
-           se congela y sufre el dano EN SU cliente (la autoridad de su
-           propio jugador), el resto crea el efecto visual. Mismo orden
-           que el enum del cliente (net_packets.gml); anadido AL FINAL
-           en los DOS lados. */
+           pid mirando hacia dir; el server valida (exe + cooldown +
+           victima viva) y reenvia SERVER_JINNA_GRAB_STATE (u16 pid, s8
+           dir): la victima se congela y sufre el dano + HITSPARK EN SU
+           cliente (la autoridad de su propio jugador) y al soltarla
+           sale empujada en dir (v4.1); el resto crea el efecto visual.
+           Mismo orden que el enum del cliente (net_packets.gml); anadido
+           AL FINAL en los DOS lados. */
         CLIENT_JINNA_TELEPORT,
         CLIENT_JINNA_GRAB,
         SERVER_JINNA_PORTAL_STATE,
@@ -309,8 +310,10 @@ typedef enum
            victima superviviente viva) y reenvia SERVER_JINNA_TRAP_HIT
            (u16 pid, u8 kind, u16 jx, u16 jy): kind 0 = daño + TP hasta
            Jinna SIN i-frames para la victima (si los tenia, se le
-           remueven); kind 1 = VANILLA absorbida a la otra dimension
-           (fuera de juego + potenciacion del kit de Jinna en todos).
+           remueven); kind 1 = VANILLA, kind 2 = AMY CANON (v4) y kind 3
+           = SALLY CANON (v4.1): absorbidas a la otra dimension (fuera
+           de juego + potenciacion del kit de Jinna en todos; fuerte con
+           Vanilla, "ardua"/la mitad con Amy o Sally Canon).
            SERVER_JINNA_TELE_AOE (u16 pid): rafaga del teleport — el
            server ralentiza a los supervivientes vivos en radio de la
            llegada del CLIENT_JINNA_TELEPORT; la victima aplica el slow

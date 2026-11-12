@@ -289,8 +289,14 @@ function scr_jinna_special()
                         // el server valida (exe + cooldown + victima viva) y
                         // reenvia a todos: la victima se congela y sufre el
                         // dano en SU cliente, el resto ve el efecto
+                        // v4.1 FIX: falta el byte de DIRECCION (s8) — el
+                        // server lee pid + dir y el paquete se rechazaba
+                        // sin él (el agarre nunca calaba). dir = hacia donde
+                        // mira Jinna al agarrar (voltea la garra y manda el
+                        // empujon al soltar).
                         var pak2 = cpacket_tcp(PacketType.CLIENT_JINNA_GRAB, false);
                         buffer_write(pak2, buffer_u16, _g.master_id);
+                        buffer_write(pak2, buffer_s8, sign(image_xscale));
                         send_server_tcp(pak2);
 
                         audio_play_sound(snd_jina_ready, 0, false);

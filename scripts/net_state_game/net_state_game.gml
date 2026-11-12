@@ -394,6 +394,12 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         _fx.locked = true;
                                         _fx.timer = JINNA_GRAB_LOCK;
 
+                                        // v4.1 — HITSPARK del impacto (la funcion
+                                        // existia desde el base, estaba sin usar;
+                                        // pedido de la duena): destello duro + su
+                                        // sonido pesado sobre la victima
+                                        hitspark(global.player.x, global.player.y - 12, 3, 3, hitspark_hard, [[hitspark_snd_heavy, 1]]);
+
                                         // el golpe: misma via que los golpes del exe
                                         // (exeSource=true: el parry de Sonic puede negarlo)
                                         // v3: con VANILLA ATRAPADA el agarre pega 15 (10 +5
@@ -414,7 +420,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                         }
                         else if(instance_exists(obj_player_puppet))
                         {
-                                // resto: garra visual sobre el puppet de la victima
+                                // resto: garra visual + hitspark del impacto sobre
+                                // el puppet de la victima (v4.1)
                                 with(obj_player_puppet)
                                 {
                                         if(master_id != _gpid)
@@ -423,6 +430,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         var _fx2 = instance_create_depth(x, y, 0, obj_jinna_grab_effect);
                                         _fx2.target = id;
                                         _fx2.image_xscale = _gdir;
+
+                                        hitspark(x, y - 12, 3, 3, hitspark_hard, [[hitspark_snd_heavy, 1]]);
                                         break;
                                 }
                         }
@@ -494,40 +503,46 @@ function net_state_game(rbuff, nps, isPasstrough)
 
                         // todos los clientes: el nivel de potenciacion activa
                         // los AUMENTOS del kit de Jinna hasta el fin de ronda
-                        // (v4: Amy sube al nivel 1, Vanilla al 2; solo ESCALA)
-                        if(_hkind == 1 || _hkind == 2)
+                        // (v4: Amy sube al nivel 1, Vanilla al 2; solo ESCALA.
+                        // v4.1: Sally Canon tambien al 1 — mismo tier "arduas"
+                        // que Amy Canon)
+                        if(_hkind == 1 || _hkind == 2 || _hkind == 3)
                         {
                                 var _jtier = (_hkind == 1) ? JINNA_CAUGHT_VANILLA : JINNA_CAUGHT_AMY;
                                 global.jinnaCaughtTier = max(global.jinnaCaughtTier, _jtier);
 
                                 // la propia Jinna vera a la atrapada sobre su
-                                // cabeza (pantalla de Vanilla / Amy semitransparente)
-                                // al terminar la animacion de absorcion de SU
-                                // cliente (~1,7 s: 72 frames de succion + 30 del
-                                // portal cerrando). La senal solo ESCALA: si ya
-                                // atrapo a Vanilla, pillar despues a Amy no tapa
-                                // su pantalla con el fantasma (el nivel es el tope)
+                                // cabeza (pantalla de Vanilla / Amy o Sally
+                                // semitransparente) al terminar la animacion de
+                                // absorcion de SU cliente (~1,7 s: 72 frames de
+                                // succion + 30 del portal cerrando). La senal
+                                // solo ESCALA: si ya atrapo a Vanilla, pillar
+                                // despues a Amy o Sally no tapa su pantalla con
+                                // el fantasma (el nivel es el tope; al mismo
+                                // nivel manda la ultima)
                                 if(instance_exists(obj_jinna) && _jtier >= obj_jinna.jinnaCaughtKind)
                                 {
                                         obj_jinna.jinnaCaughtDelay = 102;
                                         obj_jinna.jinnaCaughtKind = _jtier;
+                                        obj_jinna.jinnaCaughtSprite = (_hkind == 1) ? spr_vanilla_caught : ((_hkind == 2) ? spr_amy_capture_canon : spr_sally_capture_canon);
                                 }
                         }
 
                         if(_hpid == obj_netclient.nid)
                         {
-                                if(_hkind == 1 || _hkind == 2)
+                                if(_hkind == 1 || _hkind == 2 || _hkind == 3)
                                 {
-                                        // VANILLA / AMY CANON (yo): secuencia de absorcion
-                                        // (v4: el sprite de la victima viaja en el absorb —
-                                        // Amy usa su pose de secuestro, que aun no tiene
-                                        // pantalla propia)
+                                        // VANILLA / AMY CANON / SALLY CANON (yo):
+                                        // secuencia de absorcion (v4: el sprite de
+                                        // la victima viaja en el absorb — Amy y
+                                        // Sally usan su pose de secuestro canon,
+                                        // que aun no tienen pantalla propia)
                                         if(instance_exists(global.player) && !global.player.isDead)
                                         {
                                                 var _abs = instance_create_depth(global.player.x, global.player.y, 0, obj_jinna_absorb);
                                                 _abs.jinnaX = _hjx;
                                                 _abs.jinnaY = _hjy;
-                                                _abs.absorbVictim = (_hkind == 2) ? spr_amy_capture_canon : spr_vanilla_absorb_trap;
+                                                _abs.absorbVictim = (_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 3) ? spr_sally_capture_canon : spr_vanilla_absorb_trap);
                                         }
                                 }
                                 else if(instance_exists(global.player) && !global.player.isDead)
