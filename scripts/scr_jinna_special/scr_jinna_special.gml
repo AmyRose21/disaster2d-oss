@@ -82,6 +82,19 @@
 // GOLPE (tecla X): commit del swing
 #macro JINNA_ATTACK_LOCK 12               // ~0,2 s frenando el impulso
 
+// v4.2 — HITBOX DEL GOLPE BASICO: SIEMPRE un 35% mas ancha que el contacto
+// puro (pedido: "la hitbox no es tan grande cuando deberia ser un 35% mas
+// grande"). Mismo mecanismo de pad por distancia que el golpe de Sonic /
+// el tarot de Amy Canon (lo aplica obj_player_puppet). Durante la ventana
+// de 3 s tras el teleport sigue mandando la potenciada JINNA_TELE_HITBOX.
+#macro JINNA_ATTACK_HITBOX 0.35           // +35% del ancho del bbox, siempre
+
+// v4.2 — PORTAL DEL TELETRANSPORTE (solo visual): al terminar su animacion
+// el portal NO se destruye al instante: ENCOGE su escala hasta 0 (~0,5 s,
+// mismo ritmo que la fase 1 del obj_jinna_absorb) y entonces desaparece —
+// "como cuando atrapa a Vanilla que el portal se hace mas pequeno".
+#macro JINNA_PORTAL_SHRINK 30             // frames del encogido (30 = 0,5 s)
+
 function scr_jinna_special()
 {
         if(won || lost)
@@ -109,7 +122,15 @@ function scr_jinna_special()
 
                 image_index = 0;
                 attackSpeed = xspd;
-                attackTimer = isGrounded ? 60 : 120;
+                // v4.2 FIX ("el golpe dura mas que su animacion"): antes
+                // 60/120 frames con la animacion congelada en su ultimo
+                // frame desde el ~17-20 (isAttacking + hitbox activos un
+                // segundo entero en tierra / dos en el aire). Ahora el
+                // ataque CIERRA CON LA ANIMACION: 21 frames reales (5-6
+                // frames de sprite a image_speed 0.3, ver Draw_76) para
+                // tierra y aire. attackTimer sigue siendo el gate de
+                // re-uso de la X (mismo papel que en el exe base).
+                attackTimer = 21;
                 isAttacking = true;
                 isJumping = false;
                 isSpinning = false;

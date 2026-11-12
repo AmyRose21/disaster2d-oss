@@ -289,12 +289,16 @@ if(character == CHARACTER_SALLY_CANON && isAttacking)
 // v3 (D.I.B.) — VENTANA DE PODER DEL TELETRANSPORTE DE JINNA: durante
 // los 3 s posteriores a su teletransporte (global.jinnaTelePower, la
 // abre el broadcast de los portales en TODOS los clientes y la baja
-// obj_netclient/Step_0), la hitbox de su GOLPE BASICO crece un 25%
+// obj_netclient/Step_0), la hitbox de su GOLPE BASICO crece un 75%
 // (JINNA_TELE_HITBOX). Mismo mecanismo de pad por distancia que el
 // golpe de Sonic, el tarot de Amy Canon y la patada de Sally Canon.
+// v4.2: el golpe basico ahora tiene SIEMPRE su pad propio del +35%
+// (JINNA_ATTACK_HITBOX — pedido de la duena: "la hitbox no es tan
+// grande cuando deberia ser un 35% mas grande"); la ventana del
+// teleport SUBE el pad al de siempre, no lo reemplaza desde cero.
 var _jinnaPad = 0;
-if(character == CHARACTER_EXE && exeCharacter == EXE_JINNA && isAttacking && global.jinnaTelePower > 0)
-        _jinnaPad = ceil((bbox_right - bbox_left) * JINNA_TELE_HITBOX);
+if(character == CHARACTER_EXE && exeCharacter == EXE_JINNA && isAttacking)
+        _jinnaPad = ceil((bbox_right - bbox_left) * ((global.jinnaTelePower > 0) ? JINNA_TELE_HITBOX : JINNA_ATTACK_HITBOX));
 
 if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad) || (_amyFuerzaPad > 0 && distance_to_object(global.player) <= _amyFuerzaPad) || (_scKickPad > 0 && distance_to_object(global.player) <= _scKickPad) || (_jinnaPad > 0 && distance_to_object(global.player) <= _jinnaPad))
 {

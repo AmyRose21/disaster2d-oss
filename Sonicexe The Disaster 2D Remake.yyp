@@ -1767,6 +1767,7 @@
     {"id":{"name":"spr_jinna_attack1","path":"sprites/spr_jinna_attack1/spr_jinna_attack1.yy",},},
     {"id":{"name":"spr_jinna_attack2","path":"sprites/spr_jinna_attack2/spr_jinna_attack2.yy",},},
     {"id":{"name":"spr_jinna_balancing","path":"sprites/spr_jinna_balancing/spr_jinna_balancing.yy",},},
+    {"id":{"name":"spr_jinna_claw","path":"sprites/spr_jinna_claw/spr_jinna_claw.yy",},},
     {"id":{"name":"spr_jinna_clonearrow","path":"sprites/spr_jinna_clonearrow/spr_jinna_clonearrow.yy",},},
     {"id":{"name":"spr_jinna_emotion","path":"sprites/spr_jinna_emotion/spr_jinna_emotion.yy",},},
     {"id":{"name":"spr_jinna_emotion2","path":"sprites/spr_jinna_emotion2/spr_jinna_emotion2.yy",},},
