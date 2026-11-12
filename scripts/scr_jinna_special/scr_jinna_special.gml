@@ -23,11 +23,6 @@
 //     victima: la congela su propio cliente via SERVER_JINNA_GRAB_STATE)
 //     y le hace JINNA_GRAB_DAMAGE de dano ("1 HP" en su placa oficial).
 //     Enfriamiento JINNA_GRAB_RECHARGE.
-//     v4 FIX: el paquete llevaba SOLO el pid, pero el server lee
-//     pid + dir (s8) — el RAssert de la lectura fallaba y el agarre
-//     NUNCA ocurria (la pose salia, la victima no sufria nada). Ahora
-//     se manda el dir de verdad (hacia donde mira Jinna: voltea la
-//     garra en el efecto).
 //  Stats: la mas rapida del bando EXE (13; Exe/Exeller van a 12).
 // =====================================================================
 #macro JINNA_MAXSPEED 13
@@ -50,9 +45,9 @@
 // victima), pero su enfriamiento POR PERSONAJE es menor (13 s vs 16 s).
 #macro JINNA_WEAKMARK_CD (60 * 13)
 
-// AGARRE (tecla V) — v3: la V ahora tiene DOS modos: sola = agarre,
-// con ABAJO = portal trampa. Comparten la misma recarga de 12 s.
-#macro JINNA_GRAB_RECHARGE (60 * 12)      // 12 s de enfriamiento (agarre Y trampa)
+// AGARRE (tecla V) — v4: la V tiene DOS modos con recargas INDEPENDIENTES
+// (antes compartian la de 12 s): sola = agarre, con ABAJO = portal trampa.
+#macro JINNA_GRAB_RECHARGE (60 * 12)      // 12 s de enfriamiento del AGARRE (la trampa tiene el suyo: JINNA_TRAP_RECHARGE)
 #macro JINNA_GRAB_RANGE 46                // px de alcance cuerpo a cuerpo
 #macro JINNA_GRAB_LOCK (60 * 1.6)         // 1,6 s de victima bloqueada
 #macro JINNA_GRAB_DAMAGE 10               // "1 HP" (la placa oficial; 15 con Vanilla atrapada)
@@ -63,10 +58,26 @@
 // quien cae es VANILLA, es ABSORBIDA a la otra dimension (obj_jinna_absorb
 // + spr_vanilla_absorb_trap): fuera de juego "muerta sin estar muerta" y
 // Jinna queda POTENCIADA (spr_vanilla_caught sobre su cabeza; ver LEEME).
-#macro JINNA_TRAP_DAMAGE 15               // daño al caer en la trampa (22 con Vanilla atrapada)
-#macro JINNA_TRAP_LIFE (60 * 70)          // vida maxima del portal trampa, 70 s (la lleva el server)
+// v4: la trampa YA NO COMPARTIR enfriamiento con el agarre — cada modo
+// de la V tiene SU recarga (peticion de la duena tras probar la v3).
+#macro JINNA_TRAP_RECHARGE (60 * 15)      // 15 s de enfriamiento PROPIO (antes compartia los 12 s del agarre)
+#macro JINNA_TRAP_DAMAGE 15               // daño al caer en la trampa (18 con Amy atrapada / 22 con Vanilla)
+#macro JINNA_TRAP_LIFE (60 * 20)          // vida maxima del portal trampa (la lleva el server)
 #macro JINNA_TRAP_RADIUS 22               // radio de pisada (bbox del portal)
-#macro JINNA_TRAP_POSE 32                 // ~0,53 s de pose al plantarla (spr_jinna_tele, v4)
+
+// v4 — NIVELES DE POTENCIACION del kit (a quien absorbio el portal
+// trampa). La senal visual vive sobre la cabeza de Jinna (Draw_0):
+//   * NINGUNO: kit base.
+//   * AMY CANON (kind 2): "mejoras mas arduas" — la MITAD de los
+//     aumentos de Vanilla; sobre Jinna flota una version SEMI-TRANSPARENTE
+//     de Amy (spr_amy_capture_canon: ella aun no tiene pantalla propia,
+//     la semi-transparencia ES la senal del estado intermedio).
+//   * VANILLA (kind 1): las mejoras fuertes originales de la v3 y su
+//     pantalla completa (spr_vanilla_caught) ajustada sobre la cabeza.
+// El nivel solo SUBE (quien pille a Amy y luego a Vanilla llega al tope).
+#macro JINNA_CAUGHT_NONE 0
+#macro JINNA_CAUGHT_AMY 1
+#macro JINNA_CAUGHT_VANILLA 2
 
 // GOLPE (tecla X): commit del swing
 #macro JINNA_ATTACK_LOCK 12               // ~0,2 s frenando el impulso
@@ -80,7 +91,6 @@ function scr_jinna_special()
                 jinnaTeleWindup = 0;
                 jinnaTelePose = 0;
                 jinnaGrabVisual = 0;
-                jinnaTrapVisual = 0;
                 jinnaAttackLock = 0;
         }
 
@@ -217,17 +227,19 @@ function scr_jinna_special()
         // timers: nunca se congela aturdida — leccion v4.8 de Metal Amy)
 
         // ---- AGARRE (tecla V) / PORTAL TRAMPA (V + ABAJO) ----
-        // v3: la V ahora tiene dos modos que comparten la misma recarga
-        // (12 s): sola agarra al objetivo cercano (como siempre) y con
-        // ABAJO plantará un PORTAL TRAMPA en sus pies (CLIENT_JINNA_TRAP:
-        // el server lo valida, spawnea la entidad y la replica a todos).
-        if(global.playerControls && keyboard_check_pressed(global.KeyV) && jinnaGrabCd <= 0 && shockedTimer <= 0 && !won && !lost)
+        // v4: la V tiene dos modos con recargas INDEPENDIENTES: sola agarra
+        // al objetivo cercano (12 s) y con ABAJO plantará un PORTAL TRAMPA
+        // en sus pies con SU PROPIA recarga de 15 s (CLIENT_JINNA_TRAP:
+        // el server lo valida con su cooldown separado, spawnea la entidad
+        // y la replica a todos). El icono del HUD intercambia al presionar
+        // abajo (ver obj_playerui: garra = agarre, portal+"▼+" = trampa).
+        if(global.playerControls && keyboard_check_pressed(global.KeyV) && shockedTimer <= 0 && !won && !lost)
         {
-                if(keyboard_check(global.KeyDown))
+                if(keyboard_check(global.KeyDown) && jinnaTrapCd <= 0)
                 {
                         // ---- MODO TRAMPA (V + ABAJO) ----
-                        jinnaGrabCd = JINNA_GRAB_RECHARGE;
-                        jinnaTrapVisual = JINNA_TRAP_POSE; // v4: pose de tele (spr_jinna_tele) al plantarla
+                        jinnaTrapCd = JINNA_TRAP_RECHARGE; // v4: recarga PROPIA (no toca la del agarre)
+                        jinnaGrabVisual = 24; // pose de agarre ~0,4 s
 
                         if(keyboard_check(global.KeyLeft))
                                 image_xscale = -1;
@@ -242,7 +254,7 @@ function scr_jinna_special()
                         audio_play_sound(snd_teleport, 0, false);
                         net_sound_emit(snd_teleport);
                 }
-                else
+                else if(jinnaGrabCd <= 0)
                 {
                 var _g = noone;
                 var _gD = JINNA_GRAB_RANGE;
@@ -265,7 +277,7 @@ function scr_jinna_special()
 
                 if(_g != noone)
                 {
-                        jinnaGrabCd = JINNA_GRAB_RECHARGE;
+                        jinnaGrabCd = JINNA_GRAB_RECHARGE; // v4: recarga del AGARRE (independiente de la trampa)
                         jinnaGrabVisual = 24; // pose de agarre ~0,4 s
 
                         if(keyboard_check(global.KeyLeft))
@@ -275,19 +287,9 @@ function scr_jinna_special()
 
                         // el server valida (exe + cooldown + victima viva) y
                         // reenvia a todos: la victima se congela y sufre el
-                        // dano en SU cliente, el resto ve el efecto.
-                        // v4 FIX: el paquete SI lleva el dir (s8) — antes se
-                        // mandaba SOLO el pid y el server (que lee pid+dir)
-                        // cortaba el handler en el RAssert: la V no hacia
-                        // NADA. El dir voltea la garra del efecto hacia
-                        // donde mira Jinna al agarrar.
-                        var _gdir = sign(image_xscale);
-                        if(_gdir == 0)
-                                _gdir = 1;
-
+                        // dano en SU cliente, el resto ve el efecto
                         var pak2 = cpacket_tcp(PacketType.CLIENT_JINNA_GRAB, false);
                         buffer_write(pak2, buffer_u16, _g.master_id);
-                        buffer_write(pak2, buffer_s8, _gdir);
                         send_server_tcp(pak2);
 
                         audio_play_sound(snd_jina_ready, 0, false);
