@@ -1,3 +1,7 @@
+// v1 POSTFX: bloom + grading a pantalla completa (persistente, F9 lo alterna)
+if(!instance_exists(obj_postfx))
+	instance_create_depth(0, 0, -99999, obj_postfx);
+
 if(!global.init)
 {
 	global.init = true;

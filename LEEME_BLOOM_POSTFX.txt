@@ -1,0 +1,97 @@
+==========================================================================
+ BLOOM + POST PROCESS (bloom_postfx_v1) — Sonic.exe The Disaster 2D
+==========================================================================
+
+QUE HACE
+---------
+Efecto visual a pantalla completa (solo cliente, el server no interviene):
+
+  1. BLOOM: todo lo brillante (anillos, ojos del exe, fuego, luces del
+     escenario) "resplandece" con un halo suave en 3 escalas.
+  2. GRADING (la "profundidad de color" que pediste):
+     - Colores mas vivos (saturacion +14%)
+     - Mas punch (contraste +6%)
+     - Sombras levemente frias + luces levemente calidas (split-tone)
+     - Vineta sutil en los bordes de la pantalla
+     - Aberracion cromatica minima (separacion RGB en los bordes)
+
+TODO EL EFECTO SE ALTERNA CON F9 (en caliente, para comparar con/sin).
+
+COMO SE INTEGRA
+---------------
+  * obj_logo crea a obj_postfx al arrancar (es persistente: vive toda
+    la sesion, en todas las rooms).
+  * obj_postfx dibuja en el evento Draw_77, el MISMO que ya usa el juego
+    para su propio efecto de shader del mapa marijuna
+    (obj_marijuna_crystalcontroller): probado y funcionando en tu juego.
+  * El mapa marijuna SE SALTA el efecto (tiene su propio shader a
+    pantalla completa y no se pisan).
+  * En Android se aplica el mismo letterbox que usa el juego.
+
+AJUSTES (objects/obj_postfx/Create_0.gml)
+-----------------------------------------
+  threshold  = 0.72   // luminancia minima para brillar (mas bajo = brilla
+                      //   mas cosa; 0.6 = casi todo lo claro resplandece)
+  softKnee   = 0.35   // suavidad del umbral (0 = corte duro)
+  bloomPower = 0.60   // intensidad del glow (0.3 = sutil, 1.0 = neblina)
+
+  saturation = 1.14   // 1 = sin cambio (1.25 = muy cartoon)
+  contrast   = 1.06   // 1 = sin cambio (1.15 = duro)
+  liftS      = 0.030  // azul en sombras
+  liftH      = 0.025  // calor en luces
+
+  vignette   = 0.28   // oscurecido de bordes (0.5 = muy oscuro)
+  aberration = 1.5    // separacion RGB (0 = sin aberracion)
+
+Si tocas algo y quieres volver al look original: threshold 0.72,
+bloomPower 0.60, saturation 1.14, contrast 1.06, liftS 0.030, liftH 0.025,
+vignette 0.28, aberration 1.5.
+
+ARCHIVOS
+--------
+NUEVOS:
+  shaders/shd_bloom/  (extraccion de brillo)
+  shaders/shd_blur/   (blur gaussiano separable)
+  shaders/shd_grade/  (grading final)
+  objects/obj_postfx/ (controlador: Create/Step/CleanUp/Draw_77)
+  scripts/check_postfx.py   (validador, 197 checks)
+  preview_bloom_postfx.png  (antes/despues SIMULADO numericamente — no es
+                             captura real del juego)
+MODIFICADOS:
+  "Sonicexe The Disaster 2D Remake.yyp"  (+4 lineas: registra los 3 shaders
+                                          y el objeto; si tu .yyp local
+                                          tiene cambios propios, copia las
+                                          4 lineas a mano — estan al final
+                                          de este LEEME)
+  objects/obj_logo/Create_0.gml  (+4 lineas arriba: crea obj_postfx)
+
+COMO APLICAR
+------------
+  1. Cierra GameMaker.
+  2. Copia el contenido del zip sobre la raiz del proyecto (los archivos
+     nuevos se anaden; .yyp, Create_0.gml y worklog.md se reemplazan).
+  3. Abre el proyecto en GameMaker (version 2026) y corre con F5.
+  4. F9 alterna el efecto para comparar.
+
+Las 4 lineas del .yyp (por si prefieres anadirlas a mano), una detras de
+la entrada de shd_inverse para los shaders:
+
+    {"id":{"name":"shd_bloom","path":"shaders/shd_bloom/shd_bloom.yy",},},
+    {"id":{"name":"shd_blur","path":"shaders/shd_blur/shd_blur.yy",},},
+    {"id":{"name":"shd_grade","path":"shaders/shd_grade/shd_grade.yy",},},
+
+y una detras de la entrada de obj_logo para el objeto:
+
+    {"id":{"name":"obj_postfx","path":"objects/obj_postfx/obj_postfx.yy",},},
+
+NOTAS
+-----
+  * El HUD/texto que el juego dibuja despues del evento 77 queda POR
+    ENCIMA de la composicion (nitido, sin bloom): es el look clasico de
+    "post-proceso de escena". Si algo se viera tapado (no deberia: es el
+    mismo patron del marijuna), avisame: es un cambio de una linea.
+  * El efecto no llega al mapa marijuna (skip deliberado).
+  * Rendimiento: 6 dibujos a media resolucion (240x135) + 2 a pantalla;
+    despreciable en PC y apto para Android (usa el mismo GLSL ES que los
+    shaders que ya tiene el juego).
+==========================================================================
