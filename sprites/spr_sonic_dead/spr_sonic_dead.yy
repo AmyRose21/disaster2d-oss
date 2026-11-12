@@ -25,7 +25,7 @@
   ],
   "name":"spr_sonic_dead",
   "nineSlice":null,
-  "origin":4,
+  "origin":9,
   "parent":{
     "name":"Sonic Canon",
     "path":"folders/Sprites/Player/Survivors/Sonic Canon.yy",
@@ -84,7 +84,7 @@
     "visibleRange":null,
     "volume":1.0,
     "xorigin":25,
-    "yorigin":27,
+    "yorigin":24,
   },
   "swatchColours":null,
   "swfPrecision":2.525,
