@@ -2184,6 +2184,7 @@
     {"id":{"name":"spr_rouge_marijuna","path":"sprites/spr_rouge_marijuna/spr_rouge_marijuna.yy",},},
     {"id":{"name":"spr_rouge_run","path":"sprites/spr_rouge_run/spr_rouge_run.yy",},},
     {"id":{"name":"spr_rouge_stuck","path":"sprites/spr_rouge_stuck/spr_rouge_stuck.yy",},},
+    {"id":{"name":"spr_rouge_traped","path":"sprites/spr_rouge_traped/spr_rouge_traped.yy",},},
     {"id":{"name":"spr_rouge_walk","path":"sprites/spr_rouge_walk/spr_rouge_walk.yy",},},
     {"id":{"name":"spr_rouge_zipline","path":"sprites/spr_rouge_zipline/spr_rouge_zipline.yy",},},
     {"id":{"name":"spr_sally_attack_canon","path":"sprites/spr_sally_attack_canon/spr_sally_attack_canon.yy",},},
