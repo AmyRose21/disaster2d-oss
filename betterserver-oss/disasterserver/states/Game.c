@@ -66,6 +66,15 @@ bool game_state_check(Server* server)
         if (server->game.end > 0)
                 return true;
 
+        /* [practica-exe-v1] entrenamiento de exe (.ep): la ronda
+           NO se cierra por eliminacion — sola como exe daria
+           total 0 en el primer tick (EXEWIN instantaneo) y con
+           supervivientes muertos tampoco: hay que poder seguir
+           probando. Solo la cierran el TIME OVER, el .lobby o el
+           exe al irse (su salida da SURVWIN en game_state_left). */
+        if (server->lobby.exe_practice)
+                return true;
+
         uint8_t escaped = 0;
         uint8_t dead = 0;
         uint8_t exes = 0;

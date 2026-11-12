@@ -948,6 +948,7 @@ bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *
                         RAssert(server_send_msg(v->server, v->peer, lobby_msg));
 
                         RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".sp" CLRCODE_RST " survivor practice (no exe)"));
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".ep" CLRCODE_RST " exe practice (you're the exe)"));
                         RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".exe" CLRCODE_RST " set your exe chance (1-100)"));
 
                         RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".kick" CLRCODE_RST " kick someone ig"));

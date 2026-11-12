@@ -166,6 +166,7 @@ typedef struct
         /* Character Select */
         int8_t map;
         uint16_t exe;
+        bool exe_practice; /* [practica-exe-v1]: ronda iniciada con .ep — no termina por eliminacion (solo TIME OVER / .lobby / exe se va) */
         bool avail[CH_FLEETWAY_AMY + 1];
 } Lobby;
 

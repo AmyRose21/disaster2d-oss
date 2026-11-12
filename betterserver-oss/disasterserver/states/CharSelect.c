@@ -338,6 +338,7 @@ bool charselect_init(int8_t map, Server *server)
         }
 
         server->state = ST_CHARSELECT;
+        server->lobby.exe_practice = false; /* [practica-exe-v1] */
         server->lobby.countdown_sec = g_config.charselect_time;
         server->lobby.countdown = TICKSPERSEC;
         memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_FLEETWAY_AMY + 1)); /* v2.14: hasta Fleetway Amy */
@@ -404,6 +405,7 @@ bool charselect_init_survpractice(Server *server)
         server->lobby.exe = 0xFFFF;
 
         server->state = ST_CHARSELECT;
+        server->lobby.exe_practice = false; /* [practica-exe-v1] */
         server->lobby.countdown_sec = g_config.practice_time;
         server->lobby.countdown = TICKSPERSEC;
         memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_FLEETWAY_AMY + 1)); /* v2.14: hasta Fleetway Amy */
@@ -450,6 +452,94 @@ bool charselect_init_survpractice(Server *server)
                 server_send_msg(server, data->peer, msg);
                 server_send_msg(server, data->peer, CLRCODE_GRN "survivor practice:~ pick your character!");
         }
+
+        return true;
+}
+
+/* [practica-exe-v1] (pedido del usuario): ENTRENAMIENTO DE EXE — la
+ * practica .sp es de SUPERVIVIENTES (exe 0xFFFF, nadie es el killer);
+ * esta es la practica CON EXE REAL que tenia el server original, pero
+ * con CONSTANCIA: el op que escribe .ep es SIEMPRE el exe (para probar
+ * killers como Jinna sin depender de la loteria ni repetir .exe 100
+ * cada ronda). Los demas, si los hay, eligen superviviente. Mapa al
+ * azar igual que el .sp (v4.7). La ronda NO se cierra por eliminacion
+ * (guard de game_state_check): solo por TIME OVER, .lobby o si el exe
+ * se va (su salida sigue dando SURVWIN en game_state_left). */
+bool charselect_init_exepractice(PeerData *v)
+{
+        Server *server = v->server;
+
+        Debug("Attepting to enter ST_CHARSELECT (exe practice)...");
+        RAssert(server);
+
+        /* v4.7: mapa sorteado entre los activos del Config.json,
+         * sin repetir el ultimo jugado (igual que el .sp) */
+        int8_t map = map_pick_random(server);
+
+        /* Reset de personajes, como lo hace charselect_choose_exe() */
+        for (size_t i = 0; i < server->peers.capacity; i++)
+        {
+                PeerData *peer = (PeerData *)server->peers.ptr[i];
+                if (!peer)
+                        continue;
+
+                if (!peer->in_game)
+                        continue;
+
+                peer->exe_char = EX_NONE;
+                peer->surv_char = CH_NONE;
+        }
+
+        /* La CONSTANCIA pedida: quien escribe .ep es SIEMPRE el exe,
+         * sin loteria. El exe es un jugador REAL: sin el truco del
+         * 0xFFFF del .sp ni el falso "EXE" en la lista de jugadores. */
+        server->lobby.exe = v->id;
+        server->lobby.exe_practice = true;
+
+        server->state = ST_CHARSELECT;
+        server->lobby.countdown_sec = g_config.practice_time;
+        server->lobby.countdown = TICKSPERSEC;
+        memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_FLEETWAY_AMY + 1)); /* v2.14: hasta Fleetway Amy */
+
+        Packet pack;
+
+        /* Flujo NORMAL de charselect: el cliente del exe ve su pid en
+         * SERVER_LOBBY_EXE y abre la seleccion de killer (Jinna sale
+         * con el token de Amy); los demas abren la de superviviente. */
+        PacketCreate(&pack, SERVER_LOBBY_EXE);
+        PacketWrite(&pack, packet_write16, server->lobby.exe);
+        PacketWrite(&pack, packet_write16, map);
+        server_broadcast(server, &pack, true);
+
+        PacketCreate(&pack, SERVER_CHAR_TIME_SYNC);
+        PacketWrite(&pack, packet_write8, server->lobby.countdown_sec);
+        server_broadcast(server, &pack, true);
+
+        Info(LOG_YLW "Server is now in " LOG_PUR "Character Select " LOG_YLW "(exe practice)");
+        Info("Map is [" LOG_BLU "%s" LOG_RST "]", g_mapList[map].name);
+        server->lobby.map = map;
+        server->last_map = map;
+
+        for (size_t i = 0; i < server->peers.capacity; i++)
+        {
+                PeerData *data = (PeerData *)server->peers.ptr[i];
+
+                if (!data)
+                        continue;
+
+                if (data->in_game)
+                        continue;
+
+                char msg[256];
+                snprintf(msg, 100, CLRCODE_GRN "map: %s" CLRCODE_RST, g_mapList[map].name);
+                server_send_msg(server, data->peer, msg);
+        }
+
+        /* Aviso directo al que escribio .ep (el loop de arriba solo
+         * alcanza a quien conecto a mitad de ciclo, patron heredado
+         * del charselect_init original): es su confirmacion de que
+         * la practica arranco con el como exe. */
+        server_send_msg(server, v->peer, CLRCODE_GRN "exe practice:~ you're the exe, pick your killer!");
 
         return true;
 }

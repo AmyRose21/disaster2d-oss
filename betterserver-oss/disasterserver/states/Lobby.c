@@ -267,6 +267,39 @@ bool lobby_state_handle(PeerData* v, Packet* packet)
 					return charselect_init_survpractice(v->server) || lobby_init(v->server);
 				}
 
+				/* [practica-exe-v1] ENTRENAMIENTO DE EXE: el op que lo
+				 * escribe es SIEMPRE el exe (constancia para probar
+				 * killers como Jinna); los demas, si los hay, eligen
+				 * superviviente. Comando aparte del .sp (que sigue
+				 * siendo practica de supervivientes) a pedido del
+				 * usuario. */
+				case CMD_EP:
+				{
+					if (!v->op)
+					{
+						RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "you aren't an operator"));
+						break;
+					}
+
+					if (server_ingame(v->server) <= 0)
+					{
+						RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "nobody is in the lobby."));
+						break;
+					}
+
+					/* El exe tiene que estar JUGANDO: un espectador
+					 * (conectado a mitad de ciclo, in_game = false)
+					 * como exe colgaria la seleccion — los loops
+					 * del charselect solo miran a los in_game. */
+					if (!v->in_game)
+					{
+						RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "you're not in the lobby yet."));
+						break;
+					}
+
+					return charselect_init_exepractice(v) || lobby_init(v->server);
+				}
+
 				/* YES on votes */
 				case CMD_YES:
 				case CMD_Y:
@@ -667,6 +700,7 @@ bool lobby_init(Server* server)
 	server->lobby.countdown = TICKSPERSEC;
 	server->lobby.countdown_sec = g_config.lobby_countdown + 1;
 	server->lobby.prac_countdown = 0;
+	server->lobby.exe_practice = false; /* [practica-exe-v1] */
 	memset(&server->lobby.vote, 0, sizeof(Vote));
 
 	Packet pack;

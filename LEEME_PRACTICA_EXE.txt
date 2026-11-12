@@ -1,0 +1,109 @@
+=====================================================================
+ ENTRENAMIENTO DE EXE — comando .ep  (practica-exe-v1, D.I.B.)
+=====================================================================
+
+LO QUE PEDISTE
+--------------
+"Anadir nuevamente la practica como exe, pero en un comando
+diferente al normal, ya que estoy probando a Jinna y necesito
+tener la constancia para las pruebas."
+
+Antes la practica era de EXE (el server original solo tenia el
+voto .vp, que arrancaba una ronda comun con exe por loteria).
+Hace mucho la cambiaste por la de SUPERVIVIENTES (el .sp de
+ahora). Con esto tienes AMBAS en comandos separados:
+
+    .sp  -> practica de SUPERVIVIENTES (igual que siempre:
+            nadie es el exe, pantalla de superviviente)
+    .ep  -> NUEVO: entrenamiento de EXE (tu eres el exe,
+            SIEMPRE, sin loteria)
+
+COMO SE USA
+-----------
+1. Entra al LOBBY (el comando va ahi, como el .sp).
+2. Escribe:    .ep
+3. Se abre TU pantalla de seleccion de KILLER: eliges Jinna
+   (o el exe que quieras probar; Jinna sale con tu token de
+   Amy como siempre).
+4. Los demas jugadores, si los hay, eligen superviviente.
+5. La partida arranca normal en un mapa al azar.
+
+LA CONSTANCIA (lo que pediste para probar Jinna)
+-------------------------------------------------
+Quien escribe .ep es SIEMPRE el exe. No hay loteria, no hay
+que repetir .exe 100 cada ronda, no hay que esperar a que te
+toque: escribes .ep y ya estas del lado del killer. Cada ronda
+de pruebas empieza igual — machaca .ep las veces que quieras.
+
+ADEMAS, LA RONDA NO SE CIERRA POR ELIMINACION
+---------------------------------------------
+- Si estas SOLA como exe: antes la ronda se daba por ganada al
+  instante (no habia supervivientes que contar). Ahora sigue
+  abierta hasta que se acabe el tiempo del mapa.
+- Si matas a todos los supervivientes (o escapan por el anillo):
+  la ronda SIGUE — perfecto para seguir probando sin esperar
+  la pantalla de resultados.
+- Solo la cierran: el TIME OVER del reloj, el .lobby, o si te
+  vas tu (el exe) de la partida.
+
+DETALLES
+--------
+- Solo operadores (tu siendo host / con .op), igual que .sp.
+- Si alguien mas esta en el lobby, entra como SUPERVIVIENTE:
+  tienes victimas de prueba para el agarre y la trampa de
+  Jinna sin montar una ronda "de verdad".
+- El mapa sale al AZAR entre los activos del Config.json (no
+  repite el ultimo jugado), igual que el .sp desde la v4.7.
+- La cuenta atras para elegir personaje es practice_time (60s
+  por defecto, configurable en Config.json).
+- Si alguien conecto a mitad de ciclo (espectador) escribe .ep,
+  el server le dice "you're not in the lobby yet." — un
+  espectador como exe colgaria la seleccion.
+- Invisible para los demas como todo comando con punto (fix
+  v1.1): nadie ve tu .ep en el chat.
+- El .help de operadores ahora lista: ".ep exe practice
+  (you're the exe)".
+- El anticheat SIGUE ACTIVO (el fix Jinna de 6000 ms de la
+  v4.3 te cubre los golpes encadenados con X). Si para tus
+  pruebas quisieras el anticheat APAGADO por completo, es la
+  opcion "anticheat": false del Config.json — pero eso lo
+  apaga para TODOS y siempre, no solo en practica.
+
+QUE NO CAMBIA
+-------------
+- .sp: identico (supervivientes, exe 0xFFFF, falso "EXE").
+- .vp: identico (voto de practica → ronda normal con loteria).
+- .exe N, .map, .lobby, .kick/.ban/.op, cheat "i want big
+  burgr", ocultado de comandos '.', anticheat: todo intacto.
+- Las rondas NORMALES (sin .ep) siguen cerrando igual que
+  siempre: el guard solo aplica a las rondas iniciadas con .ep.
+
+ARCHIVOS TOCADOS (solo server, NO requiere recompilar cliente)
+---------------------------------------------------------------
+- include/States.h                -> #define CMD_EP + decl de la init
+- include/Server.h                -> campo Lobby.exe_practice
+- disasterserver/states/CharSelect.c -> charselect_init_exepractice
+                                        (exe = quien escribe .ep) +
+                                        reset del flag en las otras 2 inits
+- disasterserver/states/Lobby.c   -> case CMD_EP (op + lobby + gates) y
+                                        reset en lobby_init
+- disasterserver/states/Game.c    -> guard en game_state_check (trae ya
+                                        el anticheat v4.3 y el ocultado
+                                        v1.1: sobreescribir sin miedo)
+- disasterserver/states/Server.c  -> linea .ep en el .help
+- worklog.md, LEEME_PRACTICA_EXE.txt, scripts/check_exe_practice.py
+
+RECOMPILAR: compilar_server.bat (solo el server)
+
+PRUEBA RAPIDA
+-------------
+1. En el lobby escribe .ep → debe abrirse tu seleccion de
+   KILLER (Jinna) y el chat te dice "exe practice:~ you're the
+   exe, pick your killer!".
+2. Elige Jinna, prueba agarre/trampa/golpes sola en el mapa.
+3. Al acabar el tiempo (o con .lobby) escribe .ep otra vez:
+   otra vez eres el exe — esa es la constancia.
+4. Con un amigo: el ve pantalla de superviviente; dejalo morir
+   y verifica que la ronda NO se cierra (sigues en el mapa).
+5. .sp sigue igual: escribes .sp y abres pantalla de
+   SUPERVIVIENTE como siempre.
