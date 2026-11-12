@@ -50,6 +50,14 @@ function scr_move_basic()
         // Create de los 13 supervivientes.
         if(variable_instance_exists(id, "weakMarkCd") && weakMarkCd > 0)
                 weakMarkCd--;
+
+        // v4.3 (fix exe): fin del stun SIN I-FRAMES (trampa de una Amelia
+        // demonizada). El flag lo pone amelia_trap_trigger cuando la pisa
+        // un superviviente; los Step de personaje dejan de rellenar
+        // hurttime mientras valga. Aqui se limpia cuando el stun termina
+        // (o si ya no hay jugador: salida del nivel, muerte, etc.).
+        if(global.noStunIframes && (shockedTimer <= 0 || isDead || !instance_exists(global.player) || global.player.id != id))
+                global.noStunIframes = false;
         
         // SALLY CANON v5.4 — ESCUDO GRUPAL (fase duelista): observacion
         // por frame del bit del escudo de ella para re-armar la

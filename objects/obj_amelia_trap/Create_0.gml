@@ -52,6 +52,11 @@ function amelia_trap_trigger()
         var _up = upgraded;
         var _exeSide = global.character == CHARACTER_EXE || global.player.revivalTimes >= 2;
 
+        // v4.3 (fix exe): victima SUPERVIVIENTE (piso una trampa de una
+        // Amelia demonizada). Ademas del stun + slow de siempre, la
+        // trampa ahora hace DANO REAL.
+        var _survSide = !_exeSide && instance_exists(global.player) && !global.player.isDead;
+
         // STUN 3 s + slow 3.5 s al salir del stun: la victima es el
         // jugador LOCAL (cada cliente es autoridad del suyo, patron
         // de la banana). El slow se pide por el TOTAL (stun + slow)
@@ -59,6 +64,43 @@ function amelia_trap_trigger()
         // segundos del debuff quedan "tapados" por el propio stun y
         // los 3.5 restantes corren justo despues, como en el TD.
         // v3.0: mejorada -> 3.75 s de stun y 8.125 s de slow total.
+        // v4.3 (fix exe): DANO de la trampa demonizada — DESPUES del
+        // stun (si el golpe mata, los salvavidas tipo Nervios de
+        // Sonic/la burbuja de Amy Canon limpian el stun por si
+        // mismos; el orden evita revivir aturdido). Con ignore=true
+        // (pisa aunque la victima tenga i-frames de un golpe
+        // anterior: la trampa la coge igual) y exeSource=true (parry
+        // de Sonic puede negarlo). scr_player_hurt da los i-frames
+        // propios del golpe (hurttime); el refill de los Step durante
+        // el stun se neutraliza abajo con el flag.
+        if(_survSide)
+        {
+                var _trapDir = sign(x - global.player.x);
+                if(_trapDir == 0)
+                        _trapDir = 1;
+
+                scr_player_hurt(AMELIA_TRAP_DAMAGE, _trapDir * 3, -4, snd_hurt, spr_blood2, true, true);
+
+                // stats del golpe (canal 2 de la flecha demonizada,
+                // atribuidas a la duena Amelia demonizada)
+                if(instance_exists(obj_player_puppet))
+                {
+                        with(obj_player_puppet)
+                        {
+                                if(character != CHARACTER_AMELIA || !isDemonized)
+                                        continue;
+
+                                var pak = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
+                                buffer_write(pak, buffer_u8, 2);
+                                buffer_write(pak, buffer_u16, master_id);
+                                buffer_write(pak, buffer_u16, AMELIA_TRAP_DAMAGE);
+                                buffer_write(pak, buffer_u16, max(global.player.hp, 0));
+                                send_server_tcp(pak);
+                                break;
+                        }
+                }
+        }
+
         if(instance_exists(global.player) && global.player.shockedTimer <= 0)
         {
                 global.player.shockedTimer = round(60 * 3 * (_up ? EGG_GENIUS_BONUS : 1));
@@ -83,7 +125,7 @@ function amelia_trap_trigger()
         // v3.0: SOLO al bando EXE (exe real o esbirro). Los ESBIRROS
         // se quedan ciegos 2 s MAS que el exe. Los SUPERVIVIENTES
         // JAMAS: aunque pisen una trampa de una Amelia demonizada
-        // (ese caso hace stun + slow, pero sin velo oscuro).
+        // (ese caso hace dano + stun + slow, pero sin velo oscuro).
         if(_exeSide)
         {
                 var _blind = AMELIA_ECLIPSE_TIME * (_up ? EGG_GENIUS_BONUS : 1);
@@ -93,6 +135,16 @@ function amelia_trap_trigger()
 
                 global.eclipseTimer = round(_blind);
         }
+
+        // v4.3 (fix exe): SIN I-FRAMES al caer en la trampa. Todos los
+        // Step rellenan hurttime = 60*2 mientras dura el stun "para
+        // que no lo rematen", pero en la trampa demonizada eso
+        // convertiria el stun de 3 s en 5 s de invulnerabilidad
+        // gratis y el exe no podria rematar. Este flag dice a los Step
+        // que NO rellenen durante ESTE stun; scr_move_basic lo limpia
+        // cuando el stun termina (y con el cualquier resto).
+        if(_survSide)
+                global.noStunIframes = true;
 
         net_amelia_trap_trigger(nid);
 }

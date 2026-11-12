@@ -15,7 +15,7 @@ else
         gspd -= min(abs(gspd), acc) * sign(gspd);
         xspd -= min(abs(xspd), acc) * sign(xspd);
         shockedTimer--;
-        hurttime = 60 * 2;
+        hurttime = global.noStunIframes ? 0 : 60 * 2;
         ringsSpawn = 0;
 }
 
@@ -24,6 +24,29 @@ else
 var _pvx = max(abs(gspd), abs(xspd));
 
 scr_collision_basic();
+
+// =====================================================================
+//  v4.3 — FIX «QUEDABA REBOTANDO SIN PARAR»: si la golpean a media
+//  forma ardiente, la forma TERMINA YA. El cancel que vivia en
+//  scr_blaze_special (isHurt/isDead) era CODIGO MUERTO mientras duraba
+//  el golpe: scr_move_basic devuelve en su bloque isHurt ANTES de
+//  llamar a specialFunc, asi que burning quedaba congelado y el rebote
+//  de abajo (que no mira isHurt) la relanzaba antes de que volviera a
+//  tocar suelo — e isHurt solo se limpia EN el suelo con poca
+//  velocidad: deadlock, rebotando en el aire para siempre sin poder
+//  hacer nada. Mismo cierre que el del special (sonido + recarga
+//  completa de la forma).
+// =====================================================================
+if(burning > 0 && (isHurt || isDead))
+{
+        burning = 0;
+        isAttacking = false;
+
+        audio_play_sound(snd_blaze_goon, 0, false);
+        net_sound_emit(snd_blaze_goon);
+
+        burningTimer = revivalTimes >= 2 ? EBLAZE_BURNING_RECHARGE : BLAZE_BURNING_RECHARGE;
+}
 
 // =====================================================================
 //  v2.9 — GIRO DE FUEGO (tecla C): mientras arde, Blaze es un
@@ -36,7 +59,10 @@ scr_collision_basic();
 //  altura. El stun de 3 s al killer que la toque y el +30% de
 //  velocidad de la forma ardiente quedan intactos.
 // =====================================================================
-if(burning > 0 && !isDead && shockedTimer <= 0 && !isZipline && !isHiding && redRingTimer <= 0)
+// v4.3: el rebote tambien se corta con isHurt — nunca relanzarla por
+// el aire mientras dura la animacion de un golpe (defensa en
+// profundidad del fix de arriba: burning ya se cierra al ser herida).
+if(burning > 0 && !isDead && !isHurt && shockedTimer <= 0 && !isZipline && !isHiding && redRingTimer <= 0)
 {
         // SUELO: en vez de aterrizar, rebota hacia arriba
         if(isGrounded && yspd >= 0)

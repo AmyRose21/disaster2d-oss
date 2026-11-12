@@ -14,7 +14,7 @@ else
 	gspd -= min(abs(gspd), acc) * sign(gspd); 
 	xspd -= min(abs(xspd), acc) * sign(xspd); 
 	shockedTimer--;
-	hurttime = 60 * 2;
+	hurttime = global.noStunIframes ? 0 : 60 * 2;
 	ringsSpawn = 0;
 }
 

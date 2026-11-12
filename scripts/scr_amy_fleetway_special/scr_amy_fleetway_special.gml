@@ -100,8 +100,15 @@ function scr_amy_fleetway_special()
         // --- Habilidad 2: BALLESTA (tecla C) — v2.15 cargador de 3 ---
         // 0,5 s entre disparos (crossBow) y municion fwArrows; la
         // recarga de cada flecha (8 s) corre siempre que falte alguna.
-        if(global.playerControls && !isDead && !isHurt && shockedTimer <= 0 &&
-        keyboard_check_pressed(global.KeyC) && crossBow <= 0 && fwArrows > 0)
+        // v4.3 (fix exe): demonizada (revivalTimes >= 2) NO PUEDE usar
+        // la ballesta — las flechas son un arma anti-exe (plataformas +
+        // stun); en manos del bando exe su daño de 20 hacia los
+        // supervivientes era demasiado facil (pedido del usuario:
+        // "no seria demasiado facil"). La UI la marca en rojo; el
+        // cargador se mantiene congelado mientras dure la demonizacion.
+        if(global.playerControls && !isDead && !isHurt && shockedTimer <= 0
+        && keyboard_check_pressed(global.KeyC) && crossBow <= 0 && fwArrows > 0
+        && revivalTimes < 2)
         {
                 audio_play_sound(snd_crossbow, 0, false);
                 net_sound_emit(snd_crossbow);
@@ -208,7 +215,11 @@ function scr_amy_fleetway_special()
         if(crossBow > 0)
                 crossBow--;
 
-        if(fwArrows < FW_ARROW_MAX)
+        // v4.3 (fix exe): demonizada no recarga flechas — el cargador
+        // queda congelado mientras dure la demonizacion (la ballesta
+        // esta bloqueada arriba). Al volver a superviviente (no ocurre
+        // en partida normal, pero por consistencia) sigue donde estaba.
+        if(fwArrows < FW_ARROW_MAX && revivalTimes < 2)
         {
                 if(fwArrowReload > 0)
                         fwArrowReload--;

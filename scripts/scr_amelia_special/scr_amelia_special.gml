@@ -64,6 +64,9 @@
 // v3.0 (balance): recarga de la trampa 35 -> 24 s (pedido del usuario)
 #macro AMELIA_TRAP_RECHARGE (60 * 24)
 #macro EAMELIA_TRAP_RECHARGE (60 * 15)
+// v4.3 (fix exe): dano real de la trampa cuando su duena esta
+// DEMONIZADA y la pisa un superviviente (ademas del stun + slow).
+#macro AMELIA_TRAP_DAMAGE 20
 
 // v2.6 (SPINDASH, la habilidad firma de la fila 1 de su placa TTB):
 // valores 1:1 con los de Sonic (misma movilidad y stats de placa).

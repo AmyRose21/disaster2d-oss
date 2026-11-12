@@ -33,6 +33,16 @@ global.fwArrowStunDecay = 0;
 // (lo resetea el Create de obj_level). Mientras valga: pasivas del show.
 global.lmsActive = false;
 
+// v4.3 (fix exe): true mientras el jugador LOCAL esta aturdido por la
+// trampa de una Amelia DEMONIZADA. Todos los Step de personaje
+// rellenan hurttime = 60*2 durante el stun ("para que no lo rematen
+// mientras no puede hacer nada"), pero en esa trampa el stun viene
+// CON dano y SIN i-frames (pedido del usuario): si lo rellenaran, los
+// 3 s de stun serian 5 s de invulnerabilidad gratis y el exe no
+// podria rematar. Los Step lo respetan (no rellenan), y
+// scr_move_basic lo limpia cuando el stun termina.
+global.noStunIframes = false;
+
 global.ringId = 0;
 global.ringFrame = 0;
 global.character = -1;

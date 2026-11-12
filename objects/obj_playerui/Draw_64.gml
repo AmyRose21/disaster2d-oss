@@ -412,9 +412,11 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // la que esta recargando); los pips debajo cuentan las listas.
                         // Blanco = hay flecha Y paso el CD de disparo; rojo = lo demas.
                         // Mientras dura cbTimer la lleva en la mano (sprites cbamy).
+                        // v4.3 (fix exe): demonizada (revivalTimes >= 2) NO puede usar
+                        // la ballesta — icono en rojo con el cargador vacio de llenado.
                         var _arrows = global.player.fwArrows;
-                        var _prog3 = min(1.0, (_arrows + (_arrows < FW_ARROW_MAX ? 1.0 - max(global.player.fwArrowReload, 0) / FW_ARROW_RELOAD : 0)) / FW_ARROW_MAX);
-                        var b3 = (_arrows > 0 && global.player.crossBow <= 0) ? c_white : c_red;
+                        var _prog3 = global.player.revivalTimes >= 2 ? 0 : min(1.0, (_arrows + (_arrows < FW_ARROW_MAX ? 1.0 - max(global.player.fwArrowReload, 0) / FW_ARROW_RELOAD : 0)) / FW_ARROW_MAX);
+                        var b3 = (global.player.revivalTimes < 2 && _arrows > 0 && global.player.crossBow <= 0) ? c_white : c_red;
                         drawKeyIcon(spr_gui_amycrossbow_fw, 0, 23, global.KeyC, _prog3 * 10, 258 - _mob, b3, _prog3, 0);
 
                         // Pips de municion: un rectangulo por flecha disponible
