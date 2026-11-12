@@ -238,6 +238,7 @@
     {"name":"spr_ringlose","order":15,"path":"sprites/spr_ringlose/spr_ringlose.yy",},
     {"name":"spr_roseheart","order":2,"path":"sprites/spr_roseheart/spr_roseheart.yy",},
     {"name":"spr_sally_balancing_canon","order":1,"path":"sprites/spr_sally_balancing_canon/spr_sally_balancing_canon.yy",},
+    {"name":"spr_sally_capture_canon","order":23,"path":"sprites/spr_sally_capture_canon/spr_sally_capture_canon.yy",},
     {"name":"spr_sally_dead_canon","order":2,"path":"sprites/spr_sally_dead_canon/spr_sally_dead_canon.yy",},
     {"name":"spr_sally_emotion1_canon","order":3,"path":"sprites/spr_sally_emotion1_canon/spr_sally_emotion1_canon.yy",},
     {"name":"spr_sally_emotion2_canon","order":4,"path":"sprites/spr_sally_emotion2_canon/spr_sally_emotion2_canon.yy",},

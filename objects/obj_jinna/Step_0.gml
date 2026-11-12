@@ -137,6 +137,10 @@ if(jinnaTelePose > 0)
 if(jinnaGrabVisual > 0)
         jinnaGrabVisual--;
 
+// pose de plantar la trampa (v4: spr_jinna_tele, mismo patron que la de agarre)
+if(jinnaTrapVisual > 0)
+        jinnaTrapVisual--;
+
 // commit del golpe (frena el impulso mientras dura el swing)
 if(jinnaAttackLock > 0)
 {

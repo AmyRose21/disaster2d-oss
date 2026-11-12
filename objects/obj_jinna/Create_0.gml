@@ -55,6 +55,7 @@ jinnaTelePose = 0;     // frames de pose de tele tras aterrizar
 jinnaGrabCd = 0;       // enfriamiento restante del AGARRE
 jinnaGrabVisual = 0;   // frames de pose de agarre (attack2)
 jinnaTrapCd = 0;       // v4: enfriamiento restante del PORTAL TRAMPA (independiente del agarre)
+jinnaTrapVisual = 0;   // v4: frames de pose al PLANTAR la trampa (spr_jinna_tele, ver Step_2)
 
 // JINNA v3 — ADAPTACION A ATURDIMIENTOS (pasiva de lore): cada stun que
 // recibe le ensena a resistirlos: +10% de resistencia por stun recibido

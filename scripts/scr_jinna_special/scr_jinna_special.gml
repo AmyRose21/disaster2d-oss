@@ -91,6 +91,7 @@ function scr_jinna_special()
                 jinnaTeleWindup = 0;
                 jinnaTelePose = 0;
                 jinnaGrabVisual = 0;
+                jinnaTrapVisual = 0;
                 jinnaAttackLock = 0;
         }
 
@@ -239,7 +240,7 @@ function scr_jinna_special()
                 {
                         // ---- MODO TRAMPA (V + ABAJO) ----
                         jinnaTrapCd = JINNA_TRAP_RECHARGE; // v4: recarga PROPIA (no toca la del agarre)
-                        jinnaGrabVisual = 24; // pose de agarre ~0,4 s
+                        jinnaTrapVisual = 24; // v4: pose de plantar la trampa ~0,4 s (spr_jinna_tele, ver Step_2)
 
                         if(keyboard_check(global.KeyLeft))
                                 image_xscale = -1;
