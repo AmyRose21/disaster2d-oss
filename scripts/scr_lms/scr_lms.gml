@@ -55,6 +55,9 @@ global.lmsCharSongs[? CHARACTER_METAL] = [mus_lms_14];
 global.lmsCharSongs[? CHARACTER_AMELIA] = [mus_lms_12];
 global.lmsCharSongs[? CHARACTER_BLAZE] = [mus_lms_15];
 global.lmsCharSongs[? CHARACTER_FLEETWAY_AMY] = [mus_lms_13];
+// v4.4 — Rouge: show LMS (reusa una cancion del pozo; el server
+// espeja esta entrada en LMS_SHOWS de include/Server.h)
+global.lmsCharSongs[? CHARACTER_ROUGE] = [mus_lms_15];
 
 function scr_lms_play_song(ch, idx)
 {

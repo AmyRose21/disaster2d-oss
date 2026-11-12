@@ -316,6 +316,21 @@ if(instance_exists(global.player) && !global.player.isDead)
                         break;
                 }
 
+                // v4.4 — ROUGE: mismos dos iconos que Knuckles (planeo
+                // Z + patada X), con sus sprites propios del TTB
+                // (spr_gui_rougeglide / spr_gui_rougeattack). La
+                // patada NO tiene version exe (jamais se demoniza):
+                // su recarga es siempre la de superviviente.
+                case CHARACTER_ROUGE:
+                {
+                        var prog = 1.0 - (min(global.player.glideTimer, ROUGE_GLIDE_RECHARGE) / ROUGE_GLIDE_RECHARGE);
+                        drawKeyIcon(spr_gui_rougeglide, 0, 23, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+
+                        prog = 1.0 - (min(global.player.attackTimer, ROUGE_ATTACK_RECHARGE) / ROUGE_ATTACK_RECHARGE);
+                        drawKeyIcon(spr_gui_rougeattack, 0, 19, global.KeyB, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        break;
+                }
+
                 case CHARACTER_EGGMAN:
                 {
                         var prog = 1.0 - (max(global.player.djumpRecharge, 0) / EGGMAN_DJUMP_RECHARGE);

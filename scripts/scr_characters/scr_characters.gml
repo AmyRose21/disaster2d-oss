@@ -40,7 +40,7 @@
 // Tope de supervivientes: el ULTIMO macro de la lista de
 // scr_survivors. Al agregar un pj nuevo al final, este macro
 // queda apuntando al nuevo automaticamente.
-#macro CHARACTER_SURV_MAX CHARACTER_FLEETWAY_AMY
+#macro CHARACTER_SURV_MAX CHARACTER_ROUGE
 
 // Total de slots de personaje (exe + supervivientes).
 #macro CHARACTER_COUNT (CHARACTER_SURV_MAX + 1)
@@ -72,6 +72,7 @@ function scr_char_name(ch)
                 case CHARACTER_AMELIA: return "Amelia";
                 case CHARACTER_BLAZE: return "Blaze";
                 case CHARACTER_FLEETWAY_AMY: return "Fleetway Amy";
+                case CHARACTER_ROUGE: return "Rouge";
                 // (los killers se identifican por EXE_*, no por CHARACTER_*:
                 // sus valores colisionarian con los de supervivientes)
         }
@@ -262,6 +263,9 @@ function scr_lobby_icon_frame(char)
         case CHARACTER_METAL: return 10;
         case CHARACTER_AMELIA: return 11;
         case CHARACTER_BLAZE: return 12;
+        // v4.4: la tira comun tiene 13 frames (hasta Fleetway); Rouge
+        // reusa el frame de Knuckles hasta que exista tira ampliada
+        case CHARACTER_ROUGE: return CHARACTER_KNUX + 1;
     }
     return char + 1;
 }
@@ -310,9 +314,9 @@ function scr_lobby_shiny_resolve(inst)
         else if(ds_map_exists(obj_netclient.players, master_id) && !obj_netclient.players[? master_id].pending)
             _ch = obj_netclient.players[? master_id].character;
         // v5.1: tope ampliado a Fleetway (antes _ch > CHARACTER_BLAZE la
-        // dejaba fuera del resolve)
-        if(_ch < CHARACTER_TAILS || _ch == CHARACTER_EXE || _ch > CHARACTER_FLEETWAY_AMY)
-            return;
+        // dejaba fuera del resolve). v4.4: tope Rouge.
+        if(_ch < CHARACTER_TAILS || _ch == CHARACTER_EXE || _ch > CHARACTER_ROUGE)
+                return;
         scr_lobby_shiny_setup(_ch);
     }
 }
@@ -348,6 +352,9 @@ function scr_hud_strip(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerhealth_sallycanon, 0];
         case CHARACTER_VANILLA: return [spr_playerhealth_vanilla, 0];
+        // v4.4: la tira comun llega hasta Fleetway (14 filas); Rouge
+        // reusa la fila de Knuckles (mismo tamano de sprite)
+        case CHARACTER_ROUGE: return [spr_playerhealth, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
     }
     return [spr_playerhealth, (char - CHARACTER_TAILS) * 7];
 }
@@ -360,6 +367,7 @@ function scr_hud_strip_red(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerhealth_redring, (CHARACTER_SALLY - CHARACTER_TAILS) * 7];
         case CHARACTER_VANILLA: return [spr_playerhealth_redring, (CHARACTER_CREAM - CHARACTER_TAILS) * 7];
+        case CHARACTER_ROUGE: return [spr_playerhealth_redring, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
     }
     return [spr_playerhealth_redring, (char - CHARACTER_TAILS) * 7];
 }
@@ -370,6 +378,7 @@ function scr_hud_hit(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerhealth_hit_sallycanon, 0];
         case CHARACTER_VANILLA: return [spr_playerhealth_hit_vanilla, 0];
+        case CHARACTER_ROUGE: return [spr_playerhealth_hit, CHARACTER_KNUX - CHARACTER_TAILS];
     }
     return [spr_playerhealth_hit, char - CHARACTER_TAILS];
 }
@@ -380,6 +389,7 @@ function scr_hud_demon(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerhealth_demon_sallycanon, 0];
         case CHARACTER_VANILLA: return [spr_playerhealth_demon_vanilla, 0];
+        case CHARACTER_ROUGE: return [spr_playerhealth_demon, CHARACTER_KNUX - CHARACTER_TAILS];
     }
     return [spr_playerhealth_demon, char - CHARACTER_TAILS];
 }
@@ -390,6 +400,7 @@ function scr_hud_escaped(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerescaped_sallycanon, 0];
         case CHARACTER_VANILLA: return [spr_playerescaped_vanilla, 0];
+        case CHARACTER_ROUGE: return [spr_playerescaped, CHARACTER_KNUX - CHARACTER_TAILS];
     }
     return [spr_playerescaped, char - CHARACTER_TAILS];
 }

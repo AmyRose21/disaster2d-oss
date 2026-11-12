@@ -42,7 +42,7 @@ bool allocate_server(uint16_t base_port, uint16_t n)
         /* v5.3.2 — FIX LMS VARIEDAD V1: lms_last arranca en 0xFF ("ninguna")
            por personaje: la bolsa se rellena y la primera extraccion puede
            caer en cualquier cancion. */
-        for (int i = 0; i <= CH_FLEETWAY_AMY; i++)
+        for (int i = 0; i <= CH_ROUGE; i++) /* v4.4: Rouge */
                 server->lms_last[i] = 0xFF;
 
         // Init lobby

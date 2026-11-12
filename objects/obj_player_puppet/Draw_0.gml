@@ -67,6 +67,13 @@ switch(character)
                 if(state == KNUX_GLIDE)
                         image_xscale = 1;
                 break;
+
+        // v4.4 — ROUGE: mismo guard que Knuckles (el sprite de planeo
+        // es espejo: en planeo siempre mira a la derecha)
+        case CHARACTER_ROUGE:
+                if(state == ROUGE_GLIDE)
+                        image_xscale = 1;
+                break;
 }
 
 // SONIC POWERBOOST (fase 3 de Nervios o fase 2 del revive): mismo look
@@ -304,5 +311,12 @@ switch(character)
         case CHARACTER_FLEETWAY_AMY:
                 if(state == FW_ZIPLINE)
                         draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 21 - 19);
+                break;
+
+        // v4.4 — ROUGE: cuelga de la tirolina a la altura de Knuckles
+        // (su sprite mide casi igual: offset 22)
+        case CHARACTER_ROUGE:
+                if(state == ROUGE_ZIPLINE)
+                        draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 22 - 19);
                 break;
 }

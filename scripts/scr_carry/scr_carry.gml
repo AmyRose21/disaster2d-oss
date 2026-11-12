@@ -83,6 +83,7 @@ function scr_carry_zipline_state(ch)
                 case CHARACTER_METAL:        return METAL_ZIPLINE;
                 case CHARACTER_BLAZE:        return BLAZE_ZIPLINE;
                 case CHARACTER_FLEETWAY_AMY: return FW_ZIPLINE;
+                case CHARACTER_ROUGE:        return ROUGE_ZIPLINE; // v4.4: cuelga con su propia tirolina
         }
         
         return -1;   // el EXE y variantes: nunca cuelgan del carry

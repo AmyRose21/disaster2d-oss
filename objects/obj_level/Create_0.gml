@@ -87,6 +87,13 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
         // nuevo: hchar = 14-1 = 13 cae justo en su frame dedicado de las tiras.
         else if(char == CHARACTER_FLEETWAY_AMY)
                 char = 3;
+        // v4.4: Rouge -> fila de Knuckles (frame 1): spr_tab_entry no
+        // tiene fila propia para ella y el char-- la mandaria a la de
+        // Fleetway (13). El icono hit/demon del marcador cae en el
+        // frame de Knuckles de las tiras (mismo criterio que Fleetway
+        // con Amy).
+        else if(char == CHARACTER_ROUGE)
+                char = 1;
         else
                 char--;
         

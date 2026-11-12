@@ -48,3 +48,8 @@ global.paletteShifts[? CHARACTER_BLAZE + PALETTE_DEMON] = scr_palette([ #260a0f,
 
 // Metal Amy (killer): rosa metalico -> rojo sangre (patron Exeller)
 global.paletteShifts[? EXE_METALAMY + PALETTE_EXE] = scr_palette([ #940000, #ff0000 ]);
+
+// v4.4 — Rouge: el shift de "herido" rojo clasico; el demon es solo
+// defensivo (jamás se demoniza: los erouge_* ya son su set exe).
+global.paletteShifts[? CHARACTER_ROUGE] = scr_palette([ #800000, #e00000 ]);
+global.paletteShifts[? CHARACTER_ROUGE + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20 ]);

@@ -77,6 +77,64 @@ function scr_player_instakill()
                 scr_sally_canon_fase2_start(global.player.fase2HitX);
                 return; // el server nunca sabe que "murio": sigue viva para todos
         }
+
+        // === MORIBUNDA (Rouge v4.5): su UNICA salvacion ===
+        // 1ra caida -> tirada 6 s (inmune a todo) y se levanta sola con
+        // 40 de vida (patron Vanilla). El server NUNCA sabe que cayo: la
+        // ronda sigue y nadie puede "revivirla" (no hay barra). Su retrato
+        // si marca el hit (cayo 1 vez: revivalTimes=1 local). La 2da caida
+        // cae al flujo normal de abajo: MUERTE REAL de una (con la X en
+        // el retrato) — el server ya la trata como canonica (guard de
+        // Game.c): sin agonia de 30 s, sin demonizarse, jamas.
+        if(global.character == CHARACTER_ROUGE)
+        {
+                // dentro de la moribunda no puede "volver a caer"
+                if(global.player.moribundaState > 0)
+                        return;
+
+                if(global.player.revivalTimes < 1)
+                {
+                        with(global.player)
+                        {
+                                moribundaState = 1;
+                                moribundaTimer = ROUGE_MORIBUNDA_TIME;
+                                image_index = 0;
+
+                                hp = max(hp, 0);
+                                hurttime = 0;
+                                shockedTimer = 0;
+                                isDead = false;
+                                isHurt = false;
+                                gspd = 0;
+                                xspd = 0;
+                                yspd = 0;
+                                isAttacking = false;
+                                isJumping = false;
+                                isSpinning = false;
+                                isBoosting = false;
+                                isZipline = false;
+                                isHiding = false;
+                                emotion = false;
+                                isGliding = false;
+
+                                if(isStuck)
+                                {
+                                        canMove = true;
+                                        isStuck = false;
+                                }
+
+                                // marca el "hit" del retrato (cayo 1 vez);
+                                // viaja en el paquete UDP de siempre para
+                                // el tab de los demas. NUNCA pasa de 1:
+                                // no hay barra de revive que la suba.
+                                revivalTimes = 1;
+                        }
+
+                        audio_play_sound(snd_hurt, 0, false);
+                        return; // el server nunca sabe que "cayo": moribunda
+                }
+                // revivalTimes >= 1: 2da caida -> MUERTE REAL (flujo de abajo)
+        }
         
         // === PACIENCIA / MORIBUNDA (Vanilla v2): NUNCA cae muerta ===
         // 1ra caida -> PACIENCIA: 5 s inmune; a los 2 s sale Chocola
@@ -281,6 +339,11 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         // PACIENCIA / MORIBUNDA: inmune a TODO mientras duran (enojada
         // o tirada en el suelo: ni el exe ni el entorno le hacen nada).
         if(global.character == CHARACTER_VANILLA && (global.player.pacienciaState > 0 || global.player.moribundaState > 0))
+                return;
+
+        // v4.5 — MORIBUNDA DE ROUGE: igual que Vanilla, inmune a TODO
+        // mientras esta tirada (ni el exe ni el entorno le hacen nada)
+        if(global.character == CHARACTER_ROUGE && global.player.moribundaState > 0)
                 return;
         
         if(global.player.hurttime > 0)

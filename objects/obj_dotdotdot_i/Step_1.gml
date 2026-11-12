@@ -134,5 +134,13 @@ if(!global.player.isSlow)
                         global.player.acc = FW_ACC;
                         break;
                 }
+
+                // v4.4: Rouge
+                case CHARACTER_ROUGE:
+                {
+                        global.player.maxHSpeed = ROUGE_MAXSPEED;
+                        global.player.acc = ROUGE_ACC;
+                        break;
+                }
         }
 }

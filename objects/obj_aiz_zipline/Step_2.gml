@@ -81,7 +81,20 @@ if(hasPlayer && progress < 1)
 		case CHARACTER_KNUX:
 			global.player.y = y + 22;
 			global.player.isGliding = false;
-			
+
+			if(global.player.isStuck)
+			{
+				global.player.canMove = true;
+				global.player.isStuck = false;
+			}
+			break;
+
+		// v4.4: Rouge cuelga igual que Knuckles (su sprite de tirolina
+		// mide casi igual) y la tirolina le corta el planeo/agarre.
+		case CHARACTER_ROUGE:
+			global.player.y = y + 22;
+			global.player.isGliding = false;
+
 			if(global.player.isStuck)
 			{
 				global.player.canMove = true;

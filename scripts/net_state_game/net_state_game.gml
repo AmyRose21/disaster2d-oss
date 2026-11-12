@@ -506,7 +506,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // (v4: Amy sube al nivel 1, Vanilla al 2; solo ESCALA.
                         // v4.1: Sally Canon tambien al 1 — mismo tier "arduas"
                         // que Amy Canon)
-                        if(_hkind == 1 || _hkind == 2 || _hkind == 3)
+                        if(_hkind == 1 || _hkind == 2 || _hkind == 3 || _hkind == 4)
                         {
                                 var _jtier = (_hkind == 1) ? JINNA_CAUGHT_VANILLA : JINNA_CAUGHT_AMY;
                                 global.jinnaCaughtTier = max(global.jinnaCaughtTier, _jtier);
@@ -524,25 +524,26 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 {
                                         obj_jinna.jinnaCaughtDelay = 102;
                                         obj_jinna.jinnaCaughtKind = _jtier;
-                                        obj_jinna.jinnaCaughtSprite = (_hkind == 1) ? spr_vanilla_caught : ((_hkind == 2) ? spr_amy_capture_canon : spr_sally_capture_canon);
+                                        obj_jinna.jinnaCaughtSprite = (_hkind == 1) ? spr_vanilla_caught : ((_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 4) ? spr_rouge_traped : spr_sally_capture_canon));
                                 }
                         }
 
                         if(_hpid == obj_netclient.nid)
                         {
-                                if(_hkind == 1 || _hkind == 2 || _hkind == 3)
+                                if(_hkind == 1 || _hkind == 2 || _hkind == 3 || _hkind == 4)
                                 {
-                                        // VANILLA / AMY CANON / SALLY CANON (yo):
+                                        // VANILLA / AMY CANON / SALLY CANON / ROUGE (yo):
                                         // secuencia de absorcion (v4: el sprite de
-                                        // la victima viaja en el absorb — Amy y
-                                        // Sally usan su pose de secuestro canon,
-                                        // que aun no tienen pantalla propia)
+                                        // la victima viaja en el absorb — Amy, Sally
+                                        // y Rouge usan su sprite de captura propio;
+                                        // v4.5: Rouge solo llega aqui cuando el golpe
+                                        // la iba a tumbar: flag fatal de su reporte)
                                         if(instance_exists(global.player) && !global.player.isDead)
                                         {
                                                 var _abs = instance_create_depth(global.player.x, global.player.y, 0, obj_jinna_absorb);
                                                 _abs.jinnaX = _hjx;
                                                 _abs.jinnaY = _hjy;
-                                                _abs.absorbVictim = (_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 3) ? spr_sally_capture_canon : spr_vanilla_absorb_trap);
+                                                _abs.absorbVictim = (_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 3) ? spr_sally_capture_canon : ((_hkind == 4) ? spr_rouge_traped : spr_vanilla_absorb_trap));
                                         }
                                 }
                                 else if(instance_exists(global.player) && !global.player.isDead)
@@ -581,7 +582,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         }
                                 }
                         }
-                        else if(_hkind == 1 || _hkind == 2)
+                        else if(_hkind == 1 || _hkind == 2 || _hkind == 3 || _hkind == 4)
                         {
                                 // el resto: la atrapada YA no es de este mundo — su
                                 // puppet se oculta al instante (el paquete de
@@ -1885,7 +1886,16 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         global.player.isGliding = false;
                                         global.player.glideTimer = KNUX_GLIDE_RECHARGE;
                                 }
-                                
+
+                                // v4.4: Rouge se agarra a las paredes igual que
+                                // Knuckles (mismo reset al cruzar la puerta)
+                                if(global.character == CHARACTER_ROUGE && global.player.isStuck)
+                                {
+                                        global.player.isStuck = false;
+                                        global.player.isGliding = false;
+                                        global.player.glideTimer = ROUGE_GLIDE_RECHARGE;
+                                }
+
                                 if(_prevState == 1 || _prevState == 3)
                                 {
                                         global.player.x -= 2904;

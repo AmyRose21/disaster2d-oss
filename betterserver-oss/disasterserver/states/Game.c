@@ -449,7 +449,8 @@ bool game_demonize(Server* server, PeerData* data)
          * server; este guard cubre cualquier otro camino, p. ej. el
          * bloque de muerte subita). */
         if (data->surv_char == CH_AMY_CANON || data->surv_char == CH_SALLY_CANON || data->surv_char == CH_SONIC
-            || data->surv_char == CH_VANILLA)
+            || data->surv_char == CH_VANILLA
+            || data->surv_char == CH_ROUGE) /* v4.4: Rouge tampoco, nunca */
                 return true;
 
         int players = 0;
@@ -1845,7 +1846,10 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                  * la dibuja con su pose de secuestro y la potenciacion es
                  * la "ardua" (la mitad de los aumentos). kind 3 = SALLY
                  * CANON (v4.1): igual que Amy Canon (tier "arduas") con
-                 * su spr_sally_capture_canon. */
+                 * su spr_sally_capture_canon. kind 4 = ROUGE (v4.5): igual
+                 * que las canon (tier "arduas", spr_rouge_traped) pero SOLO
+                 * cuando el golpe la iba a tumbar (flag fatal de su
+                 * cliente: hp tras dano <= 0). */
                 case CLIENT_JINNA_TRAP_HIT:
                 {
                         AssertOrDisconnect(v->server, v->in_game);
@@ -1894,6 +1898,25 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 kind = 2;
                         else if (v->surv_char == CH_SALLY_CANON) /* v4.1: Sally Canon tambien (spr_sally_capture_canon), mismo tier "arduas" que Amy */
                                 kind = 3;
+                        /* v4.5: ROUGE — absorbida SOLO si el golpe la iba a
+                         * tumbar de verdad. El server no trackea hp (la
+                         * autoridad es su cliente, como todo el dano del
+                         * juego): el reporte de pisada llega con el flag
+                         * fatal=1 cuando su cliente calcula que el dano de
+                         * la trampa la dejaria <= 0 (moribunda gastada o
+                         * muerte). Sin flag: kind 0 (dano + TP normal). */
+                        else if (v->surv_char == CH_ROUGE)
+                        {
+                                /* el flag fatal viaja AL FINAL del reporte de
+                                 * pisada (v4.5): un cliente viejo sin el byte
+                                 * NO se desconecta — se lee solo si quedan
+                                 * datos (patron del payload opcional) */
+                                uint8_t fatal = 0;
+                                if (packet->pos < packet->len)
+                                        fatal = packet->buff[packet->pos++];
+                                if (fatal)
+                                        kind = 4;
+                        }
 
                         jinna_trap_trigger(v->server, target);
                         game_despawn(v->server, NULL, target->id);
@@ -2220,7 +2243,8 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                  * posible desde un cliente viejo sin el patch: el v2 jamas
                                  * reporta sus caidas). JAMAS se demoniza. */
                                 if (v->surv_char == CH_AMY_CANON || v->surv_char == CH_SALLY_CANON || v->surv_char == CH_SONIC
-                                    || v->surv_char == CH_VANILLA)
+                                    || v->surv_char == CH_VANILLA
+                                    || v->surv_char == CH_ROUGE) /* v4.4: Rouge muere directa, jamas exe */
                                 {
                                         SET_FLAG(v->plr.flags, PLAYER_CANTREVIVE);
                                         v->plr.death_timer_sec = 0;

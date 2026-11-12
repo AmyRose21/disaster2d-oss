@@ -101,9 +101,13 @@ function scr_collision_objects_after()
                                         break;
                                         
                                 case CHARACTER_KNUX:
+
+                                // v4.4 — Rouge: muelles igual que Knux (cortan
+                                // planeo + agarre y le devuelven la recarga)
+                                case CHARACTER_ROUGE:
                                         if(isGliding)
                                         {
-                                                glideTimer = KNUX_GLIDE_RECHARGE;
+                                                glideTimer = (global.character == CHARACTER_ROUGE) ? ROUGE_GLIDE_RECHARGE : KNUX_GLIDE_RECHARGE;
                                                 isGliding = false;
                                                 
                                                 if(isStuck)
@@ -115,7 +119,7 @@ function scr_collision_objects_after()
                                         
                                         if(isAttacking)
                                         {
-                                                attackTimer = revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
+                                                attackTimer = (global.character == CHARACTER_ROUGE) ? ROUGE_ATTACK_RECHARGE : (revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE);
                                                 isAttacking = false;
                                         }
                                         break;
@@ -246,9 +250,13 @@ function scr_collision_objects_after()
                                         break;
                                         
                                 case CHARACTER_KNUX:
+
+                                // v4.4 — Rouge: muelles igual que Knux (cortan
+                                // planeo + agarre y le devuelven la recarga)
+                                case CHARACTER_ROUGE:
                                         if(isGliding)
                                         {
-                                                glideTimer = KNUX_GLIDE_RECHARGE;
+                                                glideTimer = (global.character == CHARACTER_ROUGE) ? ROUGE_GLIDE_RECHARGE : KNUX_GLIDE_RECHARGE;
                                                 isGliding = false;
                                                 
                                                 if(isStuck)
@@ -260,7 +268,7 @@ function scr_collision_objects_after()
                                         
                                         if(isAttacking)
                                         {
-                                                attackTimer = revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
+                                                attackTimer = (global.character == CHARACTER_ROUGE) ? ROUGE_ATTACK_RECHARGE : (revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE);
                                                 isAttacking = false;
                                         }
                                         break;

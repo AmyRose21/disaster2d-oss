@@ -116,7 +116,14 @@ typedef struct PeerData
                 /* v2.14: Fleetway Amy (port del mod de GameJolt). Como Amy
                    Canon y Vanilla: SOLO con el token de Amy (amy_authed).
                    Mismo orden que el cliente (scr_survivors.gml). */
-                CH_FLEETWAY_AMY
+                CH_FLEETWAY_AMY,
+
+                /* v4.4: Rouge (set de sprites rouge/erouge del TTB ya en
+                   el proyecto). Superviviente #15: planeo + agarre de
+                   pared de Knux + patada tierra/aire de Sally. JAMAS
+                   se demoniza (regla canonica): muerte directa.
+                   Mismo orden que el cliente (scr_survivors.gml). */
+                CH_ROUGE
                 } surv_char;
 
         enum
@@ -167,7 +174,7 @@ typedef struct
         int8_t map;
         uint16_t exe;
         bool exe_practice; /* [practica-exe-v1]: ronda iniciada con .ep — no termina por eliminacion (solo TIME OVER / .lobby / exe se va) */
-        bool avail[CH_FLEETWAY_AMY + 1];
+        bool avail[CH_ROUGE + 1];
 } Lobby;
 
 typedef enum
@@ -203,7 +210,7 @@ typedef struct
         uint16_t sec[LMS_MAX_SONGS]; /* duracion de cada una (s) */
 } LmsShow;
 
-#define LMS_SHOW_COUNT 14
+#define LMS_SHOW_COUNT 15
 static const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {
         { CH_TAILS, 1, { 205 } },
         { CH_KNUX, 2, { 251, 140 } },
@@ -219,6 +226,7 @@ static const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {
         { CH_AMELIA, 1, { 206 } },
         { CH_BLAZE, 1, { 180 } },
         { CH_FLEETWAY_AMY, 1, { 216 } },
+        { CH_ROUGE, 1, { 180 } }, /* v4.4: misma cancion que Blaze (mus_lms_15) */
 };
 
 typedef struct
@@ -294,15 +302,15 @@ typedef struct Server
            "siempre la misma cancion". lms_bag_count guarda el tamaño de
            la lista con la que se relleno (si el Suite cambia la tabla,
            la bolsa se rellena sola). */
-        uint8_t lms_bag[CH_FLEETWAY_AMY + 1][LMS_MAX_SONGS];
-        uint8_t lms_bag_left[CH_FLEETWAY_AMY + 1];
-        uint8_t lms_bag_count[CH_FLEETWAY_AMY + 1];
+        uint8_t lms_bag[CH_ROUGE + 1][LMS_MAX_SONGS];
+        uint8_t lms_bag_left[CH_ROUGE + 1];
+        uint8_t lms_bag_count[CH_ROUGE + 1];
 
         /* v5.3.2: ultima cancion que SONO por personaje (para el anti-eco
            entre ciclos de la bolsa: la primera extraccion tras rellenar
            no puede caer en la misma que cerro el ciclo anterior). Se
            inicializa a 0xFF en server_new (Lib.c). */
-        uint8_t lms_last[CH_FLEETWAY_AMY + 1];
+        uint8_t lms_last[CH_ROUGE + 1];
 
         double delta;
         DyList peers;

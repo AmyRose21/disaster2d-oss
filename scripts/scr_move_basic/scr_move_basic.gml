@@ -249,10 +249,10 @@ function scr_move_basic()
                 if(effectTime <= 0)
                         effectTime = 16;
                         
-                if(global.character == CHARACTER_KNUX)
+                if(global.character == CHARACTER_KNUX || global.character == CHARACTER_ROUGE)
                 {
                         isGliding = false;
-                        
+
                         if(isStuck)
                         {
                                 canMove = true;
@@ -751,7 +751,7 @@ function scr_move_basic()
         if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isJumping
         && (isGrounded || (coyoteTimer > 0 && yspd >= 0 && !isZipline)))
         {
-                if(global.character == CHARACTER_EXE || global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON))
+                if(global.character == CHARACTER_EXE || global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) || global.character == CHARACTER_ROUGE)
                 {
                         if(isAttacking)
                                 return;

@@ -38,6 +38,14 @@
    del mod (1.1.0). SIEMPRE AL FINAL de la lista. */
 #macro CHARACTER_FLEETWAY_AMY (CHARACTER_TAILS+13)
 
+/* v4.4 — ROUGE (sprites del TTB ya presentes en el proyecto: set
+   completo spr_rouge_* + variante exe spr_erouge_*). Superviviente
+   #15: planeo + agarre de pared de Knuckles (scr_rouge_special) +
+   patada tierra/aire de Sally. JAMAS se demoniza (regla canonica,
+   mismo parche del server que Amy Canon/Sonic/Vanilla): su caida
+   es muerte directa. SIEMPRE AL FINAL de la lista. */
+#macro CHARACTER_ROUGE (CHARACTER_TAILS+14)
+
 global.player_anims = ds_map_create();
 
 //Tails
@@ -406,6 +414,37 @@ global.player_anims[? CHARACTER_FLEETWAY_AMY] =
         spr_cbamy_run_fw //21 = con ballesta
 ];
 
+// Rouge (v4.4): 14 = ROUGE_ATTACK (patada AEREA, spr_rouge_attack1
+// — la del vuelo), 15 = ROUGE_AIR_ATTACK (patada en TIERRA,
+// spr_rouge_attack2 — el barrido bajo; mismo intercambio de slots
+// que Knuckles), 16 = ROUGE_GLIDE, 17 = ROUGE_ZIPLINE,
+// 18 = ROUGE_STUCK. El nombre del estado y del sprite quedan
+// cruzados a proposito para respetar el layout de estados de
+// Knuckles que viaja por red (Step_2 de obj_rouge).
+global.player_anims[? CHARACTER_ROUGE] =
+[
+        spr_rouge_idle, //0
+        spr_rouge_walk, //1
+        spr_rouge_run, //2
+        spr_rouge_jump, //3
+        spr_rouge_fall, //4
+        spr_rouge_hurt, //5
+        spr_rouge_dead, //6
+        spr_rouge_lookup, //7
+        spr_rouge_lookdown, //8
+        spr_rouge_emotion1, //9
+        spr_rouge_emotion2, //10
+        spr_rouge_emotion, //11
+        spr_rouge_jump, //12 (spin)
+        spr_rouge_balancing, //13
+        spr_rouge_attack1, //14 = ROUGE_ATTACK: patada AEREA (tecla X en el aire)
+        spr_rouge_attack2, //15 = ROUGE_AIR_ATTACK: patada en TIERRA (tecla X)
+        spr_rouge_glide, //16 = ROUGE_GLIDE: planeo (Z aerea, patron Knux)
+        spr_rouge_zipline, //17 = ROUGE_ZIPLINE
+        spr_rouge_stuck, //18 = ROUGE_STUCK: agarre de pared (patron Knux)
+        spr_rouge_hurt //19 = ROUGE_MORIBUNDA (v4.5): 1ra caida, tirada 6 s
+];
+
 global.player_eanims = ds_map_create();
 
 //Tails
@@ -760,6 +799,35 @@ global.player_eanims[? CHARACTER_BLAZE] =
         spr_eblaze_zipline //16
 ];
 
+// ROUGE (demonizada): JAMAS se demoniza (regla canonica, parche del
+// server), asi que este bloque es SOLO DEFENSIVO — mismo criterio
+// que el eanims de Sally Canon/Vanilla: si algun camino llegara a
+// leerlo con revivalTimes >= 2, que pinte algo coherente. El set
+// erouge_* existe completo (viene del TTB).
+global.player_eanims[? CHARACTER_ROUGE] =
+[
+        spr_erouge_idle, //0
+        spr_erouge_walk, //1
+        spr_erouge_run, //2
+        spr_erouge_jump, //3
+        spr_erouge_fall, //4
+        spr_erouge_hurt, //5
+        spr_erouge_stun, //6
+        spr_erouge_lookup, //7
+        spr_erouge_lookdown, //8
+        spr_erouge_emotion1, //9
+        spr_erouge_emotion2, //10
+        spr_erouge_emotion3, //11
+        spr_erouge_jump, //12
+        spr_erouge_balancing, //13
+        spr_erouge_attack2, //14
+        spr_erouge_attack1, //15
+        spr_erouge_glide, //16
+        spr_erouge_zipline, //17
+        spr_erouge_stuck, //18
+        spr_erouge_hurt //19 = ROUGE_MORIBUNDA defensivo
+];
+
 // =====================================================================
 //  SONIC: variantes dinamicas del golpe (tecla X). Cualquier sprite
 //  llamado spr_sonic_attack2_tierra<N> o spr_sonic_attack2_aereo<N>
@@ -906,6 +974,9 @@ function player_get(ind)
 
                 case CHARACTER_FLEETWAY_AMY:
                         return obj_amy_fleetway;
+
+                case CHARACTER_ROUGE:
+                        return obj_rouge;
         }
 }
 

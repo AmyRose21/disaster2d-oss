@@ -21,8 +21,8 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 // Personajes reservados (Amy Canon / Sally Canon):
                 // quien no puede usarlos no pasa por sus slots al ciclar
                 // (ver scr_char_locked). El while salta varios seguidos.
-                // v2.14: el tope ahora es Fleetway Amy (14 supervivientes).
-                while(selected >= CHARACTER_TAILS && selected <= CHARACTER_FLEETWAY_AMY && scr_char_locked(selected))
+                // v4.4: el tope ahora es Rouge (15 supervivientes).
+                while(selected >= CHARACTER_TAILS && selected <= CHARACTER_ROUGE && scr_char_locked(selected))
                         selected--;
                 
                 if(obj_netclient.exeId == master_id)
@@ -54,7 +54,8 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                         if(selected < 1)
                         {
                                 // wrap: entra por el ultimo slot VISIBLE
-                                selected = CHARACTER_BLAZE;
+                                // (v4.4: tope Rouge)
+                                selected = CHARACTER_ROUGE;
                                 while(selected >= CHARACTER_TAILS && scr_char_locked(selected))
                                         selected--;
                         }
@@ -66,10 +67,10 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
         {
                 offset = 3;
                 selected++;
-                
+
                 // Personajes reservados: se saltan por completo al ciclar
-                // (ver scr_char_locked). v2.2: tope Blaze.
-                while(selected <= CHARACTER_BLAZE && scr_char_locked(selected))
+                // (ver scr_char_locked). v4.4: tope Rouge.
+                while(selected <= CHARACTER_ROUGE && scr_char_locked(selected))
                         selected++;
                 
                 if(obj_netclient.exeId == master_id)
@@ -89,7 +90,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 }
                 else
                 {
-                        if(selected > CHARACTER_FLEETWAY_AMY)
+                        if(selected > CHARACTER_ROUGE)
                                 selected = 1;
                 }
                         

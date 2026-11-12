@@ -111,5 +111,14 @@ function scr_player_slow(time)
                                 global.player.maxHSpeed = (FW_MAXSPEED * (100-40)) / 100;
                                 global.player.alarm[4] = 60 * time;
                                 break;
+
+                        // v4.4: Rouge (stats propios; su Alarm_4 ya restaura
+                        // ROUGE_MAXSPEED/ROUGE_ACC)
+                        case CHARACTER_ROUGE:
+                                global.player.isSlow = true;
+                                global.player.acc = (ROUGE_ACC * (100-40)) / 100;
+                                global.player.maxHSpeed = (ROUGE_MAXSPEED * (100-40)) / 100;
+                                global.player.alarm[4] = 60 * time;
+                                break;
         }
 }

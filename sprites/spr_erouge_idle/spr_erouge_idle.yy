@@ -42,7 +42,7 @@
   ],
   "name":"spr_erouge_idle",
   "nineSlice":null,
-  "origin":0,
+  "origin":9,
   "parent":{
     "name":"Rouge",
     "path":"folders/Sprites/Player/Demonized/Rouge.yy",

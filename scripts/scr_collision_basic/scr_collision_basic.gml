@@ -182,7 +182,7 @@ function scr_collision_check(_near)
 						}
 					}
 					
-					if(global.character == CHARACTER_KNUX && isGliding && glideTimer > 0)
+					if((global.character == CHARACTER_KNUX || global.character == CHARACTER_ROUGE) && isGliding && glideTimer > 0)
 					{
 						if(inst1.canStuck && !isStuck && !isHurt)
 						{
@@ -190,14 +190,14 @@ function scr_collision_check(_near)
 							net_sound_emit(snd_snap);
 							isStuck = true;
 						}
-						
+
 						if(isStuck && !isHurt)
 						{
 							image_xscale = -1;
 							yspd = 0;
 						}
 					}
-					
+
 					break;
 				}
 			}
@@ -253,7 +253,7 @@ function scr_collision_check(_near)
 						}
 					}
 					
-					if(global.character == CHARACTER_KNUX && isGliding && glideTimer > 0)
+					if((global.character == CHARACTER_KNUX || global.character == CHARACTER_ROUGE) && isGliding && glideTimer > 0)
 					{
 						if(inst2.canStuck && !isStuck && !isHurt)
 						{
@@ -261,7 +261,7 @@ function scr_collision_check(_near)
 							net_sound_emit(snd_snap);
 							isStuck = true;
 						}
-						
+
 						if(isStuck && !isHurt)
 						{
 							image_xscale = 1;

@@ -320,7 +320,9 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                         
                         if((character != CHARACTER_AMY && character != CHARACTER_AMY_CANON) && character != CHARACTER_EGGMAN)
                         {
-                                if((global.character == CHARACTER_KNUX || global.character == CHARACTER_SALLY) && global.player.isAttacking && global.player.revivalTimes < 2)
+                                // v4.4: Rouge patea igual que Knuckles/Sally — su
+                                // golpe local tambien repele al ESBIRRO que la toca
+                                if((global.character == CHARACTER_KNUX || global.character == CHARACTER_SALLY || global.character == CHARACTER_ROUGE) && global.player.isAttacking && global.player.revivalTimes < 2)
                                 {
                                         global.player.isAttacking = false;
                                         global.player.isHurt = true;
@@ -333,7 +335,7 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         return;
                                 }
                         }
-                        
+
                         if(global.player.hurttime <= 0 && global.player.hp > 0)
                         {
                                 if(global.player.revivalTimes >= 2)
@@ -494,7 +496,9 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                         
                         if((global.character != CHARACTER_AMY && global.character != CHARACTER_AMY_CANON) && global.character != CHARACTER_EGGMAN)
                         {
-                                if(global.player.isAttacking && (character == CHARACTER_KNUX || character == CHARACTER_SALLY))
+                                // v4.4: Rouge patea igual que Knuckles/Sally — su
+                                // isAttacking tambien repele el contacto del esbirro
+                                if(global.player.isAttacking && (character == CHARACTER_KNUX || character == CHARACTER_SALLY || character == CHARACTER_ROUGE))
                                 {
                                         global.player.isAttacking = false;
                                         global.player.isHurt = true;
