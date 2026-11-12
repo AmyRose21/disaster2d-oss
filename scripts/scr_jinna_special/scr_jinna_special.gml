@@ -29,7 +29,7 @@
 #macro JINNA_ACC 0.056875
 
 // TELETRANSPORTE (tecla C)
-#macro JINNA_TELEPORT_RECHARGE (60 * 8)   // 8 s de enfriamiento
+#macro JINNA_TELEPORT_RECHARGE (60 * 7.25)   // 8 s de enfriamiento
 #macro JINNA_TELEPORT_WINDUP 25           // ~0,42 s de telegraph (flecha)
 #macro JINNA_TELEPORT_POSE 32             // ~0,53 s de pose al aterrizar
 #macro JINNA_TELEPORT_OFFSET 34           // px detras del objetivo
@@ -43,11 +43,11 @@
 // y Cream). Version mejorada de la Marca de Debilidad de Metal Amy:
 // mismo efecto (8 s de recarga forzada de TODAS las habilidades de la
 // victima), pero su enfriamiento POR PERSONAJE es menor (13 s vs 16 s).
-#macro JINNA_WEAKMARK_CD (60 * 13)
+#macro JINNA_WEAKMARK_CD (60 * 12.5)
 
 // AGARRE (tecla V) — v4: la V tiene DOS modos con recargas INDEPENDIENTES
 // (antes compartian la de 12 s): sola = agarre, con ABAJO = portal trampa.
-#macro JINNA_GRAB_RECHARGE (60 * 12)      // 12 s de enfriamiento del AGARRE (la trampa tiene el suyo: JINNA_TRAP_RECHARGE)
+#macro JINNA_GRAB_RECHARGE (60 * 8.5)      // 12 s de enfriamiento del AGARRE (la trampa tiene el suyo: JINNA_TRAP_RECHARGE)
 #macro JINNA_GRAB_RANGE 50                // px de alcance cuerpo a cuerpo
 #macro JINNA_GRAB_LOCK (60 * 1.6)         // 1,6 s de victima bloqueada
 #macro JINNA_GRAB_DAMAGE 25               // "1 HP" (la placa oficial; 15 con Vanilla atrapada)
@@ -60,10 +60,10 @@
 // Jinna queda POTENCIADA (spr_vanilla_caught sobre su cabeza; ver LEEME).
 // v4: la trampa YA NO COMPARTIR enfriamiento con el agarre — cada modo
 // de la V tiene SU recarga (peticion de la duena tras probar la v3).
-#macro JINNA_TRAP_RECHARGE (60 * 15)      // 15 s de enfriamiento PROPIO (antes compartia los 12 s del agarre)
+#macro JINNA_TRAP_RECHARGE (60 * 8.5)      // 15 s de enfriamiento PROPIO (antes compartia los 12 s del agarre)
 #macro JINNA_TRAP_DAMAGE 30               // daño al caer en la trampa (18 con Amy atrapada / 22 con Vanilla)
-#macro JINNA_TRAP_LIFE (60 * 20)          // vida maxima del portal trampa (la lleva el server)
-#macro JINNA_TRAP_RADIUS 32               // radio de pisada (bbox del portal)
+#macro JINNA_TRAP_LIFE (60 * 60)          // vida maxima del portal trampa (la lleva el server)
+#macro JINNA_TRAP_RADIUS 36               // radio de pisada (bbox del portal)
 
 // v4 — NIVELES DE POTENCIACION del kit (a quien absorbio el portal
 // trampa). La senal visual vive sobre la cabeza de Jinna (Draw_0):

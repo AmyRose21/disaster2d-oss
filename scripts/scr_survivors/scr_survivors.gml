@@ -817,7 +817,9 @@ global.fallAnims = [
         [spr_emetal_fall,       0, 1, 1, 1, 0.15], // Metal Sonic (demonizado)
         [spr_blaze_fall,        0, 1, 1, 1, 0.15], // Blaze
         [spr_eblaze_fall,       0, 1, 1, 1, 0.15], // Blaze (demonizada)
-        [spr_sally_fall_canon,  0, 1, 4, 1, 0.15]  // SALLY_CANON
+        [spr_sally_fall_canon,  0, 1, 4, 1, 0.15], // SALLY_CANON
+        [spr_amelia_fall,       0, 1, 1, 1, 0.15], // AMELIA
+        [spr_eamelia_fall,      0, 1, 1, 1, 0.15]  // AMELIA (demonizado)
 ];
 
 // La llama el case FALL del Draw_76 del personaje: busca el sprite en

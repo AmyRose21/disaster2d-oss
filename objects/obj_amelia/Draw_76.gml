@@ -18,7 +18,9 @@ switch(state)
                 break;
 
         case FALL:
-                image_speed = 0.15 + min(abs(yspd), 12) * 0.02;
+                // (MUELLES): frames de subida/bajada configurados con la
+                // Suite (global.fallAnims en scr_survivors.gml)
+                scr_fall_anim();
                 break;
 
         case WALK:
