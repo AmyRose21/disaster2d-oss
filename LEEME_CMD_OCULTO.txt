@@ -1,0 +1,71 @@
+=====================================================================
+ COMANDOS '.' OCULTOS PARA LOS DEMAS  (exe-cmd-v1.1, D.I.B.)
+=====================================================================
+
+LO QUE PEDISTE
+--------------
+"Que los comandos . no se vean para los demas."
+
+COMO QUEDA
+----------
+Todo mensaje de chat que empiece en punto ('.') deja de
+reenviarse al resto de jugadores, en TODAS las pantallas con
+chat (lobby, seleccion de personaje, votacion de mapa, partida
+y resultados). Lo reconozca el server o no:
+
+  .exe 99     -> nadie mas lo ve (ya estaba oculto antes)
+  .exe99      -> nadie mas lo ve (ANTES ESTO SI SE VEIA: al no
+                 ser un comando valido, el server lo reenviaba
+                 como si fuera chat normal)
+  .map 3      -> en el lobby ya estaba oculto; escrito en otra
+                 pantalla antes se veia, ahora tampoco
+  hola que tal -> se ve normal (el chat comun no cambia nada)
+
+Reglas que se mantienen igual:
+- El que escribe el comando SI ve su propio mensaje (eco local
+  del cliente) y las respuestas del server (privadas, solo
+  para el): "your exe chance is now 99%", "you aren't an
+  operator.", etc.
+- La consola del server (tu ventana) sigue registrando todo en
+  el log, incluidos los comandos.
+- Los avisos que por diseno son publicos siguen publicos: los
+  anuncios de votekick y el resultado de .stink.
+
+QUE HACE POR DENTRO
+-------------------
+Nuevo helper server_msg_is_command() en states/Server.c: dice
+si un mensaje arranca en '.' (ignorando espacios iniciales).
+Los 5 estados con chat lo consultan justo antes de reenviar un
+mensaje: si es comando, no se reenvia. Server.c procesa el
+comando igual que siempre (con sus respuestas privadas), asi
+que .exe / .kick / .op / .help etc. funcionan exactamente igual.
+
+ARCHIVOS TOCADOS (solo server, NO requiere recompilar cliente)
+---------------------------------------------------------------
+- include/Server.h                -> declara server_msg_is_command
+- include/States.h                -> idem al de exe_cmd_v1 (CMD_EXE);
+                                     incluido por dependencia, por si
+                                     todavia no aplicaste ese zip
+- disasterserver/states/Server.c  -> helper (+ lo de exe_cmd_v1)
+- disasterserver/states/Lobby.c   -> guard en el broadcast
+- disasterserver/states/CharSelect.c -> guard en el broadcast
+- disasterserver/states/Mapvote.c    -> guard en el broadcast
+- disasterserver/states/Results.c    -> guard en el broadcast
+- disasterserver/states/Game.c    -> guard + break antes del reenvio
+                                     (este archivo ya trae el fix
+                                     anticheat v4.3 de Jinna; si ya
+                                     lo aplicaste, sobreescribir
+                                     igual esta bien)
+- scripts/check_dot_hidden.py     -> validacion (checks + simulacion)
+- worklog.md
+
+RECOMPILAR: compilar_server.bat (solo el server)
+
+PRUEBA RAPIDA
+-------------
+1. Entra al server con 2 cuentas (o con un amigo).
+2. Escribe ".exe 99" con la cuenta op: el amigo NO debe verlo;
+   tu si ves tu eco y el "your exe chance is now 99%".
+3. Escribe ".exe99" (typo): el amigo tampoco lo ve (esto antes
+   se veia).
+4. Escribe "hola": el amigo SI lo ve (chat normal intacto).

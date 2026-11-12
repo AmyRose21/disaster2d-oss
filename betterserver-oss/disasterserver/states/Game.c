@@ -2351,6 +2351,11 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         if (server_cmd_handle(v->server, server_cmd_parse(&msg), v, &msg))
                                 break;
 
+                        /* [exe-cmd-v1.1] lo que arranque en '.' es comando: no se
+                           reenvia a los demas, sea o no un comando conocido */
+                        if (server_msg_is_command(&msg))
+                                break;
+
                         if (!g_config.chatfix)
                                 break;
 
@@ -2487,6 +2492,30 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         {
                                 PacketRead(flags, packet, packet_read8, uint8_t);
                                 v->plr.is_attacking = flags & PLAYER_ATTACKING;
+
+                                /* v1 ANTICHEAT (D.I.B.) — JINNA: su golpe aereo
+                                   dura 120 frames (2 s) y los golpes ENCADENADOS
+                                   con X no soltaban el bit ni un frame (el End
+                                   Step del cliente lee isAttacking antes del
+                                   Draw que lo apaga y despues de la re-pulsada):
+                                   el tope generico de 2 s la botaba con
+                                   "nuh-uh!" en cualquier cadena de 2 golpes.
+                                   El cliente ya manda los 2 ultimos paquetes de
+                                   cada golpe con el bit en OFF (case EXE_JINNA
+                                   de obj_netclient/Step_2), asi que el
+                                   acumulador se resetea entre golpes y este
+                                   techo SOLO absorbe puentes por perdida de
+                                   UDP: 6000 ms = 3 golpes aereos seguidos con
+                                   sus resets perdidos. Un cheat que mantenga el
+                                   bit fijo mas de 6 s sigue recibiendo el kick
+                                   (mismo mecanismo que las excepciones de
+                                   Eggman y del LSA de Amy Canon de arriba). */
+                                switch (v->exe_char)
+                                {
+                                        case EX_JINNA:
+                                                duration = 6000;
+                                                break;
+                                }
                                 //      if (v->server->game.map == 20) // Exception for a specific map
                                 //      {
                                 //      switch (v->exe_char) // Use it if your new exe has a long attack.

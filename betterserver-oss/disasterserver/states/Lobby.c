@@ -410,7 +410,8 @@ bool lobby_state_handle(PeerData* v, Packet* packet)
 			}
 
 			Info("%s " LOG_RST "(id %d): %s", v->nickname.value, v->id, msg.value);
-			if (!ignore && g_config.chatfix)
+			/* [exe-cmd-v1.1] lo que arranque en '.' es comando: no se reenvia */
+			if (!ignore && g_config.chatfix && !server_msg_is_command(&msg))
 				server_broadcast_msg(v->server, v->id, msg.value);
 			
 			break;

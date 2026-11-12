@@ -38,6 +38,10 @@ typedef struct Entity
 #define CMD_LOBBY 1420085352
 #define CMD_VER 1487029
 
+/* v1 (D.I.B.): ".exe" — hash verificado sin colision contra el resto de
+   CMD_* (server_cmd_parse: Java hash 31*h+c de la primera palabra) */
+#define CMD_EXE 1471268
+
 bool lobby_init				(Server* server);
 bool lobby_state_join		(PeerData* v);
 bool lobby_state_left		(PeerData* v);

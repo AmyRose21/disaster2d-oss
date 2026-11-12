@@ -778,6 +778,25 @@ unsigned long server_cmd_parse(String *string)
         return hash;
 }
 
+/* [exe-cmd-v1.1] true si el mensaje arranca en '.' (tras espacios): es un
+   comando de chat y NO se reenvia a los demas, lo reconozca el server o no.
+   Los comandos conocidos ya quedaban ocultos (server_cmd_handle devuelve
+   true y el estado no hace broadcast); esto tapa el hueco de los typos y
+   comandos sin registrar (".exe99", puntos suspensivos...), que antes
+   caian al broadcast como si fueran chat normal. */
+bool server_msg_is_command(String *string)
+{
+        for (int i = 0; i < string->len; i++)
+        {
+                if (isspace((unsigned char)string->value[i]))
+                        continue;
+
+                return string->value[i] == '.';
+        }
+
+        return false;
+}
+
 bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *msg)
 {
         Packet pack;
@@ -869,6 +888,49 @@ bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *
                 break;
         }
 
+        /* v1 (D.I.B.): .exe N — el operador fija SU chance de ser el EXE,
+           la misma que el lobby enseña ("your chance to be exe: N%",
+           obj_lobby/Draw). La seleccion (charselect_pick_exe) es una loteria
+           PONDERADA: la chance del resto parte de 1 y sube +2..+6 por ronda
+           sin ser exe, asi que 99 la domina y 1 la hunde al minimo.
+           100 = garantizado (mismo atajo >= 100 del cheat "brazil").
+           Afecta a la PROXIMA seleccion; se re-envia SERVER_LOBBY_EXE_CHANCE
+           para que la UI refleje el valor al instante. Funciona en cualquier
+           estado con chat (lobby/charselect/mapvote/game/results: todos
+           enrutan por server_cmd_handle). */
+        case CMD_EXE:
+        {
+                if (!v->op)
+                {
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "you aren't an operator."));
+                        break;
+                }
+
+                int chance;
+                if (sscanf(msg->value, ".exe %d", &chance) <= 0)
+                {
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "example:~ .exe 99"));
+                        break;
+                }
+
+                if (chance < 1 || chance > 100)
+                {
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "chance should be between 1 and 100"));
+                        break;
+                }
+
+                v->exe_chance = (uint8_t)chance;
+
+                PacketCreate(&pack, SERVER_LOBBY_EXE_CHANCE);
+                PacketWrite(&pack, packet_write8, v->exe_chance);
+                RAssert(packet_send(v->peer, &pack, true));
+
+                char cmsg[80];
+                snprintf(cmsg, 80, CLRCODE_GRA "your exe chance is now " CLRCODE_RED "%d" CLRCODE_RST "%%", v->exe_chance);
+                RAssert(server_send_msg(v->server, v->peer, cmsg));
+                break;
+        }
+
         /* Help message  */
         case CMD_HELP:
         {
@@ -886,6 +948,7 @@ bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *
                         RAssert(server_send_msg(v->server, v->peer, lobby_msg));
 
                         RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".sp" CLRCODE_RST " survivor practice (no exe)"));
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".exe" CLRCODE_RST " set your exe chance (1-100)"));
 
                         RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".kick" CLRCODE_RST " kick someone ig"));
                         RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".ban" CLRCODE_RST " ban someone ig"));

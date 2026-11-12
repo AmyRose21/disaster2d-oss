@@ -314,6 +314,7 @@ bool server_state_handle(PeerData *v, Packet *packet);
 bool server_msg_handle(Server *server, PacketType type, PeerData *v, Packet *packet);
 bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *msg);
 unsigned long server_cmd_parse(String *string);
+bool server_msg_is_command(String *string);
 
 bool server_worker(Server *server);
 bool server_broadcast(Server *server, Packet *packet, bool reliable);

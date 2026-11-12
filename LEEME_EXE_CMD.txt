@@ -1,0 +1,51 @@
+=====================================================================
+ COMANDO .exe — fijar tu probabilidad de ser el EXE  (v1, D.I.B.)
+=====================================================================
+
+LO QUE PEDISTE
+--------------
+Dos comandos para ponerte al 1% y al 99% de posibilidad de EXE.
+Se implemento como UN comando con numero (estilo .lobby N), que
+cubre los dos casos y todos los intermedios:
+
+    .exe 1      tu chance a 1%  (casi nunca te toca)
+    .exe 99     tu chance a 99% (dominas la loteria)
+    .exe 100    GARANTIZADO (siempre te toca)
+
+Solo operadores (tu con .op / siendo host). Se escribe en el chat
+de cualquier pantalla: lobby, seleccion de personaje, votacion de
+mapa, partida y resultados.
+
+QUE HACE POR DENTRO
+-------------------
+Fija tu exe_chance (el numero que el lobby muestra como
+"your chance to be exe: N%") y te re-envia el valor para que la
+UI se actualice al instante. Afecta a la PROXIMA seleccion de EXE
+(cuando termina la cuenta atras de seleccion de personaje).
+
+OJO — como funciona la loteria del juego (igual que siempre):
+la seleccion es PONDERADA entre todos los jugadores. Los demas
+arrancan en 1 y acumulan +2..+6 por ronda que no son exe. Con
+.exe 99 en un lobby de 4-5 jugadores quedas en ~80-95% real
+(seguro agostado: casi siempre te toca). Si quieres CERTEZA
+total usa .exe 100 (mismo efecto que el cheat escondido).
+
+Si te toca ser exe, tu chance se resetea a 1 (regla normal del
+juego): el .exe 99 hay que repetirlo cuando quieras volver a
+dominar.
+
+DETALLES
+--------
+- Rango valido: 1 a 100 (fuera de eso te corrige el server).
+- Los demas comandos, el cheat "i want big burgr" y la
+  acumulacion natural de chances quedan INTACTOS.
+- .help (siendo op) ahora lista el comando.
+
+ARCHIVOS TOCADOS (solo server, NO requiere recompilar cliente)
+---------------------------------------------------------------
+- include/States.h              -> #define CMD_EXE (hash de ".exe")
+- disasterserver/states/Server.c -> case CMD_EXE + linea en .help
+- scripts/check_exe_cmd.py       -> validacion (16 checks + simulacion)
+- worklog.md
+
+RECOMPILAR: compilar_server.bat (solo el server)
