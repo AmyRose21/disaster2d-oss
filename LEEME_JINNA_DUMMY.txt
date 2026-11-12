@@ -1,0 +1,122 @@
+=====================================================================
+ JINNA VS EL DUMMY + SIN MAX DE PORTALES  (jinna-dummy-v1, D.I.B.)
+=====================================================================
+
+LO QUE PEDISTE
+--------------
+1) "La habilidad de portal y el agarre deben funcionar con el
+   dummy del modo practica"
+2) "Retira el max de portales que puede tener Jinna, ya que el
+   max que tiene son 3"
+
+QUE QUEDA
+---------
+1) EL DUMMY YA ES BLANCO DE JINNA (en Fart Zone, donde vive el
+   muneco):
+
+   - TELETRANSPORTE (C): solo en practica, la flecha marca al
+     dummy, se abren los DOS portales y Jinna aparece detras
+     de el igual que con un jugador. Si hay un jugador REAL a
+     la vista, ese SIEMPRE tiene prioridad.
+   - AGARRE (V): a rango de golpe (50 px) el dummy recibe el
+     agarre: pose de garra, texto "-2" y la voz del muneco.
+     Como el agarre BLOQUEA a la victima, en el dummy se ve
+     como que se queda clavado donde esta: ideal para medir
+     la ventana del bloqueo con calma. La recarga de 8,5 s
+     corre igual (es la habilidad real en prueba).
+   - DE PASO (mismo archivo): tu golpe X contra el dummy
+     sacaba "0" y no lo empujaba (Jinna no estaba en su
+     switch). Ahora pega "-2" y lo empuja como los demas
+     killers cuerpo a cuerpo.
+
+2) EL "MAX 3 PORTALES" YA NO EXISTE. La verdad tecnica: NUNCA
+   hubo un tope de cantidad — lo que pasaba es que el SERVER
+   tenia su propia recarga de la trampa a 15 s, mientras tu
+   cliente (tu macro de 8,5 s) ya la daba por lista: la MITAD
+   de las trampas que plantabas salian RECHAZADAS en silencio
+   (salia la pose y el sonido pero no aparecia el portal).
+   Con la vida de 60 s eso dejaba ~3 portales vivos y la
+   4.a "no salia" — tu max de 3.
+
+   Arreglado sincronizando el server a TUS macros (menos medio
+   segundo de colchon para que el ping nunca rechace una
+   plantada legitima):
+
+     trampa:     server 15 s  ->  8 s   (tu macro: 8,5 s)
+     agarre:     server 12 s  ->  8 s   (tu macro: 8,5 s)
+     teleport:   server  8 s  ->  6,75 s (tu macro: 7,25 s)
+
+   Ahora TODAS las plantadas salen: con 8,5 s de recarga y
+   60 s de vida puedes tener ~8 portales vivos a la vez (o los
+   que quieras — no hay tope).
+
+   BONUS del sync: antes, un teleport entre los 7,25 y los 8 s
+   te movia SIN el permiso del anticheat (el server aun te
+   frenaba) = riesgo de kick "nuh-uh!". Ya no puede pasar.
+
+3) VIDA DE LA TRAMPA UNIFICADA A TUS 60 s: el server tenia 70 s
+   PROPIOS (tu pedido de la v4) y tu visual 60 — quedaban 10 s
+   de trampa INVISIBLE (el portal se apagaba antes de que la
+   real muriera). Ahora ambos lados usan 60 s. Si quieres otra
+   cifra: JINNA_TRAP_LIFE en scr_jinna_special.gml Y
+   JINNA_TRAP_LIFE_S en include/entities/JinnaTrap.h, a la
+   misma.
+
+IMPORTANTE — COMO PROBAR CON EL DUMMY
+-------------------------------------
+El dummy SOLO existe en FART ZONE (es su sala de
+entrenamiento). Dos caminos:
+
+  a) .exe 100 y luego .map 20  -> ronda normal en Fart Zone
+     con tu Jinna garantizada (el dummy esta ahi).
+  b) .ep  -> practica de exe con mapa al AZAR: repite hasta
+     que salga Fart Zone.
+
+LO QUE NO CAMBIA
+----------------
+- La trampa (V+ABAJO) se planta igual que siempre; lo unico
+  distinto es que ya ninguna plantada "se traga" el server.
+- El dummy NO pisa trampas (no camina solo): la trampa sigue
+  siendo para jugadores reales.
+- Tus macros de hoy (7,25 / 8,5 / 8,5 / 60 s / radio 36) quedan
+  INTACTAS — el server se sincronizo a ELLAS.
+- Puppets reales: teleport, agarre y trampa funcionan igual que
+  siempre (el dummy solo entra cuando no hay nadie mas).
+
+SI CAMBIAS LAS RECARGAS EN EL FUTURO
+------------------------------------
+Las recargas viven en TUS macros (scr_jinna_special.gml) pero
+el server lleva SU copia para validar (Game.c, busca
+"jinna-dummy-v1"): si bajas una macro, baja tambien su numero
+alli (dejale medio segundo menos que tu macro) y recompila el
+server — si no, vuelve el "max".
+
+ARCHIVOS TOCADOS
+----------------
+CLIENTE (recompilar el juego):
+- scripts/scr_jinna_special/scr_jinna_special.gml -> dummy como
+  blanco del teleport y del agarre + rama de feedback local
+- objects/obj_fart_dummy/Step_0.gml -> case EXE_JINNA (golpe X)
+
+SERVER (compilar_server.bat):
+- disasterserver/states/Game.c -> cooldowns sincronizados
+  (teleport/agarre/trampa) + comentario de vida al dia
+- include/entities/JinnaTrap.h -> vida 70 -> 60 s (sync con tu
+  macro)
+
+Tambien: worklog.md, LEEME_JINNA_DUMMY.txt,
+scripts/check_jinna_dummy.py (54 checks).
+
+NOTA: el Game.c de este zip YA TRAE la practica de exe (.ep) de
+la entrega anterior (ademas del anticheat v4.3 y los comandos
+ocultos). Si todavia no aplicaste practica_exe_v1.zip, aplicalo
+PRIMERO (este Game.c necesita el campo exe_practice de su
+Server.h para compilar).
+
+PRUEBA RAPIDA (en Fart Zone, como Jinna)
+----------------------------------------
+1. C: la flecha marca al dummy -> portales -> apareces detras.
+2. V junto al dummy: pose de garra, "-2" y voz del muneco.
+3. X al dummy: "-2" y lo empujas.
+4. V+ABAJO una y otra vez cada 8,5 s: TODAS salen; cuenta los
+   portales vivos — ya no se quedan en 3.

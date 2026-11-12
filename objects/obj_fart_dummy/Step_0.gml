@@ -89,6 +89,12 @@ if(place_meeting(x, y, global.player))
                                 // y salia "0" sin empujarlo nada (mismo -2 que los
                                 // demas killers cuerpo a cuerpo).
                                 case EXE_METALAMY:
+
+                                // [dummy v1] Jinna golpea con el patron estandar
+                                // de los killers cuerpo a cuerpo: su X no estaba
+                                // en el switch y el muneco mostraba "0" sin
+                                // empujarse (mismo fix que Metal Amy v4.8.1).
+                                case EXE_JINNA:
                                 dmg = "-2";
                                 push = global.player.image_xscale * 2;
                                 break;

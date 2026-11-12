@@ -1748,7 +1748,13 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 server_broadcast(v->server, &slow, true);
                         }
 
-                        v->plr_cooldowns[JINNA_TELEPORT] = 8 * TICKSPERSEC;
+                        /* [jinna-dummy-v1] SYNC con la macro del cliente: JINNA_TELEPORT_RECHARGE
+                         * = 7,25 s (tu edicion). El server lleva 0,5 s MENOS a proposito:
+                         * asi la latencia nunca rechaza un teleporte que tu HUD ya
+                         * dio por listo (antes: HUD listo a los 7,25 pero el server
+                         * frenaba hasta los 8 — y sin el grace del anticheat).
+                         * Si cambias la macro en scr_jinna_special.gml, cambia esto. */
+                        v->plr_cooldowns[JINNA_TELEPORT] = (int)(6.75 * TICKSPERSEC);
                         v->plr.ex_teleport = 60;
                         break;
                 }
@@ -1783,7 +1789,10 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         PacketWrite(&pack2, packet_write8, (int8_t)dir);
                         server_broadcast(v->server, &pack2, true);
 
-                        v->plr_cooldowns[JINNA_GRAB] = 12 * TICKSPERSEC;
+                        /* [jinna-dummy-v1] SYNC: JINNA_GRAB_RECHARGE = 8,5 s en el
+                         * cliente (tu edicion); el server valida con 0,5 s menos
+                         * por la latencia. Igual que el teletransporte. */
+                        v->plr_cooldowns[JINNA_GRAB] = (int)(8.0 * TICKSPERSEC);
                         break;
                 }
 
@@ -1791,7 +1800,7 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                  * jugadora la planta en sus pies; aqui se valida (exe +
                  * Jinna + recarga PROPIA de la trampa — v4: ya NO comparte
                  * la del agarre, cada modo de la V tiene su cooldown) y se
-                 * spawnea la entidad JinnaTrap (20 s de vida), que se
+                 * spawnea la entidad JinnaTrap (60 s de vida), que se
                  * replica sola a todos con SERVER_JINNA_TRAP_STATE 0. */
                 case CLIENT_JINNA_TRAP:
                 {
@@ -1806,7 +1815,18 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         PacketRead(y, packet, packet_read16, uint16_t);
 
                         RAssert(game_spawn(v->server, (Entity*)&(MakeJinnaTrap(x, y, v->id)), sizeof(JinnaTrap), NULL));
-                        v->plr_cooldowns[JINNA_TRAP] = 15 * TICKSPERSEC;
+                        /* [jinna-dummy-v1] RETIRO DEL "MAX DE PORTALES": el server
+                         * frenaba a 15 s mientras tu cliente (macro 8,5 s) ya daba
+                         * la trampa por lista — la mitad de las plantadas salian
+                         * RECHAZADAS en silencio (pose y sonido pero sin portal):
+                         * con la vida de 60 s eso dejaba ~3 portales vivos y el
+                         * 4º "no salia" — tu max de 3. No hay tope de CANTIDAD
+                         * (nunca lo hubo: un tope real se ve como el del mabul de
+                         * Metal Amy, con game_find). Con el cooldown sincronizado
+                         * (menos 0,5 s de colchon por latencia), planta las que
+                         * quieras: ~7 vivas a la vez con 8,5 s de recarga y 60 s
+                         * de vida. Si cambias la macro del cliente, cambia esto. */
+                        v->plr_cooldowns[JINNA_TRAP] = (int)(8.0 * TICKSPERSEC);
                         break;
                 }
 

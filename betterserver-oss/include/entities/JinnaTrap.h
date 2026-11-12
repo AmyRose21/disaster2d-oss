@@ -27,9 +27,13 @@ typedef struct
         bool     triggered;
 } JinnaTrap;
 
-/* v4: vida de la trampa 70 s (antes 20 s) — pedido de la duena:
-   "el tiempo de la trampa durara hasta 70 seg" */
-#define JINNA_TRAP_LIFE_S 70
+/* [jinna-dummy-v1] vida de la trampa 60 s, SYNC con tu macro cliente
+   JINNA_TRAP_LIFE (60 * 60) de scr_jinna_special.gml: antes el server
+   tenia 70 s PROPIOS (tu pedido v4) y el visual del cliente 60 — 10 s
+   de trampa INVISIBLE (el sprite se apaga antes que la real). Ahora
+   ambos lados usan el 60 de tu macro; si quieres otra cifra, cambiala
+   AQUI y en la macro a la misma. */
+#define JINNA_TRAP_LIFE_S 60
 #define MakeJinnaTrap(x, y, owner) ((JinnaTrap) { MakeEntity("jtrap", x, y) jinna_trap_init, jinna_trap_tick, jinna_trap_uninit, owner, JINNA_TRAP_LIFE_S * TICKSPERSEC, false })
 
 #endif

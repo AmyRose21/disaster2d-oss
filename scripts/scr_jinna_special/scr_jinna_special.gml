@@ -133,7 +133,12 @@ function scr_jinna_special()
         if(jinnaTeleWindup > 0)
         {
                 // el objetivo se escapo/murio/agoniza: el telegraph se cancela
-                if(!instance_exists(jinnaTeleTarget) || jinnaTeleTarget.hp <= 0 || jinnaTeleTarget.isInactive)
+                // [dummy v1] el muneco del modo practica no tiene hp ni
+                // isInactive (leerlos crashearia el juego): solo cuenta
+                // como vivo — se cancela unicamente si desaparece
+                // (cambio de mapa o fin de ronda).
+                if(!instance_exists(jinnaTeleTarget)
+                || (jinnaTeleTarget.object_index != obj_fart_dummy && (jinnaTeleTarget.hp <= 0 || jinnaTeleTarget.isInactive)))
                 {
                         jinnaTeleWindup = 0;
                         jinnaTeleTarget = noone;
@@ -212,6 +217,27 @@ function scr_jinna_special()
                         }
                 }
 
+                // [dummy v1] MODO PRACTICA (Fart Zone): sin supervivientes
+                // cerca, el MUNECO DE ENTRENAMIENTO tambien es un blanco
+                // valido del teletransporte (misma distancia maxima):
+                // probar Jinna sola contra el dummy. La flecha del
+                // telegraph (Draw_0) y el salto solo tocan x/y/
+                // image_xscale/sprite_yoffset: todos built-in, seguros
+                // sobre el dummy. Un puppet REAL en rango SIEMPRE gana
+                // (el dummy entra solo si nadie mas esta mas cerca).
+                if(instance_exists(obj_fart_dummy))
+                {
+                        with(obj_fart_dummy)
+                        {
+                                var _d = point_distance(x, y, other.x, other.y);
+                                if(_d < _bestD)
+                                {
+                                        _bestD = _d;
+                                        _best = id;
+                                }
+                        }
+                }
+
                 if(_best != noone)
                 {
                         jinnaTeleTarget = _best;
@@ -276,6 +302,20 @@ function scr_jinna_special()
                         }
                 }
 
+                // [dummy v1] MODO PRACTICA (Fart Zone): sin supervivientes
+                // en rango, el MUNECO DE ENTRENAMIENTO recibe el agarre
+                // (misma distancia de JINNA_GRAB_RANGE). Ojo: el dummy
+                // NO tiene master_id (crashearia el paquete) — la rama
+                // de abajo distingue puppet real vs muneco.
+                if(_g == noone && instance_exists(obj_fart_dummy))
+                {
+                        with(obj_fart_dummy)
+                        {
+                                if(point_distance(x, y, other.x, other.y) <= JINNA_GRAB_RANGE)
+                                        _g = id;
+                        }
+                }
+
                 if(_g != noone)
                 {
                         jinnaGrabCd = JINNA_GRAB_RECHARGE; // v4: recarga del AGARRE (independiente de la trampa)
@@ -286,18 +326,38 @@ function scr_jinna_special()
                         else if(keyboard_check(global.KeyRight))
                                 image_xscale = 1;
 
-                        // el server valida (exe + cooldown + victima viva) y
-                        // reenvia a todos: la victima se congela y sufre el
-                        // dano en SU cliente, el resto ve el efecto
-                        // v4.1 FIX: falta el byte de DIRECCION (s8) — el
-                        // server lee pid + dir y el paquete se rechazaba
-                        // sin él (el agarre nunca calaba). dir = hacia donde
-                        // mira Jinna al agarrar (voltea la garra y manda el
-                        // empujon al soltar).
-                        var pak2 = cpacket_tcp(PacketType.CLIENT_JINNA_GRAB, false);
-                        buffer_write(pak2, buffer_u16, _g.master_id);
-                        buffer_write(pak2, buffer_s8, sign(image_xscale));
-                        send_server_tcp(pak2);
+                        // [dummy v1] AGARRE AL MUNECO (modo practica): no hay
+                        // cliente que congelar ni master_id — el feedback es
+                        // LOCAL: texto de dano con la convencion del dummy
+                        // ("-2"), su voz y la pose de agarre de arriba. El
+                        // "bloqueo" del agarre en algo quieto es que SIGUE
+                        // quieto donde esta: ideal para medir la ventana de
+                        // JINNA_GRAB_LOCK con calma. La recarga corre IGUAL
+                        // (la de tu macro): es la habilidad real en prueba.
+                        if(_g.object_index == obj_fart_dummy)
+                        {
+                                with(_g)
+                                {
+                                        instance_create_depth(x, y, 0, obj_fart_text).text = "-2";
+                                        audio_play_sound(choose(snd_dummy, snd_dummy2, snd_dummy3), 0, false);
+                                        timer = 20;
+                                }
+                        }
+                        else
+                        {
+                                // el server valida (exe + cooldown + victima viva) y
+                                // reenvia a todos: la victima se congela y sufre el
+                                // dano en SU cliente, el resto ve el efecto
+                                // v4.1 FIX: falta el byte de DIRECCION (s8) — el
+                                // server lee pid + dir y el paquete se rechazaba
+                                // sin él (el agarre nunca calaba). dir = hacia donde
+                                // mira Jinna al agarrar (voltea la garra y manda el
+                                // empujon al soltar).
+                                var pak2 = cpacket_tcp(PacketType.CLIENT_JINNA_GRAB, false);
+                                buffer_write(pak2, buffer_u16, _g.master_id);
+                                buffer_write(pak2, buffer_s8, sign(image_xscale));
+                                send_server_tcp(pak2);
+                        }
 
                         audio_play_sound(snd_jina_ready, 0, false);
                 }
