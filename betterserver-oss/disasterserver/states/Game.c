@@ -1991,8 +1991,10 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                 /* v6 (minions) — INVOCAR A LOS ATRAPADOS (↓+C de Jinna).
                  * Reenvia SERVER_JINNA_MINION_STATE (jx, jy, count, pids) y
                  * el cliente de CADA atrapado corre su flujo de demonizacion
-                 * (revive con 100 hp + paleta demon, pelea para el EXE con
-                 * vida real). Aqui solo se valida (exe + Jinna + cooldown) y
+                 * (revive con 100 hp y look NEGATIVO — v9: marca isNegatouch
+                 * + shader de inversion en el cliente, SIN paleta demon —,
+                 * pelea para el EXE con vida real). Aqui solo se valida
+                 * (exe + Jinna + cooldown) y
                  * se marcan PLAYER_DEMONIZED / PLAYER_REVIVED para que:
                  *   - el win-check los cuente como caidos,
                  *   - su siguiente muerte NO los demonice de nuevo (ya lo
@@ -2093,6 +2095,67 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         PacketCreate(&pack5, SERVER_JINNA_MINION_DOWN);
                         PacketWrite(&pack5, packet_write16, v->id);
                         server_broadcast(v->server, &pack5, true);
+                        break;
+                }
+
+                /* v7 (toque negativo) — CONVERSION INSTANTANEA DE UN
+                 * SUPERVIVIENTE CARGADO DE ENERGIA NEGATIVA (el "modo
+                 * súbditos alternativo" de NEGAGEN, adaptado a Jinna).
+                 * Lo pide el cliente de la VICTIMA: su carga negativa
+                 * (jinnaNegaCharge, el negatimer de Negagen) llego a 100
+                 * tras recibir los golpes de Jinna (la autoridad del
+                 * dano es suya, como en todo el juego). Aqui solo se
+                 * valida (exe + Jinna + victima viva sin demonizar) y
+                 * se marca PLAYER_DEMONIZED / PLAYER_REVIVED y
+                 * PLAYER_CANTREVIVE: los súbditos negativos NO se
+                 * rescatan (son "negativos", no caidos) y NO gastan la
+                 * agonia: la conversion es instantanea. El tope de
+                 * "mitad del lobby" de game_demonize NO se aplica:
+                 * el numero de súbditos negativos es ILIMITADO (esa es
+                 * la gracia del modo alternativo, igual que Negagen).
+                 * La gracia de 3 s entre conversiones (jinnaNegaGrace /
+                 * Antinegatemper) vive en el cliente; este cooldown del
+                 * server es la red de seguridad anti-spam (comparte
+                 * indice con JINNA_MINION: ambas son conversiones de
+                 * bando, no deben pisarse). */
+                case CLIENT_JINNA_NEGATOUCH:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+
+                        /* el exe de la partida debe ser JINNA (mismo check que
+                         * el agarre/trampa, pero contra el peer del exe) */
+                        PeerData* exePlr = server_find_peer(v->server, v->server->game.exe);
+                        AssertOrDisconnect(v->server, exePlr != NULL && exePlr->exe_char == EX_JINNA);
+
+                        /* ya demonizado/escapado/atrapado: nada que convertir.
+                         * OJO: PLAYER_DEAD SI se admite — si el mismo golpe
+                         * que relleno la carga la mato, la energia negativa
+                         * la sostiene (la conversion revive: es el modo
+                         * alternativo de Negagen). DEL_FLAG lo limpia abajo. */
+                        if (v->plr.flags & (PLAYER_DEMONIZED | PLAYER_ESCAPED | PLAYER_CAUGHT))
+                                break;
+
+                        /* red de seguridad: la gracia real vive en el cliente */
+                        if (v->plr_cooldowns[JINNA_NEGATOUCH] > 0)
+                                break;
+
+                        v->plr_cooldowns[JINNA_NEGATOUCH] = (int)(2.5 * TICKSPERSEC);
+
+                        DEL_FLAG(v->plr.flags, PLAYER_DEAD);
+                        SET_FLAG(v->plr.flags, PLAYER_DEMONIZED);
+                        SET_FLAG(v->plr.flags, PLAYER_REVIVED);   /* su siguiente caida NO re-demoniza: es esbirro normal */
+                        SET_FLAG(v->plr.flags, PLAYER_CANTREVIVE); /* súbdito NEGATIVO: Vanilla no lo rescata */
+                        v->plr.data[0] = 0; /* no es minion del portal: esbirro negativo comun */
+                        v->plr.stats.rings = 0;
+                        v->plr.dedemon_progress = 0;
+
+                        Info("%s " LOG_RST "(id %d)" LOG_RED " was NEGATIZED by Jinna!", v->nickname.value, v->id);
+
+                        Packet pack6;
+                        PacketCreate(&pack6, SERVER_JINNA_NEGATOUCH_STATE);
+                        PacketWrite(&pack6, packet_write16, v->id);
+                        server_broadcast(v->server, &pack6, true);
                         break;
                 }
 

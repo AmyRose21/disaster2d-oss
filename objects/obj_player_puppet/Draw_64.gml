@@ -38,7 +38,17 @@ if(!isHiding)
                 // la muestra (frame por hp, igual que un superviviente — el
                 // hp ya viaja en el CLIENT_PLAYER_DATA de siempre). El esbirro
                 // comun (demonizado normal) sigue con su barra fija frame 0.
-                draw_sprite_ext(hasRedRing ? spr_hp_rr : spr_hp, (isDemonized && !isMinion) ? 0 : frame, floor(x-obj_camera.x), floor(y-obj_camera.y) - 45, 1, 1, 0, _colour, 1);
+                // v8 (NEGAGEN): el SUBDITO NEGATIVO muestra su barra real de
+                // hp (como el minion) pero INVERTIDA — mismo negativo del
+                // cuerpo, el look de las barras nega del build Negagen.
+                if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+                {
+                        shader_set(shd_negative);
+                        draw_sprite_ext(hasRedRing ? spr_hp_rr : spr_hp, frame, floor(x-obj_camera.x), floor(y-obj_camera.y) - 45, 1, 1, 0, _colour, 1);
+                        shader_reset();
+                }
+                else
+                        draw_sprite_ext(hasRedRing ? spr_hp_rr : spr_hp, (isDemonized && !isMinion) ? 0 : frame, floor(x-obj_camera.x), floor(y-obj_camera.y) - 45, 1, 1, 0, _colour, 1);
         }
         
         if(nicknameWidth == 0)

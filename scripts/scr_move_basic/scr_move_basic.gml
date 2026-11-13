@@ -51,6 +51,26 @@ function scr_move_basic()
         if(variable_instance_exists(id, "weakMarkCd") && weakMarkCd > 0)
                 weakMarkCd--;
 
+        // v7 (toque negativo) — ENERGIA NEGATIVA DE JINNA (el "negatimer"
+        // de Negagen): tick de la GRACIA post-conversion (jinnaNegaGrace,
+        // su Antinegatemper) y DECAIMIENTO lento de la carga sin recibir
+        // golpes (-1 cada 500 ms: media carga se evapora en ~25 s de fuga
+        // limpia). Variables lazy (las crea scr_jinna_negatouch_hit): sin
+        // tocar el Create de ningun personaje. current_time en ms, mismo
+        // patron de cadencia que scr_parry.
+        if(variable_instance_exists(id, "jinnaNegaGrace") && jinnaNegaGrace > 0)
+                jinnaNegaGrace--;
+
+        if(variable_instance_exists(id, "jinnaNegaCharge")
+        && jinnaNegaCharge > 0 && jinnaNegaCharge < 100)
+        {
+                if(!variable_instance_exists(id, "jinnaNegaDecayAt") || current_time >= jinnaNegaDecayAt)
+                {
+                        jinnaNegaCharge--;
+                        jinnaNegaDecayAt = current_time + 500;
+                }
+        }
+
         // v4.3 (fix exe): fin del stun SIN I-FRAMES (trampa de una Amelia
         // demonizada). El flag lo pone amelia_trap_trigger cuando la pisa
         // un superviviente; los Step de personaje dejan de rellenar

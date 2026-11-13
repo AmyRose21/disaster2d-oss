@@ -356,7 +356,7 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         var _mhpBefore = global.player.hp;
                                         scr_player_hurt(JINNA_MINION_DAMAGE, -sign(x - global.player.x) * 3, -3, snd_hurt, spr_blood3, false, false);
 
-                                        // el golpe callo de verdad: stats de dano recibido
+                                        // el golpe calo de verdad: stats de dano recibido
                                         // (mismo reporte que el dano de supervivientes)
                                         if(global.player.hp < _mhpBefore || global.player.isHurt)
                                         {
@@ -379,6 +379,22 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
 
                                         return;
                                 }
+
+                                // v7 (toque negativo) — SÚBDITO NEGATIVO GOLPEADO: el
+                                // esbirro convertido por la energia negativa de Jinna
+                                // (revivalTimes 2 con jinnaNegaCharge a tope, NO minion
+                                // del portal). Su vida ya viaja en el UDP y el golpe le
+                                // entra por el flujo comun de esbirro (el bloque de
+                                // isDemonized de abajo); este hook solo cubre su muerte:
+                                // a 0 hp NO muere ni vuelve a ningun portal — la energia
+                                // negativa lo SOSTIENE (fiel a Negagen: debiles pero
+                                // ILIMITADOS): revive donde cayo con 30 de vida.
+                                // scr_jinna_negatouch_purge devuelve false si NO era un
+                                // súbdito negativo (esbirro comun): el flujo sigue.
+                                if(global.player.revivalTimes >= 2
+                                && instance_exists(global.player) && global.player.hp <= 0 && !global.player.isDead
+                                && scr_jinna_negatouch_purge())
+                                        return;
 
                                 if(global.player.revivalTimes >= 2)
                                         return;
@@ -445,6 +461,20 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         if(exeCharacter == EXE_JINNA && global.jinnaCaughtTier > JINNA_CAUGHT_NONE)
                                                 damage = (global.jinnaCaughtTier == JINNA_CAUGHT_VANILLA) ? 30 : 25;
                                 }
+
+                                // v7 (toque negativo) — el GOLPE DEL SÚBDITO NEGATIVO pega
+                                // MENOS que el del esbirro comun ("negative characters are
+                                // weaker than usual"): 15 en vez de 20. La marca isNegatouch
+                                // la puso el paquete de conversion (SERVER_JINNA_NEGATOUCH_STATE)
+                                // en el puppet de ESTE cliente (patron isMinion). En este
+                                // bloque self = el puppet ATACANTE esbirro.
+                                // v9: los MINIONS invocados del portal tambien llevan
+                                // isNegatouch (el look negativo) pero son minions PLENOS:
+                                // golpe de 20 — el !isMinion los excluye de la rebaja.
+                                if(revivalTimes >= 2
+                                && variable_instance_exists(id, "isNegatouch") && isNegatouch
+                                && !(variable_instance_exists(id, "isMinion") && isMinion))
+                                        damage = JINNA_NEGA_DAMAGE;
                                 
                                 if(character == CHARACTER_EGGMAN && global.player.hurttime <= 0)
                                         scr_player_slow(3);
@@ -480,7 +510,19 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         else
                                                 scr_weak_mark_hit();
                                 }
-                                
+
+                                // v7 (toque negativo) — GOLPE X DE JINNA: el contacto que
+                                // calo tambien acumula ENERGIA NEGATIVA (version reducida
+                                // del "negatimer" de Negagen: el golpe pesa menos que el
+                                // agarre/trampa porque se puede encadenar mas rapido).
+                                // A 100 de carga el propio cliente pide la conversion
+                                // instantanea (CLIENT_JINNA_NEGATOUCH). El parry de Sonic
+                                // que NIEGA el dano tambien niega la carga: solo entra si
+                                // el golpe calo de verdad (hp bajo o isHurt).
+                                if(character == CHARACTER_EXE && exeCharacter == EXE_JINNA
+                                && (global.player.hp < _hpBefore || global.player.isHurt))
+                                        scr_jinna_negatouch_hit(JINNA_NEGA_CHARGE_X);
+
                                 if(character == CHARACTER_EXE)
                                 {
                                         if(exeCharacter == EXE_CHAOS && sprite_index == spr_chaos_attack2)

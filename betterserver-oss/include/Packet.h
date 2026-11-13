@@ -349,7 +349,23 @@ typedef enum
         CLIENT_JINNA_MINION,
         CLIENT_JINNA_MINION_DOWN,
         SERVER_JINNA_MINION_STATE,
-        SERVER_JINNA_MINION_DOWN
+        SERVER_JINNA_MINION_DOWN,
+
+        /* v7 JINNA — TOQUE NEGATIVO (modo súbditos alternativo de
+           NEGAGEN, extraído del build YYC del NU Project y adaptado a
+           Jina). CLIENT_JINNA_NEGATOUCH: el cliente de un superviviente
+           cuya carga negativa (jinnaNegaCharge, el "negatimer" de
+           Negagen) llegó a 100 pide la conversión; el server valida
+           (exe + Jinna + víctima viva sin demonizar) y reenvía
+           SERVER_JINNA_NEGATOUCH_STATE (u16 pid): TODOS aplican la
+           conversión INSTANTÁNEA — el negativo revive donde estaba con
+           paleta demon, 60 hp y golpe de 15 (más débil que un esbirro
+           común PERO ilimitado: no pasa por la agonía de 30 s ni
+           respeta el tope de mitad del lobby). Mismo orden que el enum
+           del cliente (net_packets.gml); añadido AL FINAL en los DOS
+           lados. */
+        CLIENT_JINNA_NEGATOUCH,
+        SERVER_JINNA_NEGATOUCH_STATE
 } PacketType;
 
 typedef struct

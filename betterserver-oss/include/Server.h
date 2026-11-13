@@ -58,6 +58,14 @@ struct auth_peer_data;
    La invoca TODOS los atrapados a la vez con su propia recarga de 25 s
    (JINNA_MINION_RECHARGE en el cliente; si cambias una, cambia la otra). */
 #define JINNA_MINION 14
+/* v7 (toque negativo): freno anti-spam de la CONVERSION negativa de
+   Jinna (CLIENT_JINNA_NEGATOUCH). No es el cooldown de una habilidad:
+   es el margen minimo entre conversiones anunciadas por el server (la
+   gracia de 3 s vive en el cliente como jinnaNegaGrace; esto es la
+   red de seguridad del lado server). */
+#define JINNA_NEGATOUCH 14
+/* v7: JINNA_NEGATOUCH comparte indice con JINNA_MINION a proposito:
+   ambas son conversiones de bando y no deben pisarse entre si. */
 
 typedef struct PeerData
 {

@@ -77,17 +77,30 @@ if(parryState == 2)
 // sin registrar en el .yyp = asset fantasma), cae al palette swap de
 // siempre: se dibuja normal y NUNCA mas salta el "not set before
 // reading it".
-if(variable_global_exists("scr_amy_cyber"))
-        scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, sprite_index, image_index);
+// v8 (NEGAGEN, toque negativo): SUBDITO NEGATIVO local — el cuerpo se
+// dibuja INVERTIDO (shd_negative), no con la paleta demon: es el look
+// canon de Negagen, verificado pixel a pixel contra los spr_amynega_* /
+// spr_eggnega_* del build original.
+if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+{
+        shader_set(shd_negative);
+        draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, (isSpinning && !isLightDashing) ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
+        shader_reset();
+}
 else
-        scr_palette_swap(global.palleteFrom, global.palleteTo);
-// v6.0 — FIX ROTACION INVISIBLE: saltar EN BOLA conserva isSpinning (v5.3
-// del manejo) y este ternario forzaba angle = 0 con ese flag — durante el
-// light dash el rayo volaba DE LADO hacia los anillos de ARRIBA sin girar
-// (el puppet remoto si giraba: el local era el unico ciego). Ahora el
-// dash manda sobre la bola: si esta volando como rayo, SIEMPRE rota.
-draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, (isSpinning && !isLightDashing) ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
-shader_reset();
+{
+        if(variable_global_exists("scr_amy_cyber"))
+                scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, sprite_index, image_index);
+        else
+                scr_palette_swap(global.palleteFrom, global.palleteTo);
+        // v6.0 — FIX ROTACION INVISIBLE: saltar EN BOLA conserva isSpinning (v5.3
+        // del manejo) y este ternario forzaba angle = 0 con ese flag — durante el
+        // light dash el rayo volaba DE LADO hacia los anillos de ARRIBA sin girar
+        // (el puppet remoto si giraba: el local era el unico ciego). Ahora el
+        // dash manda sobre la bola: si esta volando como rayo, SIEMPRE rota.
+        draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, (isSpinning && !isLightDashing) ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
+        shader_reset();
+}
 
 // ESTADO BURBUJA: dibuja la burbuja de secuestro ENCIMA de Amy.
 // amy_Bubble son 8 frames a 5 fps (200 ms por frame); su origen

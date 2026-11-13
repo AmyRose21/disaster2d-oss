@@ -416,6 +416,15 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         // en obj_player_puppet)
                                         if(global.player.hp < _hpB4 || global.player.isHurt)
                                                 scr_weak_mark_hit(JINNA_WEAKMARK_CD);
+
+                                        // v7 — TOQUE NEGATIVO: el agarre que calo tambien
+                                        // acumula ENERGIA NEGATIVA (el "negatimer" de
+                                        // Negagen). A 100 el propio cliente pide la
+                                        // conversion instantanea a súbdito negativo
+                                        // (CLIENT_JINNA_NEGATOUCH). La gracia de 3 s
+                                        // (jinnaNegaGrace / Antinegatemper) la respeta
+                                        // scr_jinna_negatouch_hit.
+                                        scr_jinna_negatouch_hit(JINNA_NEGA_CHARGE);
                                 }
                         }
                         else if(instance_exists(obj_player_puppet))
@@ -599,6 +608,12 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         if(global.player.hp < _hpB4t || global.player.isHurt)
                                                 scr_weak_mark_hit(JINNA_WEAKMARK_CD);
 
+                                        // v7 — TOQUE NEGATIVO por la trampa: mismo canal
+                                        // que el agarre (la energia negativa de Jinna
+                                        // impregna sus portales). Solo en la victima NORMAL
+                                        // (los kinds 1-5 son absorbidos: ya no estan).
+                                        scr_jinna_negatouch_hit(JINNA_NEGA_CHARGE);
+
                                         // teleport hasta ELLA (si el dano no la mato)
                                         if(instance_exists(global.player) && !global.player.isDead)
                                         {
@@ -633,13 +648,19 @@ function net_state_game(rbuff, nps, isPasstrough)
                 // v6 JINNA — INVOCACION DE LOS MINIONS DEL PORTAL (↓+C). El
                 // server reenvia la posicion de Jinna (jx/jy) y la lista de
                 // pids invocados. El cliente de CADA minion reusa el flujo de
-                // demonizacion local: revive con 100 hp, paleta demon y pasa
-                // a pelear para el bando EXE con VIDA REAL (su hp viaja en el
-                // UDP como el de cualquier jugador; los golpes de los
-                // supervivientes le hacen 20 de dano — ver obj_player_puppet).
-                // Los demas clientes solo ven el efecto de portal en su
-                // puppet (el demonize visible llega con los paquetes normales
-                // de estado: paleta demon + revivalTimes 2 del UDP).
+                // demonizacion local: revive con 100 hp y pasa a pelear para
+                // el bando EXE con VIDA REAL (su hp viaja en el UDP como el
+                // de cualquier jugador; los golpes de los supervivientes le
+                // hacen 20 de dano — ver obj_player_puppet).
+                // v9 (NEGAGEN): el invocado se materializa con el LOOK
+                // NEGATIVO (isNegatouch + shd_negative, el mismo patron del
+                // subdito convertido del toque negativo v8), NO con la paleta
+                // demon: Jina los trae del portal "negativizados". Solo
+                // cambia la piel — mecanicamente siguen siendo MINIONS plenos
+                // (golpe de 20, vuelta al portal al caer). Los demas clientes
+                // ven el efecto de portal en su puppet y el look negativo al
+                // marcarlo aqui (la marca viaja con ESTE paquete; el
+                // revivalTimes 2 llega con el UDP de siempre).
                 case PacketType.SERVER_JINNA_MINION_STATE:
                 {
                         if(isPasstrough)
@@ -678,6 +699,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         id.xspd = 0;
                                         id.yspd = 0;
                                         isMinion = true; // v6: barra de vida real + dano recibido
+                                        isNegatouch = true; // v9: look NEGATIVO (shader nega, sin paleta demon)
                                         scr_effect_quick(x, y - 20, spr_ring_teleport, 1, false, 0, 0);
                                         break;
                                 }
@@ -704,13 +726,23 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 global.player.deadTimer = 31;
                                 global.player.revivalTimes = 2; // esbirro: cuenta como caido y pelea para el EXE
                                 global.player.isMinion = true; // v6: MINION de Jinna — tiene VIDA REAL (los supervivientes le hacen dano)
+                                global.player.isNegatouch = true; // v9: look NEGATIVO — patron del subdito convertido (v8)
 
-                                // paleta demon (mismo cambio que la demonizacion normal)
-                                var table = obj_unlockables.palettes[? global.character + PALETTE_DEMON];
-                                global.palleteFrom = table.from;
-                                global.palleteTo = table.to;
-                                global.palleteName = table.name;
-                                net_send_palette();
+                                // v9 (NEGAGEN): SIN paleta demon — el look del
+                                // invocado es la INVERSION FOTOGRAFICA del sprite
+                                // original (shd_negative en el Draw de cada objeto),
+                                // el mismo patron del subdito convertido del toque
+                                // negativo (v8): el sprite normal viaja como siempre
+                                // y cada cliente lo invierte con la marca isNegatouch.
+                                // Mecanicamente sigue siendo MINION pleno (100 hp,
+                                // golpe de 20, vuelta al portal al caer): SOLO cambia
+                                // la piel. Se purga la carga negativa residual que
+                                // trajera de golpes previos a la captura (ya es
+                                // minion: la purga de scr_jinna_negatouch_purge no le
+                                // aplica — el bloque isMinion de obj_player_puppet
+                                // corta antes — y la barra v7 exige revivalTimes < 2).
+                                if(variable_instance_exists(global.player.id, "jinnaNegaCharge"))
+                                        global.player.jinnaNegaCharge = 0;
 
                                 // el control vuelve SI estaba apagado (patron del
                                 // obj_jinna_absorb: congelar quita el control UNA vez)
@@ -754,6 +786,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 // re-mojo PLAYER_CAUGHT: seguimos "vivos" alli).
                                 global.playerControls = false;
                                 global.player.isMinion = false; // deja de ser minion activo
+                                global.player.isNegatouch = false; // v9: de vuelta al portal: el look negativo se apaga hasta la re-invocacion
                                 global.player.hp = 0;
                                 global.player.isHurt = false;
                                 global.player.shockedTimer = 0;
@@ -783,11 +816,33 @@ function net_state_game(rbuff, nps, isPasstrough)
 
                                         visible = false;
                                         isMinion = false; // v6: de vuelta al portal, ya no es minion activo
+                                        isNegatouch = false; // v9: y su look negativo se apaga hasta la re-invocacion
                                         scr_effect_quick(x, y - 20, spr_ring_teleport, 1, false, 0, 0);
                                         audio_play_sound(snd_teleport, 0, false);
                                         break;
                                 }
                         }
+                        break;
+                }
+
+                // v7 JINNA — TOQUE NEGATIVO: el server valido la conversion
+                // de un superviviente cargado de energia negativa (su
+                // jinnaNegaCharge llego a 100 tras los golpes de Jinna).
+                // Conversion INSTANTANEA (el modo alternativo de Negagen:
+                // sin agonia, sin death-timer, sin tope de mitad del lobby):
+                // el propio negativo revive donde estaba con paleta demon,
+                // 60 hp y golpe de 15 (mas debil que un esbirro comun, pero
+                // ilimitados); el resto ve el estallido sobre su puppet (la
+                // paleta demon y el revivalTimes 2 llegan solos con el
+                // siguiente UDP de estado).
+                case PacketType.SERVER_JINNA_NEGATOUCH_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+
+                        var _ngpid = buffer_read_s(rbuff, buffer_u16);
+
+                        scr_jinna_negatouch_convert(_ngpid);
                         break;
                 }
 
@@ -3479,6 +3534,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         global.player.isDead = false;
                         global.player.revivalTimes = 2;
                         global.player.isMinion = false; // v6: esbirro COMUN (demonizacion normal): sin vida real
+                        global.player.isNegatouch = false; // v7: demonizacion normal = ya NO es un negativo
                         
                         with(global.player.reviveObj)
                                 instance_destroy();
@@ -3532,6 +3588,11 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 global.player.isDead = false;
                                 global.player.hurttime = 60 * 2;
                                 global.player.isMinion = false; // v6: si era minion, ya no lo es
+                                global.player.isNegatouch = false; // v7: si era un negativo, ya no lo es
+
+                                // v7: la carga negativa se purga al ser rescatado
+                                if(variable_instance_exists(global.player.id, "jinnaNegaCharge"))
+                                        global.player.jinnaNegaCharge = 0;
                                 
                                 var _dtable = obj_unlockables.palettes[? global.character];
                                 

@@ -160,12 +160,28 @@ if(shieldPoseOn)
         _poseBodyIdx = floor(shieldPoseT);
 }
 
-if(variable_global_exists("scr_amy_cyber"))
-        scr_amy_cyber(character, fromPallete, toPallete, is_cheating ? spr_merfurmu : _poseBodySpr, _poseBodyIdx);
+// v8 (NEGAGEN, toque negativo): los SUBDITOS NEGATIVOS (isNegatouch)
+// se dibujan con shd_negative — inversion fotografica pura del sprite,
+// verificada pixel a pixel contra los spr_amynega_* / spr_eggnega_* del
+// build original de Negagen (592/592 pixeles = 1-x exacto). En vez de
+// la paleta demon: el NEGATIVO es el look canon de Negagen (Amy rosa
+// se ve cian/verdosa, los retratos del HUD quedan azulados). Un solo
+// pase de shader sirve para TODOS los personajes.
+if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+{
+        shader_set(shd_negative);
+        draw_sprite_ext(is_cheating ? spr_merfurmu : _poseBodySpr, _poseBodyIdx, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, _hideAlpha);
+        shader_reset();
+}
 else
-        scr_palette_swap(fromPallete, toPallete);
-draw_sprite_ext(is_cheating ? spr_merfurmu : _poseBodySpr, _poseBodyIdx, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, _hideAlpha);
-shader_reset();
+{
+        if(variable_global_exists("scr_amy_cyber"))
+                scr_amy_cyber(character, fromPallete, toPallete, is_cheating ? spr_merfurmu : _poseBodySpr, _poseBodyIdx);
+        else
+                scr_palette_swap(fromPallete, toPallete);
+        draw_sprite_ext(is_cheating ? spr_merfurmu : _poseBodySpr, _poseBodyIdx, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, _hideAlpha);
+        shader_reset();
+}
 
 if(_pb)
         scr_powerboost_fx_front(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, angle, current_time / 16, abs(x - xprevious) + abs(y - yprevious) > 0.1);

@@ -337,7 +337,8 @@ enum PacketType
            u8[16] pids): TODOS los atrapados en el portal se invocan a
            los pies de Jinna (jx/jy) como MINIONS — el cliente de CADA
            minion reusa el flujo de demonizacion (reviven con 100 hp,
-           paleta demon y pelean para el EXE con VIDA REAL: su hp viaja
+           look NEGATIVO — v9: marca isNegatouch + shd_negative, sin
+           paleta demon — y pelean para el EXE con VIDA REAL: su hp viaja
            en el UDP y los golpes de los supervivientes les hacen 20 de
            dano en su propio cliente, la autoridad de siempre).
            CLIENT_JINNA_MINION_DOWN: un minion llego a 0 hp — su propio
@@ -350,7 +351,25 @@ enum PacketType
         CLIENT_JINNA_MINION,
         CLIENT_JINNA_MINION_DOWN,
         SERVER_JINNA_MINION_STATE,
-        SERVER_JINNA_MINION_DOWN
+        SERVER_JINNA_MINION_DOWN,
+
+        /* v7 JINNA — TOQUE NEGATIVO (modo súbditos alternativo de
+           NEGAGEN, extraido del build YYC del NU Project y adaptado a
+           Jina). CLIENT_JINNA_NEGATOUCH: el cliente de un superviviente
+           cuya CARGA NEGATIVA (jinnaNegaCharge, el "negatimer" de
+           Negagen) llego a 100 pide la conversion; el server valida
+           (exe + Jinna + victima viva sin demonizar — la carga la lleva
+           el propio cliente de la victima, la autoridad de siempre) y
+           reenvia SERVER_JINNA_NEGATOUCH_STATE (u16 pid): TODOS los
+           clientes aplican la conversion INSTANTANEA (el negativo
+           revive donde estaba con la paleta demon, 60 hp y golpe de 15:
+           "negative characters are weaker than usual, but the number
+           of such servants is unlimited compared to regular
+           demonization" — NO pasa por la agonia de 30 s NI respeta el
+           tope de mitad del lobby). Anadido AL FINAL en los DOS lados
+           (mismo orden que include/Packet.h). */
+        CLIENT_JINNA_NEGATOUCH,
+        SERVER_JINNA_NEGATOUCH_STATE
 }
 
 #macro STATE_PENDING -1

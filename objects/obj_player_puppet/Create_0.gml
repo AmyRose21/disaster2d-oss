@@ -25,6 +25,15 @@ revivalTimes = 0;
 // propio minion). Lo setean los handlers de SERVER_JINNA_MINION_STATE /
 // SERVER_JINNA_MINION_DOWN en net_state_game (todos los clientes).
 isMinion = false;
+// v7 (toque negativo): true cuando este jugador es un SÚBDITO NEGATIVO
+// (convertido por la energia negativa de Jinna, el modo alternativo de
+// Negagen): su golpe pega 15 en vez de 20 ("negative characters are
+// weaker than usual"). Lo pone el handler de SERVER_JINNA_NEGATOUCH_STATE
+// en net_state_game (todos los clientes).
+// v9: tambien lo llevan los MINIONS invocados del portal — mismo LOOK
+// negativo (shd_negative), pero golpe de 20 y vuelta al portal al caer:
+// son minions plenos (los marca SERVER_JINNA_MINION_STATE igual).
+isNegatouch = false;
 xspd = 0;
 yspd = 0;
 // isGrounded NO viaja por red: default defensivo para que leerlo en un

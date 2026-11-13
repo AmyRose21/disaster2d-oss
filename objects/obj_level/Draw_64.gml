@@ -127,7 +127,20 @@ if(global.showHud && titleCard > 4)
                         else
                         {
                                 var _hudDem = scr_hud_demon(_hudChar);
-                                draw_sprite(_hudDem[0], _hudDem[1], pos, 268);
+                                // v8 (NEGAGEN): retrato del SUBDITO NEGATIVO —
+                                // dibujado INVERTIDO (shd_negative), el look de
+                                // los retratos azulados del modo Negagen. La
+                                // paleta demon (rojo) queda solo para esbirros
+                                // comunes.
+                                if(variable_instance_exists(global.player.id, "isNegatouch") && global.player.isNegatouch)
+                                {
+                                        shader_set(shd_negative);
+                                        shader_set_uniform_f(shader_get_uniform(shd_negative, "u_keepDark"), 1);
+                                        draw_sprite(_hudDem[0], _hudDem[1], pos, 268);
+                                        shader_reset();
+                                }
+                                else
+                                        draw_sprite(_hudDem[0], _hudDem[1], pos, 268);
                         }
                 }
                 else
@@ -196,7 +209,17 @@ if(global.showHud && titleCard > 4)
                         else
                         {
                                 var _hudDem2 = scr_hud_demon(_pch);
-                                draw_sprite(_hudDem2[0], _hudDem2[1], pos + i * 28, 268);
+                                // v8 (NEGAGEN): retrato nega del puppet (mismo
+                                // look invertido que el retrato local)
+                                if(variable_instance_exists(inst, "isNegatouch") && inst.isNegatouch)
+                                {
+                                        shader_set(shd_negative);
+                                        shader_set_uniform_f(shader_get_uniform(shd_negative, "u_keepDark"), 1);
+                                        draw_sprite(_hudDem2[0], _hudDem2[1], pos + i * 28, 268);
+                                        shader_reset();
+                                }
+                                else
+                                        draw_sprite(_hudDem2[0], _hudDem2[1], pos + i * 28, 268);
                         }
                 }
                 else 

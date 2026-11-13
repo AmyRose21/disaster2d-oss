@@ -705,6 +705,31 @@ if(instance_exists(global.player) && !global.player.isDead)
                 }
         }
 
+        // v7 (toque negativo) — CARGA NEGATIVA DE JINNA (visible SOLO para
+        // la victima, patron de la marca de debilidad de Metal Amy): una
+        // barrita morada bajo el HUD de vida que se llena con cada golpe de
+        // Jina (agarre/trampa +25, golpe X +15). A 100 llega la conversion
+        // instantanea a súbdito negativo (el "negatimer" de Negagen). En
+        // gracia (jinnaNegaGrace, su Antinegatemper) parpadea tenue.
+        if(global.character != CHARACTER_EXE && global.player.revivalTimes < 2
+        && variable_instance_exists(global.player.id, "jinnaNegaCharge")
+        && global.player.jinnaNegaCharge > 0 && !global.player.isDead)
+        {
+                var _negaPct = global.player.jinnaNegaCharge / JINNA_NEGA_MAX;
+                var _negaX = 60;
+                var _negaY = 178 - _mob;
+                var _negaCol = make_color_rgb(120, 40, 160); // energía negativa: violeta
+                var _negaAlpha = (variable_instance_exists(global.player.id, "jinnaNegaGrace") && global.player.jinnaNegaGrace > 0) ? 0.45 + 0.3 * sin(current_time / 90) : 0.9;
+
+                draw_set_alpha(_negaAlpha);
+                draw_set_color(c_black);
+                draw_rectangle(_negaX - 1, _negaY - 1, _negaX + 102, _negaY + 5, false);
+                draw_set_color(_negaCol);
+                draw_rectangle(_negaX, _negaY, _negaX + 100 * _negaPct, _negaY + 4, false);
+                draw_set_alpha(1);
+                draw_set_color(c_white);
+        }
+
         // v4.3b: el recordatorio de emociones recupera sus teclas, ahora
         // DINAMICAS: el PNG original tenia A/S/D horneadas junto a cada
         // cara (columnas 20-27 del sprite), pero se borraron para las
