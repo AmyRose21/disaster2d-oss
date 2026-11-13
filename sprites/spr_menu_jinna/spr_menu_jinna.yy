@@ -145,8 +145,8 @@
   "swatchColours":null,
   "swfPrecision":2.525,
   "textureGroupId":{
-    "name":"Game",
-    "path":"texturegroups/Game",
+    "name":"Menus",
+    "path":"texturegroups/Menus",
   },
   "type":0,
   "VTile":false,
