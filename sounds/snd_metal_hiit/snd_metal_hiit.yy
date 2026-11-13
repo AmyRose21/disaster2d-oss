@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":0.9533786848072562,
+  "duration":0.9533787,
   "exportDir":"",
   "name":"snd_metal_hiit",
   "parent":{

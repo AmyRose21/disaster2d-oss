@@ -19,7 +19,7 @@
   "height":256,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"837ae6a0-21f2-49fa-a0d6-ac491ac34130","blendMode":0,"displayName":"default","isLocked":false,"name":"021b2a06-404b-4a0b-8105-9a90d7a23e4d","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"837ae6a0-21f2-49fa-a0d6-ac491ac34130","blendMode":0,"displayName":"default","isLocked":false,"name":"837ae6a0-21f2-49fa-a0d6-ac491ac34130","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"background_ehz_far",
   "nineSlice":null,
@@ -52,9 +52,9 @@
     "length":1.0,
     "lockOrigin":false,
     "moments":{
-      "$KeyframeStore<MomentsKeyframe>":"",
+      "$KeyframeStore<MomentsEventKeyframe>":"",
       "Keyframes":[],
-      "resourceType":"KeyframeStore<MomentsKeyframe>",
+      "resourceType":"KeyframeStore<MomentsEventKeyframe>",
       "resourceVersion":"2.0",
     },
     "name":"background_ehz_far",

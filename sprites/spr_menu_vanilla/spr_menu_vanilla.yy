@@ -29,7 +29,7 @@
     {"$GMSpriteFrame":"v1","%Name":"8512dc3a-20cb-4bce-aab0-438494717993","name":"8512dc3a-20cb-4bce-aab0-438494717993","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
     {"$GMSpriteFrame":"v1","%Name":"8fb9e83e-5809-49d4-8579-eb79834e069d","name":"8fb9e83e-5809-49d4-8579-eb79834e069d","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
     {"$GMSpriteFrame":"v1","%Name":"cfd75c71-77c7-4663-8a44-f9b539757557","name":"cfd75c71-77c7-4663-8a44-f9b539757557","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"70d8c415-bf5c-401c-aba3-0fd1a8b6fc04","name":"70d8c415-bf5c-401c-aba3-0fd1a8b6fc04","resourceType":"GMSpriteFrame","resourceVersion":"2.0",}
+    {"$GMSpriteFrame":"v1","%Name":"70d8c415-bf5c-401c-aba3-0fd1a8b6fc04","name":"70d8c415-bf5c-401c-aba3-0fd1a8b6fc04","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
@@ -138,7 +138,7 @@
               },"Disabled":false,"id":"6fcd8e19-07b6-4fbd-847b-b2f085cf7482","IsCreationKey":false,"Key":16.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
                 "0":{"$SpriteFrameKeyframe":"","Id":{"name":"70d8c415-bf5c-401c-aba3-0fd1a8b6fc04","path":"sprites/spr_menu_vanilla/spr_menu_vanilla.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"f870a677-963e-468e-8a14-a774f80162ba","IsCreationKey":false,"Key":17.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,}
+              },"Disabled":false,"id":"f870a677-963e-468e-8a14-a774f80162ba","IsCreationKey":false,"Key":17.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

@@ -28,7 +28,7 @@
   "height":128,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"cc2f95a3-bd4d-4106-8f8f-4539c6432b2f","blendMode":0,"displayName":"default","isLocked":false,"name":"b1aee192-5cdb-403b-a32f-5f6491757abf","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"cc2f95a3-bd4d-4106-8f8f-4539c6432b2f","blendMode":0,"displayName":"default","isLocked":false,"name":"cc2f95a3-bd4d-4106-8f8f-4539c6432b2f","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"background_ehz_sky",
   "nineSlice":null,
@@ -61,9 +61,9 @@
     "length":10.0,
     "lockOrigin":false,
     "moments":{
-      "$KeyframeStore<MomentsKeyframe>":"",
+      "$KeyframeStore<MomentsEventKeyframe>":"",
       "Keyframes":[],
-      "resourceType":"KeyframeStore<MomentsKeyframe>",
+      "resourceType":"KeyframeStore<MomentsEventKeyframe>",
       "resourceVersion":"2.0",
     },
     "name":"background_ehz_sky",

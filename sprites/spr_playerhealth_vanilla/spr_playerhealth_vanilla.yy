@@ -18,7 +18,7 @@
     {"$GMSpriteFrame":"v1","%Name":"6db3e7c8-51be-4219-bf3c-95fefa6e663b","name":"6db3e7c8-51be-4219-bf3c-95fefa6e663b","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
     {"$GMSpriteFrame":"v1","%Name":"e17d0135-b6f2-4276-8766-4778f5f86abb","name":"e17d0135-b6f2-4276-8766-4778f5f86abb","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
     {"$GMSpriteFrame":"v1","%Name":"055d1990-1757-49fd-a498-0990d95ced1f","name":"055d1990-1757-49fd-a498-0990d95ced1f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"c008fa73-bf65-494f-89e0-cfd6eab66853","name":"c008fa73-bf65-494f-89e0-cfd6eab66853","resourceType":"GMSpriteFrame","resourceVersion":"2.0",}
+    {"$GMSpriteFrame":"v1","%Name":"c008fa73-bf65-494f-89e0-cfd6eab66853","name":"c008fa73-bf65-494f-89e0-cfd6eab66853","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
@@ -94,7 +94,7 @@
               },"Disabled":false,"id":"bee3cf54-c420-42be-bf92-688d0fc8f59e","IsCreationKey":false,"Key":5.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
                 "0":{"$SpriteFrameKeyframe":"","Id":{"name":"c008fa73-bf65-494f-89e0-cfd6eab66853","path":"sprites/spr_playerhealth_vanilla/spr_playerhealth_vanilla.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"59ece468-2018-4f8a-a9b1-a393be20c3bb","IsCreationKey":false,"Key":6.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,}
+              },"Disabled":false,"id":"59ece468-2018-4f8a-a9b1-a393be20c3bb","IsCreationKey":false,"Key":6.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

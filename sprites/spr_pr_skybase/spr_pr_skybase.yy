@@ -19,7 +19,7 @@
   "height":270,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"6fccb496-f10e-4ab6-b16a-7d19005e4143","blendMode":0,"displayName":"default","isLocked":false,"name":"09625b5f-a38a-4251-b276-2742f5f7279f","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"6fccb496-f10e-4ab6-b16a-7d19005e4143","blendMode":0,"displayName":"default","isLocked":false,"name":"6fccb496-f10e-4ab6-b16a-7d19005e4143","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_pr_skybase",
   "nineSlice":null,
@@ -52,9 +52,9 @@
     "length":1.0,
     "lockOrigin":false,
     "moments":{
-      "$KeyframeStore<MomentsKeyframe>":"",
+      "$KeyframeStore<MomentsEventKeyframe>":"",
       "Keyframes":[],
-      "resourceType":"KeyframeStore<MomentsKeyframe>",
+      "resourceType":"KeyframeStore<MomentsEventKeyframe>",
       "resourceVersion":"2.0",
     },
     "name":"spr_pr_skybase",
@@ -67,8 +67,7 @@
     "showBackdropImage":false,
     "timeUnits":1,
     "tracks":[
-      {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{
-            "$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
+      {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
                 "0":{"$SpriteFrameKeyframe":"","Id":{"name":"09625b5f-a38a-4251-b276-2742f5f7279f","path":"sprites/spr_pr_skybase/spr_pr_skybase.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"e54edf3e-7db0-4abc-9839-d6c4cbd5f506","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},

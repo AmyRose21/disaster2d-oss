@@ -28,7 +28,7 @@
   ],
   "name":"spr_erouge_run",
   "nineSlice":null,
-  "origin":9,
+  "origin":0,
   "parent":{
     "name":"Rouge",
     "path":"folders/Sprites/Player/Demonized/Rouge.yy",

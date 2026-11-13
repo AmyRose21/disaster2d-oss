@@ -19,7 +19,7 @@
   "height":512,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"1a4238a2-4080-46cd-b51e-e0531bd5e204","blendMode":0,"displayName":"default","isLocked":false,"name":"0411f6a0-3839-41b8-be3b-3c79292e57de","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"1a4238a2-4080-46cd-b51e-e0531bd5e204","blendMode":0,"displayName":"default","isLocked":false,"name":"1a4238a2-4080-46cd-b51e-e0531bd5e204","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_guide_eh",
   "nineSlice":null,
@@ -52,9 +52,9 @@
     "length":1.0,
     "lockOrigin":false,
     "moments":{
-      "$KeyframeStore<MomentsKeyframe>":"",
+      "$KeyframeStore<MomentsEventKeyframe>":"",
       "Keyframes":[],
-      "resourceType":"KeyframeStore<MomentsKeyframe>",
+      "resourceType":"KeyframeStore<MomentsEventKeyframe>",
       "resourceVersion":"2.0",
     },
     "name":"spr_guide_eh",

@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":2.1145351473922904,
+  "duration":2.114535,
   "exportDir":"",
   "name":"snd_metal_dash",
   "parent":{

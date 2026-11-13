@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":1.0996598639455781,
+  "duration":1.0996599,
   "exportDir":"",
   "name":"snd_blaze_go",
   "parent":{

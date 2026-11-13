@@ -1,6 +1,7 @@
 {
   "FolderOrderSettings":[
     {"name":"MultiClient","order":3,"path":"folders/Extensions/MultiClient.yy",},
+    {"name":"Rouge","order":4,"path":"folders/Objects/Player/Survivors/Rouge.yy",},
     {"name":"Sally Canon","order":2,"path":"folders/Objects/Player/Survivors/Sally Canon.yy",},
     {"name":"Vanilla Canon","order":3,"path":"folders/Objects/Player/Survivors/Vanilla Canon.yy",},
     {"name":"Blood","order":16,"path":"folders/Sprites/Effects/Blood.yy",},

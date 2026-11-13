@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":1.0855328798185941,
+  "duration":1.0855329,
   "exportDir":"",
   "name":"snd_blaze_skak",
   "parent":{

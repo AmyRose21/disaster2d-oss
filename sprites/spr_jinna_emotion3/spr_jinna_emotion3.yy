@@ -1,930 +1,198 @@
 {
-  "$GMSprite": "v2",
-  "%Name": "spr_jinna_emotion3",
-  "bboxMode": 0,
-  "bbox_bottom": 54,
-  "bbox_left": 24,
-  "bbox_right": 48,
-  "bbox_top": 12,
-  "collisionKind": 1,
-  "collisionTolerance": 0,
-  "DynamicTexturePage": false,
-  "edgeFiltering": false,
-  "For3D": false,
-  "frames": [
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "911695c6-14f5-4f44-8064-16265a43a78d",
-      "name": "911695c6-14f5-4f44-8064-16265a43a78d",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "7394def6-7eee-422d-9d70-9785a805884e",
-      "name": "7394def6-7eee-422d-9d70-9785a805884e",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "830f04f0-ac89-4de4-834b-1306d330dd99",
-      "name": "830f04f0-ac89-4de4-834b-1306d330dd99",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "7f135e5c-c9cf-4ef9-bba9-b5a1adac3d34",
-      "name": "7f135e5c-c9cf-4ef9-bba9-b5a1adac3d34",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "95257ea2-9c5f-42f9-83fd-0fa49021123f",
-      "name": "95257ea2-9c5f-42f9-83fd-0fa49021123f",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "5d344b71-4ecd-48a7-9794-9beaaa414260",
-      "name": "5d344b71-4ecd-48a7-9794-9beaaa414260",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "7a645b39-2de5-41c0-b72c-fdde547c57b2",
-      "name": "7a645b39-2de5-41c0-b72c-fdde547c57b2",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "0b5a4960-7acc-483b-b449-a7e2e9ff6345",
-      "name": "0b5a4960-7acc-483b-b449-a7e2e9ff6345",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "dc924d8c-6b4a-45b1-ac6c-972aef3bc5ff",
-      "name": "dc924d8c-6b4a-45b1-ac6c-972aef3bc5ff",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "0f9e751c-cbf2-427a-b91d-43cf62d60260",
-      "name": "0f9e751c-cbf2-427a-b91d-43cf62d60260",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "de1da9c1-34a2-4b49-a458-65793975c386",
-      "name": "de1da9c1-34a2-4b49-a458-65793975c386",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "44acfb71-3645-46f9-a49a-8036fceb805d",
-      "name": "44acfb71-3645-46f9-a49a-8036fceb805d",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "8130181a-f7a4-41e5-941f-73516dd1eead",
-      "name": "8130181a-f7a4-41e5-941f-73516dd1eead",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "e96ed206-c1a6-476d-be0b-a9fa0a7a1151",
-      "name": "e96ed206-c1a6-476d-be0b-a9fa0a7a1151",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "8a4f53d7-aafa-4587-82b9-c3b8781b9a4a",
-      "name": "8a4f53d7-aafa-4587-82b9-c3b8781b9a4a",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "8cca9114-4a85-4c8f-a337-8abc1ccf8286",
-      "name": "8cca9114-4a85-4c8f-a337-8abc1ccf8286",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "b1f613a3-d653-4a56-afb3-77153ed3c11d",
-      "name": "b1f613a3-d653-4a56-afb3-77153ed3c11d",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "2e0edffc-ecf2-4b45-b981-b6b7927df03b",
-      "name": "2e0edffc-ecf2-4b45-b981-b6b7927df03b",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "01c79778-4d3c-4fdc-840d-11ba3caf6644",
-      "name": "01c79778-4d3c-4fdc-840d-11ba3caf6644",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "faeb154c-4251-4596-bfe2-3fb107d4cfb0",
-      "name": "faeb154c-4251-4596-bfe2-3fb107d4cfb0",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "1a6ca6e7-7a5a-4032-a8c0-3b5e59913b52",
-      "name": "1a6ca6e7-7a5a-4032-a8c0-3b5e59913b52",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "75323ea0-6c44-441a-bff7-ac055f69a185",
-      "name": "75323ea0-6c44-441a-bff7-ac055f69a185",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "4ae3adba-1cc0-48f8-9ec1-ce77993bce26",
-      "name": "4ae3adba-1cc0-48f8-9ec1-ce77993bce26",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "76611d93-dc4f-401e-b4f9-6f61d6275804",
-      "name": "76611d93-dc4f-401e-b4f9-6f61d6275804",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "fc4f8a86-0914-498c-9175-ebca0db11bb4",
-      "name": "fc4f8a86-0914-498c-9175-ebca0db11bb4",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "4744e41e-3d4a-4ebd-aa43-86fd1a477763",
-      "name": "4744e41e-3d4a-4ebd-aa43-86fd1a477763",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "f4931253-dca4-4f60-8069-14a6dfe8962f",
-      "name": "f4931253-dca4-4f60-8069-14a6dfe8962f",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "c5350ad8-a288-4d0e-93a7-117e7a5169ec",
-      "name": "c5350ad8-a288-4d0e-93a7-117e7a5169ec",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    }
+  "$GMSprite":"v2",
+  "%Name":"spr_jinna_emotion3",
+  "bboxMode":0,
+  "bbox_bottom":54,
+  "bbox_left":24,
+  "bbox_right":48,
+  "bbox_top":12,
+  "collisionKind":1,
+  "collisionTolerance":0,
+  "DynamicTexturePage":false,
+  "edgeFiltering":false,
+  "For3D":false,
+  "frames":[
+    {"$GMSpriteFrame":"v1","%Name":"911695c6-14f5-4f44-8064-16265a43a78d","name":"911695c6-14f5-4f44-8064-16265a43a78d","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"7394def6-7eee-422d-9d70-9785a805884e","name":"7394def6-7eee-422d-9d70-9785a805884e","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"830f04f0-ac89-4de4-834b-1306d330dd99","name":"830f04f0-ac89-4de4-834b-1306d330dd99","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"7f135e5c-c9cf-4ef9-bba9-b5a1adac3d34","name":"7f135e5c-c9cf-4ef9-bba9-b5a1adac3d34","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"95257ea2-9c5f-42f9-83fd-0fa49021123f","name":"95257ea2-9c5f-42f9-83fd-0fa49021123f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"5d344b71-4ecd-48a7-9794-9beaaa414260","name":"5d344b71-4ecd-48a7-9794-9beaaa414260","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"7a645b39-2de5-41c0-b72c-fdde547c57b2","name":"7a645b39-2de5-41c0-b72c-fdde547c57b2","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"0b5a4960-7acc-483b-b449-a7e2e9ff6345","name":"0b5a4960-7acc-483b-b449-a7e2e9ff6345","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"dc924d8c-6b4a-45b1-ac6c-972aef3bc5ff","name":"dc924d8c-6b4a-45b1-ac6c-972aef3bc5ff","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"0f9e751c-cbf2-427a-b91d-43cf62d60260","name":"0f9e751c-cbf2-427a-b91d-43cf62d60260","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"de1da9c1-34a2-4b49-a458-65793975c386","name":"de1da9c1-34a2-4b49-a458-65793975c386","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"44acfb71-3645-46f9-a49a-8036fceb805d","name":"44acfb71-3645-46f9-a49a-8036fceb805d","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"8130181a-f7a4-41e5-941f-73516dd1eead","name":"8130181a-f7a4-41e5-941f-73516dd1eead","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"e96ed206-c1a6-476d-be0b-a9fa0a7a1151","name":"e96ed206-c1a6-476d-be0b-a9fa0a7a1151","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"8a4f53d7-aafa-4587-82b9-c3b8781b9a4a","name":"8a4f53d7-aafa-4587-82b9-c3b8781b9a4a","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"8cca9114-4a85-4c8f-a337-8abc1ccf8286","name":"8cca9114-4a85-4c8f-a337-8abc1ccf8286","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"b1f613a3-d653-4a56-afb3-77153ed3c11d","name":"b1f613a3-d653-4a56-afb3-77153ed3c11d","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"2e0edffc-ecf2-4b45-b981-b6b7927df03b","name":"2e0edffc-ecf2-4b45-b981-b6b7927df03b","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"01c79778-4d3c-4fdc-840d-11ba3caf6644","name":"01c79778-4d3c-4fdc-840d-11ba3caf6644","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"faeb154c-4251-4596-bfe2-3fb107d4cfb0","name":"faeb154c-4251-4596-bfe2-3fb107d4cfb0","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"1a6ca6e7-7a5a-4032-a8c0-3b5e59913b52","name":"1a6ca6e7-7a5a-4032-a8c0-3b5e59913b52","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"75323ea0-6c44-441a-bff7-ac055f69a185","name":"75323ea0-6c44-441a-bff7-ac055f69a185","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"4ae3adba-1cc0-48f8-9ec1-ce77993bce26","name":"4ae3adba-1cc0-48f8-9ec1-ce77993bce26","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"76611d93-dc4f-401e-b4f9-6f61d6275804","name":"76611d93-dc4f-401e-b4f9-6f61d6275804","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"fc4f8a86-0914-498c-9175-ebca0db11bb4","name":"fc4f8a86-0914-498c-9175-ebca0db11bb4","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"4744e41e-3d4a-4ebd-aa43-86fd1a477763","name":"4744e41e-3d4a-4ebd-aa43-86fd1a477763","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"f4931253-dca4-4f60-8069-14a6dfe8962f","name":"f4931253-dca4-4f60-8069-14a6dfe8962f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"c5350ad8-a288-4d0e-93a7-117e7a5169ec","name":"c5350ad8-a288-4d0e-93a7-117e7a5169ec","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
-  "gridX": 0,
-  "gridY": 0,
-  "height": 48,
-  "HTile": false,
-  "layers": [
-    {
-      "$GMImageLayer": "",
-      "%Name": "65502f97-2ab3-492a-8c22-b5a596276a33",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "65502f97-2ab3-492a-8c22-b5a596276a33",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    }
+  "gridX":0,
+  "gridY":0,
+  "height":48,
+  "HTile":false,
+  "layers":[
+    {"$GMImageLayer":"","%Name":"65502f97-2ab3-492a-8c22-b5a596276a33","blendMode":0,"displayName":"default","isLocked":false,"name":"65502f97-2ab3-492a-8c22-b5a596276a33","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
-  "name": "spr_jinna_emotion3",
-  "nineSlice": null,
-  "origin": 9,
-  "parent": {
-    "name": "Jinna",
-    "path": "folders/Sprites/Player/Exes/Jinna.yy"
+  "name":"spr_jinna_emotion3",
+  "nineSlice":null,
+  "origin":9,
+  "parent":{
+    "name":"Jinna",
+    "path":"folders/Sprites/Player/Exes/Jinna.yy",
   },
-  "preMultiplyAlpha": false,
-  "resourceType": "GMSprite",
-  "resourceVersion": "2.0",
-  "sequence": {
-    "$GMSequence": "v1",
-    "%Name": "spr_jinna_emotion3",
-    "autoRecord": true,
-    "backdropHeight": 768,
-    "backdropImageOpacity": 0.5,
-    "backdropImagePath": "",
-    "backdropWidth": 1366,
-    "backdropXOffset": 0.0,
-    "backdropYOffset": 0.0,
-    "events": {
-      "$KeyframeStore<MessageEventKeyframe>": "",
-      "Keyframes": [],
-      "resourceType": "KeyframeStore<MessageEventKeyframe>",
-      "resourceVersion": "2.0"
+  "preMultiplyAlpha":false,
+  "resourceType":"GMSprite",
+  "resourceVersion":"2.0",
+  "sequence":{
+    "$GMSequence":"v1",
+    "%Name":"spr_jinna_emotion3",
+    "autoRecord":true,
+    "backdropHeight":768,
+    "backdropImageOpacity":0.5,
+    "backdropImagePath":"",
+    "backdropWidth":1366,
+    "backdropXOffset":0.0,
+    "backdropYOffset":0.0,
+    "events":{
+      "$KeyframeStore<MessageEventKeyframe>":"",
+      "Keyframes":[],
+      "resourceType":"KeyframeStore<MessageEventKeyframe>",
+      "resourceVersion":"2.0",
     },
-    "eventStubScript": null,
-    "eventToFunction": {},
-    "length": 28.0,
-    "lockOrigin": false,
-    "moments": {
-      "$KeyframeStore<MomentsEventKeyframe>": "",
-      "Keyframes": [],
-      "resourceType": "KeyframeStore<MomentsEventKeyframe>",
-      "resourceVersion": "2.0"
+    "eventStubScript":null,
+    "eventToFunction":{},
+    "length":28.0,
+    "lockOrigin":false,
+    "moments":{
+      "$KeyframeStore<MomentsEventKeyframe>":"",
+      "Keyframes":[],
+      "resourceType":"KeyframeStore<MomentsEventKeyframe>",
+      "resourceVersion":"2.0",
     },
-    "name": "spr_jinna_emotion3",
-    "playback": 1,
-    "playbackSpeed": 15.0,
-    "playbackSpeedType": 0,
-    "resourceType": "GMSequence",
-    "resourceVersion": "2.0",
-    "showBackdrop": true,
-    "showBackdropImage": false,
-    "timeUnits": 1,
-    "tracks": [
-      {
-        "$GMSpriteFramesTrack": "",
-        "builtinName": 0,
-        "events": [],
-        "inheritsTrackColour": true,
-        "interpolation": 1,
-        "isCreationTrack": false,
-        "keyframes": {
-          "$KeyframeStore<SpriteFrameKeyframe>": "",
-          "Keyframes": [
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "911695c6-14f5-4f44-8064-16265a43a78d",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "382fd681-9498-4624-82d6-583b09853fbc",
-              "IsCreationKey": false,
-              "Key": 0.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "7394def6-7eee-422d-9d70-9785a805884e",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "0f6ea207-abc3-4663-8002-caa1645a63ba",
-              "IsCreationKey": false,
-              "Key": 1.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "830f04f0-ac89-4de4-834b-1306d330dd99",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "40725689-4b37-4780-addb-db962e7af178",
-              "IsCreationKey": false,
-              "Key": 2.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "7f135e5c-c9cf-4ef9-bba9-b5a1adac3d34",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "796888b8-508d-495c-9b06-8b0a97d51a2b",
-              "IsCreationKey": false,
-              "Key": 3.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "95257ea2-9c5f-42f9-83fd-0fa49021123f",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "fcd4671b-a044-47cf-9754-a334f9b4f69b",
-              "IsCreationKey": false,
-              "Key": 4.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "5d344b71-4ecd-48a7-9794-9beaaa414260",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "2809853c-6dc7-4e2e-a60b-fa4be64491fc",
-              "IsCreationKey": false,
-              "Key": 5.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "7a645b39-2de5-41c0-b72c-fdde547c57b2",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "dd53984e-1439-42cb-b98c-ebfb643c68db",
-              "IsCreationKey": false,
-              "Key": 6.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "0b5a4960-7acc-483b-b449-a7e2e9ff6345",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "6a528b07-6f72-4a44-aade-51d9cf3b4754",
-              "IsCreationKey": false,
-              "Key": 7.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "dc924d8c-6b4a-45b1-ac6c-972aef3bc5ff",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "e0586316-933e-4fc2-a871-6aa130294e7d",
-              "IsCreationKey": false,
-              "Key": 8.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "0f9e751c-cbf2-427a-b91d-43cf62d60260",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "bfc447a1-532c-40ba-bf53-783677814f4f",
-              "IsCreationKey": false,
-              "Key": 9.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "de1da9c1-34a2-4b49-a458-65793975c386",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "747ceab7-7db6-4c18-ae20-7e246d1d949a",
-              "IsCreationKey": false,
-              "Key": 10.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "44acfb71-3645-46f9-a49a-8036fceb805d",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "11e11626-5601-4071-9a58-b191a07eff47",
-              "IsCreationKey": false,
-              "Key": 11.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "8130181a-f7a4-41e5-941f-73516dd1eead",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "69a9833f-1f32-42f9-af9d-151c71bb8dfc",
-              "IsCreationKey": false,
-              "Key": 12.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "e96ed206-c1a6-476d-be0b-a9fa0a7a1151",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "fb3bbea4-2dd3-4a87-bab0-e5735b748db8",
-              "IsCreationKey": false,
-              "Key": 13.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "8a4f53d7-aafa-4587-82b9-c3b8781b9a4a",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "14bd6a7d-7f29-4048-a680-fa8f066167eb",
-              "IsCreationKey": false,
-              "Key": 14.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "8cca9114-4a85-4c8f-a337-8abc1ccf8286",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "f04c389b-e988-4627-8923-af797ab173a0",
-              "IsCreationKey": false,
-              "Key": 15.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "b1f613a3-d653-4a56-afb3-77153ed3c11d",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "7b07a3e9-e4e4-43fb-88c8-e3d4d89d75e4",
-              "IsCreationKey": false,
-              "Key": 16.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "2e0edffc-ecf2-4b45-b981-b6b7927df03b",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "fbb047d6-281a-49fc-a61c-aefc7f6e95c1",
-              "IsCreationKey": false,
-              "Key": 17.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "01c79778-4d3c-4fdc-840d-11ba3caf6644",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "c2b67d2e-0744-48ba-a789-79b0fbf5c634",
-              "IsCreationKey": false,
-              "Key": 18.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "faeb154c-4251-4596-bfe2-3fb107d4cfb0",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "c7f38fdc-6209-4772-ad68-7994785a319b",
-              "IsCreationKey": false,
-              "Key": 19.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "1a6ca6e7-7a5a-4032-a8c0-3b5e59913b52",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "3fe1f041-f9cb-468b-add6-a5bfd97c0e1f",
-              "IsCreationKey": false,
-              "Key": 20.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "75323ea0-6c44-441a-bff7-ac055f69a185",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "ee29818f-35e5-427f-8301-6611cd4b75d2",
-              "IsCreationKey": false,
-              "Key": 21.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "4ae3adba-1cc0-48f8-9ec1-ce77993bce26",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "5818e167-e91a-439f-9b36-e492b0a15612",
-              "IsCreationKey": false,
-              "Key": 22.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "76611d93-dc4f-401e-b4f9-6f61d6275804",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "eac560bf-86b8-4be0-854e-269a0a1bff85",
-              "IsCreationKey": false,
-              "Key": 23.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "fc4f8a86-0914-498c-9175-ebca0db11bb4",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "6942d11e-7eda-4069-9b61-80cac9f402f1",
-              "IsCreationKey": false,
-              "Key": 24.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "4744e41e-3d4a-4ebd-aa43-86fd1a477763",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "7921c89f-abe2-456c-b660-0012f4bc1bfd",
-              "IsCreationKey": false,
-              "Key": 25.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "f4931253-dca4-4f60-8069-14a6dfe8962f",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "36cd85bb-7993-4dfc-8daf-2e3af6714fc2",
-              "IsCreationKey": false,
-              "Key": 26.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "c5350ad8-a288-4d0e-93a7-117e7a5169ec",
-                    "path": "sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "6aaf8d3e-96b9-40e0-9275-fa64487300d5",
-              "IsCreationKey": false,
-              "Key": 27.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            }
-          ],
-          "resourceType": "KeyframeStore<SpriteFrameKeyframe>",
-          "resourceVersion": "2.0"
-        },
-        "modifiers": [],
-        "name": "frames",
-        "resourceType": "GMSpriteFramesTrack",
-        "resourceVersion": "2.0",
-        "spriteId": null,
-        "trackColour": 0,
-        "tracks": [],
-        "traits": 0
-      }
+    "name":"spr_jinna_emotion3",
+    "playback":1,
+    "playbackSpeed":15.0,
+    "playbackSpeedType":0,
+    "resourceType":"GMSequence",
+    "resourceVersion":"2.0",
+    "showBackdrop":true,
+    "showBackdropImage":false,
+    "timeUnits":1,
+    "tracks":[
+      {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"911695c6-14f5-4f44-8064-16265a43a78d","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"382fd681-9498-4624-82d6-583b09853fbc","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"7394def6-7eee-422d-9d70-9785a805884e","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"0f6ea207-abc3-4663-8002-caa1645a63ba","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"830f04f0-ac89-4de4-834b-1306d330dd99","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"40725689-4b37-4780-addb-db962e7af178","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"7f135e5c-c9cf-4ef9-bba9-b5a1adac3d34","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"796888b8-508d-495c-9b06-8b0a97d51a2b","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"95257ea2-9c5f-42f9-83fd-0fa49021123f","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"fcd4671b-a044-47cf-9754-a334f9b4f69b","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"5d344b71-4ecd-48a7-9794-9beaaa414260","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"2809853c-6dc7-4e2e-a60b-fa4be64491fc","IsCreationKey":false,"Key":5.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"7a645b39-2de5-41c0-b72c-fdde547c57b2","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"dd53984e-1439-42cb-b98c-ebfb643c68db","IsCreationKey":false,"Key":6.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"0b5a4960-7acc-483b-b449-a7e2e9ff6345","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"6a528b07-6f72-4a44-aade-51d9cf3b4754","IsCreationKey":false,"Key":7.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"dc924d8c-6b4a-45b1-ac6c-972aef3bc5ff","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"e0586316-933e-4fc2-a871-6aa130294e7d","IsCreationKey":false,"Key":8.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"0f9e751c-cbf2-427a-b91d-43cf62d60260","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"bfc447a1-532c-40ba-bf53-783677814f4f","IsCreationKey":false,"Key":9.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"de1da9c1-34a2-4b49-a458-65793975c386","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"747ceab7-7db6-4c18-ae20-7e246d1d949a","IsCreationKey":false,"Key":10.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"44acfb71-3645-46f9-a49a-8036fceb805d","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"11e11626-5601-4071-9a58-b191a07eff47","IsCreationKey":false,"Key":11.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8130181a-f7a4-41e5-941f-73516dd1eead","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"69a9833f-1f32-42f9-af9d-151c71bb8dfc","IsCreationKey":false,"Key":12.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"e96ed206-c1a6-476d-be0b-a9fa0a7a1151","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"fb3bbea4-2dd3-4a87-bab0-e5735b748db8","IsCreationKey":false,"Key":13.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8a4f53d7-aafa-4587-82b9-c3b8781b9a4a","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"14bd6a7d-7f29-4048-a680-fa8f066167eb","IsCreationKey":false,"Key":14.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8cca9114-4a85-4c8f-a337-8abc1ccf8286","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"f04c389b-e988-4627-8923-af797ab173a0","IsCreationKey":false,"Key":15.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"b1f613a3-d653-4a56-afb3-77153ed3c11d","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"7b07a3e9-e4e4-43fb-88c8-e3d4d89d75e4","IsCreationKey":false,"Key":16.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"2e0edffc-ecf2-4b45-b981-b6b7927df03b","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"fbb047d6-281a-49fc-a61c-aefc7f6e95c1","IsCreationKey":false,"Key":17.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"01c79778-4d3c-4fdc-840d-11ba3caf6644","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"c2b67d2e-0744-48ba-a789-79b0fbf5c634","IsCreationKey":false,"Key":18.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"faeb154c-4251-4596-bfe2-3fb107d4cfb0","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"c7f38fdc-6209-4772-ad68-7994785a319b","IsCreationKey":false,"Key":19.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"1a6ca6e7-7a5a-4032-a8c0-3b5e59913b52","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"3fe1f041-f9cb-468b-add6-a5bfd97c0e1f","IsCreationKey":false,"Key":20.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"75323ea0-6c44-441a-bff7-ac055f69a185","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"ee29818f-35e5-427f-8301-6611cd4b75d2","IsCreationKey":false,"Key":21.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"4ae3adba-1cc0-48f8-9ec1-ce77993bce26","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"5818e167-e91a-439f-9b36-e492b0a15612","IsCreationKey":false,"Key":22.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"76611d93-dc4f-401e-b4f9-6f61d6275804","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"eac560bf-86b8-4be0-854e-269a0a1bff85","IsCreationKey":false,"Key":23.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"fc4f8a86-0914-498c-9175-ebca0db11bb4","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"6942d11e-7eda-4069-9b61-80cac9f402f1","IsCreationKey":false,"Key":24.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"4744e41e-3d4a-4ebd-aa43-86fd1a477763","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"7921c89f-abe2-456c-b660-0012f4bc1bfd","IsCreationKey":false,"Key":25.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"f4931253-dca4-4f60-8069-14a6dfe8962f","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"36cd85bb-7993-4dfc-8daf-2e3af6714fc2","IsCreationKey":false,"Key":26.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"c5350ad8-a288-4d0e-93a7-117e7a5169ec","path":"sprites/spr_jinna_emotion3/spr_jinna_emotion3.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"6aaf8d3e-96b9-40e0-9275-fa64487300d5","IsCreationKey":false,"Key":27.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
-    "visibleRange": null,
-    "volume": 1.0,
-    "xorigin": 17,
-    "yorigin": 30
+    "visibleRange":null,
+    "volume":1.0,
+    "xorigin":17,
+    "yorigin":30,
   },
-  "swatchColours": null,
-  "swfPrecision": 2.525,
-  "textureGroupId": {
-    "name": "Game",
-    "path": "texturegroups/Game"
+  "swatchColours":null,
+  "swfPrecision":2.525,
+  "textureGroupId":{
+    "name":"Game",
+    "path":"texturegroups/Game",
   },
-  "type": 0,
-  "VTile": false,
-  "width": 31
+  "type":0,
+  "VTile":false,
+  "width":31,
 }

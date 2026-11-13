@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":0.9796041666666667,
+  "duration":0.9796042,
   "exportDir":"",
   "name":"snd_amelia_banana_spawn",
   "parent":{

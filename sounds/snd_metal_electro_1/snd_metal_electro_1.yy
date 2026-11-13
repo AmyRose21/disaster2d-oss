@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":1.3194331065759637,
+  "duration":1.3194331,
   "exportDir":"",
   "name":"snd_metal_electro_1",
   "parent":{

@@ -11,7 +11,10 @@
     "name":"Amelia",
     "path":"folders/Objects/Player/Survivors/Amelia.yy",
   },
-  "parentObjectId":{"name":"obj_spring_parent","path":"objects/obj_spring_parent/obj_spring_parent.yy",},
+  "parentObjectId":{
+    "name":"obj_spring_parent",
+    "path":"objects/obj_spring_parent/obj_spring_parent.yy",
+  },
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,

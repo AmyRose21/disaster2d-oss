@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":1.5151020408163265,
+  "duration":1.515102,
   "exportDir":"",
   "name":"snd_amelia_trap_goth_1",
   "parent":{

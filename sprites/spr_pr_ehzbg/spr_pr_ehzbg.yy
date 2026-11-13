@@ -19,7 +19,7 @@
   "height":270,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"1ed4bf53-2ec7-44f5-8a41-64a0859ec1c4","blendMode":0,"displayName":"default","isLocked":false,"name":"84660f58-25f5-4d2a-ad77-53e4cbedbd85","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"1ed4bf53-2ec7-44f5-8a41-64a0859ec1c4","blendMode":0,"displayName":"default","isLocked":false,"name":"1ed4bf53-2ec7-44f5-8a41-64a0859ec1c4","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_pr_ehzbg",
   "nineSlice":null,
@@ -52,9 +52,9 @@
     "length":1.0,
     "lockOrigin":false,
     "moments":{
-      "$KeyframeStore<MomentsKeyframe>":"",
+      "$KeyframeStore<MomentsEventKeyframe>":"",
       "Keyframes":[],
-      "resourceType":"KeyframeStore<MomentsKeyframe>",
+      "resourceType":"KeyframeStore<MomentsEventKeyframe>",
       "resourceVersion":"2.0",
     },
     "name":"spr_pr_ehzbg",

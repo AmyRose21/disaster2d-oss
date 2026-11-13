@@ -23,7 +23,7 @@
   "height":1024,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"9bcd3d53-1cb8-4920-8a67-e1250ba14a48","blendMode":0,"displayName":"default","isLocked":false,"name":"0c5efdd2-b5c1-42b8-a503-14dc5b19e29b","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"9bcd3d53-1cb8-4920-8a67-e1250ba14a48","blendMode":0,"displayName":"default","isLocked":false,"name":"9bcd3d53-1cb8-4920-8a67-e1250ba14a48","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_smax_gh_tiles",
   "nineSlice":null,
@@ -56,9 +56,9 @@
     "length":5.0,
     "lockOrigin":false,
     "moments":{
-      "$KeyframeStore<MomentsKeyframe>":"",
+      "$KeyframeStore<MomentsEventKeyframe>":"",
       "Keyframes":[],
-      "resourceType":"KeyframeStore<MomentsKeyframe>",
+      "resourceType":"KeyframeStore<MomentsEventKeyframe>",
       "resourceVersion":"2.0",
     },
     "name":"spr_smax_gh_tiles",

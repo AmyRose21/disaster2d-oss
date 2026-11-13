@@ -36,7 +36,7 @@
   ],
   "name":"spr_erouge_emotion3",
   "nineSlice":null,
-  "origin":9,
+  "origin":0,
   "parent":{
     "name":"Rouge",
     "path":"folders/Sprites/Player/Demonized/Rouge.yy",

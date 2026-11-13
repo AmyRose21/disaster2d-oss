@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":0.8328571428571429,
+  "duration":0.83285713,
   "exportDir":"",
   "name":"snd_blaze_goon",
   "parent":{
