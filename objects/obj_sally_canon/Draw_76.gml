@@ -1,4 +1,11 @@
+// v11 (NEGAGEN, 3 FORMAS): 1 normal / 2 NEGA / 3 demonizada.
+// El subdito NEGATIVO usa la TIRA NEGA propia del personaje
+// (spr_<char>nega_*: inversion pura de SUS sprites, mismo canon
+// que los spr_amynega_* / spr_eggnega_* del build Negagen).
+// El esbirro comun sigue con sus eanims; el superviviente igual.
 var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
+if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+        arr = global.player_negaanims;
 sprite_index = arr[? CHARACTER_SALLY_CANON][state];
 
 // --- FASE DUELISTA: overrides de sprite ---
@@ -15,10 +22,13 @@ sprite_index = arr[? CHARACTER_SALLY_CANON][state];
 // origen de los loops de las v5.4-v5.7).
 if(duelista)
 {
+        // v11 (NEGAGEN): overrides de la fase duelista en nega
+        var _negaSc = variable_instance_exists(id, "isNegatouch") && isNegatouch;
+        
         if(state == JUMP)
-                sprite_index = spr_sally_fase2_jump_canon;
+                sprite_index = _negaSc ? spr_sallynega_fase2_jump_canon : spr_sally_fase2_jump_canon;
         else if(state == SPIN)
-                sprite_index = spr_sally_spindash_canon;
+                sprite_index = _negaSc ? spr_sallynega_spindash_canon : spr_sally_spindash_canon;
 }
 
 switch(state)

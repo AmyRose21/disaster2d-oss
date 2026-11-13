@@ -1,4 +1,15 @@
 // ============================================================================
+// v10 (NEGAGEN) — ICONOS DE HABILIDAD DEL SUBDITO NEGATIVO: TODOS los
+// checks de esbirro de este HUD usan scr_esbirro_hud(global.player)
+// (revivalTimes >= 2 PERO sin la marca nega isNegatouch). El subdito
+// negativo NO es un esbirro comun para el interfaz: conserva SUS iconos
+// de habilidad de superviviente y SUS recargas normales (es un
+// superviviente INVERTIDO — el look nega de Negagen — no un demonio
+// rojo del bando EXE). El esbirro comun (death-timer) sigue viendo las
+// variantes EXE de siempre. La marca la declara lazy el paquete de
+// conversion (scr_jinna_negatouch_convert / SERVER_JINNA_MINION_STATE).
+// ============================================================================
+// ============================================================================
 // v4.3b — LETRA DE TECLA DINAMICA EN EL HUD (arreglo de prioridad)
 //
 // v4.3: la letra de la tecla ya no esta horneada: el arte se dibuja
@@ -303,11 +314,11 @@ if(instance_exists(global.player) && !global.player.isDead)
                 case CHARACTER_TAILS: //tails
                 {
                         var prog = (min(global.player.flyTimer, 0) / -420.0);
-                        drawKeyIcon(spr_gui_tailsfly, global.player.revivalTimes >= 2, 26, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_tailsfly, scr_esbirro_hud(global.player), 26, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         // v4.3: la X horneada y el texto (hold) de este sprite se recortan
                         // (el misil ocupa las filas 0-10) y el texto se redibuja dinamico.
-                        var val = global.player.revivalTimes >= 2 ? ETAILS_ATTACK_RECHARGE : TAILS_ATTACK_RECHARGE;
+                        var val = scr_esbirro_hud(global.player) ? ETAILS_ATTACK_RECHARGE : TAILS_ATTACK_RECHARGE;
                         prog = 1.0 - (global.player.attackTimer / val);
                         var _tcol = prog == 1.0 ? c_white : c_red;
                         draw_sprite_part_ext(spr_gui_tailsattack, 0, 0, 0, 25, 11, prog * 12, 250 - _mob, 1, 1, _tcol, prog);
@@ -322,9 +333,9 @@ if(instance_exists(global.player) && !global.player.isDead)
                 case CHARACTER_KNUX:
                 {
                         var prog = 1.0 - (min(global.player.glideTimer, KNUX_GLIDE_RECHARGE) / KNUX_GLIDE_RECHARGE);
-                        drawKeyIcon(spr_gui_knuxglide, global.player.revivalTimes >= 2, 23, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_knuxglide, scr_esbirro_hud(global.player), 23, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var val = global.player.revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
+                        var val = scr_esbirro_hud(global.player) ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
                         prog = 1.0 - (min(global.player.attackTimer, val) / val);
                         drawKeyIcon(spr_gui_knuxattack, 0, 19, global.KeyB, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
@@ -363,7 +374,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_BIGJUMP_RECHARGE);
                         drawKeyIcon(spr_gui_amyhjump, 0, 32, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        var val = global.player.revivalTimes >= 2 ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
+                        var val = scr_esbirro_hud(global.player) ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
                         prog = 1.0 - (max(global.player.attackTimer, 0) / val);
                         drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
@@ -380,14 +391,14 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 // Icono 2: IMPULSO AEREO DE TAROT (tecla X, SOLO en el aire).
                                 // El relleno muestra el CD; blanco = lista Y en el aire
                                 // (espejo del icono 3, que exige estar en el suelo).
-                                var val = global.player.revivalTimes >= 2 ? AMY_CANON_ETAROTDASH_RECHARGE : AMY_CANON_TAROTDASH_RECHARGE;
+                                var val = scr_esbirro_hud(global.player) ? AMY_CANON_ETAROTDASH_RECHARGE : AMY_CANON_TAROTDASH_RECHARGE;
                                 prog = 1.0 - (max(global.player.attackTimer, 0) / val);
                                 var b2 = (prog == 1.0 && !global.player.isGrounded) ? c_white : c_red;
                                 drawKeyIcon(spr_gui_amyattack_canon, 0, 23, global.KeyB, prog * 10, 240 - _mob, b2, prog, 0);
 
                         // Icono 3: ACOMETIDA DE MARTILLO (tecla C). v4.3: la C ya no esta
                         // horneada: se dibuja la tecla real de special2.
-                        val = global.player.revivalTimes >= 2 ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
+                        val = scr_esbirro_hud(global.player) ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
                         prog = 1.0 - (max(global.player.dashTimer, 0) / val);
                         var b = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
                         drawKeyIcon(spr_gui_amydash_canon, 0, 23, global.KeyC, prog * 10, 258 - _mob, b, prog, 0);
@@ -426,12 +437,12 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // petaba: "obj_playerui.djTimer not set", que el scope
                         // del Draw es el propio obj_playerui, no el jugador).
                         var _djReady = (global.player.djTimer == 0);
-                        var _djProg = _djReady ? 1.0 : (global.player.djTimer < 0 ? 0.0 : 1.0 - (global.player.djTimer / (global.player.revivalTimes >= 2 ? FW_EDJ_RECHARGE : FW_DJ_RECHARGE)));
+                        var _djProg = _djReady ? 1.0 : (global.player.djTimer < 0 ? 0.0 : 1.0 - (global.player.djTimer / (scr_esbirro_hud(global.player) ? FW_EDJ_RECHARGE : FW_DJ_RECHARGE)));
                         var b1 = (_djReady && !global.player.isGrounded) ? c_white : c_red;
                         drawKeyIcon(spr_gui_amydj_fw, 0, 32, global.KeyA, _djProg * 10, 222 - _mob, b1, _djProg, 0);
 
                         // Icono 2 (tecla B): PUÑO/PATADA. El relleno muestra el CD.
-                        var val2 = global.player.revivalTimes >= 2 ? FW_EATTACK_RECHARGE : FW_ATTACK_RECHARGE;
+                        var val2 = scr_esbirro_hud(global.player) ? FW_EATTACK_RECHARGE : FW_ATTACK_RECHARGE;
                         var prog2 = 1.0 - (max(global.player.attackTimer, 0) / val2);
                         drawKeyIcon(spr_gui_amyattack_fw, 0, 23, global.KeyB, prog2 * 10, 240 - _mob, prog2 == 1.0 ? c_white : c_red, prog2, 0);
 
@@ -443,8 +454,12 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // Mientras dura cbTimer la lleva en la mano (sprites cbamy).
                         // v4.3 (fix exe): demonizada (revivalTimes >= 2) NO puede usar
                         // la ballesta — icono en rojo con el cargador vacio de llenado.
+                        // v10: check CRUDO (no scr_esbirro_hud): el SUBDITO NEGATIVO
+                        // TAMPOCO puede usarla — sigue en el bando EXE y las flechas
+                        // son arma anti-exe (el pedido de balance de v4.3 cubre a
+                        // cualquier jugador del lado demonico, nega incluido).
                         var _arrows = global.player.fwArrows;
-                        var _prog3 = global.player.revivalTimes >= 2 ? 0 : min(1.0, (_arrows + (_arrows < FW_ARROW_MAX ? 1.0 - max(global.player.fwArrowReload, 0) / FW_ARROW_RELOAD : 0)) / FW_ARROW_MAX);
+                        var _prog3 = (global.player.revivalTimes >= 2) ? 0 : min(1.0, (_arrows + (_arrows < FW_ARROW_MAX ? 1.0 - max(global.player.fwArrowReload, 0) / FW_ARROW_RELOAD : 0)) / FW_ARROW_MAX);
                         var b3 = (global.player.revivalTimes < 2 && _arrows > 0 && global.player.crossBow <= 0) ? c_white : c_red;
                         drawKeyIcon(spr_gui_amycrossbow_fw, 0, 23, global.KeyC, _prog3 * 10, 258 - _mob, b3, _prog3, 0);
 
@@ -480,7 +495,7 @@ if(instance_exists(global.player) && !global.player.isDead)
 
                         // Icono (tecla X): EL GOLPE. Reutiliza el icono generico del
                         // ataque de Amy; cuando crees spr_gui_sonicattack, cambialo aqui.
-                        var val = global.player.revivalTimes >= 2 ? SONIC_EATTACK_RECHARGE : SONIC_ATTACK_RECHARGE;
+                        var val = scr_esbirro_hud(global.player) ? SONIC_EATTACK_RECHARGE : SONIC_ATTACK_RECHARGE;
                         var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
                         drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
@@ -529,13 +544,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                 case CHARACTER_CREAM:
                 {
                         var prog = 1.0 - (max(global.player.flyTimer, 0) / CREAM_FLY_RECHARGE);
-                        drawKeyIcon(spr_gui_creamfly, global.player.revivalTimes >= 2, 25, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_creamfly, scr_esbirro_hud(global.player), 25, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
                         drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
-                        drawKeyIcon(spr_gui_creamrings, global.player.revivalTimes >= 2, 21, global.KeyC, prog * 10, 257 - _mob, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
+                        prog = 1.0 - (max(global.player.ringsTimer, 0) / (scr_esbirro_hud(global.player) ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
+                        drawKeyIcon(spr_gui_creamrings, scr_esbirro_hud(global.player), 21, global.KeyC, prog * 10, 257 - _mob, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
 
@@ -544,13 +559,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // VANILLA: mismas habilidades que Cream (scr_cream_special),
                         // reusa sus iconos del HUD (vuelo Z, dash X, anillos C)
                         var prog = 1.0 - (max(global.player.flyTimer, 0) / CREAM_FLY_RECHARGE);
-                        drawKeyIcon(spr_gui_creamfly, global.player.revivalTimes >= 2, 25, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_creamfly, scr_esbirro_hud(global.player), 25, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
                         drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        prog = 1.0 - (max(global.player.ringsTimer, 0) / (global.player.revivalTimes >= 2 ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
-                        drawKeyIcon(spr_gui_creamrings, global.player.revivalTimes >= 2, 21, global.KeyC, prog * 10, 257 - _mob, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
+                        prog = 1.0 - (max(global.player.ringsTimer, 0) / (scr_esbirro_hud(global.player) ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
+                        drawKeyIcon(spr_gui_creamrings, scr_esbirro_hud(global.player), 21, global.KeyC, prog * 10, 257 - _mob, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
 
@@ -563,10 +578,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                 // Iconos prestados del juego base hasta que haya propios.
                 case CHARACTER_METAL:
                 {
-                        var prog = 1.0 - (max(global.player.dashTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_OVERDRIVE_RECHARGE : METAL_OVERDRIVE_RECHARGE));
+                        var prog = 1.0 - (max(global.player.dashTimer, 0) / (scr_esbirro_hud(global.player) ? EMETAL_OVERDRIVE_RECHARGE : METAL_OVERDRIVE_RECHARGE));
                         drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        prog = 1.0 - (max(global.player.electroTimer, 0) / (global.player.revivalTimes >= 2 ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE));
+                        prog = 1.0 - (max(global.player.electroTimer, 0) / (scr_esbirro_hud(global.player) ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE));
                         drawKeyIcon(spr_gui_eggshield, 0, 20, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -601,7 +616,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // (spr_gui_sonicspring; estaba en disco desde la
                         // extraccion del mod de Sonic y v2.7 lo registra
                         // en el .yyp, hasta ahora jamas se uso).
-                        var prog = 1.0 - (max(global.player.bananaTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_BANANA_RECHARGE : AMELIA_BANANA_RECHARGE));
+                        var prog = 1.0 - (max(global.player.bananaTimer, 0) / (scr_esbirro_hud(global.player) ? EAMELIA_BANANA_RECHARGE : AMELIA_BANANA_RECHARGE));
                         drawKeyIcon(spr_gui_sonicspring, 0, 33, global.KeyB, prog * 10, 240 - _mob, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
 
                         // Icono (tecla C): TRAMPA — la trampa-oso que
@@ -612,7 +627,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // trampa NO exige abajo: solo C + estar en el suelo
                         // (scr_amelia_special). Se corta en el guion y la
                         // tecla dinamica queda justo despues: "[trampa]-C".
-                        prog = 1.0 - (max(global.player.trapTimer, 0) / (global.player.revivalTimes >= 2 ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE));
+                        prog = 1.0 - (max(global.player.trapTimer, 0) / (scr_esbirro_hud(global.player) ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE));
                         drawKeyIcon(spr_gui_amelia_trap, 0, 39, global.KeyC, prog * 10, 258 - _mob, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -621,13 +636,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                 // v2.2 (TTB) — BLAZE: salto de fuego (Z), bola (X) y ardiente (C)
                 case CHARACTER_BLAZE:
                 {
-                        var prog = 1.0 - (max(global.player.djumpRecharge, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_DJUMP_RECHARGE : BLAZE_DJUMP_RECHARGE));
+                        var prog = 1.0 - (max(global.player.djumpRecharge, 0) / (scr_esbirro_hud(global.player) ? EBLAZE_DJUMP_RECHARGE : BLAZE_DJUMP_RECHARGE));
                         drawKeyIcon(spr_gui_eggdjump, 0, 20, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        prog = 1.0 - (max(global.player.fireballTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_FIREBALL_RECHARGE : BLAZE_FIREBALL_RECHARGE));
+                        prog = 1.0 - (max(global.player.fireballTimer, 0) / (scr_esbirro_hud(global.player) ? EBLAZE_FIREBALL_RECHARGE : BLAZE_FIREBALL_RECHARGE));
                         drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
 
-                        prog = 1.0 - (max(global.player.burningTimer, 0) / (global.player.revivalTimes >= 2 ? EBLAZE_BURNING_RECHARGE : BLAZE_BURNING_RECHARGE));
+                        prog = 1.0 - (max(global.player.burningTimer, 0) / (scr_esbirro_hud(global.player) ? EBLAZE_BURNING_RECHARGE : BLAZE_BURNING_RECHARGE));
                         drawKeyIcon(spr_gui_sallyshield, 0, 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
@@ -636,7 +651,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                 {
                         // v4.3: la patada aerea es KeyB (X) y el escudo KeyC (C);
                         // antes el comentario deca Z: el que manda es scr_sally_special.
-                        var val = global.player.revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
+                        var val = scr_esbirro_hud(global.player) ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
                         var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
 
                         var b = c_red;
@@ -646,11 +661,11 @@ if(instance_exists(global.player) && !global.player.isDead)
                         if(global.player.isGrounded)
                                 b = c_red;
 
-                        drawKeyIcon(spr_gui_sallyattack, global.player.revivalTimes >= 2, 17, global.KeyB, prog * 10, 240 - _mob, b, prog, 0);
+                        drawKeyIcon(spr_gui_sallyattack, scr_esbirro_hud(global.player), 17, global.KeyB, prog * 10, 240 - _mob, b, prog, 0);
 
-                        val = global.player.revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
+                        val = scr_esbirro_hud(global.player) ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
                         prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
-                        drawKeyIcon(spr_gui_sallyshield, global.player.revivalTimes >= 2, 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_sallyshield, scr_esbirro_hud(global.player), 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
                 case CHARACTER_SALLY_CANON:
@@ -662,7 +677,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // CD que le falta; blanco = listo. La patada es AEREA en
                         // fase 1 (roja en el suelo, como la de Sally); en fase
                         // DUELISTA tambien vale en tierra (blanca en el suelo).
-                        var val = global.player.revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
+                        var val = scr_esbirro_hud(global.player) ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
                         var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
 
                         var b = c_red;
@@ -674,7 +689,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         if(global.player.isGrounded && !global.player.duelista)
                                 b = c_red;
 
-                        drawKeyIcon(spr_gui_sallyattack, global.player.revivalTimes >= 2, 17, global.KeyB, prog * 10, 240 - _mob, b, prog, 0);
+                        drawKeyIcon(spr_gui_sallyattack, scr_esbirro_hud(global.player), 17, global.KeyB, prog * 10, 240 - _mob, b, prog, 0);
 
                         // v5.4 DUELISTA: icono del SPINDASH (abajo + Z), mismo
                         // patron que el de Sonic/Amelia (reusa su icono; sin
@@ -700,7 +715,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // que la vanilla) — la barra del icono usa SU macro.
                         val = SALLY_CANON_SHIELD_RECHARGE;
                         prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
-                        drawKeyIcon(spr_gui_sallyshield, global.player.revivalTimes >= 2, 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_sallyshield, scr_esbirro_hud(global.player), 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
         }

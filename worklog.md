@@ -5424,3 +5424,36 @@ Stage Summary:
 - El crash "Unbalanced surface stack {5}" al arrancar queda arreglado: cada pasada del blur ahora desapila su target; ademas la composicion final (que antes dibujaba al surface equivocado) llega por fin a la ventana
 - El validador ya no deja pasar una pila desbalanceada: simula set/reset en orden de ejecucion (el check falso del v1 fue corregido)
 - Proximo paso natural: reemplazar Draw_77.gml y correr F5 — el logo ya no aborta; F9 compara con/sin efecto; si algo del HUD quedara tapado o quieres otro calibre (mas/menos glow), es una linea en Create_0.gml
+
+---
+Task ID: jinna-negagen-v11
+Agent: main (Z.ai)
+Task: 3 FORMAS POR PERSONAJE CON SPRITES NEGA REALES — pedido explicito de la duena: "no es mejor crear una copia de todos los sprites de los survivors y colocarle el efecto negativo, como hace la base original... crear una carpeta separada osea el nombre del personaje con el nombre (nega) para que en si hayan 3 formas: 1 normal, 1 nega, 1 demonizada" (+ el rar del modo negagen como referencia del look)
+
+Work Log:
+- Estado restaurado: sandbox reciclado (repo borrado) -> re-clone del remoto (HEAD 6f16e2e2, la version probada) + zip v10 re-aplicado encima (v10 nunca llego a commitearse)
+- Transformacion canon extraida del rar, no inventada: comparacion pixel a pixel spr_amy/egg_* vs spr_amy/eggnega_* = inversion PURA al 100.0% de pixeles en todos los pares (RGB->255-RGB, alfa igual, RGB de transparentes igual); las tiras del rar se invierten con el contorno oscuro INTACTO (negademon2: keepDark lum<=0.08) pero su ARTE cambio desde la base (solo ~50-68% de match) -> las tiras nega se GENERAN desde las actuales (98 frames = 14 filas x7)
+- Generador (scripts/v11_generate_sprites.py): 277 sprites nega nuevos (4.781 PNGs) — todos los arrays player_anims de los 15 supervivientes + variantes dinamicas del golpe de Sonic + parry Sonic/AmyCanon + overrides duelistas de SallyCanon + tiras HUD (spr_playerhealth_nega 98f + sallycanon/vanilla + redring) + barras (spr_hp_nega/_rr_nega). Cada uno con .yy clonado del donante (UUIDs nuevos de frames/keyframes/layer, mismo bbox/origin/parent/textureGroup), frames PNG invertidos en orden de keyframes, layers/<frame>/<layer>.png replicando el esquema GM decodificado, y entrada en el .yyp (idempotente). Verificado: el spr_amynega_idle generado es BYTE-IDENTICO al del rar
+- Codigo (scripts/v11_patch_code.py): global.player_negaanims espejo exacto de player_anims (verificado programaticamente 15/15 chars, mismo largo y misma transformacion de nombres); scans nega sonicAtkTierraNega/AireNega; muelles nega; Draw_76 x15 + puppet Draw_72 -> isNegatouch usa negaanims; Draw_0 x16: RETIRADO el bloque shd_negative del v8/v10 (el sprite ya ES la inversion -> ruta vanilla con paleta/flash, y el efecto viaja con el sprite: estelas, retratos y todo lo que copia sprite_index sale nega sin parchear); barras de cabeza (Draw_64 x15 + puppet) -> spr_hp_nega/_rr_nega con vida real; HUD obj_level/Draw_64 -> scr_hud_strip_nega/_red_nega (nuevas en scr_characters.gml) con frame por vida real, sin shader; scr_parry_sprite(st,_char,_nega) con llamadas parcheadas en sonic/amy_canon/puppet; sonic dinamico y sally duelist (local+puppet) con variantes nega
+- Validacion (scripts/v11_verify.py): 0 fails — barras/draw0/draw76/puppet/level/characters/parry/survivors con los marcadores v11 y sin restos de shader, llaves balanceadas en los 24 GML tocados, negaanims espejo 15/15, .yyp con las 277 entradas sin duplicados, las 277 carpetas cargables (gm_load) con frames==PNGs==layers, y asercion de inversion pixel-exacta en muestra de 19 pares (0 px mal)
+- Duplicados por re-ejecucion (inserts no idempotentes del parche): reparados quirurgicamente (scripts/v11_repair_dups.py) y el parche blindado con guards de marcador
+- Entregable: download/jinna_v11_negagen_3formas.zip — delta completo contra 6f16e2e2 (incluye los cambios v10 no commiteados: golpe X=25, helpers, iconos propios del nega, nombre turquesa, LEEME_JINNA_V5/V6). SOLO CLIENTE — el server no se toca
+
+Stage Summary:
+- Cada superviviente tiene ya sus 3 formas: 1 normal (spr_<char>_*) / 2 NEGA (spr_<char>nega_*) / 3 demonizada (spr_e<char>_*), y el subdito negativo de Jinna usa la 2: su propio personaje invertido con sus animaciones exactas, en las dos pantallas y con sus barras/tiras nega
+- El look deja de depender de shaders/uniformes: el EFECTO VIAJA CON EL SPRITE (estelas, retratos y rutas no parcheadas salen nega solas); shd_negative queda sin uso en runtime
+- Proximo paso natural: aplicar el zip, recompilar cliente y probar la conversion (4 golpes V/X); si algun estado rarisimo (abrazo combinado) o overlay de habilidad quisiera look nega tambien, es un genera+swap de un par de archivos
+
+## 2026-11-14 — v12 "ME VEO YO": el afectado ve SU nega en su propia pantalla
+
+Reporte tras v11: "en la pantalla de Amy se ve, en la de Jinna tambien, pero en la de Vanilla no: ve su propio sprite". Diagnostico:
+- La marca local isNegatouch se escribia "global.player.isNegatouch = true" — dot-escritura sobre el INDICE del objeto (no la instancia) a una variable SIN declarar en el Create: no la crea, silenciosamente ineficaz en este runtime. El guard variable_instance_exists(id, "isNegatouch") del Draw_76/Draw_64 local daba false SIEMPRE (v8 shader, v11 sprites: mismo sintoma en las dos tecnicas).
+- Prueba empirica interna: hp/revivalTimes (declaradas) llegan por la misma via; jinnaNegaCharge llega porque se declara con variable_instance_set(global.player.id, ...); el puppet funciona porque su Create declara la marca y el with() escribe por instancia. Solo la pieza del LOOK fallaba.
+- Edge verificado en el server C: la conversion quita PLAYER_DEAD (Game.c 2145) y el tick del death-timer solo corre con PLAYER_DEAD (Game.c 3270) — no hay demonizacion tardia que pise el look.
+
+Fix (17 archivos, SOLO cliente):
+- 15x objects/<superviviente>/Create_0.gml: "isNegatouch = false;" junto a revivalTimes (ancla uniforme verificada en los 15). Activa de paso barra nega local (Draw_64) y HUD/retratos nega-aware (scr_negatouch_is sobre global.player.id) — misma causa del viejo "GET THEM" del afectado.
+- scripts/scr_jinna_negatouch/scr_jinna_negatouch.gml: rama victima escribe con variable_instance_set(global.player.id, "isNegatouch", true) (patron probado de jinnaNegaCharge) — cinturon de seguridad sobre las declaraciones.
+- LEEME_JINNA_V7.txt. Red/server: 0 cambios.
+
+Entregable: download/jinna_v12_negagen_look_local.zip — SOLO los 17 archivos modificados/creados de esta ronda.

@@ -1,0 +1,212 @@
+JINNA V5 "NEGAGEN: EL LOOK NEGA REAL" (v10 del toque negativo)
+==================================================================
+
+QUE ES
+------
+El arreglo de las 4 quejas de la ultima prueba del toque negativo
+(commit 6f16e2e2) + la instruccion nueva: "para lograr el efecto
+nega usaras el efecto de color invertido que tienen los sprite
+nega en todos los supervivientes. Todos. Y sus barras de vida
+para que en si encajen".
+
+Resumen de lo que estaba mal y como queda:
+
+  QUEJA 1 "el sprite no se ve como los enviados (monstruo marron
+  con puas)": el convertido usaba la tira del ESBIRRO generico
+  (global.player_eanims: los spr_e<chars>_* marrones) y encima la
+  inversion apenas se notaba (bug del uniforme, punto 2). Ahora el
+  subdito NEGATIVO conserva SUS sprites de siempre
+  (global.player_anims) y se dibuja con shd_negative: Amy se ve
+  Amy INVERTIDA (cian/verdosa), igual que los spr_amynega_* del
+  rar. Un solo shader sirve para los 15 supervivientes. Todos.
+
+  QUEJA 2 "en la pantalla del afectado no sale visible": habia DOS
+  causas. La visible: el uniforme del shader se heredaba del HUD
+  (punto 2) y el cuerpo quedaba casi sin invertir. La de fondo: la
+  carga del golpe X (15) no llegaba a 100 antes de morir (punto
+  5): la victima moria, pasaba por la demonizacion COMUN del
+  server y Jamas llegaba a convertirse en nega (por eso el
+  "nega" que viste era un esbirro marron normal y su pantalla
+  parecia la de un EXE). Ambas arregladas.
+
+  QUEJA 3 "las animaciones estan hechas un asco": eran las de la
+  tira esbirro generico. Con SUS sprites propios vuelven las
+  animaciones de siempre del personaje (idle/walk/run/jump/...),
+  solo que invertidas a color.
+
+  QUEJA 4 "el sistema lo considera una EXE en vez de un minion
+  alternativo": el nega ya NO pasa por el look esbirro/EXE en
+  ningun sitio: retrato del HUD = SU tira de vida normal
+  invertida con su vida REAL (60/100...), barra sobre la cabeza =
+  la suya invertida, nombre en TURQUESA nega (no rojo EXE) e
+  iconos de habilidad = los suyos de superviviente con SUS
+  recargas (no las variantes EXE). Mecanicamente sigue siendo un
+  subdito del bando EXE (pelea para ella, golpe de 15, los
+  supervivientes no le hacen dano): es un MINION ALTERNATIVO, no
+  un superviviente ni un EXE.
+
+
+------------------------------------------------------------------------------
+1) EL LOOK NEGA: SPRITES PROPIOS + INVERSION (Objetos Draw_76 / Draw_72)
+------------------------------------------------------------------------------
+Donde se elige la tira de animaciones:
+
+  * JUGADOR LOCAL (el afectado en SU pantalla): el evento de
+    animacion (Draw_76) de cada superviviente hacia
+    "arr = revivalTimes >= 2 ? player_eanims : player_anims".
+    Ahora: si isNegatouch -> player_anims (SUS sprites).
+    TOCADOS LOS 15: amelia, amy, amy_canon, amy_fleetway, blaze,
+    cream, egg, knux, metal, rouge, sally, sally_canon, sonic,
+    tails, vanilla.
+
+  * RESTO DE CLIENTES (el puppet del convertido): igual en
+    obj_player_puppet/Draw_72: nega -> player_anims.
+
+  El esbirro COMUN (el de la agonia de 30 s del server) sigue
+  con sus eanims marrones de siempre: SOLO el nega cambia de
+  piel. El cuerpo lo dibuja el Draw_0 de cada objeto con
+  shd_negative (ya estaba de la v8; el fix del uniforme de abajo
+  lo hace visible de verdad).
+
+
+------------------------------------------------------------------------------
+2) EL BUG DEL UNIFORME: u_keepDark SE HEREDABA (por eso "no se
+   veia" la inversion)
+------------------------------------------------------------------------------
+shd_negative tiene el uniform u_keepDark (1 = los pixeles casi
+negros NO se invierten: se usa en los retratos del HUD para
+conservar el contorno negro del canon negademon). En GameMaker
+los uniformes PERSISTEN entre shader_set: el HUD fijaba
+u_keepDark=1 y el CUERPO (que no fijaba nada) heredaba ese 1.
+Resultado: en sprites oscuros (la tira esbirro es oscura) la
+inversion casi no se veia -> el monstruo segui marron.
+
+Ahora TODOS los shader_set(shd_negative) fijan su uniforme
+explicitamente:
+  * CUERPO y barra sobre la cabeza (Draw_0 / Draw_64 de los 15
+    supervivientes + los Draw_0/Draw_64 del puppet): 0 =
+    inversion PURA (asi son los spr_*nega_* del rar).
+  * Retratos del HUD (obj_level/Draw_64): 1 = contorno intacto
+    (asi son los spr_playerhealth_negademon* del build canon).
+
+
+------------------------------------------------------------------------------
+3) LAS BARRAS DE VIDA NEGA ("para que en si encajen")
+------------------------------------------------------------------------------
+Verificado contra el rar: spr_playerhealth_negademon2 ES la tira
+de vida NORMAL invertida a color (comparacion pixel a pixel: es
+la que encaja, NO la tira demon invertida). Por eso:
+
+  * HUD superior (obj_level/Draw_64, retrato propio y de los
+    puppets): el nega dibuja SU tira normal (scr_hud_strip /
+    scr_hud_strip_red) con el FRAME por vida REAL (como un
+    superviviente: 60 hp -> frame 2) e INVERTIDA con u_keepDark=1.
+    El esbirro comun sigue con su tira demon roja fija. El nega
+    ve su vida de verdad en el HUD, no un retrato de EXE.
+
+  * Barra sobre la cabeza: el jugador LOCAL nega (Draw_64 de los
+    15) dibuja spr_hp/spr_hp_rr con frame por vida REAL invertido
+    (inversion pura), igual que ya hacia el puppet del nega en
+    los demas clientes (v8): las dos barras de los dos lados
+    encajan ahora.
+
+
+------------------------------------------------------------------------------
+4) MINION ALTERNATIVO, NO EXE (nombre e iconos)
+------------------------------------------------------------------------------
+  * NOMBRE (puppet/Draw_64): el nega va en TURQUESA #30e0c8 (el
+    color de su piel invertida), no en rojo EXE. El esbirro
+    comun sigue rojo. (El jugador local no dibuja su propio
+    nombre sobre la cabeza, como siempre.)
+
+  * ICONOS DE HABILIDAD (obj_playerui/Draw_64): los 31 checks de
+    esbirro pasan a usar scr_esbirro_hud(global.player)
+    (revivalTimes >= 2 PERO sin marca nega): el nega conserva SUS
+    iconos y SUS recargas de superviviente. La BALLESTA de
+    Fleetway Amy se queda BLOQUEADA para el nega a proposito: es
+    arma anti-exe y el nega pelea para el bando EXE (el pedido de
+    balance de la v4.3 "no seria demasiado facil" cubre a
+    cualquier jugador del lado demonico).
+
+  * El letrero GET THEM!!! se MANTIENE para el nega: es el
+    objetivo de caza del bando EXE y el nega pelea para ese
+    bando (igual que lo ve el esbirro comun). Lo que ya no tiene
+    es NINGUN otro look de EXE/esbirro. Si quieres otro letrero
+    para el nega, dime el texto y lo montamos.
+
+  * Helpers nuevos en scr_jinna_negatouch.gml:
+    scr_negatouch_is(inst) (es nega?) y scr_esbirro_hud(inst)
+    (es esbirro comun para el HUD?).
+
+
+------------------------------------------------------------------------------
+5) LA CARGA DEL GOLPE X: 15 -> 25 (la conversion era inalcanzable)
+------------------------------------------------------------------------------
+Con JINNA_NEGA_CHARGE_X = 15 hacian falta 7 golpes X (105 de
+carga) pero el X de Jinna pega 20-25: a los 5 golpes la victima
+esta MUERTA con 75 de carga -> agonia de 30 s -> demonizacion
+COMUN del server (esbirro marron, GET THEM, retrato rojo: TODO
+lo de las capturas) y la conversion nega JAMAS ocurria. Ahora el
+X suma 25: 4 golpes = 100 de carga con la victima viva (80 de
+dano como maximo). El agarre (V) y la trampa (V+ABAJO) ya sumaban
+25 de siempre y siguen igual. La gracia de 3 s entre conversiones
+(Antinegatemper) no cambia.
+
+
+------------------------------------------------------------------------------
+COMO PROBARLO
+------------------------------------------------------------------------------
+1) Recompila CLIENTE (no hay cambios de server esta vez: el C++
+   del betterserver-oss queda igual que en la 6f16e2e2).
+2) Jinna + cualquier superviviente (p. ej. Amy).
+3) Golpea 4 veces con el AGARRE (V) o el GOLPE (X): la barrita
+   violeta del HUD de la victima se llena a 100 y la conversion
+   es INSTANTANEA.
+4) En la pantalla del AFECTADO: el se ve a si mismo Amy INVERTIDA
+   (cian) con SU barra de vida invertida (60 de vida real) y SUS
+   iconos de habilidad normales.
+5) En la pantalla de JINNA y el resto: el puppet de Amy se ve
+   invertido, su nombre sale TURQUESA y su barra/retrato del HUD
+   salen invertidos con la vida real.
+6) El esbirro COMUN (agonia de 30 s) sigue IGUAL que siempre:
+   marron, nombre rojo, tira demon (pruebalo dejando morir a
+   alguien sin cargarle energia negativa).
+
+
+------------------------------------------------------------------------------
+ARCHIVOS TOCADOS (51 .gml + este LEEME)
+------------------------------------------------------------------------------
+  scripts/scr_jinna_negatouch/scr_jinna_negatouch.gml
+    - JINNA_NEGA_CHARGE_X 15 -> 25, helpers scr_negatouch_is /
+      scr_esbirro_hud, comentarios v10.
+
+  objects/obj_<superviviente>/Draw_76.gml  (x15)
+    - nega -> player_anims (sprites propios), esbirro comun igual.
+
+  objects/obj_<superviviente>/Draw_0.gml  (x15)
+  objects/obj_player_puppet/Draw_0.gml
+    - uniform u_keepDark=0 explicito en el shader del cuerpo.
+
+  objects/obj_<superviviente>/Draw_64.gml  (x15)
+    - barra sobre la cabeza del nega: frame por vida REAL +
+      inversion (antes frame 0 fijo, sin shader).
+
+  objects/obj_player_puppet/Draw_64.gml
+    - uniform explicito en su barra nega + nombre TURQUESA para
+      el nega.
+
+  objects/obj_player_puppet/Draw_72.gml
+    - nega -> player_anims (mismo criterio que el Draw_76 local).
+
+  objects/obj_level/Draw_64.gml
+    - retrato nega (propio y del puppet): tira NORMAL invertida
+      con frame por vida real (canon negademon2) en vez de la
+      tira demon invertida.
+
+  objects/obj_playerui/Draw_64.gml
+    - 31 checks de esbirro -> scr_esbirro_hud(): el nega conserva
+      SUS iconos/recargas; ballesta de FW sigue bloqueada.
+
+  LEEME_JINNA_V5.txt (este archivo).
+
+NOTA: el zip lleva SOLO los archivos modificados/creados.

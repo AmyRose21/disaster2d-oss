@@ -1,4 +1,11 @@
+// v11 (NEGAGEN, 3 FORMAS): 1 normal / 2 NEGA / 3 demonizada.
+// El subdito NEGATIVO usa la TIRA NEGA propia del personaje
+// (spr_<char>nega_*: inversion pura de SUS sprites, mismo canon
+// que los spr_amynega_* / spr_eggnega_* del build Negagen).
+// El esbirro comun sigue con sus eanims; el superviviente igual.
 var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
+if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+        arr = global.player_negaanims;
 
 // EL GOLPE (tecla X) usa estados dinamicos (>= SONIC_ATK_TIERRA) que
 // no estan en el array: el sprite sale del escaneo por nombre
@@ -11,7 +18,7 @@ var _spr = -1;
 // golpe (scr_parry_sprite), igual que las variantes.
 if(scr_parry_state_is(state))
 {
-        _spr = scr_parry_sprite(state, global.character);
+        _spr = scr_parry_sprite(state, global.character, variable_instance_exists(id, "isNegatouch") && isNegatouch);
 
         if(_spr != -1)
                 sprite_index = _spr;
@@ -50,19 +57,24 @@ if(state == SONIC_HUGGED)
         return;
 }
 
+// v11 (NEGAGEN): variantes del golpe del Sonic NEGATIVO salen de las
+// copias nega (spr_sonicnega_attack2_*), igual que su cuerpo.
+var _negaAtkA = variable_instance_exists(id, "isNegatouch") && isNegatouch ? global.sonicAtkAireNega : global.sonicAtkAire;
+var _negaAtkT = variable_instance_exists(id, "isNegatouch") && isNegatouch ? global.sonicAtkTierraNega : global.sonicAtkTierra;
+
 if(state >= SONIC_ATK_AIRE)
 {
         var _vi = state - SONIC_ATK_AIRE;
         
-        if(_vi < array_length(global.sonicAtkAire))
-                _spr = global.sonicAtkAire[_vi];
+        if(_vi < array_length(_negaAtkA))
+                _spr = _negaAtkA[_vi];
 }
 else if(state >= SONIC_ATK_TIERRA)
 {
         var _vi = state - SONIC_ATK_TIERRA;
         
-        if(_vi < array_length(global.sonicAtkTierra))
-                _spr = global.sonicAtkTierra[_vi];
+        if(_vi < array_length(_negaAtkT))
+                _spr = _negaAtkT[_vi];
 }
 else if(state < array_length(arr[? CHARACTER_SONIC]))
         _spr = arr[? CHARACTER_SONIC][state];

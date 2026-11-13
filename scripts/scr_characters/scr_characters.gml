@@ -372,6 +372,35 @@ function scr_hud_strip_red(char)
     return [spr_playerhealth_redring, (char - CHARACTER_TAILS) * 7];
 }
 
+function scr_hud_strip_nega(char)
+{
+    // v11 (NEGAGEN): tira NEGA del HUD (canon negademon2: inversion de
+    // la tira normal con el contorno oscuro intacto). El subdito
+    // NEGATIVO la usa con SU frame de vida real, como un superviviente.
+    switch(char)
+    {
+        case CHARACTER_SALLY_CANON: return [spr_playerhealth_nega_sallycanon, 0];
+        case CHARACTER_VANILLA: return [spr_playerhealth_nega_vanilla, 0];
+        // Rouge reusa la fila de Knuckles, igual que la tira comun
+        case CHARACTER_ROUGE: return [spr_playerhealth_nega, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
+    }
+    return [spr_playerhealth_nega, (char - CHARACTER_TAILS) * 7];
+}
+
+function scr_hud_strip_red_nega(char)
+{
+    // v11 (NEGAGEN): variante anillo rojo de la tira nega (mismo mapeo
+    // de filas que scr_hud_strip_red: Sally Canon y Vanilla caen en el
+    // bloque de Sally/Cream, como siempre).
+    switch(char)
+    {
+        case CHARACTER_SALLY_CANON: return [spr_playerhealth_redring_nega, (CHARACTER_SALLY - CHARACTER_TAILS) * 7];
+        case CHARACTER_VANILLA: return [spr_playerhealth_redring_nega, (CHARACTER_CREAM - CHARACTER_TAILS) * 7];
+        case CHARACTER_ROUGE: return [spr_playerhealth_redring_nega, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
+    }
+    return [spr_playerhealth_redring_nega, (char - CHARACTER_TAILS) * 7];
+}
+
 function scr_hud_hit(char)
 {
     switch(char)

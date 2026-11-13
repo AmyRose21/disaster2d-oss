@@ -25,6 +25,19 @@ attackCharge = 0;
 attackAfter = 0;
 attackKDir = 0;
 revivalTimes = 0;
+// v12 (NEGAGEN): la marca de SUBDITO NEGATIVO se declara AQUI, no lazy.
+// BUG v8-v11: el paquete de conversion escribia "global.player.isNegatouch
+// = true" — una dot-escritura sobre el INDICE del objeto en una variable
+// que NO existia en la instancia (GameMaker no la crea por esa via:
+// escritura silenciosamente ineficaz en este runtime). El guard
+// variable_instance_exists del Draw_76/Draw_64 local daba false SIEMPRE:
+// el afectado se veia su propio sprite en SU pantalla mientras los demas
+// clientes si veian el nega (el puppet declara la marca en su Create y
+// el with() escribe por INSTANCIA). Declarada aqui, la escritura del
+// paquete es una asignacion normal a una variable ya existente (como
+// hp / revivalTimes, que siempre funcionaron) y el guard del Draw pasa
+// tambien en la pantalla del convertido.
+isNegatouch = false;
 shockedTimer = 0;
 deadTimer = 31;
 deadColor = c_white;

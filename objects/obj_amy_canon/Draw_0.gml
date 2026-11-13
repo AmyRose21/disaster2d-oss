@@ -69,26 +69,6 @@ if(parryState == 2)
 // continuo de punta a punta. La pose rotada de cada fantasma sale de
 // lightDashDeg/lightDashFace (lo mismo que dibuja el cuerpo).
 
-//Actual draw
-// AMY CYBER: mismo palette swap de siempre pero envuelto en el shader
-// holograma (shd_amy_cyber) cuando el efecto esta activo. Si esta
-// apagado (AMY_CYBER_ENABLED false) cae al scr_palette_swap normal.
-// v2: blindaje. Si scr_amy_cyber no esta cargado (script copiado pero
-// sin registrar en el .yyp = asset fantasma), cae al palette swap de
-// siempre: se dibuja normal y NUNCA mas salta el "not set before
-// reading it".
-// v8 (NEGAGEN, toque negativo): SUBDITO NEGATIVO local — el cuerpo se
-// dibuja INVERTIDO (shd_negative), no con la paleta demon: es el look
-// canon de Negagen, verificado pixel a pixel contra los spr_amynega_* /
-// spr_eggnega_* del build original.
-if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
-{
-        shader_set(shd_negative);
-        draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, (isSpinning && !isLightDashing) ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
-        shader_reset();
-}
-else
-{
         if(variable_global_exists("scr_amy_cyber"))
                 scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, sprite_index, image_index);
         else
@@ -100,7 +80,6 @@ else
         // dash manda sobre la bola: si esta volando como rayo, SIEMPRE rota.
         draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, (isSpinning && !isLightDashing) ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
         shader_reset();
-}
 
 // ESTADO BURBUJA: dibuja la burbuja de secuestro ENCIMA de Amy.
 // amy_Bubble son 8 frames a 5 fps (200 ms por frame); su origen

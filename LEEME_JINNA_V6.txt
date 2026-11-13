@@ -1,0 +1,140 @@
+JINNA V6 "NEGAGEN: LAS 3 FORMAS CON SPRITES NEGA REALES" (v11 del toque negativo)
+====================================================================================
+
+QUE ES
+------
+La version que pide el enfoque de la BASE ORIGINAL: en vez de invertir en
+pantalla con shader, cada superviviente tiene ahora TRES formas de sprite
+propias, cada una en su carpeta:
+
+    FORMA 1  NORMAL      : spr_<char>_<anim>     (player_anims, de siempre)
+    FORMA 2  NEGA       : spr_<char>nega_<anim>  (player_negaanims, NUEVA)
+    FORMA 3  DEMONIZADA : spr_e<char>_<anim>     (player_eanims, de siempre)
+
+El subdito NEGATIVO de Jinna usa la FORMA 2: SU propio personaje con SUS
+mismas animaciones, con los colores invertidos. Amy rosa se ve cian, igual
+que el spr_amynega_* del rar que enviaste. La carpeta de cada sprite nega
+es "separada" como pediste: sprites/spr_amynega_idle/ y asi con TODOS.
+
+LA TRANSFORMACION (sacada del propio rar, no inventada)
+-------------------------------------------------------
+Comparados pixel a pixel los spr_amynega_* / spr_eggnega_* del rar contra
+los sprites actuales del repo:
+
+  * CUERPO  : inversion pura (RGB -> 255-RGB, alfa intacto, y el RGB de
+    los pixeles transparentes se deja igual, como el canon). En el 100%
+    de los pares comparados es EXACTA: el spr_amynega_idle generado aqui
+    es IDENTICO byte a byte al del rar.
+  * TIRAS/BARRAS de vida (HUD y cabeza): inversion con el CONTORNO
+    OSCURO intacto (los pixeles casi negros no se invierten), que es
+    como el rar invierte sus tiras (spr_playerhealth_negademon2).
+
+QUE SE GENERO
+-------------
+277 sprites nuevos (4.781 PNG), todos con su .yy, frames y layers, y
+registrados en el .yyp:
+
+  * Los 15 supervivientes COMPLETOS (todas las animaciones de sus
+    arrays de player_anims, incluidas las raras: capturas de Amy Canon,
+    light dash, nervios de acero de Sonic, tirolinas, moribunda de
+    Rouge...):  amelia, amy, amy_canon, amy_fleetway (y sus cbamy_*),
+    blaze, cream, egg, knux, metal, rouge, sally, sally_canon, sonic,
+    tails, vanilla.
+  * Variantes dinamicas del golpe de Sonic (spr_sonicnega_attack2_
+    tierra1/2, aereo1) y sus scans propios (sonicAtkTierraNega/AireNega).
+  * Parry de Sonic y Amy Canon (spr_sonicnega_parry_* / spr_amynega_
+    parry_*) con fallback nega.
+  * Fase DUELISTA de Sally Canon (bola de salto y spindash negas).
+  * Tiras de vida del HUD (spr_playerhealth_nega de 98 frames: las 14
+    filas + sallycanon/vanilla propias + variante anillo rojo) y barras
+    sobre la cabeza (spr_hp_nega / spr_hp_rr_nega).
+  * Muelles de caida nega para Metal/Blaze/Sally Canon/Amelia.
+
+COMO FUNCIONA (CAMBIOS DE CODIGO)
+---------------------------------
+  * scr_survivors.gml: bloque nuevo global.player_negaanims (espejo
+    exacto de player_anims con los nombres nega) + scans nega de las
+    variantes del golpe de Sonic + filas nega en los muelles.
+  * Draw_76 de los 15 supervivientes y Draw_72 del puppet: si
+    isNegatouch -> player_negaanims (el esbirro comun sigue con sus
+    eanims y el superviviente con sus sprites normales).
+  * Draw_0 de los 16 (15 + puppet): EL SHADER SE RETIRA. El cuerpo ya
+    viene invertido de serie (el sprite ES la inversion), asi que el
+    nega pasa por la ruta vanilla (paleta, flash de dano, estelas de
+    scr_effect_fade_quick...) como cualquier superviviente. Esta es la
+    gran ventaja del enfoque: el EFECTO VIAJA CON EL SPRITE, asi que
+    toda ruta que dibuje al personaje (retratos, estelas, efectos que
+    copian sprite_index) sale nega sin tener que parchearla una a una,
+    y ya no existe ningun uniforme que "heredar" mal.
+  * Barras sobre la cabeza (Draw_64 de los 15 + puppet): spr_hp_nega /
+    spr_hp_rr_nega con el frame de SU vida real. Sin shader.
+  * HUD superior (obj_level/Draw_64, retrato propio y de los puppets):
+    tira nega (scr_hud_strip_nega / scr_hud_strip_red_nega) con SU frame
+    de vida real, como un superviviente. El esbirro comun sigue con su
+    tira demon.
+  * scr_characters.gml: funciones nuevas scr_hud_strip_nega(_char) y
+    scr_hud_strip_red_nega(_char) con el mismo mapeo de filas de siempre.
+  * scr_parry.gml: scr_parry_sprite(st, _char, _nega) — el parry del
+    nega sale con los sprites nega (los 3 que lo llaman pasan el flag).
+  * Sonic (local y puppet): las variantes dinamicas del golpe salen de
+    los arrays nega cuando el que pega es nega. Sally Canon (local y
+    puppet): los overrides de la fase duelista salen nega.
+
+LAS 4 QUEJAS ORIGINALES, COMO QUEDAN
+------------------------------------
+  1. "Sprite incorrecto (monstruo marron)": el nega es SU personaje
+     invertido (Amy cian, etc.), con la inversion EXACTA del canon.
+  2. "No visible en la pantalla del afectado": el sprite en si es el
+     nega, en las DOS pantallas (local y puppet) — sin depender de
+     ningun shader/uniforme.
+  3. "Animaciones hechas un asco": son SUS animaciones frame a frame
+     (mismo numero de frames, mismo timing) — solo el color cambia.
+  4. "Lo considera una EXE": sigue siendo el MINION ALTERNATIVO de la
+     v10 (nombre TURQUESA, SUS iconos y recargas de superviviente, vida
+     real en HUD y barra, y el letrero GET THEM porque pelea para el
+     bando EXE; mecanicamente ni superviviente ni EXE).
+
+VA CON ESTE ZIP (incluye lo de la v10 no commiteada)
+----------------------------------------------------
+Este zip lleva TODO el delta contra el 6f16e2e2 que probaste: ademas de
+lo nuevo, los arreglos de la v10 van dentro (golpe X de carga 25, helpers
+scr_negatouch_is / scr_esbirro_hud, iconos del HUD propios del nega,
+nombre turquesa del puppet...). El LEEME_JINNA_V5.txt de esa version va
+tambien por si quieres el detalle de aquellos cambios.
+
+CASOS BORDE CONOCIDOS (rarisimos, aposta)
+-----------------------------------------
+  * El ABRAZO COMBINADO Amy Canon + Sonic (estados 65/24): el sprite
+    combinado del abrazo se dibuja normal (es una animacion de pareja de
+    2 jugadores; si la quieres nega tambien, la montamos).
+  * Los OVERLAYS de habilidades (burbuja del escudo de Sally, auras del
+    parry/powerboost, efectos de anillos) siguen en su color normal: son
+    efectos, no el cuerpo.
+  * shd_negative queda en el proyecto pero SIN uso en runtime (por si
+    quieres volver al enfoque shader o reutilizarlo).
+
+COMO PROBARLO
+-------------
+1) Recompila CLIENTE (el server de C++ no se toca).
+2) Jinna contra cualquier superviviente.
+3) 4 golpes con el AGARRE (V) o el GOLPE (X): la carga llega a 100 y la
+   conversion es instantanea.
+4) En la pantalla del AFECTADO: se ve a si mismo invertido con SU barra
+   nega y SUS iconos; en la de Jinna y los demas, el puppet invertido
+   con nombre turquesa y retrato nega con su vida real.
+5) Si Sonic nega pega con X: las variantes del golpe salen invertidas
+   tambien. El esbirro COMUN (dejar morir a alguien sin carga) sigue
+   marron y demon como siempre: las 3 formas conviven.
+
+ARCHIVOS
+--------
+  NUEVOS   : 277 carpetas de sprites nega (sprites/spr_*nega*/) con .yy +
+             PNGs + layers, y LEEME_JINNA_V5.txt / LEEME_JINNA_V6.txt.
+  MODIFICADOS: "Sonicexe The Disaster 2D Remake.yyp" (277 recursos nuevos),
+             scripts/scr_survivors, scripts/scr_characters, scripts/scr_
+             parry, scripts/scr_jinna_negatouch (v10), Draw_76/Draw_64/
+             Draw_0 de los 15 supervivientes, obj_player_puppet (Draw_0/
+             64/72), obj_level/Draw_64, obj_playerui/Draw_64 (v10),
+             worklog.md.
+
+NOTA: el zip lleva SOLO archivos modificados/creados, como siempre.

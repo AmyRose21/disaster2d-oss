@@ -4,7 +4,7 @@
 // con los suyos. Mismas velocidades de animacion que el de Sonic.
 if(scr_parry_state_is(state))
 {
-        var _pspr = scr_parry_sprite(state, global.character);
+        var _pspr = scr_parry_sprite(state, global.character, variable_instance_exists(id, "isNegatouch") && isNegatouch);
 
         if(_pspr != -1)
                 sprite_index = _pspr;
@@ -45,7 +45,14 @@ if(state == AMY_CANON_HUG)
         return;
 }
 
+// v11 (NEGAGEN, 3 FORMAS): 1 normal / 2 NEGA / 3 demonizada.
+// El subdito NEGATIVO usa la TIRA NEGA propia del personaje
+// (spr_<char>nega_*: inversion pura de SUS sprites, mismo canon
+// que los spr_amynega_* / spr_eggnega_* del build Negagen).
+// El esbirro comun sigue con sus eanims; el superviviente igual.
 var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
+if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+        arr = global.player_negaanims;
 sprite_index = arr[? CHARACTER_AMY_CANON][state];
 
 switch(state)

@@ -47,22 +47,9 @@ if(shieldPoseOn)
         _bodyIdx = floor(shieldPoseT);
 }
 
-// v8 (NEGAGEN, toque negativo): SUBDITO NEGATIVO local — el cuerpo
-// se dibuja INVERTIDO (shd_negative), no con la paleta demon: es el
-// look canon de Negagen, verificado pixel a pixel contra los
-// spr_amynega_* / spr_eggnega_* del build original.
-if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
-{
-	shader_set(shd_negative);
-		draw_sprite_ext(_bodySpr, _bodyIdx, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
-	shader_reset();
-}
-else
-{
 	scr_palette_swap(global.palleteFrom, global.palleteTo);
 	draw_sprite_ext(_bodySpr, _bodyIdx, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
 	shader_reset();
-}
 
 // ESCUDO (v5.6, fix reportado): la burbuja animada se dibuja SIEMPRE
 // que el escudo este activo, igual que el escudo de la Sally vanilla

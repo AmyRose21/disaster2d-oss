@@ -28,7 +28,8 @@
 //  * CANAL: el AGARRE (tecla V) y la TRAMPA (V+ABAJO) de Jina ahora
 //    acumulan ENERGÍA NEGATIVA además de su daño normal: cada impacto
 //    suma JINNA_NEGA_CHARGE (25) al negatimer del superviviente. El
-//    GOLPE (X) también mete una carga menor (JINNA_NEGA_CHARGE_X, 15)
+//    GOLPE (X) también mete carga (JINNA_NEGA_CHARGE_X, 25 desde la
+//    v10 — antes 15 y la víctima moría antes de llenar la barra)
 //    porque el contacto continuo es el corazón del kit de Jina.
         //  * UMBRAL: a 100 de carga el superviviente se convierte EN EL ACTO en
         //    SÚBDITO NEGATIVO: revive donde estaba con el look NEGATIVO
@@ -66,11 +67,42 @@
 
 // Carga de energía negativa por golpe (el "negatimer" de Negagen)
 #macro JINNA_NEGA_CHARGE 25         // agarre y trampa: 4 golpes = conversión
-#macro JINNA_NEGA_CHARGE_X 15       // golpe X: 7 golpes = conversión
+// v10: el golpe X sube a 25 (antes 15). Con 15 la víctima MORÍA antes
+// de cargar: el X de Jinna pega 20-25 y 100 hp / 20 = 5 golpes = solo
+// 75 de carga — se demonizaba por la vía común (esbirro marrón, sin
+// look nega) y la conversión NUNCA llegaba. A 25 son 4 golpes = 100:
+// la carga llena ANTES de morir (con anillos, todavía más margen) y el
+// "modo súbditos alternativo" funciona de verdad por la vía del X.
+#macro JINNA_NEGA_CHARGE_X 25       // golpe X: 4 golpes = conversión (v10: era 15)
 #macro JINNA_NEGA_MAX 100           // umbral de conversión (negatimer 100 de Negagen)
 #macro JINNA_NEGA_GRACE (60 * 3)    // Antinegatemper: 3 s de gracia al resto tras una conversión
 #macro JINNA_NEGA_HP 60             // vida del súbdito negativo (más débil que el esbirro común: 100)
 #macro JINNA_NEGA_DAMAGE 15         // su golpe pega 15 (el esbirro común: 20)
+
+// =====================================================================
+//  v10 (NEGAGEN) — HELPERS DEL LOOK NEGA.
+//  scr_negatouch_is(inst): ¿inst es un súbdito NEGATIVO? (la marca
+//  isNegatouch, declarada lazy: sin tocar el Create de los ~15
+//  supervivientes). La usan los Draw de los objetos para decidir el
+//  look (sprites propios + shd_negative) sin repetir el guard en
+//  cada sitio.
+//
+//  scr_esbirro_hud(inst): ¿inst es un ESBIRRO COMÚN a efectos de
+//  HUD? (revivalTimes >= 2 PERO sin la marca nega). El súbdito
+//  negativo NO es "un exe/esbirro" para el interfaz: conserva SUS
+//  iconos de habilidad y SUS recargas de superviviente (el Look
+//  completo de Negagen: el nega es un superviviente invertido, no
+//  un demonio rojo). obj_playerui la usa en todos sus checks.
+// =====================================================================
+function scr_negatouch_is(inst)
+{
+        return inst != noone && variable_instance_exists(inst.id, "isNegatouch") && inst.isNegatouch;
+}
+
+function scr_esbirro_hud(inst)
+{
+        return inst != noone && inst.revivalTimes >= 2 && !scr_negatouch_is(inst);
+}
 
 // =====================================================================
 //  LADO VÍCTIMA (corre en el cliente de CADA superviviente golpeado
@@ -157,7 +189,14 @@ function scr_jinna_negatouch_convert(_vpid)
                 global.player.deadTimer = 31;
                 global.player.revivalTimes = 2;       // esbirro: pelea para el EXE
                 global.player.isMinion = false;       // esbirro COMUN del bando negativo (sin vida real de minion)
-                global.player.isNegatouch = true;     // v7: marca de súbdito NEGATIVO (golpe de 15)
+                // v12: escritura GARANTIZADA con variable_instance_set sobre
+                // global.player.id (el patron PROBADO de jinnaNegaCharge): la
+                // dot-escritura sobre el indice del objeto no crea variables
+                // inexistentes y la marca nunca aterrizo en el jugador local
+                // (v8-v11: el afectado se veia su propio sprite en su pantalla).
+                // Los Create de los 15 supervivientes ya la declaran: esto es el
+                // cinturon de seguridad del mismo patron de la carga.
+                variable_instance_set(global.player.id, "isNegatouch", true); // v7: marca de súbdito NEGATIVO (golpe de 15)
                 global.player.xspd = 0;
                 global.player.yspd = 0;
                 global.player.gspd = 0;

@@ -34,7 +34,7 @@ else
         // que ahora recibe el character del puppet).
         if(scr_parry_char_has(character) && scr_parry_state_is(state))
         {
-                var _pspr = scr_parry_sprite(state, character);
+                var _pspr = scr_parry_sprite(state, character, variable_instance_exists(id, "isNegatouch") && isNegatouch);
 
                 if(_pspr != -1)
                         sprite_index = _pspr;
@@ -62,20 +62,24 @@ else
         if(character == CHARACTER_SONIC && state >= SONIC_ATK_TIERRA)
         {
                 var _spr = -1;
+                // v11 (NEGAGEN): variantes del golpe del Sonic NEGATIVO
+                // (spr_sonicnega_attack2_*), igual que su cuerpo.
+                var _atkA = variable_instance_exists(id, "isNegatouch") && isNegatouch ? global.sonicAtkAireNega : global.sonicAtkAire;
+                var _atkT = variable_instance_exists(id, "isNegatouch") && isNegatouch ? global.sonicAtkTierraNega : global.sonicAtkTierra;
                 
                 if(state >= SONIC_ATK_AIRE)
                 {
                         var _vi = state - SONIC_ATK_AIRE;
                         
-                        if(_vi < array_length(global.sonicAtkAire))
-                                _spr = global.sonicAtkAire[_vi];
+                        if(_vi < array_length(_atkA))
+                                _spr = _atkA[_vi];
                 }
                 else
                 {
                         var _vi = state - SONIC_ATK_TIERRA;
                         
-                        if(_vi < array_length(global.sonicAtkTierra))
-                                _spr = global.sonicAtkTierra[_vi];
+                        if(_vi < array_length(_atkT))
+                                _spr = _atkT[_vi];
                 }
                 
                 if(_spr != -1)
@@ -102,11 +106,13 @@ else
         if(character == CHARACTER_SALLY_CANON && duelista)
         {
                 var _scSpr = -1;
+                // v11 (NEGAGEN): overrides duelista en nega
+                var _negaSc = variable_instance_exists(id, "isNegatouch") && isNegatouch;
                 
                 if(state == JUMP)
-                        _scSpr = spr_sally_fase2_jump_canon;
+                        _scSpr = _negaSc ? spr_sallynega_fase2_jump_canon : spr_sally_fase2_jump_canon;
                 else if(state == SPIN)
-                        _scSpr = spr_sally_spindash_canon;
+                        _scSpr = _negaSc ? spr_sallynega_spindash_canon : spr_sally_spindash_canon;
                 
                 if(_scSpr != -1)
                 {
@@ -115,7 +121,14 @@ else
                 }
         }
         
-        var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
+        // v11 (NEGAGEN, 3 formas): el puppet del subdito NEGATIVO usa la
+        // tira nega propia (spr_<char>nega_*); el esbirro comun sus eanims
+        // y el superviviente sus sprites normales.
+        var arr = global.player_anims;
+        if(revivalTimes >= 2 && !isNegatouch)
+                arr = global.player_eanims;
+        if(isNegatouch)
+                arr = global.player_negaanims;
         
         if(state >= array_length(arr[? character]))
                 return;

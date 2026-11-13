@@ -1,0 +1,81 @@
+JINNA v12 — "ME VEO YO": el afectado por fin ve SU forma nega en su propia pantalla
+=====================================================================================
+
+QUE SE ARREGLA
+--------------
+"En la pantalla de Amy se ve, en la de Jinna tambien, pero en la de
+Vanilla no: ve su propio sprite." Exactamente eso: desde la v8 (shader)
+hasta la v11 (sprites nega propios) el jugador convertido NUNCA se vio a
+si mismo negativo en su propia pantalla — solo los demas clientes lo
+veian. Tres entregas prometiendo lo mismo y fallando siempre en el mismo
+sitio, y la causa era una sola linea mal escrita.
+
+LA CAUSA RAIZ (verificada contra el codigo y el manual de GameMaker)
+---------------------------------------------------------------------
+El look local del nega se activa con la marca isNegatouch en el jugador
+local. El paquete de conversion la escribia asi:
+
+    global.player.isNegatouch = true;
+
+pero global.player NO es la instancia: es el INDICE del objeto
+(obj_vanilla). Una dot-escritura sobre un indice de objeto a una
+variable que NO existe en la instancia NO la crea (en este runtime,
+silenciosamente ineficaz), asi que la marca nunca aterrizaba.
+
+La prueba de que era exactamente eso la da el propio juego: TODO lo que
+se escribe por esa misma via a variables YA declaradas en el Create SI
+llega (hp = 60, revivalTimes = 2: el nega pelea, tiene su vida, su
+golpe...), y la carga negativa (jinnaNegaCharge) SI funciona porque se
+declara con variable_instance_set(global.player.id, ...) — el patron
+garantizado. Solo isNegatouch — la unica pieza del LOOK — se escribia
+sin declarar.
+
+Por eso el guard de los Draw locales:
+
+    if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+
+daba false SIEMPRE en el jugador local (la variable no existia) y el
+Draw_76 seguia sacando la tira normal. En el puppet SI funcionaba porque
+obj_player_puppet declara isNegatouch en su Create y la marca la escribe
+el with() por INSTANCIA. Mismo guard, distinto destino: esa era toda la
+diferencia entre "se ve en la pantalla de Amy" y "no se ve en la de
+Vanilla". (Era tambien la causa del viejo "GET THEM" del afectado: el
+HUD decide esbirro/nega con la misma marca.)
+
+EL ARREGLO (17 archivos)
+-------------------------
+1) objects/<superviviente>/Create_0.gml — los 15 supervivientes (amy,
+   amy_canon, amy_fleetway, amelia, blaze, cream, egg, knux, metal,
+   rouge, sally, sally_canon, sonic, tails, vanilla): se declara
+   "isNegatouch = false;" junto a revivalTimes. La escritura del
+   paquete pasa a ser una asignacion normal a una variable existente y
+   el guard del Draw_76 (cuerpo nega) y del Draw_64 (barra nega) ya pasa
+   en la pantalla del afectado. De paso el HUD/retratos nega-aware
+   (scr_negatouch_is sobre global.player.id) leen la marca de verdad.
+2) scripts/scr_jinna_negatouch/scr_jinna_negatouch.gml: la rama victima
+   fija la marca con variable_instance_set(global.player.id, ...) — el
+   patron ya probado de la carga — ademas de las declaraciones nuevas
+   (cinturon de seguridad).
+3) LEEME_JINNA_V7.txt (este archivo).
+
+QUE NO CAMBIA
+-------------
+- Red: ni un byte de protocolo (mismo SERVER_JINNA_NEGATOUCH_STATE; el
+  server C ni se recompila).
+- Puppets: igual que antes — ya se veian bien en las otras pantallas.
+- Sprites nega, tiras, barras, retratos: todo igual (ya existian y ya
+  andaban; solo faltaba que la marca aterrizara en el jugador local).
+- El server ya le quita PLAYER_DEAD en la conversion: el death-timer NO
+  la demoniza por detras (verificado en Game.c, tick del timer).
+
+PRUEBA RAPIDA (3 clientes como en tu captura)
+---------------------------------------------
+1. Jinna llena la carga de Vanilla (4 golpes de X) hasta la conversion.
+2. PANTALLA DE VANILLA: ella misma se ve INVERTIDA (teal/cian oscuro)
+   con SU barra nega — igual que la ven Amy y Jinna en sus pantallas.
+3. Espera 30 s+ tras la conversion: el look nega NO se cae (el
+   death-timer queda muerto server-side con el PLAYER_DEAD fuera).
+4. Si Vanilla cae a 0: la purga la revive debil (30 hp) SIGIENDO nega.
+5. Bonus de la misma marca: el HUD del afectado deja de tratarla como
+   esbirro comun (conserva sus iconos de superviviente, como era la
+   intencion del look Negagen).

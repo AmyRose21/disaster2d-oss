@@ -829,6 +829,379 @@ global.player_eanims[? CHARACTER_ROUGE] =
 ];
 
 // =====================================================================
+//  v11 (NEGAGEN) — FORMA 2: player_negaanims. Copias NEGA de los
+//  sprites de CADA superviviente (spr_<char>nega_*: inversion pura de
+//  spr_<char>_*), con el mismo criterio del canon Negagen (los
+//  spr_amynega_* / spr_eggnega_* del build original). Las usa el
+//  subdito NEGATIVO de Jinna (toque negativo): mismo personaje,
+//  mismas animaciones y timing, colores invertidos.
+//    1 normal (player_anims) / 2 NEGA (aqui) / 3 demonizada (eanims).
+// =====================================================================
+global.player_negaanims = ds_map_create();
+
+//Tails
+global.player_negaanims[? CHARACTER_TAILS] = 
+[
+        spr_tailsnega_idle, //0
+        spr_tailsnega_walk, //1
+        spr_tailsnega_run, //2
+        spr_tailsnega_jump, //3
+        spr_tailsnega_fall, //4
+        spr_tailsnega_hurt, //5
+        spr_tailsnega_dead, //6
+        spr_tailsnega_lookup, //7
+        spr_tailsnega_lookdown, //8
+        spr_tailsnega_emotion1, //9
+        spr_tailsnega_emotion2, //10
+        spr_tailsnega_emotion3, //11
+        spr_tailsnega_jump, //12
+        spr_tailsnega_balancing, //13
+        spr_tailsnega_fly, //14
+        spr_tailsnega_attack1, //15
+        spr_tailsnega_zipline //16
+];
+
+//Knux
+global.player_negaanims[? CHARACTER_KNUX] = 
+[
+        spr_knuxnega_idle, //0
+        spr_knuxnega_walk, //1
+        spr_knuxnega_run, //2
+        spr_knuxnega_jump, //3
+        spr_knuxnega_fall, //4
+        spr_knuxnega_hurt, //5
+        spr_knuxnega_dead, //6
+        spr_knuxnega_lookup, //7
+        spr_knuxnega_lookdown, //8
+        spr_knuxnega_emotion1, //9
+        spr_knuxnega_emotion2, //10
+        spr_knuxnega_emotion3, //11
+        spr_knuxnega_jump, //12
+        spr_knuxnega_balancing, //13
+        spr_knuxnega_attack2, //14
+        spr_knuxnega_attack1, //15
+        spr_knuxnega_glide, //16
+        spr_knuxnega_zipline, //17
+        spr_knuxnega_stuck //18
+];
+
+//Egg
+global.player_negaanims[? CHARACTER_EGGMAN] = 
+[
+        spr_eggnega_idle, //0
+        spr_eggnega_walk, //1
+        spr_eggnega_run, //2
+        spr_eggnega_jump, //3
+        spr_eggnega_fall, //4
+        spr_eggnega_hurt, //5
+        spr_eggnega_dead, //6
+        spr_eggnega_lookup, //7
+        spr_eggnega_lookdown, //8
+        spr_eggnega_emotion1, //9
+        spr_eggnega_emotion2, //10
+        spr_eggnega_emotion3, //11
+        spr_eggnega_jump, //12
+        spr_eggnega_balancing, //13
+        spr_eggnega_djump, //14
+        spr_eggnega_zipline //15
+];
+
+//Amy
+global.player_negaanims[? CHARACTER_AMY] = 
+[
+        spr_amynega_idle, //0
+        spr_amynega_walk, //1
+        spr_amynega_run, //2
+        spr_amynega_jump, //3
+        spr_amynega_fall, //4
+        spr_amynega_hurt, //5
+        spr_amynega_dead, //6
+        spr_amynega_lookup, //7
+        spr_amynega_lookdown, //8
+        spr_amynega_emotion1, //9
+        spr_amynega_emotion2, //10
+        spr_amynega_emotion3, //11
+        spr_amynega_jump, //12
+        spr_amynega_balancing, //13
+        spr_amynega_attack1, //14
+        spr_amynega_attack2, //15
+        spr_none, //16
+        spr_amynega_zipline //17
+];
+
+//Amy Canon
+global.player_negaanims[? CHARACTER_AMY_CANON] = 
+[
+        spr_amynega_idle_canon, //0
+        spr_amynega_walk_canon, //1
+        spr_amynega_run_canon, //2
+        spr_amynega_jump_canon, //3
+        spr_amynega_fall_canon, //4
+        spr_amynega_hurt_canon, //5
+        spr_amynega_dead_canon, //6
+        spr_amynega_lookup_canon, //7
+        spr_amynega_lookdown_canon, //8
+        spr_amynega_emotion1_canon, //9
+        spr_amynega_emotion2_canon, //10
+        spr_amynega_emotion3_canon, //11
+        spr_amynega_jump_canon, //12
+        spr_amynega_balancing, //13
+        spr_amynega_attack1_canon, //14
+        spr_amynega_attack2_canon, //15
+        spr_none, //16
+        spr_amynega_zipline_canon, //17
+        spr_amynega_attack3_canon_, //18
+        spr_amynega_capture_canon, //19
+        spr_amynega_capture_canon_left, //20
+        spr_amynega_capture_canon_right, //21
+        spr_amynega_tarot_float, //22
+        spr_amynega_attack1_canon, //23
+        spr_none, //24
+        spr_amynega_light_speed_canon //25
+];
+
+//Sonic
+global.player_negaanims[? CHARACTER_SONIC] = 
+[
+        spr_sonicnega_idle, //0
+        spr_sonicnega_walk, //1
+        spr_sonicnega_run, //2
+        spr_sonicnega_jump, //3
+        spr_sonicnega_fall, //4
+        spr_sonicnega_hurt, //5
+        spr_sonicnega_dead, //6
+        spr_sonicnega_lookup, //7
+        spr_sonicnega_lookdown, //8
+        spr_sonicnega_emotion1, //9
+        spr_sonicnega_emotion2, //10
+        spr_sonicnega_emotion3, //11
+        spr_sonicnega_jump, //12
+        spr_sonicnega_balancing, //13
+        spr_sonicnega_attack2_tierra1, //14
+        spr_sonicnega_spin_charger, //15
+        spr_none, //16
+        spr_sonicnega_zipline, //17
+        spr_sonicnega_nervios_de_acero_Idle, //18
+        spr_sonicnega_nervios_de_acero_finish //19
+];
+
+//Cream
+global.player_negaanims[? CHARACTER_CREAM] = 
+[
+        spr_creamnega_idle, //0
+        spr_creamnega_walk, //1
+        spr_creamnega_run, //2
+        spr_creamnega_jump, //3
+        spr_creamnega_fall, //4
+        spr_creamnega_hurt, //5
+        spr_creamnega_dead, //6
+        spr_creamnega_lookup, //7
+        spr_creamnega_lookdown, //8
+        spr_creamnega_emotion1, //9
+        spr_creamnega_emotion2, //10
+        spr_creamnega_emotion3, //11
+        spr_creamnega_jump, //12
+        spr_creamnega_balancing, //13
+        spr_creamnega_fly, //14
+        spr_creamnega_srings, //15
+        spr_creamnega_zipline //16
+];
+
+//Sally
+global.player_negaanims[? CHARACTER_SALLY] = 
+[
+        spr_sallynega_idle, //0
+        spr_sallynega_walk, //1
+        spr_sallynega_run, //2
+        spr_sallynega_jump, //3
+        spr_sallynega_fall, //4
+        spr_sallynega_hurt, //5
+        spr_sallynega_dead, //6
+        spr_sallynega_lookup, //7
+        spr_sallynega_lookdown, //8
+        spr_sallynega_emotion1, //9
+        spr_sallynega_emotion2, //10
+        spr_sallynega_emotion3, //11
+        spr_sallynega_jump, //12
+        spr_sallynega_balancing, //13
+        spr_sallynega_attack, //14
+        spr_sallynega_slide, //15
+        spr_none, //16
+        spr_sallynega_zipline //17
+];
+
+//Sally Canon
+global.player_negaanims[? CHARACTER_SALLY_CANON] = 
+[
+        spr_sallynega_idle_canon, //0
+        spr_sallynega_walk_canon, //1
+        spr_sallynega_run_canon, //2
+        spr_sallynega_jump_canon, //3
+        spr_sallynega_fall_canon, //4
+        spr_sallynega_hurt_canon, //5
+        spr_sallynega_dead_canon, //6
+        spr_sallynega_lookup_canon, //7
+        spr_sallynega_lookdown_canon, //8
+        spr_sallynega_emotion1_canon, //9
+        spr_sallynega_emotion2_canon, //10
+        spr_sallynega_emotion3_canon, //11
+        spr_sallynega_jump_canon, //12
+        spr_sallynega_balancing_canon, //13
+        spr_sallynega_attack_canon, //14
+        spr_sallynega_slide_canon, //15
+        spr_none, //16
+        spr_sallynega_zipline_canon, //17
+        spr_sallynega_fase2_canon_pt1, //18
+        spr_sallynega_fase2_canon_pt2, //19
+        spr_sallynega_fase2_canon_pt3, //20
+        spr_sallynega_fase2_canon_pt4, //21
+        spr_sallynega_fase2_attack_canon, //22
+        spr_sallynega_spin_charger_canon //23
+];
+
+//Vanilla
+global.player_negaanims[? CHARACTER_VANILLA] = 
+[
+        spr_vanillanega_idle, //0
+        spr_vanillanega_walk, //1
+        spr_vanillanega_run, //2
+        spr_vanillanega_jump, //3
+        spr_vanillanega_fall, //4
+        spr_vanillanega_hurt, //5
+        spr_vanillanega_dead, //6
+        spr_vanillanega_lookup, //7
+        spr_vanillanega_lookdown, //8
+        spr_vanillanega_emotion1, //9
+        spr_vanillanega_emotion2, //10
+        spr_vanillanega_emotion3, //11
+        spr_vanillanega_jump, //12
+        spr_vanillanega_balancing, //13
+        spr_vanillanega_fly, //14
+        spr_vanillanega_srings, //15
+        spr_vanillanega_zipline, //16
+        spr_vanillanega_float_run, //17
+        spr_vanillanega_paciencia, //18
+        spr_vanillanega_paciencia_agotada //19
+];
+
+//Metal
+global.player_negaanims[? CHARACTER_METAL] = 
+[
+        spr_metalnega_idle, //0
+        spr_metalnega_walk, //1
+        spr_metalnega_run, //2
+        spr_metalnega_jump, //3
+        spr_metalnega_fall, //4
+        spr_metalnega_hurt, //5
+        spr_metalnega_dead, //6
+        spr_metalnega_lookup, //7
+        spr_metalnega_lookdown, //8
+        spr_metalnega_emotion1, //9
+        spr_metalnega_emotion2, //10
+        spr_metalnega_emotion3, //11
+        spr_metalnega_jump, //12
+        spr_metalnega_balancing, //13
+        spr_metalnega_attack2, //14
+        spr_metalnega_attack, //15
+        spr_metalnega_zipline //16
+];
+
+//Amelia
+global.player_negaanims[? CHARACTER_AMELIA] = 
+[
+        spr_amelianega_idle, //0
+        spr_amelianega_walk, //1
+        spr_amelianega_run, //2
+        spr_amelianega_jump, //3
+        spr_amelianega_fall, //4
+        spr_amelianega_hurt, //5
+        spr_amelianega_dead, //6
+        spr_amelianega_lookup, //7
+        spr_amelianega_lookdown, //8
+        spr_amelianega_emotion1, //9
+        spr_amelianega_emotion2, //10
+        spr_amelianega_emotion3, //11
+        spr_amelianega_jump, //12
+        spr_amelianega_balancing, //13
+        spr_amelianega_fly, //14
+        spr_amelianega_spindash, //15
+        spr_amelianega_zipline //16
+];
+
+//Blaze
+global.player_negaanims[? CHARACTER_BLAZE] = 
+[
+        spr_blazenega_idle, //0
+        spr_blazenega_walk, //1
+        spr_blazenega_run, //2
+        spr_blazenega_jump, //3
+        spr_blazenega_fall, //4
+        spr_blazenega_hurt, //5
+        spr_blazenega_dead, //6
+        spr_blazenega_lookup, //7
+        spr_blazenega_lookdown, //8
+        spr_blazenega_emotion1, //9
+        spr_blazenega_emotion2, //10
+        spr_blazenega_emotion3, //11
+        spr_blazenega_jump, //12
+        spr_blazenega_balancing, //13
+        spr_blazenega_go, //14
+        spr_blazenega_goon, //15
+        spr_blazenega_zipline //16
+];
+
+//Fleetway Amy
+global.player_negaanims[? CHARACTER_FLEETWAY_AMY] = 
+[
+        spr_amynega_idle_fw, //0
+        spr_amynega_walk_fw, //1
+        spr_amynega_run_fw, //2
+        spr_amynega_jump_fw, //3
+        spr_amynega_fall_fw, //4
+        spr_amynega_hurt_fw, //5
+        spr_amynega_dead_fw, //6
+        spr_amynega_lookup_fw, //7
+        spr_amynega_lookdown_fw, //8
+        spr_amynega_emotion1_fw, //9
+        spr_amynega_emotion2_fw, //10
+        spr_amynega_emotion3_fw, //11
+        spr_amynega_jump_fw, //12
+        spr_amynega_balancing_fw, //13
+        spr_amynega_attack1_fw, //14
+        spr_amynega_attack2_fw, //15
+        spr_none, //16
+        spr_amynega_zipline_fw, //17
+        spr_amynega_dj_fw, //18
+        spr_cbamynega_idle_fw, //19
+        spr_cbamynega_walk_fw, //20
+        spr_cbamynega_run_fw //21
+];
+
+//Rouge
+global.player_negaanims[? CHARACTER_ROUGE] = 
+[
+        spr_rougenega_idle, //0
+        spr_rougenega_walk, //1
+        spr_rougenega_run, //2
+        spr_rougenega_jump, //3
+        spr_rougenega_fall, //4
+        spr_rougenega_hurt, //5
+        spr_rougenega_dead, //6
+        spr_rougenega_lookup, //7
+        spr_rougenega_lookdown, //8
+        spr_rougenega_emotion1, //9
+        spr_rougenega_emotion2, //10
+        spr_rougenega_emotion, //11
+        spr_rougenega_jump, //12
+        spr_rougenega_balancing, //13
+        spr_rougenega_attack1, //14
+        spr_rougenega_attack2, //15
+        spr_rougenega_glide, //16
+        spr_rougenega_zipline, //17
+        spr_rougenega_stuck, //18
+        spr_rougenega_hurt //19
+];
+
 //  SONIC: variantes dinamicas del golpe (tecla X). Cualquier sprite
 //  llamado spr_sonic_attack2_tierra<N> o spr_sonic_attack2_aereo<N>
 //  (N = 1, 2, 3...) cuenta como una variante mas: se detecta solo al
@@ -872,6 +1245,44 @@ if(array_length(global.sonicAtkTierra) == 0)
 if(array_length(global.sonicAtkAire) == 0)
         array_push(global.sonicAtkAire, spr_sonic_attack2_aereo1);
 
+// v11 (NEGAGEN): variantes NEGA del golpe de Sonic (mismo escaneo por
+// nombre, sobre las copias nega spr_sonicnega_attack2_*): las usa el
+// subdito NEGATIVO para que el golpe salga con SU look invertido.
+global.sonicAtkTierraNega = [];
+global.sonicAtkAireNega = [];
+
+_sonicScanN = 1;
+while(_sonicScanN <= SONIC_ATK_TIERRA_MAX)
+{
+        var _sonicScanSpr = asset_get_index("spr_sonicnega_attack2_tierra" + string(_sonicScanN));
+
+        if(is_undefined(_sonicScanSpr) || _sonicScanSpr < 0)
+                break;
+
+        array_push(global.sonicAtkTierraNega, _sonicScanSpr);
+        _sonicScanN++;
+}
+
+_sonicScanN = 1;
+while(_sonicScanN <= SONIC_ATK_AIRE_MAX)
+{
+        var _sonicScanSpr = asset_get_index("spr_sonicnega_attack2_aereo" + string(_sonicScanN));
+
+        if(is_undefined(_sonicScanSpr) || _sonicScanSpr < 0)
+                break;
+
+        array_push(global.sonicAtkAireNega, _sonicScanSpr);
+        _sonicScanN++;
+}
+
+if(array_length(global.sonicAtkTierraNega) == 0)
+        array_push(global.sonicAtkTierraNega, spr_sonicnega_attack2_tierra1);
+
+if(array_length(global.sonicAtkAireNega) == 0)
+        array_push(global.sonicAtkAireNega, spr_sonicnega_attack2_aereo1);
+
+
+
 // >>>>>>> MUELLES: inicio (bloque generado con Suite_TD2D.html) >>>>>>
 // Caida "tipo trampolin" por sprite, para el case FALL del Draw_76:
 //   [sprite, frameSubida, nFramesSubida, frameBajada, nFramesBajada, velBucle]
@@ -887,7 +1298,11 @@ global.fallAnims = [
         [spr_eblaze_fall,       0, 1, 1, 1, 0.15], // Blaze (demonizada)
         [spr_sally_fall_canon,  0, 1, 4, 1, 0.15], // SALLY_CANON
         [spr_amelia_fall,       0, 1, 1, 1, 0.15], // AMELIA
-        [spr_eamelia_fall,      0, 1, 1, 1, 0.15]  // AMELIA (demonizado)
+        [spr_eamelia_fall,      0, 1, 1, 1, 0.15], // AMELIA (demonizado)
+        [spr_metalnega_fall,    0, 1, 1, 1, 0.15], // Metal Sonic (nega)
+        [spr_blazenega_fall,     0, 1, 1, 1, 0.15], // Blaze (nega)
+        [spr_sallynega_fall_canon, 0, 1, 4, 1, 0.15], // SALLY_CANON (nega)
+        [spr_amelianega_fall,    0, 1, 1, 1, 0.15]  // AMELIA (nega)
 ];
 
 // La llama el case FALL del Draw_76 del personaje: busca el sprite en

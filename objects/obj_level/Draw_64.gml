@@ -126,21 +126,27 @@ if(global.showHud && titleCard > 4)
                         }
                         else
                         {
-                                var _hudDem = scr_hud_demon(_hudChar);
-                                // v8 (NEGAGEN): retrato del SUBDITO NEGATIVO —
-                                // dibujado INVERTIDO (shd_negative), el look de
-                                // los retratos azulados del modo Negagen. La
-                                // paleta demon (rojo) queda solo para esbirros
-                                // comunes.
+                                // v11 (NEGAGEN): el retrato del SUBDITO NEGATIVO
+                                // usa la TIRA NEGA propia (spr_playerhealth_nega:
+                                // inversion de la tira comun con contorno intacto —
+                                // canon spr_playerhealth_negademon2) con SU frame de
+                                // vida REAL. Asi el nega ve su vida REAL (60/100...)
+                                // en el HUD y NO pasa por el retrato demon del esbirro.
                                 if(variable_instance_exists(global.player.id, "isNegatouch") && global.player.isNegatouch)
                                 {
-                                        shader_set(shd_negative);
-                                        shader_set_uniform_f(shader_get_uniform(shd_negative, "u_keepDark"), 1);
-                                        draw_sprite(_hudDem[0], _hudDem[1], pos, 268);
-                                        shader_reset();
+                                        var _ngFrame = round((1.0 - (global.player.hp / 100.0)) * 5);
+                                        
+                                        if(global.player.hp <= 0)
+                                                _ngFrame = 5;
+                                        
+                                        var _ngPair = global.player.redRingTimer > 0 ? scr_hud_strip_red_nega(_hudChar) : scr_hud_strip_nega(_hudChar);
+                                        draw_sprite(_ngPair[0], _ngPair[1] + _ngFrame, pos, 268);
                                 }
                                 else
+                                {
+                                        var _hudDem = scr_hud_demon(_hudChar);
                                         draw_sprite(_hudDem[0], _hudDem[1], pos, 268);
+                                }
                         }
                 }
                 else
@@ -208,18 +214,27 @@ if(global.showHud && titleCard > 4)
                         }
                         else
                         {
-                                var _hudDem2 = scr_hud_demon(_pch);
-                                // v8 (NEGAGEN): retrato nega del puppet (mismo
-                                // look invertido que el retrato local)
+                                // v11 (NEGAGEN): retrato nega del puppet — la
+                                // TIRA NEGA propia (spr_playerhealth_nega) con SU
+                                // frame de vida real via UDP, igual que el retrato
+                                // local del nega (canon negademon2: inversion con
+                                // contorno intacto). El esbirro comun sigue con su
+                                // tira demon roja fija.
                                 if(variable_instance_exists(inst, "isNegatouch") && inst.isNegatouch)
                                 {
-                                        shader_set(shd_negative);
-                                        shader_set_uniform_f(shader_get_uniform(shd_negative, "u_keepDark"), 1);
-                                        draw_sprite(_hudDem2[0], _hudDem2[1], pos + i * 28, 268);
-                                        shader_reset();
+                                        var _ngFrame2 = round((1.0 - (inst.hp / 100.0)) * 5);
+                                        
+                                        if(inst.hp <= 0)
+                                                _ngFrame2 = 5;
+                                        
+                                        var _ngPair2 = redRing ? scr_hud_strip_red_nega(_pch) : scr_hud_strip_nega(_pch);
+                                        draw_sprite(_ngPair2[0], _ngPair2[1] + _ngFrame2, pos + i * 28, 268);
                                 }
                                 else
+                                {
+                                        var _hudDem2 = scr_hud_demon(_pch);
                                         draw_sprite(_hudDem2[0], _hudDem2[1], pos + i * 28, 268);
+                                }
                         }
                 }
                 else 

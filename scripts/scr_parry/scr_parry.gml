@@ -151,10 +151,17 @@
 //                los subio el usuario al repo). Si no existieran en
 //                alguna instalacion, cae al sprite del golpe del propio
 //                personaje para que nunca pete.
-function scr_parry_sprite(st, _char)
+function scr_parry_sprite(st, _char, _nega)
 {
         if(_char == -1)
                 _char = global.character; // llamada sin personaje: el local
+
+        if(is_undefined(_nega))
+                _nega = false; // llamadas antiguas sin el flag: look normal
+
+        // v11 (NEGAGEN): el subdito NEGATIVO hace el parry con las copias
+        // nega de sus sprites (spr_<char>nega_*), igual que su cuerpo.
+        var _tok = _nega ? "nega" : "";
 
         var _name = "";
         var _fb = "";
@@ -162,24 +169,24 @@ function scr_parry_sprite(st, _char)
         if(_char == CHARACTER_AMY_CANON)
         {
                 if(st == SONIC_PARRY_INICIO || st == SONIC_PARRY_INICIO_ACT)
-                        _name = "spr_amy_parry_inicio";
+                        _name = "spr_amy" + _tok + "_parry_inicio";
                 else if(st == SONIC_PARRY_EXITO)
-                        _name = "spr_amy_parry_exitoso";
+                        _name = "spr_amy" + _tok + "_parry_exitoso";
                 else
                         return -1;
 
-                _fb = "spr_amy_attack1_canon";
+                _fb = "spr_amy" + _tok + "_attack1_canon";
         }
         else
         {
                 if(st == SONIC_PARRY_INICIO || st == SONIC_PARRY_INICIO_ACT)
-                        _name = "spr_sonic_parry_inicio";
+                        _name = "spr_sonic" + _tok + "_parry_inicio";
                 else if(st == SONIC_PARRY_EXITO)
-                        _name = "spr_sonic_parry_exitoso";
+                        _name = "spr_sonic" + _tok + "_parry_exitoso";
                 else
                         return -1;
 
-                _fb = "spr_sonic_attack2_tierra1";
+                _fb = "spr_sonic" + _tok + "_attack2_tierra1";
         }
 
         var _spr = asset_get_index(_name);

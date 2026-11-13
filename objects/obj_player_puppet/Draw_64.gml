@@ -38,15 +38,11 @@ if(!isHiding)
                 // la muestra (frame por hp, igual que un superviviente — el
                 // hp ya viaja en el CLIENT_PLAYER_DATA de siempre). El esbirro
                 // comun (demonizado normal) sigue con su barra fija frame 0.
-                // v8 (NEGAGEN): el SUBDITO NEGATIVO muestra su barra real de
-                // hp (como el minion) pero INVERTIDA — mismo negativo del
-                // cuerpo, el look de las barras nega del build Negagen.
+                // v11 (NEGAGEN): el SUBDITO NEGATIVO usa la BARRA NEGA propia
+                // (spr_hp_nega: inversion con contorno intacto) con SU vida
+                // real — mismo canon que su cuerpo en sprites nega.
                 if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
-                {
-                        shader_set(shd_negative);
-                        draw_sprite_ext(hasRedRing ? spr_hp_rr : spr_hp, frame, floor(x-obj_camera.x), floor(y-obj_camera.y) - 45, 1, 1, 0, _colour, 1);
-                        shader_reset();
-                }
+                        draw_sprite_ext(hasRedRing ? spr_hp_rr_nega : spr_hp_nega, frame, floor(x-obj_camera.x), floor(y-obj_camera.y) - 45, 1, 1, 0, _colour, 1);
                 else
                         draw_sprite_ext(hasRedRing ? spr_hp_rr : spr_hp, (isDemonized && !isMinion) ? 0 : frame, floor(x-obj_camera.x), floor(y-obj_camera.y) - 45, 1, 1, 0, _colour, 1);
         }
@@ -56,7 +52,13 @@ if(!isHiding)
         
         if(global.showHud)
         {
-                if(character == CHARACTER_EXE || isDemonized)
+                // v10 (NEGAGEN): el nombre del SUBDITO NEGATIVO va en TURQUESA
+                // (el color de su piel invertida), NO en rojo exe: es un
+                // MINION ALTERNATIVO que conserva su identidad de personaje
+                // invertida. El esbirro comun sigue rojo como siempre.
+                if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+                        scr_text_spr(floor(x-obj_camera.x) - nicknameWidth / 2, floor(y-obj_camera.y) - 43, nickname, room == room_act9 ? c_dkgray : #30e0c8, 1);
+                else if(character == CHARACTER_EXE || isDemonized)
                         scr_text_spr(floor(x-obj_camera.x) - nicknameWidth / 2, floor(y-obj_camera.y) - 43, nickname, room == room_act9 ? c_dkgray : c_red, 1);
                 else
                         scr_text_spr(floor(x-obj_camera.x) - nicknameWidth / 2, floor(y-obj_camera.y) - 43, nickname, room == room_act9 ? c_dkgray : (hasRedRing ? #9943ad : c_green), 1);
