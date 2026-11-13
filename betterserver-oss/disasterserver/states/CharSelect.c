@@ -223,6 +223,23 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
                         return true;
                 }
 
+                /* v6.2 (D.I.B.): ROUGE INABILITADA — su set de sprites no
+                   convencio a la duena ("estan mal"). Bloqueo total: ni
+                   token ni operador la desbloquean, hasta que entre arte
+                   nuevo. Mismo doble seguro que Vanilla: el cliente no la
+                   muestra al ciclar (scr_char_locked) y aqui se rechaza
+                   como si estuviera ocupada para clientes editados. */
+                if (id == CH_ROUGE)
+                {
+                        PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+                        PacketWrite(&pack, packet_write8, id + 1);
+                        PacketWrite(&pack, packet_write8, 0);
+                        RAssert(packet_send(v->peer, &pack, true));
+
+                        Info("%s (id %d) tried to pick [Rouge] (disabled)!", v->nickname.value, v->id);
+                        return true;
+                }
+
                 /* v3 (D.I.B.): Fleetway Amy PASO A SER PUBLICA (pedido de
                    la duena: "la amy fw sera publica"). Este bloque de
                    rechazo por token se retira — el cliente tampoco la

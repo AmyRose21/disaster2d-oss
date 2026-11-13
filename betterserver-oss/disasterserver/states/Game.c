@@ -93,7 +93,12 @@ bool game_state_check(Server* server)
                         if (v->plr.flags & PLAYER_ESCAPED)
                                 escaped++;
 
-                        if (v->plr.flags & PLAYER_DEAD || v->plr.flags & PLAYER_DEMONIZED)
+                        /* v6 (minions): PLAYER_CAUGHT (atrapado en el portal de
+                         * Jinna, esperando ser invocado) tambien cuenta como
+                         * fuera de juego — mismo peso que un muerto para el
+                         * win del EXE, pero su cliente lo mantiene "vivo" a
+                         * la espera de la invocacion. */
+                        if (v->plr.flags & PLAYER_DEAD || v->plr.flags & PLAYER_DEMONIZED || v->plr.flags & PLAYER_CAUGHT)
                                 dead++;
 
                         if (v->id == server->game.exe)
@@ -478,6 +483,11 @@ bool game_demonize(Server* server, PeerData* data)
         {
                 DEL_FLAG(data->plr.flags, PLAYER_DEAD);
                 SET_FLAG(data->plr.flags, PLAYER_DEMONIZED);
+                /* v6 (minions): al materializarse como esbirro-minion, el
+                 * jugador deja de estar "atrapado en el portal": sigue
+                 * contando como caido (DEMONIZED), pero Jinna pierde la
+                 * opcion de re-invocarlo hasta que vuelva a 0 hp. */
+                DEL_FLAG(data->plr.flags, PLAYER_CAUGHT);
                 
                 data->plr.stats.rings = 0;
                 data->plr.dedemon_progress = 0; /* v2.11: rescate fresco al demonizarse */
@@ -1201,6 +1211,17 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         if (!(target->plr.flags & PLAYER_DEMONIZED))
                                 break;
 
+                        /* v6 (minions): los MINIONS de Jinna son demonizados
+                         * "prestados" de la otra dimension — Vanilla NO puede
+                         * rescatarlos (volverian al bando superviviente desde
+                         * una muerte que el portal ya cobro). Se distinguen
+                         * porque su demonizacion NO viene de una caida normal:
+                         * el handler de SERVER_JINNA_MINION_STATE marca
+                         * plr.data[0] = 1. El resto de esbirros (caidas
+                         * normales) se rescatan igual que siempre. */
+                        if (target->plr.data[0] == 1)
+                                break;
+
                         if (vector2_dist(&target->plr.pos, &v->plr.pos) > 150)
                                 break;
 
@@ -1918,8 +1939,44 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                         kind = 4;
                         }
 
+                        /* v6 — CAPTURA UNIVERSAL: el RESTO de supervivientes
+                         * (los que no tienen regla canon directa) tambien
+                         * queda ATRAPADO si el dano de la trampa los iba a
+                         * tumbar (hp tras el golpe <= 0, contando el blindaje
+                         * de 10 anillos: mismo calculo del flag fatal que ya
+                         * viaja para Rouge desde la v4.5 — el cliente de la
+                         * victima es la autoridad de su hp). Atrapado = kind 5:
+                         * absorcion a la otra dimension SIN tier de
+                         * potenciacion (eso es solo de las canon: Vanilla 2 /
+                         * Amy y Sally 1) y con sprite de RELEVO
+                         * spr_(personaje)_hurt mientras llega el arte propio.
+                         * El flag llega al final del reporte; clientes viejos
+                         * sin el byte: kind 0 (dano + TP), compatibles. */
+                        else
+                        {
+                                uint8_t fatal = 0;
+                                if (packet->pos < packet->len)
+                                        fatal = packet->buff[packet->pos++];
+                                if (fatal)
+                                        kind = 5;
+                        }
+
                         jinna_trap_trigger(v->server, target);
                         game_despawn(v->server, NULL, target->id);
+
+                        /* v6: TODA captura (kinds 1-5) marca PLAYER_CAUGHT —
+                         * el jugador pasa a "vivo en la otra dimension":
+                         * fuera de juego para el win del EXE, pero disponible
+                         * para que Jinna lo invoque como MINION (↓+C). Los
+                         * kinds canon (1-4) ademas disparan el tier de
+                         * potenciacion en los clientes. */
+                        if (kind >= 1 && kind <= 5)
+                        {
+                                SET_FLAG(v->plr.flags, PLAYER_CAUGHT);
+                                DEL_FLAG(v->plr.flags, PLAYER_DEAD);
+                                v->plr.death_timer = 0;
+                                v->plr.death_timer_sec = 0;
+                        }
 
                         Packet pack3;
                         PacketCreate(&pack3, SERVER_JINNA_TRAP_HIT);
@@ -1928,6 +1985,114 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         PacketWrite(&pack3, packet_write16, (uint16_t)exe->plr.pos.x);
                         PacketWrite(&pack3, packet_write16, (uint16_t)exe->plr.pos.y);
                         server_broadcast(v->server, &pack3, true);
+                        break;
+                }
+
+                /* v6 (minions) — INVOCAR A LOS ATRAPADOS (↓+C de Jinna).
+                 * Reenvia SERVER_JINNA_MINION_STATE (jx, jy, count, pids) y
+                 * el cliente de CADA atrapado corre su flujo de demonizacion
+                 * (revive con 100 hp + paleta demon, pelea para el EXE con
+                 * vida real). Aqui solo se valida (exe + Jinna + cooldown) y
+                 * se marcan PLAYER_DEMONIZED / PLAYER_REVIVED para que:
+                 *   - el win-check los cuente como caidos,
+                 *   - su siguiente muerte NO los demonice de nuevo (ya lo
+                 *     estan) y caiga al flujo normal de esbirro,
+                 *   - Vanilla no pueda rescatarlos (plr.data[0] = 1).
+                 * La recarga de la invocacion vive en el server (JINNA_MINION):
+                 * el icono del HUD del cliente se rellena con su propia macro
+                 * espejo (JINNA_MINION_RECHARGE en scr_jinna_special). */
+                case CLIENT_JINNA_MINION:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id == v->server->game.exe);
+                        AssertOrDisconnect(v->server, v->exe_char == EX_JINNA);
+
+                        if (v->plr_cooldowns[JINNA_MINION] > 0)
+                                break;
+
+                        /* recolectar TODOS los atrapados vivos en la otra
+                         * dimension (maximo 16: el paquete viaja en un u8
+                         * de count + pids u16; sobra para cualquier partida) */
+                        uint16_t caught[16];
+                        uint8_t count = 0;
+
+                        for (size_t i = 0; i < v->server->peers.capacity; i++)
+                        {
+                                PeerData* t = (PeerData*)v->server->peers.ptr[i];
+
+                                if (!t || !t->in_game || t->id == v->server->game.exe)
+                                        continue;
+
+                                if (!(t->plr.flags & PLAYER_CAUGHT))
+                                        continue;
+
+                                if (count < 16)
+                                        caught[count++] = t->id;
+                        }
+
+                        if (count == 0)
+                                break; /* nadie atrapado: no gasta la recarga */
+
+                        /* la recarga se paga SOLO si habia alguien que invocar */
+                        v->plr_cooldowns[JINNA_MINION] = 25 * TICKSPERSEC; /* SYNC: JINNA_MINION_RECHARGE (cliente) */
+
+                        for (uint8_t m = 0; m < count; m++)
+                        {
+                                PeerData* t = server_find_peer(v->server, caught[m]);
+
+                                if (!t || !t->in_game)
+                                        continue;
+
+                                DEL_FLAG(t->plr.flags, PLAYER_CAUGHT);
+                                DEL_FLAG(t->plr.flags, PLAYER_CANTREVIVE); /* re-invocado: fuera del portal, flag de caida anterior fuera */
+                                SET_FLAG(t->plr.flags, PLAYER_DEMONIZED);
+                                SET_FLAG(t->plr.flags, PLAYER_REVIVED); /* su siguiente caida NO re-demoniza: es esbirro normal */
+                                t->plr.data[0] = 1; /* marca MINION: Vanilla no lo rescata */
+                                t->plr.dedemon_progress = 0;
+                        }
+
+                        Packet pack4;
+                        PacketCreate(&pack4, SERVER_JINNA_MINION_STATE);
+                        PacketWrite(&pack4, packet_write16, (uint16_t)v->plr.pos.x);
+                        PacketWrite(&pack4, packet_write16, (uint16_t)v->plr.pos.y);
+                        PacketWrite(&pack4, packet_write8, count);
+                        for (uint8_t m = 0; m < count; m++)
+                                PacketWrite(&pack4, packet_write16, caught[m]);
+                        server_broadcast(v->server, &pack4, true);
+                        break;
+                }
+
+                /* v6 (minions) — UN MINION LLEGO A 0 HP. Lo reporta SU
+                 * cliente (la autoridad del dano, como todo el juego) con
+                 * CLIENT_JINNA_MINION_DOWN; aqui se valida que siga
+                 * demonizado y en partida, se le re-marca PLAYER_CAUGHT
+                 * (vuelve a la otra dimension: disponible para re-invocar
+                 * cuando Jinna pague otra vez el cooldown) y se retransmite
+                 * SERVER_JINNA_MINION_DOWN a todos: el cliente del minion
+                 * lo saca del campo (fuera de juego otra vez) y el resto
+                 * deja de verlo. */
+                case CLIENT_JINNA_MINION_DOWN:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+
+                        if (!(v->plr.flags & PLAYER_DEMONIZED))
+                                break;
+
+                        /* sigue siendo minion (data[0] = 1)? un esbirro normal
+                         * (caida comun) jamas manda este paquete; doble check */
+                        if (v->plr.data[0] != 1)
+                                break;
+
+                        DEL_FLAG(v->plr.flags, PLAYER_DEMONIZED);
+                        SET_FLAG(v->plr.flags, PLAYER_CAUGHT);
+                        SET_FLAG(v->plr.flags, PLAYER_CANTREVIVE); /* en el portal nadie lo revive */
+                        v->plr.data[0] = 0;
+
+                        Packet pack5;
+                        PacketCreate(&pack5, SERVER_JINNA_MINION_DOWN);
+                        PacketWrite(&pack5, packet_write16, v->id);
+                        server_broadcast(v->server, &pack5, true);
                         break;
                 }
 
@@ -2226,6 +2391,24 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                         break;
 
                                 SET_FLAG(v->plr.flags, PLAYER_DEAD);
+
+                                /* v6 (minions): un jugador ATRAPADO EN EL PORTAL de
+                                 * Jinna (PLAYER_CAUGHT) que reporta muerte NO despierta
+                                 * en agonia ni se demoniza: su cliente solo lo reporta
+                                 * para sincronizar (p. ej. cayo al vacio mientras la
+                                 * absorcion terminaba); sigue vivo en la otra dimension
+                                 * a la espera de la invocacion. La muerte directa de
+                                 * los canon de abajo ya cubre a Vanilla/Amy Canon/Sally
+                                 * Canon/Rouge; esto cubre al RESTO de capturas kind 5. */
+                                if (v->plr.flags & PLAYER_CAUGHT)
+                                {
+                                        DEL_FLAG(v->plr.flags, PLAYER_DEAD);
+                                        SET_FLAG(v->plr.flags, PLAYER_CANTREVIVE);
+                                        v->plr.death_timer_sec = 0;
+                                        v->plr.death_timer = 0;
+                                        RAssert(game_state_check(v->server));
+                                        break;
+                                }
 
                                 /* === AMY CANON (reglas canonicas) =====================
                                  * Su 1ra caida NUNCA llega a este paquete: el cliente la

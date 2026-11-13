@@ -490,7 +490,12 @@ function net_state_game(rbuff, nps, isPasstrough)
                 // JUEGO (muerte directa: su UI como si hubiera muerto); el
                 // resto deja de verla y Jinna queda POTENCIADA
                 // (global.jinnaCaughtTier en todos: Vanilla = mejoras fuertes,
-                // Amy = las "arduas", la mitad).
+                // Amy = las "arduas", la mitad). v6: kind 5 = CAPTURA
+                // UNIVERSAL (el resto del reparto): misma absorcion pero SIN
+                // tier de potenciacion (eso es de las canon) y con sprite de
+                // RELEVO spr_(personaje)_hurt mientras llega el arte propio
+                // de captura — y el atrapado queda a la espera de la
+                // INVOCACION de Jinna (minion, ver SERVER_JINNA_MINION_STATE).
                 case PacketType.SERVER_JINNA_TRAP_HIT:
                 {
                         if(isPasstrough)
@@ -505,7 +510,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // los AUMENTOS del kit de Jinna hasta el fin de ronda
                         // (v4: Amy sube al nivel 1, Vanilla al 2; solo ESCALA.
                         // v4.1: Sally Canon tambien al 1 — mismo tier "arduas"
-                        // que Amy Canon)
+                        // que Amy Canon. v6: el kind 5 NO sube ningun tier).
                         if(_hkind == 1 || _hkind == 2 || _hkind == 3 || _hkind == 4)
                         {
                                 var _jtier = (_hkind == 1) ? JINNA_CAUGHT_VANILLA : JINNA_CAUGHT_AMY;
@@ -527,23 +532,49 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         obj_jinna.jinnaCaughtSprite = (_hkind == 1) ? spr_vanilla_caught : ((_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 4) ? spr_rouge_traped : spr_sally_capture_canon));
                                 }
                         }
+                        else if(_hkind == 5)
+                        {
+                                // v6: captura generica — la propia Jinna tambien
+                                // ve una senal sobre su cabeza, pero con el
+                                // sprite de RELEVO del personaje (su _hurt) y
+                                // sin tocar el tier de potenciacion. El sprite
+                                // exacto lo resuelve el cliente de la VICTIMA
+                                // (scr_jinna_capture_sprite); para el fantasma
+                                // de Jinna se pide al puppet local de ese pid
+                                // (su character ya viaja en el UDP).
+                                if(instance_exists(obj_jinna))
+                                {
+                                        var _capPid = _hpid;
+                                        with(obj_player_puppet)
+                                        {
+                                                if(master_id != _capPid)
+                                                        continue;
+
+                                                other.jinnaCaughtDelay = 102;
+                                                other.jinnaCaughtKind = JINNA_CAUGHT_AMY; // dibujo "semi-transparente" (patron canon), sin subir el tier real
+                                                other.jinnaCaughtSprite = scr_jinna_capture_sprite(character);
+                                                break;
+                                        }
+                                }
+                        }
 
                         if(_hpid == obj_netclient.nid)
                         {
-                                if(_hkind == 1 || _hkind == 2 || _hkind == 3 || _hkind == 4)
+                                if(_hkind >= 1 && _hkind <= 5)
                                 {
-                                        // VANILLA / AMY CANON / SALLY CANON / ROUGE (yo):
-                                        // secuencia de absorcion (v4: el sprite de
-                                        // la victima viaja en el absorb — Amy, Sally
-                                        // y Rouge usan su sprite de captura propio;
-                                        // v4.5: Rouge solo llega aqui cuando el golpe
-                                        // la iba a tumbar: flag fatal de su reporte)
+                                        // VICTIMA ABSORBIDA (yo): Vanilla / Amy Canon /
+                                        // Sally Canon / Rouge (kinds 1-4, reglas canon) o
+                                        // CAPTURA GENERICA (kind 5, v6: el resto del
+                                        // reparto). Secuencia de absorcion con el sprite
+                                        // de la victima: los canon usan su sprite de
+                                        // captura propio; el kind 5 el sprite de relevo
+                                        // scr_jinna_capture_sprite (su _hurt por ahora).
                                         if(instance_exists(global.player) && !global.player.isDead)
                                         {
                                                 var _abs = instance_create_depth(global.player.x, global.player.y, 0, obj_jinna_absorb);
                                                 _abs.jinnaX = _hjx;
                                                 _abs.jinnaY = _hjy;
-                                                _abs.absorbVictim = (_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 3) ? spr_sally_capture_canon : ((_hkind == 4) ? spr_rouge_traped : spr_vanilla_absorb_trap));
+                                                _abs.absorbVictim = (_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 3) ? spr_sally_capture_canon : ((_hkind == 4) ? spr_rouge_traped : ((_hkind == 5) ? scr_jinna_capture_sprite(global.character) : spr_vanilla_absorb_trap)));
                                         }
                                 }
                                 else if(instance_exists(global.player) && !global.player.isDead)
@@ -582,7 +613,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         }
                                 }
                         }
-                        else if(_hkind == 1 || _hkind == 2 || _hkind == 3 || _hkind == 4)
+                        else if(_hkind >= 1 && _hkind <= 5)
                         {
                                 // el resto: la atrapada YA no es de este mundo — su
                                 // puppet se oculta al instante (el paquete de
@@ -593,6 +624,167 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 continue;
 
                                         visible = false;
+                                        break;
+                                }
+                        }
+                        break;
+                }
+
+                // v6 JINNA — INVOCACION DE LOS MINIONS DEL PORTAL (↓+C). El
+                // server reenvia la posicion de Jinna (jx/jy) y la lista de
+                // pids invocados. El cliente de CADA minion reusa el flujo de
+                // demonizacion local: revive con 100 hp, paleta demon y pasa
+                // a pelear para el bando EXE con VIDA REAL (su hp viaja en el
+                // UDP como el de cualquier jugador; los golpes de los
+                // supervivientes le hacen 20 de dano — ver obj_player_puppet).
+                // Los demas clientes solo ven el efecto de portal en su
+                // puppet (el demonize visible llega con los paquetes normales
+                // de estado: paleta demon + revivalTimes 2 del UDP).
+                case PacketType.SERVER_JINNA_MINION_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+
+                        var _mjx = buffer_read_s(rbuff, buffer_u16);
+                        var _mjy = buffer_read_s(rbuff, buffer_u16);
+                        var _mcount = buffer_read_s(rbuff, buffer_u8);
+
+                        var _mine = false;
+
+                        for(var _mi = 0; _mi < _mcount; _mi++)
+                        {
+                                var _mpid = buffer_read_s(rbuff, buffer_u16);
+
+                                if(_mpid == obj_netclient.nid)
+                                {
+                                        _mine = true;
+                                        continue;
+                                }
+
+                                // los demas: efecto de portal sobre el puppet del
+                                // invocado (aun invisible: reaparecera con la
+                                // paleta demon al llegar su primer paquete UDP)
+                                with(obj_player_puppet)
+                                {
+                                        if(master_id != _mpid)
+                                                continue;
+
+                                        visible = true;
+                                        x = _mjx;
+                                        y = _mjy;
+                                        // id. = el puppet del with: sin prefijo, xspd/yspd
+                                        // colisionan con los var locales del script (lineas
+                                        // 2918+) y el reset no llega a la instancia (GM2043)
+                                        id.xspd = 0;
+                                        id.yspd = 0;
+                                        isMinion = true; // v6: barra de vida real + dano recibido
+                                        scr_effect_quick(x, y - 20, spr_ring_teleport, 1, false, 0, 0);
+                                        break;
+                                }
+                        }
+
+                        if(_mine && instance_exists(global.player))
+                        {
+                                // YO SOY UN MINION: revivo a los pies de Jinna con el
+                                // flujo de demonizacion (mismo efecto que
+                                // SERVER_GAME_DEATHTIMER_END con demonize=true,
+                                // copiado aqui porque ese paquete no llega: el
+                                // server ya nos marco demonizados a su manera).
+                                global.player.x = _mjx;
+                                global.player.y = _mjy;
+                                global.player.xspd = 0;
+                                global.player.yspd = 0;
+                                global.player.gspd = 0;
+                                global.player.isDead = false;
+                                global.player.hp = 100;
+                                global.player.rings = 0;
+                                global.player.hurttime = 60 * 2; // 2 s de i-frames al materializarse
+                                global.player.isHurt = false;
+                                global.player.shockedTimer = 0;
+                                global.player.deadTimer = 31;
+                                global.player.revivalTimes = 2; // esbirro: cuenta como caido y pelea para el EXE
+                                global.player.isMinion = true; // v6: MINION de Jinna — tiene VIDA REAL (los supervivientes le hacen dano)
+
+                                // paleta demon (mismo cambio que la demonizacion normal)
+                                var table = obj_unlockables.palettes[? global.character + PALETTE_DEMON];
+                                global.palleteFrom = table.from;
+                                global.palleteTo = table.to;
+                                global.palleteName = table.name;
+                                net_send_palette();
+
+                                // el control vuelve SI estaba apagado (patron del
+                                // obj_jinna_absorb: congelar quita el control UNA vez)
+                                global.playerControls = true;
+
+                                instance_create_depth(_mjx, _mjy, 0, obj_demon_indicator);
+                                net_quick_effect(_mjx, _mjy + 32, spr_ring_teleport, false, 1, 0, 0, 2);
+                                scr_effect_quick(_mjx, _mjy - 20, spr_ring_teleport, 1, false, 0, 0);
+                                audio_play_sound(snd_demonization, 0, false);
+                                net_sound_emit(snd_demonization);
+                                scr_camera_shake(16, 0.7, 0.15);
+
+                                global.cameraMode = 0;
+                        }
+
+                        // sonido de invocacion para todos
+                        audio_play_sound(snd_teleport, 0, false);
+                        scr_camera_shake(12, 0.4, 0.1);
+                        break;
+                }
+
+                // v6 JINNA — UN MINION CAYO (0 hp). Su cliente lo reporto
+                // (CLIENT_JINNA_MINION_DOWN); aqui cada maquina reacciona:
+                // el propio minion vuelve AL PORTAL (fuera de juego otra
+                // vez, a la espera de que Jinna lo re-invoque) y el resto
+                // deja de verlo (su puppet se oculta).
+                case PacketType.SERVER_JINNA_MINION_DOWN:
+                {
+                        if(isPasstrough)
+                                break;
+
+                        var _dpid = buffer_read_s(rbuff, buffer_u16);
+
+                        if(_dpid == obj_netclient.nid)
+                        {
+                                if(!instance_exists(global.player))
+                                        break;
+
+                                // de vuelta a la otra dimension: fuera de juego,
+                                // sin reportar muerte al server (el server ya nos
+                                // re-mojo PLAYER_CAUGHT: seguimos "vivos" alli).
+                                global.playerControls = false;
+                                global.player.isMinion = false; // deja de ser minion activo
+                                global.player.hp = 0;
+                                global.player.isHurt = false;
+                                global.player.shockedTimer = 0;
+                                global.player.xspd = 0;
+                                global.player.yspd = 0;
+                                global.player.gspd = 0;
+                                global.player.isSpinning = false;
+                                global.player.isAttacking = false;
+                                global.player.isJumping = false;
+                                global.player.visible = false;
+
+                                var _dportal = instance_create_depth(global.player.x, global.player.y, 0, obj_jinna_portal);
+                                _dportal.depth = 5;
+
+                                audio_play_sound(snd_teleport, 0, false);
+                                scr_camera_shake(16, 0.7, 0.15);
+
+                                global.cameraMode = 3; // camara de espectador: espera la re-invocacion
+                        }
+                        else
+                        {
+                                // el resto: su puppet desaparece devorado por un portal
+                                with(obj_player_puppet)
+                                {
+                                        if(master_id != _dpid)
+                                                continue;
+
+                                        visible = false;
+                                        isMinion = false; // v6: de vuelta al portal, ya no es minion activo
+                                        scr_effect_quick(x, y - 20, spr_ring_teleport, 1, false, 0, 0);
+                                        audio_play_sound(snd_teleport, 0, false);
                                         break;
                                 }
                         }
@@ -3286,6 +3478,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         global.player.hp = 100;
                         global.player.isDead = false;
                         global.player.revivalTimes = 2;
+                        global.player.isMinion = false; // v6: esbirro COMUN (demonizacion normal): sin vida real
                         
                         with(global.player.reviveObj)
                                 instance_destroy();
@@ -3338,6 +3531,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 global.player.hp = 100;
                                 global.player.isDead = false;
                                 global.player.hurttime = 60 * 2;
+                                global.player.isMinion = false; // v6: si era minion, ya no lo es
                                 
                                 var _dtable = obj_unlockables.palettes[? global.character];
                                 

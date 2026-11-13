@@ -5,11 +5,9 @@
 //}
 
 global.init = false;
-global.score = 0;
 global.player = obj_exe;
 global.playerControls = true;
 global.cameraMode = 0;
-global.lives = 3;
 global.showHud = true;
 global.paused = false;
 global.errorCode = -1;

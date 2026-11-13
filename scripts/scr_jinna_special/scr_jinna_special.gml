@@ -65,6 +65,20 @@
 #macro JINNA_TRAP_LIFE (60 * 60)          // vida maxima del portal trampa (la lleva el server)
 #macro JINNA_TRAP_RADIUS 36               // radio de pisada (bbox del portal)
 
+// v6 (minions) — INVOCACION DE LOS ATRAPADOS (tecla ↓+C): Jinna invoca
+// a TODOS los supervivientes atrapados en su portal (los cayeron con
+// hp bajo: captura universal del portal trampa, kinds 1-5 del server)
+// a sus pies, como MINIONS: reviven con 100 hp y paleta demon, pelean
+// para el bando EXE (golpe de 20) y tienen VIDA REAL — los golpes de
+// los supervivientes les hacen 20 de dano (JINNA_MINION_DAMAGE) y al
+// llegar a 0 vuelven AL PORTAL (Jinna puede reinvocarlos pasando el
+// cooldown). Recarga PROPIA de 25 s que SOLO se paga si habia alguien
+// que invocar (la valida el server con su espejo JINNA_MINION en
+// Server.h: si cambias una, cambia la otra).
+#macro JINNA_MINION_RECHARGE (60 * 25)    // 25 s de enfriamiento (espejo del server: Game.c CLIENT_JINNA_MINION)
+#macro JINNA_MINION_DAMAGE 20            // dano que recibe un minion por golpe de superviviente (pedido de la duena)
+#macro JINNA_MINION_POSE 24              // ~0,4 s de pose al invocar (spr_jinna_tele, mismo patron que la trampa)
+
 // v4 — NIVELES DE POTENCIACION del kit (a quien absorbio el portal
 // trampa). La senal visual vive sobre la cabeza de Jinna (Draw_0):
 //   * NINGUNO: kit base.
@@ -214,6 +228,32 @@ function scr_jinna_special()
                                 scr_camera_shake(12, 0.5, 0.1);
                         }
                 }
+        }
+        // v6 (minions) — INVOCAR A LOS ATRAPADOS (tecla C + ABAJO). La C
+        // sola sigue siendo el TELETRANSPORTE (rama de arriba); con ABAJO
+        // presionado se convierte en la INVOCACION: el server valida (exe +
+        // Jinna + cooldown JINNA_MINION de 25 s) y materializa a TODOS los
+        // atrapados en el portal (capturas del portal trampa, kinds 1-5) a
+        // los pies de Jinna como MINIONS con vida real (la recarga SOLO se
+        // paga si habia alguien que invocar: sin atrapados no pasa nada y
+        // no se pierde el teleport). Recarga INDEPENDIENTE del teleport.
+        else if(global.playerControls && keyboard_check_pressed(global.KeyC) && keyboard_check(global.KeyDown) && jinnaMinionCd <= 0 && shockedTimer <= 0 && !won && !lost)
+        {
+                jinnaMinionCd = JINNA_MINION_RECHARGE;
+                jinnaMinionPose = JINNA_MINION_POSE; // pose de invocar ~0,4 s (spr_jinna_tele)
+
+                if(keyboard_check(global.KeyLeft))
+                        image_xscale = -1;
+                else if(keyboard_check(global.KeyRight))
+                        image_xscale = 1;
+
+                var _minion = cpacket_tcp(PacketType.CLIENT_JINNA_MINION, false);
+                send_server_tcp(_minion);
+
+                audio_play_sound(snd_teleport, 0, false);
+                net_sound_emit(snd_teleport);
+
+                scr_camera_shake(12, 0.5, 0.1);
         }
         else if(global.playerControls && keyboard_check_pressed(global.KeyC) && jinnaTeleCd <= 0 && shockedTimer <= 0 && !won && !lost)
         {

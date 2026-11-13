@@ -338,6 +338,48 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
 
                         if(global.player.hurttime <= 0 && global.player.hp > 0)
                         {
+                                // v6 (minions de Jinna) — EL MINION LOCAL RECIBE DANO:
+                                // este puppet es un SUPERVIVIENTE atacando y su golpe me
+                                // toca; YO soy un esbirro-minion (revivalTimes >= 2 e
+                                // isMinion: solo lo pone la invocacion de Jinna). Los
+                                // esbirros normales no reciben dano de los supervivientes
+                                // (solo el stun que este mismo bloque aplica abajo cuando
+                                // la rama se invierte), pero el MINION tiene VIDA REAL:
+                                // el golpe le quita JINNA_MINION_DAMAGE (20) y con i-frames
+                                // normales (hurttime). La autoridad es MI cliente, el de la
+                                // victima: patron de TODO el dano del juego. A 0 hp NO muere:
+                                // cae de vuelta AL PORTAL de Jinna (CLIENT_JINNA_MINION_DOWN:
+                                // fuera de juego hasta que ella lo re-invoque).
+                                if(global.player.revivalTimes >= 2
+                                && variable_instance_exists(global.player.id, "isMinion") && global.player.isMinion)
+                                {
+                                        var _mhpBefore = global.player.hp;
+                                        scr_player_hurt(JINNA_MINION_DAMAGE, -sign(x - global.player.x) * 3, -3, snd_hurt, spr_blood3, false, false);
+
+                                        // el golpe callo de verdad: stats de dano recibido
+                                        // (mismo reporte que el dano de supervivientes)
+                                        if(global.player.hp < _mhpBefore || global.player.isHurt)
+                                        {
+                                                var _mstat = cpacket_tcp(PacketType.CLIENT_STATS_REPORT, true);
+                                                buffer_write(_mstat, buffer_u8, 3);
+                                                buffer_write(_mstat, buffer_u8, JINNA_MINION_DAMAGE);
+                                                send_server_tcp(_mstat);
+                                        }
+
+                                        // 0 hp: de vuelta al portal (el server re-marcara
+                                        // PLAYER_CAUGHT y avisara a todos; mi cliente saca
+                                        // al minion en el handler de SERVER_JINNA_MINION_DOWN)
+                                        if(instance_exists(global.player) && global.player.hp <= 0 && !global.player.isDead)
+                                        {
+                                                global.player.hp = 0;
+
+                                                var _mdown = cpacket_tcp(PacketType.CLIENT_JINNA_MINION_DOWN, false);
+                                                send_server_tcp(_mdown);
+                                        }
+
+                                        return;
+                                }
+
                                 if(global.player.revivalTimes >= 2)
                                         return;
                                 

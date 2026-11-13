@@ -1008,6 +1008,15 @@ function scr_char_locked(ch)
         if(ch == CHARACTER_VANILLA && global.amyCanonToken == "")
                 return true;
 
+        // v6.2 (D.I.B.): ROUGE INABILITADA — su set de sprites no
+        // convencio a la duena ("estan mal"). Bloqueo total para
+        // todos (ni token ni operador la desbloquean) hasta que
+        // entre arte nuevo. Se salta al ciclar, no se ve su retrato
+        // y el server la rechaza por si solo (CharSelect.c): mismo
+        // doble seguro que Vanilla.
+        if(ch == CHARACTER_ROUGE)
+                return true;
+
         // v3 (D.I.B.): Fleetway Amy PASA A SER PUBLICA (pedido de la
         // duena: "la amy fw sera publica"). Salio del token — ahora
         // es un personaje normal del carrusel para todos. Su pasiva

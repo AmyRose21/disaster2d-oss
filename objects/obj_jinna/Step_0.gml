@@ -129,6 +129,10 @@ if(jinnaGrabCd > 0)
 if(jinnaTrapCd > 0)
         jinnaTrapCd--;
 
+// v6: enfriamiento de la INVOCACION de minions (C + ABAJO)
+if(jinnaMinionCd > 0)
+        jinnaMinionCd--;
+
 // pose de tele (se sostiene mientras aterriza)
 if(jinnaTelePose > 0)
         jinnaTelePose--;
@@ -140,6 +144,10 @@ if(jinnaGrabVisual > 0)
 // pose de plantar la trampa (v4: spr_jinna_tele, mismo patron que la de agarre)
 if(jinnaTrapVisual > 0)
         jinnaTrapVisual--;
+
+// v6: pose de invocar minions (spr_jinna_tele, mismo patron que la trampa)
+if(jinnaMinionPose > 0)
+        jinnaMinionPose--;
 
 // commit del golpe (frena el impulso mientras dura el swing)
 if(jinnaAttackLock > 0)

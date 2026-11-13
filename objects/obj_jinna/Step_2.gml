@@ -65,6 +65,15 @@ if(jinnaTrapVisual > 0)
         return;
 }
 
+// v6 — pose de INVOCAR MINIONS (C + ABAJO): mismo sprite del tele
+// (spr_jinna_tele) que la trampa: Jinna se agacha sobre el portal
+// del que emergen sus esbirros.
+if(jinnaMinionPose > 0)
+{
+        state = JINNA_TELE;
+        return;
+}
+
 if(jinnaGrabVisual > 0 && isGrounded)
 {
         state = JINNA_ATTACK2;

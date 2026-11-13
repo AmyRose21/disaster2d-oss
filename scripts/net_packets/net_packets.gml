@@ -328,7 +328,29 @@ enum PacketType
         CLIENT_JINNA_TRAP_HIT,
         SERVER_JINNA_TRAP_STATE,
         SERVER_JINNA_TRAP_HIT,
-        SERVER_JINNA_TELE_AOE
+        SERVER_JINNA_TELE_AOE,
+
+        /* v6 JINNA (D.I.B.) — CAPTURA UNIVERSAL + MINIONS DEL PORTAL.
+           CLIENT_JINNA_MINION: la Jinna local presiono ↓+C; el server
+           valida (exe + Jinna + cooldown JINNA_MINION de 25 s) y
+           reenvia SERVER_JINNA_MINION_STATE (u16 jx, u16 jy, u8 count,
+           u8[16] pids): TODOS los atrapados en el portal se invocan a
+           los pies de Jinna (jx/jy) como MINIONS — el cliente de CADA
+           minion reusa el flujo de demonizacion (reviven con 100 hp,
+           paleta demon y pelean para el EXE con VIDA REAL: su hp viaja
+           en el UDP y los golpes de los supervivientes les hacen 20 de
+           dano en su propio cliente, la autoridad de siempre).
+           CLIENT_JINNA_MINION_DOWN: un minion llego a 0 hp — su propio
+           cliente lo reporta; el server valida (demonizado + es minion)
+           y reenvia SERVER_JINNA_MINION_DOWN (u16 pid): el cliente del
+           minion lo manda de vuelta AL PORTAL (fuera de juego otra
+           vez, a la espera de una nueva invocacion) y el resto deja de
+           verlo. Anadido AL FINAL en los DOS lados (mismo orden que
+           include/Packet.h). */
+        CLIENT_JINNA_MINION,
+        CLIENT_JINNA_MINION_DOWN,
+        SERVER_JINNA_MINION_STATE,
+        SERVER_JINNA_MINION_DOWN
 }
 
 #macro STATE_PENDING -1

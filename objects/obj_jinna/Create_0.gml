@@ -57,6 +57,13 @@ jinnaGrabVisual = 0;   // frames de pose de agarre (attack2)
 jinnaTrapCd = 0;       // v4: enfriamiento restante del PORTAL TRAMPA (independiente del agarre)
 jinnaTrapVisual = 0;   // v4: frames de pose al PLANTAR la trampa (spr_jinna_tele, ver Step_2)
 
+// JINNA v6 — INVOCACION DE MINIONS (tecla C + ABAJO): todos los
+// atrapados en el portal (capturas del portal trampa) se materializan
+// a sus pies como esbirros con VIDA REAL. Recarga propia de 25 s que
+// solo se paga si habia alguien que invocar (lo decide el server).
+jinnaMinionCd = 0;     // enfriamiento restante de la INVOCACION (independiente del teleport)
+jinnaMinionPose = 0;   // frames de pose al invocar (spr_jinna_tele, mismo patron que la trampa)
+
 // JINNA v3 — ADAPTACION A ATURDIMIENTOS (pasiva de lore): cada stun que
 // recibe le ensena a resistirlos: +10% de resistencia por stun recibido
 // (tope 50%). La resistencia RECORTEA la duracion de cada stun NUEVO (el

@@ -18,6 +18,13 @@ isAttacking = false;
 isHurt = false;
 reviveObj = noone;
 revivalTimes = 0;
+// v6 (minions de Jinna): true mientras este jugador es un MINION activo
+// (invocado por el ↓+C de Jinna): su barra de HP muestra la vida REAL
+// (frame por hp, no la barra vacia del esbirro comun) y los golpes de
+// los supervivientes le hacen 20 de dano (lo aplica el cliente del
+// propio minion). Lo setean los handlers de SERVER_JINNA_MINION_STATE /
+// SERVER_JINNA_MINION_DOWN en net_state_game (todos los clientes).
+isMinion = false;
 xspd = 0;
 yspd = 0;
 // isGrounded NO viaja por red: default defensivo para que leerlo en un

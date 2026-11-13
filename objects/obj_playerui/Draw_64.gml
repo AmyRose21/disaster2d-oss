@@ -255,10 +255,24 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, _jprog ? c_white : c_red, _jprog ? 1 : 0.5, 0);
 
                                         // C: teletransporte (icono del mod: portal)
-                                        var _jt = global.player.jinnaTeleCd;
-                                        _jprog = 1.0 - (_jt / JINNA_TELEPORT_RECHARGE);
-                                        var _jteleAct = global.player.jinnaTeleWindup > 0;
-                                        drawKeyIcon(spr_gui_jinateleport, 0, 25, global.KeyC, _jprog * 4, 250 - _mob, (_jprog >= 1.0 || _jteleAct) ? c_white : c_red, _jteleAct ? 1 : _jprog, 0);
+                                        // v6 — C: DOS modos (patron de la V). Sola = tele-
+                                        // transporte (icono del mod); con ABAJO = INVOCACION
+                                        // de minions (reusa el icono del portal con "▼+",
+                                        // spr_gui_jinatrap) con SU recarga propia de 25 s.
+                                        if(keyboard_check(global.KeyDown))
+                                        {
+                                                // MODO INVOCAR (C + ABAJO): los atrapados en el
+                                                // portal se materializan a sus pies como minions
+                                                _jprog = 1.0 - (global.player.jinnaMinionCd / JINNA_MINION_RECHARGE);
+                                                drawKeyIcon(spr_gui_jinatrap, 0, 25, global.KeyC, _jprog * 4, 250 - _mob, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
+                                        }
+                                        else
+                                        {
+                                                var _jt = global.player.jinnaTeleCd;
+                                                _jprog = 1.0 - (_jt / JINNA_TELEPORT_RECHARGE);
+                                                var _jteleAct = global.player.jinnaTeleWindup > 0;
+                                                drawKeyIcon(spr_gui_jinateleport, 0, 25, global.KeyC, _jprog * 4, 250 - _mob, (_jprog >= 1.0 || _jteleAct) ? c_white : c_red, _jteleAct ? 1 : _jprog, 0);
+                                        }
 
                                         // v4 — V: DOS modos con enfriamientos INDEPENDIENTES
                                         // (v3 BUG: C y V se dibujaban ambos en x = prog*4 y

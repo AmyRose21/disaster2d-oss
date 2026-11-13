@@ -14,7 +14,14 @@ typedef enum
         PLAYER_REVIVED = 0x1 << 3,
         PLAYER_CANTREVIVE = 0x1 << 4,
         PLAYER_LEFT = 0x1 << 5,
-        PLAYER_KILLER = 0x1 << 6
+        PLAYER_KILLER = 0x1 << 6,
+        /* v6 (minions): cayo en el portal trampa de Jinna y fue ABSORBIDO.
+         * Cuenta como fuera de juego para el win del EXE (igual que
+         * PLAYER_DEAD), pero su cliente sabe que sigue "vivo en la otra
+         * dimension": Jinna puede invocarlo como MINION (CLIENT_JINNA_MINION).
+         * Si un cliente viejo no lo manda nunca, el server nunca lo ve:
+         * compatibilidad total hacia atras. */
+        PLAYER_CAUGHT = 0x1 << 7
 } PlayerFlags;
 
 typedef struct

@@ -20,7 +20,7 @@ if(!isHiding)
         if(hp > 0 && character != CHARACTER_EXE)
         {
                 var frame = 5;
-                
+
                 if(hp >= 100)
                         frame = 5;
                 else if(hp >= 75)
@@ -33,8 +33,12 @@ if(!isHiding)
                         frame = 1
                 else
                         frame = 0;
-                                
-                draw_sprite_ext(hasRedRing ? spr_hp_rr : spr_hp, isDemonized ? 0 : frame, floor(x-obj_camera.x), floor(y-obj_camera.y) - 45, 1, 1, 0, _colour, 1);
+
+                // v6 (minions): el MINION de Jinna tiene VIDA REAL y su barra
+                // la muestra (frame por hp, igual que un superviviente — el
+                // hp ya viaja en el CLIENT_PLAYER_DATA de siempre). El esbirro
+                // comun (demonizado normal) sigue con su barra fija frame 0.
+                draw_sprite_ext(hasRedRing ? spr_hp_rr : spr_hp, (isDemonized && !isMinion) ? 0 : frame, floor(x-obj_camera.x), floor(y-obj_camera.y) - 45, 1, 1, 0, _colour, 1);
         }
         
         if(nicknameWidth == 0)
