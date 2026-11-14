@@ -83,11 +83,15 @@ addMsg = function(sender, msg)
         audio_play_sound(snd_message, 0, false);
 
         var lines = wrapLines(sender + ": " + scr_chat_filter(msg) + "~");
+        var t = current_time;
 
         for(var i = 0; i < array_length(lines); i++)
         {
                 array_push(chatLog, lines[i]);
-                array_push(chatTime, current_time);
+                // misma marca de tiempo en TODAS las lineas del mismo
+                // mensaje: el fade-out las apaga JUNTAS, como un solo
+                // envio [v22b FIX "2 MENSAJES" parte visual]
+                array_push(chatTime, t);
         }
 
         while(array_length(chatLog) > 8)

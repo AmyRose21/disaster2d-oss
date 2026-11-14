@@ -17,6 +17,11 @@
 // Cerrado en Android el log baja a y72: antes arrancaba en y25 y se
 // dibujaba ENCIMA de los iconos de habilidad (x0-96, y18-69).
 
+// [v22b FIX "2 MENSAJES" parte visual]: un mensaje partido por wrapLen
+// (34+) se dibuja como UN SOLO bloque: una unica caja de sombra que
+// cubre TODAS sus lineas contiguas (mismo timestamp en chatTime, ver
+// addMsg). Antes cada linea llevaba su propia caja separada y un
+// mensaje largo parecia 2 envios distintos pegados.
 var _n = array_length(chatLog);
 var _now = current_time;
 
@@ -29,14 +34,28 @@ var _boxY = _topChat ? 48 : 258;
 var _count = min(_n, _max);
 var _first = _n - _count;
 
+// bloques: agrupar las lineas visibles por mensaje (mismo chatTime)
+var _blocks = [];
 for(var i = _first; i < _n; i++)
 {
-        var _row = i - _first;
+        if(array_length(_blocks) > 0 && chatTime[i] == chatTime[array_last(_blocks).start])
+                array_last(_blocks).lines++;
+        else
+                array_push(_blocks, { start: i, lines: 1 });
+}
+
+// la linea mas vieja puede ser un bloque CORTADO por el tope del log
+// (quedaron fuera las primeras lineas del mensaje): se dibuja igual,
+// solo que su caja cubre las lineas visibles.
+
+for(var b = 0; b < array_length(_blocks); b++)
+{
+        var _blk = _blocks[b];
         var _a = 1;
 
         if(!chatMode)
         {
-                var _age = _now - chatTime[i];
+                var _age = _now - chatTime[_blk.start];
 
                 if(_age > 6000)
                         _a = 1 - (_age - 6000) / 1000;
@@ -45,13 +64,19 @@ for(var i = _first; i < _n; i++)
         if(_a <= 0)
                 continue;
 
-        // sombra de legibilidad (en PC hasta x=210: el reloj empieza en x=211)
+        // fila donde arranca este bloque (contando lineas de bloques previos)
+        var _row = 0;
+        for(var p = 0; p < b; p++)
+                _row += _blocks[p].lines;
+
+        // UNA sombra para todo el mensaje (una fila de 9 px por linea)
         draw_set_color(c_black);
         draw_set_alpha(0.45 * _a);
-        draw_rectangle(_logX, _logY + _row * 9, _logX + 208, _logY + _row * 9 + 9, false);
+        draw_rectangle(_logX, _logY + _row * 9, _logX + 208, _logY + (_row + _blk.lines) * 9, false);
 
         draw_set_alpha(_a);
-        scr_text_spr(_logX + 2, _logY + _row * 9 + 1, chatLog[i], c_white, _a);
+        for(var l = 0; l < _blk.lines; l++)
+                scr_text_spr(_logX + 2, _logY + (_row + l) * 9 + 1, chatLog[_blk.start + l], c_white, _a);
 }
 
 draw_set_alpha(1);
