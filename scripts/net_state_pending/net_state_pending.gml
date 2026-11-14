@@ -93,6 +93,15 @@ function net_state_pending(rbuff, nps, isPasstrough)
 			var _id = buffer_read_s(rbuff, buffer_u16);
 			var _msg = buffer_read_s(rbuff, buffer_string);
 			
+			// [v22 ANTI-ECO] el propio mensaje no se pinta: el KeyPress_13
+			// de esta pantalla (obj_menu_waiting) ya hizo el eco local al
+			// enviar (lobby_add_message), y el server reenvia a TODOS
+			// incluido el emisor — sin esta defensa el mensaje salia
+			// DUPLICADO en el "esperando jugadores". Mismo patron que el
+			// chat de partida (net_state_game, mod v1.2).
+			if(_id != 0 && _id == obj_netclient.nid)
+				break;
+			
 			with(obj_menu_waiting)
 			{
 				if(_id == 0)

@@ -228,6 +228,16 @@ function net_state_lobby(rbuff, nps, isPasstrough)
 				break;
 			}
 			
+			// [v22 ANTI-ECO] el propio mensaje no se pinta aqui: al
+			// enviarlo, el KeyPress_13 del lobby ya hizo el eco local
+			// (lobby_add_message). El server reenvia el mensaje a TODOS
+			// los peers — incluido el emisor (server_broadcast no
+			// excluye a nadie) — y sin esta defensa tu propio mensaje
+			// aparecia DOS veces en tu pantalla. Mismo patron que el
+			// chat de partida (net_state_game, mod v1.2).
+			if(_id == obj_netclient.nid)
+				break;
+			
 			if(!ds_map_exists(players, _id))
 				break;
 			

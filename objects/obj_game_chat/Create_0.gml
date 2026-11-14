@@ -16,6 +16,14 @@
 //           (global.playerControls = false): sin movimiento, habilidades
 //           ni emotes — scr_move_basic y los specials ya respetan ese
 //           flag (lo usan la zipline y los cutscenes).
+//           [v22] Al CERRAR el chat los controles vuelven SIEMPRE a true:
+//           antes se restauraba el valor guardado al abrir (wasControls)
+//           y ese valor caducaba — abierto durante la espera de jugadores
+//           guardaba un false que la partida ya habia superado, y al
+//           cerrar el chat te quedabas SIN MOVERTE para siempre (el
+//           des-congelamiento de ronda es de una sola vez). Los sistemas
+//           que deben congelarte se re-afirman solos (la espera lo hace
+//           cada frame en obj_netclient/Step_2), asi que true es seguro.
 // Comandos: .mute / .m (identico al lobby).
 // Red:      reusa el paquete CLIENT_CHAT_MESSAGE de siempre. El server
 //           (Game.c mod v1.2) reenvia a los jugadores de la ronda menos
@@ -27,7 +35,6 @@ chatLog = [];    // lineas listas para scr_text_spr
 chatTime = [];   // current_time de cada linea (para el fade)
 chatMode = false;
 chatMsg = "";
-wasControls = true;
 kbGrace = 0; // [v1.3] frames de gracia hasta que sube el teclado virtual
 
 // boton tactil: columna derecha, en el hueco de ~19 px entre el boton F
@@ -153,7 +160,6 @@ wrapLines = function(line)
 chatOpen = function()
 {
         chatMode = true;
-        wasControls = global.playerControls;
         global.playerControls = false;
 
         keyboard_string = chatMsg; // recupera el borrador
@@ -168,7 +174,17 @@ chatClose = function(send)
 {
         chatMode = false;
         keyboard_virtual_hide();
-        global.playerControls = wasControls;
+
+        // [v22] Controles SIEMPRE de vuelta (antes: wasControls, un valor
+        // que caducaba si la partida des-congelaba mientras escribias —
+        // chat abierto en la espera de jugadores = personaje parado para
+        // siempre al cerrarlo, en PC y en Android). Quien tenga que
+        // congelarte lo re-afirma solo: la espera de ronda fuerza false
+        // cada frame (obj_netclient/Step_2), y las congelaciones de un
+        // uso (muerte, final, captura) ya ocurrieron o llegan por paquete.
+        // Mismo criterio que el CleanUp de este objeto (true incondicional)
+        // y que el guard anti-EXE del Step.
+        global.playerControls = true;
 
         if(send && chatMsg != "")
         {

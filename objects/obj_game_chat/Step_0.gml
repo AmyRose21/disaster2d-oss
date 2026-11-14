@@ -2,13 +2,15 @@
 // debe existir — ni ver ni escribir. Normalmente obj_level ya no lo crea
 // (exeId se asigna en la votacion); esto cubre cualquier cambio de rol a
 // mitad de ronda. Se devuelve el control antes de morir.
+// [v22] el control vuelve como true (antes: wasControls): mismo criterio
+// que chatClose/CleanUp — los objetos del EXE congelan por si solos.
 if(obj_netclient.exeId == obj_netclient.nid)
 {
         if(chatMode)
         {
                 chatMode = false;
                 keyboard_virtual_hide();
-                global.playerControls = wasControls;
+                global.playerControls = true;
                 keyboard_string = "";
         }
 
