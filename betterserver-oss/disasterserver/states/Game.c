@@ -71,9 +71,44 @@ bool game_state_check(Server* server)
            total 0 en el primer tick (EXEWIN instantaneo) y con
            supervivientes muertos tampoco: hay que poder seguir
            probando. Solo la cierran el TIME OVER, el .lobby o el
-           exe al irse (su salida da SURVWIN en game_state_left). */
+           exe al irse (su salida da SURVWIN en game_state_left).
+           [fix-nega-v16] EXCEPCION: convertir en NEGA a TODOS los
+           demas jugadores SI la cierra (EXEWIN). Es el final
+           natural de la prueba de Jinna y hacia falta para llegar
+           a la pantalla de resultados (retratos nega). SOLO cuenta
+           la conversion NEGA real (PLAYER_NEGATIZED: negatouch o
+           minion invocado), NO la demonizacion comun de esbirros:
+           muertos, escapados o esbirros comunes siguen SIN cerrar
+           la practica (comportamiento aprobado intacto: sola /
+           todos muertos / escape siguen abiertos). */
         if (server->lobby.exe_practice)
+        {
+                uint8_t others = 0;
+                uint8_t negas = 0;
+
+                for (size_t i = 0; i < server->peers.capacity; i++)
+                {
+                        PeerData* v = (PeerData*)server->peers.ptr[i];
+                        if (!v || !v->in_game)
+                                continue;
+
+                        if (v->id == server->game.exe)
+                                continue;
+
+                        others++;
+
+                        if (v->plr.flags & PLAYER_NEGATIZED)
+                                negas++;
+                }
+
+                if (others > 0 && negas == others)
+                {
+                        Info("Practice round ends: everyone was NEGATIZED");
+                        RAssert(game_end(server, ED_EXEWIN, true));
+                }
+
                 return true;
+        }
 
         uint8_t escaped = 0;
         uint8_t dead = 0;
@@ -2048,6 +2083,11 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 DEL_FLAG(t->plr.flags, PLAYER_CAUGHT);
                                 DEL_FLAG(t->plr.flags, PLAYER_CANTREVIVE); /* re-invocado: fuera del portal, flag de caida anterior fuera */
                                 SET_FLAG(t->plr.flags, PLAYER_DEMONIZED);
+                                /* [fix-nega-v16] marca de conversion NEGA real
+                                 * (el minion invocado LLEVA el look nega desde
+                                 * v9): cierra la ronda de practica cuando TODOS
+                                 * los demas estan convertidos. */
+                                SET_FLAG(t->plr.flags, PLAYER_NEGATIZED);
                                 SET_FLAG(t->plr.flags, PLAYER_REVIVED); /* su siguiente caida NO re-demoniza: es esbirro normal */
                                 t->plr.data[0] = 1; /* marca MINION: Vanilla no lo rescata */
                                 t->plr.dedemon_progress = 0;
@@ -2088,6 +2128,17 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         for (uint8_t m = 0; m < count; m++)
                                 PacketWrite(&pack4, packet_write16, caught[m]);
                         server_broadcast(v->server, &pack4, true);
+
+                        /* [fix-nega-v16] la invocacion tambien es una
+                         * conversion de bando (los atrapados pasan a
+                         * PLAYER_DEMONIZED): misma razon que el check del
+                         * negatouch — si el ultimo superviviente estaba en
+                         * el portal, SIN este check la ronda seguia hasta el
+                         * TIME OVER (la captura no reporta muerte y el minion
+                         * revive al instante: nadie mas dispara el check). En
+                         * partidas normales cierra con EXEWIN; en .ep solo si
+                         * TODOS los demas ya estan convertidos a nega. */
+                        RAssert(game_state_check(v->server));
                         break;
                 }
 
@@ -2171,6 +2222,13 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 
                         DEL_FLAG(v->plr.flags, PLAYER_DEAD);
                         SET_FLAG(v->plr.flags, PLAYER_DEMONIZED);
+                        /* [fix-nega-v16] marca de conversion NEGA real: en el
+                         * entrenamiento .ep es la unica que cierra la ronda
+                         * cuando TODOS los demas estan convertidos (la
+                         * demonizacion comun de esbirros NO la cierra). En
+                         * partidas normales no cambia nada: PLAYER_DEMONIZED
+                         * ya cuenta como fuera de juego para el win del EXE. */
+                        SET_FLAG(v->plr.flags, PLAYER_NEGATIZED);
                         SET_FLAG(v->plr.flags, PLAYER_REVIVED);   /* su siguiente caida NO re-demoniza: es esbirro normal */
                         SET_FLAG(v->plr.flags, PLAYER_CANTREVIVE); /* súbdito NEGATIVO: Vanilla no lo rescata */
                         v->plr.data[0] = 0; /* no es minion del portal: esbirro negativo comun */
@@ -2183,6 +2241,21 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         PacketCreate(&pack6, SERVER_JINNA_NEGATOUCH_STATE);
                         PacketWrite(&pack6, packet_write16, v->id);
                         server_broadcast(v->server, &pack6, true);
+
+                        /* v15 FIX "la partida no termina": la conversion de un
+                         * jugador VIVO es una transicion "en juego -> fuera de
+                         * juego" (PLAYER_DEMONIZED) IGUAL que una muerte, PERO
+                         * al revivir EN EL ACTO la victima jamas reporta
+                         * CLIENT_PLAYER_DEATH_STATE — y ese reporte es el que
+                         * dispara game_state_check en todos los demas flujos
+                         * (muerte comun, escape, salida de un jugador). Sin
+                         * este check, convertir a la ULTIMA superviviente
+                         * dejaba el total de vivos en 0 sin que nadie lo
+                         * contara: la ronda seguia hasta el TIME OVER. Va
+                         * DESPUES del broadcast para que los clientes apliquen
+                         * primero la conversion (revive + look nega) y luego
+                         * les llegue el SERVER_GAME_EXE_WINS. */
+                        RAssert(game_state_check(v->server));
                         break;
                 }
 

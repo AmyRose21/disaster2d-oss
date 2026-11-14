@@ -7,6 +7,31 @@ function net_state_results(rbuff, nps, isPasstrough)
                 {
                         var _name = buffer_read_s(rbuff, buffer_string);
                         var _char = buffer_read_s(rbuff, buffer_s8);
+                        // v15 (FIX NEGA EN RESULTADOS): el server arma el nick
+                        // con snprintf "%s %s" (nick + postfix de pride) y con
+                        // el postfix VACIO eso deja un ESPACIO FINAL ("Nick ").
+                        // La busqueda de negativos compara contra nicks EXACTOS
+                        // (los puppets / global.nickname de la foto v14) y ese
+                        // espacio rompia TODAS las coincidencias: los subditos
+                        // negativos pintaban con el retrato demon en TODAS las
+                        // pantallas. El fix del server ya no manda el espacio;
+                        // este recorte cubre ademas cualquier server viejo.
+                        var _nameLookup = _name;
+                        while(string_length(_nameLookup) > 0 && string_char_at(_nameLookup, string_length(_nameLookup)) == " ")
+                                _nameLookup = string_delete(_nameLookup, string_length(_nameLookup), 1);
+                        // la lista global de la foto v14 (SERVER_RESULTS): existe
+                        // solo si la ronda paso por el handler de results
+                        // v16 (FIX CRASH): is_ds_list NO EXISTE en GML — el
+                        // runtime lo compila como variable y revienta con
+                        // "Variable obj_netclient.is_ds_list not set before
+                        // reading it" en la PRIMERA fila de resultados (las
+                        // demas filas no se crean: por eso los nega "no
+                        // aparecian en la lista"). El check correcto es
+                        // ds_exists (mismo patron que obj_netclient.players
+                        // con ds_type_map en net_state_game).
+                        var _negaLookup = variable_global_exists("resultsNegaNicks")
+                        && global.resultsNegaNicks != noone
+                        && ds_exists(global.resultsNegaNicks, ds_type_list);
                 // 6 = Amy Canon (valor crudo del server): reusa los iconos de
                 // Amy (3) en las tiras. v5.1: Sally Canon (8) y Vanilla (9) ya
                 // NO se remapean — los resolvedores usan sus tiras PROPIAS
@@ -101,10 +126,9 @@ function net_state_results(rbuff, nps, isPasstrough)
                                         // el cambio de sala: el paquete no trae la
                                         // marca). El esbiro comun sigue con su
                                         // retrato demon: SOLO cambia el negatouch.
-                                        if(variable_global_exists("resultsNegaNicks")
-                                        && global.resultsNegaNicks != noone
-                                        && is_ds_list(global.resultsNegaNicks)
-                                        && ds_list_find_index(global.resultsNegaNicks, _name) >= 0)
+                                        if(_negaLookup
+                                        && (ds_list_find_index(global.resultsNegaNicks, _nameLookup) >= 0
+                                        || ds_list_find_index(global.resultsNegaNicks, _name) >= 0))
                                         {
                                                 var _rsNega = scr_hud_strip_nega(_char + 1);
                                                 _inst.icon = _rsNega[0];
@@ -127,10 +151,10 @@ function net_state_results(rbuff, nps, isPasstrough)
                                         // muestra la cara NEGA de su forma (misma
                                         // posicion +6, tira nega). El muerto comun
                                         // sigue con su tira normal.
-                                        if(variable_global_exists("resultsNegaNicks")
-                                        && global.resultsNegaNicks != noone
-                                        && is_ds_list(global.resultsNegaNicks)
-                                        && ds_list_find_index(global.resultsNegaNicks, _name) >= 0)
+                                        // v15: misma busqueda blindada por el espacio final
+                                        if(_negaLookup
+                                        && (ds_list_find_index(global.resultsNegaNicks, _nameLookup) >= 0
+                                        || ds_list_find_index(global.resultsNegaNicks, _name) >= 0))
                                                 _rsStr = scr_hud_strip_nega(_char + 1);
 
                                         _inst.icon = _rsStr[0];

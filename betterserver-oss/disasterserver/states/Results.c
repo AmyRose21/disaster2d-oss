@@ -200,7 +200,22 @@ bool results_send(Server* server, PeerData* v, PeerData* data, bool has_quit)
 			postfix = SHAMES_2[rand() % SHAMES2_CNT];
 	}
 
-	nickname.len = snprintf(nickname.value, 129, "%s %s", data->nickname.value, postfix) + 1;
+	/* v15 FIX NEGA EN RESULTADOS: el snprintf "%s %s" con el postfix
+	 * VACIO (pride apagado, o jugador sin shame) colaba un ESPACIO
+	 * FINAL en TODOS los nicks ("Nick "). El cliente compara ese nick
+	 * contra su lista de negativos (resultsNegaNicks: nicks EXACTOS de
+	 * los puppets / global.nickname) y el espacio rompia TODAS las
+	 * coincidencias: los subditos negativos pintaban con el retrato
+	 * demon en vez de su tira nega. Sin postfix se envia el nick TAL
+	 * CUAL esta guardado (mismo len con el '\0', ver string_new /
+	 * packet_readstr). */
+	if (postfix[0] != '\0')
+		nickname.len = snprintf(nickname.value, 129, "%s %s", data->nickname.value, postfix) + 1;
+	else
+	{
+		memcpy(nickname.value, data->nickname.value, data->nickname.len);
+		nickname.len = data->nickname.len;
+	}
 
 	PacketWrite(&pack, packet_writestr, nickname);
 	PacketWrite(&pack, packet_write8, 	data->exe_char != EX_NONE ? data->exe_char : data->surv_char);

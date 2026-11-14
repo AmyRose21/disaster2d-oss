@@ -4848,9 +4848,15 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // final del evento, con el room_goto de abajo): se
                         // vuelvan sus nicks a una lista GLOBAL y la consulta
                         // net_state_results en la sala nueva.
+                        // v16 (FIX CRASH): el mismo is_ds_list invalido de v14
+                        // estaba AQUI arriba: en la SEGUNDA ronda de la misma
+                        // sesion la lista ya existe (!= noone), el cortocircuito
+                        // no salva y el runtime revienta al leer la "variable"
+                        // is_ds_list. Check correcto: ds_exists (patron de
+                        // obj_netclient.players con ds_type_map, linea ~3824).
                         if(variable_global_exists("resultsNegaNicks")
                         && global.resultsNegaNicks != noone
-                        && is_ds_list(global.resultsNegaNicks))
+                        && ds_exists(global.resultsNegaNicks, ds_type_list))
                                 ds_list_destroy(global.resultsNegaNicks);
 
                         global.resultsNegaNicks = ds_list_create();
@@ -4861,8 +4867,24 @@ function net_state_game(rbuff, nps, isPasstrough)
                         && variable_instance_exists(global.player.id, "isNegatouch")
                         && global.player.isNegatouch)
                         {
+                                // v15 (FIX): el server JAMAS manda la entrada del
+                                // jugador LOCAL a su propio mapa players
+                                // (CLIENT_LOBBY_PLAYERS_REQUEST se salta al peer
+                                // propio y SERVER_PLAYER_JOINED se emite con
+                                // broadcast_ex ignorandolo), asi que el lookup de
+                                // abajo era SIEMPRE falso y el negativo local no
+                                // entraba en la lista: en SU pantalla su propia
+                                // fila pintaba con el retrato demon. El nick
+                                // correcto es global.nickname — el MISMO string
+                                // que este cliente mando en el paquete de
+                                // identidad y que el server devuelve en resultados.
                                 var _ownNick = "";
-                                if(ds_map_exists(obj_netclient.players, obj_netclient.nid))
+                                if(variable_global_exists("nickname") && global.nickname != "")
+                                        _ownNick = global.nickname;
+
+                                // red de seguridad por si un futuro server si
+                                // reflejara la entrada propia (prioridad al map)
+                                if(_ownNick == "" && ds_map_exists(obj_netclient.players, obj_netclient.nid))
                                 {
                                         var _own = obj_netclient.players[? obj_netclient.nid];
                                         if(!is_undefined(_own) && variable_struct_exists(_own, "nickname"))

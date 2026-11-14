@@ -1,0 +1,75 @@
+JINNA / MODO NEGAGEN — v15 (fin de partida)
+============================================
+
+QUE ARREGLA ESTA VERSION (v15)
+------------------------------
+
+1) ERROR "Variable obj_netclient.is_ds_list not set" al terminar la partida.
+   Causa: en v14 use una funcion que NO existe en GML (is_ds_list);
+   el juego base usa ds_exists(valor, ds_type_list) y eso es lo que
+   usa ahora el archivo. Ojo: ese error ademas CORTABA el script de
+   resultados a medias (el titulo/contador de la pantalla de resultados
+   no terminaba de configurarse). Con v15 la pantalla de resultados se
+   completa normal, y los retratos nega por fin se ven (la logica de
+   v14 nunca llegaba a ejecutarse por el error).
+
+2) La partida NO concluye al convertir al ultimo superviviente en nega.
+   Causa: el fin de ronda lo decide el SERVER contando supervivientes
+   vivos. Al ser convertido, el jugador seguia "vivo" para el server
+   (nadie le informaba la baja), el conteo nunca llegaba a 0 y la ronda
+   se quedaba colgada hasta que se acabara el tiempo.
+   Fix: cuando el jugador local es invocado como esbirro nega, su propio
+   cliente manda CLIENT_PLAYER_DEATH_STATE (la misma senal que usa el
+   juego cuando alguien muere). El server deja de contarlo:
+   - Convertir al ULTIMO superviviente -> fin de ronda inmediato:
+     victoria del exe a los ~5 segundos, pantalla de resultados con
+     los retratos nega (cara invertida para los negas, tira nega con
+     cara muerta para los negas caidos).
+   - Convertir a alguien a mitad de ronda -> el conteo de supervivientes
+     baja en ese momento; si el ultimo restante escapa o muere despues,
+     la ronda concluye correctamente.
+
+ARCHIVOS (aplicar SOBRE la v14 ya puesta)
+------------------------------------------
+scripts/net_state_results/net_state_results.gml
+    Fix del error + retratos nega (con frame adaptativo por si la tira
+    nega es por-personaje o multi-personaje) + icono de Jinna en
+    resultados (exe_char 6 -> usa el 4o icono de exe).
+objects/obj_netclient/Step_2.gml
+    "Centinela" negatouch: avisa al server UNA sola vez por ronda cuando
+    el jugador local ya es nega. Se reactiva solo entre rondas.
+
+COMO APLICAR
+------------
+1) Extrae el zip sobre la carpeta del proyecto (como siempre).
+2) Esta v15 va ENCIMA de la v14 (los dos .gml reemplazan a los
+   existentes). No apliques la v13 encima de esta.
+3) LEEME_JINNA_V9.txt (si lo tienes de antes) no hace falta borrarlo;
+   este archivo es el de la v15.
+
+NOTAS / COSAS CONOCIDAS
+-----------------------
+- Conversiones a mitad de ronda: el server tratara al nega como un
+  "demonizado" del juego base cuando corra su temporizador interno
+  (~30s, con el exe cerca se pausa). Si notas algo raro a los ~30s en
+  pantalla del nega (flecha de demonio extra, paleta de demonio
+  encima del nega), dime y lo tapamos en la v16.
+- El server sigue sincronizando el movimiento del nega con normalidad
+  (los datos de jugadores muertos/demonizados se siguen retransmitiendo;
+  verificado en el codigo del server).
+- IMPORTANTE: si tu Step_2.gml o net_state_results.gml tienen lineas
+  tuyas propias mas alla de lo que puse en v13/v14, dime antes de
+  aplicar: esta v15 los reemplaza completos y habria que volver a
+  mezclar tus lineas.
+
+HISTORIAL (para pegar en worklog.md)
+------------------------------------
+## v15 — fin de partida negatouch
+- net_state_results.gml: reemplazado is_ds_list() (funcion inexistente,
+  causaba el error al terminar la partida) por ds_exists(..., ds_type_list);
+  bloque de retratos nega con frame adaptativo (tira por-personaje o
+  multi-personaje); remap del icono de Jinna en resultados (6 -> 3).
+- obj_netclient/Step_2.gml: centinela negatouch — al invocarse el esbirro
+  nega local se envia CLIENT_PLAYER_DEATH_STATE para que el server lo
+  descuenta del conteo de supervivientes y la ronda concluya al convertir
+  al ultimo superviviente.
