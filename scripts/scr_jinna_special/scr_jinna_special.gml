@@ -93,6 +93,35 @@
 #macro JINNA_CAUGHT_AMY 1
 #macro JINNA_CAUGHT_VANILLA 2
 
+// v18 (DOLLS) — MEJORAS DIRECTAS ACUMULATIVAS: ya NO hay cifras fijas
+// que REEMPLACEN el valor (el viejo "18/22 con tier" quedaba POR DEBAJO
+// del base 30); ahora cada especial atrapada SUMA "+" SOBRE lo existente
+// y se ACUMULAN ("depende de cuantas tenga y cual sea").
+//   * AMY CANON es LA MAS FUERTE: el DOBLE de cada bono (trampa +20).
+//   * SALLY CANON / VANILLA / AMELIA: 1 unidad cada una (trampa +10).
+//   * ROUGE y la captura generica: SIN bono (solo las especiales cuentan).
+// La unidad la devuelve scr_jinna_power() (los flags por personaje los
+// setea el handler de SERVER_JINNA_TRAP_HIT en cada cliente) y los
+// valores por stat son estos macros:
+#macro JINNA_BONUS_TRAP 10     // TRAMPA: 30 + 10 por especial (Amy: +20)
+#macro JINNA_BONUS_ATTACK 5   // GOLPE BASICO: 20 + 5 por especial (Amy: +10)
+#macro JINNA_BONUS_GRAB 5     // AGARRE: 25 + 5 por especial (Amy: +10)
+#macro JINNA_BONUS_SLOW 1     // SLOW DEL TELEPORT: 4 s + 1 por especial (Amy: +2)
+
+/// v18 — unidades de mejora acumuladas por las atrapadas ESPECIALES
+/// (Vanilla / Amy Canon / Sally Canon / Amelia). Amy Canon vale DOBLE
+/// ("la mas fuerte"); las demas valen 1. Multiplicala por el macro del
+/// stat (JINNA_BONUS_*) y SUMALA al valor base: nunca reemplaces.
+function scr_jinna_power()
+{
+        var _u = 0;
+        if(global.jinnaCaughtAmy) _u += 2;
+        if(global.jinnaCaughtSally) _u += 1;
+        if(global.jinnaCaughtVanilla) _u += 1;
+        if(global.jinnaCaughtAmelia) _u += 1;
+        return _u;
+}
+
 // GOLPE (tecla X): commit del swing
 #macro JINNA_ATTACK_LOCK 12               // ~0,2 s frenando el impulso
 

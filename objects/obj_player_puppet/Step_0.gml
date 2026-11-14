@@ -440,15 +440,16 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                                         break;
                                         }
 
-                                        // v3/v4 (D.I.B.) — ATRAPADA EN EL PORTAL TRAMPA:
-                                        // con Vanilla absorbida en la otra dimension, el
-                                        // golpe basico de Jinna pega un 50% mas (20 -> 30).
-                                        // v4: con AMY CANON absorbida son las "mejoras
-                                        // arduas": 20 -> 25 (la mitad del aumento).
-                                        // Los demas aumentos viven en el agarre, la trampa
-                                        // y el slow del teleport (net_state_game).
-                                        if(exeCharacter == EXE_JINNA && global.jinnaCaughtTier > JINNA_CAUGHT_NONE)
-                                                damage = (global.jinnaCaughtTier == JINNA_CAUGHT_VANILLA) ? 30 : 25;
+                                        // v3/v4 (D.I.B.) — ATRAPADAS EN EL PORTAL
+                                        // TRAMPA: mientras haya especiales en la otra
+                                        // dimension, el golpe basico de Jinna pega MAS.
+                                        // v18: MEJORA DIRECTA ACUMULATIVA — ya no hay
+                                        // cifras fijas (el viejo 25/30 del tier): cada
+                                        // especial atrapada SUMA +5 (Amy Canon +10)
+                                        // sobre el base 20. Ej.: 1 regular = 25 / Amy
+                                        // = 30 / las 4 juntas = 45 (scr_jinna_power).
+                                        if(exeCharacter == EXE_JINNA)
+                                                damage += scr_jinna_power() * JINNA_BONUS_ATTACK;
                                 }
 
                                 // v7 (toque negativo) — el GOLPE DEL SÚBDITO NEGATIVO pega

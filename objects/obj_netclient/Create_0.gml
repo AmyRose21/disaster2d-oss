@@ -39,13 +39,18 @@ pings = ds_map_create();
 
 players = ds_map_create();
 
-// v3/v4 (D.I.B.) — estado de JINNA (persistentes durante la partida; el
+// v3/v4/v18 (D.I.B.) — estado de JINNA (persistentes durante la partida; el
 // reset por ronda lo hace obj_level/Create_0): la ventana de poder del
-// teleport (frames) y el nivel de potenciacion del portal trampa.
+// teleport (frames) y los flags de MEJORA ACUMULATIVA del portal trampa
+// (v18: un flag por especial atrapada — los bonos son "+" sobre el valor
+// base, Amy Canon la mas fuerte con el DOBLE; ver scr_jinna_power).
 // Se declaran aqui para que existan desde el arranque (antes del primer
 // obj_level) en todos los clientes.
 global.jinnaTelePower = 0;
-global.jinnaCaughtTier = JINNA_CAUGHT_NONE; // v4: 0 = nadie / 1 = Amy Canon (mejoras arduas) / 2 = Vanilla (fuertes)
+global.jinnaCaughtAmy = false;     // v18: Amy Canon atrapada (bono x2)
+global.jinnaCaughtSally = false;   // v18: Sally Canon atrapada
+global.jinnaCaughtVanilla = false; // v18: Vanilla atrapada
+global.jinnaCaughtAmelia = false;  // v18: Amelia atrapada
 
 // Slots de personajes libres/ocupados. Se dimensiona SOLO segun
 // los macros de personaje: ver scr_characters (scr_avchars_reset).

@@ -60,7 +60,7 @@ function scr_jinna_capture_sprite(_char)
                         return spr_metal_hurt;
 
                 case CHARACTER_AMELIA:
-                        return spr_amelia_hurt;
+                        return spr_amelia_trapped; // v18: ya tiene arte de captura propio
 
                 case CHARACTER_BLAZE:
                         return spr_blaze_hurt;

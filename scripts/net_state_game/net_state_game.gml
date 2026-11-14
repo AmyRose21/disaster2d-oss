@@ -402,12 +402,13 @@ function net_state_game(rbuff, nps, isPasstrough)
 
                                         // el golpe: misma via que los golpes del exe
                                         // (exeSource=true: el parry de Sonic puede negarlo)
-                                        // v3: con VANILLA ATRAPADA el agarre pega 15 (10 +5
-                                        // de la potenciacion del kit)
-                                        // v4: con AMY CANON ATRAPADA pega 12 (10 +2: las
-                                        // "mejoras arduas" suman la MITAD que las de Vanilla)
+                                        // v18: MEJORA DIRECTA ACUMULATIVA — el dano del
+                                        // agarre YA NO se reemplaza: cada especial
+                                        // atrapada SUMA +5 (Amy Canon +10) sobre el
+                                        // base 25. Ej.: 1 regular = 30 / Amy = 35 /
+                                        // las 4 especiales = 50 (ver scr_jinna_power)
                                         var _hpB4 = global.player.hp;
-                                        var _jgrabDmg = JINNA_GRAB_DAMAGE + (global.jinnaCaughtTier == JINNA_CAUGHT_VANILLA ? 5 : (global.jinnaCaughtTier == JINNA_CAUGHT_AMY ? 2 : 0));
+                                        var _jgrabDmg = JINNA_GRAB_DAMAGE + scr_jinna_power() * JINNA_BONUS_GRAB;
                                         scr_player_hurt(_jgrabDmg, 0, 0, snd_hurt, spr_blood3, false, true);
 
                                         // v3 — MARCA MEJORADA de Jinna: el agarre que calo
@@ -498,8 +499,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                 // con el sprite de la victima) y al terminar queda FUERA DE
                 // JUEGO (muerte directa: su UI como si hubiera muerto); el
                 // resto deja de verla y Jinna queda POTENCIADA
-                // (global.jinnaCaughtTier en todos: Vanilla = mejoras fuertes,
-                // Amy = las "arduas", la mitad). v6: kind 5 = CAPTURA
+                // (v18: los flags de mejora por especial en todos: cada una
+                // suma "+", Amy Canon el doble; ver scr_jinna_power). v6: kind 5 = CAPTURA
                 // UNIVERSAL (el resto del reparto): misma absorcion pero SIN
                 // tier de potenciacion (eso es de las canon) y con sprite de
                 // RELEVO spr_(personaje)_hurt mientras llega el arte propio
@@ -515,64 +516,97 @@ function net_state_game(rbuff, nps, isPasstrough)
                         var _hjx = buffer_read_s(rbuff, buffer_u16);
                         var _hjy = buffer_read_s(rbuff, buffer_u16);
 
-                        // todos los clientes: el nivel de potenciacion activa
-                        // los AUMENTOS del kit de Jinna hasta el fin de ronda
-                        // (v4: Amy sube al nivel 1, Vanilla al 2; solo ESCALA.
-                        // v4.1: Sally Canon tambien al 1 — mismo tier "arduas"
-                        // que Amy Canon. v6: el kind 5 NO sube ningun tier).
-                        if(_hkind == 1 || _hkind == 2 || _hkind == 3 || _hkind == 4)
+                        // todos los clientes: v18 — las 4 ESPECIALES
+                        // (Vanilla 1, Amy Canon 2, Sally Canon 3 y AHORA
+                        // AMELIA 6) activan SU flag de mejora y su MUNECO
+                        // se acomoda AL LADO de las que ya flotan sobre
+                        // Jinna (solo las especiales se acumulan). Las
+                        // mejoras ahora son "+" ACUMULATIVOS sobre el valor
+                        // base (ver scr_jinna_power en scr_jinna_special):
+                        // Amy Canon es la mas fuerte (doble de bono).
+                        if(_hkind == 1 || _hkind == 2 || _hkind == 3 || _hkind == 6)
                         {
-                                var _jtier = (_hkind == 1) ? JINNA_CAUGHT_VANILLA : JINNA_CAUGHT_AMY;
-                                global.jinnaCaughtTier = max(global.jinnaCaughtTier, _jtier);
+                                if(_hkind == 1)
+                                        global.jinnaCaughtVanilla = true;
+                                else if(_hkind == 2)
+                                        global.jinnaCaughtAmy = true;
+                                else if(_hkind == 3)
+                                        global.jinnaCaughtSally = true;
+                                else
+                                        global.jinnaCaughtAmelia = true;
 
                                 // la propia Jinna vera a la atrapada sobre su
-                                // cabeza (pantalla de Vanilla / Amy o Sally
-                                // semitransparente) al terminar la animacion de
-                                // absorcion de SU cliente (~1,7 s: 72 frames de
-                                // succion + 30 del portal cerrando). La senal
-                                // solo ESCALA: si ya atrapo a Vanilla, pillar
-                                // despues a Amy o Sally no tapa su pantalla con
-                                // el fantasma (el nivel es el tope; al mismo
-                                // nivel manda la ultima)
-                                if(instance_exists(obj_jinna) && _jtier >= obj_jinna.jinnaCaughtKind)
-                                {
-                                        obj_jinna.jinnaCaughtDelay = 102;
-                                        obj_jinna.jinnaCaughtKind = _jtier;
-                                        obj_jinna.jinnaCaughtSprite = (_hkind == 1) ? spr_vanilla_caught : ((_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 4) ? spr_rouge_traped : spr_sally_capture_canon));
-                                }
-                        }
-                        else if(_hkind == 5)
-                        {
-                                // v6: captura generica — la propia Jinna tambien
-                                // ve una senal sobre su cabeza, pero con el
-                                // sprite de RELEVO del personaje (su _hurt) y
-                                // sin tocar el tier de potenciacion. El sprite
-                                // exacto lo resuelve el cliente de la VICTIMA
-                                // (scr_jinna_capture_sprite); para el fantasma
-                                // de Jinna se pide al puppet local de ese pid
-                                // (su character ya viaja en el UDP).
+                                // cabeza al terminar la animacion de absorcion
+                                // de SU captura (~1,7 s). v18: la senal YA NO se
+                                // reemplaza — se ACUMULA en una fila lado a
+                                // lado ("se acomodara para que puedan
+                                // acumularse"): pantalla de Vanilla, fantasmas
+                                // canon y el muneco de Amelia
+                                // (spr_amelia_doll_placed).
                                 if(instance_exists(obj_jinna))
                                 {
-                                        var _capPid = _hpid;
-                                        with(obj_player_puppet)
-                                        {
-                                                if(master_id != _capPid)
-                                                        continue;
+                                        var _dollSpr = (_hkind == 1) ? spr_vanilla_caught : ((_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 3) ? spr_sally_capture_canon : spr_amelia_doll_placed));
 
-                                                other.jinnaCaughtDelay = 102;
-                                                other.jinnaCaughtKind = JINNA_CAUGHT_AMY; // dibujo "semi-transparente" (patron canon), sin subir el tier real
-                                                other.jinnaCaughtSprite = scr_jinna_capture_sprite(character);
-                                                break;
+                                        // dedup defensivo: si su muneco ya flota
+                                        // (p.ej. la atraparon, la invocaron de
+                                        // minion y la rescataron de vuelta), no
+                                        // se duplica en la fila
+                                        var _haveDoll = false;
+                                        for(var _dd = 0; _dd < array_length(obj_jinna.jinnaCaughtDolls); _dd++)
+                                        {
+                                                if(obj_jinna.jinnaCaughtDolls[_dd] == _dollSpr)
+                                                {
+                                                        _haveDoll = true;
+                                                        break;
+                                                }
+                                        }
+
+                                        if(!_haveDoll)
+                                        {
+                                                array_push(obj_jinna.jinnaCaughtDolls, _dollSpr);
+                                                array_push(obj_jinna.jinnaCaughtDollDelay, 102); // espera su absorcion (~1,7 s)
+                                        }
+                                }
+                        }
+                        else if(_hkind == 4 || _hkind == 5)
+                        {
+                                // v18: ROUGE (4) y la CAPTURA GENERICA (5) ya no
+                                // suman mejoras ni entran a la fila de munecos
+                                // ("solo a los que tengan animacion especial"):
+                                // conservan su fantasma individual de siempre,
+                                // visible SOLO mientras NINGUNA especial flota.
+                                if(instance_exists(obj_jinna))
+                                {
+                                        if(_hkind == 4)
+                                        {
+                                                obj_jinna.jinnaCaughtDelay = 102;
+                                                obj_jinna.jinnaCaughtKind = JINNA_CAUGHT_AMY; // estilo fantasma semitransparente
+                                                obj_jinna.jinnaCaughtSprite = spr_rouge_traped;
+                                        }
+                                        else
+                                        {
+                                                var _capPid = _hpid;
+                                                with(obj_player_puppet)
+                                                {
+                                                        if(master_id != _capPid)
+                                                                continue;
+
+                                                        other.jinnaCaughtDelay = 102;
+                                                        other.jinnaCaughtKind = JINNA_CAUGHT_AMY; // dibujo "semi-transparente" (patron canon), sin bonus
+                                                        other.jinnaCaughtSprite = scr_jinna_capture_sprite(character);
+                                                        break;
+                                                }
                                         }
                                 }
                         }
 
                         if(_hpid == obj_netclient.nid)
                         {
-                                if(_hkind >= 1 && _hkind <= 5)
+                                if(_hkind >= 1 && _hkind <= 6)
                                 {
                                         // VICTIMA ABSORBIDA (yo): Vanilla / Amy Canon /
-                                        // Sally Canon / Rouge (kinds 1-4, reglas canon) o
+                                        // Sally Canon / Rouge (kinds 1-4, reglas canon),
+                                        // AMELIA (kind 6, v18: spr_amelia_trapped) o
                                         // CAPTURA GENERICA (kind 5, v6: el resto del
                                         // reparto). Secuencia de absorcion con el sprite
                                         // de la victima: los canon usan su sprite de
@@ -583,7 +617,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 var _abs = instance_create_depth(global.player.x, global.player.y, 0, obj_jinna_absorb);
                                                 _abs.jinnaX = _hjx;
                                                 _abs.jinnaY = _hjy;
-                                                _abs.absorbVictim = (_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 3) ? spr_sally_capture_canon : ((_hkind == 4) ? spr_rouge_traped : ((_hkind == 5) ? scr_jinna_capture_sprite(global.character) : spr_vanilla_absorb_trap)));
+                                                _abs.absorbVictim = (_hkind == 2) ? spr_amy_capture_canon : ((_hkind == 3) ? spr_sally_capture_canon : ((_hkind == 4) ? spr_rouge_traped : ((_hkind == 6) ? spr_amelia_trapped : ((_hkind == 5) ? scr_jinna_capture_sprite(global.character) : spr_vanilla_absorb_trap))));
                                         }
                                 }
                                 else if(instance_exists(global.player) && !global.player.isDead)
@@ -600,7 +634,12 @@ function net_state_game(rbuff, nps, isPasstrough)
 
                                         global.player.hurttime = 0; // los que tuviera: REMOVIDOS
                                         var _hpB4t = global.player.hp;
-                                        var _jtrapDmg = (global.jinnaCaughtTier == JINNA_CAUGHT_VANILLA) ? 22 : ((global.jinnaCaughtTier == JINNA_CAUGHT_AMY) ? 18 : JINNA_TRAP_DAMAGE);
+                                        // v18: MEJORA DIRECTA ACUMULATIVA — la trampa pega
+                                        // el base 30 MAS lo que sumen las especiales
+                                        // atrapadas (+10 cada una / Amy Canon +20):
+                                        // nunca MENOS que el base (el viejo 18/22 del
+                                        // tier quedaba por debajo del 30)
+                                        var _jtrapDmg = JINNA_TRAP_DAMAGE + scr_jinna_power() * JINNA_BONUS_TRAP;
                                         scr_player_hurt(_jtrapDmg, 0, 0, snd_hurt, spr_blood3, false, true);
                                         global.player.hurttime = 0; // la trampa JAMAS regala i-frames
 
@@ -628,7 +667,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         }
                                 }
                         }
-                        else if(_hkind >= 1 && _hkind <= 5)
+                        else if(_hkind >= 1 && _hkind <= 6)
                         {
                                 // el resto: la atrapada YA no es de este mundo — su
                                 // puppet se oculta al instante (el paquete de
@@ -873,7 +912,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                         var _spid = buffer_read_s(rbuff, buffer_u16);
 
                         if(_spid == obj_netclient.nid && instance_exists(global.player) && !global.player.isDead)
-                                scr_player_slow(global.jinnaCaughtTier == JINNA_CAUGHT_VANILLA ? 4.5 : (global.jinnaCaughtTier == JINNA_CAUGHT_AMY ? 3.75 : JINNA_TELE_SLOW_TIME));
+                                scr_player_slow(JINNA_TELE_SLOW_TIME + scr_jinna_power() * JINNA_BONUS_SLOW);
 
                         break;
                 }

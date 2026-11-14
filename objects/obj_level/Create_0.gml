@@ -7,12 +7,16 @@ global.lmsActive = false;
 //  * jinnaTelePower: frames restantes de la ventana de poder del tele-
 //    transporte (3 s: hitbox del golpe basico +25% en los clientes de
 //    las victimas; la abre SERVER_JINNA_PORTAL_STATE).
-//  * jinnaCaughtTier (v4): nivel de potenciacion tras el portal trampa —
-//    0 = nadie cayo / 1 = AMY CANON absorbida ("mejoras mas arduas": la
-//    mitad de los aumentos) / 2 = VANILLA absorbida (los fuertes de la
-//    v3). Lo alimenta SERVER_JINNA_TRAP_HIT en TODOS los clientes.
+//  * v18: MEJORAS ACUMULATIVAS del portal trampa — un flag por ESPECIAL
+//    atrapada (Vanilla / Amy Canon / Sally Canon / Amelia). Ya no hay un
+//    tier unico: cada una suma "+" sobre los valores base del kit y las
+//    bonos se apilan (Amy Canon vale doble; Rouge y la generica no suman).
+//    Lo alimenta SERVER_JINNA_TRAP_HIT en TODOS los clientes.
 global.jinnaTelePower = 0;
-global.jinnaCaughtTier = JINNA_CAUGHT_NONE;
+global.jinnaCaughtAmy = false;
+global.jinnaCaughtSally = false;
+global.jinnaCaughtVanilla = false;
+global.jinnaCaughtAmelia = false;
 state = 0;
 showSurvivors = false;
 survivorTimer = 0;

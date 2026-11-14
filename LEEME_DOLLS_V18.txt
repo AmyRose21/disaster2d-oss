@@ -1,0 +1,111 @@
+DOLLS v18 — "LA FILA DE JINNA": Amelia especial, munecos acumulativos
+y mejoras directas (+)
+====================================================================================
+
+QUE SE AGREGA EN ESTA RONDA
+---------------------------
+
+1) AMELIA YA ES UNA ESPECIAL DEL PORTAL TRAMPA (kind 6)
+   Amelia se une al grupo de las que se absorben SIEMPRE que pisan el
+   portal trampa (como Vanilla, Amy Canon y Sally Canon — ya no solo con
+   el golpe fatal). Tiene SU arte propio:
+     * al ser atrapada:   spr_amelia_trapped  (la animacion de captura
+       que corre en SU cliente con el obj_jinna_absorb de siempre),
+     * flotando sobre Jinna: spr_amelia_doll_placed (su muneco).
+   El server la manda como kind 6, marca PLAYER_CAUGHT como toda captura
+   (disponible para la invocacion de minions ↓+C) y su case del relevo
+   generico (scr_jinna_capture_sprite) tambien devuelve ya el arte nuevo.
+
+2) LA FILA: SI JINNA ATRAPA A MAS DE UNA, SE ACUMULAN LADO A LADO
+   La senal sobre la cabeza de Jinna YA NO se reemplaza: cada nueva
+   especial se ACOMODA AL LADO de las que ya flotaban ("se acomodara para
+   que puedan acumularse"). El grupo se centra sobre su cabeza, en ORDEN
+   DE CAPTURA, con 14 px de separacion y cada una con su estilo:
+     * VANILLA: su pantalla (spr_vanilla_caught) al 72% y alfa 0.85.
+     * AMY CANON / SALLY CANON: su pose canon SEMITRANSPARENTE (alfa 0.5).
+     * AMELIA: su muneco spr_amelia_doll_placed, estilo canon.
+   Cada muneco respeta la animacion de absorcion de SU captura (aparece
+   ~1,7 s despues del paquete, con SU cuenta atras propia).
+   OJO — SOLO ENTRAN A LA FILA LAS QUE TIENEN ANIMACION ESPECIAL: Amy
+   Canon, Sally Canon, Vanilla y ahora Amelia. Rouge y las capturas
+   genericas conservan su fantasma individual de siempre, visible SOLO
+   mientras ninguna especial flota.
+
+3) MEJORAS DIRECTAS ACUMULATIVAS ("+" EN VEZ DE CIFRA FIJA)
+   Se retiro el viejo tier (que REEMPLAZABA valores: la trampa con tier
+   ponia 18/22 — por DEBAJO del base 30, herencia de cuando el base era
+   15). Ahora todo es SUMA sobre el valor existente y se ACUMULA segun
+   cuantas especiales tenga y cual sea — AMY CANON ES LA MAS FUERTE
+   (el DOBLE de cada bono):
+
+     STAT                 BASE   +especial   +Amy Canon   TODO (4)
+     Trampa (V+abajo)      30      +10          +20         80
+     Golpe basico (X)      20      +5           +10         45
+     Agarre (V)            25      +5           +10         50
+     Slow del teleport      4s     +1 s         +2 s        9 s
+
+   Sally Canon, Vanilla y Amelia valen 1 unidad cada una; Amy Canon vale
+   2. Rouge y la captura generica NO suman mejoras (no son especiales).
+   Todo vive en scr_jinna_power() (scr_jinna_special.gml) con macros
+   JINNA_BONUS_* para ajustar cada bono en una linea.
+
+ARCHIVOS (12 modificados + validador)
+-------------------------------------
+   SERVER (HAY QUE RECOMPILAR):
+   betterserver-oss/disasterserver/states/Game.c
+     (kind 6 = Amelia siempre absorbida; PLAYER_CAUGHT cubre 1-6.
+     Acumula todo lo anterior: v16 guard de practica, v17 stuns/vida)
+
+   CLIENTE (recompilar el juego — F5/F8):
+   scripts/scr_jinna_special/scr_jinna_special.gml   (macros + scr_jinna_power)
+   scripts/net_state_game/net_state_game.gml         (handler + 3 mejoras + kind 6)
+   scripts/scr_jinna_capture_sprite/scr_jinna_capture_sprite.gml (relevo Amelia)
+   objects/obj_jinna/Create_0.gml                    (arrays de la fila)
+   objects/obj_jinna/Step_0.gml                      (cuenta atras por muneco)
+   objects/obj_jinna/Draw_0.gml                      (la fila acumulada)
+   objects/obj_jinna_trap/Step_0.gml                 (trampa: calculo +)
+   objects/obj_player_puppet/Step_0.gml              (golpe: damage +=)
+   objects/obj_netclient/Create_0.gml                (globals por especial)
+   objects/obj_level/Create_0.gml                    (reset por ronda)
+   objects/obj_jinna_absorb/Create_0.gml             (comentarios)
+
+   + scripts/check_dolls_v18.py (validador: 55/55 OK)
+
+CÓMO SE APLICA
+--------------
+   1. Reemplaza los 12 archivos y copia el validador a scripts/.
+   2. RECOMPILA EL SERVER: compilar_server.bat -> opcion 1.
+      (Sin recompilar, Amelia seguiria cayendo por la via generica kind 5
+      y solo con golpe fatal: el server viejo no conoce el kind 6.)
+   3. Recompila el cliente en GameMaker (los 11 .gml).
+
+PRUEBA RÁPIDA
+-------------
+   1. Jinna planta el portal trampa (V + ABAJO) y AMELIA lo pisa con la
+      vida LLENA: se absorbe igual (spr_amelia_trapped en su pantalla) y
+      a los ~1,7 s aparece su muneco spr_amelia_doll_placed sobre Jinna.
+   2. Atrapa despues a Vanilla y a Amy Canon: los munecos se van ACOMODANDO
+      AL LADO uno del otro (fila centrada, orden de captura, cada estilo
+      con su look). La pantalla de Vanilla no tapa a nadie.
+   3. Con 1 especial: la trampa pega 40 (30 + 10). Con Amy Canon: 50
+      (30 + 20). Con las 4: 80. El golpe basico sube 25/30/45 igual, el
+      agarre 30/35/50 y el slow 5/6/9 s.
+   4. Rouge y una captura generica siguen saliendo como fantasma individual
+      SOLO mientras no haya especiales flotando — y NO suman mejoras.
+   5. Si una especial atrapada se invoca de minion (↓+C), pelea normal;
+      si luego la RESCATAN y vuelve a caer en la trampa, su muneco NO se
+      duplica (dedup) y las mejoras siguen acumuladas.
+
+NOTAS DE DISEÑO (una línea cada una, pregúntame si quieres girarlas)
+--------------------------------------------------------------------
+   - Los bonos por stat siguen la proporcion del ejemplo pedido ("si es
+     30 de daño aumenta 10 o 20"): trampa exacta, el resto a la mitad
+     (golpe/agarre +5/+10, slow +1/+2). Todo en macros JINNA_BONUS_*.
+   - Rouge quedo SIN bono y SIN hueco en la fila ("solo a los que tengan
+     animacion especial: Amy Canon, Sally Canon, Vanilla y ahora Amelia"):
+     si quieres que ella tambien sume/alinee, es 1 linea en el handler
+     (mete su kind 4 al grupo) + 1 en scr_jinna_power.
+   - Las mejoras y la fila SOLO suben (igual que el tier viejo): rescatar
+     a una atrapada no devuelve el bono — es el trofeo de la captura.
+   - El golpe basico del exe y del esbirro NO toca este sistema: el "+" es
+     exclusivo del kit de Jinna con especiales atrapadas.

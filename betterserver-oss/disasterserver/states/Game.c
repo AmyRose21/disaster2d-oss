@@ -1984,7 +1984,11 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                  * su spr_sally_capture_canon. kind 4 = ROUGE (v4.5): igual
                  * que las canon (tier "arduas", spr_rouge_traped) pero SOLO
                  * cuando el golpe la iba a tumbar (flag fatal de su
-                 * cliente: hp tras dano <= 0). */
+                 * cliente: hp tras dano <= 0). kind 6 = AMELIA (v18):
+                 * absorbida SIEMPRE como las canon, con su arte propio
+                 * (spr_amelia_trapped en su cliente / su muneco
+                 * spr_amelia_doll_placed flotando junto a las demas) y
+                 * cuenta como especial para las mejoras acumulativas. */
                 case CLIENT_JINNA_TRAP_HIT:
                 {
                         AssertOrDisconnect(v->server, v->in_game);
@@ -2033,6 +2037,16 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 kind = 2;
                         else if (v->surv_char == CH_SALLY_CANON) /* v4.1: Sally Canon tambien (spr_sally_capture_canon), mismo tier "arduas" que Amy */
                                 kind = 3;
+                        /* v18 (DOLLS): AMELIA se une al grupo de las especiales
+                         * — absorbida SIEMPRE que pise el portal (como Vanilla
+                         * y las canon), no solo con el golpe fatal: tiene su
+                         * animacion de captura propia (spr_amelia_trapped) y su
+                         * muneco (spr_amelia_doll_placed) flota sobre Jinna
+                         * JUNTO a las demas especiales (fila acumulativa). En
+                         * las mejoras suma como las regulars (+10 de trampa);
+                         * Amy Canon sigue siendo la mas fuerte (+20). */
+                        else if (v->surv_char == CH_AMELIA)
+                                kind = 6;
                         /* v4.5: ROUGE — absorbida SOLO si el golpe la iba a
                          * tumbar de verdad. El server no trackea hp (la
                          * autoridad es su cliente, como todo el dano del
@@ -2078,13 +2092,15 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         jinna_trap_trigger(v->server, target);
                         game_despawn(v->server, NULL, target->id);
 
-                        /* v6: TODA captura (kinds 1-5) marca PLAYER_CAUGHT —
+                        /* v6: TODA captura (kinds 1-6) marca PLAYER_CAUGHT —
                          * el jugador pasa a "vivo en la otra dimension":
                          * fuera de juego para el win del EXE, pero disponible
-                         * para que Jinna lo invoque como MINION (↓+C). Los
-                         * kinds canon (1-4) ademas disparan el tier de
-                         * potenciacion en los clientes. */
-                        if (kind >= 1 && kind <= 5)
+                         * para que Jinna lo invoque como MINION (↓+C). Las
+                         * especiales (kinds 1-3 y 6) ademas disparan las
+                         * MEJORAS ACUMULATIVAS en los clientes (v18: cada una
+                         * suma "+" sobre el valor base; Rouge y la generica
+                         * ya no alimentan mejoras). */
+                        if (kind >= 1 && kind <= 6)
                         {
                                 SET_FLAG(v->plr.flags, PLAYER_CAUGHT);
                                 DEL_FLAG(v->plr.flags, PLAYER_DEAD);

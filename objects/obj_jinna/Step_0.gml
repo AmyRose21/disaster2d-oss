@@ -31,6 +31,19 @@ if(jinnaCaughtDelay > 0)
                 jinnaCaughtShow = true;
 }
 
+// v18 (DOLLS) — cuenta atras de CADA muneco de la fila: aparece al
+// terminar la animacion de absorcion de SU captura (~1,7 s) y luego queda
+// fijo hasta el fin de ronda. Corre SIEMPRE (tambien aturdida, igual que
+// los demas timers: leccion v4.8 de Metal Amy).
+if(array_length(jinnaCaughtDollDelay) > 0)
+{
+        for(var _jd = 0; _jd < array_length(jinnaCaughtDollDelay); _jd++)
+        {
+                if(jinnaCaughtDollDelay[_jd] > 0)
+                        jinnaCaughtDollDelay[_jd]--;
+        }
+}
+
 if(shockedTimer <= 0)
 {
         scr_move_basic();

@@ -87,6 +87,17 @@ jinnaCaughtShow = false; // true = la atrapada ya esta dibujada sobre su cabeza
 jinnaCaughtKind = JINNA_CAUGHT_NONE; // tier: 0 = nadie / 1 = Amy o Sally (arduas) / 2 = Vanilla (fuerte)
 jinnaCaughtSprite = spr_vanilla_caught; // v4.1: sprite de la senal (Vanilla / Amy / Sally Canon, lo fija el handler del paquete)
 
+// v18 (DOLLS) — LA FILA DE MUNEcos: las atrapadas ESPECIALES (Vanilla, Amy
+// Canon, Sally Canon y AHORA AMELIA) se ACUMULAN lado a lado sobre su
+// cabeza ("acomodada al lado de la que capturo: se acomodara para que
+// puedan acumularse"). Cada entrada guarda su sprite y SU cuenta atras de
+// aparicion (102 frames: respeta la animacion de absorcion de SU captura).
+// Rouge y las capturas genericas NO entran a la fila ("solo a los que
+// tengan animacion especial"): conservan el fantasma individual de arriba,
+// visible solo mientras ninguna especial flota (ver Draw_0).
+jinnaCaughtDolls = [];      // sprites de la fila, en ORDEN DE CAPTURA
+jinnaCaughtDollDelay = [];  // frames restantes para mostrar cada muneco
+
 // JINNA: misc
 jinnaGoSnd = false;            // la linea de arranque suena 1 vez (ver Step_0)
 jinnaWonSnd = false;           // la linea de victoria suena 1 vez

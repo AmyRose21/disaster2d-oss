@@ -30,10 +30,11 @@ if(!triggerSent && !obj_netclient.gameEnds && instance_exists(global.player)
         buffer_write(pak, buffer_u16, obj_netclient.nid);
 
         // v4.5 (ROUGE): flag fatal al final del reporte. Su trampa hace
-        // JINNA_TRAP_DAMAGE (30; 18/22 con tier activo) PISANDO i-frames,
-        // y con 10+ anillos el golpe se absorbe (cuesta 10 anillos: ver
-        // scr_player_hurt). El golpe la "mataria" (hp tras dano <= 0)
-        // solo si: no le salvan los anillos Y (le queda la moribunda o
+        // JINNA_TRAP_DAMAGE (30) MAS las mejoras acumulativas (v18: +10 por
+        // especial atrapada / +20 por Amy Canon — nunca MENOS que el base)
+        // PISANDO i-frames, y con 10+ anillos el golpe se absorbe (cuesta 10
+        // anillos: ver scr_player_hurt). El golpe la "mataria" (hp tras dano
+        // <= 0) solo si: no le salvan los anillos Y (le queda la moribunda o
         // ya la gasto). En ese caso el server la ABSORBE (kind 4) en vez
         // del dano + TP. Un server viejo ignora el byte extra.
         // v6 (CAPTURA UNIVERSAL): el flag fatal lo manda TODO
@@ -45,9 +46,9 @@ if(!triggerSent && !obj_netclient.gameEnds && instance_exists(global.player)
         // caida no cuenta: se levanta solo — en plena pasiva no es
         // capturable, igual que no es matable; si ya la gasto, si) o
         // (c) la burbuja/fase 2 de Amy/Sally Canon (esas tienen regla
-        // canon directa en el server: kinds 1-4, ni llegan a este
+        // canon directa en el server: kinds 1-4 y 6, ni llegan a este
         // calculo — su byte viaja igual pero el server lo ignora).
-        var _jtrapDmg = (global.jinnaCaughtTier == JINNA_CAUGHT_VANILLA) ? 22 : ((global.jinnaCaughtTier == JINNA_CAUGHT_AMY) ? 18 : JINNA_TRAP_DAMAGE);
+        var _jtrapDmg = JINNA_TRAP_DAMAGE + scr_jinna_power() * JINNA_BONUS_TRAP;
         var _ringAbsorb = global.player.rings >= 10;
         var _hpAfter = _ringAbsorb ? global.player.hp : (global.player.hp - _jtrapDmg);
         var _fatal = 0;

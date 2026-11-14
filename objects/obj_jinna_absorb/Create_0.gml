@@ -20,10 +20,10 @@
 //     win del EXE pendiente y nadie puede revivirla.
 //
 //  Mientras tanto (los demas clientes): su puppet se oculta al vuelo en
-//  el handler del paquete y el nivel global.jinnaCaughtTier activa en
-//  TODOS los clientes los aumentos del kit de Jinna; sobre la cabeza de
-//  la propia Jinna aparece la senal (pantalla de Vanilla o Amy
-//  semi-transparente, solo en SU cliente).
+//  el handler del paquete y los flags de mejora por especial (v18) activan
+//  en TODOS los clientes los aumentos ACUMULATIVOS del kit de Jinna; sobre
+//  la cabeza de la propia Jinna aparece su senal — o su MUNECO en la fila
+//  acumulativa de especiales — (solo en SU cliente).
 //
 //  jinnaX/jinnaY llegan por si el futuro pide un efecto hacia ella.
 // =====================================================================
