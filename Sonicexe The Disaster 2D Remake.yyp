@@ -1161,6 +1161,7 @@
     {"id":{"name":"spr_am_tiles3","path":"sprites/spr_am_tiles3/spr_am_tiles3.yy",},},
     {"id":{"name":"spr_amelia_balancing","path":"sprites/spr_amelia_balancing/spr_amelia_balancing.yy",},},
     {"id":{"name":"spr_amelia_dead","path":"sprites/spr_amelia_dead/spr_amelia_dead.yy",},},
+    {"id":{"name":"spr_amelia_doll_placed","path":"sprites/spr_amelia_doll_placed/spr_amelia_doll_placed.yy",},},
     {"id":{"name":"spr_amelia_emotion1","path":"sprites/spr_amelia_emotion1/spr_amelia_emotion1.yy",},},
     {"id":{"name":"spr_amelia_emotion2","path":"sprites/spr_amelia_emotion2/spr_amelia_emotion2.yy",},},
     {"id":{"name":"spr_amelia_emotion3","path":"sprites/spr_amelia_emotion3/spr_amelia_emotion3.yy",},},

@@ -106,6 +106,7 @@
     {"name":"hitspark_area_sprite","order":2,"path":"sprites/hitspark_area_sprite/hitspark_area_sprite.yy",},
     {"name":"hitspark_light","order":1,"path":"sprites/hitspark_light/hitspark_light.yy",},
     {"name":"hitspark_medium","order":2,"path":"sprites/hitspark_medium/hitspark_medium.yy",},
+    {"name":"spr_amelia_doll_placed","order":2,"path":"sprites/spr_amelia_doll_placed/spr_amelia_doll_placed.yy",},
     {"name":"spr_amelia_trapped","order":1,"path":"sprites/spr_amelia_trapped/spr_amelia_trapped.yy",},
     {"name":"spr_amy_attack1_canon","order":8,"path":"sprites/spr_amy_attack1_canon/spr_amy_attack1_canon.yy",},
     {"name":"spr_amy_attack2_canon","order":5,"path":"sprites/spr_amy_attack2_canon/spr_amy_attack2_canon.yy",},
