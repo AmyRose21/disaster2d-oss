@@ -1,0 +1,65 @@
+FIX NEGA v16 — "no termina la partida" + crash de resultados
+==============================================================
+
+QUE SE ARREGLA EN ESTA RONDA
+-----------------------------
+
+1) EL CRASH DE RESULTADOS (era culpa mia, perdon):
+   "Variable obj_netclient.is_ds_list(100405, ...) not set before reading it
+    at gml_Script_net_state_results (line 26)"
+
+   is_ds_list NO EXISTE en GML: el runtime lo compila como si fuera una
+   variable y explota al leerla. Ya venia de v14 en las filas de demonizados
+   (por eso los nega "no aparecian en la lista": la fila que crasheaba
+   cortaba las demas), y v15 lo subio a la linea 26, donde revienta en la
+   PRIMERA fila de todas. Tambien estaba en el destroy de SERVER_RESULTS
+   (net_state_game): ese reventaba en la SEGUNDA ronda de la misma sesion.
+
+   Solucion: ds_exists(global.resultsNegaNicks, ds_type_list) — la funcion
+   correcta, el mismo patron que ya usa el proyecto con obj_netclient.players
+   y ds_type_map.
+
+2) LA PARTIDA SIGUE TRAS CONVERTIR A TODOS EN NEGA:
+   - En partidas NORMALES el fix v15 ya cerraba con EXEWIN al convertir a
+     la ultima surv (necesita server recompilado, ver abajo).
+   - PERO pruebas con .ep (practica de exe) NO cerraban NUNCA: el guard de
+     la practica salta el win-check entero. Ahora la practica tiene UNA
+     excepcion: convertir en NEGA a TODOS los demas jugadores cierra la
+     ronda con EXEWIN (asi llegas a la pantalla de resultados y ves los
+     retratos nega).
+   - Lo demas de la practica queda IGUAL: sola como exe, todos muertos,
+     esbirros comunes y escapes NO cierran la ronda (para seguir probando).
+   - Bonus: la INVOCACION del portal (↓+C) tenia el mismo hoyo — convertir
+     a la ultima surv por el portal tampoco cerraba. Ahora si.
+
+ARCHIVOS (4 modificados + validador)
+------------------------------------
+   betterserver-oss/include/Player.h            (flag PLAYER_NEGATIZED)
+   betterserver-oss/disasterserver/states/Game.c
+   scripts/net_state_game/net_state_game.gml
+   scripts/net_state_results/net_state_results.gml
+   scripts/check_fix_nega_v16.py                (validador: 30/30 OK)
+
+   Resultados.c NO va en este zip: no cambio desde fix_nega_v15 (el fix del
+   espacio final del nick ya lo tienes aplicado). Si algun dia partes de un
+   repo limpio, aplica antes el Results.c del v15.
+
+COMO APLICAR (IMPORTANTE — el server HAY QUE recompilarlo)
+----------------------------------------------------------
+   1. Reemplaza los 4 archivos + copia el validador a scripts/.
+   2. RECOMPILA EL SERVER: compilar_server.bat -> opcion 1
+      (los cambios de fin de ronda estan en Game.c/Player.h; sin recompilar
+      la partida seguira sin terminar — el exe viejo no sabe de PLAYER_NEGATIZED).
+   3. Recompila el cliente en GameMaker (F5/F8) por los 2 .gml.
+
+PRUEBA RAPIDA
+-------------
+   .ep en el lobby -> eliges a Jinna -> convierte a TODAS las survs con el
+   toque negativo (4 golpes V/X) -> la ronda debe cerrarse con la pantalla
+   de "exe wins" y en resultados deben aparecer TODAS las filas, con las
+   negas mostrando su retrato nega (no el demonio y no ausentes).
+   Repite una SEGUNDA ronda en la misma sesion para confirmar que el crash
+   del destroy ya no esta.
+
+   OJO: si conviertes a todos en una partida NORMAL tambien cierra (v15),
+   y si invocas a la ultima atrapada del portal tambien.

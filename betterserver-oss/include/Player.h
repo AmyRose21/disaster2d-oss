@@ -21,7 +21,15 @@ typedef enum
          * dimension": Jinna puede invocarlo como MINION (CLIENT_JINNA_MINION).
          * Si un cliente viejo no lo manda nunca, el server nunca lo ve:
          * compatibilidad total hacia atras. */
-        PLAYER_CAUGHT = 0x1 << 7
+        PLAYER_CAUGHT = 0x1 << 7,
+        /* [fix-nega-v16] CONVERSION NEGA real de Jinna: negatouch (toque
+         * negativo) o invocacion del portal (minion). Distingue la
+         * conversion NEGA de la demonizacion comun de esbirros (las dos
+         * marcan PLAYER_DEMONIZED): en el entrenamiento .ep SOLO la
+         * conversion total a nega cierra la ronda (ver game_state_check),
+         * la demonizacion comun de muertos sigue SIN cerrarla. Se limpia
+         * sola: plr.flags se memsetea a 0 en cada game_init. */
+        PLAYER_NEGATIZED = 0x1 << 8
 } PlayerFlags;
 
 typedef struct
