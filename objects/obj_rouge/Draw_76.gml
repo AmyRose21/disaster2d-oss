@@ -43,6 +43,20 @@ switch(state)
 		break;
 
 	case DEAD:
+		// v20 (NEGA): la tira DEAD del subdito negativo hace de
+		// animacion de STUN (el slot 6 del mirror nega copio el
+		// dead del superviviente): UNA pasada y se queda en el
+		// ultimo frame, no en bucle como el stun del esbirro demon.
+		if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+		{
+			image_speed = 0.5;
+
+			if(image_index >= image_number - 1)
+			image_index = image_number - 1;
+
+			break;
+		}
+
 		if(revivalTimes >= 2)
 		{
 			image_speed = 0.5;

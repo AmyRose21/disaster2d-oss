@@ -10,7 +10,7 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":7.22,
+  "duration":7.221406,
   "exportDir":"",
   "name":"snd_jina_taunt2",
   "parent":{

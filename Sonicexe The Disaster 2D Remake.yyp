@@ -2588,6 +2588,8 @@
     {"id":{"name":"spr_tailsnega_lookdown","path":"sprites/spr_tailsnega_lookdown/spr_tailsnega_lookdown.yy",},},
     {"id":{"name":"spr_tailsnega_lookup","path":"sprites/spr_tailsnega_lookup/spr_tailsnega_lookup.yy",},},
     {"id":{"name":"spr_tailsnega_run","path":"sprites/spr_tailsnega_run/spr_tailsnega_run.yy",},},
+    {"id":{"name":"spr_tailsnega_tail1","path":"sprites/spr_tailsnega_tail1/spr_tailsnega_tail1.yy",},},
+    {"id":{"name":"spr_tailsnega_tail2","path":"sprites/spr_tailsnega_tail2/spr_tailsnega_tail2.yy",},},
     {"id":{"name":"spr_tailsnega_walk","path":"sprites/spr_tailsnega_walk/spr_tailsnega_walk.yy",},},
     {"id":{"name":"spr_tailsnega_zipline","path":"sprites/spr_tailsnega_zipline/spr_tailsnega_zipline.yy",},},
     {"id":{"name":"spr_timeover","path":"sprites/spr_timeover/spr_timeover.yy",},},

@@ -75,16 +75,21 @@ bool game_state_check(Server* server)
            [fix-nega-v16] EXCEPCION: convertir en NEGA a TODOS los
            demas jugadores SI la cierra (EXEWIN). Es el final
            natural de la prueba de Jinna y hacia falta para llegar
-           a la pantalla de resultados (retratos nega). SOLO cuenta
-           la conversion NEGA real (PLAYER_NEGATIZED: negatouch o
-           minion invocado), NO la demonizacion comun de esbirros:
-           muertos, escapados o esbirros comunes siguen SIN cerrar
-           la practica (comportamiento aprobado intacto: sola /
-           todos muertos / escape siguen abiertos). */
+           a la pantalla de resultados (retratos nega).
+           [fix v20 "minion mata al ultimo"] la excepcion se AMPLIA:
+           basta con que haya AL MENOS UN nega y ya nadie vivo
+           (ej.: 1 convertido + 1 matado por el minion) — "nega no
+           contaria como alguien vivo en si". Vivo = en el campo o
+           ATRAPADO EN EL PORTAL (PLAYER_CAUGHT: esperando la
+           invocacion, para no cortar el flujo captura->summon);
+           muerto, esbirro, nega y escapado NO cuentan. Sin ningun
+           nega el comportamiento aprobado queda intacto: sola /
+           todos muertos / escapes mantienen la practica abierta. */
         if (server->lobby.exe_practice)
         {
                 uint8_t others = 0;
                 uint8_t negas = 0;
+                uint8_t alive = 0;
 
                 for (size_t i = 0; i < server->peers.capacity; i++)
                 {
@@ -99,11 +104,14 @@ bool game_state_check(Server* server)
 
                         if (v->plr.flags & PLAYER_NEGATIZED)
                                 negas++;
+
+                        if (!(v->plr.flags & (PLAYER_DEAD | PLAYER_DEMONIZED | PLAYER_ESCAPED)))
+                                alive++; /* el atrapado en el portal cuenta: sigue "vivo" en la otra dimension */
                 }
 
-                if (others > 0 && negas == others)
+                if (others > 0 && negas > 0 && alive == 0)
                 {
-                        Info("Practice round ends: everyone was NEGATIZED");
+                        Info("Practice round ends: no one left alive (%u nega alive-side)", (unsigned)negas);
                         RAssert(game_end(server, ED_EXEWIN, true));
                 }
 

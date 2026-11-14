@@ -1,0 +1,67 @@
+FIX V21 — FUERA LA FRASE snd_jina_taunt3 (JINNA)
+=================================================
+
+EL PEDIDO
+---------
+"snd_jina_taunt3 esa quitala. ese sonido me molesta. realmente
+la frase dice 'exetior te llaman un monstruo pero yo soy la
+unica que te ama' y realmente ese dialogo es una molestia.
+Ella deberia usar la animacion spr_jinna_won junto con la risa
+que esta hay. Quitar el sonido del taunt 3 del emotico 3."
+
+QUE CAMBIA
+----------
+1) VICTORIA DE JINNA (objects/obj_jinna/Step_2.gml)
+   - ANTES: al ganar hacia la pose spr_jinna_won Y soltaba la
+     linea snd_jina_taunt3 (8,15 s, la frase de "exetior..."),
+     en su pantalla y por red en la de todos.
+   - AHORA: la pose spr_jinna_won SE QUEDA y suena SOLO la risa
+     (snd_jina_laugh, 2,4 s) que ya sonaba de serie como jingle
+     de victoria en todos los clientes (net_state_game, tanto
+     por matar a todos como por TIME OVER). Cero frases.
+   - Fuera tambien la variable jinnaWonSnd del Create_0 (ya no
+     hay linea de victoria que frenar a 1 reproduccion).
+
+2) EMOTICONO 3 / TECLA D (scripts/scr_move_basic.gml)
+   - ANTES (v20): el case EXE_JINNA del switch del KeyEm3
+     reproduca snd_jina_taunt3 (la misma frase).
+   - AHORA: el emoticono 3 queda MUDO — la animacion
+     (spr_jinna_emotion3) sale exactamente igual, pero sin voz.
+   - Los emoticonos 1 (A, snd_jina_taunt1) y 2 (S,
+     snd_jina_taunt2) NO se tocan: siguen con su voz.
+
+QUE NO CAMBIA
+-------------
+- snd_jina_laugh sigue sonando: al elegirla en la seleccion de
+  personaje y como jingle de su victoria (kill final y TIME OVER).
+- snd_jina_go (arranque), snd_jina_ready (telegraph del tele y
+  el agarre) y snd_jina_kill1 (voz al matar) intactos.
+- El ARCHIVO snd_jina_taunt3 queda en el proyecto (Sounds >
+  Player > Jinna, en el disco sounds/snd_jina_taunt3/) pero ya
+  NINGUN codigo lo llama: nunca suena. Si lo quieres borrar del
+  disco y del .yyp tambien (es el ultimo indice de net_sounds,
+  122, asi que es seguro), pidelo y lo hago.
+
+ARCHIVOS TOCADOS (SOLO CLIENTE — el server NO se toca)
+------------------------------------------------------
+- objects/obj_jinna/Step_2.gml        (victoria sin frase)
+- objects/obj_jinna/Create_0.gml      (limpieza jinnaWonSnd)
+- scripts/scr_move_basic/scr_move_basic.gml  (emote 3 mudo)
+(BASE: tu proyecto con el fix v20 aplicado)
+
+VALIDACION
+----------
+- scripts/check_v21.py: 20/20 OK (sin plays de taunt3 en el
+  codigo de todo el proyecto, voices del A y del S intactos,
+  pose de victoria intacta, taunts libres del v20 intactos,
+  jingle de risa intacto en sus 2 sitios, asset no roto,
+  balance de llaves/parens en los 3 GML).
+
+PRUEBA RAPIDA
+-------------
+1. Recompila el CLIENTE (GameMaker). El server va igual.
+2. Gana una ronda con Jinna (mata a todos o deja el tiempo
+   agotarse): hace la pose spr_jinna_won y suena su risa corta
+   — sin la frase de 8 segundos.
+3. Con Jinna quieta (Idle) pulsa D: sale la animacion del
+   emoticono 3 pero MUDA. A y S siguen con sus voces.

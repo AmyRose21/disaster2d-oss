@@ -599,6 +599,14 @@ function scr_move_basic()
                                                 emotionSnd = audio_play_sound(snd_metal_laugh, 0, false);
                                                 net_sound_emit(snd_metal_laugh);
                                                 break;
+
+                                        // v21: el emoticono 3 de Jinna queda MUDO a
+                                        // peticion de la duena (la linea snd_jina_taunt3
+                                        // — su dialogo — molestaba). La animacion
+                                        // (spr_jinna_emotion3) sale igual; los
+                                        // emoticonos 1 (A) y 2 (S) conservan su voz.
+                                        case EXE_JINNA:
+                                                break;
                                 }
                         }
                 }

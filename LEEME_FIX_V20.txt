@@ -1,0 +1,149 @@
+FIX V20 — "MINION MATA AL ULTIMO" + EMOTICONOS DE JINNA + COLAS DE TAILS
+========================================================================
+
+LOS 3 REPORTES
+--------------
+1) "Si un minion mata a otro jugador (ejemplo: convertí 1 y maté 1)
+   el juego no se termina. Sigue la partida aunque ya no queda
+   técnicamente nadie vivo, ya que nega no contaría como alguien
+   vivo en sí."
+2) "A Jina le hace falta la opción de emotico: no sale la imagen de
+   los emoticos ni tampoco le permite soltar emoticonos."
+3) "Las cosas de Tails están atadas a cuando está vivo y está
+   muerto: las colas en Idle no están de color nega, al entrar al
+   portal las colas no desaparecen, y la animación dead (que
+   reemplaza a la de stun) se repite en vez de reproducirse una
+   sola vez."
+
+1) FIN DE RONDA: 1 NEGA + 1 MUERTO (SERVER — RECOMPILAR)
+--------------------------------------------------------
+- DIAGNÓSTICO: en partida NORMAL esto ya funcionaba (DEMONIZED y
+  DEAD cuentan como fuera de juego para el win del EXE, y la muerte
+  reportada por la víctima dispara el check). El hueco estaba en la
+  PRÁCTICA .ep: su guard solo cerraba la ronda si TODOS los demás
+  estaban convertidos a nega (fix v16). Con "1 convertida + 1
+  muerta" el conteo daba negas=1, otros=2 -> la ronda seguía abierta
+  hasta el TIME OVER. Es exactamente el escenario que documentaba el
+  validador v16 como "sigue abierta".
+- FIX (Game.c, game_state_check, guard de práctica): la ronda cierra
+  (EXEWIN, pantalla de resultados con retratos nega) cuando hay AL
+  MENOS UN nega y ya NO QUEDA NADIE VIVO — "nega no contaría como
+  alguien vivo en sí". Vivo = en el campo o ATRAPADO EN EL PORTAL
+  (sigue "vivo" en la otra dimensión esperando la invocación: el
+  flujo capturar->invocar NO se corta nunca). Muerto, esbirro común,
+  nega y escapado NO cuentan.
+- SIN NINGÚN NEGA todo queda como estaba (aprobado): sola / todos
+  muertos / escapes mantienen la práctica abierta para seguir
+  probando.
+- El cierre lo disparan los mismos flujos de siempre (muerte,
+  negatouch, invocación, escape, salida de un jugador): todos ya
+  llaman a game_state_check.
+- En .ep, "1 nega + 1 atrapada en el portal" sigue ABIERTA hasta que
+  la invoques (al invocarla cierra solito: todos nega, nadie vivo).
+
+2) EMOTICONOS DE JINNA (CLIENTE)
+--------------------------------
+- DIAGNÓSTICO: los emoticonos 1 y 2 de los killers están bloqueados
+  tras "taunts" que se compran en Extra -> Taunts con mercoins. Esa
+  tienda tiene hueco para 8 botones (4 killers clásicos x 2 en una
+  pantalla de 270 px de alto: NO cabe una fila más) — Jinna nunca
+  tuvo botón, sus trades tjinna0/tjinna1 eran imposibles de comprar
+  y sus emoticonos 1/2 quedaban bloqueados para siempre (el 3 ya
+  funcionaba: nunca llevó requisito).
+- FIX: los taunts de Jinna van LIBRES DE SERIE (obj_jinna/Create_0:
+  taunt1 = taunt2 = true). Jinna es la killer EXCLUSIVA del token de
+  Amy: sus emoticonos son de serie igual que los de cualquier
+  superviviente (los supervivientes tampoco compran los suyos).
+- De paso, su emoticónico 3 ya tiene "risa" como el resto de killers
+  (snd_jina_taunt3, la misma línea de su victoria — si prefieres
+  otra voz es una línea en scr_move_basic).
+- PROBAR: con Jinna quieta (Idle) pulsa las teclas de emoticono
+  (A / S / D por defecto, o las que tengas enlazadas en Options ->
+  Controls): los 3 emoticonos salen con imagen y voz.
+
+3) COLAS DE TAILS (CLIENTE)
+---------------------------
+- DIAGNÓSTICO: las colas son un OBJETO APARTE (obj_tails_tail en tu
+  pantalla, obj_puppet_tail en la de los demás) y su sprite se
+  elegía SOLO con "revivalTimes >= 2" (vivo/muerto): el nega
+  heredaba las colas DEMON del esbirro. Además ese objeto no miraba
+  el "visible" del dueño: al entrar al portal el cuerpo se oculta
+  pero las colas seguían flotando en el punto de la captura. Y la
+  animación dead (que en el nega hace de stun, porque el mirror
+  nega copió el slot 6 del superviviente) corría en bucle.
+- FIX (3 partes):
+  a) SPRITES NUEVOS: spr_tailsnega_tail1 (4 frames) y
+     spr_tailsnega_tail2 (5 frames) — inversión fotográfica pura de
+     las colas normales (verificada píxel a píxel), con la estructura
+     AUTO-CONTENIDA del fix v19 (keyframes a frames propios: si
+     algún día re-importas spr_tails_tail1/2, los nega no se rompen).
+     bbox/origin/playback clonados del base.
+  b) obj_tails_tail + obj_puppet_tail: 3 formas (normal / NEGA /
+     demon) en las 3 ramas (borde, idle/look/emote, salto/spin), las
+     colas se esconden cuando el dueño entra al portal (cuerpo
+     invisible), y el hurt del nega (spr_tailsnega_hurt) también
+     retira las colas como el del superviviente y el del demon.
+  c) ANIMACIÓN DEAD DEL NEGA = UNA PASADA: en los 15 supervivientes
+     (Draw_76), el case DEAD con marca nega reproduce la tira a
+     0.5 y se QUEDA en el último frame (tumbado) hasta que pase el
+     stun. El esbirro DEMON conserva su bucle (su slot 6 sí es una
+     tira de stun diseñada para repetirse). Metal/Amelia/Blaze no
+     tenían case DEAD (heredaban la velocidad anterior): se les
+     añadió uno solo-nega; el resto de sus estados queda igual.
+     En la pantalla de los demás no hace falta tocar nada: el
+     puppet copia el image_index del dueño por UDP.
+
+ARCHIVOS TOCADOS
+----------------
+SERVER (compilar_server.bat, opción 1 — OBLIGATORIO):
+- betterserver-oss/disasterserver/states/Game.c
+
+CLIENTE (recompilar el juego):
+- objects/obj_jinna/Create_0.gml              (taunts libres)
+- scripts/scr_move_basic/scr_move_basic.gml   (risa del emote 3)
+- objects/obj_tails_tail/Step_2.gml           (colas: nega + portal + hurt)
+- objects/obj_puppet_tail/Step_2.gml          (idem, lado remoto)
+- objects/<15 supervivientes>/Draw_76.gml     (dead nega = 1 pasada:
+  obj_tails, obj_knux, obj_egg, obj_amy, obj_cream, obj_sally,
+  obj_sonic, obj_vanilla, obj_rouge, obj_amy_canon, obj_sally_canon,
+  obj_amy_fleetway, obj_metal, obj_amelia, obj_blaze)
+- sprites/spr_tailsnega_tail1/ + sprites/spr_tailsnega_tail2/ (nuevos)
+- "Sonicexe The Disaster 2D Remake.yyp"       (2 entradas de sprite)
+
+VALIDACIÓN
+----------
+- scripts/check_v20.py: 160/160 OK (checks estáticos + simulaciones
+  1:1 del guard de práctica: el bug reportado cierra, los escenarios
+  aprobados quedan intactos, el portal sigue siendo invocable).
+- Sintaxis C: gcc -fsyntax-only (stub enet) — MISMO set de 7 errores
+  artefacto del stub que el HEAD (rand/malloc/free implícitos),
+  cero errores nuevos.
+- Sprites: inversión pixel-exacta (0 px mal), keyframes a frames
+  propios, bbox/origin/playback clonados, .yyp JSON válido sin
+  duplicados, entradas en orden alfabético.
+- Llaves/paréntesis balanceados en los 17 GML tocados.
+
+NOTAS
+-----
+- Metal Amy tiene el mismo hueco de tienda que tenía Jinna
+  (tmetalamy0/1 sin botón): sus emoticonos 1/2 siguen bloqueados.
+  Si quieres, se le liberan igual (2 líneas en obj_metalamy/Create_0).
+- El emoticónico 3 de Jinna usa snd_jina_taunt3 (la línea de su
+  victoria). Si quieres otra voz o dejarlo mudo, está en el case
+  EXE_JINNA del switch de EMOTION3 en scr_move_basic.gml.
+
+PRUEBA RÁPIDA
+-------------
+1. RECOMPILA SERVER y CLIENTE.
+2. .ep con 2 amigos: convierte a 1 (4 golpes V/X o trampa) y mata
+   al otro con el minion -> la ronda cierra con la pantalla de
+   resultados (retratos nega).
+3. .ep solo con 1 amigo: mátalo -> la práctica SIGUE abierta como
+   siempre (comportamiento aprobado intacto).
+4. Con Jinna, en Idle: A / S / D -> los 3 emoticonos con imagen y
+   voz (el D ya sonaba antes; el A y el S estaban bloqueados).
+5. Convierte a un Tails: sus colas salen NEGA en Idle/salto/borde,
+   en tu pantalla y en la de todos.
+6. Atrapa al Tails en el portal: el cuerpo Y las colas desaparecen.
+7. Stunea al nega Tails (parry, laser, trampa de Amelia...): cae con
+   la animación dead UNA vez y se queda tumbado hasta levantarse.

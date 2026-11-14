@@ -64,4 +64,22 @@ switch(state)
 	case METAL_ELECTRO:
 		image_speed = 0.8;
 		break;
+
+	// v20 (NEGA): la tira DEAD del subdito negativo hace de
+	// animacion de STUN (el slot 6 del mirror nega copio el
+	// dead del superviviente): UNA pasada y se queda en el
+	// ultimo frame. Estos tres (TTB) no tenian case DEAD:
+	// el esbirro demon heredaba la velocidad anterior — el
+	// break en seco conserva exactamente ese comportamiento.
+	case DEAD:
+		if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+		{
+			image_speed = 0.5;
+
+			if(image_index >= image_number - 1)
+				image_index = image_number - 1;
+
+			break;
+		}
+		break;
 }

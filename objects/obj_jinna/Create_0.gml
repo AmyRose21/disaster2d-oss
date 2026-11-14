@@ -100,7 +100,6 @@ jinnaCaughtDollDelay = [];  // frames restantes para mostrar cada muneco
 
 // JINNA: misc
 jinnaGoSnd = false;            // la linea de arranque suena 1 vez (ver Step_0)
-jinnaWonSnd = false;           // la linea de victoria suena 1 vez
 jinnaLostState = choose(JINNA_LOST, JINNA_LOST2); // derrota aleatoria (patron chaos)
 
 //General
@@ -124,9 +123,15 @@ isZipline = false;
 isOnEdge = false;
 edgeDir = 1;
 
-// taunts (tjinna0/tjinna1: los mismos IDs de trade del mod original)
-taunt1 = array_contains(obj_unlockables.trades, "tjinna0");
-taunt2 = array_contains(obj_unlockables.trades, "tjinna1");
+// taunts (v20): LIBRES de serie. tjinna0/tjinna1 son los IDs de trade del
+// mod original, pero la tienda de taunts (obj_menu_taunt + room_menu) solo
+// tiene hueco para los 4 killers clasicos (4 columnas x 2 filas en una
+// pantalla de 270 px: no cabe una fila mas) — nunca hubo forma de comprarlos
+// y los emoticonos 1/2 de Jinna quedaban bloqueados para siempre (el 3 ya
+// era libre: no lleva taunt). Jinna es la killer EXCLUSIVA del token de Amy:
+// sus taunts van de serie igual que los emoticonos de cualquier superviviente.
+taunt1 = true;
+taunt2 = true;
 
 //Character flags (constants)
 canLookDown = true;

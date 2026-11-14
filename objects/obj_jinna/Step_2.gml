@@ -12,20 +12,14 @@
 if(!emotion)
         state = IDLE;
 
+// v21: al ganar SOLO la pose (spr_jinna_won) — el sonido es la risa
+// del jingle de victoria (snd_jina_laugh, que ya suena de serie en
+// todos los clientes via net_state_game). La linea snd_jina_taunt3
+// se retiro a peticion de la duena (el dialogo molestaba).
 if(won)
 {
         if(isGrounded)
-        {
                 state = JINNA_WON;
-
-                // su linea de victoria (una sola vez)
-                if(!jinnaWonSnd)
-                {
-                        jinnaWonSnd = true;
-                        audio_play_sound(snd_jina_taunt3, 0, false);
-                        net_sound_emit(snd_jina_taunt3);
-                }
-        }
 }
 
 if(lost)
