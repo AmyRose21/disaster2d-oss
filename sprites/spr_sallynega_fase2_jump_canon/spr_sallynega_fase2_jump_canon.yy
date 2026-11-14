@@ -1,350 +1,118 @@
 {
-  "$GMSprite": "v2",
-  "%Name": "spr_sallynega_fase2_jump_canon",
-  "bboxMode": 0,
-  "bbox_bottom": 35,
-  "bbox_left": 8,
-  "bbox_right": 40,
-  "bbox_top": 3,
-  "collisionKind": 1,
-  "collisionTolerance": 0,
-  "DynamicTexturePage": false,
-  "edgeFiltering": false,
-  "For3D": false,
-  "frames": [
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "a0a969a9-5196-4d61-8120-8e64c8544764",
-      "name": "a0a969a9-5196-4d61-8120-8e64c8544764",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "d4e1c6e0-d65c-4438-bb40-3712dfe01f46",
-      "name": "d4e1c6e0-d65c-4438-bb40-3712dfe01f46",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "3f8ede9e-836a-4537-a136-bb5eebdbd20c",
-      "name": "3f8ede9e-836a-4537-a136-bb5eebdbd20c",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "b05dfc05-adfe-4a3e-b337-6a74364cfae3",
-      "name": "b05dfc05-adfe-4a3e-b337-6a74364cfae3",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "2607df2a-cd69-48da-8234-4b77d8869363",
-      "name": "2607df2a-cd69-48da-8234-4b77d8869363",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "d70e9c2a-1179-4d0a-9be6-72d51c609e66",
-      "name": "d70e9c2a-1179-4d0a-9be6-72d51c609e66",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "7fa9cc62-f374-49ae-ba34-cf2585aa732a",
-      "name": "7fa9cc62-f374-49ae-ba34-cf2585aa732a",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "1d709b84-3d22-4094-a7cb-bfa3bee419df",
-      "name": "1d709b84-3d22-4094-a7cb-bfa3bee419df",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    }
+  "$GMSprite":"v2",
+  "%Name":"spr_sallynega_fase2_jump_canon",
+  "bboxMode":0,
+  "bbox_bottom":35,
+  "bbox_left":8,
+  "bbox_right":40,
+  "bbox_top":3,
+  "collisionKind":1,
+  "collisionTolerance":0,
+  "DynamicTexturePage":false,
+  "edgeFiltering":false,
+  "For3D":false,
+  "frames":[
+    {"$GMSpriteFrame":"v1","%Name":"a0a969a9-5196-4d61-8120-8e64c8544764","name":"a0a969a9-5196-4d61-8120-8e64c8544764","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"d4e1c6e0-d65c-4438-bb40-3712dfe01f46","name":"d4e1c6e0-d65c-4438-bb40-3712dfe01f46","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"3f8ede9e-836a-4537-a136-bb5eebdbd20c","name":"3f8ede9e-836a-4537-a136-bb5eebdbd20c","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"b05dfc05-adfe-4a3e-b337-6a74364cfae3","name":"b05dfc05-adfe-4a3e-b337-6a74364cfae3","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"2607df2a-cd69-48da-8234-4b77d8869363","name":"2607df2a-cd69-48da-8234-4b77d8869363","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"d70e9c2a-1179-4d0a-9be6-72d51c609e66","name":"d70e9c2a-1179-4d0a-9be6-72d51c609e66","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"7fa9cc62-f374-49ae-ba34-cf2585aa732a","name":"7fa9cc62-f374-49ae-ba34-cf2585aa732a","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"1d709b84-3d22-4094-a7cb-bfa3bee419df","name":"1d709b84-3d22-4094-a7cb-bfa3bee419df","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
-  "gridX": 0,
-  "gridY": 0,
-  "height": 40,
-  "HTile": false,
-  "layers": [
-    {
-      "$GMImageLayer": "",
-      "%Name": "aeef5b79-bc8a-47a7-b6b2-9a1ab1267ef8",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "aeef5b79-bc8a-47a7-b6b2-9a1ab1267ef8",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    }
+  "gridX":0,
+  "gridY":0,
+  "height":40,
+  "HTile":false,
+  "layers":[
+    {"$GMImageLayer":"","%Name":"aeef5b79-bc8a-47a7-b6b2-9a1ab1267ef8","blendMode":0,"displayName":"default","isLocked":false,"name":"aeef5b79-bc8a-47a7-b6b2-9a1ab1267ef8","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
-  "name": "spr_sallynega_fase2_jump_canon",
-  "nineSlice": null,
-  "origin": 4,
-  "parent": {
-    "name": "Fase2",
-    "path": "folders/Sprites/Player/Survivors/Sally Canon/Fase2.yy"
+  "name":"spr_sallynega_fase2_jump_canon",
+  "nineSlice":null,
+  "origin":4,
+  "parent":{
+    "name":"Fase2",
+    "path":"folders/Sprites/Player/Survivors/Sally Canon/Fase2.yy",
   },
-  "preMultiplyAlpha": false,
-  "resourceType": "GMSprite",
-  "resourceVersion": "2.0",
-  "sequence": {
-    "$GMSequence": "v1",
-    "%Name": "spr_sallynega_fase2_jump_canon",
-    "autoRecord": true,
-    "backdropHeight": 768,
-    "backdropImageOpacity": 0.5,
-    "backdropImagePath": "",
-    "backdropWidth": 1366,
-    "backdropXOffset": 0.0,
-    "backdropYOffset": 0.0,
-    "events": {
-      "$KeyframeStore<MessageEventKeyframe>": "",
-      "Keyframes": [],
-      "resourceType": "KeyframeStore<MessageEventKeyframe>",
-      "resourceVersion": "2.0"
+  "preMultiplyAlpha":false,
+  "resourceType":"GMSprite",
+  "resourceVersion":"2.0",
+  "sequence":{
+    "$GMSequence":"v1",
+    "%Name":"spr_sallynega_fase2_jump_canon",
+    "autoRecord":true,
+    "backdropHeight":768,
+    "backdropImageOpacity":0.5,
+    "backdropImagePath":"",
+    "backdropWidth":1366,
+    "backdropXOffset":0.0,
+    "backdropYOffset":0.0,
+    "events":{
+      "$KeyframeStore<MessageEventKeyframe>":"",
+      "Keyframes":[],
+      "resourceType":"KeyframeStore<MessageEventKeyframe>",
+      "resourceVersion":"2.0",
     },
-    "eventStubScript": null,
-    "eventToFunction": {},
-    "length": 8.0,
-    "lockOrigin": false,
-    "moments": {
-      "$KeyframeStore<MomentsEventKeyframe>": "",
-      "Keyframes": [],
-      "resourceType": "KeyframeStore<MomentsEventKeyframe>",
-      "resourceVersion": "2.0"
+    "eventStubScript":null,
+    "eventToFunction":{},
+    "length":8.0,
+    "lockOrigin":false,
+    "moments":{
+      "$KeyframeStore<MomentsEventKeyframe>":"",
+      "Keyframes":[],
+      "resourceType":"KeyframeStore<MomentsEventKeyframe>",
+      "resourceVersion":"2.0",
     },
-    "name": "spr_sally_fase2_jump_canon",
-    "playback": 1,
-    "playbackSpeed": 15.0,
-    "playbackSpeedType": 0,
-    "resourceType": "GMSequence",
-    "resourceVersion": "2.0",
-    "showBackdrop": true,
-    "showBackdropImage": false,
-    "timeUnits": 1,
-    "tracks": [
-      {
-        "$GMSpriteFramesTrack": "",
-        "builtinName": 0,
-        "events": [],
-        "inheritsTrackColour": true,
-        "interpolation": 1,
-        "isCreationTrack": false,
-        "keyframes": {
-          "$KeyframeStore<SpriteFrameKeyframe>": "",
-          "Keyframes": [
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "b3f8eaee-567e-49f7-8aa4-db242a582ebc",
-                    "path": "sprites/spr_sally_fase2_jump_canon/spr_sally_fase2_jump_canon.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "1d7ec4a0-273a-4f9f-8c70-22803beb99bc",
-              "IsCreationKey": false,
-              "Key": 0.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "86b1c8c8-7c5b-4334-9e14-008274af2262",
-                    "path": "sprites/spr_sally_fase2_jump_canon/spr_sally_fase2_jump_canon.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "08153acc-e02a-4e1f-ae89-c72021acc9bf",
-              "IsCreationKey": false,
-              "Key": 1.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "27e67324-3bcf-45fe-a2fd-dfaad754c03f",
-                    "path": "sprites/spr_sally_fase2_jump_canon/spr_sally_fase2_jump_canon.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "bc184543-d667-4fc8-ab9c-323c02a80dd6",
-              "IsCreationKey": false,
-              "Key": 2.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "da58ad6d-4c4e-4f3f-9e7d-b2537dd41d4f",
-                    "path": "sprites/spr_sally_fase2_jump_canon/spr_sally_fase2_jump_canon.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "902dfb84-d51b-4bab-ad12-14a6de917dd3",
-              "IsCreationKey": false,
-              "Key": 3.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "9e05323a-22c9-4955-b153-f30741abb51b",
-                    "path": "sprites/spr_sally_fase2_jump_canon/spr_sally_fase2_jump_canon.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "1a0089ef-cf0f-44d1-94b4-c5db5d74220e",
-              "IsCreationKey": false,
-              "Key": 4.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "29434089-03be-4629-b2f8-0ae9fa45b16f",
-                    "path": "sprites/spr_sally_fase2_jump_canon/spr_sally_fase2_jump_canon.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "7d976996-aae0-4cb4-8611-e1d113e2820d",
-              "IsCreationKey": false,
-              "Key": 5.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "213f2e4f-fa56-4919-a532-679cf5334392",
-                    "path": "sprites/spr_sally_fase2_jump_canon/spr_sally_fase2_jump_canon.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "78255d17-9ca7-49a3-87e1-4e2e9c25ca4a",
-              "IsCreationKey": false,
-              "Key": 6.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "1a0dddd5-dd7b-4cc6-a1bb-b0c7e921a71f",
-                    "path": "sprites/spr_sally_fase2_jump_canon/spr_sally_fase2_jump_canon.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "75e57631-de6c-49f7-be46-e688c9840554",
-              "IsCreationKey": false,
-              "Key": 7.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            }
-          ],
-          "resourceType": "KeyframeStore<SpriteFrameKeyframe>",
-          "resourceVersion": "2.0"
-        },
-        "modifiers": [],
-        "name": "frames",
-        "resourceType": "GMSpriteFramesTrack",
-        "resourceVersion": "2.0",
-        "spriteId": null,
-        "trackColour": 0,
-        "tracks": [],
-        "traits": 0
-      }
+    "name":"spr_sallynega_fase2_jump_canon",
+    "playback":1,
+    "playbackSpeed":15.0,
+    "playbackSpeedType":0,
+    "resourceType":"GMSequence",
+    "resourceVersion":"2.0",
+    "showBackdrop":true,
+    "showBackdropImage":false,
+    "timeUnits":1,
+    "tracks":[
+      {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"a0a969a9-5196-4d61-8120-8e64c8544764","path":"sprites/spr_sallynega_fase2_jump_canon/spr_sallynega_fase2_jump_canon.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"1d7ec4a0-273a-4f9f-8c70-22803beb99bc","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"d4e1c6e0-d65c-4438-bb40-3712dfe01f46","path":"sprites/spr_sallynega_fase2_jump_canon/spr_sallynega_fase2_jump_canon.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"08153acc-e02a-4e1f-ae89-c72021acc9bf","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"3f8ede9e-836a-4537-a136-bb5eebdbd20c","path":"sprites/spr_sallynega_fase2_jump_canon/spr_sallynega_fase2_jump_canon.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"bc184543-d667-4fc8-ab9c-323c02a80dd6","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"b05dfc05-adfe-4a3e-b337-6a74364cfae3","path":"sprites/spr_sallynega_fase2_jump_canon/spr_sallynega_fase2_jump_canon.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"902dfb84-d51b-4bab-ad12-14a6de917dd3","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"2607df2a-cd69-48da-8234-4b77d8869363","path":"sprites/spr_sallynega_fase2_jump_canon/spr_sallynega_fase2_jump_canon.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"1a0089ef-cf0f-44d1-94b4-c5db5d74220e","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"d70e9c2a-1179-4d0a-9be6-72d51c609e66","path":"sprites/spr_sallynega_fase2_jump_canon/spr_sallynega_fase2_jump_canon.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"7d976996-aae0-4cb4-8611-e1d113e2820d","IsCreationKey":false,"Key":5.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"7fa9cc62-f374-49ae-ba34-cf2585aa732a","path":"sprites/spr_sallynega_fase2_jump_canon/spr_sallynega_fase2_jump_canon.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"78255d17-9ca7-49a3-87e1-4e2e9c25ca4a","IsCreationKey":false,"Key":6.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"1d709b84-3d22-4094-a7cb-bfa3bee419df","path":"sprites/spr_sallynega_fase2_jump_canon/spr_sallynega_fase2_jump_canon.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"75e57631-de6c-49f7-be46-e688c9840554","IsCreationKey":false,"Key":7.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
-    "visibleRange": null,
-    "volume": 1.0,
-    "xorigin": 25,
-    "yorigin": 20
+    "visibleRange":null,
+    "volume":1.0,
+    "xorigin":25,
+    "yorigin":20,
   },
-  "swatchColours": null,
-  "swfPrecision": 2.525,
-  "textureGroupId": {
-    "name": "Game",
-    "path": "texturegroups/Game"
+  "swatchColours":null,
+  "swfPrecision":2.525,
+  "textureGroupId":{
+    "name":"Game",
+    "path":"texturegroups/Game",
   },
-  "type": 0,
-  "VTile": false,
-  "width": 50
+  "type":0,
+  "VTile":false,
+  "width":50,
 }

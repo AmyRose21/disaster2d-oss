@@ -102,7 +102,7 @@
       "resourceType": "KeyframeStore<MomentsEventKeyframe>",
       "resourceVersion": "2.0"
     },
-    "name": "spr_amelia_run",
+    "name": "spr_amelianega_run",
     "playback": 1,
     "playbackSpeed": 30.0,
     "playbackSpeedType": 0,
@@ -128,8 +128,8 @@
                 "0": {
                   "$SpriteFrameKeyframe": "",
                   "Id": {
-                    "name": "06f160e1-9eb8-47c0-80ef-130254cfe21b",
-                    "path": "sprites/spr_amelia_run/spr_amelia_run.yy"
+                    "name": "71f793f7-6907-4c9d-8798-d25de7c0ea2c",
+                    "path": "sprites/spr_amelianega_run/spr_amelianega_run.yy"
                   },
                   "resourceType": "SpriteFrameKeyframe",
                   "resourceVersion": "2.0"
@@ -150,8 +150,8 @@
                 "0": {
                   "$SpriteFrameKeyframe": "",
                   "Id": {
-                    "name": "ed3cf445-516c-4ff2-a253-ca91c2a979ee",
-                    "path": "sprites/spr_amelia_run/spr_amelia_run.yy"
+                    "name": "4465fa4f-4b9f-4909-896b-45f7d7eb8874",
+                    "path": "sprites/spr_amelianega_run/spr_amelianega_run.yy"
                   },
                   "resourceType": "SpriteFrameKeyframe",
                   "resourceVersion": "2.0"
@@ -172,8 +172,8 @@
                 "0": {
                   "$SpriteFrameKeyframe": "",
                   "Id": {
-                    "name": "818ac440-f218-4e09-bb4d-194a009eff61",
-                    "path": "sprites/spr_amelia_run/spr_amelia_run.yy"
+                    "name": "76579d0d-367c-49a1-b60b-601af49e11c7",
+                    "path": "sprites/spr_amelianega_run/spr_amelianega_run.yy"
                   },
                   "resourceType": "SpriteFrameKeyframe",
                   "resourceVersion": "2.0"
@@ -194,8 +194,8 @@
                 "0": {
                   "$SpriteFrameKeyframe": "",
                   "Id": {
-                    "name": "5f0876e4-a5f4-4ae0-8755-b213a4d218e6",
-                    "path": "sprites/spr_amelia_run/spr_amelia_run.yy"
+                    "name": "1f92098f-d0ae-491f-bd2b-12e43b989ae8",
+                    "path": "sprites/spr_amelianega_run/spr_amelianega_run.yy"
                   },
                   "resourceType": "SpriteFrameKeyframe",
                   "resourceVersion": "2.0"
@@ -216,8 +216,8 @@
                 "0": {
                   "$SpriteFrameKeyframe": "",
                   "Id": {
-                    "name": "6b2dcb45-78d8-4b1e-b06d-3ca31405d28a",
-                    "path": "sprites/spr_amelia_run/spr_amelia_run.yy"
+                    "name": "aa6b79f9-1f35-4b79-9e24-b4de20f4edc3",
+                    "path": "sprites/spr_amelianega_run/spr_amelianega_run.yy"
                   },
                   "resourceType": "SpriteFrameKeyframe",
                   "resourceVersion": "2.0"
