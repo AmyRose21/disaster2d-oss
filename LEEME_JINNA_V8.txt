@@ -1,0 +1,76 @@
+JINNA v13 — "LA MINION NO SE VEÍA A SÍ MISMA": el cuerpo invisible tras la INVOCACIÓN
+====================================================================================
+
+QUÉ SE ARREGLA
+--------------
+"En la pantalla de la minion EN SU PANTALLA no aparece ella; se ve la flecha,
+nada más. Fue invocada por Jinna, Jinna la ve y la otra también, pero ella
+misma no se ve a sí misma." Exactamente eso, y la causa era UNA SOLA LÍNEA
+que faltaba.
+
+LA CAUSA RAÍZ (rastreada línea por línea)
+-----------------------------------------
+El cuerpo del jugador local se oculta en su propia pantalla en DOS momentos
+(los dos son míos, del ciclo del portal de Jinna):
+
+  1) La CAPTURA del portal: obj_jinna_absorb/Step_0.gml hace
+         with(global.player) { ... visible = false; }        // "ya no es de este mundo"
+
+  2) La VUELTA AL PORTAL al caer (0 hp): SERVER_JINNA_MINION_DOWN hace
+         global.player.visible = false;                       // a esperar la re-invocación
+
+  La INVOCACIÓN (SERVER_JINNA_MINION_STATE, rama "YO SOY UN MINION") devolvía
+  TODO: posición a los pies de Jinna, hp 100, isDead, revivalTimes, isMinion,
+  isNegatouch, el control, la cámara... MENOS EL VISIBLE. La invocada seguía
+  con visible = false → su propio Draw_0 nunca corría → NO SE VEÍA A SÍ MISMA.
+
+  ¿Por qué Jinna y la otra sí la veían? Porque en SUS clientes el cuerpo de la
+  invocada es el PUPPET, y esa MISMA rama de arriba SÍ restauraba su puppet:
+         with(obj_player_puppet) { visible = true; ... }       // líneas 688-705
+
+  ¿Y la FLECHA que la minion sí veía? Es el obj_demon_indicator: OTRO objeto
+  que se dibuja encima de global.player en la capa GUI (lo crea la propia
+  invocación). No depende del visible del jugador: por eso se veía "la flecha
+  y nada más" — la flecha marcaba EXACTAMENTE el punto donde estaba su cuerpo
+  invisible.
+
+  (Este bug NO era de sprites ni de la marca nega: v11/v12 andaban bien.
+  visible es una variable built-in de la instancia, como hp/isDead — que
+  siempre llegaron por esa misma vía — así que la única pieza que faltaba del
+  ciclo atrapar → ocultar → INVOCAR → volver a VERSE era esta asignación.)
+
+EL ARREGLO (1 archivo)
+-----------------------
+  scripts/net_state_game/net_state_game.gml — SERVER_JINNA_MINION_STATE,
+  rama "_mine" (yo soy la invocada): se añade
+
+      global.player.visible = true;
+
+  junto al resto de la restauración (isMinion/isNegatouch). Con esto:
+  - Primera invocación tras la absorción: el cuerpo aparece EN SU PANTALLA.
+  - Re-invocaciones tras caer y volver al portal: idem (la única línea que
+    faltaba para cerrar el ciclo).
+  - El look sigue siendo el NEGA de v11 (isNegatouch = true en la misma rama
+    → Draw_76 local saca la tira negaanims) — ahora que el Draw vuelve a
+    correr, ella se ve a sí misma NEGA, igual que la ven los demás.
+
+QUÉ NO CAMBIA
+-------------
+- Red/protocolo: ni un byte (mismo SERVER_JINNA_MINION_STATE; el server C ni
+  se entera: todo es cliente del propio invocado).
+- Negatouch (toque negativo de 15): intacto — esa víctima nunca fue ocultada,
+  su fix era el v12 y sigue igual.
+- Puppets, sprites nega, barras, retratos, HUD: intactos.
+- La caída del minion (MINION_DOWN) sigue ocultándola correctamente mientras
+  espera en "la otra dimensión": SOLO la invocación la devuelve a la vista.
+
+PRUEBA RÁPIDA (3 clientes)
+--------------------------
+1. Jinna captura a la minion con el portal trampa (la absorción se la traga).
+2. Jinna presiona ↓+C: la INVOCACIÓN. → PANTALLA DE LA MINION: su cuerpo
+   aparece a los pies de Jinna con el look NEGA — por fin se ve a sí misma,
+   igual que la ve Jinna y la otra. La flecha del demon_indicator ahora
+   corre sobre un cuerpo visible.
+3. Que el minion caiga a 0: vuelve al portal (invisible otra vez, en su
+   pantalla — correcto). Que Jinna la re-invoque: vuelve a verse. Ciclo
+   cerrado.

@@ -5457,3 +5457,27 @@ Fix (17 archivos, SOLO cliente):
 - LEEME_JINNA_V7.txt. Red/server: 0 cambios.
 
 Entregable: download/jinna_v12_negagen_look_local.zip — SOLO los 17 archivos modificados/creados de esta ronda.
+## 2026-11-14 — v13 "LA MINION SE VE": cuerpo restaurado tras la INVOCACIÓN
+
+Reporte: "en la pantalla de la minion no aparece ella; se ve la flecha. Fue invocada por Jinna; Jinna la ve y la otra también, pero ella misma no se ve a sí misma."
+- Diagnóstico: el cuerpo del jugador local se oculta en SU pantalla al ser ABSORBIDA por el portal (obj_jinna_absorb/Step_0: with(global.player){ visible = false }) y al VOLVER AL PORTAL tras caer (SERVER_JINNA_MINION_DOWN: global.player.visible = false). La INVOCACIÓN (SERVER_JINNA_MINION_STATE, rama _mine) restauraba posición/hp/isDead/revivalTimes/isMinion/isNegatouch/control/cámara pero NUNCA el visible: la invocada seguía invisible para sí misma. Los demás SÍ la veían porque esa misma rama restaura el visible del PUPPET en sus clientes (with(obj_player_puppet){ visible = true }). La flecha que ella sí veía era el obj_demon_indicator (otro objeto, capa GUI sobre global.player): marcaba el punto exacto de su cuerpo invisible.
+- Fix (1 archivo, SOLO cliente, sin red): net_state_game.gml SERVER_JINNA_MINION_STATE rama _mine añade "global.player.visible = true;" junto a isMinion/isNegatouch. Cierra el ciclo atrapar -> ocultar -> INVOCAR -> volver a VERSE, tanto en la primera invocación (post-absorción) como en las re-invocaciones (post-portal). El look sigue siendo el nega de v11 (isNegatouch en la misma rama → Draw_76 local saca negaanims, ahora que su Draw vuelve a correr).
+
+Entregable: download/jinna_v13_negagen_minion_visible.zip — SOLO los 3 archivos de esta ronda (net_state_game.gml + LEEME_JINNA_V8.txt + worklog.md).
+
+## 2026-11-14 — v14 "RETRATOS DE RESULTADOS": el nega no aparece "como un exe"
+
+Reporte: "faltan los retratos de final de partida: aparecen como si fueran exes en vez del retrato negativo de su forma normal".
+- Diagnóstico: el server reporta PLRSTATE 1 (demonizado) para cualquier revivalTimes >= 2, y net_state_results pinta ese estado con scr_hud_demon (retrato demon). El paquete SERVER_RESULTS_DATA no lleva la marca negatouch, y los puppets/global.player mueren con el room_goto(room_results) que precede a las filas: no había donde consultar la marca en la sala de resultados.
+- Fix (3 archivos, SOLO cliente, sin red ni sprites nuevos): (1) scr_globals declara global.resultsNegaNicks; (2) SERVER_RESULTS, justo antes del cambio de sala (los puppets aún existen: la sala muere al final del evento), vuelca los nicks nega (global.player.isNegatouch del local + cada puppet con isNegatouch) a la lista global; (3) net_state_results consulta la lista por nick en PLRSTATE 1 → scr_hud_strip_nega frame 0 (SU cara normal invertida, la misma tira del HUD v11) en vez del retrato demon, y en PLRSTATE 2 → tira nega + frame +6. Esbirro común y demas estados intactos.
+- El zip lleva net_state_game.gml COMPLETO (incluye el fix v13 del visible del minion): aplicar v13 antes o solo v14, nunca v13 encima de v14.
+
+Entregable: download/jinna_v14_negagen_resultados.zip — SOLO los archivos de esta ronda (net_state_game.gml, net_state_results.gml, scr_globals.gml, LEEME_JINNA_V9.txt, worklog.md).
+
+## 2026-11-14 — v15 KICK "blud used a portal gun lmfao" tras la INVOCACIÓN (server)
+
+Reporte: "después de invocar al atrapado" aparece el popup "blud used a portal gun lmfao" y el invocado sale expulsado.
+- Diagnóstico: es la razón de desconexión DR_OTHER del anti-teleport del server (states/Game.c, procesador UDP de posición): salto >700 px sin daño propio que lo corrobore → portal_pending 1.5 s → kick diferido. La invocación teleporta al atrapado a los pies de Jinna SIN daño (lo cura: 100 hp + i-frames), y su posición server-side quedaba donde estaba la trampa → el salto medía >700 px → kick ~1.5 s después de aparecer. La captura no pateaba (su teleport viene con daño de trampa = corroborado), el teleport de Jinna abre ex_teleport=60 (patrón del clon de Exeller), y el negatouch no mueve a nadie: la invocación era el único teleport legítimo del kit sin exención.
+- Fix (1 archivo, SERVER — recompilar): states/Game.c case CLIENT_JINNA_MINION, por cada invocado: t->plr.pos alineada al punto de invocación (jx/jy, el mismo del paquete), t->plr.ex_teleport = 60 (ventanilla anti-cheat que cubre los paquetes UDP viejos del pre-teleport y también el error dial-up dist>60) y t->plr.portal_pending = 0. Cliente y red: 0 cambios.
+
+Entregable: download/jinna_v15_negagen_kick_invocacion.zip — SOLO el Game.c del server + este LEEME + worklog.

@@ -89,15 +89,50 @@ function net_state_results(rbuff, nps, isPasstrough)
                                 
                                 case 1:
                                 {
-                                        var _rsDem = scr_hud_demon(_char + 1);
-                                        _inst.icon = _rsDem[0];
-                                        _inst.frame = _rsDem[1];
+                                        // v14 (NEGAGEN): un subdito NEGATIVO no es
+                                        // un exe. El server lo reporta como
+                                        // demonizado (PLRSTATE 1: revivalTimes >= 2),
+                                        // pero su retrato es la tira NEGA de SU
+                                        // forma normal (scr_hud_strip_nega, frame 0:
+                                        // la misma tira del HUD de v11), NO el
+                                        // retrato demon de scr_hud_demon. La marca
+                                        // llega por la fotografia de nicks del
+                                        // SERVER_RESULTS (los puppets murieron con
+                                        // el cambio de sala: el paquete no trae la
+                                        // marca). El esbiro comun sigue con su
+                                        // retrato demon: SOLO cambia el negatouch.
+                                        if(variable_global_exists("resultsNegaNicks")
+                                        && global.resultsNegaNicks != noone
+                                        && is_ds_list(global.resultsNegaNicks)
+                                        && ds_list_find_index(global.resultsNegaNicks, _name) >= 0)
+                                        {
+                                                var _rsNega = scr_hud_strip_nega(_char + 1);
+                                                _inst.icon = _rsNega[0];
+                                                _inst.frame = _rsNega[1]; // frame 0 de su fila: SU cara normal invertida
+                                        }
+                                        else
+                                        {
+                                                var _rsDem = scr_hud_demon(_char + 1);
+                                                _inst.icon = _rsDem[0];
+                                                _inst.frame = _rsDem[1];
+                                        }
                                         break;
                                 }
                                 
                                 case 2:
                                 {
                                         var _rsStr = scr_hud_strip(_char + 1);
+
+                                        // v14 (NEGAGEN): un subdito NEGATIVO caido
+                                        // muestra la cara NEGA de su forma (misma
+                                        // posicion +6, tira nega). El muerto comun
+                                        // sigue con su tira normal.
+                                        if(variable_global_exists("resultsNegaNicks")
+                                        && global.resultsNegaNicks != noone
+                                        && is_ds_list(global.resultsNegaNicks)
+                                        && ds_list_find_index(global.resultsNegaNicks, _name) >= 0)
+                                                _rsStr = scr_hud_strip_nega(_char + 1);
+
                                         _inst.icon = _rsStr[0];
                                         _inst.frame = _rsStr[1] + 6;
                                         break;

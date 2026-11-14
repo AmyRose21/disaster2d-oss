@@ -1,0 +1,80 @@
+JINNA v15 — KICK "blud used a portal gun lmfao" TRAS LA INVOCACIÓN
+==================================================================
+
+QUÉ SE ARREGLA
+--------------
+"Después de invocar al atrapado" aparece el popup:
+    blud used a portal gun lmfao   [ OK ]
+y el jugador invocado sale expulsado de la partida. Es el KICK del
+anti-cheat de teletransporte del SERVER (no un bug del cliente): ese
+mensaje es la razón de desconexión que usa el server cuando la posición
+de un jugador "salta" más de 700 px sin daño propio que lo justifique.
+
+LA CAUSA RAÍZ (rastreada en el server C)
+----------------------------------------
+Al invocar (↓+C), el server reenvía SERVER_JINNA_MINION_STATE con la
+posición de Jinna, y el cliente del invocado lo TELETRANSPORTA a sus
+pies — pero SIN daño propio (la invocación lo CURA: 100 hp + 2 s de
+i-frames). El anti-teleport del server (states/Game.c, procesador UDP
+de posición) mide el salto contra la ÚLTIMA posición que conocía del
+invocado (donde estaba la trampa, a menudo a más de 700 px de donde
+paró Jinna) y, sin señal de daño que lo corrobore:
+
+    salto > 700 px  →  portal_pending = 1.5 s  →  KICK diferido
+                        ("blud used a portal gun lmfao")
+
+Por eso el popup salía UN POCO DESPUÉS de invocarlo, no en el acto.
+
+¿Por qué las demás cosas no pateaban? La CAPTURA no: su teleport SÍ
+viene con el daño de la trampa (queda "corroborado" en 3 s). El
+teleport de la PROPIA Jinna no: abre la ventanilla de exención
+ex_teleport = 60 (mismo patrón del clon de Exeller). El toque NEGATIVO
+no: convierte en el sitio, no mueve a nadie. Solo faltaba la pieza de
+la INVOCACIÓN: era el único teleport legítimo del kit sin exención.
+
+EL ARREGLO (1 archivo — EL SERVER: HAY QUE RECOMPILAR)
+------------------------------------------------------
+betterserver-oss/disasterserver/states/Game.c — case CLIENT_JINNA_MINION,
+por cada invocado:
+
+    t->plr.pos.x      = v->plr.pos.x;   // alinea su posición server-side
+    t->plr.pos.y      = v->plr.pos.y;   //   al punto de invocación (jx/jy)
+    t->plr.ex_teleport   = 60;          // ventanilla anti-cheat (patrón Jinna/Exeller)
+    t->plr.portal_pending = 0;          // por si trajera uno pendiente de la captura
+
+ 1) Alineación: su siguiente paquete UDP de posición nace medido desde
+    el punto de invocación → salto ≈ 0 → nada que flagear.
+ 2) Ventanilla (60 paquetes ≈ 1 s): cubre los paquetes VIEJOS que aún
+    cruzan — los enviados desde la posición de la trampa antes de que
+    su cliente procese el TCP de la invocación (carrera de red). Sin
+    ella, esos paquetes viejos re-flagearían el salto (y también el
+    error "dial-up" de dist > 60, que acumula por separado).
+
+Mismo patrón ya probado de ex_teleport (teleport de Jinna y clon de
+Exeller) — solo que aplicado al INVOCADO, que es quien se mueve.
+
+QUÉ NO CAMBIA
+-------------
+- Cliente (GML): NI UNA LÍNEA — este zip no toca el juego. Ni la red
+  (mismos paquetes) ni los sprites/HUD/retratos.
+- La validación de la invocación sigue igual (exe + Jinna + cooldown).
+- El anti-cheat sigue vivo para teleportes ilegales: la ventanilla se
+  gasta sola (decrece por paquete) y solo la abre el server en los
+  teleports que ÉL mismo autoriza.
+
+CÓMO SE INSTALA
+---------------
+Este es un cambio del SERVER (C): recompila como siempre
+(compilar_server.bat) y rearranca el server. Nada que copiar al cliente.
+
+PRUEBA RÁPIDA (3 clientes)
+--------------------------
+1. Jinna captura a la víctima con el portal trampa (queda "atrapada").
+2. Jinna se ALEJA de la trampa (para que el salto sea > 700 px, que es
+   justo el caso que pateaba).
+3. ↓+C: la INVOCACIÓN. → El invocado aparece a los pies de Jinna y
+   SIGUE EN PARTIDA: sin popup, sin expulsión, ni al momento ni 1.5 s
+   después. El popup de "blud used a portal gun lmfao" ya solo debe
+   salir para alguien que se teleporte de verdad (trampa de usuario).
+4. Que el minion caiga (vuelve al portal) y Jinna lo RE-INVOQUE desde
+   otro punto lejano: tampoco patea (mismo handler, mismo fix).

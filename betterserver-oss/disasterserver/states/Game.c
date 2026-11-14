@@ -2051,6 +2051,33 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 SET_FLAG(t->plr.flags, PLAYER_REVIVED); /* su siguiente caida NO re-demoniza: es esbirro normal */
                                 t->plr.data[0] = 1; /* marca MINION: Vanilla no lo rescata */
                                 t->plr.dedemon_progress = 0;
+
+                                /* v6.1 FIX "blud used a portal gun lmfao" (kick
+                                 * TRAS la INVOCACION): la invocacion teleporta
+                                 * al atrapado hasta los pies de Jinna (jx/jy, el
+                                 * mismo punto que viaja en el paquete) SIN dano
+                                 * propio que lo corrobore — el anti-teleport
+                                 * (>700px sin senal de dano) flageaba el salto
+                                 * (portal_pending 1.5 s) y lo pateaba al poco
+                                 * de aparecer con ese mensaje. La CAPTURA no
+                                 * patea porque su teleport SI viene con el dano
+                                 * de la trampa (corroborado); el teleport de la
+                                 * propia Jinna abre ex_teleport (60 paquetes)
+                                 * por lo mismo (patron del clon de Exeller).
+                                 * Aqui: (1) la posicion server-side del invocado
+                                 * se alinea al punto de invocacion, para que su
+                                 * siguiente UDP de posicion nazca medido desde
+                                 * alli, y (2) la MISMA ventanilla de gracia
+                                 * cubre los paquetes viejos que aun cruzan (los
+                                 * enviados desde la posicion de la trampa antes
+                                 * de que su cliente procese el paquete TCP de la
+                                 * invocacion) — tambien del error "dial-up"
+                                 * (dist > 60), que si no acumularia por el
+                                 * mismo salto. */
+                                t->plr.pos.x = v->plr.pos.x;
+                                t->plr.pos.y = v->plr.pos.y;
+                                t->plr.ex_teleport = 60;
+                                t->plr.portal_pending = 0; /* por si trajera uno pendiente de la captura */
                         }
 
                         Packet pack4;

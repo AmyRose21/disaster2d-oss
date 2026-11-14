@@ -46,6 +46,13 @@ global.ringFrame = 0;
 global.character = -1;
 global.exeCharacter = -1;
 global.nickname = "player";
+
+// v14 (NEGAGEN): nicks de los subditos NEGATIVOS al cerrarse la ronda
+// (fotografia del SERVER_RESULTS: los puppets y global.player mueren con
+// el cambio a la sala de resultados y el paquete SERVER_RESULTS_DATA no
+// trae la marca negatouch — solo nick/estado). net_state_results la
+// consulta para pintar al nega con SU tira nega en vez del retrato demon.
+global.resultsNegaNicks = noone;
 global.configInit = false;
 global.palleteFrom = [];
 global.palleteTo = [];

@@ -727,6 +727,20 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 global.player.revivalTimes = 2; // esbirro: cuenta como caido y pelea para el EXE
                                 global.player.isMinion = true; // v6: MINION de Jinna — tiene VIDA REAL (los supervivientes le hacen dano)
                                 global.player.isNegatouch = true; // v9: look NEGATIVO — patron del subdito convertido (v8)
+                                // v13 (EL BUG DE "NO ME VEO"): la absorcion del portal (obj_jinna_absorb/
+                                // Step_0: "visible = false") y la vuelta al portal al caer (MINION_DOWN, mas
+                                // abajo: "global.player.visible = false") OCULTAN el cuerpo del minion EN SU
+                                // PROPIA PANTALLA. Esta invocacion devolvia TODO (posicion, vida, isDead,
+                                // isMinion, isNegatouch, control, camara) MENOS el visible: la invocada
+                                // seguia invisible para SI MISMA mientras Jinna y el resto SI la veian (la
+                                // rama de arriba restaura el visible del puppet en los DEMAS clientes, lineas
+                                // 688-705). La flecha que la propia minion si veia es el obj_demon_indicator:
+                                // OTRO objeto que se dibuja sobre global.player en GUI — por eso se veia "la
+                                // flecha y nada mas". visible es una variable built-in de la instancia (como
+                                // hp/isDead, que siempre llegaron): el dot-write sobre global.player aterriza
+                                // igual. Es la unica restauracion que faltaba del ciclo
+                                // atrapar -> ocultar -> INVOCAR -> volver a VERSE.
+                                global.player.visible = true; // v13: el cuerpo del minion vuelve a SU pantalla
 
                                 // v9 (NEGAGEN): SIN paleta demon — el look del
                                 // invocado es la INVERSION FOTOGRAFICA del sprite
@@ -4822,6 +4836,55 @@ function net_state_game(rbuff, nps, isPasstrough)
                         gameEnds = true;
                         isReady = true;
                         state = STATE_RESULTS;
+
+                        // v14 (NEGAGEN, RESULTADOS): fotografia del "quien es
+                        // NEGA" justo antes de salir de la sala. El server
+                        // reporta a los subditos negativos como demonizados
+                        // (PLRSTATE 1: revivalTimes >= 2) y el paquete de
+                        // resultados NO lleva la marca negatouch — sin esta
+                        // foto pintarian con el retrato demon de scr_hud_demon
+                        // ("aparecian como si fueran exes"). Los puppets y el
+                        // global.player aun existen AQUI (la sala muere al
+                        // final del evento, con el room_goto de abajo): se
+                        // vuelvan sus nicks a una lista GLOBAL y la consulta
+                        // net_state_results en la sala nueva.
+                        if(variable_global_exists("resultsNegaNicks")
+                        && global.resultsNegaNicks != noone
+                        && is_ds_list(global.resultsNegaNicks))
+                                ds_list_destroy(global.resultsNegaNicks);
+
+                        global.resultsNegaNicks = ds_list_create();
+
+                        // el jugador LOCAL (su propia marca negatouch; el nick
+                        // es el MISMO string que envia el server en resultados)
+                        if(instance_exists(global.player)
+                        && variable_instance_exists(global.player.id, "isNegatouch")
+                        && global.player.isNegatouch)
+                        {
+                                var _ownNick = "";
+                                if(ds_map_exists(obj_netclient.players, obj_netclient.nid))
+                                {
+                                        var _own = obj_netclient.players[? obj_netclient.nid];
+                                        if(!is_undefined(_own) && variable_struct_exists(_own, "nickname"))
+                                                _ownNick = _own.nickname;
+                                }
+
+                                if(_ownNick != "")
+                                        ds_list_add(global.resultsNegaNicks, _ownNick);
+                        }
+
+                        // el resto: cada puppet de ESTE cliente lleva la marca
+                        // (la conversion/invocacion la escribio por broadcast)
+                        if(instance_exists(obj_player_puppet))
+                        {
+                                with(obj_player_puppet)
+                                {
+                                        if(variable_instance_exists(id, "isNegatouch")
+                                        && isNegatouch && nickname != "")
+                                                ds_list_add(global.resultsNegaNicks, nickname);
+                                }
+                        }
+
                         room_goto(room_results);
                         return true;
                 }

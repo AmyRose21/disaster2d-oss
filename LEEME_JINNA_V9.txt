@@ -1,0 +1,70 @@
+JINNA v14 — RETRATOS DE FINAL DE PARTIDA: el nega ya NO aparece "como un exe"
+==============================================================================
+
+QUE SE ARREGLA
+--------------
+"Falta cambiar los retratos de final de partida: aparecen como si fueran
+exes en vez de aparecer con el retrato negativo de su forma normal."
+Exacto: en la pantalla de resultados el subdito NEGATIVO salía con el
+retrato DEMON (el de la demonización común, rojo/oscuro) — el server lo
+reporta como "demonizado" (revivalTimes >= 2) y esa pantalla pintaba el
+retrato demon para todo PLRSTATE 1.
+
+LA CAUSA RAIZ
+-------------
+El paquete de resultados (SERVER_RESULTS_DATA) trae nick, personaje y
+estado final (0 exe / 1 demonizado / 2 muerto / 3 vivo / 4 escapado) —
+pero NO la marca negatouch: para el server un nega es un demonizado
+normal. Y cuando esos paquetes llegan, la sala de juego YA murió (el
+SERVER_RESULTS cambia a la sala de resultados y los puppets y el propio
+jugador dejan de existir): no había DÓNDE consultar la marca.
+
+EL ARREGLO (3 archivos, SOLO cliente, sin tocar red ni server)
+--------------------------------------------------------------
+1) scripts/scr_globals/scr_globals.gml — se declara
+   global.resultsNegaNicks (la lista donde vive la foto).
+
+2) scripts/net_state_game/net_state_game.gml — en SERVER_RESULTS, JUSTO
+   ANTES del cambio de sala (los puppets aún existen: la sala muere al
+   final del evento), se vuelca el "quién es NEGA" a esa lista global:
+   el jugador local (global.player.isNegatouch, con su nick del mapa
+   players) y cada puppet con isNegatouch (su nickname — el mismo string
+   con el que el server arma las filas de resultados). La lista sobrevive
+   al cambio de sala.
+
+3) scripts/net_state_results/net_state_results.gml — al crear cada fila:
+   - PLRSTATE 1 (demonizado) + nick marcado → tira NEGA de SU forma normal
+     (scr_hud_strip_nega, frame 0: la MISMA tira nega que ya usa el HUD
+     desde v11, misma inversión del canon negademon) en vez del retrato
+     demon. "El retrato negativo de su forma normal", literal.
+   - PLRSTATE 2 (muerto) + nick marcado → la cara NEGA en la misma
+     posición +6 de la tira nega (los muertos comunes siguen con la tira
+     normal).
+   - El esbirro común (demonización de toda la vida) y los demas estados
+     NO cambian: SOLO el negatouch.
+
+NOTA: este zip incluye scripts/net_state_game/net_state_game.gml COMPLETO,
+que también lleva el fix v13 (visible = true en la invocación del minion).
+Aplica v13 antes que v14 — o solo v14, que ya lo trae — pero nunca apliques
+v13 ENCIMA de v14 (el archivo de v13 revertiría el parche de retratos).
+
+QUÉ NO CAMBIA
+-------------
+- Red/protocolo: ni un byte (mismo SERVER_RESULTS / SERVER_RESULTS_DATA;
+  el server C ni se recompila: la marca nunca viaja, se fotografia).
+- Sprites: CERO nuevos — se reusa la tira nega del HUD de v11
+  (spr_playerhealth_nega* ya registrada en el .yyp de esa entrega).
+- In-game (retratos del HUD, barras, cuerpos, puppets): intacto.
+- El esbirro común sigue saliendo con su retrato demon: SOLO el nega
+  cambia de retrato.
+
+PRUEBA RÁPIDA (3 clientes)
+--------------------------
+1. Jinna convierte a un superviviente con el toque negativo (o invoca a
+   una minion del portal).
+2. Que la ronda termine (timer, escapes, muertes — como en tu captura:
+   "EXE KILLED — EVERYONE").
+3. Pantalla de resultados: la fila del NEGA sale con SU retrato invertido
+   (teal/cian) de su forma normal — igual que se ve su barra nega en el
+   HUD — y NO con el retrato demon. El esbirro común sigue demon, el
+   muerto común sigue con su tira, el exe con su icono.
