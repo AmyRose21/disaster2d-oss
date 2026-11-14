@@ -150,6 +150,11 @@ if(place_meeting(x, y, global.player))
                         global.player.shockedTimer = _stun;
                         audio_play_sound(snd_exe_stun, 0, false);
                         net_sound_emit(snd_exe_stun);
+                        
+                        // v17 (VIDA REAL DEL NEGA): la flecha de Fleetway Amy
+                        // stunea al bando EXE — al nega local le cuesta 20 de
+                        // vida (a 0 hp: portal de Jinna / pasivas habilitadas)
+                        scr_jinna_negatouch_stun_hurt();
 
                         // reporte de stats igual que el laser (estado 3 = exe stun)
                         var buffer = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);

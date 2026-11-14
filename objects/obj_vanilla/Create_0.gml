@@ -221,7 +221,13 @@ specialFunc = function() /* V1.2: habilidades propias de Vanilla (antes scr_crea
                         var pk = cpacket_tcp(PacketType.CLIENT_CREAM_SPAWN_RINGS, false);
                         buffer_write(pk, buffer_u16, x - 12 + (image_xscale < 0 ? 7 : 0));
                         buffer_write(pk, buffer_u16, y - 16);
-                        buffer_write(pk, buffer_bool, revivalTimes >= 2);
+                        // v17 (NEGAGEN): Vanilla NEGA invoca los 2 ANILLOS NEGROS de
+                        // Exetior (byte 2) en vez de anillos rojos (1) o normales (0).
+                        // El server los spawnea con MakeBlackRing en los mismos offsets
+                        // de la pareja roja. Ventajas nega: los anillos negros NO
+                        // lastiman a los nega (los curan a vida completa) y los rojos
+                        // les curan 10 — el anillo negro es el "provecho" de su bando.
+                        buffer_write(pk, buffer_u8, (revivalTimes >= 2 && variable_instance_exists(id, "isNegatouch") && isNegatouch) ? 2 : (revivalTimes >= 2 ? 1 : 0));
                         send_server_tcp(pk);
                 }
                 

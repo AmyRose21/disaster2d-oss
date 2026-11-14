@@ -1,0 +1,164 @@
+FIX NEGA v17 — "LA VIDA REAL DEL NEGA": barra con daño, portal, fases y anillos negros
+====================================================================================
+
+QUE SE AGREGA EN ESTA RONDA
+---------------------------
+
+1) LA BARRA DE VIDA DEL NEGA FUNCIONA DE VERDAD
+   La barra nega ya existía (v7/v11) pero NADA le quitaba vida: ahora cada
+   STUN que un SUPERVIVIENTE le meta al bando EXE le cuesta 20 DE VIDA al
+   súbdito negativo (y al minion invocado: mismo look, mismo ciclo).
+   Están enganchadas TODAS las fuentes de stun del juego:
+     - el golpe/contacto de cualquier superviviente (obj_player_puppet)
+     - la PATADA DUELISTA de Sally Canon fase 2 (cada patada de la pareja
+       cuenta como stun propio: 2 patadas = 40 de vida)
+     - el PARRY de Sonic
+     - la FLECHA de Fleetway Amy
+     - el LÁSER de Tails
+     - la BOLA DE FUEGO de Blaze
+     - la TRAMPA de Amelia
+     - la MINI-EMBESTIDA de Chocola
+     - el LIGHT DASH de Sonic
+   Con los 60 hp de la conversión son 3 stuns. La vida viaja en el UDP de
+   siempre: todos ven la barra nega bajar en tiempo real (+ sangre).
+
+2) AL LLEGAR A 0 VUELVEN DIRECTAMENTE A JINNA
+   El nega a 0 hp NO muere y ya NO revive en el sitio (la vieja "purga" de
+   30 hp se retiró — era además código muerto): manda el mismo paquete que
+   el minion (CLIENT_JINNA_MINION_DOWN), el server lo vuelve a marcar
+   PLAYER_CAUGHT y le aparece el portal: fuera de juego hasta que Jinna lo
+   RE-INVOQUE con ↓+C (y sí: el server viejo lo ignoraba — por eso HAY QUE
+   RECOMPILAR). Los hoyos/zonas de muerte también lo mandan al portal
+   (puerta nueva al inicio de scr_player_instakill).
+
+3) LAS FASES AL CAER EN NEGA ("la única excepción a la regla es Amy")
+   - SALLY CANON nega a 0: activa su FASE 2 igual que siempre... pero
+     SIGIENDO nega. Al caer ya EN fase 2: portal. Y al ser RE-INVOCADA
+     SALE DIRECTAMENTE EN FASE 2 (duelista): la memoria vive en su
+     cliente y ni el portal ni la invocación la tocan — verificado.
+   - AMY CANON: SIN burbuja en nega ("no le da nuevas habilidades, solo
+     la salva de la muerte: esa queda solamente para cuando es normal"):
+     el nega Amy cae directo al portal.
+   - VANILLA: "se le perdona" — su PACIENCIA sigue encendida en nega
+     (Chocola sale y la defiende). Tras usarla, la siguiente caída es
+     portal.
+   - SONIC y ROUGE conservan también su 1ra caída (nervios / moribunda):
+     "la única excepción es Amy" — todos los demás salvan UNA vez y la
+     siguiente caída ya es portal.
+
+4) VANILLA NEGA CREA LOS ANILLOS NEGROS DE EXETIOR
+   Su habilidad de anillos (tecla C) en forma nega invoca LOS 2 ANILLOS
+   NEGROS de Exetior (en vez de los normales o los rojos): misma pareja,
+   misma entidad que los de Exetior. Y los anillos negros NO lastiman a
+   los nega — los CURAN (ver punto 6). El exe no puede recogerlos y los
+   supervivientes siguen recibiendo el daño de siempre al pisarlos.
+
+5) LA PASIVA DE VANILLA TAMBIÉN APLICA A LOS NEGA... Y REVIVE MUERTOS
+   - El rescate de 15 anillos (encima del esbirro ATURDIDO manteniendo
+     ABAJO) ahora rescata también a los SÚBDITOS NEGATIVOS y a los
+     MINIONS invocados: vuelven al bando superviviente y Jinna los
+     pierde.
+   - NUEVO, EL MILAGRO DE LOS CAÍDOS: Vanilla puede REVIVIR A LOS
+     MUERTOS — el cuerpo de una muerte directa (los canon: Amy Canon,
+     Sally Canon, Sonic, Rouge... las que el prompt común de 3 anillos
+     JAMÁS podía revivir) — por LOS MISMOS 15 ANILLOS: encima del
+     cuerpo, ABAJO mantenido, la misma barrita. El revivido vuelve con
+     100 de vida, cámara normal y "a 1 caída".
+   - NERF de la Fortaleza de una Madre: el mínimo de anillos que pierde
+     Vanilla al ser golpeada sube de 3 A 5.
+
+6) LOS NEGAS SE CURAN CON ANILLOS
+   - ANILLO ROJO: el nega herido lo recoge y le sube 10 DE VIDA, SIN
+     NINGÚN SONIDO (cura sigilosa: ni el del anillo ni el de curación;
+     los supervivientes siguen recibiendo el "mindfuck" de siempre).
+   - ANILLO NEGRO: le cura TODA LA VIDA (silencioso). Solo si está
+     herido: con la vida llena no lo gasta — se queda para otro nega.
+   - "como sucede con los anillos con 10": implementado como +10
+     directos por anillo rojo (paralelo a "el negro los cura toda la
+     vida"). Si prefieres el banco de 10 anillos como los supervivientes,
+     es UNA línea (JINNA_NEGA_REDHEAL / el handler de
+     SERVER_RING_COLLECTED).
+
+7) LAS TRAMPAS DE AMELIA NEGA CIEGAN
+   Si Amelia es un súbdito negativo, sus trampas CIEGAN a los
+   supervivientes que las pisen (el Eclipse de 4 s, +25% mejorada por el
+   Genio) — EXCEPTO A AMY CANON. El stun/daño/slow de la trampa sigue
+   igual que siempre. Y la ceguera es la INVERSA de la de siempre: el
+   superviviente cegado ve "esfumarse" al BANDO EXE (exe, negas,
+   esbirros y minions) tras el velo oscuro — igual que el exe cegado
+   veía esfumarse a los supervivientes.
+
+8) CHOCOLA Y CREAM EN NEGA
+   Mientras Vanilla sea nega NO puede mandar a Chocola a PROTEGER a Cream
+   (tecla V)... SALVO que la propia Cream TAMBIÉN sea nega.
+
+ARCHIVOS (19 modificados + validador)
+-------------------------------------
+   SERVER (HAY QUE RECOMPILAR):
+   betterserver-oss/disasterserver/states/Game.c
+     (acumula el v16 ya aplicado: guard de práctica, NEGATIZED, checks)
+
+   CLIENTE (recompilar el juego — F5/F8):
+   scripts/scr_jinna_negatouch/scr_jinna_negatouch.gml   (núcleo nuevo)
+   scripts/scr_player_hurt/scr_player_hurt.gml           (puerta 0 hp)
+   objects/obj_player_puppet/Step_0.gml                  (2 ganchos)
+   objects/obj_player_puppet/Draw_0.gml                  (eclipse inv.)
+   objects/obj_player_puppet/Draw_64.gml                 (eclipse inv.)
+   objects/obj_level/Draw_64.gml                         (velo 2 bandos)
+   scripts/scr_parry/scr_parry.gml                       (gancho)
+   objects/obj_fw_bolt/Step_0.gml                        (gancho)
+   objects/obj_tails_projectile/Step_0.gml               (gancho)
+   objects/obj_blaze_fireball/Step_0.gml                 (gancho)
+   objects/obj_amelia_trap/Create_0.gml                  (gancho + ceguera)
+   scripts/scr_chocola/scr_chocola.gml                   (gancho + nerf + V)
+   scripts/scr_light_dash/scr_light_dash.gml             (gancho)
+   scripts/scr_survivor_revive/scr_survivor_revive.gml   (muertos)
+   objects/obj_vanilla/Create_0.gml                      (byte negro 2)
+   objects/obj_redring/Step_0.gml                        (cura roja)
+   objects/obj_blackring/Step_0.gml                      (cura negra)
+   scripts/net_state_game/net_state_game.gml             (3 handlers)
+
+   + scripts/check_fix_nega_v17.py (validador: 87/87 OK)
+
+CÓMO SE APLICA
+--------------
+   1. Reemplaza los 19 archivos y copia el validador a scripts/.
+   2. RECOMPILA EL SERVER: compilar_server.bat -> opción 1.
+      (Sin recompilar, el nega a 0 NO volvería al portal: el server viejo
+      ignora su CLIENT_JINNA_MINION_DOWN, y los anillos negros de la
+      Vanilla nega no saldrían.)
+   3. Recompila el cliente en GameMaker (los 15 .gml).
+
+PRUEBA RÁPIDA
+-------------
+   1. Jinna convierte a una superviviente (4 golpes V/X) y un superviviente
+      la STUNEA 3 veces -> la barra nega baja 20/20/20 y a la tercera la
+      absorbe el portal (en SU pantalla y en la de todos).
+   2. ↓+C: la re-invoca con 100 de vida. Repite: el ciclo completa.
+   3. Sally Canon nega a 0 -> FASE 2 (sigue nega, la barra se llena sola
+      al final). Stuneala hasta 0 YA EN fase 2 -> portal. Re-invocala:
+      SALE EN FASE 2 (patada duelista lista).
+   4. Amy Canon nega a 0 -> portal SECO (sin burbuja).
+   5. Vanilla nega: tecla C -> salen LOS 2 ANILLOS NEGROS de Exetior;
+      el nega herido que los pisa se cura TODO; pisa un anillo ROJO con
+      un nega herido -> +10 en silencio (que un superviviente lo pise
+      sigue dando el mindfuck).
+   6. Vanilla normal sobre el CUERPO de un muerto directo (p. ej. la 2.a
+      caída de un Sonic) + ABAJO con 15 anillos -> la barrita se llena y
+      el muerto REVIVE con 100 de vida.
+   7. Amelia nega planta una trampa: el superviviente que la pisa queda
+      CIEGO 4 s — velo oscuro y el bando EXE "se le esfuma" — menos
+      Amy Canon (stun + daño igual, pero sin velo).
+   8. Vanilla nega pulsa V con Cream viva normal: Chocola NO va. Con
+      Cream NEGA en el equipo: sí va.
+
+NOTAS DE DISEÑO (una línea cada una, pregúntame si quieres girarlas)
+--------------------------------------------------------------------
+   - La paciencia de la Vanilla nega saca a Chocola IGUAL que la normal
+     (stunea al exe 5 s): conservarla fue pedido explícito ("en esa forma
+     es cuando llama a Chocola").
+   - El rescate de un nega/minion lo devuelve al bando SUPERVIVIENTE
+     (Jinna lo pierde): es la lectura de "su pasiva aplicará para los
+     nega".
+   - El exe real y los esbirros comunes NO tienen vida por stuns: el
+     sistema es exclusivo del nega/minion (isNegatouch).

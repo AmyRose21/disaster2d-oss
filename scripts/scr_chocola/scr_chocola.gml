@@ -66,7 +66,7 @@
 // --- pasivas ---
 #macro VANILLA_FORTALEZA_VANILLA_PCT 15 // % de anillos que pierde Vanilla al ser golpeada
 #macro VANILLA_FORTALEZA_CREAM_PCT 30   // % que pierde Cream si Vanilla esta en la partida
-#macro VANILLA_FORTALEZA_MIN 3          // perdida minima de anillos
+#macro VANILLA_FORTALEZA_MIN 5          // v17 nerf dueña: perdida minima de anillos (antes 3)
 #macro VANILLA_DEDEMON_COST 15          // anillos del RESCATE de esbirro (v2.11)
 #macro VANILLA_DEDEMON_RANGE 64         // px: esbirro aturdido al alcance (prompt)
 #macro VANILLA_DEDEMON_SEND_CD 2        // v2.11: cadencia de los paquetes de progreso (cada 2 frames = 30/s)
@@ -420,9 +420,17 @@ function scr_vanilla_v2_step()
             {
                 var _cream = scr_chocola_find_cream();
 
+                // v17 (NEGAGEN): Vanilla NEGA no puede mandar a Chocola a
+                // PROTEGER a Cream salvo que la propia Cream TAMBIÉN sea nega
+                // ("si en ese estado Vanilla no puede llamar a que Chocola vaya
+                // a proteger a Cream, a menos claro que ya esa misma Cream esté
+                // en nega"): la Vanilla del bando EXE no protege supervivientes.
+                var _negVanilla = revivalTimes >= 2 && variable_instance_exists(id, "isNegatouch") && isNegatouch;
+
                 // no puede ir si Cream no existe, esta caida (hp <= 0)
-                // o demonizada
-                if(_cream != noone && !_cream.isInactive && _cream.hp > 0 && _cream.revivalTimes < 2)
+                // o demonizada — y con la Vanilla nega, salvo nega-Cream
+                if(_cream != noone && !_cream.isInactive && _cream.hp > 0
+                && (!_negVanilla || (variable_instance_exists(_cream.id, "isNegatouch") && _cream.isNegatouch)))
                 {
                     _vc.mode = CHOCOLA_GO_CREAM;
                     _vc.fromGuard = false;
@@ -734,6 +742,12 @@ function scr_chocola_stun_signal(frames)
         yspd = -2;
         isGrounded = false;
     }
+
+    // v17 (VIDA REAL DEL NEGA): la mini-embestida de Chocola (bando
+    // superviviente) es otro stun que le cuesta 20 de vida al nega
+    // local (a 0 hp: fase 2 de Sally / paciencia de Vanilla / portal
+    // de Jinna). Para el exe y el esbirro comun no cambia nada.
+    scr_jinna_negatouch_stun_hurt();
 
     // shake de camara del golpeado (mismo paquete que usa el parry):
     // su propia pantalla tiembla y el resto lo oye en 3D

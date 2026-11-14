@@ -5498,3 +5498,39 @@ Fix (4 archivos + validador):
 - Sintaxis C: gcc -fsyntax-only (stub enet /tmp) sobre Game.c/Results.c/Lib.c — set de errores IDENTICO al HEAD tras normalizar numeros de linea (cero nuevos; los implicit rand/malloc/free son artefactos del stub, preexistentes).
 
 Entregable: download/fix_nega_v16.zip — Player.h, Game.c, net_state_game.gml, net_state_results.gml (los 4 MODIFICADOS esta ronda, netos y acumulando el v15) + check_fix_nega_v16.py + LEEME_FIX_NEGA_V16.txt + worklog. Results.c NO va (sin cambios desde v15). RECOMPILAR SERVER OBLIGATORIO (compilar_server.bat opcion 1).
+
+## 2026-11-14 — v17 "LA VIDA REAL DEL NEGA": barra con daño por stuns, vuelta al portal, fases en nega, anillos negros, cura y el milagro de Vanilla
+
+Pedido de la duena (continuo del fix_nega_v16): "la nega tiene su propia barra de vida, hace falta hacer el tema de la barra de vida: cuando reciban stun de supervivientes les quita 20 de vida por stun; al llegar a 0 vuelven directamente a Jinna. Sally Canon cae a 0 en nega -> activa su fase 2; cuando caiga en fase 2, al ser reinvocada ya sale en fase 2. La unica excepcion es Amy: su burbuja no da habilidades nuevas, solo la salva de la muerte -> queda solo para cuando es normal. A Vanilla se le perdona porque en esa forma es cuando llama a Chocola, pero en nega no puede mandar a Chocola a proteger a Cream salvo que Cream tambien sea nega. Negas con ventajas mayores: Vanilla nega crea los 2 anillos negros de Exetior por habilidad (que no lastimen a los nega); su pasiva de revivir demonizados aplica tambien a los negas y puede revivir a los CAIDOS (los muertos) por los mismos 15 anillos. Nerf: el minimo de la Fortaleza de Vanilla sube de 3 a 5 anillos. Los negas se curan con anillos rojos (+10, sin sonido) y el negro les cura TODA la vida. Las trampas de Amelia en nega cegan a los otros (excepto Amy Canon)."
+
+- QUE SE IMPLEMENTO (cliente, 13 GML):
+  * scripts/scr_jinna_negatouch.gml — la PURGA (revivir a 30 en el sitio, codigo muerto desde v7: su hp<=0 vivia dentro de un hp>0) se retira y llega el sistema nuevo: scr_jinna_negatouch_stun_hurt() (20 de vida por stun, stats canal 3, sangre, y a 0 hp enruta) + scr_jinna_negatouch_down() (el router de la caida: Sally->fase 2 SIGUIENDO nega, Vanilla->paciencia con Chocola, Sonic->nervios, Rouge->moribunda con gate propio negaMoribundaUsed, Amy->SIN burbuja, y el resto->CLIENT_JINNA_MINION_DOWN directo al portal). Macros JINNA_NEGA_STUN_DAMAGE 20 / JINNA_NEGA_REDHEAL 10.
+  * Los 9 GANCHOS de stun de superviviente (todas las fuentes que escriben shockedTimer sobre el bando EXE): golpe comun y patada duelista de Sally (obj_player_puppet/Step_0 x2), parry de Sonic (scr_parry), flecha de FW Amy (obj_fw_bolt), laser de Tails (obj_tails_projectile), bola de fuego de Blaze (obj_blaze_fireball), trampa de Amelia (obj_amelia_trap/Create_0), mini-embestida de Chocola (scr_chocola_stun_signal) y light dash (scr_lsa_stun_signal).
+  * scr_player_hurt.gml — scr_player_instakill abre con la puerta nega (0 hp por hoyos/zonas tambien vuelve al portal, ANTES de la burbuja de Amy).
+  * obj_amelia_trap/Create_0.gml — deteccion de la duena NEGA (puppet isNegatouch, patron del _ameliaDemon): sus trampas CIEGAN a los supervivientes que las pisen, EXCEPTO Amy Canon (mismo AMELIA_ECLIPSE_TIME, sin los +2 s de esbirro).
+  * scr_survivor_revive.gml — rama nueva del RESCATE DE LOS CAIDOS: Vanilla (sin demonizar) sobre un cuerpo MUERTO (state DEAD + hp<=0 + sin demonizar) mantiene ABAJO con 15 anillos y manda el MISMO CLIENT_VANILLA_DEDEMONIZE_PROGRESS.
+  * obj_vanilla/Create_0.gml — el byte del spawn de anillos: nega -> 2 (ANILLOS NEGROS de Exetior), demonizada comun -> 1 (rojos), normal -> 0. Amy Canon y Cream no cambian.
+  * obj_redring/Step_0.gml + obj_blackring/Step_0.gml — el nega HERIDO recoge el rojo (+10) y el negro (vida completa); con la vida llena no lo gasta (se queda para los demas).
+  * net_state_game.gml — SERVER_RING_COLLECTED: rama nega antes del break (cura +10 SIN sonido, sin mindfuck); SERVER_BRING_COLLECTED: rama nega (hp=100 silencioso, jamas cae al dano de -20/-5 anillos: "los anillos negros no lastiman a los nega"); SERVER_VANILLA_DEDEMONIZE: _wasDead restaura ademas deadTimer/camara de espectador/reviveObj para el revivido.
+  * scr_chocola.gml — NERF VANILLA_FORTALEZA_MIN 3->5; tecla V: Vanilla nega NO manda a Chocola con Cream salvo nega-Cream (_negVanilla); gancho del stun de Chocola.
+  * scr_light_dash.gml — gancho del stun del LSA.
+
+- QUE SE IMPLEMENTO (server C, RECOMPILAR):
+  * Game.c CLIENT_JINNA_MINION_DOWN — acepta tambien al PLAYER_NEGATIZED (nega a 0 por stuns): mismo re-marcaje PLAYER_CAUGHT + PLAYER_CANTREVIVE que el minion y broadcast del SERVER_JINNA_MINION_DOWN.
+  * Game.c CLIENT_CREAM_SPAWN_RINGS — rama red_ring == 2: 2 x MakeBlackRing en los offsets de la pareja roja ({25,-27}); los rojos (==1) y normales (==0) intactos; el sol de Amy Canon intacto.
+  * Game.c CLIENT_VANILLA_DEDEMONIZE (instantaneo) — rescata tambien al nega/minion (data[0]==1 se tolera con PLAYER_NEGATIZED), DEL PLAYER_NEGATIZED + data[0]=0 al rescatar.
+  * Game.c CLIENT_VANILLA_DEDEMONIZE_PROGRESS — DOS caminos: PLAYER_DEMONIZED (esbirro/nega/minion: barra dedemon_progress como siempre) y PLAYER_DEAD (EL MILAGRO: barra plr.revival, y al completar DEL PLAYER_DEAD + DEL PLAYER_CANTREVIVE + death timers a 0 + SET REVIVED + SERVER_VANILLA_DEDEMONIZE + game_state_check: el caido vuelve a contar como vivo).
+
+- DETALLES DE DISENO (decisiones tomadas, ajustables en una linea):
+  * "Como sucede con los anillos con 10 pero sin el sonido" se implemento como +10 DIRECTOS por anillo rojo (sin banco de 10 anillos: los negas no pueden recoger anillos normales), en paralelo con "el negro los cura TODA la vida". Macro JINNA_NEGA_REDHEAL.
+  * La re-invocacion de Sally "ya sale en fase 2" es AUTOMATICA: ni SERVER_JINNA_MINION_DOWN ni SERVER_JINNA_MINION_STATE tocan fase2Used/duelista (verificado) — la memoria vive en su cliente.
+  * La paciencia de la Vanilla nega saca a Chocola igual que la normal (stunea al exe 5 s): la duena pidio explicitamente conservar la pasiva ("en esa forma es cuando llama a Chocola").
+  * El rescate de la Vanilla nega-minion devuelve al jugador al bando superviviente (lo pidio: "aplicara para los nega").
+
+- Validacion: scripts/check_fix_nega_v17.py 81/81 OK (nucleo, puerta del instakill, 9 ganchos, trampa nega, rescate de caidos, byte de anillos, curas silenciosas, restauracion del revivido, nerf y Chocola, server, llaves balanceadas). Sintaxis C: gcc -fsyntax-only (stub enet) — mismo set de 4 artefactos preexistentes que el HEAD (rand/malloc/free/srand del stub), CERO errores nuevos.
+
+Extension del eclipse para la trampa NEGA (3 GML mas): obj_player_puppet/Draw_0.gml y Draw_64.gml (la ceguera INVERSA: exe cegado no ve supervivientes / superviviente cegado por la trampa nega no ve al bando EXE) y obj_level/Draw_64.gml (el velo oscuro vale para la victima de cualquier bando: el timer solo lo tiene quien esta cegado).
+
+Validacion final: check_fix_nega_v17.py 87/87 OK.
+
+Entregable: download/fix_nega_v17.zip — 19 archivos (Game.c del server + 18 GML del cliente, Game.c y net_state_game.gml completos acumulando el v16 ya aplicado) + check_fix_nega_v17.py + LEEME_FIX_NEGA_V17.txt + worklog. RECOMPILAR SERVER OBLIGATORIO (compilar_server.bat opcion 1) Y recompilar el cliente (los 18 GML). RECOMPILAR SERVER OBLIGATORIO (compilar_server.bat opcion 1) Y recompilar el cliente (los 15 GML).

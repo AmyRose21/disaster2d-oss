@@ -57,6 +57,29 @@ function amelia_trap_trigger()
         // trampa ahora hace DANO REAL.
         var _survSide = !_exeSide && instance_exists(global.player) && !global.player.isDead;
 
+        // v17 (NEGAGEN): ¿la dueña de ESTA trampa es una Amelia NEGA?
+        // (patron del _ameliaDemon del Step_0: la marca isNegatouch del
+        // puppet de Amelia en este cliente — o la propia si YO soy ella).
+        // Sus trampas CIEGAN a los supervivientes que las pisen (excepto
+        // Amy Canon): la version mejorada del Eclipse negativo.
+        var _ameliaNega = false;
+        if(global.character == CHARACTER_AMELIA && instance_exists(global.player))
+                _ameliaNega = scr_negatouch_is(global.player);
+        else if(instance_exists(obj_player_puppet))
+        {
+                with(obj_player_puppet)
+                {
+                        if(character != CHARACTER_AMELIA)
+                                continue;
+
+                        if(scr_negatouch_is(id))
+                        {
+                                _ameliaNega = true;
+                                break;
+                        }
+                }
+        }
+
         // STUN 3 s + slow 3.5 s al salir del stun: la victima es el
         // jugador LOCAL (cada cliente es autoridad del suyo, patron
         // de la banana). El slow se pide por el TOTAL (stun + slow)
@@ -118,6 +141,13 @@ function amelia_trap_trigger()
                 // llamaba). Metal Amy -> snd_metal_stun.
                 if(global.character == CHARACTER_EXE)
                         scr_exe_stunsound();
+
+                // v17 (VIDA REAL DEL NEGA): la trampa también stunea — al
+                // nega que pisa una trampa de superviviente le cuesta 20 de
+                // vida (a 0 hp: portal de Jinna / pasivas habilitadas). La
+                // trampa de Amelia NEGA no daña al superviviente negativo
+                // (su bando): la función se autofiltra por isNegatouch.
+                scr_jinna_negatouch_stun_hurt();
         }
 
         // ECLIPSE (v2.13): la ceguera pisa aunque el stun no aplique
@@ -126,11 +156,16 @@ function amelia_trap_trigger()
         // se quedan ciegos 2 s MAS que el exe. Los SUPERVIVIENTES
         // JAMAS: aunque pisen una trampa de una Amelia demonizada
         // (ese caso hace dano + stun + slow, pero sin velo oscuro).
-        if(_exeSide)
+        // v17 (NEGAGEN): EXCEPCION — la trampa de una Amelia NEGA sí
+        // CIEGA a los supervivientes ("las nega tendran ventajas
+        // mayores"), EXCEPTO a Amy Canon.
+        var _negaBlind = _survSide && _ameliaNega && global.character != CHARACTER_AMY_CANON;
+
+        if(_exeSide || _negaBlind)
         {
                 var _blind = AMELIA_ECLIPSE_TIME * (_up ? EGG_GENIUS_BONUS : 1);
 
-                if(global.character != CHARACTER_EXE)
+                if(_exeSide && global.character != CHARACTER_EXE)
                         _blind += 60 * 2;    // esbirro: +2 s de ceguera
 
                 global.eclipseTimer = round(_blind);

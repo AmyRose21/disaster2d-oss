@@ -1151,6 +1151,29 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         {
                                 RAssert(game_spawn(v->server, (Entity*)&(MakeCreamRing(x, y, false, 1)), sizeof(CreamRing), NULL));
                         }
+                        else if (red_ring == 2)
+                        {
+                                /* [fix-nega-v17] VANILLA NEGA: sus anillos son
+                                 * los 2 ANILLOS NEGROS de Exetior (byte 2 en
+                                 * vez de 1=rojos / 0=normales): misma pareja
+                                 * de offsets que los rojos, misma entidad
+                                 * BRing que los de Exetior (bring_init los
+                                 * anuncia con SERVER_ERECTOR_BRING_SPAWN y el
+                                 * cliente crea el obj_blackring de siempre).
+                                 * Ventaja nega: el anillo negro NO lastima a
+                                 * los nega — los CURA a vida completa (el
+                                 * daño de -20/-5 anillos sigue siendo solo
+                                 * para el que lo pise siendo superviviente). */
+                                uint16_t bposX[2] = { 25, -27 };
+                                uint16_t bposY[2] = { 0, 0 };
+                                for (int i = 0; i < 2; i++)
+                                {
+                                        uint16_t bX = x + bposX[i];
+                                        uint16_t bY = y + bposY[i];
+
+                                        RAssert(game_spawn(v->server, (Entity*)&(MakeBlackRing(bX, bY)), sizeof(BRing), NULL));
+                                }
+                        }
                         else if (red_ring)
                         {                               
                                 CreamRing* rings[128];
@@ -1247,22 +1270,27 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 break;
 
                         /* v6 (minions): los MINIONS de Jinna son demonizados
-                         * "prestados" de la otra dimension — Vanilla NO puede
-                         * rescatarlos (volverian al bando superviviente desde
-                         * una muerte que el portal ya cobro). Se distinguen
-                         * porque su demonizacion NO viene de una caida normal:
-                         * el handler de SERVER_JINNA_MINION_STATE marca
-                         * plr.data[0] = 1. El resto de esbirros (caidas
-                         * normales) se rescatan igual que siempre. */
-                        if (target->plr.data[0] == 1)
+                         * "prestados" de la otra dimension. [fix-nega-v17] la
+                         * regla cambia con la vida real del nega: "su pasiva
+                         * de revivir a los demonizados tambien aplicara para
+                         * los nega" — y los minions invocados LLEVAN el look
+                         * nega desde v9 (PLAYER_NEGATIZED), asi que ahora se
+                         * rescatan igual que un esbirro comun: vuelven al
+                         * bando superviviente y Jinna pierde a su subdito.
+                         * Solo queda fuera el esbirro comun NO nego cuyo
+                         * data[0] quedara marcado por un minion de un server
+                         * viejo (defensa de compatibilidad). */
+                        if (target->plr.data[0] == 1 && !(target->plr.flags & PLAYER_NEGATIZED))
                                 break;
 
                         if (vector2_dist(&target->plr.pos, &v->plr.pos) > 150)
                                 break;
 
                         DEL_FLAG(target->plr.flags, PLAYER_DEMONIZED);
+                        DEL_FLAG(target->plr.flags, PLAYER_NEGATIZED); /* v17: rescatado = ya no cuenta como nega */
                         SET_FLAG(target->plr.flags, PLAYER_REVIVED);
                         target->plr.dedemon_progress = 0;
+                        target->plr.data[0] = 0; /* v17: higiene: si era minion, ya no lo es */
 
                         Packet pack;
                         PacketCreate(&pack, SERVER_VANILLA_DEDEMONIZE);
@@ -1309,7 +1337,21 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         if (target == v || !target->in_game)
                                 break;
 
-                        if (!(target->plr.flags & PLAYER_DEMONIZED))
+                        /* [fix-nega-v17] dos caminos segun el objetivo:
+                         *   PLAYER_DEMONIZED -> el rescate de siempre (esbirro
+                         *     comun, subdito NEGATIVO o minion invocado: "su
+                         *     pasiva de revivir a los demonizados tambien
+                         *     aplicara para los nega")
+                         *   PLAYER_DEAD -> EL MILAGRO DE LOS CAIDOS: "podra
+                         *     revivir a los caidos, es decir, a los que esten
+                         *     muertos, por la misma cantidad de 15 anillos" —
+                         *     el muerto directo de los canon (CANTREVIVE), al
+                         *     que el prompt comun de 3 anillos JAMAS podia
+                         *     revivir. Misma barra, misma mecanica. */
+                        bool dedemon_path = (target->plr.flags & PLAYER_DEMONIZED) != 0;
+                        bool fallen_path = !dedemon_path && (target->plr.flags & PLAYER_DEAD) != 0;
+
+                        if (!dedemon_path && !fallen_path)
                                 break;
 
                         if (rings < 15)
@@ -1322,7 +1364,12 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 
                         Packet pack;
 
-                        if (target->plr.dedemon_progress <= 0)
+                        /* la barra: dedemon_progress para el esbirro/nega,
+                         * plr.revival para el caido (la MISMA barra del
+                         * revive normal — la del caido ya existe) */
+                        bool bar_opened = dedemon_path ? (target->plr.dedemon_progress > 0) : (target->plr.revival > 0);
+
+                        if (!bar_opened)
                         {
                                 /* misma senal que abre la barra del revive normal */
                                 PacketCreate(&pack, SERVER_REVIVAL_STATUS);
@@ -1341,14 +1388,19 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 if (bonus > 25)
                                         bonus = 25;
 
-                                target->plr.dedemon_progress += 0.03 + 0.002 * bonus;
+                                if (dedemon_path)
+                                        target->plr.dedemon_progress += 0.03 + 0.002 * bonus;
+                                else
+                                        target->plr.revival += 0.03 + 0.002 * bonus;
                         }
 
-                        if (target->plr.dedemon_progress < 1)
+                        double _prog = dedemon_path ? target->plr.dedemon_progress : target->plr.revival;
+
+                        if (_prog < 1)
                         {
                                 PacketCreate(&pack, SERVER_REVIVAL_PROGRESS);
                                 PacketWrite(&pack, packet_write16, target->id);
-                                PacketWrite(&pack, packet_writedouble, target->plr.dedemon_progress);
+                                PacketWrite(&pack, packet_writedouble, _prog);
                                 server_broadcast(v->server, &pack, false);
                                 break;
                         }
@@ -1356,8 +1408,30 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         /* completado: rescate! mismo efecto que el handler
                          * instantaneo + cerrar la barra del revive */
                         target->plr.dedemon_progress = 0;
-                        DEL_FLAG(target->plr.flags, PLAYER_DEMONIZED);
-                        SET_FLAG(target->plr.flags, PLAYER_REVIVED);
+                        target->plr.revival = 0;
+
+                        if (dedemon_path)
+                        {
+                                DEL_FLAG(target->plr.flags, PLAYER_DEMONIZED);
+                                DEL_FLAG(target->plr.flags, PLAYER_NEGATIZED); /* v17: rescatado = ya no cuenta como nega */
+                                SET_FLAG(target->plr.flags, PLAYER_REVIVED);
+                                target->plr.data[0] = 0; /* v17: higiene de la marca minion */
+                        }
+                        else
+                        {
+                                /* v17 MILAGRO: limpia la MUERTE entera (el
+                                 * CANTREVIVE de los canon incluido), corta el
+                                 * death-timer y lo devuelve al juego como
+                                 * revivido — el SERVER_VANILLA_DEDEMONIZE hace
+                                 * el resto en su cliente (hp 100, camara,
+                                 * barrita). El game_state_check de abajo vuelve
+                                 * a contarlo como vivo. */
+                                DEL_FLAG(target->plr.flags, PLAYER_DEAD);
+                                DEL_FLAG(target->plr.flags, PLAYER_CANTREVIVE);
+                                SET_FLAG(target->plr.flags, PLAYER_REVIVED);
+                                target->plr.death_timer_sec = 0;
+                                target->plr.death_timer = 0;
+                        }
 
                         PacketCreate(&pack, SERVER_REVIVAL_STATUS);
                         PacketWrite(&pack, packet_write8, 0);
@@ -1368,7 +1442,12 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         PacketWrite(&pack, packet_write16, target->id);
                         server_broadcast(v->server, &pack, true);
 
-                        Info("%s (id %d) rescued from demonization by Vanilla!", target->nickname.value, target->id);
+                        if (dedemon_path)
+                                Info("%s (id %d) rescued from demonization by Vanilla!", target->nickname.value, target->id);
+                        else
+                                Info("%s (id %d) revived from death by Vanilla!", target->nickname.value, target->id);
+
+                        RAssert(game_state_check(v->server));
                         break;
                 }
 
@@ -2160,8 +2239,15 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 break;
 
                         /* sigue siendo minion (data[0] = 1)? un esbirro normal
-                         * (caida comun) jamas manda este paquete; doble check */
-                        if (v->plr.data[0] != 1)
+                         * (caida comun) jamas manda este paquete; doble check.
+                         * [fix-nega-v17] Ahora tambien lo acepta el SÚBDITO
+                         * NEGATIVO (PLAYER_NEGATIZED: el convertido por el
+                         * toque negativo o el minion invocado): su barra de
+                         * vida real llega a 0 por los STUNS de los
+                         * supervivientes (20 por stun, lado cliente) y vuelve
+                         * DIRECTAMENTE al portal de Jinna — mismo flujo que
+                         * el minion: disponible para el ↓+C de re-invocacion. */
+                        if (v->plr.data[0] != 1 && !(v->plr.flags & PLAYER_NEGATIZED))
                                 break;
 
                         DEL_FLAG(v->plr.flags, PLAYER_DEMONIZED);

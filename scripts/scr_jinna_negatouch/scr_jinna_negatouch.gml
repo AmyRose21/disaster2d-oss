@@ -78,6 +78,12 @@
 #macro JINNA_NEGA_GRACE (60 * 3)    // Antinegatemper: 3 s de gracia al resto tras una conversión
 #macro JINNA_NEGA_HP 60             // vida del súbdito negativo (más débil que el esbirro común: 100)
 #macro JINNA_NEGA_DAMAGE 15         // su golpe pega 15 (el esbirro común: 20)
+// v17 (VIDA REAL DEL NEGA): los stuns que los SUPERVIVIENTES le meten al
+// bando EXE son el único daño que le entra al nega (los golpes comunes de
+// los esbirros jamás le tocan la vida): 20 por stun — con los 60 hp de la
+// conversión son 3 stuns y vuelve al portal de Jinna.
+#macro JINNA_NEGA_STUN_DAMAGE 20    // v17: vida que pierde el nega POR CADA STUN de un superviviente
+#macro JINNA_NEGA_REDHEAL 10        // v17: vida que le cura recoger un ANILLO ROJO (silencioso, solo si está herido)
 
 // =====================================================================
 //  v10 (NEGAGEN) — HELPERS DEL LOOK NEGA.
@@ -264,41 +270,248 @@ function scr_jinna_negatouch_convert(_vpid)
 }
 
 // =====================================================================
-//  PURGA (lado víctima): un súbdito negativo a 0 hp NO muere — la
-//  energía negativa lo sostiene. Se purga la carga y revive DEBILITADO
-//  (30 de vida) donde cayó. Fiel al espíritu de Negagen: los súbditos
-//  negativos son débiles pero ILIMITADOS; la única salida de verdad es
-//  que caiga Jinna o acabe la ronda. La llama obj_player_puppet/Step_0
-//  justo antes del flujo de muerte del esbirro-minion.
+//  v17 (VIDA REAL DEL NEGA) — LA PURGA SE RETIRA.
+//  El diseño de v7 sostenía al nega a 0 hp (revivía con 30 de vida donde
+//  cayó: "débiles pero ilimitados"). El pedido nuevo de la dueña cambia
+//  el final del ciclo: el nega tiene VIDA REAL en su barra, los STUNS de
+//  los supervivientes le quitan 20 cada uno y AL LLEGAR A 0 vuelve
+//  DIRECTAMENTE al portal de Jinna (como los minions: fuera de juego
+//  hasta que ella lo re-invoque con ↓+C). La purga quedó además en
+//  código muerto desde v7 (su llamada vivía dentro de un "hp > 0" que
+//  hacía imposible su propio "hp <= 0"). Las dos excepciones al portal:
+//   * SALLY CANON nega, 1ra caída: activa su FASE 2 (la pasiva que SÍ da
+//     habilidades nuevas — "la única excepción a la regla es Amy"). Al
+//     caer YA EN fase 2 sí vuelve al portal, y al ser RE-INVOCADA sale
+//     directamente en fase 2 (el flag duelista viaja con SU cliente y
+//     ni el portal ni la invocación lo tocan).
+//   * VANILLA nega, 1ra caída: su PACIENCIA (Chocola) — "a Vanilla se le
+//     perdona porque en esa forma es cuando llama a Chocola". Tras la
+//     paciencia usada, la siguiente caída ya es portal.
+//   * AMY CANON: SIN burbuja en nega (su burbuja no da habilidades
+//     nuevas, solo la salva de la muerte: "esa queda solamente para
+//     cuando es normal") — el nega Amy cae directo al portal.
 // =====================================================================
-function scr_jinna_negatouch_purge()
+function scr_jinna_negatouch_down()
 {
         if(!instance_exists(global.player))
                 return false;
 
-        // solo súbditos negativos (revivalTimes 2 + la marca local)
-        if(global.player.revivalTimes < 2)
+        if(obj_netclient.gameEnds)
                 return false;
 
-        if(!variable_instance_exists(global.player.id, "jinnaNegaCharge")
-        || global.player.jinnaNegaCharge < JINNA_NEGA_MAX)
+        // solo súbditos NEGATIVOS (marca local + esbirro del bando EXE)
+        if(global.character == CHARACTER_EXE || global.player.revivalTimes < 2)
                 return false;
 
-        global.player.hp = 30;
-        global.player.isDead = false;
-        global.player.isHurt = false;
-        global.player.hurttime = 60 * 2;
-        global.player.shockedTimer = 0;
-        global.player.xspd = 0;
-        global.player.yspd = 0;
-        global.player.gspd = 0;
-        global.player.isSpinning = false;
-        global.player.isAttacking = false;
-        global.player.isJumping = false;
+        if(!variable_instance_exists(global.player.id, "isNegatouch") || !global.player.isNegatouch)
+                return false;
 
-        net_quick_effect(global.player.x, global.player.y + 32, spr_ring_teleport, false, 1, 0, 0, 2);
-        audio_play_sound(snd_demonization, 0, false);
-        net_sound_emit(snd_demonization);
+        // SALLY CANON nega, 1ra caída: su FASE 2 (mismo flujo canónico del
+        // golpe, pero SIN perder el bando: el start canónico la vuelve
+        // "normal" con revivalTimes 0 — aquí se lo devolvemos)
+        if(global.character == CHARACTER_SALLY_CANON && !global.player.fase2Used)
+        {
+                scr_sally_canon_fase2_start(0);
+
+                global.player.revivalTimes = 2;        // sigue siendo NEGA
+                variable_instance_set(global.player.id, "isNegatouch", true);
+                return true;
+        }
+
+        // VANILLA nega, 1ra caída: PACIENCIA (Chocola sale a stunearte 5 s
+        // y ella se levanta al final con la vida llena). Copia del bloque
+        // canónico de scr_player_instakill, MANTENIENDO el bando nega.
+        if(global.character == CHARACTER_VANILLA && !global.player.pacienciaUsed && global.player.moribundaState <= 0)
+        {
+                with(global.player)
+                {
+                        pacienciaState = 1;
+                        pacienciaUsed = true;
+                        pacienciaTimer = VANILLA_PACIENCIA_TIME;
+                        pacienciaWaitChocola = false;
+                        pacienciaChocolaOut = false;
+                        image_index = 0;
+
+                        hp = max(hp, 0);
+                        hurttime = 0;
+                        shockedTimer = 0;
+                        isDead = false;
+                        isHurt = false;
+                        gspd = 0;
+                        xspd = 0;
+                        yspd = 0;
+                        isAttacking = false;
+                        isJumping = false;
+                        isSpinning = false;
+                        isBoosting = false;
+                        isZipline = false;
+                        isHiding = false;
+                        emotion = false;
+                        isFlying = false;
+                        dashing = 0;
+                }
+
+                return true;
+        }
+
+        // SONIC nega, 1ra caída: NERVIOS DE ACERO (la única excepción a la
+        // regla es Amy — el nervio de Sonic sí es una fase con poder nuevo:
+        // se levanta con 100 de vida y 4 s de powerboost). Misma copia del
+        // bloque canónico de scr_player_instakill; el bando nega no cambia.
+        if(global.character == CHARACTER_SONIC && !global.player.nerviosUsed)
+        {
+                with(global.player)
+                {
+                        nerviosState = 1;
+                        nerviosUsed = true;
+                        nerviosTimer = SONIC_NERVIOS_TIME;
+                        image_index = 0;
+                        ghostTimer = 0;
+
+                        hp = max(hp, 0);
+                        hurttime = 0;
+                        shockedTimer = 0;
+                        isDead = false;
+                        rings = 0;
+                        gspd = 0;
+                        xspd = 0;
+                        yspd = 0;
+                        isAttacking = false;
+                        isSpinCharging = false;
+                        spinCharge = 0;
+                        isJumping = false;
+                        isSpinning = false;
+                        isBoosting = false;
+                        isZipline = false;
+                        isHiding = false;
+                        isHurt = false;
+                        emotion = false;
+                }
+
+                return true;
+        }
+
+        // ROUGE nega, 1ra caída: MORIBUNDA (tirada 6 s y se levanta con 40
+        // de vida). El gate canónico (revivalTimes < 1) no le sirve al nega
+        // (su revivalTimes YA vale 2): se usa la marca propia negaMoribunda.
+        // Tras usarla, la siguiente caída ya es portal.
+        if(global.character == CHARACTER_ROUGE && global.player.moribundaState <= 0)
+        {
+                if(!variable_instance_exists(global.player.id, "negaMoribundaUsed"))
+                        variable_instance_set(global.player.id, "negaMoribundaUsed", false);
+
+                if(!global.player.negaMoribundaUsed)
+                {
+                        variable_instance_set(global.player.id, "negaMoribundaUsed", true);
+
+                        with(global.player)
+                        {
+                                moribundaState = 1;
+                                moribundaTimer = ROUGE_MORIBUNDA_TIME;
+                                image_index = 0;
+
+                                hp = max(hp, 0);
+                                hurttime = 0;
+                                shockedTimer = 0;
+                                isDead = false;
+                                isHurt = false;
+                                gspd = 0;
+                                xspd = 0;
+                                yspd = 0;
+                                isAttacking = false;
+                                isJumping = false;
+                                isSpinning = false;
+                                isBoosting = false;
+                                isZipline = false;
+                                isHiding = false;
+                                emotion = false;
+                                isGliding = false;
+
+                                if(isStuck)
+                                {
+                                        canMove = true;
+                                        isStuck = false;
+                                }
+                        }
+
+                        audio_play_sound(snd_hurt, 0, false);
+                        return true;
+                }
+        }
+
+        // EL RESTO (Amy sin burbuja, Sally ya en fase 2, Vanilla tras la paciencia):
+        // de vuelta AL PORTAL de Jinna. Reusa el paquete del minion
+        // (CLIENT_JINNA_MINION_DOWN): el server lo acepta para negas
+        // (PLAYER_NEGATIZED, fix v17 en Game.c), le re-marca
+        // PLAYER_CAUGHT y lo reenvía a todos — el handler de
+        // SERVER_JINNA_MINION_DOWN hace el resto (portal, fuera de
+        // juego, cámara de espectador a la espera de la re-invocación).
+        global.player.hp = 0;
+
+        var _mdown = cpacket_tcp(PacketType.CLIENT_JINNA_MINION_DOWN, false);
+        send_server_tcp(_mdown);
+
+        return true;
+}
+
+// =====================================================================
+//  v17 (VIDA REAL DEL NEGA) — STUN = 20 DE DAÑO.
+//  Lo llaman TODAS las fuentes de stun "de superviviente" sobre el
+//  jugador local (contacto del golpe en obj_player_puppet, patada en
+//  tierra de Sally Canon fase 2, parry de Sonic, flecha de Fleetway
+//  Amy, laser de Tails, bola de fuego de Blaze y trampa de Amelia).
+//  La autoría es del cliente de la VÍCTIMA (patrón de todo el daño).
+//  Solo cala en súbditos NEGATIVOS (marca isNegatouch + revivalTimes 2:
+//  los minions invocados del portal TAMBIÉN la llevan — mismo look,
+//  mismo ciclo de vida). A 0 hp enruta a scr_jinna_negatouch_down
+//  (fase 2 de Sally / paciencia de Vanilla / portal de Jinna).
+// =====================================================================
+function scr_jinna_negatouch_stun_hurt()
+{
+        if(!instance_exists(global.player))
+                return false;
+
+        if(obj_netclient.gameEnds)
+                return false;
+
+        if(global.character == CHARACTER_EXE || global.player.revivalTimes < 2)
+                return false;
+
+        if(!variable_instance_exists(global.player.id, "isNegatouch") || !global.player.isNegatouch)
+                return false;
+
+        if(global.player.isDead || global.player.hp <= 0)
+                return false;
+
+        // estados de inmunidad total: ni daño ni caída mientras duren
+        // (la fase 2 de Sally, la paciencia/moribunda de Vanilla, los
+        // nervios de Sonic y la moribunda de Rouge son intocables
+        // también para el nega — mismo trato que el original)
+        if(global.character == CHARACTER_SALLY_CANON && global.player.fase2State != SALLY_CANON_F2_OFF)
+                return false;
+
+        if(global.character == CHARACTER_VANILLA && (global.player.pacienciaState > 0 || global.player.moribundaState > 0))
+                return false;
+
+        if(global.character == CHARACTER_SONIC && global.player.nerviosState > 0)
+                return false;
+
+        if(global.character == CHARACTER_ROUGE && global.player.moribundaState > 0)
+                return false;
+
+        global.player.hp -= JINNA_NEGA_STUN_DAMAGE;
+
+        // stats de daño recibido (canal 3, mismo reporte que el minion)
+        var _pak = cpacket_tcp(PacketType.CLIENT_STATS_REPORT, true);
+        buffer_write(_pak, buffer_u8, 3);
+        buffer_write(_pak, buffer_u8, JINNA_NEGA_STUN_DAMAGE);
+        send_server_tcp(_pak);
+
+        // sangre: el golpe de stuneo se VE en la vida del nega
+        net_quick_effect(global.player.x, global.player.y, spr_blood3, false, 1, 0, 0, 1);
+
+        if(global.player.hp <= 0)
+                scr_jinna_negatouch_down();
 
         return true;
 }

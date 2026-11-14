@@ -380,21 +380,10 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         return;
                                 }
 
-                                // v7 (toque negativo) — SÚBDITO NEGATIVO GOLPEADO: el
-                                // esbirro convertido por la energia negativa de Jinna
-                                // (revivalTimes 2 con jinnaNegaCharge a tope, NO minion
-                                // del portal). Su vida ya viaja en el UDP y el golpe le
-                                // entra por el flujo comun de esbirro (el bloque de
-                                // isDemonized de abajo); este hook solo cubre su muerte:
-                                // a 0 hp NO muere ni vuelve a ningun portal — la energia
-                                // negativa lo SOSTIENE (fiel a Negagen: debiles pero
-                                // ILIMITADOS): revive donde cayo con 30 de vida.
-                                // scr_jinna_negatouch_purge devuelve false si NO era un
-                                // súbdito negativo (esbirro comun): el flujo sigue.
-                                if(global.player.revivalTimes >= 2
-                                && instance_exists(global.player) && global.player.hp <= 0 && !global.player.isDead
-                                && scr_jinna_negatouch_purge())
-                                        return;
+                                // v17: la PURGA se retiró (era código muerto: su hp <= 0
+                                // vivía dentro de este hp > 0). El nega a 0 hp ahora vuelve
+                                // AL PORTAL de Jinna por la vía nueva de los STUNS
+                                // (scr_jinna_negatouch_stun_hurt / scr_player_instakill).
 
                                 if(global.player.revivalTimes >= 2)
                                         return;
@@ -659,6 +648,12 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         audio_play_sound(_f2snd, 0, false);
                                         net_sound_emit(_f2snd);
                                         
+                                        // v17 (VIDA REAL DEL NEGA): la patada duelista
+                                        // también es un stun DE SUPERVIVIENTE — al nega
+                                        // local le cuesta 20 de vida (cada patada de la
+                                        // pareja cuenta como stun propio)
+                                        scr_jinna_negatouch_stun_hurt();
+                                        
                                         var buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
                                         buffer_write(buffer, buffer_u16, master_id);
                                         buffer_write(buffer, buffer_u16, x);
@@ -783,6 +778,13 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 global.player.isGrounded = false;
                                 audio_play_sound(snd, 0, false);
                                 net_sound_emit(snd);
+                                
+                                // v17 (VIDA REAL DEL NEGA): el stun de contacto de un
+                                // superviviente le QUITA 20 DE VIDA al subdito negativo
+                                // local (a 0 hp: fase 2 de Sally / paciencia de Vanilla /
+                                // vuelta al portal de Jinna). Para el exe y el esbirro
+                                // comun no cambia nada (la función se autofiltra)
+                                scr_jinna_negatouch_stun_hurt();
                                 
                                 var pak = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
                                 buffer_write(pak, buffer_u8, 1);

@@ -1,9 +1,11 @@
 // v2.13 (ECLIPSE de «Sol y Luna»): cegado el bando EXE, tampoco ve el
 // HUD de ningun superviviente (nick/HP/anillos) — «todos se
 // esfumaron». Sus esbirros (isDemonized) si conservan su HUD.
-if(!isDemonized && global.eclipseTimer > 0
+// v17 (NEGAGEN): cegado el SUPERVIVIENTE por la trampa de una Amelia
+// NEGA, es el HUD del bando EXE el que no renderiza (el otro lado).
+if(global.eclipseTimer > 0
 && instance_exists(global.player)
-&& (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2))
+&& ((global.character == CHARACTER_EXE || global.player.revivalTimes >= 2) ? !isDemonized : isDemonized))
         return;
 
 if(instance_exists(obj_deserttown_i))

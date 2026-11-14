@@ -2612,6 +2612,22 @@ function net_state_game(rbuff, nps, isPasstrough)
                         if(!instance_exists(global.player))
                                 return;
                         
+                        // v17 (NEGAGEN): el NEGA recoge un ANILLO NEGRO y recupera
+                        // TODA su vida, en silencio. Para el resto del bando EXE
+                        // (exe y esbirros comunes) y los supervivientes el anillo
+                        // negro sigue siendo el de siempre: los negas jamás caen
+                        // en el código de daño de abajo (obj_blackring solo manda
+                        // el paquete para el nega HERIDO, así que "no lastima a los
+                        // nega" y si va con la vida llena ni lo gasta).
+                        if(global.player.revivalTimes >= 2)
+                        {
+                                if(scr_negatouch_is(global.player)
+                                && global.player.hp > 0 && global.player.hp < 100)
+                                        global.player.hp = 100;
+                                
+                                break;
+                        }
+                        
                         obj_achivements.wasHurt = true;
                         if(global.player.rings >= 5)
                         {
@@ -2909,14 +2925,27 @@ function net_state_game(rbuff, nps, isPasstrough)
                         if(global.character == CHARACTER_EXE)
                                 break;
                                 
-                        if(global.player.revivalTimes >= 2)
-                                break;
-                                
                         var _id = buffer_read_s(rbuff, buffer_u8);
                         var _eid = buffer_read_s(rbuff, buffer_u16);
                         var _redRing = buffer_read_s(rbuff, buffer_bool);
                         var _canHeal = buffer_read_s(rbuff, buffer_bool);
                         var _worth = buffer_read_s(rbuff, buffer_u8); // v1.2: anillos de Vanilla valen 3 (servers viejos: -1)
+                        
+                        // v17 (NEGAGEN): el NEGA recoge un ANILLO ROJO para CURARSE:
+                        // +JINNA_NEGA_REDHEAL (10) de vida, SIN NINGÚN sonido (ni el
+                        // del anillo ni el del mindfuck: cura sigilosa) y SIN el debuff
+                        // de la pantalla roja — para el nega el anillo rojo dejó de ser
+                        // una trampa del exe y pasó a ser su botiquín. El anillo normal
+                        // no lo recoge (obj_ring lo bloquea) y con la vida llena el
+                        // anillo ni se gastó (obj_redring no lo manda).
+                        if(global.player.revivalTimes >= 2)
+                        {
+                                if(_redRing && scr_negatouch_is(global.player)
+                                && global.player.hp > 0 && global.player.hp < 100)
+                                        global.player.hp = min(100, global.player.hp + JINNA_NEGA_REDHEAL);
+                                
+                                break;
+                        }
                         
                         if(_redRing)
                         {
@@ -3597,6 +3626,15 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // paleta normal y 2 s de i-frames
                         if(_dnid == obj_netclient.nid && instance_exists(global.player))
                         {
+                                // v17 (RESCATE DE LOS CAÍDOS): si el objetivo venía
+                                // MUERTO (el milagro de Vanilla con los caídos), se
+                                // restauran también el estado de muerte que el
+                                // esbirro nunca tuvo: contador de agonia, color de
+                                // muerte, cámara de espectador y la barrita de
+                                // revive. Para el esbirro/nega rescatado nada de
+                                // esto cambia (no estaba muerto).
+                                var _wasDead = global.player.isDead;
+                                
                                 global.player.revivalTimes = 1;
                                 global.player.hp = 100;
                                 global.player.isDead = false;
@@ -3607,6 +3645,20 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 // v7: la carga negativa se purga al ser rescatado
                                 if(variable_instance_exists(global.player.id, "jinnaNegaCharge"))
                                         global.player.jinnaNegaCharge = 0;
+                                
+                                if(_wasDead)
+                                {
+                                        global.player.deadTimer = 31;
+                                        global.player.deadColor = c_white;
+                                        global.player.shockedTimer = 0;
+                                        global.player.isHurt = false;
+                                        global.cameraMode = 0; // vuelve de la cámara de espectador
+                                        
+                                        with(global.player.reviveObj)
+                                                instance_destroy();
+                                        
+                                        global.player.reviveObj = noone;
+                                }
                                 
                                 var _dtable = obj_unlockables.palettes[? global.character];
                                 

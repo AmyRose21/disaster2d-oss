@@ -876,6 +876,12 @@ function scr_parry_apply_stun(_victimNid, _kx, _emitSound)
         global.player.xspd = _kx;
         global.player.yspd = -2;
         global.player.isGrounded = false;
+        
+        // v17 (VIDA REAL DEL NEGA): el parry de Sonic es otro stun DE
+        // SUPERVIVIENTE — al nega atacante le cuesta 20 de vida (a 0 hp:
+        // fase 2 de Sally / paciencia de Vanilla / portal de Jinna).
+        // Para el exe y el esbirro comun no cambia nada.
+        scr_jinna_negatouch_stun_hurt();
 
         audio_play_sound(snd_exe_stun, 0, false);
         if(_emitSound)

@@ -3,9 +3,12 @@
 // superviviente renderiza — «como si todos se hubieran esfumado».
 // Sus esbirros (isDemonized) y el propio EXE siguen visibles. Puro
 // dibujado: la logica de juego (colisiones, dano, parry) no cambia.
-if(!isDemonized && global.eclipseTimer > 0
+// v17 (NEGAGEN): la ceguera INVERSA — el SUPERVIVIENTE cegado por la
+// trampa de una Amelia NEGA tampoco ve al bando EXE (exe, negas,
+// esbirros y minions): mismos «todos se esfumaron», el otro lado.
+if(global.eclipseTimer > 0
 && instance_exists(global.player)
-&& (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2))
+&& ((global.character == CHARACTER_EXE || global.player.revivalTimes >= 2) ? !isDemonized : isDemonized))
         return;
 
 if(effect)

@@ -104,6 +104,56 @@ function scr_survivor_revive()
                 return;
         }
 
+        // === v17: RESCATE DE LOS CAÍDOS (Vanilla) =====================
+        // "Podrá revivir a los caídos, es decir, a los que estén
+        // muertos, por la misma cantidad de 15 anillos": un cuerpo
+        // MUERTO de verdad (estado DEAD + hp <= 0 sin demonizar — el
+        // muerto directo de los canon y el que ya nadie puede revivir
+        // con los 3 anillos del prompt común) se revive EXACTAMENTE
+        // como el esbirro del rescate: Vanilla encima MANTENIENDO
+        // ABAJO, el MISMO prompt/barra (SERVER_REVIVAL_PROGRESS) y 15
+        // anillos al completar. El server (CLIENT_VANILLA_DEDEMONIZE_
+        // PROGRESS, fix v17) enruta por PLAYER_DEAD: limpia la muerte
+        // y el SERVER_VANILLA_DEDEMONIZE lo revive entero. Solo la
+        // Vanilla SIN demonizar (la nega pelea para el otro bando).
+        if(global.character == CHARACTER_VANILLA
+        && global.player.revivalTimes < 2
+        && state == DEAD && hp <= 0 && revivalTimes < 2 && !isDemonized
+        && !isInactive && !global.player.isDead && global.player.hp > 0)
+        {
+                if(place_meeting(x, y, global.player))
+                {
+                        reviveObj.over = global.player.rings >= VANILLA_DEDEMON_COST ? 1 : 0;
+
+                        if(global.playerControls && global.player.isLookingDown && global.player.rings >= VANILLA_DEDEMON_COST
+                           && (global.player.dedemonTarget == -1 || global.player.dedemonTarget == master_id))
+                        {
+                                global.player.dedemonTarget = master_id;
+
+                                if(global.player.dedemonCd <= 0)
+                                {
+                                        global.player.dedemonCd = VANILLA_DEDEMON_SEND_CD;
+
+                                        var dpak = cpacket_tcp(PacketType.CLIENT_VANILLA_DEDEMONIZE_PROGRESS, false);
+                                        buffer_write(dpak, buffer_u16, master_id);
+                                        buffer_write(dpak, buffer_u8, global.player.rings);
+                                        send_server_tcp(dpak);
+                                }
+                        }
+                        else if(global.player.dedemonTarget == master_id && !global.player.isLookingDown)
+                                global.player.dedemonTarget = -1;
+                }
+                else
+                {
+                        reviveObj.over = -1;
+
+                        if(global.player.dedemonTarget == master_id)
+                                global.player.dedemonTarget = -1;
+                }
+
+                return;
+        }
+
         if(hp > 0)
         {
                 reviveObj.over = -1;

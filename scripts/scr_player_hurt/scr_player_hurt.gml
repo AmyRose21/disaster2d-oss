@@ -6,6 +6,19 @@ function scr_player_instakill()
         if(obj_netclient.gameEnds)
                 return;
         
+        // === v17 (VIDA REAL DEL NEGA) — SÚBDITO NEGATIVO A 0 HP ===
+        // El nega NO muere ni pasa por la agonía: cae de vuelta AL PORTAL
+        // de Jinna (scr_jinna_negatouch_down manda CLIENT_JINNA_MINION_DOWN,
+        // el server lo re-marca PLAYER_CAUGHT y está disponible para el ↓+C).
+        // Las pasivas que dan HABILIDADES NUEVAS siguen encendidas en nega:
+        // Sally Canon activa su FASE 2 (al caer ya en fase 2, portal) y
+        // Vanilla su PACIENCIA (Chocola). Las que SOLO salvan de la muerte
+        // NO (la burbuja de Amy Canon, los nervios de Sonic, la moribunda
+        // de Rouge): el nega Amy cae directo al portal — "esa queda
+        // solamente para cuando es normal".
+        if(scr_jinna_negatouch_down())
+                return;
+        
         // === BURBUJA DE SECUESTRO (solo Amy Canon - reglas canonicas) ===
         // Su 1ra caida JAMAS la mata: la encierra en la burbuja (alli
         // levita, no puede ser herida y un companero puede liberarla).

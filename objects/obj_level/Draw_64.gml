@@ -30,9 +30,14 @@ switch(room)
 // Solo en el cliente de la victima — que es quien tiene el timer
 // activo. Los supervivientes ya no se dibujan en su cliente
 // (obj_player_puppet/Draw_0 y Draw_64): «todos se esfumaron».
-if(global.eclipseTimer > 0 && instance_exists(global.player)
-&& (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2))
+if(global.eclipseTimer > 0 && instance_exists(global.player))
 {
+        // v17 (NEGAGEN): el velo ya no es exclusivo del bando EXE — la
+        // trampa de una Amelia NEGA también CIEGA a los supervivientes
+        // (excepto Amy Canon): el timer solo lo tiene la víctima, sea del
+        // bando que sea, así que el lado sobra (para el superviviente
+        // cegado, quien «se esfuma» es el bando EXE: ver el Draw_0/64
+        // del puppet).
         var _eclT = global.eclipseTimer;
         var _eclF = min(1, min(_eclT, AMELIA_ECLIPSE_TIME - _eclT) / 30);
         

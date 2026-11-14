@@ -1393,6 +1393,11 @@ function scr_lsa_stun_signal()
                 isGrounded = false;
         }
 
+        // v17 (VIDA REAL DEL NEGA): el golpe del LIGHT DASH de Sonic es
+        // otro stun de superviviente — al nega local le cuesta 20 de vida
+        // (a 0 hp: fase 2 de Sally / paciencia de Vanilla / portal de Jinna)
+        scr_jinna_negatouch_stun_hurt();
+
         // camara del golpeado + estadisticas (el mismo paquete que usan el
         // parry y el stun de Chocola)
         var _buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
