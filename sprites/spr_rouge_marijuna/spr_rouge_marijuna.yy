@@ -50,7 +50,6 @@
     "eventStubScript":null,
     "eventToFunction":{},
     "length":1.0,
-    "locked":false,
     "lockOrigin":false,
     "moments":{
       "$KeyframeStore<MomentsEventKeyframe>":"",
@@ -70,12 +69,11 @@
       "name":"spr_rouge_marijuna",
       "path":"sprites/spr_rouge_marijuna/spr_rouge_marijuna.yy",
     },
-    "tags":[],
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"fe57b094-48dc-4007-ad28-ce3b6cc60f54","path":"sprites/spr_rouge_marijuna/spr_rouge_marijuna.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"35850389-b560-48ff-b8fc-c6780f2077a5","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"tags":[],"trackColour":0,"tracks":[],"traits":0,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visible":true,
     "visibleRange":null,
@@ -85,7 +83,6 @@
   },
   "swatchColours":null,
   "swfPrecision":2.525,
-  "tags":[],
   "textureGroupId":{
     "name":"Game",
     "path":"texturegroups/Game",
