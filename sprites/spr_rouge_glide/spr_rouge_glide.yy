@@ -69,10 +69,6 @@
     "resourceVersion":"2.0",
     "showBackdrop":true,
     "showBackdropImage":false,
-    "spriteId":{
-      "name":"spr_rouge_glide",
-      "path":"sprites/spr_rouge_glide/spr_rouge_glide.yy",
-    },
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
@@ -83,7 +79,7 @@
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"54784704-fc86-4ceb-9510-3904338cc605","path":"sprites/spr_rouge_glide/spr_rouge_glide.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"b874a2f5-365f-4fb9-a121-b93f1a174a84","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
-    "visible":true,
+
     "visibleRange":null,
     "volume":1.0,
     "xorigin":14,
