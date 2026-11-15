@@ -14391,6 +14391,12 @@
     },
     {
       "id": {
+        "name": "spr_rouge_fly",
+        "path": "sprites/spr_rouge_fly/spr_rouge_fly.yy"
+      }
+    },
+    {
+      "id": {
         "name": "spr_rouge_glide",
         "path": "sprites/spr_rouge_glide/spr_rouge_glide.yy"
       }

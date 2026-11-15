@@ -1,67 +1,147 @@
 {
-  "bboxMode":0,
-  "bbox_bottom":28,
-  "bbox_left":0,
-  "bbox_right":39,
-  "bbox_top":0,
-  "colkind":1,
-  "collisionKind":1,
-  "collisionTolerance":0,
-  "DynamicTexturePage":false,
-  "edgeFiltering":false,
-  "For3D":false,
-  "frames":[
-    {"name":"dd4c5d65-46c9-42a3-83c7-811d3228ac88","resourceType":"GMSpriteFrame","resourceVersion":"1.0",},
+  "$GMSprite": "v2",
+  "%Name": "spr_rouge_hurt",
+  "bboxMode": 0,
+  "bbox_bottom": 28,
+  "bbox_left": 0,
+  "bbox_right": 39,
+  "bbox_top": 0,
+  "collisionKind": 1,
+  "collisionTolerance": 0,
+  "DynamicTexturePage": false,
+  "edgeFiltering": false,
+  "For3D": false,
+  "frames": [
+    {
+      "$GMSpriteFrame": "v1",
+      "%Name": "dd4c5d65-46c9-42a3-83c7-811d3228ac88",
+      "name": "dd4c5d65-46c9-42a3-83c7-811d3228ac88",
+      "resourceType": "GMSpriteFrame",
+      "resourceVersion": "2.0"
+    }
   ],
-  "gridX":0,
-  "gridY":0,
-  "height":29,
-  "HTile":false,
-  "layers":[],
-  "locked":false,
-  "name":"spr_rouge_hurt",
-  "nineSlice":null,
-  "origin":0,
-  "originLocked":false,
-  "parent":{
-    "name":"Sprites",
-    "path":"folders/Sprites.yy",
+  "gridX": 0,
+  "gridY": 0,
+  "height": 29,
+  "HTile": false,
+  "layers": [
+    {
+      "$GMImageLayer": "",
+      "%Name": "dd4c5d65-46c9-42a3-83c7-811d3228ac88",
+      "blendMode": 0,
+      "displayName": "default",
+      "isLocked": false,
+      "name": "dd4c5d65-46c9-42a3-83c7-811d3228ac88",
+      "opacity": 100.0,
+      "resourceType": "GMImageLayer",
+      "resourceVersion": "2.0",
+      "visible": true
+    }
+  ],
+  "name": "spr_rouge_hurt",
+  "nineSlice": null,
+  "origin": 9,
+  "parent": {
+    "name": "Rouge",
+    "path": "folders/Sprites/Player/Survivors/Rouge.yy"
   },
-  "playbackSpeed":15.0,
-  "playbackSpeedType":0,
-  "premultiplyAlpha":false,
-  "resourceType":"GMSprite",
-  "resourceVersion":"1.0",
-  "sequence":{
-    "autoRecord":true,
-    "events":[],
-    "length":1.0,
-    "moments":{
-      "Keyframes":[],
+  "preMultiplyAlpha": false,
+  "resourceType": "GMSprite",
+  "resourceVersion": "2.0",
+  "sequence": {
+    "$GMSequence": "v1",
+    "%Name": "spr_rouge_hurt",
+    "autoRecord": true,
+    "backdropHeight": 768,
+    "backdropImageOpacity": 0.5,
+    "backdropImagePath": "",
+    "backdropWidth": 1366,
+    "backdropXOffset": 0.0,
+    "backdropYOffset": 0.0,
+    "events": {
+      "$KeyframeStore<MessageEventKeyframe>": "",
+      "Keyframes": [],
+      "resourceType": "KeyframeStore<MessageEventKeyframe>",
+      "resourceVersion": "2.0"
     },
-    "name":"spr_rouge_hurt",
-    "playbackSpeed":15.0,
-    "playbackSpeedType":0,
-    "resourceType":"GMSequence",
-    "resourceVersion":"1.4",
-    "tracks":[
-      {"keyframes":{"Keyframes":[
-            {"Channels":{"0":{"Id":{"name":"dd4c5d65-46c9-42a3-83c7-811d3228ac88","path":"sprites/spr_rouge_hurt/dd4c5d65-46c9-42a3-83c7-811d3228ac88.png",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"1.0",},},"Disabled":false,"id":"02a2b76e-ee59-4d9b-a861-0abc100d5795","IsCreationKey":false,"Key":0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"1.0","Stretch":false,},
-          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>",},"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"1.0","tags":[],"trackType":"frames","visibleRange":null,},
+    "eventStubScript": null,
+    "eventToFunction": {},
+    "length": 1.0,
+    "lockOrigin": false,
+    "moments": {
+      "$KeyframeStore<MomentsEventKeyframe>": "",
+      "Keyframes": [],
+      "resourceType": "KeyframeStore<MomentsEventKeyframe>",
+      "resourceVersion": "2.0"
+    },
+    "name": "spr_rouge_hurt",
+    "playback": 1,
+    "playbackSpeed": 16.0,
+    "playbackSpeedType": 0,
+    "resourceType": "GMSequence",
+    "resourceVersion": "2.0",
+    "showBackdrop": true,
+    "showBackdropImage": false,
+    "timeUnits": 1,
+    "tracks": [
+      {
+        "$GMSpriteFramesTrack": "",
+        "builtinName": 0,
+        "events": [],
+        "inheritsTrackColour": true,
+        "interpolation": 1,
+        "isCreationTrack": false,
+        "keyframes": {
+          "$KeyframeStore<SpriteFrameKeyframe>": "",
+          "Keyframes": [
+            {
+              "$Keyframe<SpriteFrameKeyframe>": "",
+              "Channels": {
+                "0": {
+                  "$SpriteFrameKeyframe": "",
+                  "Id": {
+                    "name": "dd4c5d65-46c9-42a3-83c7-811d3228ac88",
+                    "path": "sprites/spr_rouge_hurt/spr_rouge_hurt.yy"
+                  },
+                  "resourceType": "SpriteFrameKeyframe",
+                  "resourceVersion": "2.0"
+                }
+              },
+              "Disabled": false,
+              "id": "da090e4a-bd9e-413c-b5be-2d1c895f8aae",
+              "IsCreationKey": false,
+              "Key": 0.0,
+              "Length": 1.0,
+              "resourceType": "Keyframe<SpriteFrameKeyframe>",
+              "resourceVersion": "2.0",
+              "Stretch": false
+            }
+          ],
+          "resourceType": "KeyframeStore<SpriteFrameKeyframe>",
+          "resourceVersion": "2.0"
+        },
+        "modifiers": [],
+        "name": "frames",
+        "resourceType": "GMSpriteFramesTrack",
+        "resourceVersion": "2.0",
+        "spriteId": null,
+        "trackColour": 0,
+        "tracks": [],
+        "traits": 0
+      }
     ],
+    "visibleRange": null,
+    "volume": 1.0,
+    "xorigin": 20,
+    "yorigin": 14
   },
-  "swatchColours":null,
-  "tags":[],
-  "textureGroupId":{
-    "name":"Default",
-    "path":"texturegroups/Default",
+  "swatchColours": null,
+  "swfPrecision": 2.525,
+  "textureGroupId": {
+    "name": "Game",
+    "path": "texturegroups/Game"
   },
-  "texturePageHeight":0,
-  "texturePageWidth":0,
-  "textureTileSize":0,
-  "VTile":false,
-  "width":40,
-  "wrapMode":0,
-  "xorig":0,
-  "yorig":0,
+  "type": 0,
+  "VTile": false,
+  "width": 40
 }
