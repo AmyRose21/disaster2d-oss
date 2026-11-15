@@ -12,15 +12,15 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"b03c47d0-bc66-4bd6-82ff-2b71ab3e69e0","name":"b03c47d0-bc66-4bd6-82ff-2b71ab3e69e0","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"e9f3369d-3619-4e80-bc2d-3bb588a60da1","name":"e9f3369d-3619-4e80-bc2d-3bb588a60da1","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"d85440cb-9a70-4fac-bae4-6980f8fd359a","name":"d85440cb-9a70-4fac-bae4-6980f8fd359a","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"2c636729-4190-4789-9273-bec0e49c7bab","name":"2c636729-4190-4789-9273-bec0e49c7bab","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":43,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"748fd083-582d-4dfb-9faf-c4d74e35d3e1","blendMode":0,"displayName":"default","isLocked":false,"name":"748fd083-582d-4dfb-9faf-c4d74e35d3e1","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"de2c4379-1b11-4448-aa40-bc9b0cb4b55f","blendMode":0,"displayName":"default","isLocked":false,"name":"de2c4379-1b11-4448-aa40-bc9b0cb4b55f","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_rougenega_lookup",
   "nineSlice":null,
@@ -69,9 +69,12 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"b03c47d0-bc66-4bd6-82ff-2b71ab3e69e0","path":"sprites/spr_rougenega_lookup/spr_rougenega_lookup.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"792c755a-fc23-4897-9dc3-048bcd41bf3e","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"e9f3369d-3619-4e80-bc2d-3bb588a60da1","path":"sprites/spr_rougenega_lookup/spr_rougenega_lookup.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"e61a5391-0a21-4a2b-a40e-287e358f3fe0","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-          ],},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"d85440cb-9a70-4fac-bae4-6980f8fd359a","path":"sprites/spr_rougenega_lookup/spr_rougenega_lookup.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"a9ef6781-72a4-419e-be0b-92aa4b01c2b4","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"2c636729-4190-4789-9273-bec0e49c7bab","path":"sprites/spr_rougenega_lookup/spr_rougenega_lookup.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"558232cc-00e3-439d-8e8a-fa503e1568c3","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,

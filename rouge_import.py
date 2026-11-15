@@ -102,8 +102,8 @@ def make_yy(name, w, h, frame_guids, layer_guid, bbox, origin, playback,
     if xorig is None: xorig = w // 2
     if yorig is None: yorig = h // 2
     bl, bt, br, bb = bbox
-    fr = ",\n".join(
-        f'    {{"$GMSpriteFrame":"v1","%Name":"{g}","name":"{g}","resourceType":"GMSpriteFrame","resourceVersion":"2.0",}}'
+    fr = "\n".join(
+        f'    {{"$GMSpriteFrame":"v1","%Name":"{g}","name":"{g}","resourceType":"GMSpriteFrame","resourceVersion":"2.0",}},'
         for g in frame_guids)
     n = len(frame_guids)
     return f'''{{
@@ -176,8 +176,8 @@ def make_yy(name, w, h, frame_guids, layer_guid, bbox, origin, playback,
     "timeUnits":1,
     "tracks":[
       {{"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-{",".join(keyframe(name, g, k) for k, g in enumerate(frame_guids))}
-      ]}},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0}},
+{",".join(keyframe(name, g, k) for k, g in enumerate(frame_guids))},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",}},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,}},
     ],
     "visibleRange":null,
     "volume":1.0,
@@ -200,7 +200,7 @@ def keyframe(name, g, k):
     kid = new_guid()
     return f'''            {{"$Keyframe<SpriteFrameKeyframe>":"","Channels":{{
                 "0":{{"$SpriteFrameKeyframe":"","Id":{{"name":"{g}","path":"sprites/{name}/{name}.yy",}},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",}},
-              }},"Disabled":false,"id":"{kid}","IsCreationKey":false,"Key":{k}.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false}}'''
+              }},"Disabled":false,"id":"{kid}","IsCreationKey":false,"Key":{k}.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,}}'''
 
 def invert(im):
     """inversión 255-canal exacta (RGB), alpha intacto"""

@@ -12,15 +12,15 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"45bd9709-bd2b-46a3-842a-c0491f650468","name":"45bd9709-bd2b-46a3-842a-c0491f650468","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"d795731f-c47a-42b8-aaaf-59312c6a39e2","name":"d795731f-c47a-42b8-aaaf-59312c6a39e2","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"68f19605-976c-430c-87d3-32e46250c248","name":"68f19605-976c-430c-87d3-32e46250c248","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"37145f91-edb8-43e5-88dd-4928aac9b7cd","name":"37145f91-edb8-43e5-88dd-4928aac9b7cd","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":45,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"136d3422-e0cc-4bf6-8794-c446fe8ea2b5","blendMode":0,"displayName":"default","isLocked":false,"name":"136d3422-e0cc-4bf6-8794-c446fe8ea2b5","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"f7882451-1324-4c17-a287-693b0646c134","blendMode":0,"displayName":"default","isLocked":false,"name":"f7882451-1324-4c17-a287-693b0646c134","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_rougenega_fall",
   "nineSlice":null,
@@ -69,9 +69,12 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"45bd9709-bd2b-46a3-842a-c0491f650468","path":"sprites/spr_rougenega_fall/spr_rougenega_fall.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"602a57b7-2b3d-4be8-9d7d-c87f489fcde9","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"d795731f-c47a-42b8-aaaf-59312c6a39e2","path":"sprites/spr_rougenega_fall/spr_rougenega_fall.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"d1657354-3d6c-4f33-88a5-58b6f4c7058f","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-          ],},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"68f19605-976c-430c-87d3-32e46250c248","path":"sprites/spr_rougenega_fall/spr_rougenega_fall.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"b70ad2de-916a-4c45-9940-8f1b855181a5","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"37145f91-edb8-43e5-88dd-4928aac9b7cd","path":"sprites/spr_rougenega_fall/spr_rougenega_fall.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"07ea6134-aab0-4089-8e5c-65ea9f17dcc9","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,

@@ -29,17 +29,27 @@ IMPORTADO AL PROYECTO GM CON ESTRUCTURA COMPLETA:
 - sprites/<nombre>/layers/<GUID frame>/<GUID capa>.png (copia exacta)
 - registro de las 40 tiras en Sonicexe The Disaster 2D Remake.yyp
   (posiciones historicas: spr_rouge* tras spr_roseheart, menu tras spr_menu_rings)
+- .yy con la estructura de tracks/keyframes EXACTA del canon (byte-comparable
+  con spr_knux_idle; ver v2 abajo)
 - bbox recalculado al contenido REAL de cada tira, origin centrado (9),
   playbackSpeed heredado del v4.4 funcional (idle 30, walk 16, dead 5, ...)
 
-VALIDACION: rouge_verify.py 26/26 OK —
+v2 (FIX IDE): el primer empaquetado cerraba el objeto keyframes del track
+sin sus campos "resourceType"/"resourceVersion" -> el IDE de GameMaker
+rechazaba cada .yy con 'Error: Field "resourceType": expected' (linea de la
+llave ]}} del track). Corregido al estilo EXACTO del canon del repo
+(spr_knux_idle): ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>",
+"resourceVersion":"2.0",} — y el verificador ahora compara la estructura de
+claves RECURSIVA de las 40 tiras contra el canon, para que esto no recurra.
+
+VALIDACION: rouge_verify.py 27/27 OK (v2, con canon recursivo) —
   * las 39 referencias del codigo (sin comentarios) existen en disco
   * los 40 .yy son JSON valido (formato GM con comas colgantes como todo el repo)
   * PNG root == layers por frame, keyframes == frames, dimensiones coherentes
   * bbox dentro del lienzo, origin dentro del lienzo
   * yyp sin duplicados (2452 recursos), todas las tiras registradas
   * arte pixel-exacto contra el zip; nega = inversion exacta
-  * estructura de tracks/keyframes IDENTICA a la de spr_knux_idle (canon)
+  * estructura de tracks/keyframes IDENTICA a la de spr_knux_idle (canon, chequeo recursivo)
 
 INSTALACION: descomprimir sobre la raiz del proyecto (reemplaza el .yyp).
 Despues abrir el IDE y recompilar el CLIENTE (no hay cambios de server).

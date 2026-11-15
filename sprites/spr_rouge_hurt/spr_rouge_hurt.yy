@@ -12,14 +12,14 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"1975925f-10f9-4da9-a9b6-f8d4352af8d4","name":"1975925f-10f9-4da9-a9b6-f8d4352af8d4","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"4d5cae2c-7bd1-49b0-9418-9149ebb455d6","name":"4d5cae2c-7bd1-49b0-9418-9149ebb455d6","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":29,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"67a4bbac-cfa9-44c0-abf6-6c83518fe1c6","blendMode":0,"displayName":"default","isLocked":false,"name":"67a4bbac-cfa9-44c0-abf6-6c83518fe1c6","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"7277b95c-3d84-4a10-8cb9-2fcd9f5ae466","blendMode":0,"displayName":"default","isLocked":false,"name":"7277b95c-3d84-4a10-8cb9-2fcd9f5ae466","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_rouge_hurt",
   "nineSlice":null,
@@ -68,8 +68,10 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"1975925f-10f9-4da9-a9b6-f8d4352af8d4","path":"sprites/spr_rouge_hurt/spr_rouge_hurt.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"d8151530-1f21-4b87-973b-e0f89f50800d","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-          ],},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"4d5cae2c-7bd1-49b0-9418-9149ebb455d6","path":"sprites/spr_rouge_hurt/spr_rouge_hurt.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"4d5fe9a1-abf9-458c-aa5c-49858eb0c30c","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,

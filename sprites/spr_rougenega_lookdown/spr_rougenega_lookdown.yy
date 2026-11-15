@@ -12,15 +12,15 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"19926500-06b2-4391-8067-b012eae02feb","name":"19926500-06b2-4391-8067-b012eae02feb","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"2ee92770-061f-4b6e-acdd-bfc7c2cabc37","name":"2ee92770-061f-4b6e-acdd-bfc7c2cabc37","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"715b1d3b-fc51-4667-b2c3-ec46b2abf39e","name":"715b1d3b-fc51-4667-b2c3-ec46b2abf39e","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"e9fab3b3-99a9-441e-9b32-9865f63cb1a8","name":"e9fab3b3-99a9-441e-9b32-9865f63cb1a8","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":43,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"6e66f8aa-fcc3-4f4f-8bde-f2257165f380","blendMode":0,"displayName":"default","isLocked":false,"name":"6e66f8aa-fcc3-4f4f-8bde-f2257165f380","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"817b7ccd-115b-4f68-b5c4-e0faae49ea93","blendMode":0,"displayName":"default","isLocked":false,"name":"817b7ccd-115b-4f68-b5c4-e0faae49ea93","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_rougenega_lookdown",
   "nineSlice":null,
@@ -69,9 +69,12 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"19926500-06b2-4391-8067-b012eae02feb","path":"sprites/spr_rougenega_lookdown/spr_rougenega_lookdown.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"b5d611ce-8ecd-4d74-ba98-dd676fc91f80","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"2ee92770-061f-4b6e-acdd-bfc7c2cabc37","path":"sprites/spr_rougenega_lookdown/spr_rougenega_lookdown.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"180b1ebd-7bd8-42f0-be9f-4866e9d77170","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-          ],},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"715b1d3b-fc51-4667-b2c3-ec46b2abf39e","path":"sprites/spr_rougenega_lookdown/spr_rougenega_lookdown.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"e585cfe9-5c9a-4068-9603-aa159f7d2252","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"e9fab3b3-99a9-441e-9b32-9865f63cb1a8","path":"sprites/spr_rougenega_lookdown/spr_rougenega_lookdown.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"b92ae188-31f2-477b-b067-d8c3f898d483","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,

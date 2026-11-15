@@ -12,14 +12,14 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"a469cceb-123e-45dc-8b8c-ed6d7e0e1ec4","name":"a469cceb-123e-45dc-8b8c-ed6d7e0e1ec4","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"95ded0ec-47c2-47a3-957f-be45f0a46a26","name":"95ded0ec-47c2-47a3-957f-be45f0a46a26","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":41,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"02329d67-4afb-41b3-8b3b-f9ad134bac3a","blendMode":0,"displayName":"default","isLocked":false,"name":"02329d67-4afb-41b3-8b3b-f9ad134bac3a","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"8950abe0-dabc-48f2-b615-202f2d075052","blendMode":0,"displayName":"default","isLocked":false,"name":"8950abe0-dabc-48f2-b615-202f2d075052","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_rouge_stuck",
   "nineSlice":null,
@@ -68,8 +68,10 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"a469cceb-123e-45dc-8b8c-ed6d7e0e1ec4","path":"sprites/spr_rouge_stuck/spr_rouge_stuck.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"a512ceb7-36f1-4785-9aba-0823b830143b","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-          ],},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"95ded0ec-47c2-47a3-957f-be45f0a46a26","path":"sprites/spr_rouge_stuck/spr_rouge_stuck.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"eb27794f-236d-4042-bb14-b8c1c9f2762b","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,

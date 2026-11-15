@@ -201,5 +201,54 @@ if len(zip_atk) == 2:
         else:
             fail(f"{name} != zip attack frame {zidx}")
 
+
+# 8) ESTRUCTURA RECURSIVA canon: cada .yy generado debe tener EXACTAMENTE
+#    las mismas claves (mismo orden) que spr_knux_idle en todos los niveles
+def keys_shape(obj, prefix=""):
+    """firma recursiva de claves/orden de un objeto GM (valores ignorados)"""
+    if isinstance(obj, dict):
+        return tuple((k, keys_shape(v, prefix + "." + k)) for k, v in obj.items())
+    if isinstance(obj, list):
+        if not obj: return ("EMPTYLIST",)
+        return ("LIST", keys_shape(obj[0], prefix))
+    return ("ATOM", type(obj).__name__)
+
+canon_spr = load_gm(os.path.join(SPR, "spr_knux_idle", "spr_knux_idle.yy"))
+canon_shape = keys_shape(canon_spr)
+
+bad = 0
+for name in tiras:
+    try:
+        yy = load_gm(os.path.join(SPR, name, name + ".yy"))
+    except Exception as e:
+        fail(f"{name}: no parsea ({e})"); bad += 1; continue
+    if keys_shape(yy) != canon_shape:
+        # localizar la diferencia
+        def walk(a, b, path):
+            if isinstance(a, dict) and isinstance(b, dict):
+                ka, kb = list(a.keys()), list(b.keys())
+                if ka != kb:
+                    return path + f" claves {ka} vs {kb}"
+                for k in ka:
+                    r = walk(a[k], b[k], path + "." + k)
+                    if r: return r
+                return None
+            if isinstance(a, list) and isinstance(b, list):
+                if len(a) != len(b):
+                    return path + f" largo {len(a)} vs {len(b)}"
+                for i, (x, y) in enumerate(zip(a, b)):
+                    r = walk(x, y, path + f"[{i}]")
+                    if r: return r
+                return None
+            if type(a) is not type(b):
+                return path + f" tipo {type(a).__name__} vs {type(b).__name__}"
+            return None
+        diff = walk(load_gm(os.path.join(SPR, name, name + ".yy")), canon_spr, name)
+        fail(f"{name}: estructura != canon -> {diff}")
+        bad += 1
+if not bad:
+    ok(f"las {len(tiras)} tiras tienen la MISMA estructura de claves que spr_knux_idle (canon, recursivo)")
+
 print(f"\n===== RESULTADO: {len(oks)} OK / {len(warns)} WARN / {len(fails)} FAIL =====")
 sys.exit(1 if fails else 0)
+

@@ -12,15 +12,15 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"1cdb63c4-ebef-4a35-bcd9-caeb723cc7e8","name":"1cdb63c4-ebef-4a35-bcd9-caeb723cc7e8","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
-    {"$GMSpriteFrame":"v1","%Name":"269ae5f7-658c-464c-9975-cfccf503dfd6","name":"269ae5f7-658c-464c-9975-cfccf503dfd6","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"8fe2e57c-c1e4-4b82-a7a8-e321b01e122f","name":"8fe2e57c-c1e4-4b82-a7a8-e321b01e122f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"d44d112b-3cf6-4eb6-a9e4-4f8db14bc4f0","name":"d44d112b-3cf6-4eb6-a9e4-4f8db14bc4f0","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":43,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"10d74751-a36f-4f02-a9d5-1db76b15517f","blendMode":0,"displayName":"default","isLocked":false,"name":"10d74751-a36f-4f02-a9d5-1db76b15517f","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"90fa4662-c36a-4d0f-be06-0e49c1283262","blendMode":0,"displayName":"default","isLocked":false,"name":"90fa4662-c36a-4d0f-be06-0e49c1283262","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_rouge_lookdown",
   "nineSlice":null,
@@ -69,9 +69,12 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"1cdb63c4-ebef-4a35-bcd9-caeb723cc7e8","path":"sprites/spr_rouge_lookdown/spr_rouge_lookdown.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"b25bee1a-5d1b-44e7-9c65-30c1554dc27f","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"269ae5f7-658c-464c-9975-cfccf503dfd6","path":"sprites/spr_rouge_lookdown/spr_rouge_lookdown.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"b54e2c7d-51ab-4c0b-bee6-b277aed39bf2","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-          ],},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8fe2e57c-c1e4-4b82-a7a8-e321b01e122f","path":"sprites/spr_rouge_lookdown/spr_rouge_lookdown.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"bf3dceae-3765-4465-8450-1b990b921f84","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"d44d112b-3cf6-4eb6-a9e4-4f8db14bc4f0","path":"sprites/spr_rouge_lookdown/spr_rouge_lookdown.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"27cc7832-e125-4ad3-baa9-df69ca2f2767","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,

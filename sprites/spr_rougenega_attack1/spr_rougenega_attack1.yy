@@ -12,14 +12,14 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"d2f489cd-97da-4997-973e-d7983117b9c5","name":"d2f489cd-97da-4997-973e-d7983117b9c5","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"dbdc4bfd-5014-483e-8c36-cbd1dba1f14f","name":"dbdc4bfd-5014-483e-8c36-cbd1dba1f14f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":52,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"154036fe-909f-4412-a9e4-bdd85d945086","blendMode":0,"displayName":"default","isLocked":false,"name":"154036fe-909f-4412-a9e4-bdd85d945086","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"6b4f1aa0-adbf-4d5f-a3fb-e9c65fd9a8f5","blendMode":0,"displayName":"default","isLocked":false,"name":"6b4f1aa0-adbf-4d5f-a3fb-e9c65fd9a8f5","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_rougenega_attack1",
   "nineSlice":null,
@@ -68,8 +68,10 @@
     "timeUnits":1,
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
-            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{"0":{"$SpriteFrameKeyframe":"","Id":{"name":"d2f489cd-97da-4997-973e-d7983117b9c5","path":"sprites/spr_rougenega_attack1/spr_rougenega_attack1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},},"Disabled":false,"id":"7989b826-3d55-46a6-8617-609818e2d06a","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
-          ],},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"dbdc4bfd-5014-483e-8c36-cbd1dba1f14f","path":"sprites/spr_rougenega_attack1/spr_rougenega_attack1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"cdf8085a-8c4f-4a35-8c5f-ca2787ba80d1","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
     "volume":1.0,
