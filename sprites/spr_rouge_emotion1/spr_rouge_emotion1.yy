@@ -1,516 +1,126 @@
 {
-  "$GMSprite": "v2",
-  "%Name": "spr_rouge_emotion1",
-  "bboxMode": 0,
-  "bbox_bottom": 41,
-  "bbox_left": 0,
-  "bbox_right": 27,
-  "bbox_top": 0,
-  "collisionKind": 1,
-  "collisionTolerance": 0,
-  "DynamicTexturePage": false,
-  "edgeFiltering": false,
-  "For3D": false,
-  "frames": [
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "288d74ad-5be7-46c2-9cf6-a3bf2cfe4f88",
-      "name": "288d74ad-5be7-46c2-9cf6-a3bf2cfe4f88",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "0a99d9f6-2705-45b6-95fa-0652be22d091",
-      "name": "0a99d9f6-2705-45b6-95fa-0652be22d091",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "8bff3ab4-8123-4247-948d-02f87e22b5cc",
-      "name": "8bff3ab4-8123-4247-948d-02f87e22b5cc",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "7e87d484-fed6-411d-9580-ca444032df9b",
-      "name": "7e87d484-fed6-411d-9580-ca444032df9b",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "0a591e61-ba48-451b-a05f-bded901c844f",
-      "name": "0a591e61-ba48-451b-a05f-bded901c844f",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "d7194762-c689-4137-86e9-d815c76af821",
-      "name": "d7194762-c689-4137-86e9-d815c76af821",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "cf046595-7c87-4312-af58-1925e3228b00",
-      "name": "cf046595-7c87-4312-af58-1925e3228b00",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "01489817-a72b-4ae5-9079-1b553323cebb",
-      "name": "01489817-a72b-4ae5-9079-1b553323cebb",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "9b128cc8-a83c-49a4-87da-b99fde10f507",
-      "name": "9b128cc8-a83c-49a4-87da-b99fde10f507",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    },
-    {
-      "$GMSpriteFrame": "v1",
-      "%Name": "38f9167d-db6a-4035-be4c-46ec403ddf40",
-      "name": "38f9167d-db6a-4035-be4c-46ec403ddf40",
-      "resourceType": "GMSpriteFrame",
-      "resourceVersion": "2.0"
-    }
+  "$GMSprite":"v2",
+  "%Name":"spr_rouge_emotion1",
+  "bboxMode":0,
+  "bbox_bottom":41,
+  "bbox_left":2,
+  "bbox_right":27,
+  "bbox_top":2,
+  "collisionKind":1,
+  "collisionTolerance":0,
+  "DynamicTexturePage":false,
+  "edgeFiltering":false,
+  "For3D":false,
+  "frames":[
+    {"$GMSpriteFrame":"v1","%Name":"288d74ad-5be7-46c2-9cf6-a3bf2cfe4f88","name":"288d74ad-5be7-46c2-9cf6-a3bf2cfe4f88","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"0a99d9f6-2705-45b6-95fa-0652be22d091","name":"0a99d9f6-2705-45b6-95fa-0652be22d091","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"8bff3ab4-8123-4247-948d-02f87e22b5cc","name":"8bff3ab4-8123-4247-948d-02f87e22b5cc","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"7e87d484-fed6-411d-9580-ca444032df9b","name":"7e87d484-fed6-411d-9580-ca444032df9b","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"0a591e61-ba48-451b-a05f-bded901c844f","name":"0a591e61-ba48-451b-a05f-bded901c844f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"d7194762-c689-4137-86e9-d815c76af821","name":"d7194762-c689-4137-86e9-d815c76af821","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"cf046595-7c87-4312-af58-1925e3228b00","name":"cf046595-7c87-4312-af58-1925e3228b00","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"01489817-a72b-4ae5-9079-1b553323cebb","name":"01489817-a72b-4ae5-9079-1b553323cebb","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"9b128cc8-a83c-49a4-87da-b99fde10f507","name":"9b128cc8-a83c-49a4-87da-b99fde10f507","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"38f9167d-db6a-4035-be4c-46ec403ddf40","name":"38f9167d-db6a-4035-be4c-46ec403ddf40","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
-  "gridX": 0,
-  "gridY": 0,
-  "height": 42,
-  "HTile": false,
-  "layers": [
-    {
-      "$GMImageLayer": "",
-      "%Name": "288d74ad-5be7-46c2-9cf6-a3bf2cfe4f88",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "288d74ad-5be7-46c2-9cf6-a3bf2cfe4f88",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "0a99d9f6-2705-45b6-95fa-0652be22d091",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "0a99d9f6-2705-45b6-95fa-0652be22d091",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "8bff3ab4-8123-4247-948d-02f87e22b5cc",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "8bff3ab4-8123-4247-948d-02f87e22b5cc",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "7e87d484-fed6-411d-9580-ca444032df9b",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "7e87d484-fed6-411d-9580-ca444032df9b",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "0a591e61-ba48-451b-a05f-bded901c844f",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "0a591e61-ba48-451b-a05f-bded901c844f",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "d7194762-c689-4137-86e9-d815c76af821",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "d7194762-c689-4137-86e9-d815c76af821",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "cf046595-7c87-4312-af58-1925e3228b00",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "cf046595-7c87-4312-af58-1925e3228b00",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "01489817-a72b-4ae5-9079-1b553323cebb",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "01489817-a72b-4ae5-9079-1b553323cebb",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "9b128cc8-a83c-49a4-87da-b99fde10f507",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "9b128cc8-a83c-49a4-87da-b99fde10f507",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "38f9167d-db6a-4035-be4c-46ec403ddf40",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "38f9167d-db6a-4035-be4c-46ec403ddf40",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    }
+  "gridX":0,
+  "gridY":0,
+  "height":42,
+  "HTile":false,
+  "layers":[
+    {"$GMImageLayer":"","%Name":"288d74ad-5be7-46c2-9cf6-a3bf2cfe4f88","blendMode":0,"displayName":"default","isLocked":false,"name":"288d74ad-5be7-46c2-9cf6-a3bf2cfe4f88","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
-  "name": "spr_rouge_emotion1",
-  "nineSlice": null,
-  "origin": 9,
-  "parent": {
-    "name": "Rouge",
-    "path": "folders/Sprites/Player/Survivors/Rouge.yy"
+  "name":"spr_rouge_emotion1",
+  "nineSlice":null,
+  "origin":9,
+  "parent":{
+    "name":"Rouge",
+    "path":"folders/Sprites/Player/Survivors/Rouge.yy",
   },
-  "preMultiplyAlpha": false,
-  "resourceType": "GMSprite",
-  "resourceVersion": "2.0",
-  "sequence": {
-    "$GMSequence": "v1",
-    "%Name": "spr_rouge_emotion1",
-    "autoRecord": true,
-    "backdropHeight": 768,
-    "backdropImageOpacity": 0.5,
-    "backdropImagePath": "",
-    "backdropWidth": 1366,
-    "backdropXOffset": 0.0,
-    "backdropYOffset": 0.0,
-    "events": {
-      "$KeyframeStore<MessageEventKeyframe>": "",
-      "Keyframes": [],
-      "resourceType": "KeyframeStore<MessageEventKeyframe>",
-      "resourceVersion": "2.0"
+  "preMultiplyAlpha":false,
+  "resourceType":"GMSprite",
+  "resourceVersion":"2.0",
+  "sequence":{
+    "$GMSequence":"v1",
+    "%Name":"spr_rouge_emotion1",
+    "autoRecord":true,
+    "backdropHeight":768,
+    "backdropImageOpacity":0.5,
+    "backdropImagePath":"",
+    "backdropWidth":1366,
+    "backdropXOffset":0.0,
+    "backdropYOffset":0.0,
+    "events":{
+      "$KeyframeStore<MessageEventKeyframe>":"",
+      "Keyframes":[],
+      "resourceType":"KeyframeStore<MessageEventKeyframe>",
+      "resourceVersion":"2.0",
     },
-    "eventStubScript": null,
-    "eventToFunction": {},
-    "length": 10.0,
-    "lockOrigin": false,
-    "moments": {
-      "$KeyframeStore<MomentsEventKeyframe>": "",
-      "Keyframes": [],
-      "resourceType": "KeyframeStore<MomentsEventKeyframe>",
-      "resourceVersion": "2.0"
+    "eventStubScript":null,
+    "eventToFunction":{},
+    "length":10.0,
+    "lockOrigin":false,
+    "moments":{
+      "$KeyframeStore<MomentsEventKeyframe>":"",
+      "Keyframes":[],
+      "resourceType":"KeyframeStore<MomentsEventKeyframe>",
+      "resourceVersion":"2.0",
     },
-    "name": "spr_rouge_emotion1",
-    "playback": 1,
-    "playbackSpeed": 10.0,
-    "playbackSpeedType": 0,
-    "resourceType": "GMSequence",
-    "resourceVersion": "2.0",
-    "showBackdrop": true,
-    "showBackdropImage": false,
-    "timeUnits": 1,
-    "tracks": [
-      {
-        "$GMSpriteFramesTrack": "",
-        "builtinName": 0,
-        "events": [],
-        "inheritsTrackColour": true,
-        "interpolation": 1,
-        "isCreationTrack": false,
-        "keyframes": {
-          "$KeyframeStore<SpriteFrameKeyframe>": "",
-          "Keyframes": [
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "288d74ad-5be7-46c2-9cf6-a3bf2cfe4f88",
-                    "path": "sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "20419bea-dd61-4b1e-9829-b4f7285c95c0",
-              "IsCreationKey": false,
-              "Key": 0.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "0a99d9f6-2705-45b6-95fa-0652be22d091",
-                    "path": "sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "61d27a43-5307-4bad-8194-4f91d1dc4b49",
-              "IsCreationKey": false,
-              "Key": 1.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "8bff3ab4-8123-4247-948d-02f87e22b5cc",
-                    "path": "sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "96d6aadc-3324-483c-9103-16214d3beb69",
-              "IsCreationKey": false,
-              "Key": 2.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "7e87d484-fed6-411d-9580-ca444032df9b",
-                    "path": "sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "e9cb4505-d9af-4f1f-bb67-6f3161caa29f",
-              "IsCreationKey": false,
-              "Key": 3.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "0a591e61-ba48-451b-a05f-bded901c844f",
-                    "path": "sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "8127eebc-01ed-4538-bdd4-2bac49a164be",
-              "IsCreationKey": false,
-              "Key": 4.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "d7194762-c689-4137-86e9-d815c76af821",
-                    "path": "sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "221a8360-ff1c-49c4-adb5-5f8ff42ff26d",
-              "IsCreationKey": false,
-              "Key": 5.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "cf046595-7c87-4312-af58-1925e3228b00",
-                    "path": "sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "42ab06ad-9a43-4636-a762-50055efe2377",
-              "IsCreationKey": false,
-              "Key": 6.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "01489817-a72b-4ae5-9079-1b553323cebb",
-                    "path": "sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "de7cbe99-2e68-4724-8502-53ff9166be36",
-              "IsCreationKey": false,
-              "Key": 7.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "9b128cc8-a83c-49a4-87da-b99fde10f507",
-                    "path": "sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "fdf2f111-f11f-4938-a4ee-5b47be1f0da5",
-              "IsCreationKey": false,
-              "Key": 8.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            },
-            {
-              "$Keyframe<SpriteFrameKeyframe>": "",
-              "Channels": {
-                "0": {
-                  "$SpriteFrameKeyframe": "",
-                  "Id": {
-                    "name": "38f9167d-db6a-4035-be4c-46ec403ddf40",
-                    "path": "sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy"
-                  },
-                  "resourceType": "SpriteFrameKeyframe",
-                  "resourceVersion": "2.0"
-                }
-              },
-              "Disabled": false,
-              "id": "50b97e74-c8fa-4e02-8151-104112fe3e93",
-              "IsCreationKey": false,
-              "Key": 9.0,
-              "Length": 1.0,
-              "resourceType": "Keyframe<SpriteFrameKeyframe>",
-              "resourceVersion": "2.0",
-              "Stretch": false
-            }
-          ],
-          "resourceType": "KeyframeStore<SpriteFrameKeyframe>",
-          "resourceVersion": "2.0"
-        },
-        "modifiers": [],
-        "name": "frames",
-        "resourceType": "GMSpriteFramesTrack",
-        "resourceVersion": "2.0",
-        "spriteId": null,
-        "trackColour": 0,
-        "tracks": [],
-        "traits": 0
-      }
+    "name":"spr_rouge_emotion1",
+    "playback":1,
+    "playbackSpeed":10.0,
+    "playbackSpeedType":0,
+    "resourceType":"GMSequence",
+    "resourceVersion":"2.0",
+    "showBackdrop":true,
+    "showBackdropImage":false,
+    "timeUnits":1,
+    "tracks":[
+      {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"288d74ad-5be7-46c2-9cf6-a3bf2cfe4f88","path":"sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"20419bea-dd61-4b1e-9829-b4f7285c95c0","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"0a99d9f6-2705-45b6-95fa-0652be22d091","path":"sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"61d27a43-5307-4bad-8194-4f91d1dc4b49","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"8bff3ab4-8123-4247-948d-02f87e22b5cc","path":"sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"96d6aadc-3324-483c-9103-16214d3beb69","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"7e87d484-fed6-411d-9580-ca444032df9b","path":"sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"e9cb4505-d9af-4f1f-bb67-6f3161caa29f","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"0a591e61-ba48-451b-a05f-bded901c844f","path":"sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"8127eebc-01ed-4538-bdd4-2bac49a164be","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"d7194762-c689-4137-86e9-d815c76af821","path":"sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"221a8360-ff1c-49c4-adb5-5f8ff42ff26d","IsCreationKey":false,"Key":5.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"cf046595-7c87-4312-af58-1925e3228b00","path":"sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"42ab06ad-9a43-4636-a762-50055efe2377","IsCreationKey":false,"Key":6.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"01489817-a72b-4ae5-9079-1b553323cebb","path":"sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"de7cbe99-2e68-4724-8502-53ff9166be36","IsCreationKey":false,"Key":7.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"9b128cc8-a83c-49a4-87da-b99fde10f507","path":"sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"fdf2f111-f11f-4938-a4ee-5b47be1f0da5","IsCreationKey":false,"Key":8.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"38f9167d-db6a-4035-be4c-46ec403ddf40","path":"sprites/spr_rouge_emotion1/spr_rouge_emotion1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"50b97e74-c8fa-4e02-8151-104112fe3e93","IsCreationKey":false,"Key":9.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+          ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
-    "visibleRange": null,
-    "volume": 1.0,
-    "xorigin": 14,
-    "yorigin": 21
+    "visibleRange":null,
+    "volume":1.0,
+    "xorigin":14,
+    "yorigin":21,
   },
-  "swatchColours": null,
-  "swfPrecision": 2.525,
-  "textureGroupId": {
-    "name": "Game",
-    "path": "texturegroups/Game"
+  "swatchColours":null,
+  "swfPrecision":2.525,
+  "textureGroupId":{
+    "name":"Game",
+    "path":"texturegroups/Game",
   },
-  "type": 0,
-  "VTile": false,
-  "width": 28
+  "type":0,
+  "VTile":false,
+  "width":28,
 }

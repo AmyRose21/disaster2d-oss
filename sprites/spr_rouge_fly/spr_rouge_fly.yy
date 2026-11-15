@@ -57,42 +57,6 @@
       "resourceType": "GMImageLayer",
       "resourceVersion": "2.0",
       "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "7ef7cc19-4fdc-47f2-a6a2-35820b6cac21",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "7ef7cc19-4fdc-47f2-a6a2-35820b6cac21",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "9fe3fb1a-5fa2-42a3-a5a2-42de48eca52e",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "9fe3fb1a-5fa2-42a3-a5a2-42de48eca52e",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "45059dad-8c1d-4b4e-9951-79ea60b14d41",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "45059dad-8c1d-4b4e-9951-79ea60b14d41",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
     }
   ],
   "name": "spr_rouge_fly",

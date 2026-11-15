@@ -71,66 +71,6 @@
       "resourceType": "GMImageLayer",
       "resourceVersion": "2.0",
       "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "995a6ae7-b780-41bf-8ed5-f2f73519c97e",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "995a6ae7-b780-41bf-8ed5-f2f73519c97e",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "e0645408-394b-4ac4-ae6d-1b7ed01e46fb",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "e0645408-394b-4ac4-ae6d-1b7ed01e46fb",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "c0326ed5-f5fa-4121-94de-93bb13d83c04",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "c0326ed5-f5fa-4121-94de-93bb13d83c04",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "d1b2df60-43af-4c6a-b761-01f6f164a6a3",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "d1b2df60-43af-4c6a-b761-01f6f164a6a3",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
-    },
-    {
-      "$GMImageLayer": "",
-      "%Name": "fd772bc4-d075-40d9-a482-7788abe386bc",
-      "blendMode": 0,
-      "displayName": "default",
-      "isLocked": false,
-      "name": "fd772bc4-d075-40d9-a482-7788abe386bc",
-      "opacity": 100.0,
-      "resourceType": "GMImageLayer",
-      "resourceVersion": "2.0",
-      "visible": true
     }
   ],
   "name": "spr_rouge_balancing",
