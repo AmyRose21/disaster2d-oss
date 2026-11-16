@@ -71,7 +71,7 @@ function scr_collision_objects_after()
                                                 isFlying = false;
                                         }
                                         break;
-                                        
+
                                 case CHARACTER_CREAM:
 
                                 case CHARACTER_VANILLA: // vuela como Cream
@@ -104,7 +104,15 @@ function scr_collision_objects_after()
 
                                 // v4.4 — Rouge: muelles igual que Knux (cortan
                                 // planeo + agarre y le devuelven la recarga)
+                                // v4.6 — Rouge vuela patron Tails: el rebote
+                                // tambien le corta el vuelo (como a Tails)
                                 case CHARACTER_ROUGE:
+                                        if(isFlying)
+                                        {
+                                                flyTimer = 0;
+                                                isFlying = false;
+                                        }
+                                        
                                         if(isGliding)
                                         {
                                                 glideTimer = (global.character == CHARACTER_ROUGE) ? ROUGE_GLIDE_RECHARGE : KNUX_GLIDE_RECHARGE;
@@ -220,7 +228,7 @@ function scr_collision_objects_after()
                                                 isFlying = false;
                                         }
                                         break;
-                                        
+
                                 case CHARACTER_CREAM:
 
                                 case CHARACTER_VANILLA: // vuela como Cream
@@ -253,7 +261,15 @@ function scr_collision_objects_after()
 
                                 // v4.4 — Rouge: muelles igual que Knux (cortan
                                 // planeo + agarre y le devuelven la recarga)
+                                // v4.6 — Rouge vuela patron Tails: el rebote
+                                // tambien le corta el vuelo (como a Tails)
                                 case CHARACTER_ROUGE:
+                                        if(isFlying)
+                                        {
+                                                flyTimer = 0;
+                                                isFlying = false;
+                                        }
+                                        
                                         if(isGliding)
                                         {
                                                 glideTimer = (global.character == CHARACTER_ROUGE) ? ROUGE_GLIDE_RECHARGE : KNUX_GLIDE_RECHARGE;

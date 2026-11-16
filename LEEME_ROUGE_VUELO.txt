@@ -1,0 +1,72 @@
+ROUGE — ACTIVACION + VUELO (patron Tails) + ORIGINS AL SUELO EXACTO
+====================================================================
+
+QUE HACE ESTE ZIP (solo archivos modificados/creados, extraer sobre
+la raiz del proyecto):
+
+1) ACTIVACION DE ROUGE (reaparicion en el carrusel)
+   - scripts/scr_survivors.gml: se retira el bloqueo v6.2 de
+     scr_char_locked (era "bloqueo total hasta que entre arte nuevo").
+     Vuelve a ser un personaje publico: se ve al ciclar, se puede
+     pedir y el retrato del lobby aparece.
+   - betterserver-oss/disasterserver/states/CharSelect.c: se retira
+     el rechazo server-side (el "doble seguro" que la devolvia como
+     "ocupada" a clientes editados). OJO: HAY QUE RECOMPILAR EL
+     SERVER (disasterserver) ademas del cliente, o el server viejo
+     la seguira rechazando.
+
+2) VUELO TIPO TAILS (tecla Z en el aire) — v4.6
+   - El planeo patron Knuckles (con agarre de pared) pasa a ser
+     VUELO patron Tails, 1:1 con sus numeros:
+       * Z en el aire arranca el vuelo con presupuesto lleno
+         (ROUGE_FLY_TIME = 160 frames = 2.67 s, igual que
+         TAILS_FLY_SOLO).
+       * Cada pulsacion de Z la re-impulsa hacia arriba (flyGrv = -1);
+         entre pulsaciones la gravedad del vuelo decae hasta +2
+         (cae cada vez mas suave).
+       * Agotado el presupuesto: caida normal.
+       * Recarga EN EL SUELO: 7 s (ROUGE_FLY_RECHARGE = 420), igual
+         que Tails. La barrita del icono Z del HUD muestra la recarga.
+       * El dano, la patada y los muelles cortan el vuelo (los
+         muelles igual que a Tails: scr_collision_objects, 2 sitios).
+       * Moribunda: ni volar ni patear; al levantarse el vuelo queda
+         listo (misericordia).
+   - La patada X (barrido en tierra / patada voladora en el aire)
+     queda IGUAL, solo que ahora corta el vuelo al usarla.
+   - Animacion de vuelo: la tira direccional de 5 frames del planeo
+     (spr_rouge_glide / nega / erouge), frame elegido por la velocidad
+     horizontal real (0..4 = derecha rapida..izquierda rapida).
+     Viaja por red igual que antes (image_index/image_xscale ya van
+     en el paquete UDP de estado).
+   - Archivos: scripts/scr_rouge_special/scr_rouge_special.gml,
+     objects/obj_rouge/* (Create/Step_0/Draw_0 restaurados del estado
+     funcional v4.4 + macros y variables de vuelo; Step_2: el estado
+     16 ahora se activa con isFlying; Draw_76 solo comentario),
+     objects/obj_playerui/Draw_64.gml (barra de recarga de vuelo).
+
+3) ORIGINS: EL SPRITE TOCA EL SUELO EXACTO
+   - Convencion del engine (verificada contra canon): al aterrizar
+     el jugador se asienta en y = suelo - 18, o sea los PIES del
+     sprite deben quedar en y+18. Se corrigio yorigin de las 56 tiras
+     del set de Rouge (20 spr_rouge_* + 17 spr_erouge_* + 19
+     spr_rougenega_*) a: yorigin = fondo_opaco_del_frame - 18,
+     calculado con los frames REALMENTE referenciados por cada .yy
+     (las carpetas traen PNGs huerfanos de la era por-frame).
+     Antes: origin centrado o incluso 0 (las erouge flotaban/enterraban
+     hasta 20+ px). Ahora: pies exactamente en la linea del suelo, ni
+     mas arriba ni mas abajo, en idle/walk/run/balancing/etc.
+     xorigin no se toca (el usuario solo reporto el desalineo vertical).
+
+VALIDACION HECHA
+  - Los 54 .yy modificados cambian UNA sola linea (yorigin): diff
+    verificado linea a linea, cero cambios estructurales.
+  - frames == keyframes y PNGs referenciados presentes en las 56 tiras.
+  - Llaves balanceadas en todo el GML tocado; patron de vuelo
+    revisado 1:1 contra scr_tails_special (arranque, re-impulso,
+    presupuesto, recarga en suelo, corte por dano/patada/muelle,
+    guard de coyote time).
+
+INSTALACION: descomprimir sobre la raiz del proyecto y RECOMPILAR:
+  * el CLIENTE (cambios de codigo y sprites), y
+  * el SERVER (CharSelect.c: sin recompilar, el server viejo sigue
+    rechazando a Rouge como personaje).

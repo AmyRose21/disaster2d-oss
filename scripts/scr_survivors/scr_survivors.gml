@@ -1423,14 +1423,12 @@ function scr_char_locked(ch)
         if(ch == CHARACTER_VANILLA && global.amyCanonToken == "")
                 return true;
 
-        // v6.2 (D.I.B.): ROUGE INABILITADA — su set de sprites no
-        // convencio a la duena ("estan mal"). Bloqueo total para
-        // todos (ni token ni operador la desbloquean) hasta que
-        // entre arte nuevo. Se salta al ciclar, no se ve su retrato
-        // y el server la rechaza por si solo (CharSelect.c): mismo
-        // doble seguro que Vanilla.
-        if(ch == CHARACTER_ROUGE)
-                return true;
+        // v6.3: ROUGE RE-ACTIVADA — el bloqueo v6.2 ("sus sprites no
+        // convencieron") se retira: el set del TTB ya esta restaurado,
+        // sus origins aterran al suelo exacto y su Z ahora es VUELO
+        // patron Tails (v4.6, scr_rouge_special). Publica para todos,
+        // igual que el resto del carrusel. El server tambien la acepta
+        // de nuevo (states/CharSelect.c).
 
         // v3 (D.I.B.): Fleetway Amy PASA A SER PUBLICA (pedido de la
         // duena: "la amy fw sera publica"). Salio del token — ahora

@@ -12,25 +12,25 @@
 // caida tirada: mismo patron del estado 19 de Vanilla).
 
 if(!emotion)
-	state = IDLE;
+        state = IDLE;
 
 if(isDead)
 {
-	state = DEAD;
-	return;
+        state = DEAD;
+        return;
 }
 
 if(shockedTimer > 0)
 {
-	state = DEAD;
-	return;
+        state = DEAD;
+        return;
 }
 
 // v4.5 — MORIBUNDA pisa todo lo demas (tirada en el suelo, quieta)
 if(moribundaState > 0)
 {
-	state = ROUGE_MORIBUNDA;
-	return;
+        state = ROUGE_MORIBUNDA;
+        return;
 }
 
 // OJO: el mapeo tierra/aire es al reves que el nombre del sprite:
@@ -42,79 +42,82 @@ if(moribundaState > 0)
 // en el aire = ROUGE_ATTACK(14) para el vuelo.
 if(isAttacking)
 {
-	if(isGrounded)
-		state = ROUGE_AIR_ATTACK;
-	else
-		state = ROUGE_ATTACK;
+        if(isGrounded)
+                state = ROUGE_AIR_ATTACK;
+        else
+                state = ROUGE_ATTACK;
 
-	return;
+        return;
 }
 
 if(isZipline)
 {
-	if(isGrounded)
-		isZipline = false;
-	else
-	{
-		state = ROUGE_ZIPLINE;
-		return;
-	}
+        if(isGrounded)
+                isZipline = false;
+        else
+        {
+                state = ROUGE_ZIPLINE;
+                return;
+        }
 }
 
 if(isHurt)
 {
-	state = HURT;
-	return;
+        state = HURT;
+        return;
 }
 
 if(isStuck)
 {
-	state = ROUGE_STUCK;
-	return;
+        state = ROUGE_STUCK;
+        return;
 }
 
-if(isGliding)
+// v4.6: el estado 16 (ROUGE_GLIDE) ahora es el VUELO patron Tails
+// (mismo slot/sprite: la tira direccional de 5 frames de planeo
+// sirve de pose de vuelo con las alas extendidas)
+if(isFlying)
 {
-	state = ROUGE_GLIDE;
-	return;
+        state = ROUGE_GLIDE;
+        return;
 }
 
 if(isLookingUp)
 {
-	state = LOOKUP;
-	return;
+        state = LOOKUP;
+        return;
 }
 
 if(isLookingDown)
 {
-	state = LOOKDOWN;
-	return;
+        state = LOOKDOWN;
+        return;
 }
 
 if(isSpinning)
 {
-	state = SPIN;
-	return;
+        state = SPIN;
+        return;
 }
 
 if(abs(xspd) > 0 && isGrounded)
 {
-	if(abs(xspd) < 8)
-		state = WALK;
-	else
-		state = RUN;
+        if(abs(xspd) < 8)
+                state = WALK;
+        else
+                state = RUN;
 }
 
 if(isOnEdge)
 {
-	state = BALANCING;
-	return;
+        state = BALANCING;
+        return;
 }
 
 if (!isGrounded) //in air
 {
-	if(isJumping)
-		state = JUMP;
-	else
-		state = FALL;
+        if(isJumping)
+                state = JUMP;
+        else
+                state = FALL;
 }
