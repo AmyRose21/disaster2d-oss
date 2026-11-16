@@ -53,6 +53,255 @@ aside,#center{min-height:0}
 .grp{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:8px 4px 4px}
 .charbtn{display:flex;justify-content:space-between;align-items:baseline;width:100%;text-align:left;margin:2px 0;background:transparent;border-color:transparent}
 .charbtn .obj{color:var(--mut);font-size:11px;font-family:var(--mono)}
+
+/* ===== CSS módulo 👤 Personajes — INICIO =====
+   Rediseño «arcade vivo»: retratos reales, tarjetas animadas, aurora de
+   fondo, micro-interacciones. TODO con prefijo .pj- / #mod-pj para no
+   tocar el resto de la Suite. Solo transform/opacity en animaciones. */
+
+#mod-pj{grid-template-columns:284px 1fr 372px;background:#0c0e12}
+
+/* ─── aurora de fondo (centro) ─── */
+.pj-mid{position:relative;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;min-height:0;padding:12px;gap:10px}
+.pj-aurora{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.pj-aurora i{position:absolute;width:420px;height:420px;border-radius:50%;filter:blur(72px);opacity:.14}
+.pj-aurora i:nth-child(1){background:#e8b84b;top:-160px;left:-120px;animation:pjDrift1 26s ease-in-out infinite alternate}
+.pj-aurora i:nth-child(2){background:#7c6cff;bottom:-180px;right:-100px;animation:pjDrift2 31s ease-in-out infinite alternate}
+.pj-aurora i:nth-child(3){background:#38c9b0;top:30%;left:45%;width:300px;height:300px;opacity:.08;animation:pjDrift1 38s ease-in-out infinite alternate-reverse}
+@keyframes pjDrift1{from{transform:translate(0,0) scale(1)}to{transform:translate(90px,60px) scale(1.15)}}
+@keyframes pjDrift2{from{transform:translate(0,0) scale(1.1)}to{transform:translate(-70px,-80px) scale(.95)}}
+#mod-pj .pj-mid>*{position:relative;z-index:1}
+
+/* ─── lado izquierdo: roster ─── */
+.pj-side{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.pj-side-head{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 6px}
+.pj-side-title{color:var(--gold);font-size:12px;font-weight:700;letter-spacing:2.5px}
+.pj-count{font-family:var(--mono);font-size:11px;color:var(--gold2);background:#2a2415;border:1px solid #4a3d1d;border-radius:9px;padding:1px 9px}
+.pj-filters{display:flex;gap:4px;padding:0 12px 8px}
+.pj-fchip{flex:1;font-size:11px;padding:3px 2px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--mut);transition:all .15s ease}
+.pj-fchip:hover{border-color:var(--gold);color:var(--gold2);transform:translateY(-1px)}
+.pj-fchip.sel{background:#2a2415;border-color:var(--gold);color:var(--gold2);box-shadow:0 0 0 1px rgba(232,184,75,.2)}
+.pj-searchwrap{position:relative;margin:0 12px 8px}
+.pj-search-ico{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--mut);font-size:14px;pointer-events:none}
+#pj-q{width:100%;padding:5px 8px 5px 26px;font-size:12.5px;border-radius:8px;background:#101318;transition:border-color .15s,box-shadow .15s}
+#pj-q:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,184,75,.18)}
+
+.pj-list{flex:1;overflow-y:auto;min-height:0;padding:2px 8px 8px}
+.pj-grp{color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:1.6px;margin:10px 6px 4px;font-weight:600}
+
+/* tarjeta de personaje */
+.pj-char{display:grid;grid-template-columns:46px 1fr auto;gap:9px;align-items:center;width:100%;text-align:left;
+  padding:6px 8px;margin:3px 0;border-radius:11px;border:1px solid transparent;background:transparent;
+  opacity:0;animation:pjIn .3s cubic-bezier(.2,.7,.3,1) both;animation-delay:var(--d,0ms);
+  transition:background-color .15s,border-color .15s,box-shadow .15s,transform .15s}
+.pj-char:hover{background:#1a1e26;border-color:#3a4150;transform:translateX(2px)}
+.pj-char:active{transform:translateX(2px) scale(.985)}
+.pj-char.pjsel{background:linear-gradient(90deg,#2a2415,#1d1a12);border-color:var(--gold);
+  box-shadow:0 0 0 1px rgba(232,184,75,.25),0 4px 16px rgba(232,184,75,.08)}
+.pj-char.pjsel:hover{transform:none}
+@keyframes pjIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:translateX(0)}}
+
+/* retrato */
+.pj-ava{width:46px;height:46px;border-radius:10px;background:#0b0d11;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;flex:none;
+  font-weight:800;font-size:19px;transition:transform .18s ease,border-color .18s}
+.pj-char:hover .pj-ava{transform:scale(1.06) rotate(-2deg);border-color:#4a5262}
+.pj-char.pjsel .pj-ava{border-color:var(--gold)}
+.pj-ava img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+.pj-ava.ldr::after{content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.07) 50%,transparent 70%);
+  animation:pjShimmer 1.2s linear infinite}
+@keyframes pjShimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+.pj-char-n{min-width:0;display:flex;flex-direction:column;gap:1px}
+.pj-char-n b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pj-char-n .pj-meta{color:var(--mut);font-size:10.5px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pj-char.pjsel .pj-char-n b{color:var(--gold2)}
+
+/* chip de estado: compacto, nunca rompe la fila */
+.pj-st{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:700;letter-spacing:.8px;
+  border-radius:8px;padding:3px 7px;flex:none;white-space:nowrap}
+.pj-st.pj-on{background:#12301f;color:var(--green);border:1px solid #2a5c3f}
+.pj-st.pj-off{background:#1a1d24;color:#7d8698;border:1px solid #333a47}
+.pj-st.pj-rsv{background:#33230f;color:var(--orange);border:1px solid #6b4a22}
+.pj-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex:none;
+  animation:pjPulse 1.6s ease-in-out infinite}
+.pj-st.pj-off .pj-dot,.pj-side-foot .pj-dot{animation:none}
+@keyframes pjPulse{0%,100%{box-shadow:0 0 0 0 rgba(87,201,138,.55)}55%{box-shadow:0 0 0 5px rgba(87,201,138,0)}}
+
+.pj-side-foot{padding:10px 14px;border-top:1px solid var(--line);color:#98a2b8;font-size:10.5px;line-height:1.55;display:flex;gap:7px;align-items:center;flex:none}
+
+/* tarjeta de papelera */
+.pj-char.pj-trash .pj-ava{border-style:dashed;opacity:.75}
+.pj-char.pj-trash b{color:var(--mut)}
+
+/* ─── tarjetas centrales ─── */
+.pj-card{background:rgba(22,25,31,.92);border:1px solid var(--line);border-radius:13px;padding:12px 14px;backdrop-filter:blur(2px)}
+.pj-card h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold);display:flex;align-items:center;gap:7px}
+.pj-ico-h{font-size:14px;filter:saturate(1.3)}
+
+/* estado vacío / bienvenida */
+.pj-welcome{text-align:center;padding:34px 10px 22px;animation:pjFloat 3.4s ease-in-out infinite}
+.pj-welcome-ico{font-size:42px;margin-bottom:8px;filter:drop-shadow(0 4px 14px rgba(232,184,75,.25))}
+.pj-welcome-t{font-size:19px;font-weight:800;letter-spacing:.5px;
+  background:linear-gradient(92deg,var(--gold2) 10%,#f7f0d8 50%,var(--gold) 90%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.pj-welcome-s{color:var(--mut);font-size:12.5px;margin-top:5px}
+@keyframes pjFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+/* tira de estadísticas */
+.pj-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.pj-stat{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:8px 10px 7px;
+  display:flex;flex-direction:column;gap:1px;transition:transform .15s,border-color .15s,box-shadow .15s;
+  animation:pjIn .3s both;animation-delay:var(--d,0ms)}
+.pj-stat:hover{transform:translateY(-2px);border-color:#3d4454;box-shadow:0 6px 14px rgba(0,0,0,.35)}
+.pj-stat-n{font-family:var(--mono);font-size:19px;font-weight:700;line-height:1.1}
+.pj-stat-l{color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:1.1px;display:flex;gap:5px;align-items:center}
+.pj-stat.s-on .pj-stat-n{color:var(--green)}.pj-stat.s-on .pj-fi2{filter:hue-rotate(0)}
+.pj-stat.s-off .pj-stat-n{color:#8b93a3}
+.pj-stat.s-rsv .pj-stat-n{color:var(--orange)}
+.pj-stat.s-bin .pj-stat-n{color:var(--blue)}
+
+/* detalle del personaje seleccionado */
+.pj-detail{border-color:#3d4454;animation:pjPop .28s cubic-bezier(.2,.8,.3,1.2) both}
+@keyframes pjPop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.pj-dhero{display:flex;gap:13px;align-items:center;margin-bottom:9px}
+.pj-dhero .pj-ava{width:64px;height:64px;border-radius:13px;font-size:26px}
+.pj-dname{font-size:19px;font-weight:800;letter-spacing:.3px}
+.pj-dsub{color:var(--mut);font-size:11.5px;font-family:var(--mono);margin-top:2px;word-break:break-all}
+.pj-dst{margin-left:auto;flex:none}
+.pj-st.pj-big{font-size:10.5px;padding:5px 11px;border-radius:9px}
+
+.pj-pills{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 10px}
+.pj-pill{display:inline-flex;gap:6px;align-items:center;font-size:11px;color:var(--txt);
+  background:#10131a;border:1px solid var(--line);border-radius:9px;padding:4px 10px;
+  animation:pjPop .25s both;animation-delay:var(--d,0ms)}
+.pj-pill b{font-family:var(--mono);color:var(--gold2)}
+
+.pj-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pj-note{color:#98a2b8;font-size:11px;margin-top:9px;line-height:1.55}
+
+/* botones del módulo */
+.pj-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:12.5px;font-weight:600;
+  border-radius:9px;padding:7px 14px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);
+  transition:transform .12s,border-color .15s,box-shadow .15s,background-color .15s;position:relative;overflow:hidden}
+.pj-btn:hover{border-color:var(--gold);color:var(--gold2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.pj-btn:active{transform:translateY(0) scale(.96)}
+.pj-btn:disabled{opacity:.4;transform:none;box-shadow:none;cursor:default}
+.pj-btn .pj-fi{font-size:14px}
+
+.pj-btn-build{border-color:var(--gold);background:linear-gradient(135deg,#2f2716,#241d10);color:var(--gold2);
+  padding:8px 18px;font-size:13px}
+.pj-btn-build:not(:disabled){box-shadow:0 0 14px rgba(232,184,75,.14)}
+.pj-btn-build:not(:disabled):hover{box-shadow:0 0 22px rgba(232,184,75,.3);animation:pjGlow 1.3s ease-in-out infinite}
+@keyframes pjGlow{0%,100%{box-shadow:0 0 12px rgba(232,184,75,.16)}50%{box-shadow:0 0 26px rgba(232,184,75,.38)}}
+.pj-btn-build:not(:disabled)::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 35%,rgba(255,244,200,.16) 50%,transparent 65%);
+  transform:translateX(-100%)}
+.pj-btn-build:not(:disabled):hover::after{animation:pjSweep .9s ease}
+@keyframes pjSweep{to{transform:translateX(100%)}}
+
+.pj-btn-on{border-color:#2a5c3f;color:var(--green)}
+.pj-btn-on:hover{border-color:var(--green);color:#8fe6b4;box-shadow:0 4px 14px rgba(87,201,138,.15)}
+.pj-btn-danger{border-color:#5c2a2a;color:#e88}
+.pj-btn-danger:hover{border-color:var(--red);color:#ff9d9d;box-shadow:0 4px 14px rgba(224,93,93,.18)}
+.pj-btn-full{width:100%;margin-top:9px}
+
+/* constructor */
+.pj-builder-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.pj-sub{color:#98a2b8;font-size:11.5px;line-height:1.6;margin:4px 0 10px}
+.pj-sub code{font-family:var(--mono);color:var(--gold2);background:#1d1a12;border-radius:4px;padding:0 4px}
+
+.pj-steps{display:flex;align-items:center;gap:7px}
+.pj-step{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:var(--mut);letter-spacing:.4px}
+.pj-step i{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel2);
+  display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:10px;font-weight:700;
+  transition:all .25s ease;flex:none}
+.pj-step-sep{width:16px;height:1.5px;background:var(--line);transition:background .25s}
+.pj-step.done i{border-color:var(--green);color:var(--green);background:#12301f;animation:pjPop .3s}
+.pj-step.done{color:var(--green)}
+.pj-step-sep.done{background:#2a5c3f}
+
+.pj-form{display:grid;grid-template-columns:1.1fr 1fr 1.5fr auto;gap:8px;margin-bottom:9px}
+.pj-field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pj-field>span{font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--mut);font-weight:600;padding-left:2px}
+.pj-field input,.pj-field select{width:100%;border-radius:8px;background:#101318;transition:border-color .15s,box-shadow .15s}
+.pj-field input:focus,.pj-field select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,184,75,.18)}
+.pj-field input::placeholder{color:#5d6577}
+.pj-field-xs{width:76px}
+
+.pj-folder-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.pj-btn-folder{border-style:dashed}
+.pj-folder-tag{font-family:var(--mono);font-size:11px;color:var(--gold2);background:#1d1a12;
+  border:1px solid #3a3d1f;border-radius:8px;padding:4px 10px;max-width:34ch;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;animation:pjPop .25s both}
+.pj-folder-tag:empty{display:none}
+.pj-spacer{flex:1}
+
+/* plan de construcción */
+.pj-plan{margin-top:10px}
+.pj-plan-empty{color:var(--mut);font-size:12px;padding:8px 2px}
+.pj-plan-sec{margin-top:8px}
+.pj-plan-lbl{color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:1.4px;font-weight:600;margin-bottom:5px}
+.pj-states{display:flex;gap:5px;flex-wrap:wrap;max-height:150px;overflow-y:auto;padding:2px}
+.pj-stchip{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;
+  border-radius:8px;padding:3px 9px;border:1px solid #2a5c3f;background:#12301f;color:var(--green);
+  animation:pjPop .22s both;animation-delay:var(--d,0ms)}
+.pj-stchip.inh{border-color:#333a47;background:#151920;color:#7d8698}
+.pj-plan-row{display:flex;gap:8px;align-items:baseline;font-size:12px;margin:3px 0;color:var(--txt)}
+.pj-plan-row .pj-k{color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:1.2px;flex:none;width:72px}
+.pj-plan-row code{font-family:var(--mono);color:var(--gold2)}
+.pj-warn{margin-top:8px;border:1px solid #6b4a22;background:#33230f;color:var(--orange);
+  border-radius:9px;padding:7px 11px;font-size:11.5px;animation:pjPop .3s both}
+
+/* overlay de construcción */
+.pj-busy{position:absolute;inset:0;z-index:5;border-radius:13px;display:flex;flex-direction:column;gap:8px;
+  align-items:center;justify-content:center;background:rgba(12,14,18,.86);backdrop-filter:blur(3px);
+  animation:pjPop .25s both}
+.pj-builder{position:relative}
+.pj-spinner{width:34px;height:34px;border-radius:50%;border:3px solid #3a3d28;border-top-color:var(--gold);
+  animation:pjSpin .8s linear infinite}
+@keyframes pjSpin{to{transform:rotate(360deg)}}
+.pj-busy-t{font-size:14px;font-weight:700;color:var(--gold2);letter-spacing:.5px}
+.pj-busy-s{font-size:11px;color:var(--mut)}
+
+/* ─── derecha: sesión + info ─── */
+.pj-right{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;min-height:0;padding:10px;display:flex;flex-direction:column;gap:9px}
+.pj-logcard{padding:11px 12px}
+.pj-log{display:flex;flex-direction:column;gap:5px;min-height:34px;max-height:210px;overflow-y:auto;margin-top:4px}
+.pj-log-empty{color:var(--mut);font-size:11.5px;padding:4px 2px}
+.pj-log-e{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;line-height:1.45;
+  background:#10131a;border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;
+  padding:6px 9px;animation:pjSlide .3s cubic-bezier(.2,.7,.3,1) both}
+.pj-log-e .pj-lt{font-family:var(--mono);font-size:10px;color:#6d7585;flex:none;margin-top:1px}
+.pj-log-e .pj-lx{font-size:13px;flex:none;margin-top:-1px}
+.pj-log-e.k-on{border-left-color:var(--green)}
+.pj-log-e.k-off{border-left-color:#8b93a3}
+.pj-log-e.k-del{border-left-color:var(--red)}
+.pj-log-e.k-back{border-left-color:var(--blue)}
+@keyframes pjSlide{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+
+/* faq plegable */
+.pj-faq{background:var(--panel);border:1px solid var(--line);border-radius:11px;overflow:hidden;transition:border-color .2s}
+.pj-faq:hover{border-color:#3d4454}
+.pj-faq summary{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;list-style:none;
+  font-size:12px;font-weight:600;color:var(--txt);user-select:none;transition:color .15s}
+.pj-faq summary::-webkit-details-marker{display:none}
+.pj-faq summary::after{content:"›";margin-left:auto;color:var(--mut);font-size:16px;line-height:1;
+  transition:transform .22s ease}
+.pj-faq[open] summary::after{transform:rotate(90deg)}
+.pj-faq summary:hover{color:var(--gold2)}
+.pj-faq-b{padding:2px 13px 11px;color:#98a2b8;font-size:11.5px;line-height:1.65;animation:pjFade .3s both}
+.pj-faq-b code{font-family:var(--mono);color:var(--gold2);background:#1d1a12;border-radius:4px;padding:0 4px;font-size:11px}
+@keyframes pjFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+/* motion-reduce: apaga todo el movimiento */
+@media (prefers-reduced-motion: reduce){
+  #mod-pj .pj-char,#mod-pj .pj-stat,#mod-pj .pj-pill,#mod-pj .pj-stchip{animation:none;opacity:1}
+  #mod-pj .pj-aurora i,#mod-pj .pj-dot,#mod-pj .pj-welcome,#mod-pj .pj-btn-build:not(:disabled){animation:none}
+  #mod-pj .pj-detail,#mod-pj .pj-log-e,#mod-pj .pj-faq-b{animation:none}
+}
+/* ===== CSS módulo 👤 Personajes — FIN ===== */
 .charbtn.exe b{color:#e08;}
 .sprbtn{display:block;width:100%;text-align:left;margin:1px 0;font-family:var(--mono);font-size:12px;background:transparent;border-color:transparent}
 .sprbtn:hover{border-color:var(--line)}
@@ -429,6 +678,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   <button class="mnav" data-mod="keys">🎮 Botones</button>
   <button class="mnav" data-mod="lms">🎤 Show LMS</button>
   <button class="mnav" data-mod="muelles">🪀 Muelles</button>
+  <button class="mnav" data-mod="pj">👤 Personajes</button>
   <span id="modnav-note">tú mueves · el código se escribe solo</span>
 </nav>
 <nav id="subnav-cd" class="subnav hidden">
@@ -1041,6 +1291,118 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   </aside>
 </div><!-- /mod-muelles -->
 
+<div id="mod-pj" class="mod hidden">
+  <!-- ═══ ROSTER (izquierda) ═══ -->
+  <aside class="pj-side">
+    <div class="pj-side-head">
+      <span class="pj-side-title">ROSTER</span>
+      <span class="pj-count" id="pj-count">—</span>
+    </div>
+    <div class="pj-filters" id="pj-filters">
+      <button class="pj-fchip sel" data-f="todos">Todos</button>
+      <button class="pj-fchip" data-f="activo">Activos</button>
+      <button class="pj-fchip" data-f="off">Off</button>
+      <button class="pj-fchip" data-f="reservado">Reserv.</button>
+    </div>
+    <div class="pj-searchwrap">
+      <span class="pj-search-ico">⌕</span>
+      <input id="pj-q" type="text" placeholder="buscar personaje…" spellcheck="false" autocomplete="off">
+    </div>
+    <div id="pj-char-list" class="pj-list"></div>
+    <div class="pj-side-foot">
+      <span class="pj-dot"></span> pulsa una tarjeta para ver sus acciones · el punto verde late = en el carrusel
+    </div>
+  </aside>
+
+  <!-- ═══ CENTRO: estado + detalle + constructor ═══ -->
+  <main class="pj-mid">
+    <div class="pj-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+    <div id="pj-head" class="pj-welcome">
+      <div class="pj-welcome-ico">👤</div>
+      <div class="pj-welcome-t">Gestor de personajes</div>
+      <div class="pj-welcome-s">abre tu proyecto para gestionar los personajes</div>
+    </div>
+
+    <div class="pj-stats" id="pj-stats"></div>
+
+    <div class="pj-card pj-detail" id="pj-detail" style="display:none"></div>
+
+    <div class="pj-card pj-builder">
+      <div class="pj-builder-head">
+        <h3><span class="pj-ico-h">⚡</span> Constructor de personajes</h3>
+        <div class="pj-steps" id="pj-steps">
+          <span class="pj-step" data-step="1"><i>1</i>carpeta</span>
+          <span class="pj-step-sep"></span>
+          <span class="pj-step" data-step="2"><i>2</i>identidad</span>
+          <span class="pj-step-sep"></span>
+          <span class="pj-step" data-step="3"><i>3</i>construir</span>
+        </div>
+      </div>
+      <p class="pj-sub">Dale una carpeta con subcarpetas por estado — <code>idle/ walk/ run/ jump/ fall/…</code> con PNG numerados — y la Suite crea TODO: sprites con orígenes clavados al suelo, objeto, registros y server. Estados que falten los hereda del padre (o usa tu <code>idle</code>). Opcionales: <code>menu/</code> (retrato), <code>info/</code> (placa), <code>e/…</code> (demonizada), <code>nega/…</code> (nega).</p>
+      <div class="pj-form">
+        <label class="pj-field">
+          <span>Nombre interno</span>
+          <input id="pj-add-id" placeholder="shadow" spellcheck="false" autocomplete="off">
+        </label>
+        <label class="pj-field">
+          <span>Se llama</span>
+          <input id="pj-add-display" placeholder="Shadow" autocomplete="off">
+        </label>
+        <label class="pj-field">
+          <span>Padre (clon de)</span>
+          <select id="pj-add-parent"></select>
+        </label>
+        <label class="pj-field pj-field-xs" title="Desplaza el punto de anclaje horizontal de TODOS los sprites (por defecto: centro)">
+          <span>X ±</span>
+          <input id="pj-add-xshift" type="number" value="0" step="1">
+        </label>
+      </div>
+      <div class="pj-folder-row">
+        <input id="pj-add-dir" type="file" webkitdirectory multiple class="hidden">
+        <button id="pj-add-pick" class="pj-btn pj-btn-folder"><span class="pj-fi">📂</span> Carpeta de sprites…</button>
+        <span id="pj-add-folder" class="pj-folder-tag">ninguna</span>
+        <span class="pj-spacer"></span>
+        <button id="pj-add-build" class="pj-btn pj-btn-build" disabled title="antes: elige la carpeta de sprites (1) y ponle nombre interno (2)"><span class="pj-fi">⚡</span> Construir personaje</button>
+      </div>
+      <div id="pj-add-preview" class="pj-plan">
+        <div class="pj-plan-empty">elige la carpeta de sprites y ponle nombre para ver el plan</div>
+      </div>
+      <div id="pj-busy" class="pj-busy" style="display:none">
+        <div class="pj-spinner"></div>
+        <div class="pj-busy-t">construyendo…</div>
+        <div class="pj-busy-s">sprites, objeto, registros y server — no cierres la Suite</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══ SESIÓN + INFO (derecha) ═══ -->
+  <aside class="pj-right">
+    <section class="pj-card pj-logcard">
+      <h3><span class="pj-ico-h">🕒</span> Cambios de esta sesión</h3>
+      <div id="pj-log" class="pj-log"><div class="pj-log-empty">nada todavía — lo que hagas aquí aparece al instante</div></div>
+      <button id="pj-undo" class="pj-btn pj-btn-full" disabled><span class="pj-fi">↩</span> Deshacer último</button>
+    </section>
+
+    <details class="pj-faq" open>
+      <summary><span class="pj-fi">🎯</span> Orígenes al suelo exacto</summary>
+      <div class="pj-faq-b">El editor mide la última fila de píxeles de cada frame y clava el <code>yorigin</code> a <b>pies − 17</b>, la distancia exacta a la que están los sensores de suelo del juego (la misma de Tails, Knux o Rouge). Ni flotando ni hundido. El <code>xorigin</code> va al centro (ajústalo con «X ±» si tu personaje no es simétrico).</div>
+    </details>
+    <details class="pj-faq">
+      <summary><span class="pj-fi">⚡</span> Qué toca al AÑADIR</summary>
+      <div class="pj-faq-b">Sprites (.yy + PNGs + layers con GUIDs nuevos) · <code>obj_&lt;pj&gt;</code> y <code>scr_&lt;pj&gt;_special</code> clonados del padre · macro <code>CHARACTER_*</code> al FINAL del enum (nunca reordena) · <code>player_anims/eanims/negaanims</code> · <code>player_get()</code> · <code>scr_char_name()</code> · paletas (<code>obj_unlockables</code> + <code>paletteShifts</code>) · show LMS · retrato en <code>chars[]</code> del lobby · límites del carrusel (a <code>CHARACTER_SURV_MAX</code>, se ajustan solos para el siguiente) · placa de info · server (<code>Server.h</code>, <code>CharSelect.c</code>, <code>Lib.c</code>) · registro en el <code>.yyp</code>.</div>
+    </details>
+    <details class="pj-faq">
+      <summary><span class="pj-fi">⏯</span> Activar / Desactivar</summary>
+      <div class="pj-faq-b">Añade o quita un bloque marcado <code>[Suite PJ]</code> en <code>scr_char_locked</code> (el carrusel se lo salta) y su gemelo de rechazo en <code>CharSelect.c</code> (el server lo trata como ocupado). No borra nada y no toca los bloqueos de token del juego.</div>
+    </details>
+    <details class="pj-faq">
+      <summary><span class="pj-fi">🗑</span> Eliminar y Restaurar</summary>
+      <div class="pj-faq-b">Mueve TODO a <code>_personajes_eliminados/&lt;pj&gt;/</code> con un manifiesto y limpia los registros. Solo con el ÚLTIMO personaje del enum (los índices viajan por red). <b>Restaurar</b> lo devuelve a su slot si sigue libre. Siempre hay copia en <code>_backups_animeditor/</code> y botón de deshacer.</div>
+    </details>
+  </aside>
+</div><!-- /mod-pj -->
+
 </div><!-- /mods -->
 
 <div id="toasts"></div>
@@ -1121,6 +1483,16 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   (<code>scr_fall_anim();</code>) en el <code>case FALL</code> de cada personaje de la lista — la Suite la escribe sola.
   Un personaje sin configurar usa su caída de siempre: ni errores ni cambios (robusto para el futuro).
   Metal, Metal demonizado, Blaze y Blaze demonizada ya vienen configurados.</p>
+  <h4>Módulo 👤 Personajes</h4>
+  <p>El <b>constructor y gestor de personajes</b>, con roster de tarjetas y retratos reales, filtros
+  (activos / off / reservados), búsqueda y registro vivo de cambios. <b>Añadir:</b> dale una carpeta con
+  subcarpetas por estado (<code>idle/ walk/ run/ jump/ fall/…</code> con PNGs numerados; acepta nombres en
+  español: <code>correr/ caminar/…</code>) y construye todo el personaje: sprites con <b>orígenes clavados al
+  suelo</b> (pies − 17, la distancia exacta de los sensores), objeto y script special clonados del padre que
+  elijas, y los 16 registros (macro, anims, paletas, lobby, server…). Estados que falten se heredan del padre.
+  Opcionales: <code>menu/</code>, <code>info/</code>, <code>e/</code>, <code>nega/</code>.
+  <b>Activar / Desactivar</b> sin borrar nada (cliente + server). <b>Eliminar</b> manda a papelera
+  (<code>_personajes_eliminados/</code>, solo el último del enum) y <b>Restaurar</b> lo trae de vuelta.</p>
   <h4>8. Música</h4>
   <p>El botón <b>🎵 Música</b> de la barra de arriba pone el tema del lobby
   (<i>Sonic.exe The Disaster 1.0 OST</i>) mientras editas, en bucle y con control de volumen.
@@ -3137,6 +3509,7 @@ function switchModule(mod) {
   $('#mod-keys').classList.toggle('hidden', mod !== 'keys');
   $('#mod-lms').classList.toggle('hidden', mod !== 'lms');
   $('#mod-muelles').classList.toggle('hidden', mod !== 'muelles');
+  $('#mod-pj').classList.toggle('hidden', mod !== 'pj');
   $('#subnav-cd').classList.toggle('hidden', mod !== 'cd');
   $('#subnav-arte').classList.toggle('hidden', mod !== 'arte');
   $$('#subnav-cd .subnav-btn').forEach(b => b.classList.toggle('sel', b.dataset.cdsub === S.cdSub));
@@ -3148,6 +3521,7 @@ function switchModule(mod) {
   else if (mod === 'keys' && T.enterKeys) T.enterKeys();
   else if (mod === 'lms' && window.enterLms) window.enterLms();
   else if (mod === 'muelles' && window.enterMuelles) window.enterMuelles();
+  else if (mod === 'pj' && window.enterPj) window.enterPj();
   else if (mod === 'arte') { if (arteImg) enterImg(); else if (window.enterArte) window.enterArte(); }
   else enterImg();
 }
@@ -11296,6 +11670,1589 @@ else initMuelles();
 /* ===== Suite TD2D — módulo 🪀 MUELLES — FIN ===== */
 </script>
 <script>
+/* ===== Suite TD2D — módulo 👤 PERSONAJES — INICIO =====
+   Constructor y gestor de personajes:
+     · AÑADIR: le das una carpeta con subcarpetas por estado
+       (idle/, walk/, run/, jump/, fall/… + menu/ + info/ opcional,
+       e/ y nega/ para las variantes) y la Suite construye TODO:
+       sprites (.yy + PNGs + layers con GUIDs), objeto (clon del
+       padre con renames), script special y los registros completos
+       (macro, anims x3, player_get, char_name, paletas x2, LMS,
+       unlockables, chars[] del lobby, bounds del carrusel, placa,
+       server C y .yyp).
+     · ORIGINS AUTOMATICOS: yorigin = fila de pixeles mas baja - 17
+       (los pies quedan a +17 bajo el origen, EXACTAMENTE donde
+       estan los sensores de suelo: invariante de todos los
+       personajes sanos del carrusel — ni flotando ni hundido).
+     · ACTIVAR / DESACTIVAR sin borrar nada: bloque marcado en
+       scr_char_locked (cliente) + rechazo en CharSelect.c (server).
+     · ELIMINAR a papelera (_personajes_eliminados/) solo si el
+       personaje es el ULTIMO del enum (los indices viajan por red:
+       borrar uno del medio romperia la numeracion). RESTAURAR lo
+       trae de vuelta con su mismo slot.
+   Todo con copia en _backups_animeditor/, deshacer propio y
+   escritura blindada del .yyp (valida antes y despues). */
+(() => {
+'use strict';
+const T = window.__animtool, C = window.AnimCore;
+if (!T || !C) { console.error('SUITE PJ: faltan __animtool/AnimCore'); return; }
+const S = T.S;
+
+const PJ = {
+  chars: [], macroOrder: [], lastKey: null, displays: {},
+  sel: null, papelera: [], undo: [],
+  add: { files: null, plan: null },
+  stamp: null, bdir: null,
+  log: [], filter: 'todos', query: '', statPrev: {}
+};
+
+/* ------------------------------ utilidades ------------------------------ */
+
+function pjUuid() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  const u = new Uint8Array(16);
+  crypto.getRandomValues(u);
+  u[6] = (u[6] & 15) | 64; u[8] = (u[8] & 63) | 128;
+  const h = Array.from(u, b => b.toString(16).padStart(2, '0')).join('');
+  return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+}
+const GUID_RE = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
+
+function pjRemapGuids(text, preset) {
+  const map = preset || new Map();
+  const guids = new Set(text.match(GUID_RE) || []);
+  for (const g of guids) if (!map.has(g)) map.set(g, pjUuid());
+  let out = text;
+  for (const [o, n] of map) out = out.split(o).join(n);
+  return { text: out, map };
+}
+function pjLenientErr(t) {
+  try { JSON.parse(String(t).replace(/,(\s*[}\]])/g, '$1')); return null; }
+  catch (e) { return e.message; }
+}
+function pjLenientParse(t) {
+  try { return JSON.parse(String(t).replace(/,(\s*[}\]])/g, '$1')); }
+  catch (e) { return null; }
+}
+function pjEsc(s) { return T.esc ? T.esc(String(s)) : String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+function pjReEsc(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+async function pjWrite(rel, data) {
+  const parts = T.normPath(rel).split('/').filter(Boolean);
+  let dh = S.rootHandle;
+  for (let i = 0; i < parts.length - 1; i++) dh = await dh.getDirectoryHandle(parts[i], { create: true });
+  const fh = await dh.getFileHandle(parts[parts.length - 1], { create: true });
+  const w = await fh.createWritable();
+  await w.write(typeof data === 'string' ? new Blob([data], { type: 'text/plain' }) : data);
+  await w.close();
+}
+async function pjDeleteFile(rel) {
+  try {
+    const parts = T.normPath(rel).split('/').filter(Boolean);
+    let dh = S.rootHandle;
+    for (let i = 0; i < parts.length - 1; i++) dh = await dh.getDirectoryHandle(parts[i]);
+    const fh = await dh.getFileHandle(parts[parts.length - 1]);
+    await fh.remove();
+    return true;
+  } catch (e) { return false; }
+}
+
+// copia de seguridad + escritura; bdir = ruta COMPLETA del directorio de backups
+async function pjBackupWrite(rel, newText, undoGroup) {
+  const old = await T.readText(rel);
+  const bname = rel.replace(/\//g, '__');
+  if (old != null) {
+    const bfh = await (await T.ensureDir(PJ.bdir)).getFileHandle(bname, { create: true });
+    const w = await bfh.createWritable(); await w.write(old); await w.close();
+    await pjWrite(rel, newText);
+    undoGroup.push({ rel: rel, backup: PJ.bdir + '/' + bname });
+  } else {
+    await pjWrite(rel, newText);
+    undoGroup.push({ rel: rel, backup: null });
+  }
+}
+
+async function pjYypName() {
+  if (S.mode === 'fs') {
+    try {
+      for await (const [name, h] of S.rootHandle.entries())
+        if (h.kind === 'file' && name.endsWith('.yyp')) return name;
+    } catch (e) { }
+  } else if (S.mode === 'files') {
+    for (const p of S.files.keys()) if (p.endsWith('.yyp')) return p;
+  }
+  return null;
+}
+
+async function pjYypSafeWrite(yypName, text, undoGroup) {
+  const err = pjLenientErr(text);
+  if (err) { T.toast('El .yyp nuevo NO seria valido — no se escribe nada.\n' + err.slice(0, 140), 'err'); return false; }
+  const blobOld = await T.readBlob(yypName);
+  const bname = yypName.split('/').pop() + '.pj.bak';
+  try {
+    if (blobOld) {
+      const bfh = await (await T.ensureDir(PJ.bdir)).getFileHandle(bname, { create: true });
+      const w = await bfh.createWritable(); await w.write(blobOld); await w.close();
+    }
+    await pjWrite(yypName, text);
+    const back = await T.readText(yypName);
+    if (back == null || pjLenientErr(back)) throw new Error('la relectura no valida');
+    undoGroup.push({ rel: yypName, backup: PJ.bdir + '/' + bname });
+    return true;
+  } catch (e) {
+    try { if (blobOld) await pjWrite(yypName, blobOld); } catch (e2) { }
+    T.toast('Fallo al escribir el .yyp (' + e.message + '): restaurada la copia anterior.', 'err');
+    return false;
+  }
+}
+
+async function pjYypAddResources(yypName, entryLines, undoGroup) {
+  let yyp = await T.readText(yypName);
+  if (yyp == null) { T.toast('No encuentro el .yyp del proyecto.', 'err'); return false; }
+  let changed = false;
+  for (const line of entryLines) {
+    const nm = /"name":"([^"]+)"/.exec(line);
+    if (!nm || yyp.indexOf('"name":"' + nm[1] + '"') >= 0) continue;
+    const m = /"resources"\s*:\s*\[\s*\n/.exec(yyp);
+    if (!m) { T.toast('No encuentro "resources" en el .yyp: no lo toco.', 'err'); return false; }
+    yyp = yyp.slice(0, m.index + m[0].length) + '    ' + line + '\n' + yyp.slice(m.index + m[0].length);
+    changed = true;
+  }
+  if (!changed) return true;
+  return await pjYypSafeWrite(yypName, yyp, undoGroup);
+}
+
+async function pjYypRemoveResources(yypName, names, undoGroup) {
+  let yyp = await T.readText(yypName);
+  if (yyp == null) { T.toast('No encuentro el .yyp del proyecto.', 'err'); return false; }
+  let changed = false;
+  for (const nm of names) {
+    const re = new RegExp('^[ \\t]*\\{"[^\\n]*"name":"' + pjReEsc(nm) + '"[^\\n]*\\},?[ \\t]*\\r?\\n', 'gm');
+    const y2 = yyp.replace(re, '');
+    if (y2 !== yyp) { yyp = y2; changed = true; }
+  }
+  if (!changed) return true;
+  return await pjYypSafeWrite(yypName, yyp, undoGroup);
+}
+
+/* ------------------------------ PNG ------------------------------ */
+
+async function pjPngInfo(file) {
+  const bmp = await createImageBitmap(file);
+  const cv = document.createElement('canvas');
+  cv.width = bmp.width; cv.height = bmp.height;
+  const cx = cv.getContext('2d', { willReadFrequently: true });
+  cx.drawImage(bmp, 0, 0);
+  const data = cx.getImageData(0, 0, bmp.width, bmp.height).data;
+  let feet = -1;
+  outer:
+  for (let y = bmp.height - 1; y >= 0; y--) {
+    for (let x = 0; x < bmp.width; x++) {
+      if (data[(y * bmp.width + x) * 4 + 3] > 8) { feet = y; break outer; }
+    }
+  }
+  const r = { w: bmp.width, h: bmp.height, feetRow: feet };
+  bmp.close();
+  return r;
+}
+
+/* ------------------------------ parser del proyecto ------------------------------ */
+
+const PJ_RESERVED = { AMY_CANON: 'reservado (token de Amy)', SALLY_CANON: 'reservado (operador)', VANILLA: 'reservado (token de Amy)' };
+
+async function pjScan() {
+  const survTxt = await T.readText('scripts/scr_survivors/scr_survivors.gml') || '';
+  const charsTxt = await T.readText('scripts/scr_characters/scr_characters.gml') || '';
+  const p = C.parseSurvivors(survTxt);
+
+  // retratos del lobby: chars[] de obj_lobby/Create_0, indexado igual que el enum
+  let lobby = [];
+  const lobbyTxt = await T.readText('objects/obj_lobby/Create_0.gml') || '';
+  const mL = /chars\s*=\s*\[([\s\S]*?)\]/.exec(lobbyTxt);
+  if (mL) lobby = mL[1].replace(/\/\/[^\n]*/g, '').split(',').map(s => s.trim()).filter(Boolean);
+
+  PJ.macroOrder = [];
+  let m;
+  const reM = /#macro\s+(CHARACTER_\w+)\s+\(CHARACTER_TAILS\+(\d+)\)/g;
+  while ((m = reM.exec(survTxt))) PJ.macroOrder.push({ key: m[1], n: parseInt(m[2], 10) });
+  PJ.lastKey = PJ.macroOrder.length ? PJ.macroOrder[PJ.macroOrder.length - 1].key : null;
+
+  // nombres para mostrar (scr_char_name)
+  PJ.displays = {};
+  const reD = /case\s+(CHARACTER_\w+):\s*return\s+"([^"]*)";/g;
+  while ((m = reD.exec(charsTxt))) PJ.displays[m[1]] = m[2];
+
+  // bloqueos marcados por la Suite
+  const lockedSuite = new Set();
+  const reL = /\[Suite PJ\]\s+(\w+)\s+desactivado/g;
+  while ((m = reL.exec(survTxt))) lockedSuite.add(m[1].toUpperCase());
+
+  // padre de cada char construido por la Suite (comentario del macro)
+  const suiteParent = {};
+  const reP = /\/\* \[Suite PJ\][^\n]*\(padre: ([a-z0-9_]+)\)\.[^\n]*\n[ \t]*[^\n]*\*\/\n#macro (CHARACTER_\w+)/g;
+  while ((m = reP.exec(survTxt))) suiteParent[m[2]] = m[1];
+
+  PJ.chars = p.chars.filter(c => c.anims || c.eanims).map(c => {
+    const up = c.key.replace(/^CHARACTER_/, '');
+    let status = 'activo';
+    if (lockedSuite.has(up)) status = 'desactivado';
+    else if (PJ_RESERVED[up]) status = PJ_RESERVED[up];
+    return {
+      key: c.key, id: up.toLowerCase(), idx: c.idx, obj: c.obj,
+      display: PJ.displays[c.key] || c.name, parentId: suiteParent[c.key] || null,
+      anims: c.anims || [], eanims: c.eanims || [], negaanims: [],
+      portrait: lobby[c.idx] || ('spr_menu_' + up.toLowerCase()),
+      resv: PJ_RESERVED[up] || null,
+      status
+    };
+  });
+  const reN = /global\.player_negaanims\[\?\s*(CHARACTER_\w+)\s*\]\s*=\s*\[([\s\S]*?)\]\s*;/g;
+  while ((m = reN.exec(survTxt))) {
+    const ch = PJ.chars.find(c => c.key === m[1]);
+    if (ch) ch.negaanims = C.parseArrayEntries(m[2]);
+  }
+
+  PJ.papelera = [];
+  if (S.mode === 'fs') {
+    try {
+      const dh = await T.fsWalkDir('_personajes_eliminados');
+      for await (const [name, h] of dh.entries())
+        if (h.kind === 'directory') PJ.papelera.push(name);
+    } catch (e) { }
+  }
+}
+
+function pjAnimsEntryName(e) { return typeof e === 'string' ? e : (e.spr || e.name || ''); }
+
+/* ------------------------------ clasificador de sprites ------------------------------ */
+
+const PJ_SYNONYMS = {
+  parado: 'idle', quieto: 'idle', normal: 'idle', base: 'idle',
+  caminar: 'walk', andar: 'walk',
+  correr: 'run', sprint: 'run',
+  salto: 'jump', saltar: 'jump',
+  caida: 'fall', caer: 'fall',
+  herido: 'hurt',
+  muerto: 'dead', muerte: 'dead',
+  mirararriba: 'lookup', arriba: 'lookup',
+  mirarabajo: 'lookdown', abajo: 'lookdown',
+  emocion1: 'emotion1', emocion2: 'emotion2', emocion3: 'emotion3', emocion: 'emotion',
+  equilibrio: 'balancing', balance: 'balancing',
+  ataque1: 'attack1', ataque2: 'attack2', patada: 'attack1',
+  planeo: 'glide', deslizar: 'glide',
+  vuelo: 'fly', volar: 'fly',
+  tirolina: 'zipline',
+  atascado: 'stuck', agarre: 'stuck',
+  girar: 'spin'
+};
+function pjNormState(s) {
+  const k = String(s).toLowerCase().trim().replace(/\s+/g, '_');
+  return PJ_SYNONYMS[k] || k;
+}
+function pjNaturalSort(a, b) {
+  const na = /(\d+)\.png$/i.exec(a), nb = /(\d+)\.png$/i.exec(b);
+  if (na && nb) {
+    const d = parseInt(na[1], 10) - parseInt(nb[1], 10);
+    if (d) return d;
+  }
+  return a < b ? -1 : (a > b ? 1 : 0);
+}
+
+function pjClassifyFiles(files) {
+  const out = { base: {}, e: {}, nega: {}, menu: [], info: [] };
+  for (const f of files) {
+    if (!/\.png$/i.test(f.name)) continue;
+    let parts = (f.webkitRelativePath || f.name).split('/').filter(Boolean);
+    if (parts.length > 1) parts = parts.slice(1);
+    if (parts.length === 0) continue;
+    if (parts.length === 1) {
+      const m = /^(.+?)_?(\d*)\.png$/i.exec(parts[0]);
+      if (m) (out.base[pjNormState(m[1])] = out.base[pjNormState(m[1])] || []).push(f);
+      continue;
+    }
+    const grupo = pjNormState(parts[0]);
+    if (grupo === 'menu') { out.menu.push(f); continue; }
+    if (grupo === 'info' || grupo === 'placa') { out.info.push(f); continue; }
+    if ((grupo === 'e' || grupo === 'exe' || grupo === 'demonizada' || grupo === 'demonizado') && parts.length >= 2) {
+      const st = pjNormState(parts[1]);
+      (out.e[st] = out.e[st] || []).push(f);
+      continue;
+    }
+    if (grupo === 'nega' && parts.length >= 2) {
+      const st = pjNormState(parts[1]);
+      (out.nega[st] = out.nega[st] || []).push(f);
+      continue;
+    }
+    (out.base[grupo] = out.base[grupo] || []).push(f);
+  }
+  for (const set of [out.base, out.e, out.nega])
+    for (const k in set) set[k].sort((a, b) => pjNaturalSort(a.name, b.name));
+  out.menu.sort((a, b) => pjNaturalSort(a.name, b.name));
+  return out;
+}
+
+/* ------------------------------ plan de añadir ------------------------------ */
+
+const PJ_FALLBACK = {
+  emotion: 'emotion1', emotion2: 'emotion1', emotion3: 'emotion1',
+  attack2: 'attack1', attack1: 'fall',
+  glide: 'fall', fly: 'fall', zipline: 'fall',
+  stuck: 'jump', balancing: 'idle',
+  lookup: 'idle', lookdown: 'idle',
+  hurt: 'idle', dead: 'hurt'
+};
+
+async function pjPlanAdd(opts) {
+  const id = String(opts.id || '').toLowerCase();
+  if (!/^[a-z][a-z0-9_]*$/.test(id)) throw new Error('El nombre interno solo admite minusculas, numeros y _ (ej: shadow).');
+  const UP = id.toUpperCase();
+  let display = (opts.display || id.charAt(0).toUpperCase() + id.slice(1)).trim();
+  if (display.includes('"')) throw new Error('El nombre para mostrar no puede llevar comillas.');
+  const restore = !!opts.restore;
+
+  const parent = PJ.chars.find(c => c.key === opts.parentKey);
+  if (!parent || !parent.obj) throw new Error('El personaje padre no existe o no tiene objeto.');
+  const pid = parent.id, pUP = parent.key.replace(/^CHARACTER_/, '');
+
+  if (PJ.macroOrder.some(x => x.key === 'CHARACTER_' + UP))
+    throw new Error('Ya existe el macro CHARACTER_' + UP + ' en scr_survivors.gml.');
+  if (!restore) {
+    if (S.spriteNames.has('spr_' + id + '_idle')) throw new Error('Ya existen sprites spr_' + id + '_* en el proyecto.');
+    const objTxt = await T.readText('objects/obj_' + id + '/obj_' + id + '.yy');
+    if (objTxt != null) throw new Error('Ya existe objects/obj_' + id + '/.');
+  }
+
+  const cls = pjClassifyFiles(opts.files || []);
+  if (!restore && (!cls.base.idle || !cls.base.idle.length))
+    throw new Error('La carpeta no tiene estado idle/ (minimo obligatorio). Ejemplo: mi_pj/idle/1.png');
+
+  // dimensiones + consistencia por estado
+  const dims = {};
+  const scanSet = async (set, pfx) => {
+    for (const st in set) {
+      let w = null, h = null, feet = -1;
+      for (const f of set[st]) {
+        const inf = await pjPngInfo(f);
+        if (w == null) { w = inf.w; h = inf.h; }
+        else if (inf.w !== w || inf.h !== h)
+          throw new Error('El estado "' + st + '" mezcla tamaños: ' + w + 'x' + h + ' y ' + inf.w + 'x' + inf.h + '. Todos los frames de un sprite deben medir igual.');
+        if (inf.feetRow > feet) feet = inf.feetRow;
+      }
+      dims[pfx + st] = { w, h, feet };
+    }
+  };
+  await scanSet(cls.base, '');
+  await scanSet(cls.e, 'e:');
+  await scanSet(cls.nega, 'nega:');
+  if (cls.menu.length) {
+    let w = null, h = null;
+    for (const f of cls.menu) { const i = await pjPngInfo(f); if (w == null) { w = i.w; h = i.h; } else if (i.w !== w || i.h !== h) throw new Error('Los PNG de menu/ mezclan tamaños.'); }
+    dims.menu = { w, h, feet: h - 1 };
+  }
+  if (cls.info.length) {
+    const i = await pjPngInfo(cls.info[0]);
+    dims.info = { w: i.w, h: i.h, feet: i.h - 1 };
+  }
+
+  // mapeo de estados del padre -> sprite nuevo
+  const mkEntry = (kind) => {
+    const parentArr = kind === 'anims' ? parent.anims : kind === 'eanims' ? parent.eanims : parent.negaanims;
+    const userSet = kind === 'anims' ? cls.base : kind === 'eanims' ? cls.e : cls.nega;
+    const out = [];
+    for (let i = 0; i < parentArr.length; i++) {
+      const src = pjAnimsEntryName(parentArr[i]);
+      let state = null;
+      if (kind === 'eanims' && src.startsWith('spr_e' + pid + '_')) state = src.slice(('spr_e' + pid + '_').length);
+      else if (kind === 'negaanims' && src.startsWith('spr_' + pid + 'nega_')) state = src.slice(('spr_' + pid + 'nega_').length);
+      else if (kind === 'anims' && src.startsWith('spr_' + pid + '_')) state = src.slice(('spr_' + pid + '_').length);
+      let name, via = null, mode;
+      const hasUser = state && userSet[state] && userSet[state].length;
+      if (hasUser) {
+        mode = 'user';
+        name = kind === 'eanims' ? 'spr_e' + id + '_' + state : kind === 'negaanims' ? 'spr_' + id + 'nega_' + state : 'spr_' + id + '_' + state;
+      } else if (state && !restore) {
+        const fb = PJ_FALLBACK[state] || null;
+        const fbUser = fb && userSet[fb] && userSet[fb].length;
+        if (fbUser) {
+          mode = 'user';
+          name = kind === 'eanims' ? 'spr_e' + id + '_' + fb : kind === 'negaanims' ? 'spr_' + id + 'nega_' + fb : 'spr_' + id + '_' + fb;
+          via = 'sin "' + state + '": usa tu ' + fb;
+        } else if (kind !== 'anims') {
+          mode = 'alias';
+          name = 'spr_' + id + '_' + state;
+          via = 'variante sin sprites: usa el base';
+        } else {
+          mode = 'copy';
+          name = src.split(pid).join(id);
+          via = 'copia de ' + src;
+        }
+      } else {
+        mode = 'copy';
+        name = src.split(pid).join(id);
+        via = 'copia de ' + src;
+      }
+      out.push({ slot: i, state: state || src, parentSpr: src, name, mode, via, tmpl: src });
+    }
+    return out;
+  };
+  const anims = mkEntry('anims');
+  const eanims = mkEntry('eanims');
+  const negaanims = mkEntry('negaanims');
+
+  const uniq = new Map();
+  for (const e of [...anims, ...eanims, ...negaanims])
+    if (e.mode !== 'alias' && !uniq.has(e.name)) uniq.set(e.name, e);
+  const sprites = [...uniq.values()];
+  for (const e of sprites) {
+    if (e.mode === 'user') {
+      e.dimsKey = (e.name.startsWith('spr_e' + id + '_') ? 'e:' : e.name.startsWith('spr_' + id + 'nega_') ? 'nega:' : '') + e.state;
+      e.files = (e.name.startsWith('spr_e' + id + '_') ? cls.e : e.name.startsWith('spr_' + id + 'nega_') ? cls.nega : cls.base)[e.state === e.state ? e.state : e.state] || [];
+      // si viene de un fallback, los files son los del estado fallback:
+      if (!e.files.length) {
+        const fb = e.name.split('_').pop();
+        e.files = (e.name.startsWith('spr_e' + id + '_') ? cls.e : e.name.startsWith('spr_' + id + 'nega_') ? cls.nega : cls.base)[fb] || [];
+      }
+    }
+  }
+  const menu = {
+    name: 'spr_menu_' + id, tmpl: 'spr_menu_' + pid,
+    mode: (cls.menu.length && !restore) ? 'user' : 'copy',
+    files: cls.menu, dimsKey: 'menu',
+    via: (cls.menu.length && !restore) ? null : 'copia del retrato de ' + parent.display
+  };
+  let plate = null;
+  if (cls.info.length && !restore) plate = { name: 'spr_char_info_' + id, tmpl: 'spr_char_info_fw', mode: 'user', files: cls.info, dimsKey: 'info', state: 'info' };
+
+  const idx = PJ.macroOrder.length ? PJ.macroOrder[PJ.macroOrder.length - 1].n + 1 : 1;
+  return { id, UP, display, parent, pid, pUP, idx, cls, dims, anims, eanims, negaanims, sprites, menu, plate, xShift: parseInt(opts.xShift || '0', 10) || 0, warnings: [] };
+}
+
+/* ------------------------------ .yy de sprite ------------------------------ */
+
+// Construye el .yy de un sprite nuevo a partir de la plantilla del padre,
+// TODO sobre el objeto JSON parseado (robusto ante los 2 formatos del repo:
+// pretty de GameMaker y compacto de una linea) y serializa limpio.
+async function pjBuildSpriteYy(plan, entry) {
+  let tmplName = (entry.tmpl && S.spriteNames.has(entry.tmpl)) ? entry.tmpl : 'spr_' + plan.pid + '_idle';
+  const tmplRel = 'sprites/' + tmplName + '/' + tmplName + '.yy';
+  const raw = await T.readText(tmplRel);
+  if (raw == null) throw new Error('No encuentro la plantilla ' + tmplRel);
+  const o = pjLenientParse(raw);
+  if (!o || !o.sequence || !Array.isArray(o.frames) || !o.frames.length)
+    throw new Error('La plantilla ' + tmplRel + ' no parsea o no tiene frames.');
+  const seq = o.sequence;
+  const track = (seq.tracks || []).find(t => t && t.keyframes && Array.isArray(t.keyframes.Keyframes) && t.keyframes.Keyframes.length);
+  if (!track) throw new Error('La plantilla ' + tmplRel + ' no tiene keyframes.');
+  const kf0 = track.keyframes.Keyframes[0];
+
+  const origFrames = o.frames.map(f => f['%Name'] || f.name);
+  const origLayer = (o.layers && o.layers[0]) ? (o.layers[0]['%Name'] || o.layers[0].name) : null;
+
+  const N = entry.mode === 'user' ? (entry.files || []).length : o.frames.length;
+  if (entry.mode === 'user' && (!N || !origFrames.length)) throw new Error(entry.name + ': sin frames.');
+
+  // dims / origins / bbox (modo user)
+  if (entry.mode === 'user') {
+    const d = plan.dims[entry.dimsKey] || {};
+    if (d.w != null) {
+      o.width = d.w;
+      o.height = d.h;
+      const feet = d.feet >= 0 ? d.feet : d.h - 1;
+      let yo = feet - 17;                    // pies a +17 bajo el origen (invariante del carrusel)
+      if (yo < 0) { plan.warnings.push(entry.name + ': el dibujo llega hasta abajo del canvas; yorigin queda 0 (revisa).'); yo = 0; }
+      const xo = Math.round(d.w / 2) + (plan.xShift || 0);
+      if (xo < 0 || xo >= d.w) plan.warnings.push(entry.name + ': el desplazamiento X deja el origen fuera del sprite.');
+      seq.xorigin = xo;
+      seq.yorigin = yo;
+      o.bboxMode = 0;
+      o.bbox_bottom = d.h - 1; o.bbox_right = d.w - 1; o.bbox_top = 0; o.bbox_left = 0;
+    }
+  }
+
+  // nombres
+  o['%Name'] = entry.name; o.name = entry.name;
+  seq['%Name'] = entry.name; if ('name' in seq) seq.name = entry.name;
+  if (o.parent && o.parent.path) {
+    o.parent.path = o.parent.path.replace(/[^/]+\.yy$/, plan.display + '.yy');
+    o.parent.name = plan.display;
+  }
+
+  // layer con GUID fresco
+  const layerGuid = pjUuid();
+  if (o.layers && o.layers.length) {
+    o.layers[0]['%Name'] = layerGuid;
+    o.layers[0].name = layerGuid;
+  } else {
+    o.layers = [{ '$GMImageLayer': '', '%Name': layerGuid, blendMode: 0, displayName: 'default', isLocked: false, name: layerGuid, opacity: 100.0, resourceType: 'GMImageLayer', resourceVersion: '2.0', visible: true }];
+  }
+
+  // frames + keyframes nuevos (clonan la estructura de la 1a entrada de la plantilla)
+  const frameGuids = [];
+  const kfs = [];
+  for (let i = 0; i < N; i++) {
+    const g = pjUuid();
+    frameGuids.push(g);
+    const kf = JSON.parse(JSON.stringify(kf0));
+    const ch = (kf.Channels && kf.Channels['0']) || null;
+    if (ch && ch.Id) { ch.Id.name = g; ch.Id.path = 'sprites/' + entry.name + '/' + entry.name + '.yy'; }
+    if (kf.id) kf.id = pjUuid();
+    kf.Key = i;
+    kfs.push(kf);
+  }
+  o.frames = frameGuids.map(g => ({ '$GMSpriteFrame': 'v1', '%Name': g, name: g, resourceType: 'GMSpriteFrame', resourceVersion: '2.0' }));
+  track.keyframes.Keyframes = kfs;
+  seq.length = N;
+
+  const yy = JSON.stringify(o, null, 2);
+  const err = pjLenientErr(yy);
+  if (err) throw new Error('El .yy generado para ' + entry.name + ' no valida: ' + err);
+  return { yy, frameGuids, layerGuid, origFrames, origLayer, tmplName };
+}
+
+async function pjWriteSprite(plan, entry, undoGroup) {
+  const created = [];
+  const info = await pjBuildSpriteYy(plan, entry);
+  const frameGuids = info.frameGuids;
+  const layerGuid = info.layerGuid;
+  if (entry.mode === 'user' && frameGuids.length !== entry.files.length)
+    throw new Error(entry.name + ': el .yy quedo con ' + frameGuids.length + ' frames y son ' + entry.files.length + '.');
+
+  await pjWrite('sprites/' + entry.name + '/' + entry.name + '.yy', info.yy);
+  created.push('sprites/' + entry.name + '/' + entry.name + '.yy');
+
+  if (entry.mode === 'user') {
+    for (let i = 0; i < entry.files.length; i++) {
+      const blob = new Blob([await entry.files[i].arrayBuffer()]);
+      const fg = frameGuids[i];
+      await pjWrite('sprites/' + entry.name + '/' + fg + '.png', blob);
+      created.push('sprites/' + entry.name + '/' + fg + '.png');
+      await pjWrite('sprites/' + entry.name + '/layers/' + fg + '/' + layerGuid + '.png', blob);
+      created.push('sprites/' + entry.name + '/layers/' + fg + '/' + layerGuid + '.png');
+    }
+  } else {
+    for (let i = 0; i < frameGuids.length; i++) {
+      const srcFg = info.origFrames[i];
+      if (!srcFg) break;
+      let blob = await T.readBlob('sprites/' + info.tmplName + '/' + srcFg + '.png');
+      if (!blob && info.origLayer) blob = await T.readBlob('sprites/' + info.tmplName + '/layers/' + srcFg + '/' + info.origLayer + '.png');
+      if (!blob) throw new Error('No encuentro el PNG del frame ' + i + ' de ' + info.tmplName + '.');
+      const fg = frameGuids[i];
+      await pjWrite('sprites/' + entry.name + '/' + fg + '.png', blob);
+      created.push('sprites/' + entry.name + '/' + fg + '.png');
+      await pjWrite('sprites/' + entry.name + '/layers/' + fg + '/' + layerGuid + '.png', blob);
+      created.push('sprites/' + entry.name + '/layers/' + fg + '/' + layerGuid + '.png');
+    }
+  }
+  for (const rel of created) undoGroup.push({ rel, backup: null });
+  return created;
+}
+
+/* ------------------------------ parches GML / C ------------------------------ */
+
+function pjInsertAfterLast(text, re, insert) {
+  let last = null, m;
+  const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+  while ((m = r.exec(text))) last = { index: m.index, end: m.index + m[0].length };
+  if (!last) return null;
+  return text.slice(0, last.end) + insert + text.slice(last.end);
+}
+
+function pjAnimsBlock(varName, key, display, entries, parentDisplay) {
+  const lines = ['// [Suite PJ] ' + display + ' — heredado de ' + parentDisplay + ' (editor de personajes)',
+    'global.' + varName + '[? ' + key + '] =', '['];
+  for (const e of entries) {
+    let c = '//' + e.slot;
+    if (e.via) c += ' ' + e.via.replace(/—/g, '-');
+    lines.push('        ' + e.name + ', ' + c);
+  }
+  lines.push('];');
+  return '\n' + lines.join('\n') + '\n';
+}
+
+async function pjPatchTexts(plan, undoGroup) {
+  const id = plan.id, UP = plan.UP, display = plan.display;
+  const changes = [];
+
+  // ---- scr_survivors.gml ----
+  let rel = 'scripts/scr_survivors/scr_survivors.gml';
+  let txt = await T.readText(rel);
+  if (txt == null) throw new Error('No encuentro ' + rel);
+  if (txt.indexOf('CHARACTER_' + UP) >= 0) throw new Error('CHARACTER_' + UP + ' ya existe en scr_survivors.gml.');
+  let t2 = pjInsertAfterLast(txt, /#macro\s+CHARACTER_\w+\s+\(CHARACTER_TAILS\+\d+\)[^\n]*/,
+    '\n/* [Suite PJ] ' + display + ' — superviviente #' + (plan.idx + 1) + ' (padre: ' + plan.pid + '). */\n' +
+    '#macro CHARACTER_' + UP + ' (CHARACTER_TAILS+' + plan.idx + ')\n');
+  if (t2 == null) throw new Error('No encuentro la lista de macros en scr_survivors.gml.');
+  txt = t2;
+  t2 = pjInsertAfterLast(txt, /global\.player_anims\[\?\s*CHARACTER_\w+\s*\][\s\S]*?\];/,
+    pjAnimsBlock('player_anims', 'CHARACTER_' + UP, display, plan.anims, plan.parent.display));
+  if (t2 == null) throw new Error('No encuentro player_anims en scr_survivors.gml.');
+  txt = t2;
+  if (plan.eanims.length) {
+    t2 = pjInsertAfterLast(txt, /global\.player_eanims\[\?\s*CHARACTER_\w+\s*\][\s\S]*?\];/,
+      pjAnimsBlock('player_eanims', 'CHARACTER_' + UP, display, plan.eanims, plan.parent.display));
+    if (t2 == null) throw new Error('No encuentro player_eanims en scr_survivors.gml.');
+    txt = t2;
+  }
+  if (plan.negaanims.length) {
+    t2 = pjInsertAfterLast(txt, /global\.player_negaanims\[\?\s*CHARACTER_\w+\s*\][\s\S]*?\];/,
+      pjAnimsBlock('player_negaanims', 'CHARACTER_' + UP, display, plan.negaanims, plan.parent.display));
+    if (t2 == null) throw new Error('No encuentro player_negaanims en scr_survivors.gml.');
+    txt = t2;
+  }
+  t2 = pjInsertAfterLast(txt, /case\s+CHARACTER_\w+\s*:\s*\r?\n\s*return\s+obj_\w+\s*;/,
+    '\n\n        // [Suite PJ] ' + display + '\n        case CHARACTER_' + UP + ':\n                return obj_' + id + ';');
+  if (t2 == null) throw new Error('No encuentro player_get() en scr_survivors.gml.');
+  txt = t2;
+  await pjBackupWrite(rel, txt, undoGroup);
+  changes.push(rel);
+
+  // ---- scr_characters.gml ----
+  rel = 'scripts/scr_characters/scr_characters.gml';
+  txt = await T.readText(rel);
+  if (txt == null) throw new Error('No encuentro ' + rel);
+  const reMax = /(#macro\s+CHARACTER_SURV_MAX\s+)CHARACTER_\w+/;
+  if (!reMax.test(txt)) throw new Error('No encuentro CHARACTER_SURV_MAX en scr_characters.gml.');
+  txt = txt.replace(reMax, '$1CHARACTER_' + UP);
+  txt = txt.replace(/(>\s*)CHARACTER_ROUGE\b/g, '$1CHARACTER_SURV_MAX');
+  const reName = /(case\s+CHARACTER_ROUGE:\s*return\s+"[^"]*";)/;
+  if (!reName.test(txt)) throw new Error('No encuentro scr_char_name() en scr_characters.gml.');
+  txt = txt.replace(reName, '$1\n                case CHARACTER_' + UP + ': return "' + display + '";');
+  await pjBackupWrite(rel, txt, undoGroup);
+  changes.push(rel);
+
+  // ---- obj_lobby_icon/Draw_0.gml ----
+  rel = 'objects/obj_lobby_icon/Draw_0.gml';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(/(selected\s*(?:<=|>=|<|>|={1,2})\s*)CHARACTER_ROUGE\b/g, '$1CHARACTER_SURV_MAX');
+    await pjBackupWrite(rel, txt, undoGroup);
+    changes.push(rel);
+  }
+
+  // ---- obj_lobby/Draw_0.gml ----
+  rel = 'objects/obj_lobby/Draw_0.gml';
+  txt = await T.readText(rel);
+  if (txt == null) throw new Error('No encuentro ' + rel);
+  txt = txt.replace(/(sprInd\s*\+=\s*)CHARACTER_ROUGE\b/g, '$1CHARACTER_SURV_MAX');
+  txt = txt.replace(/(sprInd\s*>=\s*)CHARACTER_ROUGE\b/g, '$1CHARACTER_SURV_MAX');
+  txt = txt.replace(/(sprInd\s*-\s*)CHARACTER_ROUGE\b/g, '$1CHARACTER_SURV_MAX');
+  txt = txt.replace(/\(\s*CHARACTER_ROUGE\s*-\s*7\s*\)/, '(CHARACTER_SURV_MAX - 7)');
+  if (plan.plate) {
+    const reFw = /(else if\s*\(sprInd == 13\)\s*\n\s*draw_sprite\(spr_char_info_fw, 0, 1, 232-5\);)/;
+    if (!reFw.test(txt)) throw new Error('No encuentro el bloque de placas propias en obj_lobby/Draw_0.gml.');
+    txt = txt.replace(reFw, '$1\n                else if (sprInd == ' + plan.idx + ')\n                        draw_sprite(' + plan.plate.name + ', 0, 1, 232-5); // [Suite PJ] ' + display);
+  } else {
+    let parentFrame = plan.parent.idx;
+    let z;
+    const r2 = /else if\(sprInd == (\d+)\)\s*\n\s*_infoFrame = (\d+);/g;
+    while ((z = r2.exec(txt))) if (parseInt(z[1], 10) === plan.parent.idx) parentFrame = parseInt(z[2], 10);
+    const anchor = /(\/\/ v2\.14: Fleetway Amy \(slot 13\) usa su PROPIA placa independiente)/;
+    if (!anchor.test(txt)) throw new Error('No encuentro el ancla de placas en obj_lobby/Draw_0.gml.');
+    txt = txt.replace(anchor, 'else if(sprInd == ' + plan.idx + ')\n                _infoFrame = ' + parentFrame + '; // [Suite PJ] ' + display + ' (placa de ' + plan.parent.display + ')\n        $1');
+  }
+  await pjBackupWrite(rel, txt, undoGroup);
+  changes.push(rel);
+
+  // ---- obj_lobby/Create_0.gml ----
+  rel = 'objects/obj_lobby/Create_0.gml';
+  txt = await T.readText(rel);
+  if (txt == null) throw new Error('No encuentro ' + rel);
+  const reKill = /(\n[ \t]*\/\/ killers \(offset CHARACTER_)/;
+  if (!reKill.test(txt)) throw new Error('No encuentro "// killers" en obj_lobby/Create_0.gml.');
+  txt = txt.replace(reKill, '\n        spr_menu_' + id + ', // ' + plan.idx + ': ' + display + ' ([Suite PJ])$1');
+  await pjBackupWrite(rel, txt, undoGroup);
+  changes.push(rel);
+
+  // ---- obj_unlockables/Create_0.gml ----
+  rel = 'objects/obj_unlockables/Create_0.gml';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    const rePal = /(palettes\[\? CHARACTER_ROUGE \+ PALETTE_DEMON\] = \{[^\n]*\};)/;
+    if (!rePal.test(txt)) throw new Error('No encuentro las paletas de Rouge en obj_unlockables.');
+    txt = txt.replace(rePal, '$1\n\n// [Suite PJ] ' + display + '\n' +
+      'if(!ds_map_exists(palettes, CHARACTER_' + UP + '))\n' +
+      '        palettes[? CHARACTER_' + UP + '] = { name: "default", custom: false, character: CHARACTER_' + UP + ', from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };\n' +
+      'if(!ds_map_exists(palettes, CHARACTER_' + UP + ' + PALETTE_DEMON))\n' +
+      '        palettes[? CHARACTER_' + UP + ' + PALETTE_DEMON] = { name: "default", custom: false, character: CHARACTER_' + UP + ' + PALETTE_DEMON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };');
+    await pjBackupWrite(rel, txt, undoGroup);
+    changes.push(rel);
+  }
+
+  // ---- scr_pallette_shifts.gml ----
+  rel = 'scripts/scr_pallette_shifts/scr_pallette_shifts.gml';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    const rePS = /(global\.paletteShifts\[\? CHARACTER_ROUGE \+ PALETTE_DEMON\][^\n]*;)/;
+    if (!rePS.test(txt)) throw new Error('No encuentro paletteShifts de Rouge.');
+    const mL = /global\.paletteShifts\[\? CHARACTER_ROUGE\]([^\n]*;)/.exec(txt);
+    if (mL) {
+      const nueva1 = 'global.paletteShifts[? CHARACTER_' + UP + ']' + mL[1] + ' // [Suite PJ] ' + display;
+      const nueva2 = 'global.paletteShifts[? CHARACTER_' + UP + ' + PALETTE_DEMON]' + mL[1];
+      txt = txt.replace(rePS, '$1\n' + nueva1 + '\n' + nueva2);
+      await pjBackupWrite(rel, txt, undoGroup);
+      changes.push(rel);
+    }
+  }
+
+  // ---- scr_lms.gml ----
+  rel = 'scripts/scr_lms/scr_lms.gml';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    const mLms = /global\.lmsCharSongs\[\? CHARACTER_ROUGE\] = (.+);/.exec(txt);
+    if (mLms) {
+      txt = txt.replace(mLms[0], mLms[0] + '\n// [Suite PJ] ' + display + ' — mismo show que ' + plan.parent.display +
+        '\nglobal.lmsCharSongs[? CHARACTER_' + UP + '] = ' + mLms[1] + ';');
+      await pjBackupWrite(rel, txt, undoGroup);
+      changes.push(rel);
+    }
+  }
+
+  // ---- server: include/Server.h ----
+  rel = 'betterserver-oss/include/Server.h';
+  txt = await T.readText(rel);
+  if (txt == null) throw new Error('No encuentro ' + rel + ' (falta betterserver-oss).');
+  if (txt.indexOf('CH_' + UP) >= 0) throw new Error('CH_' + UP + ' ya existe en Server.h.');
+  const reEnum = /CH_ROUGE(\s*\n\s*\}\s*surv_char;)/;
+  if (!reEnum.test(txt)) throw new Error('No encuentro el enum CH_ROUGE en Server.h.');
+  txt = txt.replace(reEnum, 'CH_ROUGE,\n\n                /* [Suite PJ] ' + display + ' — mismo orden que el cliente (scr_survivors.gml) */\n                CH_' + UP + '$1');
+  txt = txt.replace(/\[CH_ROUGE \+ 1\]/g, '[CH_' + UP + ' + 1]');
+  const mShow = /\{ CH_ROUGE,([^}]+)\}([^\n]*)/.exec(txt);
+  if (mShow) txt = txt.replace(mShow[0], mShow[0] + ',\n                { CH_' + UP + ',' + mShow[1] + '} /* [Suite PJ] ' + display + ' */');
+  await pjBackupWrite(rel, txt, undoGroup);
+  changes.push(rel);
+
+  // ---- server: states/CharSelect.c ----
+  rel = 'betterserver-oss/disasterserver/states/CharSelect.c';
+  txt = await T.readText(rel);
+  if (txt == null) throw new Error('No encuentro ' + rel + '.');
+  txt = txt.replace(/id <= CH_ROUGE/g, 'id <= CH_' + UP);
+  txt = txt.replace(/\(CH_ROUGE \+ 1\)/g, '(CH_' + UP + ' + 1)');
+  const reSurv = /"Rouge" \/\* v4\.4 \*\/\};/;
+  if (!reSurv.test(txt)) throw new Error('No encuentro survs[] en CharSelect.c.');
+  txt = txt.replace(reSurv, '"Rouge" /* v4.4 */,\n                        "' + display + '" /* [Suite PJ] */};');
+  await pjBackupWrite(rel, txt, undoGroup);
+  changes.push(rel);
+
+  // ---- server: Lib.c ----
+  rel = 'betterserver-oss/disasterserver/Lib.c';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(/i <= CH_ROUGE/g, 'i <= CH_' + UP);
+    await pjBackupWrite(rel, txt, undoGroup);
+    changes.push(rel);
+  }
+  return changes;
+}
+
+/* ------------------------------ objeto + script ------------------------------ */
+
+async function pjListObjFiles(objName) {
+  const out = [];
+  if (S.mode === 'fs') {
+    try {
+      const dh = await T.fsWalkDir('objects/' + objName);
+      for await (const [name, h] of dh.entries())
+        if (h.kind === 'file' && (name.endsWith('.gml') || name.endsWith('.yy'))) out.push(name);
+    } catch (e) { }
+  } else {
+    for (const p of S.files.keys()) {
+      const m = p.match(/^objects\/([^/]+)\/(.+)$/);
+      if (m && m[1] === objName && (m[2].endsWith('.gml') || m[2].endsWith('.yy'))) out.push(m[2]);
+    }
+  }
+  return out.sort();
+}
+
+function pjRenameObjText(txt, plan) {
+  const { id, UP, display, pid, pUP } = plan;
+  txt = txt.split('spr_e' + pid + '_').join('spr_e' + id + '_');
+  txt = txt.split('spr_' + pid + 'nega_').join('spr_' + id + 'nega_');
+  txt = txt.split('spr_' + pid + '_').join('spr_' + id + '_');
+  txt = txt.split('scr_' + pid + '_special').join('scr_' + id + '_special');
+  txt = txt.split('CHARACTER_' + pUP).join('CHARACTER_' + UP);
+  txt = txt.split('obj_' + pid).join('obj_' + id);
+  txt = txt.replace(new RegExp('\\b' + pUP + '_', 'g'), UP + '_');
+  const capPid = pid.charAt(0).toUpperCase() + pid.slice(1);
+  txt = txt.replace(new RegExp('\\b' + capPid + '\\b', 'g'), display);
+  return txt;
+}
+
+async function pjWriteObjectAndScript(plan, undoGroup) {
+  const created = [];
+  const files = await pjListObjFiles(plan.parent.obj);
+  if (!files.length) throw new Error('No encuentro archivos en objects/' + plan.parent.obj + '/.');
+  for (const fn of files) {
+    const src = await T.readText('objects/' + plan.parent.obj + '/' + fn);
+    if (src == null) continue;
+    let out = pjRenameObjText(src, plan);
+    if (fn === plan.parent.obj + '.yy') {
+      out = out.split('"name":"' + plan.parent.display + '"').join('"name":"' + plan.display + '"');
+      out = out.split('folders/Objects/Player/Survivors/' + plan.parent.display + '.yy').join('folders/Objects/Player/Survivors/' + plan.display + '.yy');
+    }
+    let dstName = fn.replace(new RegExp('(^|\\.)' + pjReEsc(plan.parent.obj) + '(?=\\.|$)'), '$1obj_' + plan.id);
+    if (fn === plan.parent.obj + '.yy') dstName = 'obj_' + plan.id + '.yy';
+    await pjWrite('objects/obj_' + plan.id + '/' + dstName, out);
+    created.push('objects/obj_' + plan.id + '/' + dstName);
+  }
+  const spRel = 'scripts/scr_' + plan.pid + '_special/scr_' + plan.pid + '_special.gml';
+  const spTxt = await T.readText(spRel);
+  if (spTxt != null) {
+    await pjWrite('scripts/scr_' + plan.id + '_special/scr_' + plan.id + '_special.gml', pjRenameObjText(spTxt, plan));
+    created.push('scripts/scr_' + plan.id + '_special/scr_' + plan.id + '_special.gml');
+    const spYy = await T.readText('scripts/scr_' + plan.pid + '_special/scr_' + plan.pid + '_special.yy');
+    if (spYy != null) {
+      await pjWrite('scripts/scr_' + plan.id + '_special/scr_' + plan.id + '_special.yy',
+        spYy.split('scr_' + plan.pid + '_special').join('scr_' + plan.id + '_special'));
+      created.push('scripts/scr_' + plan.id + '_special/scr_' + plan.id + '_special.yy');
+    }
+  }
+  for (const rel of created) undoGroup.push({ rel, backup: null });
+  return created;
+}
+
+/* ------------------------------ AÑADIR ------------------------------ */
+
+async function pjRunAdd(plan) {
+  if (S.mode !== 'fs') { T.toast('Abre la carpeta del proyecto con permiso de escritura (boton Abrir carpeta).', 'err'); return false; }
+  PJ.stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  PJ.bdir = '_backups_animeditor/' + PJ.stamp;
+  const undoGroup = [];
+  try {
+    const allSprites = [...plan.sprites];
+    if (plan.menu) allSprites.push(plan.menu);
+    if (plan.plate) allSprites.push(plan.plate);
+
+    const yypEntries = [];
+    for (const e of allSprites) {
+      await pjWriteSprite(plan, e, undoGroup);
+      yypEntries.push('{"id":{"name":"' + e.name + '","path":"sprites/' + e.name + '/' + e.name + '.yy",},},');
+    }
+    await pjWriteObjectAndScript(plan, undoGroup);
+    yypEntries.push('{"id":{"name":"obj_' + plan.id + '","path":"objects/obj_' + plan.id + '/obj_' + plan.id + '.yy",},},');
+    const spTxt = await T.readText('scripts/scr_' + plan.pid + '_special/scr_' + plan.pid + '_special.gml');
+    if (spTxt != null) yypEntries.push('{"id":{"name":"scr_' + plan.id + '_special","path":"scripts/scr_' + plan.id + '_special/scr_' + plan.id + '_special.yy",},},');
+
+    const folders = ['folders/Objects/Player/Survivors/' + plan.display + '.yy', 'folders/Sprites/Player/Survivors/' + plan.display + '.yy'];
+    if (plan.sprites.some(e => e.name.startsWith('spr_e' + plan.id + '_')))
+      folders.push('folders/Sprites/Player/Demonized/' + plan.display + '.yy');
+    for (const fp of folders) {
+      const nm = fp.split('/').pop().replace(/\.yy$/, '');
+      yypEntries.push('{"$GMFolder":"","%Name":"' + nm + '","folderPath":"' + fp + '","name":"' + nm + '","resourceType":"GMFolder","resourceVersion":"2.0",},');
+    }
+
+    plan.patchedFiles = await pjPatchTexts(plan, undoGroup);
+
+    const yypName = await pjYypName();
+    if (yypName == null) { T.toast('No encuentro el .yyp del proyecto.', 'err'); return false; }
+    if (!(await pjYypAddResources(yypName, yypEntries, undoGroup))) return false;
+
+    PJ.undo.push(undoGroup);
+    pjLogAdd('build', '«' + plan.display + '» construido: ' + (plan.sprites.length + 1 + (plan.plate ? 1 : 0)) + ' sprites, objeto, registros y server');
+    return true;
+  } catch (e) {
+    T.toast('Error al construir: ' + e.message, 'err');
+    console.error(e);
+    return false;
+  }
+}
+
+/* ------------------------------ ACTIVAR / DESACTIVAR ------------------------------ */
+
+async function pjSetActive(char, active) {
+  if (S.mode !== 'fs') { T.toast('Necesitas abrir la carpeta con permiso de escritura.', 'err'); return false; }
+  const UP = char.key.replace(/^CHARACTER_/, '');
+  const fecha = new Date().toISOString().slice(0, 10);
+  PJ.stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  PJ.bdir = '_backups_animeditor/' + PJ.stamp;
+  const undoGroup = [];
+
+  const relC = 'scripts/scr_survivors/scr_survivors.gml';
+  let txt = await T.readText(relC);
+  if (txt == null) { T.toast('No encuentro scr_survivors.gml.', 'err'); return false; }
+  const markerRe = new RegExp('[ \\t]*// \\[Suite PJ\\] ' + char.id + ' desactivado[^\\n]*\\n[ \\t]*if\\(ch == CHARACTER_' + UP + '\\)\\s*\\n[ \\t]*return true;\\s*\\n', 'g');
+
+  const relS = 'betterserver-oss/disasterserver/states/CharSelect.c';
+  let srv = await T.readText(relS);
+  if (srv == null) { T.toast('No encuentro CharSelect.c del server.', 'err'); return false; }
+  const srvMarkerRe = new RegExp('[ \\t]*/\\* \\[Suite PJ\\] ' + UP + ' DESACTIVADO[^*]*\\*/\\s*\\n[ \\t]*if \\(id == CH_' + UP + '\\)\\s*\\n[ \\t]*\\{[\\s\\S]*?\\n[ \\t]*\\}[ \\t]*\\n\\n', 'g');
+
+  if (active) {
+    const n1 = (txt.match(markerRe) || []).length;
+    const n2 = (srv.match(srvMarkerRe) || []).length;
+    if (!n1 && !n2) { T.toast(char.display + ' ya esta activo (o su bloqueo es del propio juego: token/operador).', 'warn'); return false; }
+    txt = txt.replace(markerRe, '');
+    srv = srv.replace(srvMarkerRe, '');
+  } else {
+    if (markerRe.test(txt)) { T.toast(char.display + ' ya esta desactivado.', 'warn'); return false; }
+    const anchor = /(\n[ \t]*\/\/ v3 \(D\.I\.B\.\): Fleetway Amy PASA A SER PUBLICA[\s\S]*?)\n([ \t]*return false;)/;
+    if (!anchor.test(txt)) { T.toast('No encuentro scr_char_locked() en scr_survivors.gml.', 'err'); return false; }
+    txt = txt.replace(anchor, '$1\n        // [Suite PJ] ' + char.id + ' desactivado ' + fecha + ' — tampoco lo acepta el server (CharSelect.c)\n' +
+      '        if(ch == CHARACTER_' + UP + ')\n                return true;\n$2');
+    const anchorS = /(uint8_t avail = v->server->lobby\.avail\[id\];)/;
+    if (!anchorS.test(srv)) { T.toast('No encuentro el punto de rechazo en CharSelect.c.', 'err'); return false; }
+    srv = srv.replace(anchorS, '/* [Suite PJ] ' + UP + ' DESACTIVADO (' + fecha + '): rechazo igual que los reservados */\n' +
+      '                if (id == CH_' + UP + ')\n' +
+      '                {\n' +
+      '                        PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);\n' +
+      '                        PacketWrite(&pack, packet_write8, id + 1);\n' +
+      '                        PacketWrite(&pack, packet_write8, 0);\n' +
+      '                        RAssert(packet_send(v->peer, &pack, true));\n' +
+      '                        return true;\n' +
+      '                }\n\n                $1');
+  }
+  await pjBackupWrite(relC, txt, undoGroup);
+  await pjBackupWrite(relS, srv, undoGroup);
+  PJ.undo.push(undoGroup);
+  pjLogAdd(active ? 'on' : 'off', char.display + (active ? ' activado' : ' desactivado') + ' (cliente + server)');
+  return true;
+}
+
+/* ------------------------------ ELIMINAR / RESTAURAR ------------------------------ */
+
+async function pjMoveTreeToTrash(srcDir, trashDir) {
+  async function walk(dh, rel) {
+    for await (const [name, h] of dh.entries()) {
+      const relP = rel ? rel + '/' + name : name;
+      if (h.kind === 'directory') await walk(h, relP);
+      else {
+        const data = await (await h.getFile()).arrayBuffer();
+        await pjWrite(trashDir + '/' + relP, new Blob([data]));
+        await h.remove();
+      }
+    }
+    try { await dh.remove(); } catch (e) { }
+  }
+  const parts = T.normPath(srcDir).split('/').filter(Boolean);
+  let dh = S.rootHandle;
+  for (const p of parts) dh = await dh.getDirectoryHandle(p);
+  await walk(dh, '');
+}
+
+async function pjRestoreTree(trashDir, destDir) {
+  async function walk(dh, rel) {
+    for await (const [name, h] of dh.entries()) {
+      const relP = rel ? rel + '/' + name : name;
+      if (h.kind === 'directory') await walk(h, relP);
+      else {
+        const data = await (await h.getFile()).arrayBuffer();
+        await pjWrite(destDir + '/' + relP, new Blob([data]));
+        await h.remove();
+      }
+    }
+    try { await dh.remove(); } catch (e) { }
+  }
+  const parts = T.normPath(trashDir).split('/').filter(Boolean);
+  let dh = S.rootHandle;
+  for (const p of parts) dh = await dh.getDirectoryHandle(p);
+  await walk(dh, '');
+}
+
+function pjCharSpriteDirs(char) {
+  const dirs = ['objects/obj_' + char.id, 'scripts/scr_' + char.id + '_special', 'sprites/spr_menu_' + char.id, 'sprites/spr_char_info_' + char.id];
+  for (const arr of [char.anims, char.eanims, char.negaanims])
+    for (const e of arr) { const nm = pjAnimsEntryName(e); if (nm) dirs.push('sprites/' + nm); }
+  return [...new Set(dirs)];
+}
+
+async function pjDelete(char) {
+  if (S.mode !== 'fs') { T.toast('Necesitas abrir la carpeta con permiso de escritura.', 'err'); return false; }
+  const UP = char.key.replace(/^CHARACTER_/, '');
+  const id = char.id;
+  if (PJ.lastKey !== char.key) {
+    T.toast('"' + char.display + '" no es el ultimo del enum (lo es ' + PJ.lastKey + ').\n' +
+      'Los indices de personaje viajan por red: borrar uno del medio romperia la numeracion.\n' +
+      'Usa DESACTIVAR, o elimina primero a los anadidos despues de el.', 'err');
+    return false;
+  }
+  const prev = PJ.macroOrder.length > 1 ? PJ.macroOrder[PJ.macroOrder.length - 2].key : 'CHARACTER_TAILS';
+  const prevUP = prev.replace(/^CHARACTER_/, '');
+  PJ.stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  PJ.bdir = '_backups_animeditor/' + PJ.stamp;
+  const undoGroup = [];
+  const trash = '_personajes_eliminados/' + id + '/_files';
+  const fecha = new Date().toISOString().slice(0, 10);
+
+  const survTxt0 = await T.readText('scripts/scr_survivors/scr_survivors.gml') || '';
+  const mPar = new RegExp('\\(padre: ([a-z0-9_]+)\\)\\. \\*/\\n#macro ' + char.key).exec(survTxt0);
+  const parentId = mPar ? mPar[1] : (char.parentId || null);
+  const mIdxN = new RegExp('#macro ' + char.key + ' \\(CHARACTER_TAILS\\+(\\d+)\\)').exec(survTxt0);
+  const idxN = mIdxN ? parseInt(mIdxN[1], 10) : null;   // N del macro (TAILS+N), NO su valor
+
+  // 1) mover a la papelera
+  const dirs = pjCharSpriteDirs(char);
+  let hadPlate = false;
+  for (const d of dirs) {
+    try { await T.fsWalkDir(d); } catch (e) { continue; }
+    if (d === 'sprites/spr_char_info_' + id) hadPlate = true;
+    await pjMoveTreeToTrash(d, trash + '/' + d);
+  }
+
+  // 2) limpiar registros
+  const prevId = prevUP.toLowerCase();
+  let rel = 'scripts/scr_survivors/scr_survivors.gml';
+  let txt = await T.readText(rel);
+  if (txt == null) { T.toast('No encuentro ' + rel, 'err'); return false; }
+  txt = txt.replace(new RegExp('\\n/\\* \\[Suite PJ\\][^\\n]*\\(padre: [a-z0-9_]+\\)\\. \\*/\\n#macro CHARACTER_' + UP + ' \\(CHARACTER_TAILS\\+\\d+\\)\\n'), '\n');
+  txt = txt.replace(new RegExp('\\n// \\[Suite PJ\\][^\\n]*\\nglobal\\.player_anims\\[\\? CHARACTER_' + UP + '\\][\\s\\S]*?\\];\\n'), '\n');
+  txt = txt.replace(new RegExp('\\n// \\[Suite PJ\\][^\\n]*\\nglobal\\.player_eanims\\[\\? CHARACTER_' + UP + '\\][\\s\\S]*?\\];\\n'), '\n');
+  txt = txt.replace(new RegExp('\\n// \\[Suite PJ\\][^\\n]*\\nglobal\\.player_negaanims\\[\\? CHARACTER_' + UP + '\\][\\s\\S]*?\\];\\n'), '\n');
+  txt = txt.replace(new RegExp('\\n\\n[ \\t]*// \\[Suite PJ\\][^\\n]*\\n[ \\t]*case CHARACTER_' + UP + ':\\n[ \\t]*return obj_' + id + ';'), '');
+  txt = txt.replace(new RegExp('[ \\t]*// \\[Suite PJ\\] ' + id + ' desactivado[^\\n]*\\n[ \\t]*if\\(ch == CHARACTER_' + UP + '\\)\\s*\\n[ \\t]*return true;\\s*\\n'), '');
+  await pjBackupWrite(rel, txt, undoGroup);
+
+  rel = 'scripts/scr_characters/scr_characters.gml';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(/(#macro\s+CHARACTER_SURV_MAX\s+)CHARACTER_\w+/, '$1' + prev);
+    txt = txt.replace(new RegExp('\\n[ \\t]*case CHARACTER_' + UP + ': return "[^"]*";'), '');
+    await pjBackupWrite(rel, txt, undoGroup);
+  }
+
+  rel = 'objects/obj_lobby/Create_0.gml';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(new RegExp('\\n[ \\t]*spr_menu_' + id + ', //[^\\n]*'), '');
+    await pjBackupWrite(rel, txt, undoGroup);
+  }
+
+  rel = 'objects/obj_lobby/Draw_0.gml';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(new RegExp('\\n[ \\t]*else if \\(sprInd == ' + idxN + '\\)\\n[ \\t]*draw_sprite\\(spr_char_info_' + id + ', 0, 1, 232-5\\);[^\\n]*'), '');
+    txt = txt.replace(new RegExp('\\n[ \\t]*else if\\(sprInd == ' + idxN + '\\)\\n[ \\t]*_infoFrame = \\d+;[^\\n]*'), '');
+    await pjBackupWrite(rel, txt, undoGroup);
+  }
+
+  rel = 'objects/obj_unlockables/Create_0.gml';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(new RegExp('\\n\\n// \\[Suite PJ\\][^\\n]*\\nif\\(!ds_map_exists\\(palettes, CHARACTER_' + UP + '\\)\\)\\n[ \\t]*palettes\\[\\? CHARACTER_' + UP + '\\] = [^;]*;\\nif\\(!ds_map_exists\\(palettes, CHARACTER_' + UP + ' \\+ PALETTE_DEMON\\)\\)\\n[ \\t]*palettes\\[\\? CHARACTER_' + UP + ' \\+ PALETTE_DEMON\\] = [^;]*;'), '');
+    await pjBackupWrite(rel, txt, undoGroup);
+  }
+
+  rel = 'scripts/scr_pallette_shifts/scr_pallette_shifts.gml';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(new RegExp('\\nglobal\\.paletteShifts\\[\\? CHARACTER_' + UP + ' \\+ PALETTE_DEMON\\][^\\n]*\\n?'), '\n');
+    txt = txt.replace(new RegExp('\\nglobal\\.paletteShifts\\[\\? CHARACTER_' + UP + '\\][^\\n]*\\n?'), '\n');
+    await pjBackupWrite(rel, txt, undoGroup);
+  }
+
+  rel = 'scripts/scr_lms/scr_lms.gml';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(new RegExp('\\n// \\[Suite PJ\\][^\\n]*\\nglobal\\.lmsCharSongs\\[\\? CHARACTER_' + UP + '\\] = [^;]*;'), '');
+    await pjBackupWrite(rel, txt, undoGroup);
+  }
+
+  rel = 'betterserver-oss/include/Server.h';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(new RegExp(',\\n\\n[ \\t]*/\\* \\[Suite PJ\\][^*]*?\\*/\\n[ \\t]*CH_' + UP + '\\n'), '\n');
+    txt = txt.replace(new RegExp('\\[CH_' + UP + ' \\+ 1\\]', 'g'), '[CH_' + prevUP + ' + 1]');
+    txt = txt.replace(new RegExp('\\n[ \\t]*\\{ CH_' + UP + ',[^}]*\\}[^\\n]*'), '');
+    await pjBackupWrite(rel, txt, undoGroup);
+  }
+  rel = 'betterserver-oss/disasterserver/states/CharSelect.c';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(new RegExp('id <= CH_' + UP, 'g'), 'id <= CH_' + prevUP);
+    txt = txt.replace(new RegExp('\\(CH_' + UP + ' \\+ 1\\)', 'g'), '(CH_' + prevUP + ' + 1)');
+    txt = txt.replace(new RegExp(',\\n[ \\t]*"' + pjReEsc(char.display) + '" /\\* \\[Suite PJ\\] \\*/\\}'), '}');
+    txt = txt.replace(new RegExp('[ \\t]*/\\* \\[Suite PJ\\] ' + UP + ' DESACTIVADO[^*]*\\*/\\s*\\n[ \\t]*if \\(id == CH_' + UP + '\\)\\s*\\n[ \\t]*\\{[\\s\\S]*?\\n[ \\t]*\\}[ \\t]*\\n\\n'), '');
+    await pjBackupWrite(rel, txt, undoGroup);
+  }
+  rel = 'betterserver-oss/disasterserver/Lib.c';
+  txt = await T.readText(rel);
+  if (txt != null) {
+    txt = txt.replace(new RegExp('i <= CH_' + UP, 'g'), 'i <= CH_' + prevUP);
+    await pjBackupWrite(rel, txt, undoGroup);
+  }
+
+  // 3) manifiesto
+  const mani = { id: id, display: char.display, key: char.key, idx: idxN, parentId, hadPlate, date: fecha, dirs };
+  await pjWrite('_personajes_eliminados/' + id + '/manifiesto.json', JSON.stringify(mani, null, 2));
+
+  // 4) quitar del .yyp
+  const yypName = await pjYypName();
+  if (yypName) {
+    const names = [char.obj, 'scr_' + id + '_special', 'spr_menu_' + id, 'spr_char_info_' + id];
+    for (const arr of [char.anims, char.eanims, char.negaanims])
+      for (const e of arr) { const nm = pjAnimsEntryName(e); if (nm) names.push(nm); }
+    names.push(char.display);
+    if (!(await pjYypRemoveResources(yypName, [...new Set(names)], undoGroup))) return false;
+  }
+  PJ.undo.push(undoGroup);
+  pjLogAdd('del', char.display + ' movido a la papelera (slot #' + idxN + ' libre)');
+  return true;
+}
+
+async function pjRestore(name) {
+  if (S.mode !== 'fs') { T.toast('Necesitas abrir la carpeta con permiso de escritura.', 'err'); return false; }
+  const maniTxt = await T.readText('_personajes_eliminados/' + name + '/manifiesto.json');
+  if (maniTxt == null) { T.toast('No encuentro el manifiesto de "' + name + '" en la papelera.', 'err'); return false; }
+  const mani = JSON.parse(maniTxt);
+  const surv = await T.readText('scripts/scr_survivors/scr_survivors.gml') || '';
+  if (surv.indexOf('CHARACTER_' + mani.id.toUpperCase()) >= 0) {
+    T.toast('El slot de "' + mani.display + '" esta ocupado por otro personaje. Eliminalo primero, o restaura en orden inverso.', 'err');
+    return false;
+  }
+  let lastN = 0, m;
+  const r = /#macro\s+CHARACTER_\w+\s+\(CHARACTER_TAILS\+(\d+)\)/g;
+  while ((m = r.exec(surv))) lastN = parseInt(m[1], 10);
+  if (lastN + 1 !== mani.idx) {
+    T.toast('Para restaurar a "' + mani.display + '" su slot (#' + mani.idx + ') debe ser el siguiente libre (#' + (lastN + 1) + ').\nRestaura en orden inverso a como eliminaste.', 'err');
+    return false;
+  }
+  const parent = PJ.chars.find(c => c.id === mani.parentId);
+  if (!parent) { T.toast('El padre original de "' + mani.display + '" ya no existe; restaura a mano desde _personajes_eliminados/' + name + '/_files/.', 'err'); return false; }
+
+  for (const d of mani.dirs) {
+    try { await T.fsWalkDir('_personajes_eliminados/' + name + '/_files/' + d); } catch (e) { continue; }
+    await pjRestoreTree('_personajes_eliminados/' + name + '/_files/' + d, d);
+  }
+
+  const plan = await pjPlanAdd({ id: mani.id, display: mani.display, parentKey: parent.key, files: [], restore: true });
+  PJ.stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+  PJ.bdir = '_backups_animeditor/' + PJ.stamp;
+  const undoGroup = [];
+  const yypEntries = [];
+  await pjWriteObjectAndScript(plan, undoGroup);
+  yypEntries.push('{"id":{"name":"obj_' + plan.id + '","path":"objects/obj_' + plan.id + '/obj_' + plan.id + '.yy",},},');
+  const spTxt = await T.readText('scripts/scr_' + plan.pid + '_special/scr_' + plan.pid + '_special.gml');
+  if (spTxt != null) yypEntries.push('{"id":{"name":"scr_' + plan.id + '_special","path":"scripts/scr_' + plan.id + '_special/scr_' + plan.id + '_special.yy",},},');
+  for (const fp of ['folders/Objects/Player/Survivors/' + plan.display + '.yy', 'folders/Sprites/Player/Survivors/' + plan.display + '.yy']) {
+    const nm = fp.split('/').pop().replace(/\.yy$/, '');
+    yypEntries.push('{"$GMFolder":"","%Name":"' + nm + '","folderPath":"' + fp + '","name":"' + nm + '","resourceType":"GMFolder","resourceVersion":"2.0",},');
+  }
+  for (const e of plan.sprites) yypEntries.push('{"id":{"name":"' + e.name + '","path":"sprites/' + e.name + '/' + e.name + '.yy",},},');
+  yypEntries.push('{"id":{"name":"spr_menu_' + plan.id + '","path":"sprites/spr_menu_' + plan.id + '/spr_menu_' + plan.id + '.yy",},},');
+  if (mani.hadPlate) yypEntries.push('{"id":{"name":"spr_char_info_' + plan.id + '","path":"sprites/spr_char_info_' + plan.id + '/spr_char_info_' + plan.id + '.yy",},},');
+  await pjPatchTexts(plan, undoGroup);
+  const yypName = await pjYypName();
+  if (yypName == null || !(await pjYypAddResources(yypName, yypEntries, undoGroup))) return false;
+  await pjDeleteFile('_personajes_eliminados/' + name + '/manifiesto.json');
+  try { await (await T.fsWalkDir('_personajes_eliminados/' + name)).remove({ recursive: true }); } catch (e) { }
+  PJ.undo.push(undoGroup);
+  pjLogAdd('back', '«' + mani.display + '» restaurado a su slot #' + mani.idx);
+  return true;
+}
+
+/* ------------------------------ DESHACER ------------------------------ */
+
+async function pjUndoLast() {
+  const g = PJ.undo.pop();
+  if (!g) { T.toast('Nada que deshacer en este modulo.'); return; }
+  for (let i = g.length - 1; i >= 0; i--) {
+    const it = g[i];
+    if (it.backup == null) { await pjDeleteFile(it.rel); }
+    else {
+      const txt = await T.readText(it.backup);
+      if (txt == null) { T.toast('No encuentro la copia: ' + it.backup, 'err'); return; }
+      await pjWrite(it.rel, txt);
+    }
+  }
+  await pjScan(); pjRenderAll();
+  pjLogAdd('undo', 'deshecho: parches restaurados y archivos creados eliminados');
+  T.toast('Deshecho: parches restaurados y archivos creados eliminados.\nRecompila (F5) para volver al estado anterior.');
+}
+
+/* ------------------------------ UI ------------------------------ */
+
+const $ = s => document.querySelector(s);
+
+/* ---------- retratos reales (sprites/spr_menu_*) con cache ---------- */
+const pjAvaCache = new Map();
+function pjPortraitUrl(name) {
+  if (!name) return Promise.resolve(null);
+  if (pjAvaCache.has(name)) return pjAvaCache.get(name);
+  const p = (async () => {
+    try {
+      const yy = await T.readText('sprites/' + name + '/' + name + '.yy');
+      if (!yy) return null;
+      const fAt = yy.indexOf('"frames"');
+      if (fAt < 0) return null;
+      const fg = (yy.slice(fAt, fAt + 400).match(GUID_RE) || [])[0];
+      if (!fg) return null;
+      let b = await T.readBlob('sprites/' + name + '/' + fg + '.png');
+      if (!b) { // formato viejo: solo layers/<frame>/<layer>.png
+        const lAt = yy.indexOf('"layers"');
+        const lg = lAt >= 0 ? (yy.slice(lAt, lAt + 400).match(GUID_RE) || [])[0] : null;
+        if (lg) b = await T.readBlob('sprites/' + name + '/layers/' + fg + '/' + lg + '.png');
+      }
+      if (!b) return null;
+      if (typeof URL === 'undefined' || !URL.createObjectURL) return null;
+      return URL.createObjectURL(b);
+    } catch (e) { return null; }
+  })();
+  pjAvaCache.set(name, p);
+  return p;
+}
+
+async function pjAttachAvatars(root) {
+  if (!root || !root.querySelectorAll) return;
+  for (const n of root.querySelectorAll('[data-ava]')) {
+    const name = n.dataset.ava;
+    if (!name) continue;
+    const url = await pjPortraitUrl(name);
+    if (!url) continue;              // sin retrato: se queda la inicial de color
+    n.classList.add('ldr');
+    const img = document.createElement('img');
+    img.src = url; img.alt = '';
+    img.onload = () => n.classList.remove('ldr');
+    img.onerror = () => { img.remove(); n.classList.remove('ldr'); };
+    n.appendChild(img);
+  }
+}
+
+function pjHue(s) {
+  let h = 0;
+  for (let i = 0; i < String(s).length; i++) h = (h * 31 + String(s).charCodeAt(i)) & 1023;
+  return Math.floor(h / 1024 * 360);
+}
+function pjAvaHtml(c) {
+  const hue = pjHue(c.key || c.id || '?');
+  return '<span class="pj-ava" data-ava="' + pjEsc(c.portrait || '') + '" style="color:hsl(' + hue + ',75%,78%);' +
+    'background:linear-gradient(135deg,hsl(' + hue + ',48%,23%),hsl(' + ((hue + 45) % 360) + ',48%,13%))">' +
+    pjEsc(String(c.display || '?').charAt(0).toUpperCase()) + '</span>';
+}
+
+/* ---------- chips de estado compactos (no rompen la fila) ---------- */
+function pjStatusChip(c, big) {
+  const b = big ? ' pj-big' : '';
+  if (c.status === 'activo') return '<span class="pj-st pj-on' + b + '"><i class="pj-dot"></i>ACTIVO</span>';
+  if (c.status === 'desactivado') return '<span class="pj-st pj-off' + b + '"><i class="pj-dot"></i>OFF</span>';
+  return '<span class="pj-st pj-rsv' + b + '"' + (c.resv ? ' title="' + pjEsc(c.resv) + '"' : '') + '>RESERVADO</span>';
+}
+
+function pjDisplayNameById(id) {
+  const c = PJ.chars.find(x => x.id === id);
+  return c ? c.display : id;
+}
+
+/* ---------- tira de estadísticas con cuenta animada ---------- */
+function pjCountUp(el, to, key) {
+  const from = PJ.statPrev[key] || 0;
+  PJ.statPrev[key] = to;
+  if (from === to || !window.requestAnimationFrame) { el.textContent = to; return; }
+  const t0 = performance.now();
+  (function tick() {
+    const k = Math.min(1, (performance.now() - t0) / 420);
+    el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+    if (k < 1) requestAnimationFrame(tick);
+  })();
+}
+
+function pjRenderStats() {
+  const el = $('#pj-stats');
+  if (!el) return;
+  let on = 0, off = 0, rsv = 0;
+  for (const c of PJ.chars) {
+    if (c.status === 'activo') on++;
+    else if (c.status === 'desactivado') off++;
+    else rsv++;
+  }
+  const cards = [
+    { k: 'all', cls: '', ico: '👥', n: PJ.chars.length, l: 'en el roster' },
+    { k: 'on', cls: 's-on', ico: '🟢', n: on, l: 'activos' },
+    { k: 'off', cls: 's-off', ico: '⏸', n: off, l: 'desactivados' },
+    { k: 'rsv', cls: 's-rsv', ico: '🔒', n: rsv, l: 'reservados' },
+    { k: 'bin', cls: 's-bin', ico: '🗑', n: PJ.papelera.length, l: 'en papelera' }
+  ];
+  el.innerHTML = cards.map((c, i) =>
+    '<div class="pj-stat ' + c.cls + '" style="--d:' + (i * 45) + 'ms">' +
+    '<span class="pj-stat-n" data-k="' + c.k + '">' + c.n + '</span>' +
+    '<span class="pj-stat-l"><span class="pj-fi2">' + c.ico + '</span>' + c.l + '</span></div>').join('');
+  for (const nEl of el.querySelectorAll('.pj-stat-n')) pjCountUp(nEl, parseInt(nEl.textContent, 10), nEl.dataset.k);
+}
+
+/* ---------- roster con filtros + busqueda ---------- */
+function pjRenderList() {
+  const el = $('#pj-char-list');
+  if (!el) return;
+  const cnt = $('#pj-count');
+  if (cnt) cnt.textContent = PJ.chars.length + ' en total';
+  const q = (PJ.query || '').toLowerCase();
+  const shown = PJ.chars.filter(c => {
+    if (PJ.filter === 'activo' && c.status !== 'activo') return false;
+    if (PJ.filter === 'off' && c.status !== 'desactivado') return false;
+    if (PJ.filter === 'reservado' && c.status.indexOf('reservado') !== 0) return false;
+    if (q && (c.display + ' ' + c.id + ' #' + c.idx).toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  });
+  let h = '', i = 0;
+  if (!shown.length) {
+    h += '<div class="pj-grp">nada por aquí — prueba otro filtro</div>';
+  } else {
+    h += '<div class="pj-grp">Supervivientes (' + shown.length + ')</div>';
+    for (const c of shown) {
+      h += '<button class="pj-char' + (PJ.sel && PJ.sel.key === c.key ? ' pjsel' : '') + '" data-key="' + c.key + '" style="--d:' + Math.min(i * 22, 300) + 'ms">' +
+        pjAvaHtml(c) +
+        '<span class="pj-char-n"><b>' + pjEsc(c.display) + '</b>' +
+        '<span class="pj-meta">#' + c.idx + (c.parentId ? ' · construido sobre ' + pjEsc(pjDisplayNameById(c.parentId)) : (c.obj ? ' · ' + pjEsc(c.obj) : '')) + '</span></span>' +
+        pjStatusChip(c) + '</button>';
+      i++;
+    }
+  }
+  if (PJ.papelera.length) {
+    h += '<div class="pj-grp">Papelera (' + PJ.papelera.length + ')</div>';
+    for (const p of PJ.papelera) {
+      h += '<button class="pj-char pj-trash" data-trash="' + pjEsc(p) + '" style="--d:' + Math.min(i * 22, 300) + 'ms">' +
+        '<span class="pj-ava" style="background:#101318;color:var(--mut)">🗑</span>' +
+        '<span class="pj-char-n"><b>' + pjEsc(p) + '</b><span class="pj-meta">eliminado — clic para restaurar</span></span>' +
+        '<span class="pj-st pj-rsv">♻</span></button>';
+      i++;
+    }
+  }
+  el.innerHTML = h;
+  pjAttachAvatars(el);
+}
+
+/* ---------- detalle del personaje ---------- */
+function pjRenderDetail() {
+  const box = $('#pj-detail'), head = $('#pj-head');
+  if (!box) return;
+  const c = PJ.sel;
+  if (!c) {
+    if (head) {
+      head.style.display = '';
+      const s = head.querySelector('.pj-welcome-s');
+      if (s) s.textContent = S.mode === 'none' ? 'abre tu proyecto para gestionar los personajes' : 'elige una tarjeta del roster para ver sus acciones';
+    }
+    box.style.display = 'none';
+    return;
+  }
+  if (head) head.style.display = 'none';
+  box.style.display = '';
+  let h = '<div class="pj-dhero">' + pjAvaHtml(c) +
+    '<span><span class="pj-dname">' + pjEsc(c.display) + '</span>' +
+    '<div class="pj-dsub">' + pjEsc(c.key) + ' · #' + c.idx + (c.obj ? ' · ' + pjEsc(c.obj) : '') + '</div>' +
+    (c.parentId ? '<div class="pj-dsub">construido sobre ' + pjEsc(pjDisplayNameById(c.parentId)) + '</div>' : '') +
+    '</span><span class="pj-dst">' + pjStatusChip(c, true) + '</span></div>';
+  const pills = [['🎞', 'anims', c.anims.length], ['😈', 'demonizada', c.eanims.length], ['🌑', 'nega', c.negaanims.length], ['🎯', 'slot', '#' + c.idx]];
+  h += '<div class="pj-pills">' + pills.map((p, k) =>
+    '<span class="pj-pill" style="--d:' + (k * 50) + 'ms"><span>' + p[0] + '</span>' + p[1] + '&nbsp;<b>' + p[2] + '</b></span>').join('') + '</div>';
+  if (c.resv) h += '<p class="pj-note">🔒 Reservado por el juego: ' + pjEsc(c.resv) + '.</p>';
+  h += '<div class="pj-actions">';
+  if (c.status === 'desactivado') h += '<button class="pj-btn pj-btn-on" data-act="activar"><span class="pj-fi">▶</span> Activar</button>';
+  else if (c.status === 'activo') h += '<button class="pj-btn" data-act="desactivar"><span class="pj-fi">⏸</span> Desactivar</button>';
+  h += '<button class="pj-btn pj-btn-danger" data-act="eliminar"><span class="pj-fi">🗑</span> Eliminar (a papelera)</button></div>';
+  h += '<p class="pj-note">Desactivar lo esconde del carrusel y el server lo rechaza (no se borra nada; vuelve con Activar). Eliminar solo funciona con el ÚLTIMO personaje del enum — al resto: desactívalo.</p>';
+  box.innerHTML = h;
+  pjAttachAvatars(box);
+}
+
+/* ---------- pasos del constructor ---------- */
+function pjRenderSteps() {
+  const el = $('#pj-steps');
+  if (!el) return;
+  const s1 = !!(PJ.add.files && PJ.add.files.length);
+  const s2 = !!PJ.add.plan;
+  const chip = (n, lbl, done) => '<span class="pj-step' + (done ? ' done' : '') + '" data-step="' + n + '"><i>' + (done ? '✓' : n) + '</i>' + lbl + '</span>';
+  const sep = done => '<span class="pj-step-sep' + (done ? ' done' : '') + '"></span>';
+  el.innerHTML = chip(1, 'carpeta', s1) + sep(s1) + chip(2, 'identidad', s2) + sep(s2) + chip(3, 'construir', false);
+}
+
+/* ---------- plan de construccion ---------- */
+function pjRenderAddPreview() {
+  const el = $('#pj-add-preview');
+  if (!el) return;
+  pjRenderSteps();
+  const plan = PJ.add.plan;
+  if (!plan) {
+    el.innerHTML = '<div class="pj-plan-empty">' +
+      (PJ.add.files && PJ.add.files.length ? 'dale un nombre interno para ver el plan' : 'elige la carpeta de sprites y ponle nombre para ver el plan') +
+      '</div>';
+    return;
+  }
+  let h = '<div class="pj-plan-sec"><div class="pj-plan-lbl">Estados (' + plan.anims.length + ')</div><div class="pj-states">';
+  plan.anims.forEach((e, k) => {
+    const own = e.mode === 'user';
+    h += '<span class="pj-stchip' + (own ? '' : ' inh') + '" style="--d:' + Math.min(k * 26, 340) + 'ms"' +
+      ' title="' + pjEsc(own ? (e.via || 'tus sprites') : ('heredado: ' + (e.via || 'del padre'))) + '">' +
+      (own ? '✓' : '↳') + '&nbsp;' + pjEsc(e.name) + '</span>';
+  });
+  h += '</div></div><div class="pj-plan-sec">';
+  h += '<div class="pj-plan-row"><span class="pj-k">retrato</span><span>' + pjEsc(plan.menu.name) + ' <span style="color:var(--mut)">(' + pjEsc(plan.menu.via || 'tuyos') + ')</span></span></div>';
+  h += '<div class="pj-plan-row"><span class="pj-k">placa</span><span>' + (plan.plate ? pjEsc(plan.plate.name) + ' (propia)' : 'reusa la de ' + pjEsc(plan.parent.display)) + '</span></div>';
+  h += '<div class="pj-plan-row"><span class="pj-k">crea</span><span><code>obj_' + pjEsc(plan.id) + '</code> (clon de ' + pjEsc(plan.parent.obj) + ') · <code>CHARACTER_' + plan.UP + ' = TAILS+' + plan.idx + '</code></span></div></div>';
+  if (plan.warnings.length) h += '<div class="pj-warn">⚠ ' + pjEsc(plan.warnings.join(' · ')) + '</div>';
+  el.innerHTML = h;
+}
+
+/* ---------- registro de sesion (vivo) ---------- */
+function pjLogIcon(kind) {
+  return { build: '⚡', on: '▶', off: '⏸', del: '🗑', back: '♻', undo: '↩' }[kind] || '•';
+}
+function pjLogAdd(kind, text) {
+  PJ.log.unshift({ kind: kind, text: text, t: new Date() });
+  if (PJ.log.length > 40) PJ.log.pop();
+  pjRenderLog();
+}
+function pjRenderLog() {
+  const el = $('#pj-log');
+  if (!el) return;
+  if (!PJ.log.length) {
+    el.innerHTML = '<div class="pj-log-empty">nada todavía — lo que hagas aquí aparece al instante</div>';
+  } else {
+    el.innerHTML = PJ.log.map(e => {
+      const hora = e.t && typeof e.t.toLocaleTimeString === 'function'
+        ? e.t.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+      return '<div class="pj-log-e k-' + pjEsc(e.kind) + '"><span class="pj-lt">' + hora + '</span>' +
+        '<span class="pj-lx">' + pjLogIcon(e.kind) + '</span><span>' + pjEsc(e.text) + '</span></div>';
+    }).join('');
+  }
+  const u = $('#pj-undo');
+  if (u) u.disabled = !PJ.undo.length;
+}
+
+function pjRenderAll() { pjRenderList(); pjRenderDetail(); pjRenderAddPreview(); pjRenderStats(); pjRenderLog(); }
+
+async function pjRefreshAddPlan() {
+  const idIn = $('#pj-add-id'), dispIn = $('#pj-add-display'), parentSel = $('#pj-add-parent'), xsIn = $('#pj-add-xshift');
+  if (!PJ.add.files || !PJ.add.files.length) { PJ.add.plan = null; pjRenderAddPreview(); return; }
+  try {
+    PJ.add.plan = await pjPlanAdd({
+      id: idIn.value.trim(), display: dispIn.value.trim() || undefined,
+      parentKey: parentSel.value, files: PJ.add.files, xShift: xsIn.value
+    });
+  } catch (e) {
+    PJ.add.plan = null;
+    const el = $('#pj-add-preview');
+    if (el) el.innerHTML = '<div class="pj-warn">⚠ ' + pjEsc(e.message) + '</div>';
+  }
+  const b = $('#pj-add-build');
+  if (b) {
+    b.disabled = !PJ.add.plan;
+    b.title = PJ.add.plan ? '¡listo! construye sprites, objeto, registros y server' : 'antes: elige la carpeta de sprites (1) y ponle nombre interno (2)';
+  }
+  pjRenderAddPreview();
+}
+
+function pjFillParents() {
+  const sel = $('#pj-add-parent');
+  if (!sel) return;
+  const opts = PJ.chars.filter(c => c.obj);
+  sel.innerHTML = opts.map(c => '<option value="' + c.key + '"' + (c.id === 'rouge' ? ' selected' : '') + '>' + pjEsc(c.display) + ' — ' + pjEsc(c.obj) + '</option>').join('');
+}
+
+window.enterPj = async function () {
+  await pjScan();
+  pjFillParents();
+  pjRenderAll();
+};
+
+window.__onProjectScan = (function (prev) {
+  return async function () {
+    if (S.module === 'pj') { try { await window.enterPj(); } catch (e) { } }
+    if (prev) prev();
+  };
+})(window.__onProjectScan);
+
+function pjInit() {
+  const list = $('#pj-char-list');
+  if (list) list.addEventListener('click', async ev => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    if (b.dataset.trash) {
+      if (!confirm('Restaurar a "' + b.dataset.trash + '" desde la papelera?\nSus archivos vuelven y se re-registra todo en su mismo slot.'))
+        return;
+      if (await pjRestore(b.dataset.trash)) {
+        await pjScan(); pjFillParents(); pjRenderAll();
+        T.toast('"' + b.dataset.trash + '" restaurado. Recompila el juego (F5).');
+      }
+      return;
+    }
+    if (b.dataset.key) {
+      PJ.sel = PJ.chars.find(c => c.key === b.dataset.key) || null;
+      pjRenderList(); pjRenderDetail();
+    }
+  });
+  const det = $('#pj-detail');
+  if (det) det.addEventListener('click', async ev => {
+    const b = ev.target.closest('button[data-act]');
+    if (!b || !PJ.sel) return;
+    const act = b.dataset.act;
+    if (act === 'activar' || act === 'desactivar') {
+      if (!(await pjSetActive(PJ.sel, act === 'activar'))) return;
+      const who = PJ.sel.display;
+      await pjScan(); pjRenderAll();
+      T.toast(act === 'activar'
+        ? who + ' ACTIVADO: vuelve al carrusel y el server lo acepta. Recompila (F5).'
+        : who + ' DESACTIVADO: fuera del carrusel y rechazado por el server. Recompila (F5).');
+    } else if (act === 'eliminar') {
+      if (!confirm('Eliminar a "' + PJ.sel.display + '" (a la papelera _personajes_eliminados/).\n\nSe moveran sus sprites/objeto/script y se limpiaran TODOS sus registros (incluido el server).\nSolo se puede si es el ULTIMO personaje del enum. ¿Continuar?')) return;
+      const who = PJ.sel;
+      if (await pjDelete(who)) {
+        PJ.sel = null;
+        await pjScan(); pjFillParents(); pjRenderAll();
+        T.toast('"' + who.display + '" movido a la papelera. Recompila (F5).');
+      }
+    }
+  });
+  const filters = $('#pj-filters');
+  if (filters) filters.addEventListener('click', ev => {
+    const b = ev.target.closest('.pj-fchip');
+    if (!b) return;
+    PJ.filter = b.dataset.f;
+    for (const x of filters.querySelectorAll('.pj-fchip')) x.classList.toggle('sel', x === b);
+    pjRenderList();
+  });
+  const qIn = $('#pj-q');
+  if (qIn) qIn.addEventListener('input', () => { PJ.query = qIn.value; pjRenderList(); });
+  const dirIn = $('#pj-add-dir');
+  const pickBtn = $('#pj-add-pick');
+  if (pickBtn && dirIn) pickBtn.addEventListener('click', () => dirIn.click());
+  if (dirIn) dirIn.addEventListener('change', async () => {
+    PJ.add.files = dirIn.files && dirIn.files.length ? [...dirIn.files] : null;
+    const fb = $('#pj-add-folder');
+    if (fb) fb.textContent = PJ.add.files ? ((dirIn.files[0].webkitRelativePath || '').split('/')[0] || '') + '/ — ' + PJ.add.files.length + ' PNG' : '';
+    await pjRefreshAddPlan();
+  });
+  for (const s of ['#pj-add-id', '#pj-add-display', '#pj-add-xshift']) {
+    const el = $(s);
+    if (el) el.addEventListener('input', () => pjRefreshAddPlan());
+  }
+  const parentSel = $('#pj-add-parent');
+  if (parentSel) parentSel.addEventListener('change', () => pjRefreshAddPlan());
+  const build = $('#pj-add-build');
+  const busy = $('#pj-busy');
+  if (build) build.addEventListener('click', async () => {
+    const plan = PJ.add.plan;
+    if (!plan) return;
+    const nSprites = plan.sprites.length + 1 + (plan.plate ? 1 : 0);
+    if (!confirm('Se va a CONSTRUIR a "' + plan.display + '":\n' +
+      '· ' + nSprites + ' sprites (.yy + PNGs + layers, origins al suelo exacto)\n' +
+      '· objeto obj_' + plan.id + ' + scr_' + plan.id + '_special (clon de ' + plan.parent.display + ')\n' +
+      '· macro CHARACTER_' + plan.UP + ' + anims x3 + player_get + paletas + LMS + lobby + carrusel\n' +
+      '· server: Server.h + CharSelect.c + Lib.c\n· registro en el .yyp\n\n' +
+      'Todo con copia en _backups_animeditor/ y deshacer. ¿Continuar?')) return;
+    if (busy) busy.style.display = '';
+    let ok = false;
+    try { ok = await pjRunAdd(plan); }
+    finally { if (busy) busy.style.display = 'none'; }
+    if (ok) {
+      PJ.add = { files: null, plan: null };
+      if (dirIn) dirIn.value = '';
+      const fb = $('#pj-add-folder'); if (fb) fb.textContent = '';
+      await pjScan(); pjFillParents(); pjRenderAll();
+      T.toast('"' + plan.display + '" CONSTRUIDO.\nCierra y reabre GameMaker para que cargue los recursos nuevos, recompila (F5) y elígelo en el carrusel.');
+    }
+  });
+  const undo = $('#pj-undo');
+  if (undo) undo.addEventListener('click', () => pjUndoLast());
+  pjRenderLog();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pjInit);
+else pjInit();
+
+
+window.pjMod = { PJ, pjScan, pjClassifyFiles, pjPlanAdd, pjBuildSpriteYy, pjSetActive, pjRunAdd, pjDelete, pjRestore, pjUndoLast, pjPatchTexts, pjWriteObjectAndScript, pjRenderAll };
+})();
+/* ===== Suite TD2D — módulo 👤 PERSONAJES — FIN ===== */
+
+</script>
+<script>
 /* v3.8.1 — AUTOCHEQUEO DE ARRANQUE: si algún módulo no se cargó, se ve AQUÍ y en la
    consola (F12), en vez de quedarse la interfaz muerta sin decir nada. */
 (function () {
@@ -11305,6 +13262,7 @@ else initMuelles();
   if (typeof window.__yypfix !== 'function' || typeof window.enterArte !== 'function') fails.push('módulo 🖼 Arte no arrancó');
   if (typeof window.enterLms !== 'function') fails.push('módulo 🎤 Show LMS no arrancó');
   if (typeof window.enterMuelles !== 'function') fails.push('módulo 🪀 Muelles no arrancó');
+  if (typeof window.enterPj !== 'function') fails.push('módulo 👤 Personajes no arrancó');
   if (window.__bootErrors) fails.push(window.__bootErrors + ' error(es) JS durante el arranque (mira la consola F12)');
   if (fails.length) {
     console.error('SUITE TD2D — NO CARGÓ COMPLETO:', fails.join(' · '));
@@ -11327,7 +13285,7 @@ else initMuelles();
       if (as) T.S.arteSub = as;
     }
     var mod = localStorage.getItem('td2d_module');
-    var valid = { anim: 1, cd: 1, arte: 1, keys: 1, lms: 1, muelles: 1 };
+    var valid = { anim: 1, cd: 1, arte: 1, keys: 1, lms: 1, muelles: 1, pj: 1 };
     if (mod && valid[mod] && mod !== 'anim') {
       var b = document.querySelector('#modnav .mnav[data-mod="' + mod + '"]');
       if (b) b.click();
