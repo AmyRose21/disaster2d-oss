@@ -248,7 +248,7 @@ static const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {
         { CH_AMELIA, 1, { 206 } },
         { CH_BLAZE, 1, { 213 } },
         { CH_FLEETWAY_AMY, 1, { 216 } },
-        { CH_ROUGE, 1, { 232 } },
+        { CH_ROUGE, 2, { 187, 212 } },
         { CH_KRIS, 1, { 232 } },
 };
 

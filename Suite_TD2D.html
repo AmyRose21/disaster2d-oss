@@ -1255,6 +1255,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
     <section class="note"><b>Qué toca:</b> crea <code>sounds/mus_lms_N/</code> (audio + .yy) y lo registra en el .yyp; reescribe la lista <code>global.lmsCharSongs</code> de <code>scr_lms.gml</code> (quién tiene show y con qué canciones), las macros y la tabla <code>LMS_SHOWS</code> del server (<code>Server.h</code>) con las duraciones leídas del audio. Sin canciones = sin show: así se apaga el LMS de un personaje.</section>
     <section class="note">Tras escribir: <b>F5</b> para el cliente <b>y recompila el server</b> (<code>betterserver-oss/compilar_server.bat</code>) — el reloj, el personaje del show y la canción los manda él.</section>
     <section class="note">Quitar una canción con ✕ solo la quita de la lista (la carpeta del audio queda, inofensiva). Las recargas al entrar a mitad del show oyen <b>la misma canción</b> que sonó al arrancarlo.</section>
+    <section class="note"><b>Canciones compartidas:</b> si una canción la usan varios personajes (⚠ en la fila), el 🔄 <b>NO se la cambia a los demás</b>: le crea un slot propio nuevo (mus_lms_N aparte) a este personaje. 🔧 separa sin cambiar la canción (copia el audio a un archivo independiente).</section>
   </aside>
 </div><!-- /mod-lms -->
 
@@ -10598,7 +10599,8 @@ const LMS = {
   origLists: {},                      // key -> [assets] tal cual escaneado
   macOrig: null, mac: null,
   srvOk: false, gameOk: false, nsgOk: false,
-  undoStack: [], audioCtx: null
+  undoStack: [], audioCtx: null,
+  yypText: null                       // v1.1 cache del .yyp (nextAsset no pisa assets existentes)
 };
 
 const mmss = (s) => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
@@ -10680,6 +10682,7 @@ async function songInfo(asset) {
 
 async function scanLms() {
   LMS.chars = {}; LMS.base = 'none'; LMS.scanned = true; LMS.origLists = {};
+  LMS.yypText = null; // v1.1 cache del .yyp a cero al reescanear
   for (const c of LMS_CHARS) LMS.chars[c.key] = { songs: [] };
 
   const gml = await readText(REL_LMS);
@@ -10755,20 +10758,22 @@ function listsChanged() {
 }
 
 function pendingInfo() {
-  const add = [], repl = [];
+  const add = [], repl = [], forks = [];
   for (const c of LMS_CHARS)
     for (const s of LMS.chars[c.key].songs) {
       if (s.isNew && s.repl) repl.push({ char: c, song: s });
+      else if (s.isNew && s.forkedFrom) forks.push({ char: c, song: s });
       else if (s.isNew) add.push({ char: c, song: s });
     }
   const mac = macChanged();
   const lists = listsChanged();
   const parts = [];
   if (add.length) parts.push(add.length + ' canción(es) nueva(s)');
+  if (forks.length) parts.push(forks.length + ' slot(s) propio(s)');
   if (repl.length) parts.push(repl.length + ' audio(s) reemplazado(s)');
   if (lists) parts.push('listas del show');
   if (mac) parts.push('ajustes del show');
-  return { add, repl, mac, lists, any: parts.length > 0, text: parts.length ? parts.join(' · ') : 'sin cambios' };
+  return { add, repl, forks, mac, lists, any: parts.length > 0, text: parts.length ? parts.join(' · ') : 'sin cambios' };
 }
 
 function renderLms() {
@@ -10828,20 +10833,27 @@ function renderLms() {
     box.appendChild(d);
   }
   songs.forEach((s, i) => {
+    const others = assetOwners(s.asset, LMS.sel);
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:6px;margin-bottom:6px;flex-wrap:wrap';
+    row.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:6px;margin-bottom:6px;flex-wrap:wrap'
+      + (others.length ? ';border-color:#d9a441' : '');
     const num = document.createElement('b');
     num.style.cssText = 'min-width:30px;color:var(--mut)';
     num.textContent = '#' + (i + 1);
     const name = document.createElement('span');
     name.style.flex = '1';
     name.innerHTML = T.esc(s.asset)
-      + (s.isNew ? ' <span class="muted">· ' + T.esc(s.fileName || '') + (s.repl ? ' (reemplaza el audio)' : ' (nueva)') + '</span>' : '')
+      + (s.isNew ? ' <span class="muted">· ' + T.esc(s.fileName || '') + (s.repl ? ' (reemplaza el audio)' : s.forkedFrom ? ' (slot propio, antes ' + T.esc(s.forkedFrom) + ')' : ' (nueva)') + '</span>' : '')
+      + (!s.isNew && s.forkedFrom ? ' <span class="muted">· antes ' + T.esc(s.forkedFrom) + '</span>' : '')
+      + (others.length ? ' <span style="color:#d9a441">⚠ compartida con ' + others.map(o => T.esc(o.label)).join(', ') + '</span>' : '')
       + (s.asset === 'mus_undefeatable' ? ' <span class="muted">· Undefeatable (la original)</span>' : '');
     const dur = document.createElement('span');
     dur.className = 'muted';
     dur.textContent = (s.dur != null ? mmss(s.dur) + ' · ' + Math.round(s.dur) + ' s' : 'duración ?') + ' · ' + (s.ext || '?');
-    const bRep = mkBtn('🔄', 'reemplazar el audio de esta canción', async () => pickReplace(i));
+    const bFork = others.length ? mkBtn('🔧', 'separar: crearle un slot PROPIO a ' + sc.label + ' con este audio (los demás personajes no se tocan)', () => forkSong(i)) : null;
+    const bRep = mkBtn('🔄', others.length
+      ? 'reemplazar el audio — automático slot propio nuevo (NO toca el de ' + others.map(o => o.label).join('/') + ')'
+      : 'reemplazar el audio de esta canción', async () => pickReplace(i));
     const bUp = mkBtn('↑', 'subir', () => moveSong(i, -1));
     const bDn = mkBtn('↓', 'bajar', () => moveSong(i, +1));
     const bDel = mkBtn('✕', 'quitar de la lista', () => {
@@ -10849,15 +10861,20 @@ function renderLms() {
       songs.splice(i, 1); renderLms();
     });
     bUp.disabled = i === 0; bDn.disabled = i === songs.length - 1;
-    row.append(num, name, dur, bRep, bUp, bDn, bDel);
+    row.append(num, name, dur);
+    if (bFork) row.append(bFork);
+    row.append(bRep, bUp, bDn, bDel);
     box.appendChild(row);
   });
 
   const st = $('#lms-side-stats');
   const nChars = LMS_CHARS.filter(hasShow).length;
   const nSongs = LMS_CHARS.reduce((a, c) => a + (LMS.chars[c.key] ? LMS.chars[c.key].songs.length : 0), 0);
+  const nShared = editable() ? sharedAssets().length : 0;
   st.innerHTML = editable()
-    ? nChars + ' personaje(s) con show<br>' + nSongs + ' canción(es) en total<br>server: ' + (LMS.srvOk ? 'listo ✓' : 'sin tabla LMS_SHOWS ⚠')
+    ? nChars + ' personaje(s) con show<br>' + nSongs + ' canción(es) en total'
+      + (nShared ? '<br><span style="color:#d9a441">' + nShared + ' compartida(s) entre personajes — 🔧 para separar</span>' : '')
+      + '<br>server: ' + (LMS.srvOk ? 'listo ✓' : 'sin tabla LMS_SHOWS ⚠')
     : (LMS.base === 'none' ? 'sin Show LMS en esta carpeta' : 'LMS viejo (solo Sonic) en esta carpeta');
   const tot = $('#lms-total');
   if (tot) tot.textContent = editable() ? 'reloj del show = duración de la canción que salga' : '';
@@ -10919,12 +10936,50 @@ function moveSong(i, d) {
   renderLms();
 }
 
-function nextAsset() {
+// v1.1 — cache del texto del .yyp: nextAsset no debe devolver un nombre
+// que YA exista en el proyecto (registrado en el .yyp o con carpeta en
+// sounds/) aunque ninguna lista lo use: pisarlo seria reemplazar el
+// audio de otro personaje sin querer (exactamente el bug de mus_lms_15).
+async function lmsYypText() {
+  if (LMS.yypText == null) {
+    try {
+      const n = await lmsYypName();
+      LMS.yypText = n ? (await readText(n)) || '' : '';
+    } catch (e) { LMS.yypText = ''; }
+  }
+  return LMS.yypText;
+}
+
+async function nextAsset() {
   let n = 2;
   const used = new Set();
   for (const c of LMS_CHARS) LMS.chars[c.key].songs.forEach(s => used.add(s.asset));
-  while (used.has('mus_lms_' + n)) n++;
+  const yyp = await lmsYypText();
+  while (n < 999) {
+    const a = 'mus_lms_' + n;
+    if (used.has(a)) { n++; continue; }
+    if (new RegExp('"name":\\s*"' + a + '"').test(yyp || '')) { n++; continue; }
+    if (await readText('sounds/' + a + '/' + a + '.yy') != null) { n++; continue; }
+    return a;
+  }
   return 'mus_lms_' + n;
+}
+
+// v1.1 — canciones COMPARTIDAS: personajes que comparten el MISMO asset
+// (Blaze/Rouge/Kris nacieron las tres de mus_lms_15). Reemplazar una de
+// estas sobreescribiria el archivo DEL OTRO: por eso el 🔄 y el 🔧 le
+// crean a este personaje un slot propio en vez de tocar el compartido.
+function assetOwners(asset, exceptKey) {
+  return LMS_CHARS.filter(c => c.key !== exceptKey
+    && LMS.chars[c.key] && LMS.chars[c.key].songs.some(s => s.asset === asset));
+}
+
+function sharedAssets() {
+  const by = {};
+  for (const c of LMS_CHARS)
+    if (LMS.chars[c.key]) LMS.chars[c.key].songs.forEach(s => { (by[s.asset] = by[s.asset] || []).push(c); });
+  return Object.keys(by).filter(a => by[a].length > 1)
+    .map(a => ({ asset: a, chars: by[a] }));
 }
 
 async function addLmsSongs(files) {
@@ -10937,7 +10992,7 @@ async function addLmsSongs(files) {
     if (!['mp3', 'ogg', 'wav'].includes(ext)) { toast('«' + f.name + '» no es .mp3/.ogg/.wav: se ignora.', 'warn'); continue; }
     const dec = await decodeDuration(f);
     if (!dec || !dec.dur) { toast('No pude leer la duración de «' + f.name + '» (¿archivo válido?). Se ignora.', 'err'); continue; }
-    songs.push({ asset: nextAsset(), dur: dec.dur, ext: ext, isNew: true, bytes: dec.bytes, fileName: f.name });
+    songs.push({ asset: await nextAsset(), dur: dec.dur, ext: ext, isNew: true, bytes: dec.bytes, fileName: f.name });
     added++;
   }
   if (added) toast(added + ' canción(es) para ' + selChar().label + '. Duración leída del audio.', 'ok');
@@ -10956,11 +11011,61 @@ async function pickReplace(i) {
     const dec = await decodeDuration(f);
     if (!dec) { toast('No pude decodificar ese audio.', 'err'); return; }
     const s = LMS.chars[LMS.sel].songs[i];
-    s.repl = true; s.bytes = dec.bytes; s.dur = dec.dur; s.ext = ext; s.isNew = true; s.fileName = f.name;
-    toast('Audio de ' + s.asset + ' reemplazado por «' + f.name + '» (' + mmss(dec.dur) + ').', 'ok');
+    const others = assetOwners(s.asset, LMS.sel);
+    if (others.length) {
+      // v1.1 PROTECCION ANTI-PIE: esta cancion la usa OTRO personaje
+      // (Blaze/Rouge/Kris comparten mus_lms_15) — NO se sobreescribe el
+      // archivo compartido. Slot nuevo SOLO para este personaje con el
+      // audio elegido; los demas se quedan con el suyo intacto.
+      const old = s.asset;
+      s.asset = await nextAsset();
+      s.forkedFrom = old;
+      s.bytes = dec.bytes; s.dur = dec.dur; s.ext = ext; s.isNew = true; s.repl = false; s.fileName = f.name;
+      toast('«' + old + '» también la usa ' + others.map(o => o.label).join(' y ') + ' — NO la toqué.\nLe creé a ' + selChar().label + ' su propio slot ' + s.asset + ' con tu audio. ' + others.map(o => o.label).join('/') + ' se quedan con ' + old + ' intacta.\nPulsa «Escribir en el proyecto» para aplicarlo.', 'ok');
+    } else {
+      s.repl = true; s.bytes = dec.bytes; s.dur = dec.dur; s.ext = ext; s.isNew = true; s.fileName = f.name;
+      toast('Audio de ' + s.asset + ' reemplazado por «' + f.name + '» (' + mmss(dec.dur) + ').', 'ok');
+    }
     renderLms();
   });
   inp.click();
+}
+
+// v1.1 — SEPARAR (🔧): le crea a ESTE personaje una copia INDEPENDIENTE
+// del audio compartido (misma canción, archivo nuevo mus_lms_N). A partir
+// de ahi los reemplazos de este personaje solo tocan SU copia y los
+// demas personajes ni se enteran. Es el "slot independiente" pedido.
+async function forkSong(i) {
+  const songs = LMS.chars[LMS.sel].songs;
+  const s = songs[i];
+  const others = assetOwners(s.asset, LMS.sel);
+  if (!others.length) return;
+  if (!confirm('«' + s.asset + '» la usan también ' + others.map(o => o.label).join(' y ') + '.\n\nVoy a crearle un slot PROPIO a ' + selChar().label + ' con una copia del audio actual (la misma canción por ahora). ' + others.map(o => o.label).join('/') + ' se quedan con su archivo intacto.\n\nDespués podrás reemplazar la copia de ' + selChar().label + ' sin tocar a nadie. ¿Separar?')) return;
+  let bytes = null, ext = s.ext || '';
+  const order = ext ? [ext] : [];
+  for (const e2 of ['mp3', 'ogg', 'wav']) if (!order.includes(e2)) order.push(e2);
+  for (const e2 of order) {
+    try {
+      const fh = await fsWalkFile('sounds/' + s.asset + '/' + s.asset + '.' + e2);
+      const f = await fh.getFile();
+      bytes = await f.arrayBuffer(); ext = e2; break;
+    } catch (e) { }
+  }
+  if (!bytes) { toast('No encuentro el audio de ' + s.asset + ' en sounds/' + s.asset + '/ (.mp3/.ogg/.wav). Si la carpeta no existe en el proyecto, quita la canción y añádela como nueva.', 'err'); return; }
+  if (s.dur == null) {
+    try {
+      if (!LMS.audioCtx) LMS.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const ab = await LMS.audioCtx.decodeAudioData(bytes.slice(0));
+      s.dur = ab.duration;
+    } catch (e) { }
+  }
+  if (s.dur == null) s.dur = 180; // duracion de mus_lms_15 en Server.h
+  const old = s.asset;
+  s.asset = await nextAsset();
+  s.forkedFrom = old;
+  s.isNew = true; s.repl = false; s.bytes = bytes; s.ext = ext; s.fileName = old + '.' + ext;
+  toast('Slot propio para ' + selChar().label + ': ' + old + ' → ' + s.asset + ' (misma canción, archivo aparte).\nPulsa «Escribir en el proyecto» para crearlo. Después reemplázalo cuando quieras: ya no afecta a ' + others.map(o => o.label).join('/') + '.', 'ok');
+  renderLms();
 }
 
 // ------------------------------------------------------------------
@@ -10998,6 +11103,7 @@ async function writeLms() {
   const withShow = LMS_CHARS.filter(hasShow);
   const lines = ['Se va a escribir en el proyecto:'];
   p.add.forEach(x => lines.push('  · sounds/' + x.song.asset + '/ (' + x.song.ext + ', ' + mmss(x.song.dur) + ') + registro .yyp'));
+  p.forks.forEach(x => lines.push('  · sounds/' + x.song.asset + '/ — SLOT PROPIO de ' + x.char.label + ' (' + x.song.ext + ', ' + mmss(x.song.dur) + ') + registro .yyp — ' + x.song.forkedFrom + ' NO se toca'));
   p.repl.forEach(x => lines.push('  · audio nuevo de ' + x.song.asset + ' (' + x.song.ext + ', ' + mmss(x.song.dur) + ')'));
   lines.push('  · scr_lms.gml: listas por personaje — ' + (withShow.length ? withShow.map(c => c.label + ' (' + LMS.chars[c.key].songs.length + ')').join(', ') : 'NADIE con show (LMS apagado)'));
   if (LMS.srvOk) lines.push('  · Server.h: LMS_SHOWS = ' + (withShow.length ? withShow.map(c => c.ch).join(' + ') : '(vacía)'));
@@ -11012,7 +11118,7 @@ async function writeLms() {
     // 1) sonidos: carpetas nuevas / audios reemplazados
     const tmpl = await readText('sounds/mus_undefeatable/mus_undefeatable.yy');
     if (!tmpl) { toast('No encuentro sounds/mus_undefeatable/mus_undefeatable.yy (plantilla).', 'err'); return; }
-    for (const x of p.add.concat(p.repl)) {
+    for (const x of p.add.concat(p.forks, p.repl)) {
       const s = x.song;
       const dirRel = 'sounds/' + s.asset + '/';
       const yyRel = dirRel + s.asset + '.yy';
@@ -11039,8 +11145,8 @@ async function writeLms() {
       await lmsWrite(audRel, s.bytes);
     }
 
-    // 2) registro .yyp (solo canciones nuevas)
-    const newAssets = p.add.filter(x => !x.song.repl).map(x => x.song.asset);
+    // 2) registro .yyp (canciones nuevas y slots propios)
+    const newAssets = p.add.concat(p.forks).filter(x => !x.song.repl).map(x => x.song.asset);
     if (newAssets.length) {
       const yypName = await lmsYypName();
       if (!yypName) { toast('No encuentro el .yyp del proyecto.', 'err'); return; }
@@ -11092,6 +11198,7 @@ async function writeLms() {
     }
 
     LMS.undoStack.push(undo);
+    LMS.yypText = null; // v1.1 el .yyp acabo de cambiar: cache a cero
     for (const c of LMS_CHARS) LMS.chars[c.key].songs.forEach(s => { s.isNew = false; s.repl = false; delete s.bytes; delete s.fileName; });
     await scanLms(); renderLms();
     const n = LMS_CHARS.filter(hasShow).length;
@@ -11121,6 +11228,7 @@ async function undoLms() {
       }
     }
   } catch (e) { toast('Error al deshacer: ' + e.message, 'err'); return; }
+  LMS.yypText = null; // v1.1 el .yyp pudo volver a atras: cache a cero
   await scanLms(); renderLms();
   toast('Deshecho: restaurado desde la copia.');
 }
