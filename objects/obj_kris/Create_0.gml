@@ -3,9 +3,11 @@
 // =====================================================================
 //  KRIS (Deltarune) — superviviente #16. Base Tails (placeholder de
 //  la duena: menu/barra) con su set de 13 sprites propios. Kit:
-//   * Z EN EL AIRE = NADA. Kris NO vuela ni planea (regla de la
-//     duena: "es Kris de Deltarune, el no vuela"). El Z en tierra es
-//     el salto de siempre. Su "slot glide" lo ocupa el ESCUDO.
+//   * Z EN EL AIRE = DOBLE SALTO (v2, pasiva): patron JETPACK de
+//     Eggman — UN salto extra (solo subiendo de un salto, impulso -8)
+//     con enfriamiento KRIS_DJUMP_RECHARGE. El HUD lo muestra como el
+//     jetpack de Eggman (placeholder). Kris sigue SIN volar ni planear
+//     (regla de la duena intacta). Su "slot glide" lo ocupa el ESCUDO.
 //   * X = ESPADA (patron puno de Knuckles): en tierra un tajo
 //     (reusa spr_kris_attack1_air1 hasta que haya arte de tierra) y
 //     en el aire el ataque de DOS fases: air1 (spr_kris_attack1_air1)
@@ -37,6 +39,9 @@ rings = 0;
 lookTimer = 0;
 effectTime = 0;
 attackTimer = 0;
+// v2 (pasiva): recarga del DOBLE SALTO aereo (patron Eggman; el HUD la
+// pinta con el icono del jetpack de Eggman)
+djumpRecharge = 0;
 revivalTimes = 0;
 // v12 (NEGAGEN): la marca de SUBDITO NEGATIVO se declara AQUI, no lazy
 // (patron de los 15 supervivientes). Kris JAMAS se convierte (regla),

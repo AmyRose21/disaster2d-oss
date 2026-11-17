@@ -63,6 +63,14 @@ if(!global.showHud)
 
 var _mob = (os_type == os_android ? 200 : 0);
 
+// v8 (HUD REUBICADO — pedido de la dueña, temporal): los ICONOS DE
+// HABILIDAD van ARRIBA tambien en PC (misma columna superior que ya
+// usaba Android: 218/222/240/250/258 - 200 = 18/22/40/50/58). La BARRA
+// DE VIDA baja al rincón inferior izquierdo (ver bloque v8 de abajo)
+// y la barrita nega queda fija encima de ella. _mob sigue moviendo
+// SOLO lo que ya movía (las emociones): ni iconos ni barra la usan ya.
+var _ico = 200;
+
 drawKeyIcon = function(_spr, _frame, _artW, _key, _xx, _yy, _col, _alpha, _hintX)
 {
         var _h = sprite_get_height(_spr);
@@ -115,13 +123,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                         {
                                 case EXE_ORIGINAL:
                                         var prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
-                                        drawKeyIcon(spr_gui_exeattack, 0, 19, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                                        drawKeyIcon(spr_gui_exeattack, 0, 19, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                                         prog = global.playerControls && global.player.isJumping;
-                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
+                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _ico, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
 
                                         prog = (min(global.player.invisTimer, 0) / EXE_INVIS_RECHARGE);
-                                        drawKeyIcon(spr_gui_exeinvisability, 0, 25, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                                        drawKeyIcon(spr_gui_exeinvisability, 0, 25, global.KeyC, prog * 4, 250 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
                                         break;
 
                                 case EXE_CHAOS:
@@ -129,7 +137,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         {
                                                 var _cf = !global.player.isGrounded;
                                                 prog = global.player.slimeTimer > 0 ? 0 : 1.0 - (min(global.player.attackTimer, 120) / 120.0);
-                                                drawKeyIcon(spr_gui_chaosattack, _cf, 19, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, _cf ? 31 : 0);
+                                                drawKeyIcon(spr_gui_chaosattack, _cf, 19, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, _cf ? 31 : 0);
                                         }
                                         else
                                         {
@@ -142,34 +150,34 @@ if(instance_exists(global.player) && !global.player.isDead)
                                                         frame = 0;
 
                                                 prog = 1;
-                                                drawKeyIcon(spr_gui_chaoswalldash, frame, 19, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 31);
+                                                drawKeyIcon(spr_gui_chaoswalldash, frame, 19, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 31);
                                         }
 
                                         prog = global.playerControls && global.player.isJumping;
-                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog && global.player.slimeTimer <= 0 ? c_white : c_red, global.player.slimeTimer <= 0 ? (prog ? 1 : 0.5) : 0, 0);
+                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _ico, prog && global.player.slimeTimer <= 0 ? c_white : c_red, global.player.slimeTimer <= 0 ? (prog ? 1 : 0.5) : 0, 0);
 
                                         prog = global.player.slimeTimer > 0 ? 1 : (min(global.player.slimeTimer, 0) / -CHAOS_INVIS_RECHARGE);
-                                        drawKeyIcon(spr_gui_chaosslime, 0, 18, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                                        drawKeyIcon(spr_gui_chaosslime, 0, 18, global.KeyC, prog * 4, 250 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
                                         break;
 
                                 case EXE_EXETIOR:
                                         var _ef = !global.player.isGrounded;
                                         prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
-                                        drawKeyIcon(spr_gui_exetiorattack, _ef, 19, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, _ef ? 31 : 0);
+                                        drawKeyIcon(spr_gui_exetiorattack, _ef, 19, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, _ef ? 31 : 0);
 
                                         prog = global.playerControls && global.player.isJumping;
-                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
+                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _ico, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
 
                                         prog = (1.0 - (global.player.bringTimer / EXETIOR_BRING_RECHARGE));
-                                        drawKeyIcon(spr_gui_exetiorring, 0, 20, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 && global.player.canSpawnRings ? c_white : c_red, prog, 0);
+                                        drawKeyIcon(spr_gui_exetiorring, 0, 20, global.KeyC, prog * 4, 250 - _ico, prog == 1.0 && global.player.canSpawnRings ? c_white : c_red, prog, 0);
                                         break;
 
                                 case EXE_EXELLER:
                                         prog = 1.0 - (min(global.player.attackTimer, 180) / 180.0);
-                                        drawKeyIcon(spr_gui_exeattack, 0, 19, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                                        drawKeyIcon(spr_gui_exeattack, 0, 19, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                                         prog = global.playerControls && global.player.isJumping;
-                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
+                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _ico, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
 
                                         prog = 1.0 - (global.player.cloneTimer / EXELLER_CLONE_RECHARGE);
                                         var spr = spr_gui_exellerclone;
@@ -186,7 +194,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         if(spr == spr_gui_exellerclone && global.player.cloneCount >= 2)
                                                 prog = 0;
 
-                                        drawKeyIcon(spr, 0, spr == spr_gui_exellerclone ? 20 : 47, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                                        drawKeyIcon(spr, 0, spr == spr_gui_exellerclone ? 20 : 47, global.KeyC, prog * 4, 250 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
                                         break;
 
                                 case EXE_METALAMY:
@@ -204,13 +212,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                                                 _maprog = 1.0 - (min(global.player.attackTimer, METALAMY_DASH_GAP) / METALAMY_DASH_GAP);
                                         else
                                                 _maprog = global.player.dashRecharge / METALAMY_DASH_RECHARGE;
-                                        drawKeyIcon(spr_gui_metalamyattack, 0, 0, global.KeyB, _maprog * 10, 240 - _mob, _maprog == 1.0 ? c_white : c_red, _maprog, 0);
+                                        drawKeyIcon(spr_gui_metalamyattack, 0, 0, global.KeyB, _maprog * 10, 240 - _ico, _maprog == 1.0 ? c_white : c_red, _maprog, 0);
 
                                         prog = global.playerControls && global.player.isJumping;
-                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
+                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _ico, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
 
                                         prog = 1.0 - (global.player.bulletTimer / METALAMY_BULLET_RECHARGE);
-                                        drawKeyIcon(spr_gui_metal_amy_lazer, 0, 24, global.KeyC, prog * 4, 250 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                                        drawKeyIcon(spr_gui_metal_amy_lazer, 0, 24, global.KeyC, prog * 4, 250 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                                         // v4.7/v4.8 (SCAN, tecla V): a la derecha de la C, misma fila
                                         // (patron Amy canon v4.1: C y V comparten fila, como en el
@@ -234,13 +242,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         {
                                                 _sprog = 1.0 - (global.player.huntCd / METALAMY_HUNT_TIME);
                                                 _sready = _sact || _sprog >= 1.0;
-                                                drawKeyIcon(spr_gui_metalamy_indy, 0, 14, global.KeyV, 44 + _sprog * 10, 250 - _mob, _sready ? c_yellow : c_red, _sready ? 1 : _sprog, 0);
+                                                drawKeyIcon(spr_gui_metalamy_indy, 0, 14, global.KeyV, 44 + _sprog * 10, 250 - _ico, _sready ? c_yellow : c_red, _sready ? 1 : _sprog, 0);
                                         }
                                         else
                                         {
                                                 _sprog = 1.0 - (global.player.scanRecharge / METALAMY_SCAN_RECHARGE);
                                                 _sready = _sprog >= 1.0 || _sact;
-                                                drawKeyIcon(spr_gui_metalamy_indy, 0, 14, global.KeyV, 44 + _sprog * 10, 250 - _mob, _sready ? c_white : c_red, _sready ? 1 : _sprog, 0);
+                                                drawKeyIcon(spr_gui_metalamy_indy, 0, 14, global.KeyV, 44 + _sprog * 10, 250 - _ico, _sready ? c_white : c_red, _sready ? 1 : _sprog, 0);
                                         }
                                         break;
                                 }
@@ -259,11 +267,11 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 {
                                         // X: golpe (dano 20 via PLAYER_ATTACKING)
                                         var _jprog = 1.0 - (global.player.attackTimer / 120.0);
-                                        drawKeyIcon(spr_gui_exeattack, 0, 19, global.KeyB, _jprog * 10, 240 - _mob, _jprog == 1.0 ? c_white : c_red, _jprog, 0);
+                                        drawKeyIcon(spr_gui_exeattack, 0, 19, global.KeyB, _jprog * 10, 240 - _ico, _jprog == 1.0 ? c_white : c_red, _jprog, 0);
 
                                         // Z: salto libre de los killers
                                         _jprog = (global.player.hurttime <= 0 && global.player.shockedTimer <= 0) ? 1.0 : 0.0;
-                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _mob, _jprog ? c_white : c_red, _jprog ? 1 : 0.5, 0);
+                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _ico, _jprog ? c_white : c_red, _jprog ? 1 : 0.5, 0);
 
                                         // C: teletransporte (icono del mod: portal)
                                         // v6 — C: DOS modos (patron de la V). Sola = tele-
@@ -275,14 +283,14 @@ if(instance_exists(global.player) && !global.player.isDead)
                                                 // MODO INVOCAR (C + ABAJO): los atrapados en el
                                                 // portal se materializan a sus pies como minions
                                                 _jprog = 1.0 - (global.player.jinnaMinionCd / JINNA_MINION_RECHARGE);
-                                                drawKeyIcon(spr_gui_jinatrap, 0, 25, global.KeyC, _jprog * 4, 250 - _mob, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
+                                                drawKeyIcon(spr_gui_jinatrap, 0, 25, global.KeyC, _jprog * 4, 250 - _ico, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
                                         }
                                         else
                                         {
                                                 var _jt = global.player.jinnaTeleCd;
                                                 _jprog = 1.0 - (_jt / JINNA_TELEPORT_RECHARGE);
                                                 var _jteleAct = global.player.jinnaTeleWindup > 0;
-                                                drawKeyIcon(spr_gui_jinateleport, 0, 25, global.KeyC, _jprog * 4, 250 - _mob, (_jprog >= 1.0 || _jteleAct) ? c_white : c_red, _jteleAct ? 1 : _jprog, 0);
+                                                drawKeyIcon(spr_gui_jinateleport, 0, 25, global.KeyC, _jprog * 4, 250 - _ico, (_jprog >= 1.0 || _jteleAct) ? c_white : c_red, _jteleAct ? 1 : _jprog, 0);
                                         }
 
                                         // v4 — V: DOS modos con enfriamientos INDEPENDIENTES
@@ -296,13 +304,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                                                 // MODO TRAMPA (V + ABAJO): icono del portal
                                                 // trampa (spr_gui_jinatrap) y SU recarga propia
                                                 _jprog = 1.0 - (global.player.jinnaTrapCd / JINNA_TRAP_RECHARGE);
-                                                drawKeyIcon(spr_gui_jinatrap, 0, 32, global.KeyV, 44 + _jprog * 10, 250 - _mob, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
+                                                drawKeyIcon(spr_gui_jinatrap, 0, 32, global.KeyV, 44 + _jprog * 10, 250 - _ico, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
                                         }
                                         else
                                         {
                                                 // MODO AGARRE (V sola): garra del mod
                                                 _jprog = 1.0 - (global.player.jinnaGrabCd / JINNA_GRAB_RECHARGE);
-                                                drawKeyIcon(spr_gui_jinagrub, 0, 26, global.KeyV, 44 + _jprog * 10, 250 - _mob, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
+                                                drawKeyIcon(spr_gui_jinagrub, 0, 26, global.KeyV, 44 + _jprog * 10, 250 - _ico, _jprog >= 1.0 ? c_white : c_red, _jprog, 0);
                                         }
                                         break;
                                 }
@@ -314,30 +322,30 @@ if(instance_exists(global.player) && !global.player.isDead)
                 case CHARACTER_TAILS: //tails
                 {
                         var prog = (min(global.player.flyTimer, 0) / -420.0);
-                        drawKeyIcon(spr_gui_tailsfly, scr_esbirro_hud(global.player), 26, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_tailsfly, scr_esbirro_hud(global.player), 26, global.KeyA, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         // v4.3: la X horneada y el texto (hold) de este sprite se recortan
                         // (el misil ocupa las filas 0-10) y el texto se redibuja dinamico.
                         var val = scr_esbirro_hud(global.player) ? ETAILS_ATTACK_RECHARGE : TAILS_ATTACK_RECHARGE;
                         prog = 1.0 - (global.player.attackTimer / val);
                         var _tcol = prog == 1.0 ? c_white : c_red;
-                        draw_sprite_part_ext(spr_gui_tailsattack, 0, 0, 0, 25, 11, prog * 12, 250 - _mob, 1, 1, _tcol, prog);
+                        draw_sprite_part_ext(spr_gui_tailsattack, 0, 0, 0, 25, 11, prog * 12, 250 - _ico, 1, 1, _tcol, prog);
 
                         // v5.5: tecla y "(hold)" tambien en Android (mismo
                         // criterio que drawKeyIcon)
-                        scr_text_spr(prog * 12 + 27, 250 - _mob + 2, scr_controls_keycode_to_key(global.KeyB), _tcol, prog);
-                        scr_text_spr(prog * 12 + 3, 250 - _mob + 12, "(hold)", _tcol, prog);
+                        scr_text_spr(prog * 12 + 27, 250 - _ico + 2, scr_controls_keycode_to_key(global.KeyB), _tcol, prog);
+                        scr_text_spr(prog * 12 + 3, 250 - _ico + 12, "(hold)", _tcol, prog);
                         break;
                 }
 
                 case CHARACTER_KNUX:
                 {
                         var prog = 1.0 - (min(global.player.glideTimer, KNUX_GLIDE_RECHARGE) / KNUX_GLIDE_RECHARGE);
-                        drawKeyIcon(spr_gui_knuxglide, scr_esbirro_hud(global.player), 23, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_knuxglide, scr_esbirro_hud(global.player), 23, global.KeyA, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         var val = scr_esbirro_hud(global.player) ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
                         prog = 1.0 - (min(global.player.attackTimer, val) / val);
-                        drawKeyIcon(spr_gui_knuxattack, 0, 19, global.KeyB, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_knuxattack, 0, 19, global.KeyB, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
 
@@ -350,61 +358,72 @@ if(instance_exists(global.player) && !global.player.isDead)
                 case CHARACTER_ROUGE:
                 {
                         var prog = (min(global.player.flyTimer, 0) / -ROUGE_FLY_RECHARGE);
-                        drawKeyIcon(spr_gui_rougeglide, 0, 23, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_rougeglide, 0, 23, global.KeyA, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (min(global.player.attackTimer, ROUGE_ATTACK_RECHARGE) / ROUGE_ATTACK_RECHARGE);
-                        drawKeyIcon(spr_gui_rougeattack, 0, 19, global.KeyB, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_rougeattack, 0, 19, global.KeyB, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
 
-                // v5 (KRIS): ESPADA (X) + ESCUDO (C, patron parry: el relleno
-                // muestra el CD que falta y blanco = listo Y en tierra, que
-                // es donde se puede usar). Sin version exe (jamas se
-                // demoniza). Iconos: los propios si existen (spr_gui_krisattack
-                // / spr_gui_krisshield); si no, la espada reusa el generico
-                // del ataque de Amy (patron Sonic) y el escudo no se dibuja
-                // (pero tampoco crashea, patron parry/spindash).
+                // v5/v2 (KRIS): DOBLE SALTO (Z aire) + ESPADA (X) + ESCUDO
+                // (C, patron parry: el relleno muestra el CD que falta y
+                // blanco = listo Y en tierra). Sin version exe (jamas se
+                // demoniza). Iconos: los propios si existen; si no,
+                // placeholders SIEMPRE VISIBLES (v2, pedido: "el escudo le
+                // hace falta su icono de habilidad que no sale"):
+                //   doble salto -> jetpack de Eggman (spr_gui_krisdjump)
+                //   espada      -> ataque de Amy (spr_gui_krisattack)
+                //   escudo      -> escudo de Eggman (spr_gui_krisshield)
                 case CHARACTER_KRIS:
                 {
+                        var _krisDjIcon = asset_get_index("spr_gui_krisdjump");
+                        if(is_undefined(_krisDjIcon) || _krisDjIcon < 0)
+                                _krisDjIcon = spr_gui_eggdjump;
+
+                        var _kprog0 = 1.0 - (max(global.player.djumpRecharge, 0) / KRIS_DJUMP_RECHARGE);
+                        drawKeyIcon(_krisDjIcon, 0, 20, global.KeyA, _kprog0 * 10, 222 - _ico, _kprog0 == 1.0 ? c_white : c_red, _kprog0, 0);
+
                         var _krisAtkIcon = asset_get_index("spr_gui_krisattack");
                         if(is_undefined(_krisAtkIcon) || _krisAtkIcon < 0)
                                 _krisAtkIcon = spr_gui_amyattack;
 
                         var _kprog1 = 1.0 - (min(max(global.player.attackTimer, 0), KRIS_ATTACK_RECHARGE) / KRIS_ATTACK_RECHARGE);
-                        drawKeyIcon(_krisAtkIcon, 0, 23, global.KeyB, _kprog1 * 10, 240 - _mob, _kprog1 == 1.0 ? c_white : c_red, _kprog1, 0);
+                        drawKeyIcon(_krisAtkIcon, 0, 23, global.KeyB, _kprog1 * 10, 240 - _ico, _kprog1 == 1.0 ? c_white : c_red, _kprog1, 0);
 
+                        // v2: el escudo SIEMPRE se dibuja — placeholder el
+                        // escudo de Eggman hasta que exista spr_gui_krisshield
                         var _krisShIcon = asset_get_index("spr_gui_krisshield");
-                        if(!is_undefined(_krisShIcon) && _krisShIcon >= 0)
-                        {
-                                var _kmax = max(global.player.parryCooldownMax, 1);
-                                var _kprog2 = 1.0 - (max(global.player.parryCooldown, 0) / _kmax);
-                                var _kready = (_kprog2 >= 1.0 && global.player.isGrounded) ? c_white : c_red;
-                                drawKeyIcon(_krisShIcon, 0, 19, global.KeyC, _kprog2 * 10, 258 - _mob, _kready, _kprog2, 0);
-                        }
+                        if(is_undefined(_krisShIcon) || _krisShIcon < 0)
+                                _krisShIcon = spr_gui_eggshield;
+
+                        var _kmax = max(global.player.parryCooldownMax, 1);
+                        var _kprog2 = 1.0 - (max(global.player.parryCooldown, 0) / _kmax);
+                        var _kready = (_kprog2 >= 1.0 && global.player.isGrounded) ? c_white : c_red;
+                        drawKeyIcon(_krisShIcon, 0, 20, global.KeyC, _kprog2 * 10, 258 - _ico, _kready, _kprog2, 0);
                         break;
                 }
 
                 case CHARACTER_EGGMAN:
                 {
                         var prog = 1.0 - (max(global.player.djumpRecharge, 0) / EGGMAN_DJUMP_RECHARGE);
-                        drawKeyIcon(spr_gui_eggdjump, 0, 20, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_eggdjump, 0, 20, global.KeyA, prog * 10, 222 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.shieldRechrage, 0) / EGGMAN_SHIELD_RECHARGE);
-                        drawKeyIcon(spr_gui_eggshield, 0, 20, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_eggshield, 0, 20, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.trackerRecharge, 0) / EGGMAN_TRACKER_RECHARGE);
-                        drawKeyIcon(spr_gui_eggtrack, 0, 38, global.KeyC, prog * 10, 258 - _mob, (global.player.isColliding && prog == 1.0) ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_eggtrack, 0, 38, global.KeyC, prog * 10, 258 - _ico, (global.player.isColliding && prog == 1.0) ? c_white : c_red, prog, 0);
                         break;
                 }
 
                 case CHARACTER_AMY:
                 {
                         var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_BIGJUMP_RECHARGE);
-                        drawKeyIcon(spr_gui_amyhjump, 0, 32, global.KeyA, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_amyhjump, 0, 32, global.KeyA, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         var val = scr_esbirro_hud(global.player) ? KNUX_EXEATTACK_RECHARGE : KNUX_ATTACK_RECHARGE;
                         prog = 1.0 - (max(global.player.attackTimer, 0) / val);
-                        drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
 
@@ -414,7 +433,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 // muestra el CD; blanco = listo Y en el suelo (espejo del icono 3).
                                 var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_CANON_BIGJUMP_RECHARGE);
                                 var b1 = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
-                                drawKeyIcon(spr_gui_amyhjump_canon, 0, 32, global.KeyA, prog * 10, 222 - _mob, b1, prog, 0);
+                                drawKeyIcon(spr_gui_amyhjump_canon, 0, 32, global.KeyA, prog * 10, 222 - _ico, b1, prog, 0);
 
                                 // Icono 2: IMPULSO AEREO DE TAROT (tecla X, SOLO en el aire).
                                 // El relleno muestra el CD; blanco = lista Y en el aire
@@ -422,14 +441,14 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 var val = scr_esbirro_hud(global.player) ? AMY_CANON_ETAROTDASH_RECHARGE : AMY_CANON_TAROTDASH_RECHARGE;
                                 prog = 1.0 - (max(global.player.attackTimer, 0) / val);
                                 var b2 = (prog == 1.0 && !global.player.isGrounded) ? c_white : c_red;
-                                drawKeyIcon(spr_gui_amyattack_canon, 0, 23, global.KeyB, prog * 10, 240 - _mob, b2, prog, 0);
+                                drawKeyIcon(spr_gui_amyattack_canon, 0, 23, global.KeyB, prog * 10, 240 - _ico, b2, prog, 0);
 
                         // Icono 3: ACOMETIDA DE MARTILLO (tecla C). v4.3: la C ya no esta
                         // horneada: se dibuja la tecla real de special2.
                         val = scr_esbirro_hud(global.player) ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
                         prog = 1.0 - (max(global.player.dashTimer, 0) / val);
                         var b = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
-                        drawKeyIcon(spr_gui_amydash_canon, 0, 23, global.KeyC, prog * 10, 258 - _mob, b, prog, 0);
+                        drawKeyIcon(spr_gui_amydash_canon, 0, 23, global.KeyC, prog * 10, 258 - _ico, b, prog, 0);
 
                         // Icono 4: PARRY (tecla V, v4.0). Mismas fijaciones que el de
                         // Sonic (estados 60/61/64). El relleno muestra el CD que falta:
@@ -451,7 +470,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 var _pmax = max(global.player.parryCooldownMax, 1);
                                 var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
                                 var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
-                                drawKeyIcon(_sprParry, 0, 19, global.KeyV, 44 + _pprog * 10, 258 - _mob, _pready, _pprog, 0);
+                                drawKeyIcon(_sprParry, 0, 19, global.KeyV, 44 + _pprog * 10, 258 - _ico, _pready, _pprog, 0);
                         }
                         break;
                 }
@@ -467,12 +486,12 @@ if(instance_exists(global.player) && !global.player.isDead)
                         var _djReady = (global.player.djTimer == 0);
                         var _djProg = _djReady ? 1.0 : (global.player.djTimer < 0 ? 0.0 : 1.0 - (global.player.djTimer / (scr_esbirro_hud(global.player) ? FW_EDJ_RECHARGE : FW_DJ_RECHARGE)));
                         var b1 = (_djReady && !global.player.isGrounded) ? c_white : c_red;
-                        drawKeyIcon(spr_gui_amydj_fw, 0, 32, global.KeyA, _djProg * 10, 222 - _mob, b1, _djProg, 0);
+                        drawKeyIcon(spr_gui_amydj_fw, 0, 32, global.KeyA, _djProg * 10, 222 - _ico, b1, _djProg, 0);
 
                         // Icono 2 (tecla B): PUÑO/PATADA. El relleno muestra el CD.
                         var val2 = scr_esbirro_hud(global.player) ? FW_EATTACK_RECHARGE : FW_ATTACK_RECHARGE;
                         var prog2 = 1.0 - (max(global.player.attackTimer, 0) / val2);
-                        drawKeyIcon(spr_gui_amyattack_fw, 0, 23, global.KeyB, prog2 * 10, 240 - _mob, prog2 == 1.0 ? c_white : c_red, prog2, 0);
+                        drawKeyIcon(spr_gui_amyattack_fw, 0, 23, global.KeyB, prog2 * 10, 240 - _ico, prog2 == 1.0 ? c_white : c_red, prog2, 0);
 
                         // Icono 3 (tecla C): BALLESTA — v2.15 («La Torre»): cargador
                         // de 3 flechas (recarga 8 s por flecha, 0,5 s entre disparos).
@@ -489,13 +508,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                         var _arrows = global.player.fwArrows;
                         var _prog3 = (global.player.revivalTimes >= 2) ? 0 : min(1.0, (_arrows + (_arrows < FW_ARROW_MAX ? 1.0 - max(global.player.fwArrowReload, 0) / FW_ARROW_RELOAD : 0)) / FW_ARROW_MAX);
                         var b3 = (global.player.revivalTimes < 2 && _arrows > 0 && global.player.crossBow <= 0) ? c_white : c_red;
-                        drawKeyIcon(spr_gui_amycrossbow_fw, 0, 23, global.KeyC, _prog3 * 10, 258 - _mob, b3, _prog3, 0);
+                        drawKeyIcon(spr_gui_amycrossbow_fw, 0, 23, global.KeyC, _prog3 * 10, 258 - _ico, b3, _prog3, 0);
 
                         // Pips de municion: un rectangulo por flecha disponible
                         draw_set_color(b3);
                         draw_set_alpha(0.9);
                         for(var _pi = 0; _pi < FW_ARROW_MAX; _pi++)
-                                draw_rectangle(2 + _pi * 7, 258 - _mob + 12, 7 + _pi * 7, 261 - _mob + 12, _pi >= _arrows);
+                                draw_rectangle(2 + _pi * 7, 258 - _ico + 12, 7 + _pi * 7, 261 - _ico + 12, _pi >= _arrows);
                         draw_set_color(c_white);
                         draw_set_alpha(1);
                         break;
@@ -518,14 +537,14 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 var _pmax = max(global.player.parryCooldownMax, 1);
                                 var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
                                 var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
-                                drawKeyIcon(_sprParry, 0, 19, global.KeyC, _pprog * 10, 222 - _mob, _pready, _pprog, 0);
+                                drawKeyIcon(_sprParry, 0, 19, global.KeyC, _pprog * 10, 222 - _ico, _pready, _pprog, 0);
                         }
 
                         // Icono (tecla X): EL GOLPE. Reutiliza el icono generico del
                         // ataque de Amy; cuando crees spr_gui_sonicattack, cambialo aqui.
                         var val = scr_esbirro_hud(global.player) ? SONIC_EATTACK_RECHARGE : SONIC_ATTACK_RECHARGE;
                         var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
-                        drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         // Icono (abajo + Z): SPINDASH. Sin cooldown: su coste es el
                         // tiempo de revolucioneo. Siempre visible: blanco = listo para
@@ -539,10 +558,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 if(global.player.isSpinCharging)
                                 {
                                         var charge = global.player.spinCharge / SONIC_SPINDASH_CHARGE_MAX;
-                                        drawKeyIcon(_sprSpindash, 0, 33, global.KeyA, charge * 10, 258 - _mob, charge >= 1.0 ? c_white : c_red, 0.4 + charge * 0.6, 0);
+                                        drawKeyIcon(_sprSpindash, 0, 33, global.KeyA, charge * 10, 258 - _ico, charge >= 1.0 ? c_white : c_red, 0.4 + charge * 0.6, 0);
                                 }
                                 else
-                                        drawKeyIcon(_sprSpindash, 0, 33, global.KeyA, 10, 258 - _mob, c_white, 1, 0);
+                                        drawKeyIcon(_sprSpindash, 0, 33, global.KeyA, 10, 258 - _ico, c_white, 1, 0);
                         }
 
                         // Icono (Z en el aire): DROP DASH (v3). Sin cooldown: su coste
@@ -559,12 +578,12 @@ if(instance_exists(global.player) && !global.player.isDead)
                         if(_sprDropdash >= 0)
                         {
                                 if(global.player.dropDashReady)
-                                        drawKeyIcon(_sprDropdash, 0, 34, global.KeyA, 54, 258 - _mob, c_white, 1, 0);
+                                        drawKeyIcon(_sprDropdash, 0, 34, global.KeyA, 54, 258 - _ico, c_white, 1, 0);
                                 else
                                 {
                                         var _ddprog = min(global.player.dropDashTimer / SONIC_DROPDASH_HOLD, 1.0);
                                         var _ddcol = (global.player.dropDashFromJump && !global.player.isGrounded) ? c_white : c_red;
-                                        drawKeyIcon(_sprDropdash, 0, 34, global.KeyA, 44 + _ddprog * 10, 258 - _mob, _ddcol, 0.4 + _ddprog * 0.6, 0);
+                                        drawKeyIcon(_sprDropdash, 0, 34, global.KeyA, 44 + _ddprog * 10, 258 - _ico, _ddcol, 0.4 + _ddprog * 0.6, 0);
                                 }
                         }
                         break;
@@ -572,13 +591,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                 case CHARACTER_CREAM:
                 {
                         var prog = 1.0 - (max(global.player.flyTimer, 0) / CREAM_FLY_RECHARGE);
-                        drawKeyIcon(spr_gui_creamfly, scr_esbirro_hud(global.player), 25, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_creamfly, scr_esbirro_hud(global.player), 25, global.KeyA, prog * 10, 222 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
-                        drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.ringsTimer, 0) / (scr_esbirro_hud(global.player) ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
-                        drawKeyIcon(spr_gui_creamrings, scr_esbirro_hud(global.player), 21, global.KeyC, prog * 10, 257 - _mob, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_creamrings, scr_esbirro_hud(global.player), 21, global.KeyC, prog * 10, 257 - _ico, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
 
@@ -587,13 +606,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // VANILLA: mismas habilidades que Cream (scr_cream_special),
                         // reusa sus iconos del HUD (vuelo Z, dash X, anillos C)
                         var prog = 1.0 - (max(global.player.flyTimer, 0) / CREAM_FLY_RECHARGE);
-                        drawKeyIcon(spr_gui_creamfly, scr_esbirro_hud(global.player), 25, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_creamfly, scr_esbirro_hud(global.player), 25, global.KeyA, prog * 10, 222 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.dashTimer, 0) / CREAM_DASH_RECHARGE);
-                        drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.ringsTimer, 0) / (scr_esbirro_hud(global.player) ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
-                        drawKeyIcon(spr_gui_creamrings, scr_esbirro_hud(global.player), 21, global.KeyC, prog * 10, 257 - _mob, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_creamrings, scr_esbirro_hud(global.player), 21, global.KeyC, prog * 10, 257 - _ico, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
 
@@ -607,10 +626,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                 case CHARACTER_METAL:
                 {
                         var prog = 1.0 - (max(global.player.dashTimer, 0) / (scr_esbirro_hud(global.player) ? EMETAL_OVERDRIVE_RECHARGE : METAL_OVERDRIVE_RECHARGE));
-                        drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_creamdash, 0, 21, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.electroTimer, 0) / (scr_esbirro_hud(global.player) ? EMETAL_ELECTRO_RECHARGE : METAL_ELECTRO_RECHARGE));
-                        drawKeyIcon(spr_gui_eggshield, 0, 20, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_eggshield, 0, 20, global.KeyC, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
 
@@ -634,10 +653,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 if(global.player.isSpinCharging)
                                 {
                                         var _charge = global.player.spinCharge / AMELIA_SPINDASH_CHARGE_MAX;
-                                        drawKeyIcon(_sprSpin, 0, 33, global.KeyA, _charge * 10, 222 - _mob, _charge >= 1.0 ? c_white : c_red, 0.4 + _charge * 0.6, 0);
+                                        drawKeyIcon(_sprSpin, 0, 33, global.KeyA, _charge * 10, 222 - _ico, _charge >= 1.0 ? c_white : c_red, 0.4 + _charge * 0.6, 0);
                                 }
                                 else
-                                        drawKeyIcon(_sprSpin, 0, 33, global.KeyA, 10, 222 - _mob, c_white, 1, 0);
+                                        drawKeyIcon(_sprSpin, 0, 33, global.KeyA, 10, 222 - _ico, c_white, 1, 0);
                         }
 
                         // Icono (tecla X): TRAMPOLIN — el resorte
@@ -645,7 +664,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // extraccion del mod de Sonic y v2.7 lo registra
                         // en el .yyp, hasta ahora jamas se uso).
                         var prog = 1.0 - (max(global.player.bananaTimer, 0) / (scr_esbirro_hud(global.player) ? EAMELIA_BANANA_RECHARGE : AMELIA_BANANA_RECHARGE));
-                        drawKeyIcon(spr_gui_sonicspring, 0, 33, global.KeyB, prog * 10, 240 - _mob, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_sonicspring, 0, 33, global.KeyB, prog * 10, 240 - _ico, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
 
                         // Icono (tecla C): TRAMPA — la trampa-oso que
                         // siempre fue suya (antes estaba en el slot X).
@@ -656,7 +675,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // (scr_amelia_special). Se corta en el guion y la
                         // tecla dinamica queda justo despues: "[trampa]-C".
                         prog = 1.0 - (max(global.player.trapTimer, 0) / (scr_esbirro_hud(global.player) ? EAMELIA_TRAP_RECHARGE : AMELIA_TRAP_RECHARGE));
-                        drawKeyIcon(spr_gui_amelia_trap, 0, 39, global.KeyC, prog * 10, 258 - _mob, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_amelia_trap, 0, 39, global.KeyC, prog * 10, 258 - _ico, (prog == 1.0 && global.player.isColliding) ? c_white : c_red, prog, 0);
                         break;
                 }
 
@@ -665,13 +684,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                 case CHARACTER_BLAZE:
                 {
                         var prog = 1.0 - (max(global.player.djumpRecharge, 0) / (scr_esbirro_hud(global.player) ? EBLAZE_DJUMP_RECHARGE : BLAZE_DJUMP_RECHARGE));
-                        drawKeyIcon(spr_gui_eggdjump, 0, 20, global.KeyA, prog * 10, 222 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_eggdjump, 0, 20, global.KeyA, prog * 10, 222 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.fireballTimer, 0) / (scr_esbirro_hud(global.player) ? EBLAZE_FIREBALL_RECHARGE : BLAZE_FIREBALL_RECHARGE));
-                        drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 240 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_amyattack, 0, 23, global.KeyB, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
 
                         prog = 1.0 - (max(global.player.burningTimer, 0) / (scr_esbirro_hud(global.player) ? EBLAZE_BURNING_RECHARGE : BLAZE_BURNING_RECHARGE));
-                        drawKeyIcon(spr_gui_sallyshield, 0, 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_sallyshield, 0, 19, global.KeyC, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
 
@@ -689,11 +708,11 @@ if(instance_exists(global.player) && !global.player.isDead)
                         if(global.player.isGrounded)
                                 b = c_red;
 
-                        drawKeyIcon(spr_gui_sallyattack, scr_esbirro_hud(global.player), 17, global.KeyB, prog * 10, 240 - _mob, b, prog, 0);
+                        drawKeyIcon(spr_gui_sallyattack, scr_esbirro_hud(global.player), 17, global.KeyB, prog * 10, 240 - _ico, b, prog, 0);
 
                         val = scr_esbirro_hud(global.player) ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE;
                         prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
-                        drawKeyIcon(spr_gui_sallyshield, scr_esbirro_hud(global.player), 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_sallyshield, scr_esbirro_hud(global.player), 19, global.KeyC, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
                 case CHARACTER_SALLY_CANON:
@@ -717,7 +736,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         if(global.player.isGrounded && !global.player.duelista)
                                 b = c_red;
 
-                        drawKeyIcon(spr_gui_sallyattack, scr_esbirro_hud(global.player), 17, global.KeyB, prog * 10, 240 - _mob, b, prog, 0);
+                        drawKeyIcon(spr_gui_sallyattack, scr_esbirro_hud(global.player), 17, global.KeyB, prog * 10, 240 - _ico, b, prog, 0);
 
                         // v5.4 DUELISTA: icono del SPINDASH (abajo + Z), mismo
                         // patron que el de Sonic/Amelia (reusa su icono; sin
@@ -732,10 +751,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         if(global.player.isSpinCharging)
                                         {
                                                 var _charge = global.player.spinCharge / SALLY_CANON_SPINDASH_CHARGE_MAX;
-                                                drawKeyIcon(_sprSpin, 0, 33, global.KeyA, _charge * 10, 222 - _mob, _charge >= 1.0 ? c_white : c_red, 0.4 + _charge * 0.6, 0);
+                                                drawKeyIcon(_sprSpin, 0, 33, global.KeyA, _charge * 10, 222 - _ico, _charge >= 1.0 ? c_white : c_red, 0.4 + _charge * 0.6, 0);
                                         }
                                         else
-                                                drawKeyIcon(_sprSpin, 0, 33, global.KeyA, 10, 222 - _mob, c_white, 1, 0);
+                                                drawKeyIcon(_sprSpin, 0, 33, global.KeyA, 10, 222 - _ico, c_white, 1, 0);
                                 }
                         }
 
@@ -743,14 +762,102 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // que la vanilla) — la barra del icono usa SU macro.
                         val = SALLY_CANON_SHIELD_RECHARGE;
                         prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
-                        drawKeyIcon(spr_gui_sallyshield, scr_esbirro_hud(global.player), 19, global.KeyC, prog * 10, 258 - _mob, prog == 1.0 ? c_white : c_red, prog, 0);
+                        drawKeyIcon(spr_gui_sallyshield, scr_esbirro_hud(global.player), 19, global.KeyC, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
                         break;
                 }
         }
 
+        // v8 (BARRA DE VIDA DE PANTALLA, REUBICADA) — pedido: "como ese
+        // TD2DR que tiene un sistema de barra de vida" (referencia GameJolt
+        // td2drUR/938171). v6 la ponia encima de los iconos; v8 la baja al
+        // RINCÓN INFERIOR IZQUIERDO, pegada a la tira del equipo que dibuja
+        // obj_level (y=268, tiles de 242 a 268): retrato A UN LADO de la
+        // barra (centrados en vertical, como en la referencia — el retrato
+        // NO va por encima) y misma posición en PC y Android (abajo es
+        // abajo, sin _mob). Con los iconos ya arriba (v8) el rincón queda
+        // libre en las dos plataformas y NUNCA choca con la tira del equipo
+        // por muchos jugadores que haya (el bloque ocupa 222-240 y la tira
+        // empieza en 242).
+        // 1 px = 1 HP (patron de la barrita nega de abajo); el "+NN" usa
+        // la micro-fuente del HUD (el '+' es el frame 77 de spr_letter1).
+        // SOLO supervivientes vivos: mismo gate que la carga nega (el EXE
+        // no tiene vida que mirar y el esbirro tiene su HUD propio). La
+        // barra de sprite SOBRE LA CABEZA no se toca: esa es la que ven
+        // los demas sobre tu personaje (la dibuja el puppet); esta es la
+        // tuya, fija en pantalla.
+        if(global.character != CHARACTER_EXE && global.player.revivalTimes < 2 && global.player.hp > 0)
+        {
+                var _hbY = 222; // bloque de 18 px (222-240) justo encima de la tira del equipo (242-268)
+
+                // retrato del menu (el mismo del lobby); Kris usa el
+                // placeholder de Knux hasta que exista spr_menu_kris
+                var _por = spr_menu_knux;
+                switch(global.character)
+                {
+                        case CHARACTER_KRIS: _por = asset_get_index("spr_menu_kris"); if(is_undefined(_por) || _por < 0) _por = spr_menu_knux; break;
+                        case CHARACTER_TAILS: _por = spr_menu_tails; break;
+                        case CHARACTER_KNUX: _por = spr_menu_knux; break;
+                        case CHARACTER_EGGMAN: _por = spr_menu_egg; break;
+                        case CHARACTER_AMY: _por = spr_menu_amy; break;
+                        case CHARACTER_CREAM: _por = spr_menu_cream; break;
+                        case CHARACTER_SALLY: _por = spr_menu_sally; break;
+                        case CHARACTER_AMY_CANON: _por = spr_menu_amy_canon; break;
+                        case CHARACTER_SONIC: _por = spr_menu_sonic_canon; break;
+                        case CHARACTER_SALLY_CANON: _por = spr_menu_sallycanon; break;
+                        case CHARACTER_VANILLA: _por = spr_menu_vanilla; break;
+                        case CHARACTER_METAL: _por = spr_menu_metal; break;
+                        case CHARACTER_AMELIA: _por = spr_menu_amelia; break;
+                        case CHARACTER_BLAZE: _por = spr_menu_blaze; break;
+                        case CHARACTER_FLEETWAY_AMY: _por = spr_menu_amy_fw; break;
+                        case CHARACTER_ROUGE: _por = spr_menu_rouge; break;
+                }
+
+                // caja del avatar: fondo negro + marco blanco (18x18), pegada
+                // al borde izquierdo como en la referencia (los iconos ya no
+                // viven en esta esquina: subieron arriba en la v8)
+                draw_set_color(c_black);
+                draw_rectangle(2, _hbY, 19, _hbY + 17, false);
+                draw_set_color(c_white);
+                draw_rectangle(2, _hbY, 19, _hbY + 17, true);
+
+                // retrato centrado con 2 px de aire (draw_sprite_pos: no
+                // depende del origen que tenga el sprite del menu)
+                var _psc = min(14 / sprite_get_width(_por), 14 / sprite_get_height(_por));
+                var _pw = sprite_get_width(_por) * _psc;
+                var _ph = sprite_get_height(_por) * _psc;
+                var _ppx = round(2 + (18 - _pw) / 2);
+                var _ppy = round(_hbY + (18 - _ph) / 2);
+                draw_sprite_pos(_por, 0, _ppx, _ppy, _ppx + _pw, _ppy, _ppx + _pw, _ppy + _ph, _ppx, _ppy + _ph, 1);
+
+                // barra: AL LADO del retrato (empieza en x=22), fondo negro +
+                // relleno por tramos de vida (mismos cortes 25/50 de la
+                // barrita de sobre la cabeza). 1 px = 1 HP, 100 px = 100 HP
+                var _hpPct = clamp(global.player.hp / 100, 0, 1);
+                var _hpCol = c_lime;
+                if(global.player.hp < 25)
+                        _hpCol = c_red;
+                else if(global.player.hp < 50)
+                        _hpCol = c_yellow;
+
+                draw_set_color(c_black);
+                draw_rectangle(21, _hbY + 4, 124, _hbY + 13, false);
+                draw_set_color(_hpCol);
+                draw_rectangle(22, _hbY + 5, 22 + ceil(100 * _hpPct), _hbY + 12, false);
+
+                // marcas cada 25 HP (los 4 tramos clasicos de spr_hp)
+                draw_set_color(c_black);
+                for(var _t = 1; _t <= 3; _t++)
+                        draw_rectangle(22 + 25 * _t, _hbY + 5, 22 + 25 * _t, _hbY + 12, false);
+
+                // "+NN" a la derecha de la barra (micro-fuente del HUD)
+                scr_text_spr(128, _hbY + 5, "+" + string(floor(max(global.player.hp, 0))), c_white, 1);
+
+                draw_set_color(c_white);
+        }
+
         // v7 (toque negativo) — CARGA NEGATIVA DE JINNA (visible SOLO para
         // la victima, patron de la marca de debilidad de Metal Amy): una
-        // barrita morada bajo el HUD de vida que se llena con cada golpe de
+        // barrita morada sobre la barra de vida v8 que se llena con cada golpe de
         // Jina (agarre/trampa +25, golpe X +15). A 100 llega la conversion
         // instantanea a súbdito negativo (el "negatimer" de Negagen). En
         // gracia (jinnaNegaGrace, su Antinegatemper) parpadea tenue.
@@ -760,7 +867,10 @@ if(instance_exists(global.player) && !global.player.isDead)
         {
                 var _negaPct = global.player.jinnaNegaCharge / JINNA_NEGA_MAX;
                 var _negaX = 60;
-                var _negaY = 178 - _mob;
+                // v8: y fija (antes 178 - _mob: en Android quedaba fuera de
+                // pantalla). Ahora vive justo encima de la barra de vida v8
+                // (222) en las dos plataformas
+                var _negaY = 212;
                 var _negaCol = make_color_rgb(120, 40, 160); // energía negativa: violeta
                 var _negaAlpha = (variable_instance_exists(global.player.id, "jinnaNegaGrace") && global.player.jinnaNegaGrace > 0) ? 0.45 + 0.3 * sin(current_time / 90) : 0.9;
 

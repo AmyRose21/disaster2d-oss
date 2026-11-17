@@ -255,6 +255,10 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
                         server_broadcast(v->server, &pack, true);
                 }
 
+                /* v5 (KRIS): la lista FALTABA la entrada 16 — al elegir a
+                   Kris el log de abajo leia survs[CH_KRIS] FUERA DE RANGO
+                   (la consola mostraba basura tipo "?????????" e incluso
+                   podia tumbar el server leyendo un puntero invalido) */
                 const char *survs[] = {
                         "Tails",
                         "Knuckles",
@@ -270,7 +274,8 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
                         "Amelia",
                         "Blaze",
                         "Fleetway Amy",
-                        "Rouge" /* v4.4 */}; /* v2.14 */
+                        "Rouge", /* v4.4 */
+                        "Kris"}; /* v5 */
 
                 Info("%s " LOG_RST "(id %d) choses [" LOG_GRN "%s" LOG_RST "]!", v->nickname.value, v->id, survs[id]);
                 return charselect_check_state(v->server) || lobby_init(v->server);

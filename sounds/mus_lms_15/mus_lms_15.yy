@@ -10,7 +10,7 @@
   "compression":3,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":179.9987,
+  "duration":213.0431,
   "exportDir":"",
   "name":"mus_lms_15",
   "parent":{

@@ -232,7 +232,7 @@ typedef struct
         uint16_t sec[LMS_MAX_SONGS]; /* duracion de cada una (s) */
 } LmsShow;
 
-#define LMS_SHOW_COUNT 16 /* v5: era 15; la entrada de CH_KRIS es la n.o 16 */
+#define LMS_SHOW_COUNT 16
 static const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {
         { CH_TAILS, 1, { 205 } },
         { CH_KNUX, 2, { 251, 140 } },
@@ -246,10 +246,10 @@ static const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {
         { CH_VANILLA, 2, { 182, 213 } },
         { CH_METAL, 1, { 216 } },
         { CH_AMELIA, 1, { 206 } },
-        { CH_BLAZE, 1, { 180 } },
+        { CH_BLAZE, 1, { 213 } },
         { CH_FLEETWAY_AMY, 1, { 216 } },
-        { CH_ROUGE, 1, { 180 } }, /* v4.4: misma cancion que Blaze (mus_lms_15) */
-        { CH_KRIS, 1, { 180 } }, /* v5: Kris — misma cancion que Rouge/Blaze */
+        { CH_ROUGE, 1, { 232 } },
+        { CH_KRIS, 1, { 232 } },
 };
 
 typedef struct

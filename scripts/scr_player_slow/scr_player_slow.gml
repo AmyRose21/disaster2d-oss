@@ -21,12 +21,13 @@ function scr_player_slow(time)
                         
                         break;
                 
-                // v6 (KRIS): stats de KNUCKLES (fisica base del moveset
-                // "el puño = espada"; su Alarm_4 restaura KNUX_*)
+                // v6 (KRIS): stats PROPIAS (su Alarm_4 restaura KRIS_*; v2:
+                // antes usaba KNUX_ACC/KNUX_MAXSPEED — casi iguales pero
+                // no exactos: KNUX_ACC 0.046835 vs KRIS_ACC 0.046875)
                 case CHARACTER_KRIS:
                         global.player.isSlow = true;
-                        global.player.acc = (KNUX_ACC * (100-40)) / 100;
-                        global.player.maxHSpeed = (KNUX_MAXSPEED * (100-40)) / 100;
+                        global.player.acc = (KRIS_ACC * (100-40)) / 100;
+                        global.player.maxHSpeed = (KRIS_MAXSPEED * (100-40)) / 100;
                         global.player.alarm[4] = 60 * time;
 
                         break;

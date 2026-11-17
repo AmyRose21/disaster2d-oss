@@ -228,6 +228,23 @@ if(!instance_exists(global.player))
         
 var globalExe = (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2);
 
+// v2 (KRIS) — RALENTIZACION POST-STUN DE LA ESPADA: pedido de la duena
+// ("stun de 3 seg y ralentizacion de 3 seg que aplicara luego de que el
+// stun expire"). La marca krisSlowCountdown la deja el bloque de stun de
+// abajo SOLO en el cliente de la victima (la autoridad de su jugador);
+// aqui cuenta atras en tiempo real y al llegar a 0 — justo cuando el
+// stun expira — aplica el slow de siempre (scr_player_slow: 40% menos
+// velocidad durante KRIS_SLOW_TIME segundos, mismo slow que la hierba/el
+// humo/las trampas de Amelia). El guard de variable lo deja inactivo en
+// los clientes donde nadie fue stuneado por Kris.
+if(variable_instance_exists(id, "krisSlowCountdown") && krisSlowCountdown > 0)
+{
+        krisSlowCountdown--;
+
+        if(krisSlowCountdown <= 0)
+                scr_player_slow(KRIS_SLOW_TIME);
+}
+
 //hack
 if((character == CHARACTER_AMY || character == CHARACTER_AMY_CANON) && state == AMY_HJUMP && image_index < 3)
         isAttacking = true;
@@ -790,6 +807,14 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 global.player.isGrounded = false;
                                 audio_play_sound(snd, 0, false);
                                 net_sound_emit(snd);
+                                
+                                // v2 (KRIS): el tajo ademas programa la RALENTIZACION —
+                                // 3 s de slow (KRIS_SLOW_TIME) que arrancan justo al
+                                // EXPIRAR este stun. La cuenta atras vive en ESTE puppet
+                                // y la aplica el bloque del inicio del Step_0 (solo en
+                                // este cliente, el de la victima, que es la autoridad).
+                                if(character == CHARACTER_KRIS)
+                                        krisSlowCountdown = stunTime * 60;
                                 
                                 // v17 (VIDA REAL DEL NEGA): el stun de contacto de un
                                 // superviviente le QUITA 20 DE VIDA al subdito negativo

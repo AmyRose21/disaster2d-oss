@@ -1,11 +1,14 @@
 // =====================================================================
 //  KRIS (Deltarune) — v1. Moveset completo sobre la base Tails:
 //
-//   * Z EN EL AIRE = NADA. Kris NO vuela ni planea (regla de la
-//     duena: "literalmente dije Knuckles porque sus habilidades, el
-//     puno = espada; el no tiene glide"). Su "slot glide" lo ocupa el
-//     ESCUDO (tecla C, en tierra — ver scr_parry.gml). El Z en tierra
-//     es el salto de siempre (scr_move_basic).
+//   * Z EN EL AIRE = DOBLE SALTO (v2, pasiva de la duena: "Su pasiva
+//     cris tendra un doble salto (tipo eggman pero tendra enfriamiento").
+//     Patron JETPACK de Eggman: solo mientras SUBE de un salto
+//     (isJumping), mismo impulso (-8) y con recarga (icono del HUD con
+//     el jetpack de Eggman de placeholder). Kris sigue SIN volar ni
+//     planear (la regla de "el no vuela" queda intacta: es UN salto
+//     extra por recarga, nada de vuelo Tails ni planeo Knux).
+//     Su "slot glide" lo ocupa el ESCUDO (tecla C, tierra — scr_parry).
 //
 //   * X = ESPADA (patron puno de Knuckles / patada de Rouge): en
 //     tierra un tajo y en el aire el ataque de DOS fases:
@@ -42,6 +45,13 @@
 // ---- escudo (patron parry) ----
 #macro KRIS_BLOCK_EXITO_PER 3.5  // frames de juego por frame del sprite de exito
 #macro KRIS_BLOCK_VISION -8      // margen frontal: dx*face >= esto cuenta como "de frente"
+
+// ---- doble salto (v2, pasiva: patron jetpack de Eggman) ----
+#macro KRIS_DJUMP_RECHARGE (60 * 8) // mismo enfriamiento del jetpack de Eggman
+#macro KRIS_DJUMP_YSPEED -8         // impulso identico al del jetpack
+
+// ---- ralentizacion post-stun de la espada (v2) ----
+#macro KRIS_SLOW_TIME 3             // segundos de slow que arrancan al EXPIRAR el stun de 3 s
 
 // ---- moribunda (patron Rouge v4.5, mismos numeros) ----
 #macro KRIS_MORIBUNDA_TIME (60 * 6)  // tirado en el suelo
@@ -117,6 +127,10 @@ function scr_kris_special()
                 if(attackTimer <= 2)
                         attackTimer = 2;
 
+                // v2: sin doble salto tampoco (patron Eggman: recarga pisada)
+                if(djumpRecharge <= 2)
+                        djumpRecharge = 2;
+
                 isAttacking = false;
                 krisAtkVariant = 0;
         }
@@ -126,14 +140,30 @@ function scr_kris_special()
                 if(attackTimer <= 60 * 2)
                         attackTimer = 60 * 2;
 
+                // v2: sin doble salto tampoco (patron Eggman)
+                if(djumpRecharge <= 60 * 2)
+                        djumpRecharge = 60 * 2;
+
                 isAttacking = false;
                 krisAtkVariant = 0;
         }
 
-        // ---------------- Z EN EL AIRE: NADA ----------------
-        // Kris (Deltarune) no vuela ni planea: NO hay vuelo patron Tails ni
-        // planeo patron Knux en el slot Z aereo. Su "slot glide" es el
-        // ESCUDO (tecla C, en tierra): ver scr_parry_step en scr_parry.gml.
+        // ---------------- Z EN EL AIRE: DOBLE SALTO (v2, patron Eggman) ----------------
+        // Kris NO vuela ni planea (regla intacta): es UN salto extra en
+        // el aire, patron JETPACK de Eggman — solo mientras sube de un
+        // salto (isJumping; caerse de una plataforma NO cuenta), misma
+        // fuerza (-8) y con enfriamiento (KRIS_DJUMP_RECHARGE). El icono
+        // del HUD usa el jetpack de Eggman de placeholder.
+        if(global.playerControls && keyboard_check_pressed(global.KeyA) && isJumping && djumpRecharge == 0)
+        {
+                isJumping = false;
+                yspd = KRIS_DJUMP_YSPEED;
+
+                audio_play_sound(snd_jump, 0, false);
+                net_sound_emit(snd_jump);
+
+                djumpRecharge = KRIS_DJUMP_RECHARGE;
+        }
 
         // ---------------- ESPADA (tecla X) ----------------
         if(global.playerControls && keyboard_check_pressed(global.KeyB) && attackTimer <= 0 && !isAttacking)
@@ -183,6 +213,10 @@ function scr_kris_special()
 
         if(attackTimer > 0)
                 attackTimer--;
+
+        // v2: recarga del doble salto (el HUD la pinta como el jetpack)
+        if(djumpRecharge > 0)
+                djumpRecharge--;
 }
 
 // =====================================================================
