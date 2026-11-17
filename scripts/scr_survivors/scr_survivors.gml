@@ -1413,17 +1413,18 @@ if(array_length(global.sonicAtkAireNega) == 0)
 //   Un sprite que NO este en la lista usa la caida clasica de siempre
 //   (fallback seguro: ni errores ni cambios para personajes sin configurar).
 global.fallAnims = [
-        [spr_metal_fall,        0, 1, 1, 1, 0.15], // Metal Sonic
-        [spr_emetal_fall,       0, 1, 1, 1, 0.15], // Metal Sonic (demonizado)
-        [spr_blaze_fall,        0, 1, 1, 1, 0.15], // Blaze
-        [spr_eblaze_fall,       0, 1, 1, 1, 0.15], // Blaze (demonizada)
-        [spr_sally_fall_canon,  0, 1, 4, 1, 0.15], // SALLY_CANON
-        [spr_amelia_fall,       0, 1, 1, 1, 0.15], // AMELIA
-        [spr_eamelia_fall,      0, 1, 1, 1, 0.15], // AMELIA (demonizado)
-        [spr_metalnega_fall,    0, 1, 1, 1, 0.15], // Metal Sonic (nega)
-        [spr_blazenega_fall,     0, 1, 1, 1, 0.15], // Blaze (nega)
-        [spr_sallynega_fall_canon, 0, 1, 4, 1, 0.15], // SALLY_CANON (nega)
-        [spr_amelianega_fall,    0, 1, 1, 1, 0.15]  // AMELIA (nega)
+        [spr_metal_fall,            0, 1, 1, 1, 0.15], // Metal Sonic
+        [spr_emetal_fall,           0, 1, 1, 1, 0.15], // Metal Sonic (demonizado)
+        [spr_blaze_fall,            0, 1, 1, 1, 0.15], // Blaze
+        [spr_eblaze_fall,           0, 1, 1, 1, 0.15], // Blaze (demonizada)
+        [spr_sally_fall_canon,      0, 1, 4, 1, 0.15], // SALLY_CANON
+        [spr_amelia_fall,           0, 1, 1, 1, 0.15], // AMELIA
+        [spr_eamelia_fall,          0, 1, 1, 1, 0.15], // AMELIA (demonizado)
+        [spr_metalnega_fall,        0, 1, 1, 1, 0.15], // Metal Sonic (nega)
+        [spr_blazenega_fall,        0, 1, 1, 1, 0.15], // Blaze (nega)
+        [spr_sallynega_fall_canon,  0, 1, 4, 1, 0.15], // SALLY_CANON (nega)
+        [spr_amelianega_fall,       0, 1, 1, 1, 0.15], // AMELIA (nega)
+        [spr_kris_fall,             0, 1, 1, 1, 0.15]  // KRIS
 ];
 
 // La llama el case FALL del Draw_76 del personaje: busca el sprite en

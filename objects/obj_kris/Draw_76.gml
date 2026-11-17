@@ -105,7 +105,7 @@ switch(state)
                 break;
 
         case HURT:
-                image_speed = 0;
+                image_speed = 1;
                 image_index = 0;
                 break;
 
@@ -119,13 +119,14 @@ switch(state)
                 break;
 
         case FALL:
-                // Kris trae 2 frames de caida (subida/bajada, patron Rouge/Knux)
-                image_index = yspd > 0 ? 1 : 0;
+                // (MUELLES): frames de subida/bajada configurados con la
+                // Suite (global.fallAnims en scr_survivors.gml)
+                scr_fall_anim();
                 break;
 
         case RUN:
         case JUMP:
-                image_speed = max(abs(xspd) / 20, 0.5);
+                image_speed = 1;
                 break;
 
         case DEAD:
@@ -155,7 +156,7 @@ switch(state)
                 break;
 
         case SPIN:
-                image_speed = abs(xspd) / 5;
+                image_speed = 1;
                 break;
 
         case EMOTION1:

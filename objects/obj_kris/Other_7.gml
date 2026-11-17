@@ -40,4 +40,16 @@ switch(state)
 			emotion = false;
 		}
 		break;
-}
+
+	case JUMP:
+		image_index = image_number - 1;
+		break;
+	
+	case HURT:
+		image_index = image_number - 1;
+		break;
+	
+	case SPIN:
+		image_index = image_number - 1;
+		break;
+	}

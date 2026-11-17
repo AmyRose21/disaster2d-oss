@@ -21,8 +21,8 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 // Personajes reservados (Amy Canon / Sally Canon):
                 // quien no puede usarlos no pasa por sus slots al ciclar
                 // (ver scr_char_locked). El while salta varios seguidos.
-                // v4.4: el tope ahora es Rouge (15 supervivientes).
-                while(selected >= CHARACTER_TAILS && selected <= CHARACTER_ROUGE && scr_char_locked(selected))
+                // v5: el tope ahora es Kris (16 supervivientes).
+                while(selected >= CHARACTER_TAILS && selected <= CHARACTER_KRIS && scr_char_locked(selected))
                         selected--;
                 
                 if(obj_netclient.exeId == master_id)
@@ -54,8 +54,8 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                         if(selected < 1)
                         {
                                 // wrap: entra por el ultimo slot VISIBLE
-                                // (v4.4: tope Rouge)
-                                selected = CHARACTER_ROUGE;
+                                // (v5: tope Kris)
+                                selected = CHARACTER_KRIS;
                                 while(selected >= CHARACTER_TAILS && scr_char_locked(selected))
                                         selected--;
                         }
@@ -69,8 +69,8 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 selected++;
 
                 // Personajes reservados: se saltan por completo al ciclar
-                // (ver scr_char_locked). v4.4: tope Rouge.
-                while(selected <= CHARACTER_ROUGE && scr_char_locked(selected))
+                // (ver scr_char_locked). v5: tope Kris.
+                while(selected <= CHARACTER_KRIS && scr_char_locked(selected))
                         selected++;
                 
                 if(obj_netclient.exeId == master_id)
@@ -90,7 +90,7 @@ if(obj_lobby.state == 2 && obj_netclient.nid == master_id && !isSelected)
                 }
                 else
                 {
-                        if(selected > CHARACTER_ROUGE)
+                        if(selected > CHARACTER_KRIS)
                                 selected = 1;
                 }
                         
