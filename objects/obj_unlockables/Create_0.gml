@@ -290,6 +290,14 @@ if(!ds_map_exists(palettes, CHARACTER_ROUGE))
 if(!ds_map_exists(palettes, CHARACTER_ROUGE + PALETTE_DEMON))
         palettes[? CHARACTER_ROUGE + PALETTE_DEMON] = { name: "default", custom: false, character: CHARACTER_ROUGE + PALETTE_DEMON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
 
+// v5 — Kris: paleta default (normal + demon, el demon SOLO por
+// defensa: jamas se demoniza — regla de la duena)
+if(!ds_map_exists(palettes, CHARACTER_KRIS))
+        palettes[? CHARACTER_KRIS] = { name: "default", custom: false, character: CHARACTER_KRIS, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
+
+if(!ds_map_exists(palettes, CHARACTER_KRIS + PALETTE_DEMON))
+        palettes[? CHARACTER_KRIS + PALETTE_DEMON] = { name: "default", custom: false, character: CHARACTER_KRIS + PALETTE_DEMON, from: [ 0, 0, 0, 0 ], to: [ 0, 0, 0, 0 ] };
+
 // Metal Amy (killer, EXE_METALAMY = 4): paleta exe. La key del mapa es
 // EXE_METALAMY + PALETTE_EXE (patron de los otros killers).
 if(!ds_map_exists(palettes, EXE_METALAMY + PALETTE_EXE))

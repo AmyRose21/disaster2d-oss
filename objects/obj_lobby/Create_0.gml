@@ -29,13 +29,16 @@ chars =
         spr_menu_blaze, // 12: Blaze
         spr_menu_amy_fw, // 13: Fleetway Amy (v2.14)
         spr_menu_rouge, // 14: Rouge (v4.4)
-        // killers (offset CHARACTER_ROUGE = 15)
+        spr_menu_knux, // 15: Kris (v5) — retrato PLACEHOLDER de Knuckles
+                       // (pedido de la duena; mismo criterio que Rouge
+                       // reusando la fila de Knuckles en el HUD)
+        // killers (offset CHARACTER_KRIS = 16)
         spr_menu_exe,
         spr_menu_chaos,
         spr_menu_exetior,
         spr_menu_exeller,
-        spr_menu_metalamy, // 17: Metal Amy (v2.2)
-        spr_menu_jinna, // 18: Jinna (v1, D.I.B.)
+        spr_menu_metalamy, // 18: Metal Amy (v2.2)
+        spr_menu_jinna, // 19: Jinna (v1, D.I.B.)
 ];
 
 // Vote

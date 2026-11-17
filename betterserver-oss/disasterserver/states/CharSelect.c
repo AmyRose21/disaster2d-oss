@@ -171,7 +171,7 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
                 id--; // id - 1
 
                 AssertOrDisconnect(v->server, id >= 0);
-                AssertOrDisconnect(v->server, id <= CH_ROUGE);
+                AssertOrDisconnect(v->server, id <= CH_KRIS); /* v5: hasta Kris */
 
                 /* Amy Canon: personaje RESERVADO. Solo el jugador con el
                    token valido (CLIENT_AMY_AUTH, ver states/Server.c)
@@ -348,7 +348,7 @@ bool charselect_init(int8_t map, Server *server)
         server->lobby.exe_practice = false; /* [practica-exe-v1] */
         server->lobby.countdown_sec = g_config.charselect_time;
         server->lobby.countdown = TICKSPERSEC;
-        memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_ROUGE + 1)); /* v4.4: hasta Rouge */
+        memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_KRIS + 1)); /* v5: hasta Kris */
 
         Packet pack;
         PacketCreate(&pack, SERVER_LOBBY_EXE);
@@ -415,7 +415,7 @@ bool charselect_init_survpractice(Server *server)
         server->lobby.exe_practice = false; /* [practica-exe-v1] */
         server->lobby.countdown_sec = g_config.practice_time;
         server->lobby.countdown = TICKSPERSEC;
-        memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_ROUGE + 1)); /* v4.4: hasta Rouge */
+        memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_KRIS + 1)); /* v5: hasta Kris */
 
         Packet pack;
 
@@ -506,7 +506,7 @@ bool charselect_init_exepractice(PeerData *v)
         server->state = ST_CHARSELECT;
         server->lobby.countdown_sec = g_config.practice_time;
         server->lobby.countdown = TICKSPERSEC;
-        memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_ROUGE + 1)); /* v4.4: hasta Rouge */
+        memset(server->lobby.avail, 1, sizeof(uint8_t) * (CH_KRIS + 1)); /* v5: hasta Kris */
 
         Packet pack;
 

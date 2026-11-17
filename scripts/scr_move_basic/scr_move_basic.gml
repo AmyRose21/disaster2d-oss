@@ -779,7 +779,7 @@ function scr_move_basic()
         if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isJumping
         && (isGrounded || (coyoteTimer > 0 && yspd >= 0 && !isZipline)))
         {
-                if(global.character == CHARACTER_EXE || global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) || global.character == CHARACTER_ROUGE)
+                if(global.character == CHARACTER_EXE || global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) || global.character == CHARACTER_ROUGE || global.character == CHARACTER_KRIS)
                 {
                         if(isAttacking)
                                 return;

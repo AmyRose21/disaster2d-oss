@@ -60,6 +60,16 @@ if(!triggerSent && !obj_netclient.gameEnds && instance_exists(global.player)
                 if(global.player.moribundaState <= 0 && _hpAfter <= 0)
                         _fatal = 1;
         }
+        else if(global.character == CHARACTER_KRIS)
+        {
+                // v5 (KRIS): el UNICO JAMAS absorbible (regla de la duena:
+                // "no tendra animacion de absorcion, si no directamente
+                // pasara a actuar de manera normal"). Su flag fatal viaja
+                // SIEMPRE en 0: la trampa es dano + TP normal y su cliente
+                // resuelve la moribunda (1ra caida) o la muerte real (2da).
+                // El server parcheado (kind 0 para CH_KRIS) lo ignora igual.
+                _fatal = 0;
+        }
         else if(_hpAfter <= 0)
         {
                 // el resto: solo si su pasiva de salvacion NO lo cubre

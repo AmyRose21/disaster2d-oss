@@ -46,6 +46,26 @@
    es muerte directa. SIEMPRE AL FINAL de la lista. */
 #macro CHARACTER_ROUGE (CHARACTER_TAILS+14)
 
+/* v6 — KRIS (Deltarune; sprites spr_kris_* ya en el proyecto, origins
+   ajustados). Superviviente #16. BASE DE HABILIDADES: KNUCKLES ("el
+   puño = espada; no tiene glide"): misma fisica y patron de golpe
+   (scr_kris_special): X EN EL AIRE = tajo de espada en 2 fases
+   (air1 -> air2, hitbox +50% en la fase 2, con i-frames; en tierra X
+   no hace nada) y C EN TIERRA = BLOQUEO DEL ESCUDO (reemplaza al
+   planeo; patron parry: niega el dano de ataques del EXE que vengan
+   DEL FRENTE; de espaldas no bloquea). El ARTE DE PLACEHOLDER
+   (retrato del menu, barra de vida del HUD, icono del TAB, placa y
+   show LMS) reusa el de KNUCKLES (pedido de la duena: mismo criterio
+   que Rouge reusando su fila). REGLAS PROPIAS (la duena): es EL
+   UNICO al que Jinna NO puede ABSORBER (trampa = flujo normal kind 0:
+   dano + TP; jamas captura) y JAMAS se demoniza (muerte directa). Su
+   1ra caida es el MORIBUNDO local (patron Rouge: 6 s tirado, se
+   levanta con 40; el server jamas se entera); la 2da es MUERTE REAL
+   sin agonia. La energia negativa de Jinna TAMPOCO cala en el
+   (scr_jinna_negatouch_hit lo devuelve). SIEMPRE AL FINAL de la
+   lista. */
+#macro CHARACTER_KRIS (CHARACTER_TAILS+15)
+
 global.player_anims = ds_map_create();
 
 //Tails
@@ -445,6 +465,45 @@ global.player_anims[? CHARACTER_ROUGE] =
         spr_rouge_hurt //19 = ROUGE_MORIBUNDA (v4.5): 1ra caida, tirada 6 s
 ];
 
+// Kris (v6): layout de estados de KNUCKLES (attack2=14 / attack1=15 /
+// zipline de Tails=16 — la tirolina del mapa la cuelga con el estado
+// de Tails via scr_carry_zipline_state) + 17 = KRIS_MORIBUNDA (1ra
+// caida tirada) + 18-21 = BLOQUEO (guardia / exito tierra / exito
+// aire / fallo). El set propio tiene 13 tiras: los estados sin arte
+// propio (hurt, lookup/lookdown, emociones, balancing) reusan la tira
+// mas cercana hasta que llegue el arte:
+//   5 HURT = dead f0 (el gesto de encogerse del colapso),
+//   9/10/11 = heal (el conjuro con particulas) / continue (levantarse
+//   del suelo) / attack1_air1 (floritura de espada),
+//   14/15 = las 2 fases del TAJO AEREO de X (air1 -> air2),
+//   18 BLOCK = block_failed f0 congelado (la guardia: escudo alzado),
+//   17 MORIBUNDA = continue f0 (tumbado panza arriba, patron Rouge).
+global.player_anims[? CHARACTER_KRIS] =
+[
+        spr_kris_idle, //0
+        spr_kris_walk, //1
+        spr_kris_run, //2
+        spr_kris_jump, //3
+        spr_kris_fall, //4
+        spr_kris_dead, //5 = HURT (relevo: f0 del colapso, sin arte de dolor propio)
+        spr_kris_dead, //6
+        spr_kris_idle, //7 = LOOKUP (relevo)
+        spr_kris_idle, //8 = LOOKDOWN (relevo)
+        spr_kris_heal, //9 = EMOTION1: el conjuro con particulas
+        spr_kris_continue, //10 = EMOTION2: se tumba y se levanta
+        spr_kris_attack1_air1, //11 = EMOTION3: floritura de espada
+        spr_kris_jump, //12 (spin)
+        spr_kris_idle, //13 = BALANCING (relevo)
+        spr_kris_attack1_air1, //14 = KRIS_ATK_AIR1: tajo aereo fase 1
+        spr_kris_attack1_air2, //15 = KRIS_ATK_AIR2: tajo aereo fase 2 (hitbox +50%)
+        spr_kris_fall, //16 = TAILS_ZIPLINE (colgado de la tirolina, relevo)
+        spr_kris_continue, //17 = KRIS_MORIBUNDA: 1ra caida, f0 tumbado 6 s
+        spr_kris_block_failed, //18 = KRIS_BLOCK: guardia (f0 = escudo alzado)
+        spr_kris_block_success_ground, //19 = KRIS_BLOCK_OK_G: bloqueo de un ataque de tierra
+        spr_kris_block_success_air, //20 = KRIS_BLOCK_OK_A: bloqueo de un ataque aereo
+        spr_kris_block_failed //21 = KRIS_BLOCK_FAIL: cerro sin bloquear nada
+];
+
 global.player_eanims = ds_map_create();
 
 //Tails
@@ -828,6 +887,37 @@ global.player_eanims[? CHARACTER_ROUGE] =
         spr_erouge_hurt //19 = ROUGE_MORIBUNDA defensivo
 ];
 
+// KRIS (demonizado): JAMAS se demoniza (regla de la duena: muere
+// directo, guard canonico del server como Rouge), asi que este bloque
+// es SOLO DEFENSIVO: si algun camino viejo llegara a leerlo con
+// revivalTimes >= 2, que pinte sus sprites normales (no hay set
+// ekris_* ni hace falta: jamas ocurre).
+global.player_eanims[? CHARACTER_KRIS] =
+[
+        spr_kris_idle, //0
+        spr_kris_walk, //1
+        spr_kris_run, //2
+        spr_kris_jump, //3
+        spr_kris_fall, //4
+        spr_kris_dead, //5
+        spr_kris_dead, //6 (stun defensivo)
+        spr_kris_idle, //7
+        spr_kris_idle, //8
+        spr_kris_heal, //9
+        spr_kris_continue, //10
+        spr_kris_attack1_air1, //11
+        spr_kris_jump, //12
+        spr_kris_idle, //13
+        spr_kris_attack1_air1, //14 = KRIS_ATK_AIR1 (defensivo)
+        spr_kris_attack1_air2, //15 = KRIS_ATK_AIR2 (defensivo)
+        spr_kris_fall, //16
+        spr_kris_continue, //17 = KRIS_MORIBUNDA defensivo
+        spr_kris_block_failed, //18 = KRIS_BLOCK (defensivo)
+        spr_kris_block_success_ground, //19 = KRIS_BLOCK_OK_G (defensivo)
+        spr_kris_block_success_air, //20 = KRIS_BLOCK_OK_A (defensivo)
+        spr_kris_block_failed //21 = KRIS_BLOCK_FAIL (defensivo)
+];
+
 // =====================================================================
 //  v11 (NEGAGEN) — FORMA 2: player_negaanims. Copias NEGA de los
 //  sprites de CADA superviviente (spr_<char>nega_*: inversion pura de
@@ -1202,6 +1292,37 @@ global.player_negaanims[? CHARACTER_ROUGE] =
         spr_rougenega_hurt //19
 ];
 
+// Kris (v5): la energia negativa de Jinna NO CALA en el (regla de la
+// duena: ni esbirro, ni nega, ni minion — scr_jinna_negatouch_hit lo
+// devuelve antes de acumular carga). Este bloque es SOLO DEFENSIVO
+// contra cualquier ruta vieja que marcara isNegatouch: sus sprites
+// normales (no existe set krisnega_* ni hace falta: jamas ocurre).
+global.player_negaanims[? CHARACTER_KRIS] =
+[
+        spr_kris_idle, //0
+        spr_kris_walk, //1
+        spr_kris_run, //2
+        spr_kris_jump, //3
+        spr_kris_fall, //4
+        spr_kris_dead, //5
+        spr_kris_dead, //6
+        spr_kris_idle, //7
+        spr_kris_idle, //8
+        spr_kris_heal, //9
+        spr_kris_continue, //10
+        spr_kris_attack1_air1, //11
+        spr_kris_jump, //12
+        spr_kris_idle, //13
+        spr_kris_attack1_air1, //14 = KRIS_ATK_AIR1 (defensivo)
+        spr_kris_attack1_air2, //15 = KRIS_ATK_AIR2 (defensivo)
+        spr_kris_fall, //16
+        spr_kris_continue, //17
+        spr_kris_block_failed, //18 = KRIS_BLOCK (defensivo)
+        spr_kris_block_success_ground, //19 = KRIS_BLOCK_OK_G (defensivo)
+        spr_kris_block_success_air, //20 = KRIS_BLOCK_OK_A (defensivo)
+        spr_kris_block_failed //21 = KRIS_BLOCK_FAIL (defensivo)
+];
+
 //  SONIC: variantes dinamicas del golpe (tecla X). Cualquier sprite
 //  llamado spr_sonic_attack2_tierra<N> o spr_sonic_attack2_aereo<N>
 //  (N = 1, 2, 3...) cuenta como una variante mas: se detecta solo al
@@ -1392,6 +1513,9 @@ function player_get(ind)
 
                 case CHARACTER_ROUGE:
                         return obj_rouge;
+
+                case CHARACTER_KRIS:
+                        return obj_kris;
         }
 }
 

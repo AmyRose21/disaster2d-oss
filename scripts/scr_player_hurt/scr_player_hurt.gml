@@ -149,6 +149,64 @@ function scr_player_instakill()
                 // revivalTimes >= 1: 2da caida -> MUERTE REAL (flujo de abajo)
         }
         
+        // === MORIBUNDA (Kris v5): su UNICA salvacion, patron Rouge ===
+        // 1ra caida -> tirado 6 s (inmune a todo) y se levanta solo con
+        // 40 de vida. El server NUNCA sabe que cayo: la ronda sigue.
+        // La 2da caida cae al flujo normal de abajo: MUERTE REAL de una
+        // — el server ya lo trata como canonico (guard de Game.c):
+        // sin agonia, sin demonizarse, JAMAS. Y JAMAS absorbible por
+        // Jinna (la trampa es siempre kind 0 en el server).
+        if(global.character == CHARACTER_KRIS)
+        {
+                // dentro de la moribunda no puede "volver a caer"
+                if(global.player.moribundaState > 0)
+                        return;
+
+                if(global.player.revivalTimes < 1)
+                {
+                        with(global.player)
+                        {
+                                moribundaState = 1;
+                                moribundaTimer = KRIS_MORIBUNDA_TIME;
+                                image_index = 0;
+
+                                hp = max(hp, 0);
+                                hurttime = 0;
+                                shockedTimer = 0;
+                                isDead = false;
+                                isHurt = false;
+                                gspd = 0;
+                                xspd = 0;
+                                yspd = 0;
+                                isAttacking = false;
+                                isJumping = false;
+                                isSpinning = false;
+                                isBoosting = false;
+                                isZipline = false;
+                                isHiding = false;
+                                emotion = false;
+
+                                if(variable_instance_exists(id, "krisAtkVariant"))
+                                        krisAtkVariant = 0;
+
+                                if(isStuck)
+                                {
+                                        canMove = true;
+                                        isStuck = false;
+                                }
+
+                                // marca el "hit" del retrato (cayo 1 vez);
+                                // viaja en el paquete UDP de siempre. NUNCA
+                                // pasa de 1: no hay barra de revive.
+                                revivalTimes = 1;
+                        }
+
+                        audio_play_sound(snd_hurt, 0, false);
+                        return; // el server nunca sabe que "cayo": moribunda
+                }
+                // revivalTimes >= 1: 2da caida -> MUERTE REAL (flujo de abajo)
+        }
+        
         // === PACIENCIA / MORIBUNDA (Vanilla v2): NUNCA cae muerta ===
         // 1ra caida -> PACIENCIA: 5 s inmune; a los 2 s sale Chocola
         // desde el lado contrario de la pantalla y stunea al exe 5 s
@@ -295,6 +353,14 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         if(global.character == CHARACTER_SONIC && (global.player.nerviosState > 0 || global.player.isAttacking))
                 return;
 
+        // v5 (KRIS) — I-FRAMES DEL AIR2: la 2a fase del ataque aereo
+        // (spr_kris_attack1_air2, estado 41) blinda a Kris mientras dura
+        // su animacion (regla de la duena: "con I frame"). Solo el air2:
+        // el tajo de tierra y el air1 no protegen.
+        if(global.character == CHARACTER_KRIS && global.player.isAttacking
+        && variable_instance_exists(global.player.id, "krisAtkVariant") && global.player.krisAtkVariant == 3)
+                return;
+
         // v2.8 (reporte del usuario) — I-FRAMES EN LOS 2 ATAQUES DE METAL:
         // el OVERDRIVE y el SPARK FIELD son de contacto defensivo (su unico
         // efecto es aturdir 3 s al killer que lo toque), pero un golpe a
@@ -357,6 +423,11 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         // v4.5 — MORIBUNDA DE ROUGE: igual que Vanilla, inmune a TODO
         // mientras esta tirada (ni el exe ni el entorno le hacen nada)
         if(global.character == CHARACTER_ROUGE && global.player.moribundaState > 0)
+                return;
+
+        // v5 — MORIBUNDA DE KRIS (patron Rouge): inmune a TODO mientras
+        // esta tirado (su unica salvacion de la 1ra caida)
+        if(global.character == CHARACTER_KRIS && global.player.moribundaState > 0)
                 return;
         
         if(global.player.hurttime > 0)
@@ -819,6 +890,13 @@ function scr_weak_mark_hit(_cd = METALAMY_WEAKMARK_CD)
                         case CHARACTER_SALLY_CANON:
                                 attackTimer = (attackTimer <= 0) ? _t : attackTimer + _t;
                                 shieldRechrage = (shieldRechrage <= 0) ? _t : shieldRechrage + _t;
+                                break;
+
+                        // v5 (KRIS): espada + escudo (patron Sonic)
+                        case CHARACTER_KRIS:
+                                attackTimer = (attackTimer <= 0) ? _t : attackTimer + _t;
+                                parryCooldown = (parryCooldown <= 0) ? _t : parryCooldown + _t;
+                                parryCooldownMax = max(parryCooldownMax, parryCooldown);
                                 break;
                 }
         }

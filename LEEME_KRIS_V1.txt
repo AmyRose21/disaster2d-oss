@@ -1,0 +1,161 @@
+=====================================================================
+ KRIS v1 — EL OBJETO QUE FALTABA + TODAS SUS REGLAS
+=====================================================================
+
+FIX v1.0.1 (17-nov): COMPILACION DEL SERVER
+-------------------------------------------
+Si ya instalaste la v1.0, el server no compilaba con:
+
+  Server.h(236,22): error C2078: hay demasiados inicializadores
+  Server.h(253,1):  error C2078: hay demasiados inicializadores
+
+Causa: al anadir la entrada LMS de Kris a la tabla LMS_SHOWS esta quedo
+con 16 entradas, pero su tamano seguia clavado en 15 (me olvide de subir
+el #define). ARREGLADO en este zip. Si prefieres editarlo a mano, es UNA
+sola linea en betterserver-oss/include/Server.h, busca:
+
+    #define LMS_SHOW_COUNT 15
+
+y dejala asi (el "16" es lo unico que cambia):
+
+    #define LMS_SHOW_COUNT 16
+
+(es la linea 235, justo encima de "static const LmsShow LMS_SHOWS...").
+Con eso MSVC compila: el error salia en TODOS los .c porque Server.h se
+incluye en todas partes. Verificado con chequeo de sintaxis completo del
+header (ahora si, con enet simulado) — no hay ningun otro error escondido
+detras. Los warnings C5287 de CharSelect.c ya existian antes (mezcla de
+enums EX_*/CH_* en un ==, es solo ruido, no falla nada).
+
+EL ERROR QUE ESTE ZIP ARREGLA
+-----------------------------
+Al arrancar el juego:
+
+  ERROR in action number 1 of Create Event for object obj_lobby:
+  Variable obj_lobby.obj_kris(101403, -2147483648) not set before
+  reading it.
+   at gml_Script_player_get (line 1518) - return obj_kris;
+  gml_Script_scr_characters_sanity (line 215)
+  gml_Object_obj_lobby_Create_0 (line 68)
+
+QUE PASO (causa raiz)
+---------------------
+La Suite genero todo el CODIGO de Kris (macro CHARACTER_KRIS, anims,
+player_get, scr_char_name, lobby, carrusel...) pero el OBJETO
+obj_kris y su script scr_kris_special NUNCA se crearon ni se
+registraron en el .yyp. player_get() hace "return obj_kris;" sobre
+un recurso que no existe -> GameMaker lo compila como variable y
+revienta el sanity del lobby.
+
+QUE HACE ESTE ZIP (ademas de arreglar eso)
+------------------------------------------
+1) CREA obj_kris: clon completo de la base Tails (el placeholder que
+   pediste) SIN la cola de Tails y SIN vuelo. 8 eventos + su .yy.
+2) CREA scr_kris_special con el moveset completo:
+   * Z EN EL AIRE = NADA. Kris NO vuela ni planea (Kris de Deltarune).
+     El Z en tierra es el salto de siempre.
+   * X = ESPADA (patron puno de Knux): en tierra un tajo y en el aire
+     el ataque de DOS fases: air1 (spr_kris_attack1_air1) pasa solo a
+     air2 (spr_kris_attack1_air2) con HITBOX +50% mas ancha e
+     I-FRAMES mientras dura air2. Stun de 3 s al bando EXE por
+     contacto (igual que la patada de Rouge). Recarga 14,75 s.
+   * C = ESCUDO (patron parry de Sonic): SOLO en tierra y SOLO contra
+     lo que viene DE FRENTE o del aire hacia donde mira — un ataque de
+     ESPALDAS atraviesa el escudo y pega completo. Exito:
+     spr_kris_block_success_air si el atacante estaba en el aire /
+     _ground si estaba en tierra. La stance usa spr_kris_block_failed
+     (si algun dia creas "spr_kris_block", el codigo la usa solo).
+     Mismos cooldowns del parry (fallo 14 s / exito 7 s). SIN aura de
+     aliados: el escudo de Kris es personal (no cubre a companeros).
+3) REGLAS DE VIDAS (las que pediste):
+   * 1ra caida -> MORIBUNDA (patron Rouge): 6 s tirado, inmune a todo,
+     se levanta solo con 40 de vida. El server NUNCA se entera.
+   * 2da caida -> MUERTE REAL directa, con la X en el retrato.
+   * Kris JAMAS es absorbido por Jinna: la trampa SIEMPE es dano + TP
+     normal (sin animacion de absorcion, actua normal). El server
+     ademas lo blinda: kind 0 para Kris aunque un cliente editado
+     mande el flag fatal.
+   * Kris JAMAS se demoniza ni se convierte en subdito negativo:
+     ni acumula energia negativa (scr_jinna_negatouch ignora sus
+     golpes recibidos) y el server rechaza la conversion.
+4) INTEGRACION COMPLETA: bit PLAYER_ATTACKING (el EXE ve su espada y
+   se stunea), puppets (los demas ven la espada, el escudo y la
+   moribunda con los sprites correctos), iconos del HUD (X espada +
+   C escudo con su recarga), marca de debilidad (sus habilidades
+   entran en recarga como las de Sonic), no salta mientras pega, y el
+   clash: si un esbirro lo toca mientras pega, su espada se repele
+   igual que el puno de Knux.
+5) SERVER (betterserver): CH_KRIS en el enum (+ todos los arrays:
+   avail, bolsa LMS, etc.), acepta seleccionarlo, y los 3 guards de
+   sus reglas (no demonizar, muerte directa, trampa kind 0, no
+   negatouch). MISMA CANCION LMS que Rouge/Blaze (180).
+
+INSTALACION — OPCION A (la normal)
+----------------------------------
+Si tu proyecto esta igual que tu ultimo "up" de GitHub:
+  1. Descomprimir TODO el zip sobre la RAIZ del proyecto (la carpeta
+     que tiene scripts/, objects/ y betterserver-oss/). Acepta
+     sobreescribir el .yyp y el .resource_order.
+  2. Recompilar el cliente. El juego arranca y Kris es jugable.
+
+INSTALACION — OPCION B (si tienes cosas sin subir a GitHub)
+-----------------------------------------------------------
+En ese caso NO sobreescribas tu .yyp:
+  1. Descomprime todo MENOS "Sonicexe The Disaster 2D Remake.yyp" y
+     "...resource_order".
+  2. En GameMaker: Asset Browser -> clic derecho en
+     Objects/Player/Survivors -> "Add Existing" ->
+     objects/obj_kris/obj_kris.yy
+     Y en Scripts/Players/Specials -> "Add Existing" ->
+     scripts/scr_kris_special/scr_kris_special.yy
+  3. Guardar el proyecto y recompilar.
+
+  (Alternativa a "Add Existing": anadir a mano las 2 lineas al .yyp,
+   una justo DESPUES de la linea que nombra a obj_knux y otra tras
+   scr_knux_special, con este formato y 4 espacios de sangria:
+     {"id":{"name":"obj_kris","path":"objects/obj_kris/obj_kris.yy",},},
+     {"id":{"name":"scr_kris_special","path":"scripts/scr_kris_special/scr_kris_special.yy",},},
+   ...y para que aparezca en su carpeta, el GMFolder "Kris" tras la
+   de "Knux" — pero con Add Existing el IDE lo hace solo.)
+
+IMPRESINDIBLE: RECOMPILAR EL SERVER
+-----------------------------------
+Sin recompilar, el server VIEJO te RECHAZARA elegir a Kris (su valido
+hasta CH_ROUGE y te desconecta). Los 4 archivos ya parcheados van en
+el zip (Server.h, Lib.c, CharSelect.c, Game.c): recompila como
+siempre (compilar_server.bat / CMake) y reemplaza tu DisasterServer.
+
+CONTROLES DE KRIS
+-----------------
+  Z (tierra) = salto        Z (aire) = nada (NO vuela)
+  X = espada (tierra: tajo / aire: air1 -> air2 con i-frames)
+  C = escudo (solo en tierra, solo de frente)
+  Android: el boton C de siempre (el mismo del parry de Sonic).
+
+VALIDACION HECHA (todo automatico)
+----------------------------------
+  - .yyp: 2469 recursos, parseable, sin duplicados, +obj_kris
+    +scr_kris_special + carpeta Objects/Kris (y su orden).
+  - Balance de llaves/parentesis de los 21 archivos .gml y los 4 C.
+  - v1.0.1: sintaxis de Server.h verificada de verdad (gcc -fsyntax-only
+    con enet simulado): cero errores, y LMS_SHOWS ahora casa 16 y 16.
+  - Auditoria de assets: TODA referencia a sprites/objetos/sonidos
+    de los archivos del parche existe en el proyecto (los unicos
+    nombres "sin asset" son los OPCIONALES con fallback a proposito:
+    spr_kris_block / spr_gui_krisattack / spr_gui_krisshield).
+  - Macros KRIS_* sin colisiones con nada del proyecto.
+  - Los 13 sprites de Kris verificados en el .yyp.
+
+LO QUE FALTA (arte opcional, el codigo ya lo detecta solo)
+----------------------------------------------------------
+  * spr_kris_block: stance propia del escudo (hoy usa
+    spr_kris_block_failed como pose de guardia).
+  * spr_gui_krisattack / spr_gui_krisshield: iconos propios del HUD
+    (hoy la espada reusa el icono generico y el escudo no se dibuja).
+  * Un sprite de tajo de TIERRA propio (hoy reusa air1 en tierra).
+
+SI APARECE OTRO ERROR "not set before reading it"
+-------------------------------------------------
+Copia y pegame el error completo. Y si puedes, sube tu proyecto a
+GitHub (git push) despues de instalar esto: asi el repo queda
+sincronizado con tu Suite y los proximos parches son mas exactos.

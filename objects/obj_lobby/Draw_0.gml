@@ -108,7 +108,7 @@ else if(state == 2 || state == 3)
                 sprInd = selected - 1;
                 
                 if(obj_netclient.exeId == obj_netclient.nid)
-                        sprInd += CHARACTER_ROUGE; // v6.3: killers arrancan en chars[15] (despues de ROUGE, que se inserto en chars[14] en la v4.4 y desplazo a todos)
+                        sprInd += CHARACTER_KRIS; // v5: killers arrancan en chars[16] (despues de KRIS, que se inserto en chars[15] y desplazo a todos)
         }
         
         // Personajes reservados ocultos: ni retrato ni placa de info (doble
@@ -137,9 +137,9 @@ else if(state == 2 || state == 3)
         // v2 (D.I.B.): killer RESERVADA (Jinna, token de Amy): quien no
         // puede usarla tampoco ve su retrato ni su placa en el carrusel
         // de killers — mismo doble seguro que Amy Canon. Los killers
-        // viven en chars[CHARACTER_ROUGE..+5]: el exe es
-        // sprInd - CHARACTER_ROUGE (enum 0..5 de scr_exe).
-        if(obj_netclient.exeId == obj_netclient.nid && sprInd >= CHARACTER_ROUGE && scr_exe_locked(sprInd - CHARACTER_ROUGE))
+        // viven en chars[CHARACTER_KRIS..+5]: el exe es
+        // sprInd - CHARACTER_KRIS (enum 0..5 de scr_exe).
+        if(obj_netclient.exeId == obj_netclient.nid && sprInd >= CHARACTER_KRIS && scr_exe_locked(sprInd - CHARACTER_KRIS))
                 _amyHidden = true;
         
         if(!_amyHidden && (obj_netclient.exeId == obj_netclient.nid || scr_avchar_get(sprInd + 1)))
@@ -148,16 +148,16 @@ else if(state == 2 || state == 3)
         draw_sprite(spr_char_bars, obj_netclient.exeId == obj_netclient.nid, 0, 0);
         // Placa de info: survivors usan su frame (0-6 los originales, 11 = sonic
         // el nuevo). El HOST (EXE) usa los frames 7-10 de los killers; como su
-        // sprInd ya viene desplazado (+CHARACTER_ROUGE = +15); se le
-        // resta (CHARACTER_ROUGE - 7) = 8 para volver a los frames 7-10.
+        // sprInd ya viene desplazado (+CHARACTER_KRIS = +16); se le
+        // resta (CHARACTER_KRIS - 7) = 9 para volver a los frames 7-10.
         var _infoFrame = sprInd;
         if(obj_netclient.exeId == obj_netclient.nid)
         {
-                // killers: exe=15..jinna=20 en chars[] -> placas 7-10 + Metal Amy 15 + Jinna 16
-                _infoFrame = sprInd - (CHARACTER_ROUGE - 7);
-                if(sprInd == CHARACTER_ROUGE + 4)
+                // killers: exe=16..jinna=21 en chars[] -> placas 7-10 + Metal Amy 15 + Jinna 16
+                _infoFrame = sprInd - (CHARACTER_KRIS - 7);
+                if(sprInd == CHARACTER_KRIS + 4)
                         _infoFrame = 15; // metal amy (v2.2): su propia placa
-                if(sprInd == CHARACTER_ROUGE + 5)
+                if(sprInd == CHARACTER_KRIS + 5)
                         _infoFrame = 16; // jinna (v1 D.I.B.): su placa del mod
         }
         // [Suite TD2D v5.1] Sally Canon (8) y Vanilla (9) ya NO se remapean:
@@ -170,6 +170,10 @@ else if(state == 2 || state == 3)
                 _infoFrame = 13; // amelia (v2.2)
         else if(sprInd == 12)
                 _infoFrame = 14; // blaze (v2.2)
+        // v5 (KRIS): placa PLACEHOLDER de Knuckles (frame 1) hasta que
+        // llegue la suya — mismo criterio del retrato del menu
+        else if(sprInd == 15)
+                _infoFrame = 1; // knux
         // v2.14: Fleetway Amy (slot 13) usa su PROPIA placa independiente
         // (spr_char_info_fw, 478x40), no un frame de la tira comun.
         if(!_amyHidden)

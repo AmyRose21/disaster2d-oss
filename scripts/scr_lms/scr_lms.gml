@@ -58,6 +58,9 @@ global.lmsCharSongs[? CHARACTER_FLEETWAY_AMY] = [mus_lms_13];
 // v4.4 — Rouge: show LMS (reusa una cancion del pozo; el server
 // espeja esta entrada en LMS_SHOWS de include/Server.h)
 global.lmsCharSongs[? CHARACTER_ROUGE] = [mus_lms_15];
+// v6 — Kris: show LMS (reusa la misma cancion que Rouge/Blaze; el
+// server espeja esta entrada en LMS_SHOWS de include/Server.h)
+global.lmsCharSongs[? CHARACTER_KRIS] = [mus_lms_15];
 
 function scr_lms_play_song(ch, idx)
 {

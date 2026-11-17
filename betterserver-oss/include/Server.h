@@ -135,7 +135,17 @@ typedef struct PeerData
                    pared de Knux + patada tierra/aire de Sally. JAMAS
                    se demoniza (regla canonica): muerte directa.
                    Mismo orden que el cliente (scr_survivors.gml). */
-                CH_ROUGE
+                CH_ROUGE,
+
+                /* v5: KRIS (Deltarune, set spr_kris_* de la duena).
+                   Superviviente #16: espada (X, patron puno de Knux)
+                   + escudo (C, patron parry: solo tierra y solo de
+                   frente; sin aura de aliados). 1ra caida = MORIBUNDA
+                   (la resuelve su cliente, el server nunca se entera);
+                   2da = muerte directa. JAMAS se demoniza, JAMAS subdito
+                   negativo y JAMAS absorbible por Jinna (trampa = kind 0
+                   siempre). Mismo orden que el cliente (scr_survivors.gml). */
+                CH_KRIS
                 } surv_char;
 
         enum
@@ -186,7 +196,7 @@ typedef struct
         int8_t map;
         uint16_t exe;
         bool exe_practice; /* [practica-exe-v1]: ronda iniciada con .ep — no termina por eliminacion (solo TIME OVER / .lobby / exe se va) */
-        bool avail[CH_ROUGE + 1];
+        bool avail[CH_KRIS + 1];
 } Lobby;
 
 typedef enum
@@ -222,7 +232,7 @@ typedef struct
         uint16_t sec[LMS_MAX_SONGS]; /* duracion de cada una (s) */
 } LmsShow;
 
-#define LMS_SHOW_COUNT 15
+#define LMS_SHOW_COUNT 16 /* v5: era 15; la entrada de CH_KRIS es la n.o 16 */
 static const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {
         { CH_TAILS, 1, { 205 } },
         { CH_KNUX, 2, { 251, 140 } },
@@ -239,6 +249,7 @@ static const LmsShow LMS_SHOWS[LMS_SHOW_COUNT] = {
         { CH_BLAZE, 1, { 180 } },
         { CH_FLEETWAY_AMY, 1, { 216 } },
         { CH_ROUGE, 1, { 180 } }, /* v4.4: misma cancion que Blaze (mus_lms_15) */
+        { CH_KRIS, 1, { 180 } }, /* v5: Kris — misma cancion que Rouge/Blaze */
 };
 
 typedef struct
@@ -314,15 +325,15 @@ typedef struct Server
            "siempre la misma cancion". lms_bag_count guarda el tamaño de
            la lista con la que se relleno (si el Suite cambia la tabla,
            la bolsa se rellena sola). */
-        uint8_t lms_bag[CH_ROUGE + 1][LMS_MAX_SONGS];
-        uint8_t lms_bag_left[CH_ROUGE + 1];
-        uint8_t lms_bag_count[CH_ROUGE + 1];
+        uint8_t lms_bag[CH_KRIS + 1][LMS_MAX_SONGS];
+        uint8_t lms_bag_left[CH_KRIS + 1];
+        uint8_t lms_bag_count[CH_KRIS + 1];
 
         /* v5.3.2: ultima cancion que SONO por personaje (para el anti-eco
            entre ciclos de la bolsa: la primera extraccion tras rellenar
            no puede caer en la misma que cerro el ciclo anterior). Se
            inicializa a 0xFF en server_new (Lib.c). */
-        uint8_t lms_last[CH_ROUGE + 1];
+        uint8_t lms_last[CH_KRIS + 1];
 
         double delta;
         DyList peers;

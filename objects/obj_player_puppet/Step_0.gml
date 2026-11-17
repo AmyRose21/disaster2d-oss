@@ -300,7 +300,16 @@ var _jinnaPad = 0;
 if(character == CHARACTER_EXE && exeCharacter == EXE_JINNA && isAttacking)
         _jinnaPad = ceil((bbox_right - bbox_left) * ((global.jinnaTelePower > 0) ? JINNA_TELE_HITBOX : JINNA_ATTACK_HITBOX));
 
-if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad) || (_amyFuerzaPad > 0 && distance_to_object(global.player) <= _amyFuerzaPad) || (_scKickPad > 0 && distance_to_object(global.player) <= _scKickPad) || (_jinnaPad > 0 && distance_to_object(global.player) <= _jinnaPad))
+// v5 (KRIS) — ESPADA AEREA FASE 2 (air2, estado 41): hitbox de stuneo
+// un 50% MAS ANCHA que su bbox (regla de la duena: "una hitbox bastante
+// generosa en air2 siendo un 50% mas ancha"). Mismo mecanismo de pad
+// por distancia que el golpe de Sonic y la patada de Sally Canon. El
+// tajo de tierra y el air1 usan el contacto normal (place_meeting).
+var _krisPad = 0;
+if(character == CHARACTER_KRIS && isAttacking && state == KRIS_ATK_AIRE + 1)
+        _krisPad = ceil((bbox_right - bbox_left) * KRIS_AIR2_HITBOX);
+
+if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad) || (_amyFuerzaPad > 0 && distance_to_object(global.player) <= _amyFuerzaPad) || (_scKickPad > 0 && distance_to_object(global.player) <= _scKickPad) || (_jinnaPad > 0 && distance_to_object(global.player) <= _jinnaPad) || (_krisPad > 0 && distance_to_object(global.player) <= _krisPad))
 {
         // v5.0 LMS + FIX DJ (v2.15 arrastrado): este bloque de stun/contacto
         // exige isAttacking, pero (a) el DJ de Fleetway Amy NUNCA manda ese
@@ -322,7 +331,8 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                         {
                                 // v4.4: Rouge patea igual que Knuckles/Sally — su
                                 // golpe local tambien repele al ESBIRRO que la toca
-                                if((global.character == CHARACTER_KNUX || global.character == CHARACTER_SALLY || global.character == CHARACTER_ROUGE) && global.player.isAttacking && global.player.revivalTimes < 2)
+                                // v5: la espada de Kris tambien (patron Knuckles)
+                                if((global.character == CHARACTER_KNUX || global.character == CHARACTER_SALLY || global.character == CHARACTER_ROUGE || global.character == CHARACTER_KRIS) && global.player.isAttacking && global.player.revivalTimes < 2)
                                 {
                                         global.player.isAttacking = false;
                                         global.player.isHurt = true;
@@ -572,7 +582,8 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                         {
                                 // v4.4: Rouge patea igual que Knuckles/Sally — su
                                 // isAttacking tambien repele el contacto del esbirro
-                                if(global.player.isAttacking && (character == CHARACTER_KNUX || character == CHARACTER_SALLY || character == CHARACTER_ROUGE))
+                                // v5: la espada de Kris tambien (patron Knuckles)
+                                if(global.player.isAttacking && (character == CHARACTER_KNUX || character == CHARACTER_SALLY || character == CHARACTER_ROUGE || character == CHARACTER_KRIS))
                                 {
                                         global.player.isAttacking = false;
                                         global.player.isHurt = true;

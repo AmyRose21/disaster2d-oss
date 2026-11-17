@@ -132,6 +132,13 @@ function scr_jinna_negatouch_hit(_charge = JINNA_NEGA_CHARGE)
         if(global.character == CHARACTER_EXE || global.player.revivalTimes >= 2)
                 return false;
 
+        // v5 (KRIS): JAMAS se convierte en subdito negativo (regla de la
+        // duena: "Kris no puede ser demonizado asi que morira directamente").
+        // Ni siquiera acumula carga: los golpes de Jinna le hacen su dano
+        // normal (-> moribunda en la 1ra caida, muerte real en la 2da).
+        if(global.character == CHARACTER_KRIS)
+                return false;
+
         // la carga se declara lazy (patrón weakMarkCd: sin tocar el
         // Create de los ~13 supervivientes)
         if(!variable_instance_exists(global.player.id, "jinnaNegaCharge"))

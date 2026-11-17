@@ -357,6 +357,33 @@ if(instance_exists(global.player) && !global.player.isDead)
                         break;
                 }
 
+                // v5 (KRIS): ESPADA (X) + ESCUDO (C, patron parry: el relleno
+                // muestra el CD que falta y blanco = listo Y en tierra, que
+                // es donde se puede usar). Sin version exe (jamas se
+                // demoniza). Iconos: los propios si existen (spr_gui_krisattack
+                // / spr_gui_krisshield); si no, la espada reusa el generico
+                // del ataque de Amy (patron Sonic) y el escudo no se dibuja
+                // (pero tampoco crashea, patron parry/spindash).
+                case CHARACTER_KRIS:
+                {
+                        var _krisAtkIcon = asset_get_index("spr_gui_krisattack");
+                        if(is_undefined(_krisAtkIcon) || _krisAtkIcon < 0)
+                                _krisAtkIcon = spr_gui_amyattack;
+
+                        var _kprog1 = 1.0 - (min(max(global.player.attackTimer, 0), KRIS_ATTACK_RECHARGE) / KRIS_ATTACK_RECHARGE);
+                        drawKeyIcon(_krisAtkIcon, 0, 23, global.KeyB, _kprog1 * 10, 240 - _mob, _kprog1 == 1.0 ? c_white : c_red, _kprog1, 0);
+
+                        var _krisShIcon = asset_get_index("spr_gui_krisshield");
+                        if(!is_undefined(_krisShIcon) && _krisShIcon >= 0)
+                        {
+                                var _kmax = max(global.player.parryCooldownMax, 1);
+                                var _kprog2 = 1.0 - (max(global.player.parryCooldown, 0) / _kmax);
+                                var _kready = (_kprog2 >= 1.0 && global.player.isGrounded) ? c_white : c_red;
+                                drawKeyIcon(_krisShIcon, 0, 19, global.KeyC, _kprog2 * 10, 258 - _mob, _kready, _kprog2, 0);
+                        }
+                        break;
+                }
+
                 case CHARACTER_EGGMAN:
                 {
                         var prog = 1.0 - (max(global.player.djumpRecharge, 0) / EGGMAN_DJUMP_RECHARGE);

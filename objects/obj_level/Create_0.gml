@@ -98,6 +98,11 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
         // con Amy).
         else if(char == CHARACTER_ROUGE)
                 char = 1;
+        // v5 (KRIS): fila de Knuckles (frame 1) — PLACEHOLDER pedido por
+        // la duena (mismo criterio que Rouge); sin esto el char-- lo
+        // mandaria a la fila 15, fuera de la tira (15 frames, 0..14)
+        else if(char == CHARACTER_KRIS)
+                char = 1;
         else
                 char--;
         

@@ -80,7 +80,7 @@ with(global.player)
                         // sentido que los haga"). Para Metal isAttacking solo
                         // esta en true durante sus 2 ataques (scr_metal_special),
                         // asi que el bit es exacto.
-                        if(global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) || global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON || global.character == CHARACTER_EGGMAN || global.character == CHARACTER_SONIC || global.character == CHARACTER_METAL || global.character == CHARACTER_ROUGE)
+                        if(global.character == CHARACTER_KNUX || (global.character == CHARACTER_AMY || global.character == CHARACTER_AMY_CANON) || global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON || global.character == CHARACTER_EGGMAN || global.character == CHARACTER_SONIC || global.character == CHARACTER_METAL || global.character == CHARACTER_ROUGE || global.character == CHARACTER_KRIS)
                         {
                                 if(isAttacking)
                                         bitflags |= PLAYER_ATTACKING;

@@ -53,3 +53,9 @@ global.paletteShifts[? EXE_METALAMY + PALETTE_EXE] = scr_palette([ #940000, #ff0
 // defensivo (jamás se demoniza: los erouge_* ya son su set exe).
 global.paletteShifts[? CHARACTER_ROUGE] = scr_palette([ #800000, #e00000 ]);
 global.paletteShifts[? CHARACTER_ROUGE + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20 ]);
+
+// v5 — Kris: tonos de Knuckles (#880000/#f80000) — mismo PLACEHOLDER
+// del menu/HUD pedido por la duena; el demon es solo defensivo
+// (jamás se demoniza: regla de la duena, muerte directa).
+global.paletteShifts[? CHARACTER_KRIS] = scr_palette([ #880000, #f80000 ]);
+global.paletteShifts[? CHARACTER_KRIS + PALETTE_DEMON] = scr_palette([ #260a0f, #431a20 ]);

@@ -498,7 +498,8 @@ bool game_demonize(Server* server, PeerData* data)
          * bloque de muerte subita). */
         if (data->surv_char == CH_AMY_CANON || data->surv_char == CH_SALLY_CANON || data->surv_char == CH_SONIC
             || data->surv_char == CH_VANILLA
-            || data->surv_char == CH_ROUGE) /* v4.4: Rouge tampoco, nunca */
+            || data->surv_char == CH_ROUGE /* v4.4: Rouge tampoco, nunca */
+            || data->surv_char == CH_KRIS) /* v5: Kris tampoco: jamas exe, muerte directa */
                 return true;
 
         int players = 0;
@@ -2088,6 +2089,17 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                          * spr_(personaje)_hurt mientras llega el arte propio.
                          * El flag llega al final del reporte; clientes viejos
                          * sin el byte: kind 0 (dano + TP), compatibles. */
+                        /* v5 (KRIS): el UNICO JAMAS absorbible (regla de
+                         * la duena: sin animacion de absorcion — actua
+                         * normal: moribunda en la 1ra caida, muerte real
+                         * en la 2da). Ni trampa fatal ni captura universal:
+                         * SIEMPRE kind 0 (dano + TP normal). Su cliente ya
+                         * manda el flag fatal en 0; esto lo blinda contra
+                         * clientes editados. */
+                        else if (v->surv_char == CH_KRIS)
+                        {
+                                /* kind = 0 a proposito */
+                        }
                         else
                         {
                                 uint8_t fatal = 0;
@@ -2315,6 +2327,14 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                          * el agarre/trampa, pero contra el peer del exe) */
                         PeerData* exePlr = server_find_peer(v->server, v->server->game.exe);
                         AssertOrDisconnect(v->server, exePlr != NULL && exePlr->exe_char == EX_JINNA);
+
+                        /* v5 (KRIS): jamas se convierte en subdito negativo
+                         * (regla de la duena: "Kris no puede ser demonizado
+                         * asi que morira directamente"). Su cliente ni
+                         * acumula carga (scr_jinna_negatouch_hit), pero un
+                         * cliente editado podria pedirlo igual: se rechaza. */
+                        if (v->surv_char == CH_KRIS)
+                                break;
 
                         /* ya demonizado/escapado/atrapado: nada que convertir.
                          * OJO: PLAYER_DEAD SI se admite — si el mismo golpe
@@ -2700,7 +2720,8 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                  * reporta sus caidas). JAMAS se demoniza. */
                                 if (v->surv_char == CH_AMY_CANON || v->surv_char == CH_SALLY_CANON || v->surv_char == CH_SONIC
                                     || v->surv_char == CH_VANILLA
-                                    || v->surv_char == CH_ROUGE) /* v4.4: Rouge muere directa, jamas exe */
+                                    || v->surv_char == CH_ROUGE /* v4.4: Rouge muere directa, jamas exe */
+                                    || v->surv_char == CH_KRIS) /* v5: Kris igual: directa, jamas exe */
                                 {
                                         SET_FLAG(v->plr.flags, PLAYER_CANTREVIVE);
                                         v->plr.death_timer_sec = 0;

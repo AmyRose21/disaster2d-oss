@@ -121,6 +121,37 @@ else
                 }
         }
         
+        // v5 (KRIS): la ESPADA usa estados dinamicos (20 tierra / 40-41
+        // aire, patron Sonic) que no estan en el array de anims: el sprite
+        // sale de los spr_kris_attack1_* reales, igual que en su Draw_76.
+        // El ESCUDO (60/61/64) ya lo resolvio el bloque del parry de
+        // arriba (scr_parry_sprite con sus spr_kris_block_*). La
+        // MORIBUNDA (19) tambien va directa: spr_kris_dead congelado,
+        // sin depender del largo del array que relleno la Suite.
+        if(character == CHARACTER_KRIS)
+        {
+                if(state == KRIS_MORIBUNDA)
+                {
+                        sprite_index = spr_kris_dead;
+                        return;
+                }
+
+                if(state >= KRIS_ATK_TIERRA)
+                {
+                        var _krisSpr = -1;
+
+                        if(state >= KRIS_ATK_AIRE)
+                                _krisSpr = (state == KRIS_ATK_AIRE + 1) ? spr_kris_attack1_air2 : spr_kris_attack1_air1;
+                        else
+                                _krisSpr = spr_kris_attack1_air1; // tajo de tierra (reusa air1)
+
+                        if(_krisSpr != -1)
+                                sprite_index = _krisSpr;
+
+                        return;
+                }
+        }
+
         // v11 (NEGAGEN, 3 formas): el puppet del subdito NEGATIVO usa la
         // tira nega propia (spr_<char>nega_*); el esbirro comun sus eanims
         // y el superviviente sus sprites normales.

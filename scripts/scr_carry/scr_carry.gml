@@ -64,6 +64,10 @@ function scr_carry_zipline_state(ch)
         switch(ch)
         {
                 case CHARACTER_TAILS:       return TAILS_ZIPLINE;
+                // v6 (KRIS): mismo estado de tirolina que Tails (cuelga de la
+                // cuerda del mapa con el TAILS_ZIPLINE = BALANCING+3; no es
+                // vuelo: la tirolina es mecanica de escenario)
+                case CHARACTER_KRIS:        return TAILS_ZIPLINE;
                 case CHARACTER_KNUX:        return KNUX_ZIPLINE;
                 case CHARACTER_EGGMAN:      return EGG_ZIPLINE;
                 case CHARACTER_AMY:         return AMY_ZIPLINE;
@@ -295,8 +299,10 @@ function scr_carry_step()
         xspd = 0;
         yspd = 0;
         
-        // si el que se agarra es Tails o Cream, deja de volar (cuelga):
-        // su propio Step_2 apaga el sonido del vuelo al ver isFlying=false
+        // si el que se agarra es Tails, Cream o Vanilla, deja de volar
+        // (cuelga): su propio Step_2 apaga el sonido del vuelo al ver
+        // isFlying=false (v6: Kris fuera — NO vuela: al colgarse de un
+        // portador simplemente viaja colgado como cualquier pasajero)
         if(global.character == CHARACTER_TAILS || global.character == CHARACTER_CREAM || global.character == CHARACTER_VANILLA)
                 isFlying = false;
         

@@ -98,11 +98,12 @@ if(_pb)
 // mundo (el personaje se pone en pose delante de todos); lo que se
 // oculta es el radio exacto del aura. Misma convencion de bando que
 // scr_parry_protects_me (EXE o demonizado = lado EXE).
+// v5 (KRIS): su escudo es PERSONAL (no cubre aliados) — sin circulo.
 var _parryAuraVisible = (global.character != CHARACTER_EXE);
 if(_parryAuraVisible && instance_exists(global.player) && global.player.revivalTimes >= 2)
         _parryAuraVisible = false; // esbirro: mismo bando que el EXE
 
-if(_parryAuraVisible && scr_parry_char_has(character) && scr_parry_state_active(state))
+if(_parryAuraVisible && scr_parry_char_has(character) && character != CHARACTER_KRIS && scr_parry_state_active(state))
 {
         gpu_set_blendmode(bm_add);
         draw_set_circle_precision(32);

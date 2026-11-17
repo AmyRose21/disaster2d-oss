@@ -112,6 +112,11 @@
 // ===== ESTADOS DE RED (byte `state`; 60+ libres, los golpes usan 20-59) =====
 // v3: SOLO EN TIERRA (un unico sprite de inicio). Los 62/63 quedaron
 // libres (eran las variantes de AIRE de la v1/v2, ya no se usan).
+// v5 (KRIS): el ESCUDO de Kris (Deltarune) reusa esta maquina completa
+// con sus propios sprites (spr_kris_block_*): SOLO en tierra (como
+// Sonic) pero DIRECCIONAL — solo bloquea lo que viene de frente; un
+// ataque de espaldas atraviesa el escudo. Sin aura de aliados: el
+// escudo de Kris es personal. Tecla C (la misma que Sonic).
 #macro SONIC_PARRY_INICIO 60     // windup (aun sin proteccion)
 #macro SONIC_PARRY_INICIO_ACT 61 // VENTANA ACTIVA (protege)
 #macro SONIC_PARRY_EXITO 64      // parte de EXITO (al interceptar)
@@ -177,6 +182,59 @@ function scr_parry_sprite(st, _char, _nega)
 
                 _fb = "spr_amy" + _tok + "_attack1_canon";
         }
+        else if(_char == CHARACTER_KRIS)
+        {
+                // v5 (KRIS): el ESCUDO. La stance (windup/ventana) usa la
+                // pose de escudo alzado; el EXITO elige _ground/_air segun
+                // de donde vino el ataque:
+                //   * jugador LOCAL: la marca exacta krisBlockAir (la fijo la
+                //     deteccion/negacion en el instante del bloqueo)
+                //   * puppet: se deduce del atacante EXE que tenga encima
+                //     (si esta en JUMP/FALL o por encima -> venia del aire)
+                if(st == SONIC_PARRY_INICIO || st == SONIC_PARRY_INICIO_ACT)
+                {
+                        _name = "spr_kris_block";         // stance propia (si algun dia existe)
+                        _fb = "spr_kris_block_failed";     // mientras tanto: la pose de escudo
+                }
+                else if(st == SONIC_PARRY_EXITO)
+                {
+                        var _air = false;
+
+                        if(variable_instance_exists(id, "krisBlockAir"))
+                                _air = krisBlockAir;
+                        else
+                        {
+                                // puppet (o instancia sin marca): deduccion
+                                // por el atacante demonizado mas cercano
+                                if(instance_exists(obj_player_puppet))
+                                {
+                                        with(obj_player_puppet)
+                                        {
+                                                if(!isDemonized || !visible || isInactive)
+                                                        continue;
+
+                                                if(distance_to_object(other) > 96)
+                                                        continue;
+
+                                                if(state == JUMP || state == FALL || y < other.y - 10)
+                                                        other.krisBlockAir = true;
+                                                else
+                                                        other.krisBlockAir = false;
+
+                                                break;
+                                        }
+                                }
+
+                                if(variable_instance_exists(id, "krisBlockAir"))
+                                        _air = krisBlockAir;
+                        }
+
+                        _name = _air ? "spr_kris_block_success_air" : "spr_kris_block_success_ground";
+                        _fb = _air ? "spr_kris_block_success_ground" : "spr_kris_block_success_air";
+                }
+                else
+                        return -1;
+        }
         else
         {
                 if(st == SONIC_PARRY_INICIO || st == SONIC_PARRY_INICIO_ACT)
@@ -204,6 +262,11 @@ function scr_parry_sprite(st, _char, _nega)
 // para Sonic. Lo leen el Draw_0 del jugador local y el del puppet.
 function scr_parry_aura_color(_char)
 {
+        // v5: Kris no tiene aura de aliados; color defensivo por si algo
+        // lo consulta antes del filtro (plateado azulado de su escudo)
+        if(_char == CHARACTER_KRIS)
+                return make_color_rgb(150, 170, 200);
+
         return (_char == CHARACTER_AMY_CANON) ? AMY_PARRY_COLOR : SONIC_PB_COLOR;
 }
 
@@ -213,9 +276,18 @@ function scr_parry_aura_color_core(_char)
 }
 
 // ¿este personaje tiene sistema de parry? (v4.0: Sonic y Amy Canon)
+// v5: Kris tambien (su escudo). OJO: char_has activa TODA la maquina
+// (input, fases, negacion); lo que Kris NO tiene es el AURA de aliados
+// (eso lo filtran los dos sitios que la dibujan/aplican).
 function scr_parry_char_has(_char)
 {
-        return _char == CHARACTER_SONIC || _char == CHARACTER_AMY_CANON;
+        return _char == CHARACTER_SONIC || _char == CHARACTER_AMY_CANON || _char == CHARACTER_KRIS;
+}
+
+// v5: ¿es Kris? (ataajos para las partes que Kris NO hereda del parry)
+function scr_parry_char_is_kris(_char)
+{
+        return _char == CHARACTER_KRIS;
 }
 
 // Tecla del parry del personaje local (v4.0): C para Sonic, V para Amy
@@ -255,6 +327,21 @@ function scr_parry_exito_time(_char)
 
                         if(_n > 0)
                                 return ceil(_n * AMY_PARRY_EXITO_FRAMES_PER);
+                }
+        }
+
+        // v5 (KRIS): sus sprites de exito (9/10 frames) duran lo que
+        // piden, al ritmo KRIS_BLOCK_EXITO_PER (definido en scr_kris_special)
+        if(_char == CHARACTER_KRIS)
+        {
+                var _kspr = asset_get_index("spr_kris_block_success_ground");
+
+                if(!is_undefined(_kspr) && _kspr >= 0)
+                {
+                        var _kn = sprite_get_number(_kspr);
+
+                        if(_kn > 0)
+                                return ceil(_kn * KRIS_BLOCK_EXITO_PER);
                 }
         }
 
@@ -326,14 +413,16 @@ function scr_parry_protects_me()
                 return global.player;
 
         // 2) un Sonic o Amy Canon remoto con parry activa y yo dentro de
-        //    su aura
+        //    su aura. v5: Kris NO — su escudo es personal (no cubre a
+        //    nadie mas), asi que un Kris remoto bloqueando NO protege
+        //    al jugador local.
         if(!instance_exists(obj_player_puppet))
                 return noone;
 
         var _res = noone;
         with(obj_player_puppet)
         {
-                if(!scr_parry_char_has(character) || isDemonized || isInactive)
+                if(!scr_parry_char_has(character) || character == CHARACTER_KRIS || isDemonized || isInactive)
                         continue;
 
                 if(!scr_parry_state_active(state))
@@ -369,6 +458,22 @@ function scr_parry_negate_hit()
         var _sonic = scr_parry_protects_me();
         if(_sonic == noone)
                 return false;
+
+        // v5 (KRIS): el escudo es DIRECCIONAL — solo bloquea lo que viene
+        // DE FRENTE (o del aire hacia donde mira). `self` aqui es la
+        // FUENTE del dano (el puppet atacante en el melee, el laser, la
+        // bola...): si esta detras de Kris, la negacion NO procede y el
+        // golpe entra completo ("si el ataque viene de espaldas no lo
+        // bloqueara"). Antes de decidir se fija krisBlockAir: la marca
+        // exacta de si el atacante estaba EN EL AIRE (elige la animacion
+        // de exito _air/_ground en scr_parry_sprite).
+        if(_sonic != noone && _sonic.object_index == obj_kris)
+        {
+                if(!scr_kris_block_front(_sonic, id))
+                        return false;
+
+                _sonic.krisBlockAir = scr_kris_block_attacker_air(id, _sonic);
+        }
 
         var _nid = obj_netclient.nid;
         if(_sonic != global.player)
@@ -642,6 +747,64 @@ function scr_parry_detect()
 {
         var _hit = false;
         var _me = self; // Sonic (el que llama): dentro de with anidados `other` cambia
+
+        // v5 (KRIS): deteccion DIRECCIONAL y personal. Solo cuenta lo que
+        // viene DE FRENTE (scr_kris_block_front); sin lista de victimas
+        // del aura (su escudo no cubre a nadie mas) y sin conversion de
+        // anillos negros (eso es del parry de Sonic). El laser de Tails
+        // esbirro SI dispara el EXITO si esta de frente — el dano lo
+        // niega scr_parry_negate_hit como el melee, pero NO se desvia:
+        // el escudo bloquea, no devuelve.
+        if(scr_parry_char_is_kris(global.character))
+        {
+                if(instance_exists(obj_player_puppet))
+                {
+                        with(obj_player_puppet)
+                        {
+                                if(!isDemonized || !visible || isInactive)
+                                        continue;
+
+                                if(!(isAttacking || state == JUMP || state == SPIN))
+                                        continue;
+
+                                if(!scr_parry_bbox_overlap(self, _me))
+                                        continue;
+
+                                // de espaldas no lo bloquea (regla de la duena)
+                                if(!scr_kris_block_front(_me, self))
+                                        continue;
+
+                                _me.krisBlockAir = scr_kris_block_attacker_air(self, _me);
+                                _hit = true;
+                                break;
+                        }
+                }
+
+                // laser de Tails esbirro DE FRENTE: exito (sin desvio)
+                if(!_hit && instance_exists(obj_tails_projectile))
+                {
+                        with(obj_tails_projectile)
+                        {
+                                if(isBreaking || !isExe)
+                                        continue;
+
+                                if(!scr_parry_bbox_overlap(self, _me))
+                                        continue;
+
+                                if(!scr_kris_block_front(_me, self))
+                                        continue;
+
+                                _me.krisBlockAir = scr_kris_block_attacker_air(self, _me);
+                                _hit = true;
+                                break;
+                        }
+                }
+
+                if(_hit)
+                        scr_parry_success_now();
+
+                return _hit;
+        }
 
         if(instance_exists(obj_player_puppet))
         {
