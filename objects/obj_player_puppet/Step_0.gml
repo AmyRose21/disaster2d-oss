@@ -716,7 +716,64 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 // abajo (ese es solo de la patada aerea).
                                 return;
                         }
-                        
+
+                        // =================================================
+                        //  TALADRO AEREO de ROUGE (v24): su ataque aereo
+                        //  (estado ROUGE_ATTACK, en picada) ROMPE TODOS los
+                        //  i-frames — mismo patron que la patada duelista de
+                        //  Sally Canon de arriba: el stun entra aunque la
+                        //  victima ya este inmune (shockedTimer / hurttime).
+                        //  El tornado de tierra NO rompe nada: sigue por el
+                        //  camino normal de abajo (con su gate de siempre).
+                        //  Corre en el cliente de la victima, que es la
+                        //  autoridad de su propio jugador.
+                        // =================================================
+                        if(character == CHARACTER_ROUGE && state == ROUGE_ATTACK)
+                        {
+                                var _rstun = 3;
+
+                                global.player.shockedTimer = _rstun * 60;
+                                global.player.xspd = -sign(x - global.player.x) * 4;
+                                global.player.yspd = -2;
+                                global.player.isGrounded = false;
+
+                                if(global.character == CHARACTER_SALLY)
+                                        global.player.isSliding = false;
+
+                                audio_play_sound(snd_exe_stun, 0, false);
+                                net_sound_emit(snd_exe_stun);
+
+                                // v17 (VIDA REAL DEL NEGA): al subdito negativo
+                                // local el stun le cuesta 20 de vida (autofiltro)
+                                scr_jinna_negatouch_stun_hurt();
+
+                                var _rbuf = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
+                                buffer_write(_rbuf, buffer_u16, master_id);
+                                buffer_write(_rbuf, buffer_u16, x);
+                                buffer_write(_rbuf, buffer_u16, y);
+                                buffer_write(_rbuf, buffer_u16, _rstun);
+                                send_server_tcp(_rbuf);
+
+                                var _rpak = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
+                                buffer_write(_rpak, buffer_u8, 1);
+                                buffer_write(_rpak, buffer_u16, obj_netclient.nid);
+                                buffer_write(_rpak, buffer_u16, master_id);
+                                buffer_write(_rpak, buffer_u8, _rstun);
+                                send_server_tcp(_rpak);
+
+                                if(global.character == CHARACTER_EXE)
+                                {
+                                        _rpak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
+                                        buffer_write(_rpak, buffer_u16, master_id);
+                                        buffer_write(_rpak, buffer_u8, 1);
+                                        send_server_tcp(_rpak);
+
+                                        scr_exe_stunsound();
+                                }
+
+                                return;
+                        }
+
                         if(global.player.shockedTimer <= 0 && global.player.hurttime <= 0)
                         {
                                 if(global.character == CHARACTER_SALLY && global.player.shieldTimer > 0)

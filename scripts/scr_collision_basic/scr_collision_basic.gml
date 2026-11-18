@@ -189,6 +189,14 @@ function scr_collision_check(_near)
 							audio_play_sound(snd_snap, 0, false);
 							net_sound_emit(snd_snap);
 							isStuck = true;
+
+							// v24 (Rouge): i-frames de 2 s POR CADA toque de
+							// pared (pedido de la duena) — se pagan al AGARRAR
+							// (transicion !isStuck -> isStuck: una sola vez
+							// por toque, no cada frame pegada). Knuckles
+							// queda exactamente igual que siempre.
+							if(global.character == CHARACTER_ROUGE)
+								hurttime = max(hurttime, ROUGE_WALL_IFRAMES);
 						}
 
 						if(isStuck && !isHurt)
@@ -260,6 +268,11 @@ function scr_collision_check(_near)
 							audio_play_sound(snd_snap, 0, false);
 							net_sound_emit(snd_snap);
 							isStuck = true;
+
+							// v24 (Rouge): idem sensor izquierdo — 2 s de
+							// i-frames por cada toque de pared, al AGARRAR.
+							if(global.character == CHARACTER_ROUGE)
+								hurttime = max(hurttime, ROUGE_WALL_IFRAMES);
 						}
 
 						if(isStuck && !isHurt)
@@ -562,6 +575,15 @@ function scr_collision_basic()
 	// rodadura puede superar la de carrera hasta AMELIA_ROLL_SPEED_CAP.
 	if(global.character == CHARACTER_AMELIA && isSpinning)
 		_clampX = max(maxHSpeed, min(abs(gspd), AMELIA_ROLL_SPEED_CAP));
+	
+	// v23 (spindash de Rouge): mismo trato que la bola de Sonic/Amelia —
+	// la bola del spindash sale a ROUGE_SPINDASH_BASE + carga (8..18) y
+	// este clamp la recortaba SIEMPRE a 11 (ROUGE_MAXSPEED), asi que
+	// machacar Z no aumentaba NADA la velocidad de salida (el mismo bug v3
+	// de Sonic). Tope ROUGE_ROLL_SPEED_CAP (18, igual que Sonic: base 8 +
+	// carga maxima 10).
+	if(global.character == CHARACTER_ROUGE && isSpinning)
+		_clampX = max(maxHSpeed, min(abs(gspd), ROUGE_ROLL_SPEED_CAP));
 	
 	// v4 (fix Amy Canon): su ACOMETIDA (tecla C) y su IMPULSO DE TAROT
 	// (tecla X en el aire) corren a AMY_CANON_DASH_SPEED /

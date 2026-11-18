@@ -3508,8 +3508,18 @@ function net_state_game(rbuff, nps, isPasstrough)
                         
                         if(global.character == _lmsChar && instance_exists(global.player) && !global.player.isDead)
                         {
-                                global.player.hp = LMS_HP;
-                                
+                                // v24 (FIX LMS, pedido de la duena): antes ponia
+                                // hp = LMS_HP (100) DIRECTO — a Rouge (vida total
+                                // 125) y a Metal (150) el show les BAJABA la vida
+                                // al arrancarlo (quedaban en 100 en vez de su
+                                // maximo). El show ahora CURA hasta la vida MAXIMA
+                                // del personaje (curar y anadir hasta el tope,
+                                // nunca ajustar a un numero fijo): el que llega
+                                // por debajo sube al maximo; el que ya estaba al
+                                // maximo no baja. Para el resto (max 100) es el
+                                // mismo resultado de siempre.
+                                global.player.hp = max(global.player.hp, scr_player_maxhp(global.character));
+
                                 audio_play_sound(snd_heal, 0, false);
                                 net_sound_emit(snd_heal);
                                 net_quick_effect(global.player.x, global.player.y, spr_ring_sparkle);

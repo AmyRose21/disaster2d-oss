@@ -32,6 +32,13 @@
 #macro ROUGE_ATTACK_RECHARGE (60 * 20)     // v13: tornado (X)
 #macro ROUGE_MAXSPEED 11
 #macro ROUGE_ACC 0.046875
+// v23 (fix de compilacion): la v13 borro esta macro del Create pero
+// scr_collision_objects (muelles, 2 sitios) y net_state_game (cruce de
+// puertas) la SIGUEN usando -> el proyecto no compilaba. Restituida con
+// su valor historico (60 * 12). Para la v14 no es una recarga: glideTimer
+// solo vale 1 mientras planea (puerta del agarre de pared), estos usos la
+// vuelven a dejar en "recarga" al cortar el planeo, como a Knuckles.
+#macro ROUGE_GLIDE_RECHARGE (60 * 12)
 
 // v13 — VUELO patron VANILLA (subir y bajar): mismos numeros que Vanilla
 #macro ROUGE_FLY_SOLO (60 * 5)        // duracion del vuelo: 5 s
@@ -49,6 +56,12 @@
 #macro ROUGE_SPINDASH_DUST_EVERY 10
 #macro ROUGE_SPINDASH_BURST_MIN 3
 #macro ROUGE_SPINDASH_BURST_MAX 8
+// v23 (bypass de velocidad, paridad con Sonic): la bola del spindash sale
+// a ROUGE_SPINDASH_BASE + carga (8..18) — por ENCIMA de ROUGE_MAXSPEED
+// (11). Sin este tope, el clamp de scr_collision_basic recortaba TODO
+// lanzamiento a 11 y cargar con Z no aumentaba la velocidad (el mismo bug
+// v3 que tuvo Sonic: ver su SONIC_ROLL_SPEED_CAP, mismo valor 18).
+#macro ROUGE_ROLL_SPEED_CAP 18
 
 // v13 — TORNADO (X): arranca rapida y decae hasta el minimo
 #macro ROUGE_TORNADO_TIME (60 * 0.8)   // duracion total: 0.8 s
@@ -61,10 +74,31 @@
 #macro ROUGE_MORIBUNDA_INVULN (60 * 3)
 #macro ROUGE_MORIBUNDA_LEVITATE -0.35 // flota solo si cayo a un hoyo
 
-// v14 — GLIDE PASIVA (tipo Knuckles): velocidad maxima del planeo y
-// aceleracion lateral con las flechas (patron KNUX_GLIDE: 5 y acc*2)
-#macro ROUGE_GLIDE_SPD 5
+// v14 — GLIDE PASIVA (tipo Knuckles), v24 (MEJORAS de la duena): cae un
+// 35% MAS LENTO que el planeo de Knuckles EN JUEGO y va un 25% MAS
+// RAPIDA de lado (6.25 vs su 5): planea mas flotada y mas lejos.
+// OJO con la caida: la gravedad (yAccel 0.21875) se suma en
+// scr_collision_basic DESPUES del special, asi que el planeo de Knux
+// baja EFECTIVO a 1 + 0.21875 = 1.21875 px/f. ROUGE_GLIDE_FALL es el
+// OBJETIVO EFECTIVO (el 65% del de Knux = 0.7922): en el special se
+// resta yAccel para que la gravedad rellene exactamente hasta ahi.
+// Y ROUGE_GLIDE_SPD ya NO es entero — el mapeo de frames de la tira
+// va por RANGOS en scr_rouge_special.
+#macro ROUGE_GLIDE_SPD 6.25
 #macro ROUGE_GLIDE_ACC 2
+#macro ROUGE_GLIDE_FALL 0.7922
+
+// v24 — TALADRO AEREO (X en el aire): impulso hacia abajo con duracion
+// propia; si ATERRIZA con carga restante arranca el tornado (attack2)
+// con duracion COMPLETA (2 habilidades en 1). Mientras taladra deja
+// residuos fantasma y su contacto ROMPE los i-frames de la victima
+// (patron de la patada duelista de Sally Canon, aplicado en el puppet).
+#macro ROUGE_DRILL_TIME (60 * 1)  // carga del taladro: 1 s de picada
+#macro ROUGE_DRILL_DIVE 12        // impulso hacia abajo (picada vertical)
+
+// v24 — agarre de pared del planeo: 2 s de i-frames POR CADA toque de
+// pared (se aplican al AGARRAR, en scr_collision_basic)
+#macro ROUGE_WALL_IFRAMES (60 * 2)
 
 // v14 — SLIDE (patron SALLY): minimo de velocidad para deslizar
 #macro ROUGE_SLIDE_MIN 2.5
@@ -122,6 +156,9 @@ spinDustTimer = 0;
 spinDashRelease = false;   // true mientras la bola lanzada muestra spr_rouge_spin_release
 // v13 — TORNADO (X): tornadoState > 0 = moviendose con i-frames
 tornadoState = 0;
+// v24 — TALADRO AEREO (X en el aire): drillState > 0 = en picada con
+// residuos fantasma; aterrizar con carga restante = tornado COMPLETO
+drillState = 0;
 
 // v14 — SLIDE (patron Sally): activa con ABAJO corriendo
 isSliding = false;

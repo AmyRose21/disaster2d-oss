@@ -5,7 +5,16 @@ if(global.player == noone)
 if(!instance_exists(global.player) && global.character != CHARACTER_EXE)
 {
 	var inst = instance_find(obj_spawnpoint, irandom(instance_number(obj_spawnpoint) - 1));
-	instance_create_depth(inst.x, inst.y-18, 0, global.player);
+	var pinst = instance_create_depth(inst.x, inst.y-18, 0, global.player);
+
+	// v24 (vida al MAX al empezar la ronda, pedido de la duena): al
+	// NACER en la ronda el superviviente entra con la vida TOTAL de su
+	// personaje (Rouge 125 / Metal 150 / resto 100 — scr_player_maxhp,
+	// la unica fuente de verdad). El Create de cada pj ya lo pone, pero
+	// este heal lo GARANTIZA para cualquier camino que llegue dañado
+	// (por si un futuro re-spawn reusa la instancia).
+	pinst.hp = scr_player_maxhp(global.character);
+
 	instance_create_depth(inst.x, inst.y, 0, obj_camera);
 	instance_create_depth(inst.x, inst.y, 0, obj_level);
 	instance_create_depth(inst.x, inst.y-18, 0, obj_surv_indicator);

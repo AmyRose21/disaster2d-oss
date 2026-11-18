@@ -38,6 +38,22 @@ function scr_rouge_special()
         //     tiempo (la patada sigue activa) cuando TOCA SUELO, el
         //     ataque CAMBIA de modo aereo a modo terrestre: arranca el
         //     tornado con sus i-frames y su recorrido (misma recarga).
+        //  v24 — EL ATAQUE AEREO ES UN TALADRO (rework): impulso hacia
+        //     ABAJO (ROUGE_DRILL_DIVE) con duracion propia
+        //     (ROUGE_DRILL_TIME), residuos FANTASMA (effectTime) y su
+        //     contacto ROMPE los i-frames de la victima (patron Sally
+        //     Canon, aplicado en obj_player_puppet). Si ATERRIZA con
+        //     carga restante arranca el tornado (attack2) con duracion
+        //     COMPLETA — como si la habilidad de tierra se hubiera
+        //     activado (2 habilidades en 1). El tornado tambien deja
+        //     fantasmas. Una SOLA recarga: se paga cuando termina la
+        //     cadena (taladro agotado en el aire o tornado completado).
+        //  v24 — GLIDE MEJORADA: cae un 35% MAS LENTO que la de Knuckles
+        //     (ROUGE_GLIDE_FALL 0.65 vs su 1) y planea un 25% MAS RAPIDA
+        //     (ROUGE_GLIDE_SPD 6.25 vs su 5). El agarre de pared le da
+        //     2 s de I-FRAMES por cada toque (scr_collision_basic). El
+        //     VUELO activo pasa a Z + ARRIBA (asi una Z suelta al caer
+        //     no lo gasta: cae derecha al planeo).
         //  v14 — SLIDE DE SALLY: ABAJO mientras corre = slide (no el
         //     rodar clasico; canSpin = false en el Create). Patron
         //     exacto de Sally (scr_sally_special): |xspd| >= 2.5 +
@@ -141,11 +157,17 @@ function scr_rouge_special()
         // Reglas de Sonic: un solo camino para la 1a pulsacion y las
         // siguientes; exige suelo, parada (|gspd| < 2), y el resto de los
         // guards clasicos. El vuelo/ataque/tornado/hurt/stun lo cancelan.
+        // v23 (fix de las revolucadas): FUERA el "!isSpinCharging" de la
+        // entrada — con el, solo la 1a pulsacion de Z entraba al bloque y
+        // machacar Z no cargaba NADA (la bola se quedaba en 2 para siempre).
+        // Sonic y Sally NO lo tienen: cada Z fresca (abajo mantenida) suma
+        // ROUGE_SPINDASH_REV aunque ya este cargando. Ese es el sistema
+        // clasico completo.
         if(global.playerControls && isGrounded && !isAttacking && !isHurt
         && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
         && redRingTimer <= 0 && !isFlying && !isSliding
         && keyboard_check(global.KeyDown) && abs(gspd) < ROUGE_SPINDASH_START_MAX
-        && !isSpinning && !isSpinCharging && keyboard_check_pressed(global.KeyA))
+        && !isSpinning && keyboard_check_pressed(global.KeyA))
         {
                 isSpinCharging = true;
                 spinCharge = min(spinCharge + ROUGE_SPINDASH_REV, ROUGE_SPINDASH_CHARGE_MAX);
@@ -242,14 +264,19 @@ function scr_rouge_special()
         if(!isSpinning && spinDashRelease)
                 spinDashRelease = false;
 
-        // ---------------- VUELO patron VANILLA (Z en el aire) ----------------
+        // ---------------- VUELO patron VANILLA (Z + ARRIBA en el aire) ----------------
+        // v24 (pedido de la duena): el vuelo ACTIVO ahora se activa con
+        // Z + FLECHA DE ARRIBA. Antes bastaba una pulsacion fresca de Z en
+        // el aire y se GASTABA el vuelo cuando lo que querias era PLANEAR
+        // (mantener Z al caer): ahora una Z suelta (sin arriba) no consume
+        // nada — caes y el planeo pasivo toma el relevo solo.
         // v4.9 (COYOTE): mismo guard que Vanilla/Tails — si acaba de dejar
         // el suelo dentro de la ventana de salto, el Z se lo lleva el salto
         // normal; el vuelo sale con la siguiente pulsacion.
         // v14: el GLIDE PASIVA de abajo (Z MANTENIDA al descender) es un
         // camino DISTINTO: no gasta ni mira flyTimer (recarga) y el anillo
         // rojo no la bloquea — conviven con el vuelo activo.
-        if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isGrounded && !isAttacking && !isSpinCharging && !isGliding
+        if(global.playerControls && keyboard_check_pressed(global.KeyA) && keyboard_check(global.KeyUp) && !isGrounded && !isAttacking && !isSpinCharging && !isGliding
         && !(variable_instance_exists(id, "coyoteTimer") && coyoteTimer > 0 && yspd >= 0))
         {
                 if(!isFlying && flyTimer <= 0)
@@ -266,13 +293,32 @@ function scr_rouge_special()
                 }
         }
 
-        // ---------------- TORNADO (X en tierra) + PATADA AEREA (X en aire) ----------------
-        // v14 — 2 MODALIDADES del MISMO ataque: X en TIERRA arranca el
-        // tornado (spr_rouge_attack2); X en el AIRE la patada
-        // (spr_rouge_attack1). Y si la patada sigue ACTIVA al tocar suelo,
-        // el ataque cambia de modo aereo a modo TERRESTRE (bloque de
-        // abajo). Pegar manda: corta el vuelo y el planeo (Knuckles).
-        if(global.playerControls && keyboard_check_pressed(global.KeyB) && attackTimer <= 0 && tornadoState <= 0 && !isSliding)
+        // ---------------- TORNADO (X en tierra) + TALADRO AEREO (X en aire) ----------------
+        // v24 (REWORK del ataque aereo, pedido de la duena): el X en el
+        // AIRE ya no es la patada de animacion — es un TALADRO: impulso
+        // hacia ABAJO con duracion propia (ROUGE_DRILL_TIME), deja
+        // RESIDUOS FANTASMA mientras taladra y su contacto ROMPE los
+        // i-frames de la victima (patron de la patada duelista de Sally
+        // Canon: lo aplica el cliente de la victima en obj_player_puppet).
+        // Si ATERRIZA mientras le queda carga, el ataque CAMBIA de modo
+        // aereo a TERRESTRE: arranca el TORNADO (spr_rouge_attack2) con su
+        // duracion reiniciada al MAXIMO — como si la habilidad de tierra
+        // se hubiera activado (2 habilidades en 1). El tornado tambien
+        // deja residuos fantasma. Una SOLA recarga compartida: arranca
+        // cuando la cadena termina (taladro agotado en el aire o tornado
+        // terminado), no al activar.
+        // v23 (fix del sprite): dos arreglos para que el ataque SI muestre
+        // su tira (antes salia la BOLA del spindash en vez de
+        // spr_rouge_attack2):
+        //  1) !isSpinCharging en el guard (paridad con el golpe de Sonic):
+        //     durante la carga el X no arranca nada (en Sonic tampoco).
+        //  2) el ataque APAGA la bola al empezar (isSpinning = false +
+        //     spinDashRelease = false, igual que el golpe de Sonic apaga
+        //     isSpinning): si pegabas en plena RODADA del spindash, el
+        //     Step_2 priorizaba el estado ROUGE_SPIN_RELEASE (21) sobre
+        //     isAttacking y TODO el tornado se veia como bola rodando —
+        //     nunca aparecia el remolino.
+        if(global.playerControls && keyboard_check_pressed(global.KeyB) && attackTimer <= 0 && tornadoState <= 0 && !isSliding && !isSpinCharging && !isAttacking)
         {
                 if(keyboard_check(global.KeyLeft))
                         image_xscale = -1;
@@ -293,6 +339,10 @@ function scr_rouge_special()
                         }
                 }
 
+                // pegar manda sobre la bola (patron del golpe de Sonic)
+                isSpinning = false;
+                spinDashRelease = false;
+
                 if(isGrounded)
                 {
                         // --- TORNADO (modo terrestre) ---
@@ -310,13 +360,61 @@ function scr_rouge_special()
                 }
                 else
                 {
-                        // --- PATADA AEREA (modo aereo, la de siempre) ---
-                        attackTimer = ROUGE_ATTACK_RECHARGE;
+                        // --- TALADRO AEREO (modo aereo, v24) ---
+                        // La recarga NO se paga aqui: arranca cuando la
+                        // cadena de ataque termina (taladro agotado en el
+                        // aire o tornado completado en tierra).
                         isAttacking = true;
                         isFlying = false; // pegar manda (corta el vuelo)
+                        isJumping = false;
+                        drillState = ROUGE_DRILL_TIME;
+
+                        // impulso hacia ABAJO en picada vertical (xspd 0:
+                        // el taladro cae, no avanza)
+                        yspd = ROUGE_DRILL_DIVE;
+                        xspd = 0;
+                        gspd = 0;
 
                         audio_play_sound(snd_dash, 0, false);
                         net_sound_emit(snd_dash);
+                }
+        }
+
+        // ---------------- taladro aereo activo (v24) ----------------
+        // En picada mientras dure drillState: garantiza la velocidad de
+        // taladro (la gravedad sola no baja mas rapido que el impulso) y
+        // va dejando RESIDUOS FANTASMA (effectTime: el local los dibuja
+        // en Draw_0 y a los demas clientes les llega solo con el bitflag
+        // PLAYER_EFFECT de obj_netclient/Step_2 — cero cambios de red).
+        // Lo cortan dano, stun o muerte (pagando la recarga); si se agota
+        // EN EL AIRE tambien la paga y cae normal. Si ATERRIZA con carga
+        // restante NO pasa por aqui el corte: el bloque del cambio de modo
+        // (abajo) le pasa el relevo al tornado con duracion COMPLETA.
+        if(drillState > 0)
+        {
+                if(isDead || shockedTimer > 0 || isHurt)
+                {
+                        drillState = 0;
+                        isAttacking = false;
+                        attackTimer = ROUGE_ATTACK_RECHARGE;
+                }
+                else
+                {
+                        if(yspd < ROUGE_DRILL_DIVE)
+                                yspd = ROUGE_DRILL_DIVE;
+
+                        // residuos fantasma del taladro
+                        if(effectTime <= 0)
+                                effectTime = 16;
+
+                        drillState--;
+
+                        if(drillState <= 0 && !isGrounded)
+                        {
+                                // agotado en el aire: fin de la habilidad
+                                isAttacking = false;
+                                attackTimer = ROUGE_ATTACK_RECHARGE;
+                        }
                 }
         }
 
@@ -337,6 +435,11 @@ function scr_rouge_special()
 
                 xspd = _speed * image_xscale;
                 gspd = xspd;
+
+                // v24: residuos fantasma del remolino (mismo sistema del
+                // taladro: effectTime local + bitflag PLAYER_EFFECT remoto)
+                if(effectTime <= 0)
+                        effectTime = 16;
 
                 // estela del remolino mientras avanza
                 if(floor(x) mod 3 == 0)
@@ -361,15 +464,22 @@ function scr_rouge_special()
                 }
         }
 
-        // v14 — CAMBIO DE MODO AEREO -> TERRESTRE: la patada aerea fue
-        // usada EN EL AIRE y TODAVIA LE QUEDA TIEMPO (isAttacking sigue
-        // viva: la animacion no termino) cuando TOCA SUELO -> el ataque
-        // cambia de modalidad y arranca el TORNADO (modo terrestre) con
-        // sus i-frames y su recorrido. Solo se llega aqui aterrizando en
-        // mitad de la patada: el X en tierra ya deja tornadoState > 0 en
-        // el MISMO frame y el tornado terminado apaga isAttacking.
+        // v24 — CAMBIO DE MODO AEREO -> TERRESTRE (taladro -> tornado): el
+        // TALADRO fue usado EN EL AIRE y TODAVIA LE QUEDA CARGA (isAttacking
+        // sigue viva: el drillState no se agoto) cuando TOCA SUELO -> el
+        // ataque cambia de modalidad y arranca el TORNADO (modo terrestre)
+        // con la duracion REINICIADA AL MAXIMO (ROUGE_TORNADO_TIME completa:
+        // como si la habilidad de tierra se hubiera activado — 2 habilidades
+        // en 1) con sus i-frames, su recorrido y sus residuos fantasma.
+        // La recarga la sigue pagando el tornado al terminar (una sola).
+        // Solo se llega aqui aterrizando en mitad del taladro: el X en
+        // tierra ya deja tornadoState > 0 en el MISMO frame, el taladro
+        // agotado en el aire apaga isAttacking y el tornado terminado
+        // tambien.
         if(isAttacking && isGrounded && tornadoState <= 0 && !isHurt && !isDead && shockedTimer <= 0)
         {
+                // el taladro termina aqui: el tornado toma el relevo
+                drillState = 0;
                 tornadoState = ROUGE_TORNADO_TIME;
                 isJumping = false;
 
@@ -380,10 +490,12 @@ function scr_rouge_special()
                 repeat(3)
                         net_quick_effect(x - image_xscale * (4 + irandom(8)), y + 12 + irandom(4), spr_dust, false, -image_xscale, -image_xscale, -irandom(1));
         }
-        else if(isAttacking && !isGrounded)
+        else if(isAttacking && !isGrounded && tornadoState <= 0 && drillState <= 0)
         {
-                // la patada aerea clasica mantiene su empujoncito horizontal;
-                // el tornado NO pasa por aqui (tornadoState > 0 arriba).
+                // (defensivo: hoy no hay ataque aereo fuera del taladro —
+                // el taladro nunca pasa por aqui (drillState > 0) y el
+                // tornado aereo tampoco (tornadoState > 0): sin estos
+                // gates este bloque pisaba la velocidad de ambos)
                 gspd = 0;
                 xspd = image_xscale * 2;
         }
@@ -436,11 +548,14 @@ function scr_rouge_special()
         // MANTENER Z al empezar a DESCENDER (yspd > 0) = planeo. NO mira
         // flyTimer (el vuelo activo es aparte), NO mira redRingTimer (es
         // una PASIVA: el anillo rojo NO la bloquea) y NO tiene tope de
-        // tiempo: mientras Z siga pulsada, planea — siempre baja (yspd 1),
-        // no puede estancar la partida.
+        // tiempo: mientras Z siga pulsada, planea — siempre baja (v24:
+        // ROUGE_GLIDE_FALL 0.65, un 35% mas lento que Knuckles), no puede
+        // estancar la partida.
         // Al despegar el vuelo activo con Z aun MANTENIDA: cuando este
         // termina (tope de 5 s o soltarla), si Z sigue pulsada el planeo
         // toma el relevo solo — la cadena natural del pedido.
+        // v24: el vuelo activo se activa con Z + ARRIBA — una Z suelta al
+        // caer ya NO lo gasta: cae derecha al planeo.
         if(global.playerControls && !isGrounded && !isGliding && !isFlying && !isAttacking
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isSliding
         && !isStuck && yspd > 0 && keyboard_check(global.KeyA))
@@ -477,35 +592,23 @@ function scr_rouge_special()
                                                 glide_xspd += acc * ROUGE_GLIDE_ACC;
                                 }
 
-                                // tira direccional (frame = intensidad del desliz)
-                                switch(floor(glide_xspd))
-                                {
-                                        case ROUGE_GLIDE_SPD:
-                                        case ROUGE_GLIDE_SPD - 1:
-                                        case ROUGE_GLIDE_SPD - 2:
-                                        case 2:
-                                                image_index = 0;
-                                                break;
+                                // tira direccional (frame = intensidad del
+                                // desliz). v24: por RANGOS, no casos exactos
+                                // — ROUGE_GLIDE_SPD ya no es entero (6.25 =
+                                // 25% mas que el 5 de Knuckles) y floor()
+                                // nunca matcheaba los case viejos.
+                                var _gi = floor(glide_xspd);
 
-                                        case 1:
-                                                image_index = 1;
-                                                break;
-
-                                        case 0:
-                                                image_index = 2;
-                                                break;
-
-                                        case -1:
-                                                image_index = 3;
-                                                break;
-
-                                        case -ROUGE_GLIDE_SPD:
-                                        case -(ROUGE_GLIDE_SPD - 1):
-                                        case -(ROUGE_GLIDE_SPD - 2):
-                                        case -2:
-                                                image_index = 4;
-                                                break;
-                                }
+                                if(_gi >= 2)
+                                        image_index = 0;
+                                else if(_gi == 1)
+                                        image_index = 1;
+                                else if(_gi == 0)
+                                        image_index = 2;
+                                else if(_gi == -1)
+                                        image_index = 3;
+                                else
+                                        image_index = 4;
                         }
                 }
                 else
@@ -522,8 +625,14 @@ function scr_rouge_special()
 
                 // la tira es direccional (como la de Knuckles): siempre mira
                 // a la derecha, el frame dice el lado — sin espejo.
+                // v24: cae un 35% MAS LENTO que el planeo de Knuckles EN
+                // JUEGO: la gravedad (yAccel) se suma en
+                // scr_collision_basic DESPUES de este bloque, asi que aqui
+                // se deja el yspd en OBJETIVO - yAccel y la gravedad
+                // rellena hasta ROUGE_GLIDE_FALL (0.7922 efectivos = el
+                // 65% de los 1.21875 efectivos del planeo de Knux).
                 image_xscale = 1;
-                yspd = 1;
+                yspd = ROUGE_GLIDE_FALL - yAccel;
                 xspd = glide_xspd;
 
                 // aterrizar o dano cierran el planeo (el dano ya apaga

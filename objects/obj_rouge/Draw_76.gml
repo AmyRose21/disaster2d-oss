@@ -83,11 +83,26 @@ switch(state)
                 break;
 
         case ROUGE_ATTACK:
-                image_speed = 0.1;
+                // v24 TALADRO AEREO (spr_rouge_attack1 girando rapido =
+                // taladro en picada): mientras dure drillState NO termina
+                // por animacion — lo cierra scr_rouge_special (timer,
+                // aterrizar -> tornado, dano, stun o muerte). El cierre
+                // por animacion del final es SOLO defensivo y exige que
+                // NINGUN timer este vivo: en el frame de aterrizar el
+                // drillState todavia va > 0 y cerrar ahi mataba el cambio
+                // de modo al tornado.
+                if(variable_instance_exists(id, "drillState") && drillState > 0)
+                {
+                        image_speed = 2;
+                        break;
+                }
 
-                if(image_index >= image_number - 1)
+                image_speed = 1.5;
+
+                if(image_index >= image_number - 1 && drillState <= 0)
                 {
                         isAttacking = false;
+                        isGrounded = false;
                 }
                 break;
 
@@ -96,7 +111,13 @@ switch(state)
                 // mientras dure el tornadoState NO termina por animacion — lo
                 // cierra scr_rouge_special (timer, pared, stun o muerte) — y
                 // la tira alterna sus 2 frames rapida.
-                if(variable_instance_exists(id, "tornadoState") && tornadoState > 0)
+                // v24: el drillState tambien la mantiene girando — cubre el
+                // frame de ATERRIZAJE del taladro (estado 15 con el
+                // tornadoState todavia en 0: el cambio de modo arranca al
+                // frame siguiente) para que el cierre por animacion no
+                // mate la transicion.
+                if((variable_instance_exists(id, "tornadoState") && tornadoState > 0)
+                || (variable_instance_exists(id, "drillState") && drillState > 0))
                 {
                         image_speed = 2;
                         break;
@@ -141,8 +162,14 @@ switch(state)
         // (spr_rouge_glide): el frame lo fija scr_rouge_special segun el
         // glide_xspd (0=fuerte derecha ... 4=fuerte izquierda) — aqui no
         // se anima: image_speed 0 y el image_index ya viajo por red.
+        // v23 (fix espejo): xscale = 1 AQUI, igual que el case KNUX_GLIDE
+        // de obj_knux. El bloque "In Air" de scr_move_basic corre DESPUES
+        // del special y pisa image_xscale a -1 al mantener izquierda: sin
+        // esta linea la tira direccional quedaba ESPEJADA y Rouge planeaba
+        // mirando al lado contrario (el puppet ya lo tenia, esto falta).
         case ROUGE_GLIDE_AIR:
                 image_speed = 0;
+                image_xscale = 1;
                 break;
 
         // v4.5 — MORIBUNDA: tirada (spr_rouge_hurt), quieta en su frame

@@ -1,0 +1,127 @@
+=====================================================================
+ ROUGE v24 — TALADRO AEREO + MEJORAS DE GLIDE/VUELO + VIDA
+ 7 archivos de cliente. CERO cambios de server. CERO .yyp/.yy.
+ (incluye TODO la v23, que el repo aun no tiene empujada)
+=====================================================================
+
+1) ATAQUE AEREO = TALADRO (el por que del "attack2 no se reproduce")
+--------------------------------------------------------------------
+ POR QUE PASABA: la vieja patada aerea terminaba por ANIMACION
+ (~20 frames). Si caias mas de eso, el ataque ya habia MUERTO
+ cuando tocabas suelo -> no habia cambio de modo -> solo se veia
+ correr. Ahora el ataque aereo es un TALADRO de DURACION:
+   * X en el AIRE: impulso hacia ABAJO (picada vertical a 12 px/f,
+     ROUGE_DRILL_DIVE) durante ROUGE_DRILL_TIME (1 s de carga)
+   * mientras taladra deja RESIDUOS FANTASMA (estela de imagenes,
+     igual que el boost: locales en Draw_0 y a los otros clientes
+     les llega SOLO con el bitflag PLAYER_EFFECT que ya viaja —
+     cero cambios de red)
+   * su contacto ROMPE TODOS los i-frames de la victima (patron de
+     la patada duelista de Sally Canon: el stun entra aunque ya
+     este inmune; lo aplica el cliente de la victima en
+     obj_player_puppet). El tornado de tierra NO rompe nada: sigue
+     con su stun normal
+   * si ATERRIZA con carga restante: el ataque cambia del attack1
+     al TORNADO (spr_rouge_attack2) con la duracion REINICIADA AL
+     MAXIMO — como si la habilidad de tierra se hubiera activado
+     (2 habilidades en 1, pedido literal). El tornado tambien
+     deja fantasmas
+   * UNA SOLA recarga compartida (20 s): se paga cuando TERMINA la
+     cadena (taladro agotado en el aire o tornado completado), no
+     al activar
+   * lo cortan dano, stun o muerte (pagando la recarga)
+
+2) GLIDE MEJORADA (vs la de Knuckles)
+--------------------------------------
+   * cae un 35% MAS LENTO: ojo, la gravedad (yAccel 0.21875) se
+     suma en scr_collision_basic DESPUES del special, asi que el
+     planeo de Knux baja EFECTIVO a 1.21875 px/f. Rouge baja a
+     0.7922 efectivos (el 65% exacto): el special deja el yspd en
+     ROUGE_GLIDE_FALL - yAccel y la gravedad rellena
+   * un 25% MAS RAPIDA de lado: ROUGE_GLIDE_SPD 6.25 (vs el 5 de
+     Knux). Como 6.25 no es entero, el mapeo de frames de la tira
+     direccional ahora va por RANGOS (>= 2 -> frame 0, etc.):
+     con el switch viejo de cases exactos el floor(6.25) = 6 no
+     matcheaba NINGUN case y la tira se quedaba congelada
+   * I-FRAMES DE 2 S POR CADA TOQUE DE PARED: al AGARRAR la pared
+     del planeo (transicion !isStuck -> isStuck: una vez por
+     toque, no por frame pegada) se le pagan 120 frames de
+     invulnerabilidad. Knuckles queda exactamente igual
+
+3) VUELO AHORA ES Z + FLECHA DE ARRIBA
+----------------------------------------
+ Antes: una pulsacion fresca de Z en el aire activaba el vuelo y
+ te lo GASTABA cuando lo que querias era planear. Ahora el vuelo
+ exige Z + ARRIBA; una Z suelta al caer no consume nada y el
+ planeo pasivo (Z mantenida al descender) toma el relevo solo.
+ Subir sigue siendo mantener Z mientras vuelas.
+
+4) VIDA MAX: LMS CURA, NO AJUSTA + CURA AL INICIO DE RONDA
+------------------------------------------------------------
+ Tenias razon: era el LMS. El show ponia hp = LMS_HP (100)
+ DIRECTO: a Rouge (max 125) y a Metal (max 150) les BAJABA la
+ vida al arrancar el show. Ahora:
+   * LMS: hp = max(hp, scr_player_maxhp(personaje)) — CURA hasta
+     la vida maxima del personaje (curar y anadir hasta el tope,
+     nunca ajustar a un numero fijo). El que llega por debajo
+     sube al maximo; el que ya esta al maximo no baja. Para el
+     resto (max 100) es el mismo resultado de siempre
+   * INICIO DE RONDA: al nacer en el mapa (obj_spawnpoint) el
+     superviviente entra curado al MAXIMO de su personaje. El EXE
+     no se toca (su hp es aparte)
+
+ARCHIVOS (SOLO los tocados — nada intacto)
+------------------------------------------
+ objects/obj_rouge/Create_0.gml                macros v24 (taladro/glide/
+                                               pared) + drillState
+ objects/obj_rouge/Draw_76.gml                 cases del taladro + transicion
+ scripts/scr_rouge_special/scr_rouge_special.gml
+                                               vuelo Z+Arriba, taladro,
+                                               tornado con fantasmas,
+                                               cambio de modo FULL,
+                                               glide 0.7922/6.25 por rangos
+ scripts/scr_collision_basic/scr_collision_basic.gml
+                                               i-frames de pared (2 sensores)
+ objects/obj_player_puppet/Step_0.gml          stun del taladro que rompe
+                                               i-frames (patron Sally Canon)
+ scripts/net_state_game/net_state_game.gml     LMS cura al max
+ objects/obj_spawnpoint/Create_0.gml           cura al max al nacer
+ + check_v24.py (validador) + este LEEME + worklog.md
+
+QUE NO SE TOCO (verificado por el validador)
+--------------------------------------------
+ * Spindash de Sonic/Sally y sus especiales: intactos
+ * Knuckles: su glide (yspd 1, sin i-frames de pared) intacto
+ * Todo lo de la v23 intacto: revolucadas multiples, bypass 18,
+   fix del espejo del glide, macro ROUGE_GLIDE_RECHARGE
+ * scr_player_maxhp (Rouge 125 / Metal 150 / resto 100), HUD (ya
+   escalaba por personaje desde la v13), server (CERO cambios:
+   no hay que recompilarlo), .yyp/.yy (todo GML puro)
+
+VALIDACION
+----------
+ check_v24.py 64/64 OK:
+  - 54 checks estaticos sobre los archivos reales (fixes presentes,
+    patrones intactos, balance de llaves en los 7 GML, sin CRLF)
+  - 10 simulaciones 1:1 del flujo: (A) X en tierra = attack2 47f;
+    (B) X en rodada = attack2; (C) 5 Z cargan 10 y salen a 18;
+    (D) glide frame 4 sin espejo cayendo 0.7922 y a 6.25;
+    (E) taladro: picada 12, attack1, sin recarga al activar y con
+    fantasmas; (E2) aterrizar = tornado FULL con attack2 y UNA
+    recarga al final; (E3) taladro agotado en el aire paga ahi;
+    (F) Z sola no gasta el vuelo; (F2) Z+Arriba activa el vuelo;
+    (G) agarre de pared = 120 de i-frames una sola vez
+
+ PARA PROBAR EN EL JUEGO (recompilar CLIENTE, el server no cambia)
+ ------------------------------------------------------------------
+  * Salta y pulsa X en el aire: Rouge se lanza en picada girando
+    (attack1 rapido) con estela de fantasmas. Cae sobre el suelo
+    con carga restante: arranca el remolino attack2 COMPLETO con
+    mas fantasmas. Hazlo sobre un EXE con i-frames: el taladro lo
+    stunea igual (los rompe).
+  * Salta, mantén Z sin arriba: planea (no se gasta el vuelo);
+    suelta y pulsa Z+Arriba: recien ahi vuela.
+  * Planea hacia una pared: la agarra y queda 2 s inmune.
+  * Planea: baja mas lento que Knuckles y cubre mas distancia.
+  * Llega de ultimo superviviente (LMS) con Rouge o Metal: el
+    show los sube a SU maximo (125/150), ya no los baja a 100.
