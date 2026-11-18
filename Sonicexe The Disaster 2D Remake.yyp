@@ -230,11 +230,10 @@
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2026.0.0.16",
+    "IDEVersion":"2026.1.0.27",
   },
   "name":"Sonicexe The Disaster 2D Remake",
   "resources":[
-    {"id":{"name":"mus_lms_28","path":"sounds/mus_lms_28/mus_lms_28.yy",},},
     {"id":{"name":"data","path":"extensions/data/data.yy",},},
     {"id":{"name":"disasterserver","path":"extensions/disasterserver/disasterserver.yy",},},
     {"id":{"name":"disnet","path":"extensions/disnet/disnet.yy",},},
@@ -804,6 +803,7 @@
     {"id":{"name":"mus_lms_25","path":"sounds/mus_lms_25/mus_lms_25.yy",},},
     {"id":{"name":"mus_lms_26","path":"sounds/mus_lms_26/mus_lms_26.yy",},},
     {"id":{"name":"mus_lms_27","path":"sounds/mus_lms_27/mus_lms_27.yy",},},
+    {"id":{"name":"mus_lms_28","path":"sounds/mus_lms_28/mus_lms_28.yy",},},
     {"id":{"name":"mus_lms_3","path":"sounds/mus_lms_3/mus_lms_3.yy",},},
     {"id":{"name":"mus_lms_4","path":"sounds/mus_lms_4/mus_lms_4.yy",},},
     {"id":{"name":"mus_lms_5","path":"sounds/mus_lms_5/mus_lms_5.yy",},},
@@ -2375,7 +2375,6 @@
     {"id":{"name":"spr_rouge_jump","path":"sprites/spr_rouge_jump/spr_rouge_jump.yy",},},
     {"id":{"name":"spr_rouge_lookdown","path":"sprites/spr_rouge_lookdown/spr_rouge_lookdown.yy",},},
     {"id":{"name":"spr_rouge_lookup","path":"sprites/spr_rouge_lookup/spr_rouge_lookup.yy",},},
-    {"id":{"name":"spr_rouge_marijuna","path":"sprites/spr_rouge_marijuna/spr_rouge_marijuna.yy",},},
     {"id":{"name":"spr_rouge_run","path":"sprites/spr_rouge_run/spr_rouge_run.yy",},},
     {"id":{"name":"spr_rouge_spin_charger","path":"sprites/spr_rouge_spin_charger/spr_rouge_spin_charger.yy",},},
     {"id":{"name":"spr_rouge_spin_release","path":"sprites/spr_rouge_spin_release/spr_rouge_spin_release.yy",},},

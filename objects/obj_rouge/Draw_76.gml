@@ -8,10 +8,6 @@ if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
         arr = global.player_negaanims;
 sprite_index = arr[? CHARACTER_ROUGE][state];
 
-// v4.4: sprite de fumeta (patron Knux; Rouge trae el suyo del TTB)
-if(revivalTimes < 2 && state == IDLE && room == room_marijuna)
-        sprite_index = spr_rouge_marijuna;
-
 switch(state)
 {
         case IDLE:

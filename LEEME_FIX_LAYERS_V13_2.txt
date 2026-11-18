@@ -1,0 +1,44 @@
+=====================================================================
+ FIX v13.2 — LAYER PNG PERDIDOS (14 archivos nuevos, nada mas)
+=====================================================================
+
+QUE PASABA
+----------
+El proyecto ya cargaba (v13.1) pero GameMaker avisaba:
+  "File missing for GMSprite ..." x14.
+GameMaker guarda cada frame de sprite asi:
+  sprites/<sprite>/<frameGUID>.png                    (composite)
+  sprites/<sprite>/layers/<frameGUID>/<layerGUID>.png  (la capa)
+El .yy declara la capa con su GUID y GM busca el archivo con
+ESE nombre. En disco los layer PNG estaban mal nombrados:
+  * attack2:   estaban como 258be26d-....png (la capa del .yy
+               es 68547121-....)
+  * charger:   estaban como layer.png (la capa es
+               2972ea6e-....)
+  * release:   estaban como layer.png (la capa es
+               d26a8134-....)
+
+QUE HACE ESTE FIX
+-----------------
+Crea los 14 layer PNG con el nombre EXACTO que el .yy declara
+(copia del composite del frame — misma imagen, son sprites de
+una sola capa):
+  attack2:  2 archivos
+  charger:  6 archivos
+  release:  6 archivos
+NO toca ningun .yy, NO borra nada. Los archivos mal nombrados
+(layer.png, 258be26d-....png) quedan ahi como huerfanos:
+GameMaker los ignora, los puedes borrar cuando quieras.
+
+COMO APLICAR
+------------
+  git apply fix_layers_v13_2.patch
+(o descomprime el zip encima, mismas rutas) y abre el .yyp:
+debe cargar sin ningun "File missing".
+
+ARCHIVOS (solo creados — 14 PNG)
+--------------------------------
+  sprites/spr_rouge_attack2/layers/<frame>/68547121-....png  (x2)
+  sprites/spr_rouge_spin_charger/layers/<frame>/2972ea6e-....png (x6)
+  sprites/spr_rouge_spin_release/layers/<frame>/d26a8134-....png (x6)
+=====================================================================

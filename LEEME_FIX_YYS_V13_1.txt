@@ -1,0 +1,62 @@
+=====================================================================
+ FIX v13.1 — EL PROYECTO NO CARGABA (3 .yy rotos + 2 fantasmas)
+=====================================================================
+
+QUE PASABA
+----------
+GameMaker abortaba al abrir el .yyp con:
+  1. spr_rouge_attack2.yy      -> coma doble (',,') al final del
+     track de keyframes (error de parseo en la linea 76).
+  2. spr_rouge_spin_charger.yy / spr_rouge_spin_release.yy ->
+     esquema de keyframes INVALIDO que meti yo en el parche v13
+     (campos "Channels"/"Id" inventados; GameMaker esperaba
+     "Channels" donde encontraba otra cosa). Culpa mia: ese
+     formato no existe en este proyecto.
+  3. El .yyp seguia registrando spr_rouge_glide y
+     spr_rouge_marijuna, cuyas carpetas ya borraste ->
+     "Missing file skipped for linking" x2.
+
+QUE ARREGLA ESTE FIX (5 archivos, nada mas)
+------------------------------------------
+  * spr_rouge_attack2.yy  — RECONSTRUIDO en el formato real de
+    este proyecto (el mismo del attack1.yy que editaste a mano,
+    que esta perfecto). Ahora es el tornado NUEVO que metiste:
+    2 frames (2bf5a742 + f21aae49, los de 42x54), sprite 42x54,
+    origen centrado (21,27), textureGroup "Game". El PNG viejo
+    a8491450 (48x52, el tornado diagonal viejo) queda en la
+    carpeta como huerfano: GameMaker lo ignora, no molesta.
+  * spr_rouge_spin_charger.yy  — idem: 6 frames tuyos (38x30),
+    bbox completa, 30 fps, textureGroup "Game".
+  * spr_rouge_spin_release.yy  — idem: 6 frames tuyos (46x30).
+  * Sonicexe The Disaster 2D Remake.yyp — eliminadas del
+    REGISTRO para siempre las 2 entradas fantasma:
+    spr_rouge_glide y spr_rouge_marijuna.
+  * objects/obj_rouge/Draw_76.gml — quitado el mini-bloque del
+    easter egg de fumeta ("sprite_index = spr_rouge_marijuna").
+    OBLIGATORIO al quitar el recurso del registro: si no, el
+    juego no compila por sprite inexistente. Era solo eso: el
+    idol de fumeta en room_marijuna con estado IDLE.
+
+OJO (PNGs extra, no tocan nada)
+------------------------------
+En las carpetas de spin_charger (23 PNGs) y spin_release (18)
+quedaron mezclados PNGs de SONIC (tamanos distintos: 23x39,
+39x43, 48x59...). Ninguno entra en el .yy — GameMaker solo usa
+los 6 frames de Rouge que el .yy referencia. Puedes borrarlos
+cuando quieras (junto con los .bak) y no pasa nada; si los
+borras, borra tambien sus carpetas de layers/.
+
+COMO APLICAR
+------------
+  git apply fix_yys_v13_1.patch
+(o copia los 5 archivos encima, mismas rutas) y abre el .yyp:
+tiene que cargar limpio, sin errores de parseo ni de linking.
+
+ARCHIVOS (solo modificados)
+---------------------------
+  Sonicexe The Disaster 2D Remake.yyp
+  objects/obj_rouge/Draw_76.gml
+  sprites/spr_rouge_attack2/spr_rouge_attack2.yy
+  sprites/spr_rouge_spin_charger/spr_rouge_spin_charger.yy
+  sprites/spr_rouge_spin_release/spr_rouge_spin_release.yy
+=====================================================================
