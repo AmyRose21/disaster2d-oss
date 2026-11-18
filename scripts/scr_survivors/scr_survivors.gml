@@ -1279,7 +1279,18 @@ global.player_negaanims[? CHARACTER_FLEETWAY_AMY] =
 ];
 
 //Rouge
-global.player_negaanims[? CHARACTER_ROUGE] = 
+// v14.2 — BLINDAJE del slot 18 (stuck nega): se resuelve por NOMBRE con
+// asset_get_index (mismo patron que el escaneo de variantes de Sonic de
+// mas abajo). Si el sprite no esta registrado en el .yyp de tu copia — GM
+// re-saved el proyecto con el zip aun sin aplicar, build vieja, etc. — este
+// punto YA NO PUEDE CRASHEAR: cae al hurt nega (placeholder) hasta que el
+// sprite este registrado. El crash "Variable spr_rougenega_stuck not set"
+// muere AQUI para siempre, haya arte o no.
+var _rougeNegaStuck = asset_get_index("spr_rougenega_stuck");
+if(_rougeNegaStuck < 0)
+        _rougeNegaStuck = spr_rougenega_hurt;
+
+global.player_negaanims[? CHARACTER_ROUGE] =
 [
         spr_rougenega_idle, //0
         spr_rougenega_walk, //1
@@ -1299,7 +1310,7 @@ global.player_negaanims[? CHARACTER_ROUGE] =
         spr_rougenega_attack2, //15
         spr_rougenega_glide, //16
         spr_rougenega_zipline, //17
-        spr_rougenega_stuck, //18
+        _rougeNegaStuck, //18 = ROUGE_STUCK (blindado v14.2: asset_get_index + fallback)
         spr_rougenega_hurt, //19
         // v13: sin arte nega del spindash todavia — placeholder con la
         // bola nega de siempre (mismo criterio que Kris con su set)

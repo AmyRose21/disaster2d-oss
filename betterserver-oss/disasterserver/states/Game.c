@@ -2965,7 +2965,19 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         int duration = 2000;
                         if(v->server->game.exe != v->id)
                         {
-                                PacketRead(hp, packet, packet_read8, int8_t);
+                                /* v13 (MAX HP POR PERSONAJE): el hp viaja como S16
+                                 * (antes int8: 150 de Metal Sonic no cabia) y el
+                                 * anticheat desconecta por ENCIMA de la vida total
+                                 * DEL PERSONAJE (Rouge 125, Metal 150, resto 100 -
+                                 * mismos numeros que scr_player_maxhp del cliente).
+                                 * v14.3 FIX REAL: esto antes estaba SOLO en el
+                                 * Game.c de la raiz, que NO se compila (CMakeLists
+                                 * usa states/Game.c): el server de verdad seguia
+                                 * con int8 y hp>100 y BOTABA a Rouge (125 HP)
+                                 * nada mas empezar la ronda: "garic forn -
+                                 * Сьогодні о 04:31". Mismo texto, misma linea,
+                                 * ahora de verdad. */
+                                PacketRead(hp, packet, packet_read16, int16_t);
                                 PacketRead(revival, packet, packet_read8, uint8_t);
                                 PacketRead(rings, packet, packet_read16, int16_t);
                                 PacketRead(flags, packet, packet_read8, uint8_t);
@@ -2983,7 +2995,14 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                                                 return true;
                                                         }
 
-                                                        if (hp > 100)
+                                                        int hp_cap = 100;
+                                                        switch (v->surv_char)
+                                                        {
+                                                                case CH_ROUGE: hp_cap = 125; break;
+                                                                case CH_METAL: hp_cap = 150; break;
+                                                        }
+
+                                                        if (hp < 0 || hp > hp_cap)
                                                         {
                                                                 server_disconnect(v->server, v->peer, DR_OTHER, "garic forn — Сьогодні о 04:31");
                                                                 return true;
