@@ -296,6 +296,7 @@
     {"name":"spr_rougenega_jump","order":9,"path":"sprites/spr_rougenega_jump/spr_rougenega_jump.yy",},
     {"name":"spr_rougenega_lookup","order":28,"path":"sprites/spr_rougenega_lookup/spr_rougenega_lookup.yy",},
     {"name":"spr_rougenega_run","order":33,"path":"sprites/spr_rougenega_run/spr_rougenega_run.yy",},
+    {"name":"spr_rougenega_stuck","order":46,"path":"sprites/spr_rougenega_stuck/spr_rougenega_stuck.yy",},
     {"name":"spr_rougenega_walk","order":26,"path":"sprites/spr_rougenega_walk/spr_rougenega_walk.yy",},
     {"name":"spr_rougenega_zipline","order":22,"path":"sprites/spr_rougenega_zipline/spr_rougenega_zipline.yy",},
     {"name":"spr_rougetrack_destroy","order":42,"path":"sprites/spr_rougetrack_destroy/spr_rougetrack_destroy.yy",},

@@ -2399,6 +2399,7 @@
     {"id":{"name":"spr_rougenega_lookdown","path":"sprites/spr_rougenega_lookdown/spr_rougenega_lookdown.yy",},},
     {"id":{"name":"spr_rougenega_lookup","path":"sprites/spr_rougenega_lookup/spr_rougenega_lookup.yy",},},
     {"id":{"name":"spr_rougenega_run","path":"sprites/spr_rougenega_run/spr_rougenega_run.yy",},},
+    {"id":{"name":"spr_rougenega_stuck","path":"sprites/spr_rougenega_stuck/spr_rougenega_stuck.yy",},},
     {"id":{"name":"spr_rougenega_walk","path":"sprites/spr_rougenega_walk/spr_rougenega_walk.yy",},},
     {"id":{"name":"spr_rougenega_zipline","path":"sprites/spr_rougenega_zipline/spr_rougenega_zipline.yy",},},
     {"id":{"name":"spr_rougetrack_destroy","path":"sprites/spr_rougetrack_destroy/spr_rougetrack_destroy.yy",},},
