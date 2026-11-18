@@ -1072,7 +1072,17 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 					break;
 
 				SET_FLAG(v->plr.flags, PLAYER_DEAD);
-				if (v->plr.flags & PLAYER_REVIVED || v->server->game.time_sec < TICKSPERSEC * 2)
+				// v13 (METAL SONIC: 1 SOLA VIDA, regla de la duena): al caer
+				// se marca PLAYER_CANTREVIVE directo — sin barra de revive de
+				// 30 s y sin demonizarse jamas (el flag ya corta los intentos
+				// de revive del CLIENT_REVIVAL_PROGRESS y el tick del timer de
+				// muerte lo salta con su guard de siempre). 150 de vida la
+				// compensan. ROUGE y los demas siguen con su flujo normal.
+				if (v->surv_char == CH_METAL)
+				{
+					SET_FLAG(v->plr.flags, PLAYER_CANTREVIVE);
+				}
+				else if (v->plr.flags & PLAYER_REVIVED || v->server->game.time_sec < TICKSPERSEC * 2)
 				{
 					RAssert(game_demonize(v->server, v));
 				}
@@ -1261,7 +1271,12 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 			int duration = 2000;
 			if(v->server->game.exe != v->id)
 			{
-				PacketRead(hp, packet, packet_read8, int8_t);
+				// v13 (MAX HP POR PERSONAJE): el hp viaja como S16 (antes
+				// int8: 150 de Metal Sonic no cabia) y el anticheat
+				// desconecta por ENCIMA de la vida total DEL PERSONAJE
+				// (Rouge 125, Metal 150, resto 100 - mismos numeros que
+				// scr_player_maxhp del cliente).
+				PacketRead(hp, packet, packet_read16, int16_t);
 				PacketRead(revival, packet, packet_read8, uint8_t);
 				PacketRead(rings, packet, packet_read16, int16_t);
 				PacketRead(flags, packet, packet_read8, uint8_t);
@@ -1279,7 +1294,14 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 								return true;
 							}
 
-							if (hp > 100)
+							int hp_cap = 100;
+							switch (v->surv_char)
+							{
+								case CH_ROUGE: hp_cap = 125; break;
+								case CH_METAL: hp_cap = 150; break;
+							}
+
+							if (hp < 0 || hp > hp_cap)
 							{
 								server_disconnect(v->server, v->peer, DR_OTHER, "garic forn — Сьогодні о 04:31");
 								return true;

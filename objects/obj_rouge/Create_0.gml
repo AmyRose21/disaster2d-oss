@@ -1,48 +1,59 @@
 // Default player values
 
 // =====================================================================
-//  ROUGE (v4.4): superviviente #15. Stats movidos de Knuckles (misma
-//  agilidad aerea) con la aceleracion canonica de superviviente del
-//  110v (v2.2.4), como Amelia/Blaze. Habilidades:
-//   * Z en el aire  = VUELO (v4.6, patron Tails: pulsaciones de Z la
-//                     impulsan hacia arriba mientras queda presupuesto
-//                     de vuelo; entre pulsaciones planea cayendo poco
-//                     a poco. Recarga en el suelo, 7 s)
-//   * X (tierra/aire) = PATADA (spr_rouge_attack2 tierra /
-//                     spr_rouge_attack1 aire, patron Sally: golpe con
-//                     stun de 3 s al bando EXE que aplica el cliente
-//                     de la victima; recarga 20 s)
+//  ROUGE (v13 — REWORK DE LA DUEÑA): superviviente #15. Stats sin
+//  cambio (misma agilidad aerea de siempre). VIDA TOTAL: 125 (antes
+//  100 — ver scr_player_maxhp, el HUD y el netcode ya van por max).
+//  Kit NUEVO (todo con sprites propios):
+//   * Z en el aire  = VUELO (patron VANILLA, antes Tails): MANTENIENDO
+//                     Z SUBE (ROUGE_FLY_RISE), SOLTANDO baja lento
+//                     (ROUGE_FLY_GLIDE) — subir y bajar. Dura
+//                     ROUGE_FLY_SOLO (5 s) y recarga en suelo
+//                     ROUGE_FLY_RECHARGE (15 s). Sprite spr_rouge_fly.
+//   * Abajo + Z en tierra = SPINDASH (reglas de SONIC): cada Z suma
+//                     2 de carga (max 10, tono mas agudo por rev);
+//                     quieto cargando, decay 1 cada 90 f sin pulsar;
+//                     al SOLTAR abajo sale disparada (base 8 + carga)
+//                     en bola con estela y mini-temblor. Carga con
+//                     spr_rouge_spin_charger, lanzada con
+//                     spr_rouge_spin_release.
+//   * X (tierra)     = TORNADO (spr_rouge_attack2): arranca RAPIDA y
+//                     va PERDIENDO velocidad, i-frames durante TODO
+//                     el movimiento (patron tornado de Knuckles).
+//                     Recarga 20 s (ROUGE_ATTACK_RECHARGE).
 //  JAMAS se demoniza (regla canonica): igual que Amy Canon/Sally
 //  Canon/Sonic/Vanilla (parche del server).
 //
-//  v4.5 — VIDAS (regla de la duena): 1 sola vida "blanda".
-//   * 1ra caida -> MORIBUNDA (patron Vanilla): 6 s tirada, inmune a
-//     todo, y se levanta sola con 40 de vida. El server NUNCA sabe
-//     que cayo (la ronda sigue). Su retrato marca el "hit" (cayo 1
-//     vez: revivalTimes=1 solo en el cliente).
-//   * 2da caida -> MUERTE REAL de una (con la X en el retrato):
-//     reviveObj se limpia, sin barra de revive, y el server (guard
-//     canon de Game.c) la marca PLAYER_CANTREVIVE al instante.
-//   * PORTAL TRAMPA DE JINNA: si el dano de la trampa la IRIA a
-//     dejar moribunda o muerta (hp tras el golpe <= 0), en vez del
-//     dano normal es ABSORBIDA (spr_rouge_traped): fuera de juego +
-//     Jinna potenciada (tier "arduas" de Amy/Sally).
-//
-//  v4.6 — VUELO: el planeo patron Knuckles (caida lenta horizontal
-//  con agarre de pared) pasa a ser VUELO patron Tails: murcielago que
-//  soy. Mismo presupuesto (160 f = 2.67 s de impulso), misma recarga
-//  en suelo (420 f = 7 s), misma fisica de pulsaciones (flyGrv). El
-//  agarre de pared se retira con el planeo (los muelles y el suelo
-//  cortan el vuelo, igual que a Tails).
+//  v4.5 — VIDAS (regla de la duena): 1 sola vida "blanda" (moribunda,
+//  6 s tirada inmune y se levanta con 40 — sin cambio en v13).
+//  PORTAL TRAMPA DE JINNA: absorbida (spr_rouge_traped) si el dano la
+//  iba a dejar moribunda o muerta (sin cambio en v13).
 // =====================================================================
-#macro ROUGE_ATTACK_RECHARGE (60 * 20)
-#macro ROUGE_GLIDE_RECHARGE (60 * 12)
+#macro ROUGE_ATTACK_RECHARGE (60 * 20)     // v13: tornado (X)
 #macro ROUGE_MAXSPEED 11
 #macro ROUGE_ACC 0.046875
 
-// v4.6 — vuelo patron Tails (mismos numeros que TAILS_FLY_SOLO)
-#macro ROUGE_FLY_TIME 160        // presupuesto de impulso: 2.67 s
-#macro ROUGE_FLY_RECHARGE 420    // recarga en el suelo: 7 s
+// v13 — VUELO patron VANILLA (subir y bajar): mismos numeros que Vanilla
+#macro ROUGE_FLY_SOLO (60 * 5)        // duracion del vuelo: 5 s
+#macro ROUGE_FLY_RISE -3.5            // subida MANTENIENDO Z
+#macro ROUGE_FLY_GLIDE 1             // bajada suave SOLTANDO Z
+#macro ROUGE_FLY_RECHARGE (60 * 15)  // recarga en suelo: 15 s
+
+// v13 — SPINDASH (reglas de Sonic, mismos numeros)
+#macro ROUGE_SPINDASH_BASE 8
+#macro ROUGE_SPINDASH_REV 2
+#macro ROUGE_SPINDASH_CHARGE_MAX 10
+#macro ROUGE_SPINDASH_DECAY 90
+#macro ROUGE_SPINDASH_START_MAX 2
+#macro ROUGE_SPINDASH_PITCH_STEP 0.8
+#macro ROUGE_SPINDASH_DUST_EVERY 10
+#macro ROUGE_SPINDASH_BURST_MIN 3
+#macro ROUGE_SPINDASH_BURST_MAX 8
+
+// v13 — TORNADO (X): arranca rapida y decae hasta el minimo
+#macro ROUGE_TORNADO_TIME (60 * 0.8)   // duracion total: 0.8 s
+#macro ROUGE_TORNADO_START 12          // velocidad inicial
+#macro ROUGE_TORNADO_MIN 1.5           // velocidad final (decae lineal)
 
 // v4.5 — moribunda (su unica salvacion; patron VANILLA_MORIBUNDA_*)
 #macro ROUGE_MORIBUNDA_TIME (60 * 6)  // tirada en el suelo
@@ -84,11 +95,21 @@ reviveObj = instance_create_depth(x, y, 0, obj_revival_puppet);
 redRingTimer = 0;
 deadTimer = 0;
 glide_xspd = 0;
-// v4.6 — vuelo (patron Tails): flyTimer < 0 = recarga en suelo (hasta
-// -ROUGE_FLY_RECHARGE), > 0 = presupuesto restante en el aire
-flyTimer = -ROUGE_FLY_RECHARGE;
-flyElapsed = 0;
-flyGrv = 0;
+// v13 — VUELO patron VANILLA (subir y bajar): flyTimer es la PUERTA de
+// recarga (0 o menos = listo; al despegar toma ROUGE_FLY_RECHARGE y
+// cuenta hacia atras SOLO en el suelo, como Vanilla) y flyTimeout mide
+// la DURACION del vuelo en el aire (tope ROUGE_FLY_SOLO).
+flyTimer = 0;
+flyTimeout = 0;
+// v13 — SPINDASH (reglas de Sonic): carga por revolucadas + decay
+isSpinCharging = false;
+spinCharge = 0;
+spinChargeDecay = 0;
+spinRevSnd = -1;
+spinDustTimer = 0;
+spinDashRelease = false;   // true mientras la bola lanzada muestra spr_rouge_spin_release
+// v13 — TORNADO (X): tornadoState > 0 = moviendose con i-frames
+tornadoState = 0;
 bounceTimer = 0;
 shards = 0;
 chunkX = -1000;
@@ -96,7 +117,7 @@ chunkY = -1000;
 chunkTimer = 0;
 
 //General
-hp = 100;
+hp = 125; // v13: VIDA TOTAL de Rouge (antes 100) — ver scr_player_maxhp
 isGrounded = false;
 isJumping = false;
 isLookingUp = false;

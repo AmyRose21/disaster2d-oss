@@ -54,7 +54,7 @@ electroTimer = 0;
 geniusHealTimer = 0; // v3.0 «Genio Malvado»: reparacion por proximidad
 
 //General
-hp = 100;
+hp = 150; // v13: VIDA TOTAL de Metal Sonic (antes 100) — 1 SOLA VIDA (ver el guard de Game.c) — scr_player_maxhp
 isGrounded = false;
 isJumping = false;
 isLookingUp = false;

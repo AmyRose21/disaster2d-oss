@@ -67,8 +67,13 @@ else
 if(global.showHud && titleCard > 4)
 {       
         // v10: mala conexion corre a x=104 (el borde izquierdo lo ocupa
-        // ahora la columna del equipo)
-        draw_sprite(spr_badconnection, floor(current_time/200) % 6, 104, 0);
+        // ahora la columna del equipo). FIX v12.1: al moverla a x=104 en la
+        // v10 se cayo el chequeo ORIGINAL de udp_timeout y el icono salia
+        // SIEMPRE (incluso con ping perfecto en local). Restaurado: SOLO
+        // si no llega ningun paquete UDP en >2 s (udp_timeout < 60*3, el
+        // contador baja desde 60*5 y se resetea con cada paquete recibido).
+        if(obj_netclient.udp_timeout < 60 * 3)
+                draw_sprite(spr_badconnection, floor(current_time/200) % 6, 104, 0);
         
         draw_sprite(spr_clock, 0, 211, 0);
         clockAngle = lerp(clockAngle, (-45 * timeFrame), 0.2);
@@ -89,24 +94,21 @@ if(global.showHud && titleCard > 4)
                 }
         }
         
-        // v10 (HUD DE LA IMAGEN): la tira del equipo pasa de la banda
-        // inferior centrada a la COLUMNA del BORDE IZQUIERDO (como la
-        // captura de referencia): retratos 26x26 apilados desde y=2, cada
-        // uno con SU barra de vida AL LADO del retrato (hudAllyBar v10:
-        // roja con funda granate y su "+NN" dentro, no la mini-tira
-        // dentro del retrato). El retrato PROPIO va anclado a la fila de
-        // ABAJO (y 210-236, con hueco encima cuando sobran filas, como
-        // el retrato grande del final en la imagen) y la BARRA GRANDE
-        // propia (v10 del obj_playerui) vive justo debajo (242-268, la
-        // banda que dejo libre la tira al mudarse). Con 9+ filas el paso
-        // se comprime para no salir de pantalla. Los iconos de habilidad
-        // subieron al rincon superior derecho (v10 del obj_playerui):
-        // este borde ya no tiene sitio para ellos, y el ping/fps se
-        // corre junto al reloj.
+        // v12 (ALIADOS DE ABAJO HACIA ARRIBA): la columna del borde
+        // izquierdo apila los retratos 26x26 desde ABAJO — la fila PROPIA
+        // vive ahora en la banda inferior 242-268 (el puesto de la vieja
+        // barra verde grande, ya eliminada por pedido: UNA sola barra
+        // representa tu vida, la barrita de tu retrato con "+NN") y los
+        // ALIADOS suben desde justo ENCIMA de ella (el 1o pegado a tu fila,
+        // el 2o mas arriba...). Cada uno con SU barra de vida AL LADO del
+        // retrato (hudAllyBar: roja con funda granate y su "+NN" dentro).
+        // Con 10+ filas el paso se comprime para no salir por arriba. Los
+        // iconos de habilidad siguen en el rincon superior derecho
+        // (obj_playerui) y el ping/fps junto al reloj.
         var _colX = 2;
-        var _selfBot = 236; // fila propia: retrato y 210-236
+        var _selfBot = 268; // fila propia: retrato y 242-268 (puesto de la vieja barra verde grande)
         var _nRows = ds_map_size(obj_netclient.players) - (ds_map_exists(obj_netclient.players, obj_netclient.exeId) ? 1 : 0);
-        var _rowPitch = (_nRows <= 8) ? 26 : floor(206 / _nRows);
+        var _rowPitch = (_nRows <= 9) ? 26 : floor(214 / (_nRows - 1));
         
         //self icon
         if(obj_netclient.exeId != obj_netclient.nid)
@@ -120,7 +122,7 @@ if(global.showHud && titleCard > 4)
                 {
                         if(global.player.revivalTimes < 2)
                         {
-                                var sprIndex = round((1.0 - (global.player.hp / 100.0)) * 5);
+                                var sprIndex = round((1.0 - (global.player.hp / scr_player_maxhp(global.character))) * 5); // v13: max por personaje (Rouge 125 / Metal 150)
                                 
                                 if(global.player.hp <= 0)
                                 {
@@ -146,9 +148,11 @@ if(global.showHud && titleCard > 4)
                                 else if(global.player.shards > 0)
                                         scr_number_spr(_colX + 12, _selfBot - 4, string(global.player.shards), #27ff23);           
                                 
-                                // v10: barra del retrato propio, al lado como los demas (la
-                                // grande de abajo es la tuya; esta es la de la columna)
-                                hudAllyBar(_colX, _selfBot - 26, global.player.hp);
+                                // v12: TU barra de vida propia, al lado de tu retrato como los
+                                // demas. Es LA UNICA barra que representa tu vida (la barra
+                                // verde grande fue eliminada por pedido: no deben salir 2);
+                                // tu fila vive en la banda 242-268, su viejo puesto.
+                                hudAllyBar(_colX, _selfBot - 26, global.player.hp, scr_player_maxhp(global.character)); // v13: max por personaje
                         }
                         else
                         {
@@ -160,7 +164,7 @@ if(global.showHud && titleCard > 4)
                                 // en el HUD y NO pasa por el retrato demon del esbirro.
                                 if(variable_instance_exists(global.player.id, "isNegatouch") && global.player.isNegatouch)
                                 {
-                                        var _ngFrame = round((1.0 - (global.player.hp / 100.0)) * 5);
+                                        var _ngFrame = round((1.0 - (global.player.hp / scr_player_maxhp(global.character))) * 5); // v13: max por personaje
                                         
                                         if(global.player.hp <= 0)
                                                 _ngFrame = 5;
@@ -169,7 +173,7 @@ if(global.showHud && titleCard > 4)
                                         draw_sprite(_ngPair[0], _ngPair[1] + _ngFrame, _colX, _selfBot);
                                         
                                         // v10: el nega ve SU vida real tambien en la barra de su retrato propio
-                                        hudAllyBar(_colX, _selfBot - 26, global.player.hp);
+                                        hudAllyBar(_colX, _selfBot - 26, global.player.hp, scr_player_maxhp(global.character)); // v13: max por personaje
                                 }
                                 else
                                 {
@@ -193,7 +197,7 @@ if(global.showHud && titleCard > 4)
                 if(k == obj_netclient.exeId)
                         continue;
                 
-                var _rowBot = 2 + _rowPitch * i + 26; // v10: fila de este aliado en la columna
+                var _rowBot = _selfBot - 26 - _rowPitch * i; // v12: aliados DE ABAJO HACIA ARRIBA (i=0 pegado a tu fila, los siguientes mas arriba)
                 var player = obj_netclient.players[? k];
                 var inst = noone;
                 
@@ -217,7 +221,7 @@ if(global.showHud && titleCard > 4)
                         var _pch = inst.character;
                         if(!inst.isDemonized || inst.character == CHARACTER_EXE)
                         {
-                                var sprIndex = round((1.0 - (inst.hp / 100.0)) * 5);
+                                var sprIndex = round((1.0 - (inst.hp / scr_player_maxhp(_pch))) * 5); // v13: max por personaje (Rouge 125 / Metal 150)
                                 
                                 if(inst.hp <= 0)
                                 {
@@ -242,7 +246,7 @@ if(global.showHud && titleCard > 4)
                                 
                                 // v10 (BARRA DE VIDA DE ALIADOS): AL LADO del retrato (como la
                                 // imagen), con el hp real del puppet via UDP y su "+NN" dentro
-                                hudAllyBar(_colX, _rowBot - 26, inst.hp);
+                                hudAllyBar(_colX, _rowBot - 26, inst.hp, scr_player_maxhp(_pch)); // v13: max por personaje
                         }
                         else
                         {
@@ -254,7 +258,7 @@ if(global.showHud && titleCard > 4)
                                 // tira demon roja fija.
                                 if(variable_instance_exists(inst, "isNegatouch") && inst.isNegatouch)
                                 {
-                                        var _ngFrame2 = round((1.0 - (inst.hp / 100.0)) * 5);
+                                        var _ngFrame2 = round((1.0 - (inst.hp / scr_player_maxhp(_pch))) * 5); // v13: max por personaje
                                         
                                         if(inst.hp <= 0)
                                                 _ngFrame2 = 5;
@@ -263,7 +267,7 @@ if(global.showHud && titleCard > 4)
                                         draw_sprite(_ngPair2[0], _ngPair2[1] + _ngFrame2, _colX, _rowBot);
                                         
                                         // v10: el nega del aliado tambien muestra su vida real en la barra
-                                        hudAllyBar(_colX, _rowBot - 26, inst.hp);
+                                        hudAllyBar(_colX, _rowBot - 26, inst.hp, scr_player_maxhp(_pch)); // v13: max por personaje
                                 }
                                 else
                                 {

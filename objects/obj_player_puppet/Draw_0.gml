@@ -71,11 +71,11 @@ switch(character)
                         image_xscale = 1;
                 break;
 
-        // v4.4 — ROUGE: mismo guard que Knuckles (el sprite de planeo
-        // es espejo: en planeo siempre mira a la derecha)
+        // v13 — ROUGE: el nuevo VUELO (spr_rouge_fly) mira a la derecha de
+        // fabrica como su run (ya NO es la vieja tira direccional espejo del
+        // planeo): respeta el image_xscale normal, igual que Knuckles ya no
+        // necesita nada aqui.
         case CHARACTER_ROUGE:
-                if(state == ROUGE_GLIDE)
-                        image_xscale = 1;
                 break;
 }
 

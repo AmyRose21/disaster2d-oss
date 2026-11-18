@@ -1,0 +1,2495 @@
+diff --git a/LEEME_ROUGE_V13.txt b/LEEME_ROUGE_V13.txt
+new file mode 100644
+index 00000000..4fc78548
+--- /dev/null
++++ b/LEEME_ROUGE_V13.txt
+@@ -0,0 +1,99 @@
++=====================================================================
++ ROUGE v13 — REWORK COMPLETO + VIDAS 125/150 (la que pediste)
++=====================================================================
++
++QUE CAMBIA
++-----------
++
++  1) VUELO NUEVO (patron VANILLA — subir y bajar):
++     Z en el aire y MANTENIENDO Z SUBE (rise -3.5); SOLTANDO Z
++     baja lento (planeo +1). Dura 5 s y recarga en suelo 15 s.
++     Sprite NUEVO en el estado de vuelo: spr_rouge_fly (alas
++     batiendo, 4 frames). Ya no es el vuelo de pulsaciones de
++     Tails ni la tira direccional del viejo planeo.
++
++  2) SPINDASH (reglas de SONIC, sprites propios):
++     ABAJO + Z en tierra: cada pulsacion suma 2 de carga (max 10,
++     tono del sonido mas agudo por revolucada, polvo detras).
++     Quieta cargando; la carga decae 1 cada 90 frames sin pulsar.
++     Al SOLTAR abajo sale disparada: 8 + carga px/frame, en bola
++     con polvareda y mini-temblor de camara.
++       * cargando:  spr_rouge_spin_charger (NUEVO, 6 frames:
++         la bola de Rouge con arcos girando + chispas al pie,
++         gira mas rapido cuanta mas carga)
++       * lanzada:    spr_rouge_spin_release (NUEVO, 6 frames: la
++         bola con estelas de velocidad detras)
++     Cancelan: dano, stun, muerte, tirolina, saltar fuera del
++     suelo o volar. No salta mientras carga (guard nuevo en
++     scr_move_basic, igual que Sonic/Amelia).
++
++  3) TORNADO (X en TIERRA — spr_rouge_attack2):
++     Sale a 12 px/frame y va PERDIENDO velocidad hasta 1.5 al
++     final (0.8 s de recorrido). I-FRAMES durante TODO el
++     movimiento (scr_player_hurt: tornadoState > 0 = inmune),
++     patron tornado de Knuckles. La pared la corta con
++     polvareda + mini-temblor. Recarga 20 s.
++     El sprite del tornado ahora ANIMA (2 frames: el segundo
++     frame existia en el proyecto sin registrar — registrado).
++     X en el AIRE sigue siendo la patada aerea de siempre.
++
++  4) VIDA TOTAL:
++       * ROUGE:      125 (antes 100)
++       * METAL SONIC: 150 (antes 100) PERO 1 SOLA VIDA: al caer
++         se marca CANTREVIVE directo en el server — sin barra
++         de revive de 30 s y SIN demonizarse. Muerte real de
++         una. (guard nuevo en Game.c, CLIENT_PLAYER_DEATH_STATE)
++
++  TODO el HUD escala con la vida total (tiras de retratos,
++  barrita "+NN", curas con anillos, anillo negro, revivir a
++  full): nuevo script scr_player_maxhp(char) = la unica fuente
++  de verdad (125/150/100).
++
++NETCODE (OJO — server y cliente se parchean JUNTOS)
++----------------------------------------------------
++El hp viajaba como int8 firmado (max 127): 150 NO cabia y el
++anti-cheat del server ("garic forn") desconectaba con hp > 100.
++Cambia en los 3 puntos, MISMA posicion del paquete:
++  * writer:  obj_netclient/Step_2.gml   (s16, clamp por personaje)
++  * reader:  net_udpprocess.gml          (s16)
++  * server:  Game.c                      (read16 + cap 125/150/100)
++RECOMPILA EL SERVER (compilar_server.bat) y reparte el cliente
++nuevo a TODOS (mezclar builds viejos/nuevos desalinea el
++paquete). El zip lleva el Game.c parcheado.
++
++ARCHIVOS (el zip lleva SOLO modificados/creados)
++------------------------------------------------
++MODIFICADOS:
++  Sonicexe The Disaster 2D Remake.yyp    (3 registros nuevos)
++  betterserver-oss/disasterserver/Game.c (hp s16 + cap + Metal 1 vida)
++  objects/obj_blackring/Step_0.gml       (cura al max)
++  objects/obj_level/Create_0.gml         (hudAllyBar con maxhp)
++  objects/obj_level/Draw_64.gml          (tiras de vida por max)
++  objects/obj_metal/Create_0.gml          (hp 150)
++  objects/obj_netclient/Step_2.gml        (hp s16 + clamp)
++  objects/obj_player_puppet/Draw_0.gml    (fly sin xscale forzado)
++  objects/obj_playerui/Draw_64.gml       (iconos: fly/tornado/spindash)
++  objects/obj_rouge/Create_0.gml          (macros + vars + hp 125)
++  objects/obj_rouge/Draw_76.gml           (anim de estados nuevos)
++  objects/obj_rouge/Step_2.gml            (estados 20/21)
++  scripts/net_state_game/net_state_game.gml (curas max-aware)
++  scripts/net_udpprocess/net_udpprocess.gml (hp s16)
++  scripts/scr_metal_special/scr_metal_special.gml (regen a 150)
++  scripts/scr_move_basic/scr_move_basic.gml   (no saltar cargando)
++  scripts/scr_player_hurt/scr_player_hurt.gml (i-frames tornado)
++  scripts/scr_rouge_special/scr_rouge_special.gml (KIT NUEVO)
++  scripts/scr_survivors/scr_survivors.gml (tablas + estados 20/21)
++  sprites/spr_rouge_attack2/spr_rouge_attack2.yy (2.o frame tornado)
++
++CREADOS:
++  scripts/scr_player_maxhp/               (scr_player_maxhp)
++  sprites/spr_rouge_spin_charger/         (6 frames + yy)
++  sprites/spr_rouge_spin_release/         (6 frames + yy)
++
++COMO APLICAR
++------------
++  git apply rouge_v13.patch
++  (o copia las carpetas encima, mismas rutas) y RECOMPILA EL
++  SERVER. Requiere v12 + v12.1 aplicados antes (el parche sale
++  sobre ese estado).
++=====================================================================
+diff --git a/Sonicexe The Disaster 2D Remake.yyp b/Sonicexe The Disaster 2D Remake.yyp
+index 29f90ab1..b78a810d 100644
+--- a/Sonicexe The Disaster 2D Remake.yyp	
++++ b/Sonicexe The Disaster 2D Remake.yyp	
+@@ -697,6 +697,7 @@
+     {"id":{"name":"scr_parry","path":"scripts/scr_parry/scr_parry.yy",},},
+     {"id":{"name":"scr_pets","path":"scripts/scr_pets/scr_pets.yy",},},
+     {"id":{"name":"scr_player_hurt","path":"scripts/scr_player_hurt/scr_player_hurt.yy",},},
++    {"id":{"name":"scr_player_maxhp","path":"scripts/scr_player_maxhp/scr_player_maxhp.yy",},},
+     {"id":{"name":"scr_player_slow","path":"scripts/scr_player_slow/scr_player_slow.yy",},},
+     {"id":{"name":"scr_powerboost_fx","path":"scripts/scr_powerboost_fx/scr_powerboost_fx.yy",},},
+     {"id":{"name":"scr_prefetch_group","path":"scripts/scr_prefetch_group/scr_prefetch_group.yy",},},
+@@ -2376,6 +2377,8 @@
+     {"id":{"name":"spr_rouge_lookup","path":"sprites/spr_rouge_lookup/spr_rouge_lookup.yy",},},
+     {"id":{"name":"spr_rouge_marijuna","path":"sprites/spr_rouge_marijuna/spr_rouge_marijuna.yy",},},
+     {"id":{"name":"spr_rouge_run","path":"sprites/spr_rouge_run/spr_rouge_run.yy",},},
++    {"id":{"name":"spr_rouge_spin_charger","path":"sprites/spr_rouge_spin_charger/spr_rouge_spin_charger.yy",},},
++    {"id":{"name":"spr_rouge_spin_release","path":"sprites/spr_rouge_spin_release/spr_rouge_spin_release.yy",},},
+     {"id":{"name":"spr_rouge_stuck","path":"sprites/spr_rouge_stuck/spr_rouge_stuck.yy",},},
+     {"id":{"name":"spr_rouge_traped","path":"sprites/spr_rouge_traped/spr_rouge_traped.yy",},},
+     {"id":{"name":"spr_rouge_walk","path":"sprites/spr_rouge_walk/spr_rouge_walk.yy",},},
+diff --git a/betterserver-oss/disasterserver/Game.c b/betterserver-oss/disasterserver/Game.c
+index bd669d2a..efd53203 100644
+--- a/betterserver-oss/disasterserver/Game.c
++++ b/betterserver-oss/disasterserver/Game.c
+@@ -1072,7 +1072,17 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
+ 					break;
+ 
+ 				SET_FLAG(v->plr.flags, PLAYER_DEAD);
+-				if (v->plr.flags & PLAYER_REVIVED || v->server->game.time_sec < TICKSPERSEC * 2)
++				// v13 (METAL SONIC: 1 SOLA VIDA, regla de la duena): al caer
++				// se marca PLAYER_CANTREVIVE directo — sin barra de revive de
++				// 30 s y sin demonizarse jamas (el flag ya corta los intentos
++				// de revive del CLIENT_REVIVAL_PROGRESS y el tick del timer de
++				// muerte lo salta con su guard de siempre). 150 de vida la
++				// compensan. ROUGE y los demas siguen con su flujo normal.
++				if (v->surv_char == CH_METAL)
++				{
++					SET_FLAG(v->plr.flags, PLAYER_CANTREVIVE);
++				}
++				else if (v->plr.flags & PLAYER_REVIVED || v->server->game.time_sec < TICKSPERSEC * 2)
+ 				{
+ 					RAssert(game_demonize(v->server, v));
+ 				}
+@@ -1261,7 +1271,12 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
+ 			int duration = 2000;
+ 			if(v->server->game.exe != v->id)
+ 			{
+-				PacketRead(hp, packet, packet_read8, int8_t);
++				// v13 (MAX HP POR PERSONAJE): el hp viaja como S16 (antes
++				// int8: 150 de Metal Sonic no cabia) y el anticheat
++				// desconecta por ENCIMA de la vida total DEL PERSONAJE
++				// (Rouge 125, Metal 150, resto 100 - mismos numeros que
++				// scr_player_maxhp del cliente).
++				PacketRead(hp, packet, packet_read16, int16_t);
+ 				PacketRead(revival, packet, packet_read8, uint8_t);
+ 				PacketRead(rings, packet, packet_read16, int16_t);
+ 				PacketRead(flags, packet, packet_read8, uint8_t);
+@@ -1279,7 +1294,14 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
+ 								return true;
+ 							}
+ 
+-							if (hp > 100)
++							int hp_cap = 100;
++							switch (v->surv_char)
++							{
++								case CH_ROUGE: hp_cap = 125; break;
++								case CH_METAL: hp_cap = 150; break;
++							}
++
++							if (hp < 0 || hp > hp_cap)
+ 							{
+ 								server_disconnect(v->server, v->peer, DR_OTHER, "garic forn — Сьогодні о 04:31");
+ 								return true;
+diff --git a/objects/obj_blackring/Step_0.gml b/objects/obj_blackring/Step_0.gml
+index bab3cbc5..299f2538 100644
+--- a/objects/obj_blackring/Step_0.gml
++++ b/objects/obj_blackring/Step_0.gml
+@@ -20,7 +20,7 @@ if(visible && image_alpha >= 1 && instance_exists(global.player) && place_meetin
+ 	// Con la vida llena no lo gasta: se queda para otro nega herido.
+ 	if(global.player.revivalTimes >= 2)
+ 	{
+-		if(scr_negatouch_is(global.player) && global.player.hp > 0 && global.player.hp < 100)
++		if(scr_negatouch_is(global.player) && global.player.hp > 0 && global.player.hp < scr_player_maxhp(global.character)) // v13: max por personaje
+ 		{
+ 			var packet = cpacket_tcp(PacketType.CLIENT_BRING_COLLECTED);
+ 			buffer_write(packet, buffer_u16, nid);
+diff --git a/objects/obj_level/Create_0.gml b/objects/obj_level/Create_0.gml
+index e8fcca03..3a2344a1 100644
+--- a/objects/obj_level/Create_0.gml
++++ b/objects/obj_level/Create_0.gml
+@@ -150,23 +150,29 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
+ // retrato). Aliado MUERTO: solo la funda vacia. NO se dibuja para
+ // demonizados ni escapados (el demon usa tira fija sin vida que mirar y
+ // el escapado ya no esta).
++// v13 (MAX HP POR PERSONAJE): hudAllyBar(tx, ty, hp, maxhp=100) — el
++// relleno y el "+NN" escalan con la vida TOTAL del personaje (Rouge 125,
++// Metal 150, los demas 100 — scr_player_maxhp). Antes el 100 estaba
++// horneado: con 125+ la barrita se quedaba "llena" desde el 100 y el
++// relleno clampado.
+ // (tx, ty) = esquina SUPERIOR-IZQUIERDA del tile 26x26 del retrato: la
+ // barra sale a su derecha (x = tx+28) centrada en vertical (cy = ty+13),
+ // como en la captura. La columna la ancla obj_level/Draw_64.gml (v10).
+-hudAllyBar = function(tx, ty, hp)
++hudAllyBar = function(tx, ty, hp, maxhp = 100)
+ {
+-        var _hp = clamp(hp, 0, 100);
++        var _hp = clamp(hp, 0, maxhp);
++        var _fillMax = 46;
+         var _cy = ty + 13;
+ 
+         // funda (casco granate oscuro, 1 px de borde a cada lado)
+         draw_set_color(make_color_rgb(84, 12, 12));
+         draw_rectangle(tx + 28, _cy - 4, tx + 76, _cy + 4, false);
+ 
+-        // relleno ROJO de 6 de alto — 100 HP = 46 px
++        // relleno ROJO de 6 de alto — maxhp HP = 46 px
+         if(_hp > 0)
+         {
+                 draw_set_color(make_color_rgb(232, 20, 20));
+-                draw_rectangle(tx + 29, _cy - 3, tx + 29 + ceil(_hp * 0.46), _cy + 3, false);
++                draw_rectangle(tx + 29, _cy - 3, tx + 29 + ceil(_hp / maxhp * _fillMax), _cy + 3, false);
+         }
+ 
+         // "+NN" blanco DENTRO de la barra (micro-fuente del HUD)
+diff --git a/objects/obj_level/Draw_64.gml b/objects/obj_level/Draw_64.gml
+index 253015b2..abb37bb4 100644
+--- a/objects/obj_level/Draw_64.gml
++++ b/objects/obj_level/Draw_64.gml
+@@ -122,7 +122,7 @@ if(global.showHud && titleCard > 4)
+                 {
+                         if(global.player.revivalTimes < 2)
+                         {
+-                                var sprIndex = round((1.0 - (global.player.hp / 100.0)) * 5);
++                                var sprIndex = round((1.0 - (global.player.hp / scr_player_maxhp(global.character))) * 5); // v13: max por personaje (Rouge 125 / Metal 150)
+                                 
+                                 if(global.player.hp <= 0)
+                                 {
+@@ -152,7 +152,7 @@ if(global.showHud && titleCard > 4)
+                                 // demas. Es LA UNICA barra que representa tu vida (la barra
+                                 // verde grande fue eliminada por pedido: no deben salir 2);
+                                 // tu fila vive en la banda 242-268, su viejo puesto.
+-                                hudAllyBar(_colX, _selfBot - 26, global.player.hp);
++                                hudAllyBar(_colX, _selfBot - 26, global.player.hp, scr_player_maxhp(global.character)); // v13: max por personaje
+                         }
+                         else
+                         {
+@@ -164,7 +164,7 @@ if(global.showHud && titleCard > 4)
+                                 // en el HUD y NO pasa por el retrato demon del esbirro.
+                                 if(variable_instance_exists(global.player.id, "isNegatouch") && global.player.isNegatouch)
+                                 {
+-                                        var _ngFrame = round((1.0 - (global.player.hp / 100.0)) * 5);
++                                        var _ngFrame = round((1.0 - (global.player.hp / scr_player_maxhp(global.character))) * 5); // v13: max por personaje
+                                         
+                                         if(global.player.hp <= 0)
+                                                 _ngFrame = 5;
+@@ -173,7 +173,7 @@ if(global.showHud && titleCard > 4)
+                                         draw_sprite(_ngPair[0], _ngPair[1] + _ngFrame, _colX, _selfBot);
+                                         
+                                         // v10: el nega ve SU vida real tambien en la barra de su retrato propio
+-                                        hudAllyBar(_colX, _selfBot - 26, global.player.hp);
++                                        hudAllyBar(_colX, _selfBot - 26, global.player.hp, scr_player_maxhp(global.character)); // v13: max por personaje
+                                 }
+                                 else
+                                 {
+@@ -221,7 +221,7 @@ if(global.showHud && titleCard > 4)
+                         var _pch = inst.character;
+                         if(!inst.isDemonized || inst.character == CHARACTER_EXE)
+                         {
+-                                var sprIndex = round((1.0 - (inst.hp / 100.0)) * 5);
++                                var sprIndex = round((1.0 - (inst.hp / scr_player_maxhp(_pch))) * 5); // v13: max por personaje (Rouge 125 / Metal 150)
+                                 
+                                 if(inst.hp <= 0)
+                                 {
+@@ -246,7 +246,7 @@ if(global.showHud && titleCard > 4)
+                                 
+                                 // v10 (BARRA DE VIDA DE ALIADOS): AL LADO del retrato (como la
+                                 // imagen), con el hp real del puppet via UDP y su "+NN" dentro
+-                                hudAllyBar(_colX, _rowBot - 26, inst.hp);
++                                hudAllyBar(_colX, _rowBot - 26, inst.hp, scr_player_maxhp(_pch)); // v13: max por personaje
+                         }
+                         else
+                         {
+@@ -258,7 +258,7 @@ if(global.showHud && titleCard > 4)
+                                 // tira demon roja fija.
+                                 if(variable_instance_exists(inst, "isNegatouch") && inst.isNegatouch)
+                                 {
+-                                        var _ngFrame2 = round((1.0 - (inst.hp / 100.0)) * 5);
++                                        var _ngFrame2 = round((1.0 - (inst.hp / scr_player_maxhp(_pch))) * 5); // v13: max por personaje
+                                         
+                                         if(inst.hp <= 0)
+                                                 _ngFrame2 = 5;
+@@ -267,7 +267,7 @@ if(global.showHud && titleCard > 4)
+                                         draw_sprite(_ngPair2[0], _ngPair2[1] + _ngFrame2, _colX, _rowBot);
+                                         
+                                         // v10: el nega del aliado tambien muestra su vida real en la barra
+-                                        hudAllyBar(_colX, _rowBot - 26, inst.hp);
++                                        hudAllyBar(_colX, _rowBot - 26, inst.hp, scr_player_maxhp(_pch)); // v13: max por personaje
+                                 }
+                                 else
+                                 {
+diff --git a/objects/obj_metal/Create_0.gml b/objects/obj_metal/Create_0.gml
+index f18730ba..20281381 100644
+--- a/objects/obj_metal/Create_0.gml
++++ b/objects/obj_metal/Create_0.gml
+@@ -54,7 +54,7 @@ electroTimer = 0;
+ geniusHealTimer = 0; // v3.0 «Genio Malvado»: reparacion por proximidad
+ 
+ //General
+-hp = 100;
++hp = 150; // v13: VIDA TOTAL de Metal Sonic (antes 100) — 1 SOLA VIDA (ver el guard de Game.c) — scr_player_maxhp
+ isGrounded = false;
+ isJumping = false;
+ isLookingUp = false;
+diff --git a/objects/obj_netclient/Step_2.gml b/objects/obj_netclient/Step_2.gml
+index 642e2b04..779daf32 100644
+--- a/objects/obj_netclient/Step_2.gml
++++ b/objects/obj_netclient/Step_2.gml
+@@ -56,13 +56,14 @@ with(global.player)
+         
+                 if(global.character != CHARACTER_EXE)
+                 {
+-                        // v4.10 blindaje «garic forn»: el anticheat del server
+-                        // (states/Game.c) desconecta con hp > 100 en el
+-                        // CLIENT_PLAYER_DATA. Las curas ya viajan clampeadas
+-                        // (v4.8/v4.9) pero esto garantiza que NINGUNA ruta
+-                        // futura pueda mandar un hp fuera de rango: aqui es
+-                        // fisicamente imposible que viaje > 100.
+-                        buffer_write(buffer, buffer_s8, clamp(hp, 0, 100));
++                        // v13 (MAX HP POR PERSONAJE): el hp viaja ahora como S16
++                        // (antes s8: 150 de Metal Sonic NO cabia en un int8 con
++                        // signo) y clampeado a la vida TOTAL del personaje
++                        // (scr_player_maxhp: Rouge 125 / Metal 150 / resto 100).
++                        // El reader de TODOS los clientes (net_udpprocess) y el
++                        // anti-cheat del server (Game.c, cap por personaje) ya
++                        // leen s16 en la misma posicion — mismo build = alineado.
++                        buffer_write(buffer, buffer_s16, clamp(hp, 0, scr_player_maxhp(global.character)));
+                         buffer_write(buffer, buffer_u8, revivalTimes);
+                         buffer_write(buffer, buffer_s16, rings);
+                 
+diff --git a/objects/obj_player_puppet/Draw_0.gml b/objects/obj_player_puppet/Draw_0.gml
+index 5efbe8b6..188209ee 100644
+--- a/objects/obj_player_puppet/Draw_0.gml
++++ b/objects/obj_player_puppet/Draw_0.gml
+@@ -71,11 +71,11 @@ switch(character)
+                         image_xscale = 1;
+                 break;
+ 
+-        // v4.4 — ROUGE: mismo guard que Knuckles (el sprite de planeo
+-        // es espejo: en planeo siempre mira a la derecha)
++        // v13 — ROUGE: el nuevo VUELO (spr_rouge_fly) mira a la derecha de
++        // fabrica como su run (ya NO es la vieja tira direccional espejo del
++        // planeo): respeta el image_xscale normal, igual que Knuckles ya no
++        // necesita nada aqui.
+         case CHARACTER_ROUGE:
+-                if(state == ROUGE_GLIDE)
+-                        image_xscale = 1;
+                 break;
+ }
+ 
+diff --git a/objects/obj_playerui/Draw_64.gml b/objects/obj_playerui/Draw_64.gml
+index 1e663b40..07ca06c0 100644
+--- a/objects/obj_playerui/Draw_64.gml
++++ b/objects/obj_playerui/Draw_64.gml
+@@ -354,19 +354,36 @@ if(instance_exists(global.player) && !global.player.isDead)
+                         break;
+                 }
+ 
+-                // v4.6 — ROUGE: icono de VUELO (Z, patron Tails: la barrita
+-                // se llena mientras recarga en el suelo) + patada X, con
+-                // sus sprites propios del TTB (spr_gui_rougeglide /
+-                // spr_gui_rougeattack). La patada NO tiene version exe
+-                // (jamais se demoniza): su recarga es siempre la de
+-                // superviviente.
++                // v13 — ROUGE (REWORK): icono de VUELO patron VANILLA (Z:
++                // mantener = subir, soltar = bajar; la barrita se llena
++                // mientras recarga en el suelo, 15 s) + TORNADO X (i-frames,
++                // recarga 20 s) + SPINDASH (abajo + Z, sin cooldown), con
++                // sus sprites del TTB (spr_gui_rougeglide /
++                // spr_gui_rougeattack / placeholder de Sonic para el spin).
++                // Nada tiene version exe (jamais se demoniza): recargas de
++                // superviviente siempre.
+                 case CHARACTER_ROUGE:
+                 {
+-                        var prog = (min(global.player.flyTimer, 0) / -ROUGE_FLY_RECHARGE);
+-                        drawKeyIcon(spr_gui_rougeglide, 0, 23, global.KeyA, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
+-
+-                        prog = 1.0 - (min(global.player.attackTimer, ROUGE_ATTACK_RECHARGE) / ROUGE_ATTACK_RECHARGE);
++                        // v13 — VUELO patron VANILLA: la puerta flyTimer cuenta
++                        // hacia atras desde ROUGE_FLY_RECHARGE cuando NO vuela
++                        // (0 = listo). Icono listo = blanco, recarga = rojo.
++                        var _rprog = 1.0 - (max(global.player.flyTimer, 0) / ROUGE_FLY_RECHARGE);
++                        drawKeyIcon(spr_gui_rougeglide, 0, 23, global.KeyA, _rprog * 10, 240 - _ico, _rprog == 1.0 ? c_white : c_red, _rprog, 0);
++
++                        // v13 — TORNADO (X en tierra): recarga attackTimer.
++                        var prog = 1.0 - (min(global.player.attackTimer, ROUGE_ATTACK_RECHARGE) / ROUGE_ATTACK_RECHARGE);
+                         drawKeyIcon(spr_gui_rougeattack, 0, 19, global.KeyB, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
++
++                        // v13 — SPINDASH (abajo + Z): sin cooldown (su coste
++                        // es el tiempo de revolucioneo), patron del de Sonic:
++                        // siempre visible, blanco = listo, brilla mas al cargar.
++                        var _rspr = asset_get_index("spr_gui_rougespindash");
++                        if(is_undefined(_rspr) || _rspr < 0)
++                                _rspr = spr_gui_sonicspindash; // placeholder hasta que exista el propio
++
++                        var _rcharging = variable_instance_exists(global.player.id, "isSpinCharging") && global.player.isSpinCharging;
++                        var _rchg = variable_instance_exists(global.player.id, "spinCharge") ? global.player.spinCharge / ROUGE_SPINDASH_CHARGE_MAX : 0;
++                        drawKeyIcon(_rspr, 0, 33, global.KeyA, 10, 222 - _ico, _rcharging ? c_red : c_white, _rcharging ? 0.5 + _rchg * 0.5 : 1, 0);
+                         break;
+                 }
+ 
+diff --git a/objects/obj_rouge/Create_0.gml b/objects/obj_rouge/Create_0.gml
+index 20b44f1f..496719de 100644
+--- a/objects/obj_rouge/Create_0.gml
++++ b/objects/obj_rouge/Create_0.gml
+@@ -1,48 +1,59 @@
+ // Default player values
+ 
+ // =====================================================================
+-//  ROUGE (v4.4): superviviente #15. Stats movidos de Knuckles (misma
+-//  agilidad aerea) con la aceleracion canonica de superviviente del
+-//  110v (v2.2.4), como Amelia/Blaze. Habilidades:
+-//   * Z en el aire  = VUELO (v4.6, patron Tails: pulsaciones de Z la
+-//                     impulsan hacia arriba mientras queda presupuesto
+-//                     de vuelo; entre pulsaciones planea cayendo poco
+-//                     a poco. Recarga en el suelo, 7 s)
+-//   * X (tierra/aire) = PATADA (spr_rouge_attack2 tierra /
+-//                     spr_rouge_attack1 aire, patron Sally: golpe con
+-//                     stun de 3 s al bando EXE que aplica el cliente
+-//                     de la victima; recarga 20 s)
++//  ROUGE (v13 — REWORK DE LA DUEÑA): superviviente #15. Stats sin
++//  cambio (misma agilidad aerea de siempre). VIDA TOTAL: 125 (antes
++//  100 — ver scr_player_maxhp, el HUD y el netcode ya van por max).
++//  Kit NUEVO (todo con sprites propios):
++//   * Z en el aire  = VUELO (patron VANILLA, antes Tails): MANTENIENDO
++//                     Z SUBE (ROUGE_FLY_RISE), SOLTANDO baja lento
++//                     (ROUGE_FLY_GLIDE) — subir y bajar. Dura
++//                     ROUGE_FLY_SOLO (5 s) y recarga en suelo
++//                     ROUGE_FLY_RECHARGE (15 s). Sprite spr_rouge_fly.
++//   * Abajo + Z en tierra = SPINDASH (reglas de SONIC): cada Z suma
++//                     2 de carga (max 10, tono mas agudo por rev);
++//                     quieto cargando, decay 1 cada 90 f sin pulsar;
++//                     al SOLTAR abajo sale disparada (base 8 + carga)
++//                     en bola con estela y mini-temblor. Carga con
++//                     spr_rouge_spin_charger, lanzada con
++//                     spr_rouge_spin_release.
++//   * X (tierra)     = TORNADO (spr_rouge_attack2): arranca RAPIDA y
++//                     va PERDIENDO velocidad, i-frames durante TODO
++//                     el movimiento (patron tornado de Knuckles).
++//                     Recarga 20 s (ROUGE_ATTACK_RECHARGE).
+ //  JAMAS se demoniza (regla canonica): igual que Amy Canon/Sally
+ //  Canon/Sonic/Vanilla (parche del server).
+ //
+-//  v4.5 — VIDAS (regla de la duena): 1 sola vida "blanda".
+-//   * 1ra caida -> MORIBUNDA (patron Vanilla): 6 s tirada, inmune a
+-//     todo, y se levanta sola con 40 de vida. El server NUNCA sabe
+-//     que cayo (la ronda sigue). Su retrato marca el "hit" (cayo 1
+-//     vez: revivalTimes=1 solo en el cliente).
+-//   * 2da caida -> MUERTE REAL de una (con la X en el retrato):
+-//     reviveObj se limpia, sin barra de revive, y el server (guard
+-//     canon de Game.c) la marca PLAYER_CANTREVIVE al instante.
+-//   * PORTAL TRAMPA DE JINNA: si el dano de la trampa la IRIA a
+-//     dejar moribunda o muerta (hp tras el golpe <= 0), en vez del
+-//     dano normal es ABSORBIDA (spr_rouge_traped): fuera de juego +
+-//     Jinna potenciada (tier "arduas" de Amy/Sally).
+-//
+-//  v4.6 — VUELO: el planeo patron Knuckles (caida lenta horizontal
+-//  con agarre de pared) pasa a ser VUELO patron Tails: murcielago que
+-//  soy. Mismo presupuesto (160 f = 2.67 s de impulso), misma recarga
+-//  en suelo (420 f = 7 s), misma fisica de pulsaciones (flyGrv). El
+-//  agarre de pared se retira con el planeo (los muelles y el suelo
+-//  cortan el vuelo, igual que a Tails).
++//  v4.5 — VIDAS (regla de la duena): 1 sola vida "blanda" (moribunda,
++//  6 s tirada inmune y se levanta con 40 — sin cambio en v13).
++//  PORTAL TRAMPA DE JINNA: absorbida (spr_rouge_traped) si el dano la
++//  iba a dejar moribunda o muerta (sin cambio en v13).
+ // =====================================================================
+-#macro ROUGE_ATTACK_RECHARGE (60 * 20)
+-#macro ROUGE_GLIDE_RECHARGE (60 * 12)
++#macro ROUGE_ATTACK_RECHARGE (60 * 20)     // v13: tornado (X)
+ #macro ROUGE_MAXSPEED 11
+ #macro ROUGE_ACC 0.046875
+ 
+-// v4.6 — vuelo patron Tails (mismos numeros que TAILS_FLY_SOLO)
+-#macro ROUGE_FLY_TIME 160        // presupuesto de impulso: 2.67 s
+-#macro ROUGE_FLY_RECHARGE 420    // recarga en el suelo: 7 s
++// v13 — VUELO patron VANILLA (subir y bajar): mismos numeros que Vanilla
++#macro ROUGE_FLY_SOLO (60 * 5)        // duracion del vuelo: 5 s
++#macro ROUGE_FLY_RISE -3.5            // subida MANTENIENDO Z
++#macro ROUGE_FLY_GLIDE 1             // bajada suave SOLTANDO Z
++#macro ROUGE_FLY_RECHARGE (60 * 15)  // recarga en suelo: 15 s
++
++// v13 — SPINDASH (reglas de Sonic, mismos numeros)
++#macro ROUGE_SPINDASH_BASE 8
++#macro ROUGE_SPINDASH_REV 2
++#macro ROUGE_SPINDASH_CHARGE_MAX 10
++#macro ROUGE_SPINDASH_DECAY 90
++#macro ROUGE_SPINDASH_START_MAX 2
++#macro ROUGE_SPINDASH_PITCH_STEP 0.8
++#macro ROUGE_SPINDASH_DUST_EVERY 10
++#macro ROUGE_SPINDASH_BURST_MIN 3
++#macro ROUGE_SPINDASH_BURST_MAX 8
++
++// v13 — TORNADO (X): arranca rapida y decae hasta el minimo
++#macro ROUGE_TORNADO_TIME (60 * 0.8)   // duracion total: 0.8 s
++#macro ROUGE_TORNADO_START 12          // velocidad inicial
++#macro ROUGE_TORNADO_MIN 1.5           // velocidad final (decae lineal)
+ 
+ // v4.5 — moribunda (su unica salvacion; patron VANILLA_MORIBUNDA_*)
+ #macro ROUGE_MORIBUNDA_TIME (60 * 6)  // tirada en el suelo
+@@ -84,11 +95,21 @@ reviveObj = instance_create_depth(x, y, 0, obj_revival_puppet);
+ redRingTimer = 0;
+ deadTimer = 0;
+ glide_xspd = 0;
+-// v4.6 — vuelo (patron Tails): flyTimer < 0 = recarga en suelo (hasta
+-// -ROUGE_FLY_RECHARGE), > 0 = presupuesto restante en el aire
+-flyTimer = -ROUGE_FLY_RECHARGE;
+-flyElapsed = 0;
+-flyGrv = 0;
++// v13 — VUELO patron VANILLA (subir y bajar): flyTimer es la PUERTA de
++// recarga (0 o menos = listo; al despegar toma ROUGE_FLY_RECHARGE y
++// cuenta hacia atras SOLO en el suelo, como Vanilla) y flyTimeout mide
++// la DURACION del vuelo en el aire (tope ROUGE_FLY_SOLO).
++flyTimer = 0;
++flyTimeout = 0;
++// v13 — SPINDASH (reglas de Sonic): carga por revolucadas + decay
++isSpinCharging = false;
++spinCharge = 0;
++spinChargeDecay = 0;
++spinRevSnd = -1;
++spinDustTimer = 0;
++spinDashRelease = false;   // true mientras la bola lanzada muestra spr_rouge_spin_release
++// v13 — TORNADO (X): tornadoState > 0 = moviendose con i-frames
++tornadoState = 0;
+ bounceTimer = 0;
+ shards = 0;
+ chunkX = -1000;
+@@ -96,7 +117,7 @@ chunkY = -1000;
+ chunkTimer = 0;
+ 
+ //General
+-hp = 100;
++hp = 125; // v13: VIDA TOTAL de Rouge (antes 100) — ver scr_player_maxhp
+ isGrounded = false;
+ isJumping = false;
+ isLookingUp = false;
+diff --git a/objects/obj_rouge/Draw_76.gml b/objects/obj_rouge/Draw_76.gml
+index 71d20124..305508ec 100644
+--- a/objects/obj_rouge/Draw_76.gml
++++ b/objects/obj_rouge/Draw_76.gml
+@@ -96,6 +96,16 @@ switch(state)
+                 break;
+ 
+         case ROUGE_AIR_ATTACK:
++                // v13 TORNADO (spr_rouge_attack2, 2 frames de remolino):
++                // mientras dure el tornadoState NO termina por animacion — lo
++                // cierra scr_rouge_special (timer, pared, stun o muerte) — y
++                // la tira alterna sus 2 frames rapida.
++                if(variable_instance_exists(id, "tornadoState") && tornadoState > 0)
++                {
++                        image_speed = 2;
++                        break;
++                }
++
+                 image_speed = 1.5;
+ 
+                 if(image_index >= image_number - 1)
+@@ -105,13 +115,25 @@ switch(state)
+                 }
+                 break;
+ 
+-        // v4.6: estado de VUELO (patron Tails). La tira sigue siendo la
+-        // direccional de 5 frames: el frame lo elige scr_rouge_special
+-        // segun la velocidad horizontal (0..4 = derecha rapida..izda
+-        // rapida), por eso image_speed = 0 y xscale fija a 1
++        // v13: estado de VUELO patron VANILLA (subir y bajar con Z): la tira
++        // spr_rouge_fly (4 frames, alas batiendo) corre en loop — ya NO es
++        // la tira direccional de 5 frames del viejo planeo (el frame lo
++        // anima la tira sola, image_speed normal, xscale de siempre).
+         case ROUGE_GLIDE:
+-                image_speed = 0;
+-                image_xscale = 1;
++                image_speed = 1;
++                break;
++
++        // v13 — SPINDASH: la carga gira MAS RAPIDA cuanta mas carga lleva
++        // (patron del charger de Sonic: 0.5 f/frame vacia -> 1.7 llena).
++        case ROUGE_SPINDASH:
++                image_speed = 0.5 + (spinCharge / ROUGE_SPINDASH_CHARGE_MAX) * 1.2;
++                break;
++
++        // v13 — bola LANZADA: gira con la velocidad real de rodado (igual
++        // que el SPIN clasico).
++        case ROUGE_SPIN_RELEASE:
++                image_speed = abs(xspd) / 5;
++                image_xscale = sign(gspd) == 0 ? image_xscale : sign(gspd);
+                 break;
+ 
+         // v4.5 — MORIBUNDA: tirada (spr_rouge_hurt), quieta en su frame
+diff --git a/objects/obj_rouge/Step_2.gml b/objects/obj_rouge/Step_2.gml
+index 597b6bed..d8c0ae05 100644
+--- a/objects/obj_rouge/Step_2.gml
++++ b/objects/obj_rouge/Step_2.gml
+@@ -4,12 +4,17 @@
+ #macro ROUGE_ZIPLINE BALANCING+4
+ #macro ROUGE_STUCK BALANCING+5
+ #macro ROUGE_MORIBUNDA BALANCING+6
++#macro ROUGE_SPINDASH BALANCING+7     // v13: carga del spindash (spr_rouge_spin_charger)
++#macro ROUGE_SPIN_RELEASE BALANCING+8 // v13: bola lanzada (spr_rouge_spin_release)
+ 
+ // v4.4: mismos estados netos que Knuckles (attack=14, air_attack=15,
+ // glide=16, zipline=17, stuck=18: viajan en el u8 state del
+ // CLIENT_PLAYER_DATA y todos los clientes los resuelven contra
+ // player_anims[CHARACTER_ROUGE]). v4.5: 19 = ROUGE_MORIBUNDA (1ra
+ // caida tirada: mismo patron del estado 19 de Vanilla).
++// v13: 20 = ROUGE_SPINDASH (carga) y 21 = ROUGE_SPIN_RELEASE (bola
++// lanzada del spindash) — viajan igual: el puppet los resuelve contra
++// la tabla de scr_survivors.
+ 
+ if(!emotion)
+         state = IDLE;
+@@ -26,6 +31,22 @@ if(shockedTimer > 0)
+         return;
+ }
+ 
++// v13 — SPINDASH: la carga del spindash pisa todo lo demas (quieta en
++// el suelo, bola revolucionandose); la bola LANZADA se dibuja con su
++// propia tira mientras dure el lanzamiento (spinDashRelease) y vuelve
++// a la bola clasica del rodar normal cuando el flag se apaga.
++if(isSpinCharging)
++{
++        state = ROUGE_SPINDASH;
++        return;
++}
++
++if(isSpinning && spinDashRelease)
++{
++        state = ROUGE_SPIN_RELEASE;
++        return;
++}
++
+ // v4.5 — MORIBUNDA pisa todo lo demas (tirada en el suelo, quieta)
+ if(moribundaState > 0)
+ {
+@@ -73,9 +94,9 @@ if(isStuck)
+         return;
+ }
+ 
+-// v4.6: el estado 16 (ROUGE_GLIDE) ahora es el VUELO patron Tails
+-// (mismo slot/sprite: la tira direccional de 5 frames de planeo
+-// sirve de pose de vuelo con las alas extendidas)
++// v13: el estado 16 (ROUGE_GLIDE) es el VUELO patron VANILLA (subir
++// y bajar con Z): mismo slot de siempre — la tabla de scr_survivors
++// ahora lleva spr_rouge_fly (alas batiendo) en el 16.
+ if(isFlying)
+ {
+         state = ROUGE_GLIDE;
+diff --git a/scripts/net_state_game/net_state_game.gml b/scripts/net_state_game/net_state_game.gml
+index 1b1f1937..87edafdc 100644
+--- a/scripts/net_state_game/net_state_game.gml
++++ b/scripts/net_state_game/net_state_game.gml
+@@ -757,7 +757,7 @@ function net_state_game(rbuff, nps, isPasstrough)
+                                 global.player.yspd = 0;
+                                 global.player.gspd = 0;
+                                 global.player.isDead = false;
+-                                global.player.hp = 100;
++                                global.player.hp = scr_player_maxhp(global.character); // v13: minion a vida COMPLETA del personaje (125/150)
+                                 global.player.rings = 0;
+                                 global.player.hurttime = 60 * 2; // 2 s de i-frames al materializarse
+                                 global.player.isHurt = false;
+@@ -1944,10 +1944,10 @@ function net_state_game(rbuff, nps, isPasstrough)
+                                 global.player.redRingTimer = max(global.player.redRingTimer - cnt, 60);
+                         }
+                         
+-                        if(global.player.rings >= 10 && global.player.hp < 100 && _canHeal)
++                        if(global.player.rings >= 10 && global.player.hp < scr_player_maxhp(global.character) && _canHeal) // v13: max por personaje
+                         {
+                                 global.player.rings -= 10;
+-                                global.player.hp = min(100, global.player.hp + 20);
++                                global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + 20); // v13: max por personaje
+                                 audio_play_sound(snd_heal, 0, false);
+                                 net_sound_emit(snd_heal);
+                                 
+@@ -2661,8 +2661,8 @@ function net_state_game(rbuff, nps, isPasstrough)
+                         if(global.player.revivalTimes >= 2)
+                         {
+                                 if(scr_negatouch_is(global.player)
+-                                && global.player.hp > 0 && global.player.hp < 100)
+-                                        global.player.hp = 100;
++                                && global.player.hp > 0 && global.player.hp < scr_player_maxhp(global.character)) // v13: max
++                                        global.player.hp = scr_player_maxhp(global.character); // v13: cura COMPLETA = vida total
+                                 
+                                 break;
+                         }
+@@ -2980,8 +2980,8 @@ function net_state_game(rbuff, nps, isPasstrough)
+                         if(global.player.revivalTimes >= 2)
+                         {
+                                 if(_redRing && scr_negatouch_is(global.player)
+-                                && global.player.hp > 0 && global.player.hp < 100)
+-                                        global.player.hp = min(100, global.player.hp + JINNA_NEGA_REDHEAL);
++                                && global.player.hp > 0 && global.player.hp < scr_player_maxhp(global.character)) // v13: max
++                                        global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + JINNA_NEGA_REDHEAL); // v13: max
+                                 
+                                 break;
+                         }
+@@ -3016,10 +3016,10 @@ function net_state_game(rbuff, nps, isPasstrough)
+                                         global.player.redRingTimer = max(global.player.redRingTimer - cnt, 60);
+                                 }
+                                 
+-                                if(global.player.rings >= 10 && global.player.hp < 100 && _canHeal)
++                                if(global.player.rings >= 10 && global.player.hp < scr_player_maxhp(global.character) && _canHeal) // v13: max por personaje
+                                 {
+                                         global.player.rings -= 10;
+-                                        global.player.hp = min(100, global.player.hp + 20);
++                                        global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + 20); // v13: max por personaje
+                                         audio_play_sound(snd_heal, 0, false);
+                                         net_sound_emit(snd_heal);
+                                         
+@@ -3156,10 +3156,10 @@ function net_state_game(rbuff, nps, isPasstrough)
+                                         global.player.redRingTimer = max(global.player.redRingTimer - cnt, 60);
+                                 }
+                                 
+-                                if(global.player.rings >= 10 && global.player.hp < 100 && _canHeal)
++                                if(global.player.rings >= 10 && global.player.hp < scr_player_maxhp(global.character) && _canHeal) // v13: max por personaje
+                                 {
+                                         global.player.rings -= 10;
+-                                        global.player.hp = min(100, global.player.hp + 20);
++                                        global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + 20); // v13: max por personaje
+                                         audio_play_sound(snd_heal, 0, false);
+                                         net_sound_emit(snd_heal);
+                                         
+@@ -3675,7 +3675,7 @@ function net_state_game(rbuff, nps, isPasstrough)
+                                 var _wasDead = global.player.isDead;
+                                 
+                                 global.player.revivalTimes = 1;
+-                                global.player.hp = 100;
++                                global.player.hp = scr_player_maxhp(global.character); // v13: revivir = vida COMPLETA del personaje
+                                 global.player.isDead = false;
+                                 global.player.hurttime = 60 * 2;
+                                 global.player.isMinion = false; // v6: si era minion, ya no lo es
+@@ -4760,13 +4760,13 @@ function net_state_game(rbuff, nps, isPasstrough)
+                         if(!instance_exists(global.player))
+                                  break;
+                                  
+-                        if(global.player.hp >= 100)
++                        if(global.player.hp >= scr_player_maxhp(global.character)) // v13: max por personaje
+                                 return;
+                         
+                         audio_play_sound(snd_heal, 0, false);
+                         net_sound_emit(snd_heal);
+                         
+-                        global.player.hp = min(100, global.player.hp + 20);
++                        global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + 20); // v13: max por personaje
+                         break;
+                 }
+                 
+diff --git a/scripts/net_udpprocess/net_udpprocess.gml b/scripts/net_udpprocess/net_udpprocess.gml
+index d47804ae..da89f315 100644
+--- a/scripts/net_udpprocess/net_udpprocess.gml
++++ b/scripts/net_udpprocess/net_udpprocess.gml
+@@ -132,7 +132,9 @@ function net_udpprocess(rbuff)
+                                         }
+                                         else
+                                         {
+-                                                hp = buffer_read_s(rbuff, buffer_s8);
++                                                // v13 (MAX HP): S16 como lo escribe obj_netclient
++                                                // (Rouge 125 / Metal 150 no cabian en el s8 de antes)
++                                                hp = buffer_read_s(rbuff, buffer_s16);
+                                                 revivalTimes = buffer_read_s(rbuff, buffer_u8);
+                                                 rings = buffer_read_s(rbuff, buffer_s16);
+                                                 
+diff --git a/scripts/scr_metal_special/scr_metal_special.gml b/scripts/scr_metal_special/scr_metal_special.gml
+index 22810c01..edaeaa25 100644
+--- a/scripts/scr_metal_special/scr_metal_special.gml
++++ b/scripts/scr_metal_special/scr_metal_special.gml
+@@ -176,7 +176,7 @@ function scr_metal_special()
+         // su hp, mismo modelo que la curacion de Chocola): busca al Dr.
+         // Eggman o a Tails entre los puppets vivos y sin demonizar.
+         // Con los DOS cerca NO se acumula: manda la del Dr. (7 s).
+-        if(!isDead && revivalTimes < 2 && hp < 100)
++        if(!isDead && revivalTimes < 2 && hp < scr_player_maxhp(CHARACTER_METAL)) // v13: max 150
+         {
+                 var _eggNear = false;
+                 var _tailsNear = false;
+@@ -207,7 +207,7 @@ function scr_metal_special()
+ 
+                         if(geniusHealTimer <= 0 && (_eggNear || _tailsNear))
+                         {
+-                                hp = min(100, hp + METAL_GENIUS_HEAL_HP);
++                                hp = min(scr_player_maxhp(CHARACTER_METAL), hp + METAL_GENIUS_HEAL_HP); // v13: max 150
+ 
+                                 audio_play_sound(snd_heal, 0, false);
+                                 net_sound_emit(snd_heal);
+diff --git a/scripts/scr_move_basic/scr_move_basic.gml b/scripts/scr_move_basic/scr_move_basic.gml
+index 5b7707ed..86306860 100644
+--- a/scripts/scr_move_basic/scr_move_basic.gml
++++ b/scripts/scr_move_basic/scr_move_basic.gml
+@@ -795,6 +795,12 @@ function scr_move_basic()
+                 // ver scr_amelia_special).
+                 if(global.character == CHARACTER_AMELIA && isSpinCharging)
+                         return;
++
++                // ROUGE v13 (spindash, reglas de Sonic): igual que
++                // Sonic/Amelia — abajo + Z da revolucadas, no salta
++                // (ver scr_rouge_special).
++                if(global.character == CHARACTER_ROUGE && isSpinCharging)
++                        return;
+                 
+                 // SALLY CANON v5.4 (fase duelista): igual que Amelia,
+                 // no salta mientras carga el spindash (abajo + Z da
+diff --git a/scripts/scr_player_hurt/scr_player_hurt.gml b/scripts/scr_player_hurt/scr_player_hurt.gml
+index 466845a2..722a8949 100644
+--- a/scripts/scr_player_hurt/scr_player_hurt.gml
++++ b/scripts/scr_player_hurt/scr_player_hurt.gml
+@@ -353,6 +353,16 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
+         if(global.character == CHARACTER_SONIC && (global.player.nerviosState > 0 || global.player.isAttacking))
+                 return;
+ 
++        // v13 (ROUGE) — I-FRAMES DEL TORNADO: durante TODO el recorrido del
++        // tornado (tornadoState > 0, tecla X en tierra) Rouge no recibe dano
++        // — "iframe durante todo el movimiento", patron tornado de Knuckles.
++        // Los peligros que matan sin dano (caer al vacio, scr_player_instakill)
++        // SIGUEN funcionando igual que al overdrive de Metal.
++        if(global.character == CHARACTER_ROUGE
++        && variable_instance_exists(global.player.id, "tornadoState")
++        && global.player.tornadoState > 0)
++                return;
++
+         // v5 (KRIS) — I-FRAMES DEL AIR2: la 2a fase del ataque aereo
+         // (spr_kris_attack1_air2, estado 41) blinda a Kris mientras dura
+         // su animacion (regla de la duena: "con I frame"). Solo el air2:
+diff --git a/scripts/scr_player_maxhp/scr_player_maxhp.gml b/scripts/scr_player_maxhp/scr_player_maxhp.gml
+new file mode 100644
+index 00000000..a989bbef
+--- /dev/null
++++ b/scripts/scr_player_maxhp/scr_player_maxhp.gml
+@@ -0,0 +1,20 @@
++// ============================================================================
++// scr_player_maxhp(char) — v13 (REWORK ROUGE): vida MAXIMA por personaje.
++// Fuente unica de verdad para TODO el HUD y el netcode de vida:
++//   * ROUGE  = 125 (pedido: "ella poseera un total de 125 de vida")
++//   * METAL = 150 (pedido: "metal sonic tendra un total de 150 de vida
++//     pero solo tendra 1 sola vida" — ver el guard de Game.c)
++//   * los demas supervivientes = 100 (valor canonico de siempre)
++// Uso: tira de retratos del HUD (frame por vida), hudAllyBar (relleno),
++// gateo de curas y el clamp del hp que viaja por CLIENT_PLAYER_DATA
++// (obj_netclient Step_2, s16 desde v13).
++// ============================================================================
++function scr_player_maxhp(char)
++{
++        switch(char)
++        {
++                case CHARACTER_ROUGE: return 125;
++                case CHARACTER_METAL: return 150;
++        }
++        return 100;
++}
+diff --git a/scripts/scr_player_maxhp/scr_player_maxhp.yy b/scripts/scr_player_maxhp/scr_player_maxhp.yy
+new file mode 100644
+index 00000000..bcc72214
+--- /dev/null
++++ b/scripts/scr_player_maxhp/scr_player_maxhp.yy
+@@ -0,0 +1,13 @@
++{
++  "$GMScript":"v1",
++  "%Name":"scr_player_maxhp",
++  "isCompatibility":false,
++  "isDnD":false,
++  "name":"scr_player_maxhp",
++  "parent":{
++    "name":"Players",
++    "path":"folders/Scripts/Players.yy",
++  },
++  "resourceType":"GMScript",
++  "resourceVersion":"2.0",
++}
+diff --git a/scripts/scr_rouge_special/scr_rouge_special.gml b/scripts/scr_rouge_special/scr_rouge_special.gml
+index 8905b5be..72a544db 100644
+--- a/scripts/scr_rouge_special/scr_rouge_special.gml
++++ b/scripts/scr_rouge_special/scr_rouge_special.gml
+@@ -1,34 +1,41 @@
+ function scr_rouge_special()
+ {
+         // =====================================================================
+-        //  ROUGE (v4.6) — moveset "ladrona de joyas": VUELO patron Tails
+-        //  + la patada de Sally en sus dos variantes.
++        //  ROUGE (v13 — REWORK DE LA DUEÑA) — kit nuevo:
+         //
+-        //   * Z en el aire = VUELO (patron Tails): arranca con el
+-        //     presupuesto lleno (ROUGE_FLY_TIME, 2.67 s) y cada pulsacion
+-        //     de Z la re-impulsa hacia arriba (flyGrv = -1); entre
+-        //     pulsaciones la gravedad propia del vuelo decae hasta +2
+-        //     (cada vez cae mas suave). Agotado el presupuesto se cae con
+-        //     la gravedad normal. Recarga en el suelo: 7 s
+-        //     (ROUGE_FLY_RECHARGE). El suelo, el dano y los muelles cortan
+-        //     el vuelo, exactamente como a Tails. (v4.4-4.5: antes era
+-        //     planeo patron Knuckles con agarre de pared; la tira
+-        //     direccional de 5 frames del planeo pasa a ser la pose de
+-        //     vuelo con las alas extendidas.)
+-        //   * X = PATADA (patron Sally): en tierra el barrido bajo
+-        //     (spr_rouge_attack2, estado 15) y en el aire la patada con
+-        //     vuelo (spr_rouge_attack1, estado 14) con su empujoncito
+-        //     horizontal de ataque. La patada corta el vuelo. El stun de
+-        //     3 s al bando EXE lo aplica el cliente de la VICTIMA
+-        //     (obj_player_puppet, bit PLAYER_ATTACKING que viaja con
+-        //     Rouge en obj_netclient). Recarga 20 s.
++        //   * Z en el aire = VUELO patron VANILLA (antes Tails): MANTENER
++        //     Z = SUBE (ROUGE_FLY_RISE -3.5); SOLTAR Z = baja lento
++        //     (ROUGE_FLY_GLIDE +1) — subir y bajar. Dura ROUGE_FLY_SOLO
++        //     (5 s, contador flyTimeout) y recarga en suelo
++        //     ROUGE_FLY_RECHARGE (15 s, puerta flyTimer). Sprite del estado
++        //     ROUGE_GLIDE (16): spr_rouge_fly. El dano, el suelo y el
++        //     tornado cortan el vuelo (como a Vanilla).
++        //   * ABAJO + Z en tierra = SPINDASH (reglas de SONIC): cada
++        //     pulsacion de Z suma ROUGE_SPINDASH_REV (2) de carga (hasta
++        //     ROUGE_SPINDASH_CHARGE_MAX = 10) y el tono del snd_spin sube
++        //     con la carga; cargando esta QUIETA (gspd/xspd = 0, puede
++        //     girar la mirada) y la carga decae 1 punto cada
++        //     ROUGE_SPINDASH_DECAY (90) frames sin pulsar. Al SOLTAR
++        //     abajo: sale DISPARADA — gspd = (ROUGE_SPINDASH_BASE + carga)
++        //     * xscale — en bola (SPIN) mostrando spr_rouge_spin_release
++        //     (spinDashRelease), con polvareda de salida y mini-temblor.
++        //     Cargando muestra spr_rouge_spin_charger (estado 20).
++        //     Cancelan: dano, stun, muerte, tirolina, saltar fuera del
++        //     suelo, volar.
++        //   * X EN TIERRA = TORNADO (spr_rouge_attack2, estado 15): sale
++        //     a ROUGE_TORNADO_START (12 px/f) y va PERDIENDO velocidad
++        //     hasta ROUGE_TORNADO_MIN (1.5) al final del recorrido
++        //     (ROUGE_TORNADO_TIME, 0.8 s). I-FRAMES durante TODO el
++        //     movimiento (scr_player_hurt: tornadoState > 0 = inmune,
++        //     patron tornado de Knuckles). El stun al bando EXE por
++        //     contacto lo aplica el cliente de la victima (bit
++        //     PLAYER_ATTACKING que viaja con Rouge). Recarga 20 s al
++        //     terminar. El X EN EL AIRE sigue siendo la patada aerea
++        //     (spr_rouge_attack1, estado 14) de siempre.
+         //
+-        //  v4.5 — MORIBUNDA: su salvacion de 1ra caida (la activa
+-        //  scr_player_instakill desde scr_player_hurt, patron Vanilla):
+-        //  mientras moribundaState > 0 esta tirada en el suelo, quieta e
+-        //  inmune; a los 6 s se levanta sola con 40 de vida. Ni vuelo ni
+-        //  patada mientras dura. El server jamas se entera (la 2da caida
+-        //  SI es muerte real: guard canon del server).
++        //  v4.5 — MORIBUNDA: su salvacion de 1ra caida sigue IGUAL
++        //  (tirada 6 s inmune, se levanta con 40; la activa
++        //  scr_player_instakill desde scr_player_hurt).
+         // =====================================================================
+ 
+         // ---------------- MORIBUNDA (1ra caida) ----------------
+@@ -51,7 +58,12 @@ function scr_rouge_special()
+                 isSpinning = false;
+                 isAttacking = false;
+                 isGliding = false;
+-                isFlying = false; // v4.6: moribunda no vuela
++                isFlying = false; // moribunda no vuela
++
++                // v13: el tornado y la carga del spindash tambien se cortan
++                tornadoState = 0;
++                isSpinCharging = false;
++                spinCharge = 0;
+ 
+                 if(isStuck)
+                 {
+@@ -67,23 +79,24 @@ function scr_rouge_special()
+                         hp = ROUGE_MORIBUNDA_HEAL;
+                         hurttime = ROUGE_MORIBUNDA_INVULN;
+                         isHurt = false;
+-                        flyTimer = -ROUGE_FLY_RECHARGE; // misericordia: vuelo listo al levantarse
+-                        attackTimer = 0;                // ...y la patada tambien
++                        flyTimer = 0;   // misericordia: vuelo listo al levantarse
++                        flyTimeout = 0;
++                        attackTimer = 0; // ...y el tornado tambien
+                 }
+ 
+                 return;
+         }
+ 
+         // anillo rojo / esconderse: sin especiales y SIN recargar el vuelo
+-        // (patron Tails: el flyTimer se mantiene a un pelo del tope para
+-        // que no llegue a "recargado" y no pueda despegar)
++        // (patron Vanilla: el flyTimer se mantiene a un pelo del 0 para que
++        // no llegue a "recargado" y no pueda despegar)
+         if(redRingTimer > 0)
+         {
+                 if(attackTimer <= 2)
+                         attackTimer = 2;
+ 
+-                if(flyTimer <= -ROUGE_FLY_RECHARGE + 2)
+-                        flyTimer = -ROUGE_FLY_RECHARGE + 2;
++                if(flyTimer < 2)
++                        flyTimer = 2;
+         }
+ 
+         if(isHiding)
+@@ -91,48 +104,142 @@ function scr_rouge_special()
+                 if(attackTimer <= 60 * 2)
+                         attackTimer = 60 * 2;
+ 
+-                if(flyTimer <= -ROUGE_FLY_RECHARGE + 2 * 60)
+-                        flyTimer = -ROUGE_FLY_RECHARGE + 2 * 60;
++                if(flyTimer < 60 * 2)
++                        flyTimer = 60 * 2;
+         }
+ 
+-        // ---------------- VUELO (tecla Z en el aire) ----------------
+-        // v4.9 (COYOTE): mismo guard que Tails — si acaba de dejar el
+-        // suelo dentro de la ventana de salto, el Z se lo lleva el salto
++        // ---------------- SPINDASH (abajo + Z en tierra) ----------------
++        // Reglas de Sonic: un solo camino para la 1a pulsacion y las
++        // siguientes; exige suelo, parada (|gspd| < 2), y el resto de los
++        // guards clasicos. El vuelo/ataque/tornado/hurt/stun lo cancelan.
++        if(global.playerControls && isGrounded && !isAttacking && !isHurt
++        && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
++        && redRingTimer <= 0 && !isFlying
++        && keyboard_check(global.KeyDown) && abs(gspd) < ROUGE_SPINDASH_START_MAX
++        && !isSpinning && !isSpinCharging && keyboard_check_pressed(global.KeyA))
++        {
++                isSpinCharging = true;
++                spinCharge = min(spinCharge + ROUGE_SPINDASH_REV, ROUGE_SPINDASH_CHARGE_MAX);
++                spinChargeDecay = 0;
++                spinDustTimer = 0;
++                image_index = 0;
++
++                // JUGO (patron Sonic): cada revolucada suena MAS AGUDA
++                // (tono 1.0 -> 1.8 con la bola llena) y patea polvo detras.
++                if(spinRevSnd != -1)
++                        audio_stop_sound(spinRevSnd);
++                spinRevSnd = audio_play_sound(snd_spin, 0, false);
++                audio_sound_pitch(spinRevSnd, 1.0 + (spinCharge / ROUGE_SPINDASH_CHARGE_MAX) * ROUGE_SPINDASH_PITCH_STEP);
++                net_sound_emit(snd_spin);
++
++                net_quick_effect(x - image_xscale * 12, y + 16, spr_dust, false, -image_xscale, -image_xscale * 2, -1);
++        }
++
++        if(isSpinCharging)
++        {
++                // Quieto mientras carga, pero puede girar la mirada (Sonic).
++                gspd = 0;
++                xspd = 0;
++
++                if(keyboard_check(global.KeyLeft))
++                        image_xscale = -1;
++                else if(keyboard_check(global.KeyRight))
++                        image_xscale = 1;
++
++                // La carga decae sola si dejas de dar revolucadas.
++                spinChargeDecay++;
++                if(spinChargeDecay >= ROUGE_SPINDASH_DECAY)
++                {
++                        spinChargeDecay = 0;
++                        spinCharge = max(0, spinCharge - 1);
++                }
++
++                // JUGO: polvo ambiente detras mientras carga.
++                spinDustTimer++;
++
++                if(spinDustTimer >= ROUGE_SPINDASH_DUST_EVERY)
++                {
++                        spinDustTimer = 0;
++                        scr_effect_quick(x - image_xscale * (10 + irandom(4)), y + 14 + irandom(3), spr_dust, 0.4, false, -image_xscale, -0.5);
++                }
++
++                // Cancelaciones (Sonic): dano, stun, muerte, tirolina,
++                // saltar fuera del suelo, o VOLAR (v13).
++                if(isHurt || isDead || shockedTimer > 0 || isZipline || !isGrounded || isFlying)
++                {
++                        isSpinCharging = false;
++                        spinCharge = 0;
++
++                        if(spinRevSnd != -1)
++                                audio_stop_sound(spinRevSnd);   // corte del motor al estrellarse
++                }
++                else if(!global.playerControls || !keyboard_check(global.KeyDown))
++                {
++                        // --- LANZAMIENTO del spindash ---
++                        var _chg = spinCharge;   // carga ANTES de limpiarla: define la polvareda
++                        isSpinCharging = false;
++                        isSpinning = true;    // sale en bola (SPIN)
++                        spinDashRelease = true; // ...mostrando spr_rouge_spin_release
++                        isJumping = false;
++                        gspd = (ROUGE_SPINDASH_BASE + _chg) * image_xscale;
++                        spinCharge = 0;
++
++                        if(spinRevSnd != -1)
++                                audio_stop_sound(spinRevSnd);   // el snd_dash toma el relevo
++
++                        audio_play_sound(snd_dash, 0, false);
++                        net_sound_emit(snd_dash);
++
++                        // JUGO: polvareda de salida detras (3 nubes sin carga
++                        // -> 8 con la bola llena), como Sonic.
++                        var _burst = ROUGE_SPINDASH_BURST_MIN + floor(_chg / ROUGE_SPINDASH_CHARGE_MAX * (ROUGE_SPINDASH_BURST_MAX - ROUGE_SPINDASH_BURST_MIN));
++
++                        for(var i = 0; i < _burst; i++)
++                        {
++                                var _dx = x - image_xscale * (6 + irandom(12));
++                                var _dy = y + 12 + irandom(5);
++
++                                net_quick_effect(_dx, _dy, spr_dust, false, -image_xscale, -image_xscale * (1 + irandom(2)), -irandom(1));
++                        }
++
++                        // JUGO: mini-temblor de camara proporcional a la carga.
++                        if(_chg > 0)
++                                scr_camera_shake(12, 1 + _chg * 0.15, 0.2);
++                }
++        }
++
++        // la bola de lanzamiento solo dura mientras isSpinning siga viva
++        // (el rodar normal o el dano la devuelven a la bola clasica).
++        if(!isSpinning && spinDashRelease)
++                spinDashRelease = false;
++
++        // ---------------- VUELO patron VANILLA (Z en el aire) ----------------
++        // v4.9 (COYOTE): mismo guard que Vanilla/Tails — si acaba de dejar
++        // el suelo dentro de la ventana de salto, el Z se lo lleva el salto
+         // normal; el vuelo sale con la siguiente pulsacion.
+-        if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isGrounded && !isAttacking
++        if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isGrounded && !isAttacking && !isSpinCharging
+         && !(variable_instance_exists(id, "coyoteTimer") && coyoteTimer > 0 && yspd >= 0))
+         {
+-                if(!isFlying && flyTimer <= -ROUGE_FLY_RECHARGE)
++                if(!isFlying && flyTimer <= 0)
+                 {
+                         audio_play_sound(snd_tails_fly, 0, false);
+                         net_sound_emit(snd_tails_fly);
+ 
+-                        flyTimer = ROUGE_FLY_TIME;
+-                        flyElapsed = 0;
+-                        flyGrv = -1;
++                        flyTimer = ROUGE_FLY_RECHARGE;  // la puerta se cierra 15 s
++                        flyTimeout = 0;
+                         isFlying = true;
+                         isJumping = false;
+                         isSpinning = false;
+-                }
+-
+-                // patron Tails: cada pulsacion re-impulza mientras quede
+-                // presupuesto; sin presupuesto, la pulsacion lo corta
+-                if(isFlying)
+-                {
+-                        if(flyTimer > 0)
+-                                flyGrv = -1;
+-                        else
+-                                isFlying = false;
+-
+-                        isJumping = false;
++                        spinDashRelease = false;
+                 }
+         }
+ 
+-        // PATADA (tecla X): en tierra Y en el aire (a diferencia de la
+-        // Sally vanilla, que solo la tiene aerea). El golpe aturde al
+-        // bando EXE 3 s por contacto: lo aplica el cliente de la victima
+-        // con el bit PLAYER_ATTACKING (patron Knuckles/Sally/Metal).
+-        if(global.playerControls && keyboard_check_pressed(global.KeyB) && attackTimer <= 0)
++        // ---------------- TORNADO (X en tierra) + PATADA AEREA (X en aire) ----------------
++        // X EN TIERRA: el tornado (spr_rouge_attack2, estado 15) — sale a
++        // 12 px/f y decae hasta 1.5 al cabo de 0.8 s, con i-frames durante
++        // TODO el recorrido (scr_player_hurt). X EN EL AIRE: la patada con
++        // vuelo de siempre (spr_rouge_attack1, estado 14).
++        if(global.playerControls && keyboard_check_pressed(global.KeyB) && attackTimer <= 0 && tornadoState <= 0)
+         {
+                 if(keyboard_check(global.KeyLeft))
+                         image_xscale = -1;
+@@ -140,92 +247,122 @@ function scr_rouge_special()
+                         image_xscale = 1;
+ 
+                 image_index = 0;
+-                attackTimer = ROUGE_ATTACK_RECHARGE;
+-                isAttacking = true;
+-                isFlying = false; // v4.6: pegar manda (corta el vuelo)
+-                audio_play_sound(snd_dash, 0, false);
+-                net_sound_emit(snd_dash);
++
++                if(isGrounded)
++                {
++                        // --- TORNADO ---
++                        tornadoState = ROUGE_TORNADO_TIME;
++                        isAttacking = true;
++                        isFlying = false; // pegar manda (corta el vuelo)
++                        isJumping = false;
++
++                        audio_play_sound(snd_dash, 0, false);
++                        net_sound_emit(snd_dash);
++
++                        // polvareda de arranque del remolino
++                        repeat(3)
++                                net_quick_effect(x - image_xscale * (4 + irandom(8)), y + 12 + irandom(4), spr_dust, false, -image_xscale, -image_xscale, -irandom(1));
++                }
++                else
++                {
++                        // --- PATADA AEREA (la de siempre, patron Sally) ---
++                        attackTimer = ROUGE_ATTACK_RECHARGE;
++                        isAttacking = true;
++                        isFlying = false; // pegar manda (corta el vuelo)
++
++                        audio_play_sound(snd_dash, 0, false);
++                        net_sound_emit(snd_dash);
++                }
+         }
+ 
+-        if(isAttacking)
++        // ---------------- tornado activo ----------------
++        if(tornadoState > 0)
+         {
+-                // la patada corta el vuelo (patron Knux: pegar manda)
+-                if(isFlying)
+-                        isFlying = false;
++                // i-frames durante TODO el movimiento (scr_player_hurt);
++                // solo lo cortan muerte o stun (el dano ya no entra) o la
++                // pared con su polvareda + mini-temblor (patron overdrive
++                // de Metal).
++                if(isDead || shockedTimer > 0)
++                        tornadoState = 1; // cortar en el siguiente bloque
++
++                // RAPIDO al arranque y PERDIENDO velocidad hasta el minimo:
++                // transcurrido = ROUGE_TORNADO_TIME - tornadoState
++                var _elapsed = ROUGE_TORNADO_TIME - tornadoState;
++                var _speed = ROUGE_TORNADO_START - (ROUGE_TORNADO_START - ROUGE_TORNADO_MIN) * min(_elapsed / ROUGE_TORNADO_TIME, 1);
++
++                xspd = _speed * image_xscale;
++                gspd = xspd;
++
++                // estela del remolino mientras avanza
++                if(floor(x) mod 3 == 0)
++                        net_quick_effect(x - 10 * image_xscale, y, spr_dust);
++
++                // CHOQUE CONTRA PARED: corta el tornado (patron Metal).
++                if(place_meeting(x + 4 * image_xscale, y, obj_floor_parent) || place_meeting(x - 4 * image_xscale, y, obj_floor_parent))
++                {
++                        tornadoState = 1;
++                        scr_camera_shake(12, 2, 0.2);
++
++                        repeat(4)
++                                net_quick_effect(x + 8 * image_xscale + random_range(-6, 6), y + random_range(-10, 4), spr_dust);
++                }
++
++                tornadoState--;
+ 
++                if(tornadoState <= 0)
++                {
++                        isAttacking = false;
++                        attackTimer = revivalTimes >= 2 ? ROUGE_ATTACK_RECHARGE / 2 : ROUGE_ATTACK_RECHARGE;
++                }
++        }
++        else if(isAttacking && !isGrounded)
++        {
++                // la patada aerea clasica mantiene su empujoncito horizontal;
++                // el tornado NO pasa por aqui (tornadoState > 0 arriba).
+                 gspd = 0;
+-                xspd = image_xscale * (isGrounded ? .5 : 2);
++                xspd = image_xscale * 2;
+         }
+ 
+-        // el dano corta el vuelo (el suelo lo corta el bloque de
+-        // aterrizaje de abajo, que ademas resetea el presupuesto —
+-        // exactamente el patron de Tails)
++        // el dano corta el vuelo y desarma la bola del spindash
+         if(isHurt)
++        {
+                 isFlying = false;
++                spinDashRelease = false;
++        }
+ 
+-        // ---------------- vuelo activo ----------------
++        // ---------------- vuelo activo (patron VANILLA: subir y bajar) ----------------
+         if(isFlying)
+         {
+                 isSpinning = false;
+                 isJumping = false;
+ 
+-                // patron Tails: la gravedad del vuelo decae de -1 (impulso)
+-                // hasta +2 (cada suave); cada Z la re-arma a -1
+-                if(flyGrv < 2)
+-                        flyGrv += 0.035;
++                // MANTENER Z: SUBE. SOLTAR: baja lento (planeo) — el pedido.
++                if(global.playerControls && keyboard_check(global.KeyA))
++                        yspd = ROUGE_FLY_RISE;
++                else
++                        yspd = ROUGE_FLY_GLIDE;
+ 
+-                // presupuesto: cuenta desde que despega; al agotarse, caida
+-                // normal (la gravedad de scr_collision_basic hace el resto)
+-                if(!isGrounded && flyTimer > 0)
+-                {
+-                        flyElapsed++;
+-                        flyTimer = max(0, ROUGE_FLY_TIME - flyElapsed);
+-                }
++                // duracion del vuelo: flyTimeout cuenta frames en el aire
++                flyTimeout++;
+ 
+-                if(flyTimer <= 0)
++                if(flyTimeout > ROUGE_FLY_SOLO)
+                         isFlying = false;
+ 
+-                yspd = flyGrv;
+-
+-                // tira direccional de 5 frames (la del antiguo planeo, con
+-                // las alas extendidas): frame segun la velocidad horizontal
+-                // real (0=derecha rapida, 1=derecha, 2=quiebre frontal,
+-                // 3=izquierda, 4=izquierda rapida). xscale fijo a 1 porque
+-                // los frames ya traen la direccion (case ROUGE_GLIDE).
+-                if(xspd > 2)
+-                        image_index = 0;
+-                else if(xspd > 0.5)
+-                        image_index = 1;
+-                else if(xspd > -0.5)
+-                        image_index = 2;
+-                else if(xspd > -2)
+-                        image_index = 3;
+-                else
+-                        image_index = 4;
++                if(isGrounded)
++                        isFlying = false;
+         }
+ 
+-        // aleteo audible mientras queda presupuesto (patron Tails)
+-        if(flyTimer > 0 && flyTimer mod 18 == 0)
++        // aleteo audible mientras vuela (patron Tails/Vanilla)
++        if(isFlying && floor(flyTimeout) mod 18 == 0 && flyTimeout > 0)
+         {
+                 audio_play_sound(snd_tails_fly, 0, false);
+                 net_sound_emit(snd_tails_fly);
+         }
+ 
+-        // ---------------- aterrizaje / recarga (patron Tails) ----------------
+-        if(isGrounded)
+-        {
+-                if(isFlying)
+-                {
+-                        isFlying = false;
+-                        flyTimer = 0;
+-                }
+-
+-                if(flyTimer > -ROUGE_FLY_RECHARGE)
+-                        flyTimer--;
+-        }
+-        else
+-                if(flyTimer > 0)
+-                        flyTimer--;
++        // ---------------- recarga del vuelo (patron VANILLA) ----------------
++        // la puerta flyTimer cuenta hacia atras SOLO cuando NO esta volando.
++        if(!isFlying && flyTimer > 0)
++                flyTimer--;
+ 
+         if(attackTimer > 0)
+                 attackTimer--;
+diff --git a/scripts/scr_survivors/scr_survivors.gml b/scripts/scr_survivors/scr_survivors.gml
+index b6847cd2..c37a07b0 100644
+--- a/scripts/scr_survivors/scr_survivors.gml
++++ b/scripts/scr_survivors/scr_survivors.gml
+@@ -458,11 +458,13 @@ global.player_anims[? CHARACTER_ROUGE] =
+         spr_rouge_jump, //12 (spin)
+         spr_rouge_balancing, //13
+         spr_rouge_attack1, //14 = ROUGE_ATTACK: patada AEREA (tecla X en el aire)
+-        spr_rouge_attack2, //15 = ROUGE_AIR_ATTACK: patada en TIERRA (tecla X)
+-        spr_rouge_glide, //16 = ROUGE_GLIDE: planeo (Z aerea, patron Knux)
++        spr_rouge_attack2, //15 = ROUGE_AIR_ATTACK: TORNADO en TIERRA (tecla X, v13)
++        spr_rouge_fly, //16 = ROUGE_GLIDE: VUELO patron Vanilla (v13: subir y bajar con Z, alas batiendo)
+         spr_rouge_zipline, //17 = ROUGE_ZIPLINE
+         spr_rouge_stuck, //18 = ROUGE_STUCK: agarre de pared (patron Knux)
+-        spr_rouge_hurt //19 = ROUGE_MORIBUNDA (v4.5): 1ra caida, tirada 6 s
++        spr_rouge_hurt, //19 = ROUGE_MORIBUNDA (v4.5): 1ra caida, tirada 6 s
++        spr_rouge_spin_charger, //20 = ROUGE_SPINDASH (v13): carga del spindash (abajo + Z)
++        spr_rouge_spin_release //21 = ROUGE_SPIN_RELEASE (v13): bola lanzada del spindash
+ ];
+ 
+ // Kris (v6): layout de estados de KNUCKLES (attack2=14 / attack1=15 /
+@@ -884,7 +886,10 @@ global.player_eanims[? CHARACTER_ROUGE] =
+         spr_erouge_glide, //16
+         spr_erouge_zipline, //17
+         spr_erouge_stuck, //18
+-        spr_erouge_hurt //19 = ROUGE_MORIBUNDA defensivo
++        spr_erouge_hurt, //19 = ROUGE_MORIBUNDA defensivo
++        // v13: sin arte exe del spindash (Rouge jamas se demoniza): la bola
++        spr_erouge_jump, //20 = ROUGE_SPINDASH (placeholder bola)
++        spr_erouge_jump //21 = ROUGE_SPIN_RELEASE (placeholder bola)
+ ];
+ 
+ // KRIS (demonizado): JAMAS se demoniza (regla de la duena: muere
+@@ -1289,7 +1294,11 @@ global.player_negaanims[? CHARACTER_ROUGE] =
+         spr_rougenega_glide, //16
+         spr_rougenega_zipline, //17
+         spr_rougenega_stuck, //18
+-        spr_rougenega_hurt //19
++        spr_rougenega_hurt, //19
++        // v13: sin arte nega del spindash todavia — placeholder con la
++        // bola nega de siempre (mismo criterio que Kris con su set)
++        spr_rougenega_jump, //20 = ROUGE_SPINDASH (placeholder bola)
++        spr_rougenega_jump //21 = ROUGE_SPIN_RELEASE (placeholder bola)
+ ];
+ 
+ // Kris (v5): la energia negativa de Jinna NO CALA en el (regla de la
+diff --git a/sprites/spr_rouge_attack2/spr_rouge_attack2.yy b/sprites/spr_rouge_attack2/spr_rouge_attack2.yy
+index 7205dbb0..057ca0cd 100644
+--- a/sprites/spr_rouge_attack2/spr_rouge_attack2.yy
++++ b/sprites/spr_rouge_attack2/spr_rouge_attack2.yy
+@@ -12,7 +12,7 @@
+   "edgeFiltering":false,
+   "For3D":false,
+   "frames":[
+-    {"$GMSpriteFrame":"v1","%Name":"6ce1468e-1681-40c6-a864-436aac768a85","name":"6ce1468e-1681-40c6-a864-436aac768a85","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
++    {"$GMSpriteFrame":"v1","%Name":"6ce1468e-1681-40c6-a864-436aac768a85","name":"6ce1468e-1681-40c6-a864-436aac768a85","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},{"$GMSpriteFrame":"v1","%Name":"a8491450-2b26-4da6-8790-90253eb2bbf0","name":"a8491450-2b26-4da6-8790-90253eb2bbf0","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+   ],
+   "gridX":0,
+   "gridY":0,
+@@ -49,7 +49,7 @@
+     },
+     "eventStubScript":null,
+     "eventToFunction":{},
+-    "length":1.0,
++    "length":2.0,
+     "lockOrigin":false,
+     "moments":{
+       "$KeyframeStore<MomentsEventKeyframe>":"",
+@@ -71,6 +71,9 @@
+             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                 "0":{"$SpriteFrameKeyframe":"","Id":{"name":"6ce1468e-1681-40c6-a864-436aac768a85","path":"sprites/spr_rouge_attack2/spr_rouge_attack2.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+               },"Disabled":false,"id":"a9d56fa5-ade7-463b-b873-388373852a7c","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
++            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
++                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"a8491450-2b26-4da6-8790-90253eb2bbf0","path":"sprites/spr_rouge_attack2/spr_rouge_attack2.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
++              },"Disabled":false,"id":"b7e4c2d1-9f0a-4e1b-8c3d-52a8f17b9d21","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},,
+           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
+     ],
+     "visibleRange":null,
+diff --git a/sprites/spr_rouge_spin_charger/02c9e144-e6d5-42af-9891-3be82a9f9374.png b/sprites/spr_rouge_spin_charger/02c9e144-e6d5-42af-9891-3be82a9f9374.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a93610847fc481625cb93b1f2bda20ba3895f4d
+GIT binary patch
+literal 488
+zcmV<E0T=#>P)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l00056Nkl<Zc$~eM
+zO>ToQ5QQI6cR2-8?tzz4*z_P#)uZGn*%);R_dxO~ymnWvro)VXh{@YT5qS7`&mIFE
+zUXYz^NF6tW!TEgd_SCK(l!MV!3t4=koosNc0|4}wUc9iTd6@wK<85pUmV!zFan%53
+zPiO_j;d0TQ-U&s=MZjt>3e{Tlrk>Y_xR^dl3bk^J*RYcf+I$loYw6a!%*oia_LH1r
+zl4@6>84S!|M7UT>iZct=UwZ6uFG5iW&AHE??@gQ=Fdm~@o!C%Y%1$<L*A8=xJH#F2
+z;;v;^<tvU+xZ0JhIu>E}I!572po*fTFz=XSz&1(|jKXloa$89&6+3p+_7qhVC6AB8
+zwQ?=iajVNmIo`&OI~4yP0q0hS``10+U?~h8+!}6P=H$W>!Q%2h3XVc)b60(Wj9XJK
+zRtlf%S9DIr@luRQuv)m%e#g(RdLE;aE~-Iku}G~a1qBqojPRl<_!8(GR1p{ec<%$B
+zu(gmiQ2)T5*GG^Z*f?BN?T(-UdGCYt8h45ZQ&0f@-T`SV;d`p~t3lbxicr9gZx_69
+e>Uhm30j^&@gN=jQg!AJ70000<MNUMnLSTaCTHZbY
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/4a703c36-16c2-4be4-99d5-29e09a0eae25.png b/sprites/spr_rouge_spin_charger/4a703c36-16c2-4be4-99d5-29e09a0eae25.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..5e1874ed6c5e11b9f9dd09e10a71a4e85822874d
+GIT binary patch
+literal 533
+zcmV+w0_y#VP)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l0005pNkl<Zc$~eM
+zO>V+45QSf=cI8tb!8ypL5-J-Gf)GbRJqep2mf;>qImN8q)qvy7jO}1Ln;>F4pWpn&
+zX)wdio0H#Nk4<;!yftq7vu)<A4*=N{b73?qh0Gq@T{=J92LQlgxtQE<*R49YzxBm%
+z$${t1$$uSI(4Z`!R{%dOAONTZ6^_pd2b0`#Unx{*Im%5GW2Hi<+Lp7a3E1v>Y);GL
+zNa~tug=<(Y6=Q7m`;A&^^|$`vI>|J+5f~BqRA827VY_b8u3Hh#T5AO6oNMBMTr3x}
+z)MKa+!ctBJBO)>Ahx;HF)S4!F=>g`P6Wh&P#bSkG1yeS1rBqj5QH<eAp#b2Me-M!m
+zcgRYG*ST<WY~)H-EOg(0#Fz;NJcBTViDRrJv#Nj*k+&3kS9?l=Ip-dMAG<GxtEC#R
+zBW-$8`GKkX;zXzkH{1v85Bo_qP%FQtSS`5z)|-hXHgQhzcfo~FTI^0FBqGmUK$>jT
+zw^YpvV~XcXZWO^nD}l?ccky`bEmnQ!mmsvoQ*Mz;j|Bx}oRZ?AD?Qv&P*Xg0Qp!5#
+zaUac5s0P#sj8EDrIJVM`paF5R#s7csO$!Qmc80K&#64BJYEa#!6QO{DPXv;^^P|ci
+XH{Y_GqZ(?K00000NkvXXu0mjf{gLmk
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/6d7c30e9-ef97-4a55-8bc1-7720c163e4b4.png b/sprites/spr_rouge_spin_charger/6d7c30e9-ef97-4a55-8bc1-7720c163e4b4.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..63c9f6bb919f452b6f7e3f01dbba249dd6bcf107
+GIT binary patch
+literal 535
+zcmV+y0_gpTP)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l0005rNkl<Zc$~eM
+zJ+8wb49Cq=x11tU@6jxkqSvJdsj3`>qhz6~^p^A-FH(95W;z);1k6WJy|f8ne)-!5
+z5&=6*J(S_vFTWR2>N|U23?^i`kjb6ZLz!h>005vpwww0u)CI>*uPGZYsUru)0lAg~
+z`136&+CL>7Sg@K<xo|-+3RT-u9x572fO=}VJ~-99U^Ug6UXxAw&|Jx2oaI(wcj}-!
+zbzV5mR}`#0wosxTLQx1#xgglsO9QYC<1#Pa1+}L6!fC;-&q2uJu<1~$n5&ShV9XBm
+zVwj~+a9+XfQH;XnR<Z>fduiVD+cuz5^tTkQ#4OnLIS2p%1!qIU_l+F$*{Uir$0&@O
+zV>y*o1#Il48D=S57#hxR+Nvt?zZ*Umu9j-($M?{yP>#Jc|M$O*LT(|{gj?nXZui^f
+zeC9o{;eyA(p`xW#H@zn7$9Hh_Zb>*<D4cthqfnvT-GGg~G)>b83X=kt0*L+ScwZO+
+zB4>WwH)A=Mvk1HWL+AhC=|XF5T!@hKSXg{Z4+jO1@RmdiAv8IsU`X-Un^My2o7UR6
+zxseN*1I2=ky)<;uML4wF9U&D+Yi*jQ5eKf3-otAIObs9AW(t&gC_8WQM-OzwweR_;
+Z@&WoHwZil06R`jQ002ovPDHLkV1n=q^@sof
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/81a9c14e-5767-40bf-9ed8-916daec82000.png b/sprites/spr_rouge_spin_charger/81a9c14e-5767-40bf-9ed8-916daec82000.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..58f8e5613dee4ecc5516c89ac90e55e70b4a76de
+GIT binary patch
+literal 491
+zcmV<H0Tlj;P)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l00059Nkl<Zc$~eM
+zOKyZP42DhBU9Qj#(%geAt6|eCjCz3{rAO%|s7vM^NI6AzmC}_N%Os8iVZ1>Q$NBhe
+z@}PqQ<|Y@V_VGG)dt+C3EWzZg7E<l(CKvtU0RW)C^qY1&*lgeVK3Bu393?0Th+7Td
+z%d?=Uzor~Su$EA@a9J=4)!H;KRZJy7JGFQWH@O%>NGg{EYpK?JpVy+#wWmy_7`583
+z&<+;tV3PnCE2UZytiSZIM?Hk15IJ>>F`MaQ1IE+n7oVI^TUx5tPE(94#1-VmReLQB
+za6~Z*SNkPr6+@W4icvTXlq!`J<{32xuuWwWjKXlmq&cajsTDhGc|udAlBbWuwNee^
+z_{En~IbO$(D}?uF!1=|)?en&IUi>Ptb8EQyKCkgqGe5v%&N&N?Lgi{V35IVV)f$J>
+z0HPo5|2F+4eZ{>uuA8Nrqt}vg|J?pxy;hc#lhTr!dL$?S#VHB*=F;Gjf;q)YCneSK
+zErbwxZPY^6K#5>K@89v`_iJrOIJDXoK?@W@h{l*Mx$VJ5`V8+8P@6uiO%0Tr+&b>=
+hpB@-UYCrN*<sVghpX%b0;6?xd002ovPDHLkV1l|+;H&@u
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/8dda06ce-91f3-4c4d-8d66-c40969e282a6.png b/sprites/spr_rouge_spin_charger/8dda06ce-91f3-4c4d-8d66-c40969e282a6.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..bb256c00daf76282fb792e239e7cd53fb0d13cfc
+GIT binary patch
+literal 474
+zcmV<00VV#4P)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l0004@Nkl<Zc$~eM
+zJ8r`;42J2TTTWph_prtyUV4R~Yf$tkJxUiD9p!r%&?!8-69a`NDbbe0B?$EJ=btah
+z4eT&K_(dD<uYI$1Z}Y+&jAT~G;>mvSOPnGA0JN8OHSRhmt_@=_!xc@`pfn(A7QoZ1
+zpwjsz;h=)mgtEekU@25>D|xA`D*@`MMfcEDW5H^w6~^!gdg)okV47L8&~*-6=U6yx
+zuPj)5X<>_c2$e!;%4NZ*8{-t&f?Cr!cOIq~RfsB>v$x!YJ&L7p)=U-^Lzu0KrEpuy
+z3k#OQyduUpW5H4ws+c9Ss)KQg9o3#pVAOpSu9j-J5BJh5u>RUNR3ZF-1YDdV+`sOt
+z^I0}4adB<9Fa|ZTSTIcQqu^2~DR#vpF1DteTT}R4y-H&W*WW&Ga6X?`9O~KI0#{n^
+z=zQt?U)(EmZq?kvl^zWWpx~B-onL#nrl6#F?xs|9eVgZbp#f`!v_L(9{l5P!AAjHC
+z0)#`eb_5A%p67)N{u2&rPyq1AoV1kCo+|xHP=4?%6u^dW7j$E7e9uRfe^gw1wB*4+
+QOaK4?07*qoM6N<$f_Bu`L;wH)
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/f72e7ad5-61e5-4b97-8cd2-399f2e7b2520.png b/sprites/spr_rouge_spin_charger/f72e7ad5-61e5-4b97-8cd2-399f2e7b2520.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..849b7899cc81c59d0ee8e67a94cb1e101ece86f4
+GIT binary patch
+literal 488
+zcmV<E0T=#>P)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l00056Nkl<Zc$~eM
+zJ#K|C4988?jZ+}KdyuhuEIr6m)uU8BNtd9GaE>D76q!2E$xl|W9Vai;8|3T9-*yty
+zL50N__rC8tKl@$l_xt$+uix)o%^K!GRv5`jA<Z5A?Dwz*000;+!=c@cP8_?e3jhF2
+z*Qp&?jB#Jq1tcg9=n=pt4G1S|0Y&>;!a*h1+*b-k&7#~vF;t2|wKmH~9l*HEYpE8U
+zLvyJZW3AL$*5&Rx&LlVyOtR7}bfW_|Iu=fwD+@MUhAQ<Cib810Wx>**4_jb2)RxA%
+z^EAa$g;E7`_MGeRh+-73G?PWe5T;f!3RkneuwWGCKVpnC7L3BAij`zmb1+V^vyP`C
+zu+)7iTr1UZ9`2(LVAFN#QibsO47jibxV_yDw~TC7;^5YBc+Zm(iv`2<J`0XQNwF(l
+z)bMD^xs}4__A44wIG%H(3RVhd-S5)=(k<3}R_5HQxrN($G$;T=m4qk1wz#ICq<F4U
+zGSzvsgv%+^0!jt@dimIC<&1D>r6+<F2rGW}+JlYs9X=zV)qNP77AQaa`?^&>Jm^GP
+ed&w_>)cyd7t)T?<t~~<)0000<MNUMnLSTYU-rXwz
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/layers/02c9e144-e6d5-42af-9891-3be82a9f9374/layer.png b/sprites/spr_rouge_spin_charger/layers/02c9e144-e6d5-42af-9891-3be82a9f9374/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a93610847fc481625cb93b1f2bda20ba3895f4d
+GIT binary patch
+literal 488
+zcmV<E0T=#>P)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l00056Nkl<Zc$~eM
+zO>ToQ5QQI6cR2-8?tzz4*z_P#)uZGn*%);R_dxO~ymnWvro)VXh{@YT5qS7`&mIFE
+zUXYz^NF6tW!TEgd_SCK(l!MV!3t4=koosNc0|4}wUc9iTd6@wK<85pUmV!zFan%53
+zPiO_j;d0TQ-U&s=MZjt>3e{Tlrk>Y_xR^dl3bk^J*RYcf+I$loYw6a!%*oia_LH1r
+zl4@6>84S!|M7UT>iZct=UwZ6uFG5iW&AHE??@gQ=Fdm~@o!C%Y%1$<L*A8=xJH#F2
+z;;v;^<tvU+xZ0JhIu>E}I!572po*fTFz=XSz&1(|jKXloa$89&6+3p+_7qhVC6AB8
+zwQ?=iajVNmIo`&OI~4yP0q0hS``10+U?~h8+!}6P=H$W>!Q%2h3XVc)b60(Wj9XJK
+zRtlf%S9DIr@luRQuv)m%e#g(RdLE;aE~-Iku}G~a1qBqojPRl<_!8(GR1p{ec<%$B
+zu(gmiQ2)T5*GG^Z*f?BN?T(-UdGCYt8h45ZQ&0f@-T`SV;d`p~t3lbxicr9gZx_69
+e>Uhm30j^&@gN=jQg!AJ70000<MNUMnLSTaCTHZbY
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/layers/4a703c36-16c2-4be4-99d5-29e09a0eae25/layer.png b/sprites/spr_rouge_spin_charger/layers/4a703c36-16c2-4be4-99d5-29e09a0eae25/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..5e1874ed6c5e11b9f9dd09e10a71a4e85822874d
+GIT binary patch
+literal 533
+zcmV+w0_y#VP)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l0005pNkl<Zc$~eM
+zO>V+45QSf=cI8tb!8ypL5-J-Gf)GbRJqep2mf;>qImN8q)qvy7jO}1Ln;>F4pWpn&
+zX)wdio0H#Nk4<;!yftq7vu)<A4*=N{b73?qh0Gq@T{=J92LQlgxtQE<*R49YzxBm%
+z$${t1$$uSI(4Z`!R{%dOAONTZ6^_pd2b0`#Unx{*Im%5GW2Hi<+Lp7a3E1v>Y);GL
+zNa~tug=<(Y6=Q7m`;A&^^|$`vI>|J+5f~BqRA827VY_b8u3Hh#T5AO6oNMBMTr3x}
+z)MKa+!ctBJBO)>Ahx;HF)S4!F=>g`P6Wh&P#bSkG1yeS1rBqj5QH<eAp#b2Me-M!m
+zcgRYG*ST<WY~)H-EOg(0#Fz;NJcBTViDRrJv#Nj*k+&3kS9?l=Ip-dMAG<GxtEC#R
+zBW-$8`GKkX;zXzkH{1v85Bo_qP%FQtSS`5z)|-hXHgQhzcfo~FTI^0FBqGmUK$>jT
+zw^YpvV~XcXZWO^nD}l?ccky`bEmnQ!mmsvoQ*Mz;j|Bx}oRZ?AD?Qv&P*Xg0Qp!5#
+zaUac5s0P#sj8EDrIJVM`paF5R#s7csO$!Qmc80K&#64BJYEa#!6QO{DPXv;^^P|ci
+XH{Y_GqZ(?K00000NkvXXu0mjf{gLmk
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/layers/6d7c30e9-ef97-4a55-8bc1-7720c163e4b4/layer.png b/sprites/spr_rouge_spin_charger/layers/6d7c30e9-ef97-4a55-8bc1-7720c163e4b4/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..63c9f6bb919f452b6f7e3f01dbba249dd6bcf107
+GIT binary patch
+literal 535
+zcmV+y0_gpTP)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l0005rNkl<Zc$~eM
+zJ+8wb49Cq=x11tU@6jxkqSvJdsj3`>qhz6~^p^A-FH(95W;z);1k6WJy|f8ne)-!5
+z5&=6*J(S_vFTWR2>N|U23?^i`kjb6ZLz!h>005vpwww0u)CI>*uPGZYsUru)0lAg~
+z`136&+CL>7Sg@K<xo|-+3RT-u9x572fO=}VJ~-99U^Ug6UXxAw&|Jx2oaI(wcj}-!
+zbzV5mR}`#0wosxTLQx1#xgglsO9QYC<1#Pa1+}L6!fC;-&q2uJu<1~$n5&ShV9XBm
+zVwj~+a9+XfQH;XnR<Z>fduiVD+cuz5^tTkQ#4OnLIS2p%1!qIU_l+F$*{Uir$0&@O
+zV>y*o1#Il48D=S57#hxR+Nvt?zZ*Umu9j-($M?{yP>#Jc|M$O*LT(|{gj?nXZui^f
+zeC9o{;eyA(p`xW#H@zn7$9Hh_Zb>*<D4cthqfnvT-GGg~G)>b83X=kt0*L+ScwZO+
+zB4>WwH)A=Mvk1HWL+AhC=|XF5T!@hKSXg{Z4+jO1@RmdiAv8IsU`X-Un^My2o7UR6
+zxseN*1I2=ky)<;uML4wF9U&D+Yi*jQ5eKf3-otAIObs9AW(t&gC_8WQM-OzwweR_;
+Z@&WoHwZil06R`jQ002ovPDHLkV1n=q^@sof
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/layers/81a9c14e-5767-40bf-9ed8-916daec82000/layer.png b/sprites/spr_rouge_spin_charger/layers/81a9c14e-5767-40bf-9ed8-916daec82000/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..58f8e5613dee4ecc5516c89ac90e55e70b4a76de
+GIT binary patch
+literal 491
+zcmV<H0Tlj;P)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l00059Nkl<Zc$~eM
+zOKyZP42DhBU9Qj#(%geAt6|eCjCz3{rAO%|s7vM^NI6AzmC}_N%Os8iVZ1>Q$NBhe
+z@}PqQ<|Y@V_VGG)dt+C3EWzZg7E<l(CKvtU0RW)C^qY1&*lgeVK3Bu393?0Th+7Td
+z%d?=Uzor~Su$EA@a9J=4)!H;KRZJy7JGFQWH@O%>NGg{EYpK?JpVy+#wWmy_7`583
+z&<+;tV3PnCE2UZytiSZIM?Hk15IJ>>F`MaQ1IE+n7oVI^TUx5tPE(94#1-VmReLQB
+za6~Z*SNkPr6+@W4icvTXlq!`J<{32xuuWwWjKXlmq&cajsTDhGc|udAlBbWuwNee^
+z_{En~IbO$(D}?uF!1=|)?en&IUi>Ptb8EQyKCkgqGe5v%&N&N?Lgi{V35IVV)f$J>
+z0HPo5|2F+4eZ{>uuA8Nrqt}vg|J?pxy;hc#lhTr!dL$?S#VHB*=F;Gjf;q)YCneSK
+zErbwxZPY^6K#5>K@89v`_iJrOIJDXoK?@W@h{l*Mx$VJ5`V8+8P@6uiO%0Tr+&b>=
+hpB@-UYCrN*<sVghpX%b0;6?xd002ovPDHLkV1l|+;H&@u
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/layers/8dda06ce-91f3-4c4d-8d66-c40969e282a6/layer.png b/sprites/spr_rouge_spin_charger/layers/8dda06ce-91f3-4c4d-8d66-c40969e282a6/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..bb256c00daf76282fb792e239e7cd53fb0d13cfc
+GIT binary patch
+literal 474
+zcmV<00VV#4P)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l0004@Nkl<Zc$~eM
+zJ8r`;42J2TTTWph_prtyUV4R~Yf$tkJxUiD9p!r%&?!8-69a`NDbbe0B?$EJ=btah
+z4eT&K_(dD<uYI$1Z}Y+&jAT~G;>mvSOPnGA0JN8OHSRhmt_@=_!xc@`pfn(A7QoZ1
+zpwjsz;h=)mgtEekU@25>D|xA`D*@`MMfcEDW5H^w6~^!gdg)okV47L8&~*-6=U6yx
+zuPj)5X<>_c2$e!;%4NZ*8{-t&f?Cr!cOIq~RfsB>v$x!YJ&L7p)=U-^Lzu0KrEpuy
+z3k#OQyduUpW5H4ws+c9Ss)KQg9o3#pVAOpSu9j-J5BJh5u>RUNR3ZF-1YDdV+`sOt
+z^I0}4adB<9Fa|ZTSTIcQqu^2~DR#vpF1DteTT}R4y-H&W*WW&Ga6X?`9O~KI0#{n^
+z=zQt?U)(EmZq?kvl^zWWpx~B-onL#nrl6#F?xs|9eVgZbp#f`!v_L(9{l5P!AAjHC
+z0)#`eb_5A%p67)N{u2&rPyq1AoV1kCo+|xHP=4?%6u^dW7j$E7e9uRfe^gw1wB*4+
+QOaK4?07*qoM6N<$f_Bu`L;wH)
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/layers/f72e7ad5-61e5-4b97-8cd2-399f2e7b2520/layer.png b/sprites/spr_rouge_spin_charger/layers/f72e7ad5-61e5-4b97-8cd2-399f2e7b2520/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..849b7899cc81c59d0ee8e67a94cb1e101ece86f4
+GIT binary patch
+literal 488
+zcmV<E0T=#>P)<h;3K|Lk000e1NJLTq001Tc0015c1^@s6Koo3l00056Nkl<Zc$~eM
+zJ#K|C4988?jZ+}KdyuhuEIr6m)uU8BNtd9GaE>D76q!2E$xl|W9Vai;8|3T9-*yty
+zL50N__rC8tKl@$l_xt$+uix)o%^K!GRv5`jA<Z5A?Dwz*000;+!=c@cP8_?e3jhF2
+z*Qp&?jB#Jq1tcg9=n=pt4G1S|0Y&>;!a*h1+*b-k&7#~vF;t2|wKmH~9l*HEYpE8U
+zLvyJZW3AL$*5&Rx&LlVyOtR7}bfW_|Iu=fwD+@MUhAQ<Cib810Wx>**4_jb2)RxA%
+z^EAa$g;E7`_MGeRh+-73G?PWe5T;f!3RkneuwWGCKVpnC7L3BAij`zmb1+V^vyP`C
+zu+)7iTr1UZ9`2(LVAFN#QibsO47jibxV_yDw~TC7;^5YBc+Zm(iv`2<J`0XQNwF(l
+z)bMD^xs}4__A44wIG%H(3RVhd-S5)=(k<3}R_5HQxrN($G$;T=m4qk1wz#ICq<F4U
+zGSzvsgv%+^0!jt@dimIC<&1D>r6+<F2rGW}+JlYs9X=zV)qNP77AQaa`?^&>Jm^GP
+ed&w_>)cyd7t)T?<t~~<)0000<MNUMnLSTYU-rXwz
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_charger/spr_rouge_spin_charger.yy b/sprites/spr_rouge_spin_charger/spr_rouge_spin_charger.yy
+new file mode 100644
+index 00000000..7e466f86
+--- /dev/null
++++ b/sprites/spr_rouge_spin_charger/spr_rouge_spin_charger.yy
+@@ -0,0 +1,297 @@
++{
++  "$GMSprite": "v2",
++  "%Name": "spr_rouge_spin_charger",
++  "bboxMode": 2,
++  "bbox_bottom": 29,
++  "bbox_left": 0,
++  "bbox_right": 37,
++  "bbox_top": 0,
++  "collisionKind": 1,
++  "collisionTolerance": 0,
++  "DynamicTexturePage": false,
++  "edgeFiltering": false,
++  "For3D": false,
++  "frames": [
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "02c9e144-e6d5-42af-9891-3be82a9f9374",
++      "name": "02c9e144-e6d5-42af-9891-3be82a9f9374",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    },
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "81a9c14e-5767-40bf-9ed8-916daec82000",
++      "name": "81a9c14e-5767-40bf-9ed8-916daec82000",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    },
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "8dda06ce-91f3-4c4d-8d66-c40969e282a6",
++      "name": "8dda06ce-91f3-4c4d-8d66-c40969e282a6",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    },
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "6d7c30e9-ef97-4a55-8bc1-7720c163e4b4",
++      "name": "6d7c30e9-ef97-4a55-8bc1-7720c163e4b4",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    },
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "4a703c36-16c2-4be4-99d5-29e09a0eae25",
++      "name": "4a703c36-16c2-4be4-99d5-29e09a0eae25",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    },
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "f72e7ad5-61e5-4b97-8cd2-399f2e7b2520",
++      "name": "f72e7ad5-61e5-4b97-8cd2-399f2e7b2520",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    }
++  ],
++  "gridX": 0,
++  "gridY": 0,
++  "height": 30,
++  "HTile": false,
++  "layers": [
++    {
++      "$GMImageLayer": "",
++      "%Name": "2972ea6e-90e0-4260-a90a-9ced89445472",
++      "blendMode": 0,
++      "displayName": "default",
++      "isLocked": false,
++      "name": "2972ea6e-90e0-4260-a90a-9ced89445472",
++      "opacity": 100.0,
++      "resourceType": "GMImageLayer",
++      "resourceVersion": "2.0",
++      "visible": true
++    }
++  ],
++  "name": "spr_rouge_spin_charger",
++  "nineSlice": null,
++  "origin": 9,
++  "parent": {
++    "name": "Rouge",
++    "path": "folders/Sprites/Player/Survivors/Rouge.yy",
++  },
++  "preMultiplyAlpha": false,
++  "resourceType": "GMSprite",
++  "resourceVersion": "2.0",
++  "sequence": {
++    "$GMSequence": "v1",
++    "%Name": "spr_rouge_spin_charger",
++    "autoRecord": true,
++    "backdropHeight": 768,
++    "backdropImageOpacity": 0.5,
++    "backdropImagePath": "",
++    "backdropWidth": 1366,
++    "backdropXOffset": 0.0,
++    "backdropYOffset": 0.0,
++    "events": {
++      "$KeyframeStore<MessageEventKeyframe>": "",
++      "Keyframes": [],
++      "resourceType": "KeyframeStore<MessageEventKeyframe>",
++      "resourceVersion": "2.0"
++    },
++    "eventStubScript": null,
++    "eventToFunction": {},
++    "length": 6.0,
++    "lockOrigin": false,
++    "moments": {
++      "$KeyframeStore<MomentsEventKeyframe>": "",
++      "Keyframes": [],
++      "resourceType": "KeyframeStore<MomentsEventKeyframe>",
++      "resourceVersion": "2.0"
++    },
++    "name": "spr_rouge_spin_charger",
++    "playback": 1,
++    "playbackSpeed": 30,
++    "playbackSpeedType": 0,
++    "resourceType": "GMSequence",
++    "resourceVersion": "2.0",
++    "showBackdrop": true,
++    "showBackdropImage": false,
++    "timeUnits": 1,
++    "tracks": [
++      {
++        "$GMSpriteFramesTrack": "",
++        "builtinName": 0,
++        "events": [],
++        "inheritsTrackColour": true,
++        "interpolation": 1,
++        "isCreationTrack": false,
++        "keyframes": {
++          "$KeyframeStore<SpriteFrameKeyframe>": "",
++          "Keyframes": [
++            {
++              "Id": {
++                "name": "02c9e144-e6d5-42af-9891-3be82a9f9374",
++                "path": "sprites/SpriteFrames/02c9e144-e6d5-42af-9891-3be82a9f9374.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 0.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "02c9e144-e6d5-42af-9891-3be82a9f9374",
++                    "path": "sprites/SpriteFrames/02c9e144-e6d5-42af-9891-3be82a9f9374.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            },
++            {
++              "Id": {
++                "name": "81a9c14e-5767-40bf-9ed8-916daec82000",
++                "path": "sprites/SpriteFrames/81a9c14e-5767-40bf-9ed8-916daec82000.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 1.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "81a9c14e-5767-40bf-9ed8-916daec82000",
++                    "path": "sprites/SpriteFrames/81a9c14e-5767-40bf-9ed8-916daec82000.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            },
++            {
++              "Id": {
++                "name": "8dda06ce-91f3-4c4d-8d66-c40969e282a6",
++                "path": "sprites/SpriteFrames/8dda06ce-91f3-4c4d-8d66-c40969e282a6.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 2.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "8dda06ce-91f3-4c4d-8d66-c40969e282a6",
++                    "path": "sprites/SpriteFrames/8dda06ce-91f3-4c4d-8d66-c40969e282a6.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            },
++            {
++              "Id": {
++                "name": "6d7c30e9-ef97-4a55-8bc1-7720c163e4b4",
++                "path": "sprites/SpriteFrames/6d7c30e9-ef97-4a55-8bc1-7720c163e4b4.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 3.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "6d7c30e9-ef97-4a55-8bc1-7720c163e4b4",
++                    "path": "sprites/SpriteFrames/6d7c30e9-ef97-4a55-8bc1-7720c163e4b4.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            },
++            {
++              "Id": {
++                "name": "4a703c36-16c2-4be4-99d5-29e09a0eae25",
++                "path": "sprites/SpriteFrames/4a703c36-16c2-4be4-99d5-29e09a0eae25.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 4.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "4a703c36-16c2-4be4-99d5-29e09a0eae25",
++                    "path": "sprites/SpriteFrames/4a703c36-16c2-4be4-99d5-29e09a0eae25.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            },
++            {
++              "Id": {
++                "name": "f72e7ad5-61e5-4b97-8cd2-399f2e7b2520",
++                "path": "sprites/SpriteFrames/f72e7ad5-61e5-4b97-8cd2-399f2e7b2520.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 5.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "f72e7ad5-61e5-4b97-8cd2-399f2e7b2520",
++                    "path": "sprites/SpriteFrames/f72e7ad5-61e5-4b97-8cd2-399f2e7b2520.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            }
++          ],
++          "resourceType": "KeyframeStore<SpriteFrameKeyframe>",
++          "resourceVersion": "2.0"
++        },
++        "modifiers": [],
++        "resourceType": "GMSpriteFramesTrack",
++        "resourceVersion": "2.0",
++        "spriteId": null,
++        "trackColour": 0,
++        "tracks": [],
++        "traits": 0
++      }
++    ],
++    "visibleRange": null,
++    "volume": 1.0,
++    "xorigin": 19,
++    "yorigin": 15,
++  },
++  "swatchColours": null,
++  "swatchPrecision": 2.525,
++  "textureGroupId": {
++    "name": "Default",
++    "path": "texturegroups/Default",
++  },
++  "type": 0,
++  "VTile": false,
++  "width": 38,
++}
+diff --git a/sprites/spr_rouge_spin_release/281fa044-5db9-46e6-bcae-deb184a55d2d.png b/sprites/spr_rouge_spin_release/281fa044-5db9-46e6-bcae-deb184a55d2d.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..c6b74c72d04331c64b0f2ed5e4895d9e92747cb3
+GIT binary patch
+literal 493
+zcmV<J0TTX+P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp0005BNkl<Zc%03c
+zJ#K_B5QQHR9j8Frdq5dMlY^|H93@9dW0ca|1IeeLCe@(XiT{A{Ca+noF!-D2@%X30
+z6J;i|#h#DDSmk~zyWv@-U_(j;Q4HKnW^;=J0JOLE*Ym#XgYVke0*J#G0gpk)fTdyq
+zyqw4LOADH}_obUExF)oGPr|E#b7*b(g084jjSjTkma?<m^SuU+)lZ)^-KGf{3f4?!
+z8;7w{pPW)ht4QDV=(~OoAoMMD@b=c?jQa#l3c-^ugUd8=i}Nlxnlh8w{*B|(VL1X)
+z^$E79t~k!&Q*)yRfOTDy<*;d*XyqZN`R^I!PUboXDkYvC&&Y8=sj6^Tnd7m_a78NM
+zKF3Qf|0H$C`G11fa-F{87Iz(d9L7pIEGH`O^s3zAaDTt+E%_nGwczb+A4awUfUnoj
+z!@I+`?~lC_t?Rn+VI+l0<k8(ChbG6>j&8K{r_zRxOez3w28RZe&zwi#bL+iqPh0R}
+zdzDnq$4aKJv~p;mz$u?jQ!%*M2!uvV9(IacPtat|arg{$F>nq~I=Z5UfJw!#;AE-H
+jNfY1?ui$*ry!8A5&q$8G{y+wY00000NkvXXu0mjf&l&NP
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/2b455db3-7a12-4735-b3b0-922dcde29405.png b/sprites/spr_rouge_spin_release/2b455db3-7a12-4735-b3b0-922dcde29405.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..6bd0055fdb9a0ee8b3ce7821db7eb3ae4d7f59c0
+GIT binary patch
+literal 490
+zcmV<G0Tup<P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp00058Nkl<Zc%03c
+zJ8r`;42FLf-f{{9xra3t@zR3?MUK*=bdk}~xrYIrLbE%uU|2nED($}nfnOhgk<_EZ
+z6J=++rLIqxsVjX~@r`?xgN-Q{L^E(Z+s&;G05F_~U)RlOqR%e(1wb0U33v)R1uT^c
+z;AKBvSX$8h{!qH9f@?y{=OnxuIEU6&DCiyly!YA4Kb=m+^`Pape21OwM)}^?LWQL1
+zHWg$nSb|qCPN~{1Vnzcqnx6n-?@|XJ&I9(iPtc?oJn1mFOcS@d;Dn<oJKOEwI4&KQ
+zBOul9U`y(V;~YL$8$AGgzJ63Mgx<bx51ojd=D&MXTFiY2qE<XTo{{5#Qdi-yGRIS$
+z;fPegLyota{z>YN^Zx{|<vP8`t?oGZbeTHouq;&m(W7#!!}a~DH|571*MeW}%frZa
+z!2W$9iTB@>^Yqc$)gp%`$JMrOH1+4whL21x0B#0{29)=lHSneVUfxgZ@n&n4T+XLj
+zW~jAtXrRF^pXwzAml}cCh{>IPlj8~R{U!^lHi#5-GjI-1s-00|z@+9!a6EvL^q|`K
+gvm>~WG!H$$0bk6EJ<6QoT>t<807*qoM6N<$f~}P5Z2$lO
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/6a393860-7382-4478-805e-d21af28e92b8.png b/sprites/spr_rouge_spin_release/6a393860-7382-4478-805e-d21af28e92b8.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..39d4372469606c7868d006e3e05db07dad999f08
+GIT binary patch
+literal 483
+zcmV<90UZ8`P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp00051Nkl<Zc%03c
+z%WcCj42FLPUc^B5u#QE1=^#eXQ94R5GJ16OFrX=Pc26u=Mh{z}+WtTg1h$xu6iGcg
+z{G#k)_tf+0Hg!jB9e%M?IoOzTPBa6zi{0Jk006^vczSL|6CJxgRsd=ECg3UP6tGmv
+zflE1FSX$8h{ZP88f@?y{aS~n)oI`6X<a7@JA208xEC2QLEm|L1(UvysVt2}SmEx4q
+z)+or(7+$RE#VK_b+KdKfG~bXhTk7D$bwEk36ErCXPpSr&Y2r2)TyQjH7rXzPh|37e
+z8IbA=*pjM=IET;GMh}#4gt#cu{JTU)i@CZTlGCwvsL{i@Xhu|WoJUyZc&anhNClk3
+z@^on_^@#J|1g{l!vg0;a4?f+dPDWT3D*w}3xy@m|&w5LKEaF=5>tp>fvljsH-tW0j
+z$|!Y?R`48}?5G{xXz9<T&6!robDGA__gQaSTLOP{k&^Gze!SUUC6_j-mKkcT92#hF
+z%I7O-3@$YTu^E#m{U+BF-uqn^)LAD|(9OU(Jn8I;8UrRZzk=fq97zwVjX%4B3rX|R
+Z^9z6`smq4^Z~FiM002ovPDHLkV1ll{-PiyC
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/abcabef7-615f-4d68-9a68-623efbe64612.png b/sprites/spr_rouge_spin_release/abcabef7-615f-4d68-9a68-623efbe64612.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..39d4372469606c7868d006e3e05db07dad999f08
+GIT binary patch
+literal 483
+zcmV<90UZ8`P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp00051Nkl<Zc%03c
+z%WcCj42FLPUc^B5u#QE1=^#eXQ94R5GJ16OFrX=Pc26u=Mh{z}+WtTg1h$xu6iGcg
+z{G#k)_tf+0Hg!jB9e%M?IoOzTPBa6zi{0Jk006^vczSL|6CJxgRsd=ECg3UP6tGmv
+zflE1FSX$8h{ZP88f@?y{aS~n)oI`6X<a7@JA208xEC2QLEm|L1(UvysVt2}SmEx4q
+z)+or(7+$RE#VK_b+KdKfG~bXhTk7D$bwEk36ErCXPpSr&Y2r2)TyQjH7rXzPh|37e
+z8IbA=*pjM=IET;GMh}#4gt#cu{JTU)i@CZTlGCwvsL{i@Xhu|WoJUyZc&anhNClk3
+z@^on_^@#J|1g{l!vg0;a4?f+dPDWT3D*w}3xy@m|&w5LKEaF=5>tp>fvljsH-tW0j
+z$|!Y?R`48}?5G{xXz9<T&6!robDGA__gQaSTLOP{k&^Gze!SUUC6_j-mKkcT92#hF
+z%I7O-3@$YTu^E#m{U+BF-uqn^)LAD|(9OU(Jn8I;8UrRZzk=fq97zwVjX%4B3rX|R
+Z^9z6`smq4^Z~FiM002ovPDHLkV1ll{-PiyC
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/b3c01fde-0f3a-4822-a4cd-8597f4be274e.png b/sprites/spr_rouge_spin_release/b3c01fde-0f3a-4822-a4cd-8597f4be274e.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..c6b74c72d04331c64b0f2ed5e4895d9e92747cb3
+GIT binary patch
+literal 493
+zcmV<J0TTX+P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp0005BNkl<Zc%03c
+zJ#K_B5QQHR9j8Frdq5dMlY^|H93@9dW0ca|1IeeLCe@(XiT{A{Ca+noF!-D2@%X30
+z6J;i|#h#DDSmk~zyWv@-U_(j;Q4HKnW^;=J0JOLE*Ym#XgYVke0*J#G0gpk)fTdyq
+zyqw4LOADH}_obUExF)oGPr|E#b7*b(g084jjSjTkma?<m^SuU+)lZ)^-KGf{3f4?!
+z8;7w{pPW)ht4QDV=(~OoAoMMD@b=c?jQa#l3c-^ugUd8=i}Nlxnlh8w{*B|(VL1X)
+z^$E79t~k!&Q*)yRfOTDy<*;d*XyqZN`R^I!PUboXDkYvC&&Y8=sj6^Tnd7m_a78NM
+zKF3Qf|0H$C`G11fa-F{87Iz(d9L7pIEGH`O^s3zAaDTt+E%_nGwczb+A4awUfUnoj
+z!@I+`?~lC_t?Rn+VI+l0<k8(ChbG6>j&8K{r_zRxOez3w28RZe&zwi#bL+iqPh0R}
+zdzDnq$4aKJv~p;mz$u?jQ!%*M2!uvV9(IacPtat|arg{$F>nq~I=Z5UfJw!#;AE-H
+jNfY1?ui$*ry!8A5&q$8G{y+wY00000NkvXXu0mjf&l&NP
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/e6cb8835-a7c6-446e-870e-739b380f96e1.png b/sprites/spr_rouge_spin_release/e6cb8835-a7c6-446e-870e-739b380f96e1.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..6bd0055fdb9a0ee8b3ce7821db7eb3ae4d7f59c0
+GIT binary patch
+literal 490
+zcmV<G0Tup<P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp00058Nkl<Zc%03c
+zJ8r`;42FLf-f{{9xra3t@zR3?MUK*=bdk}~xrYIrLbE%uU|2nED($}nfnOhgk<_EZ
+z6J=++rLIqxsVjX~@r`?xgN-Q{L^E(Z+s&;G05F_~U)RlOqR%e(1wb0U33v)R1uT^c
+z;AKBvSX$8h{!qH9f@?y{=OnxuIEU6&DCiyly!YA4Kb=m+^`Pape21OwM)}^?LWQL1
+zHWg$nSb|qCPN~{1Vnzcqnx6n-?@|XJ&I9(iPtc?oJn1mFOcS@d;Dn<oJKOEwI4&KQ
+zBOul9U`y(V;~YL$8$AGgzJ63Mgx<bx51ojd=D&MXTFiY2qE<XTo{{5#Qdi-yGRIS$
+z;fPegLyota{z>YN^Zx{|<vP8`t?oGZbeTHouq;&m(W7#!!}a~DH|571*MeW}%frZa
+z!2W$9iTB@>^Yqc$)gp%`$JMrOH1+4whL21x0B#0{29)=lHSneVUfxgZ@n&n4T+XLj
+zW~jAtXrRF^pXwzAml}cCh{>IPlj8~R{U!^lHi#5-GjI-1s-00|z@+9!a6EvL^q|`K
+gvm>~WG!H$$0bk6EJ<6QoT>t<807*qoM6N<$f~}P5Z2$lO
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/layers/281fa044-5db9-46e6-bcae-deb184a55d2d/layer.png b/sprites/spr_rouge_spin_release/layers/281fa044-5db9-46e6-bcae-deb184a55d2d/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..c6b74c72d04331c64b0f2ed5e4895d9e92747cb3
+GIT binary patch
+literal 493
+zcmV<J0TTX+P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp0005BNkl<Zc%03c
+zJ#K_B5QQHR9j8Frdq5dMlY^|H93@9dW0ca|1IeeLCe@(XiT{A{Ca+noF!-D2@%X30
+z6J;i|#h#DDSmk~zyWv@-U_(j;Q4HKnW^;=J0JOLE*Ym#XgYVke0*J#G0gpk)fTdyq
+zyqw4LOADH}_obUExF)oGPr|E#b7*b(g084jjSjTkma?<m^SuU+)lZ)^-KGf{3f4?!
+z8;7w{pPW)ht4QDV=(~OoAoMMD@b=c?jQa#l3c-^ugUd8=i}Nlxnlh8w{*B|(VL1X)
+z^$E79t~k!&Q*)yRfOTDy<*;d*XyqZN`R^I!PUboXDkYvC&&Y8=sj6^Tnd7m_a78NM
+zKF3Qf|0H$C`G11fa-F{87Iz(d9L7pIEGH`O^s3zAaDTt+E%_nGwczb+A4awUfUnoj
+z!@I+`?~lC_t?Rn+VI+l0<k8(ChbG6>j&8K{r_zRxOez3w28RZe&zwi#bL+iqPh0R}
+zdzDnq$4aKJv~p;mz$u?jQ!%*M2!uvV9(IacPtat|arg{$F>nq~I=Z5UfJw!#;AE-H
+jNfY1?ui$*ry!8A5&q$8G{y+wY00000NkvXXu0mjf&l&NP
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/layers/2b455db3-7a12-4735-b3b0-922dcde29405/layer.png b/sprites/spr_rouge_spin_release/layers/2b455db3-7a12-4735-b3b0-922dcde29405/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..6bd0055fdb9a0ee8b3ce7821db7eb3ae4d7f59c0
+GIT binary patch
+literal 490
+zcmV<G0Tup<P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp00058Nkl<Zc%03c
+zJ8r`;42FLf-f{{9xra3t@zR3?MUK*=bdk}~xrYIrLbE%uU|2nED($}nfnOhgk<_EZ
+z6J=++rLIqxsVjX~@r`?xgN-Q{L^E(Z+s&;G05F_~U)RlOqR%e(1wb0U33v)R1uT^c
+z;AKBvSX$8h{!qH9f@?y{=OnxuIEU6&DCiyly!YA4Kb=m+^`Pape21OwM)}^?LWQL1
+zHWg$nSb|qCPN~{1Vnzcqnx6n-?@|XJ&I9(iPtc?oJn1mFOcS@d;Dn<oJKOEwI4&KQ
+zBOul9U`y(V;~YL$8$AGgzJ63Mgx<bx51ojd=D&MXTFiY2qE<XTo{{5#Qdi-yGRIS$
+z;fPegLyota{z>YN^Zx{|<vP8`t?oGZbeTHouq;&m(W7#!!}a~DH|571*MeW}%frZa
+z!2W$9iTB@>^Yqc$)gp%`$JMrOH1+4whL21x0B#0{29)=lHSneVUfxgZ@n&n4T+XLj
+zW~jAtXrRF^pXwzAml}cCh{>IPlj8~R{U!^lHi#5-GjI-1s-00|z@+9!a6EvL^q|`K
+gvm>~WG!H$$0bk6EJ<6QoT>t<807*qoM6N<$f~}P5Z2$lO
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/layers/6a393860-7382-4478-805e-d21af28e92b8/layer.png b/sprites/spr_rouge_spin_release/layers/6a393860-7382-4478-805e-d21af28e92b8/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..39d4372469606c7868d006e3e05db07dad999f08
+GIT binary patch
+literal 483
+zcmV<90UZ8`P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp00051Nkl<Zc%03c
+z%WcCj42FLPUc^B5u#QE1=^#eXQ94R5GJ16OFrX=Pc26u=Mh{z}+WtTg1h$xu6iGcg
+z{G#k)_tf+0Hg!jB9e%M?IoOzTPBa6zi{0Jk006^vczSL|6CJxgRsd=ECg3UP6tGmv
+zflE1FSX$8h{ZP88f@?y{aS~n)oI`6X<a7@JA208xEC2QLEm|L1(UvysVt2}SmEx4q
+z)+or(7+$RE#VK_b+KdKfG~bXhTk7D$bwEk36ErCXPpSr&Y2r2)TyQjH7rXzPh|37e
+z8IbA=*pjM=IET;GMh}#4gt#cu{JTU)i@CZTlGCwvsL{i@Xhu|WoJUyZc&anhNClk3
+z@^on_^@#J|1g{l!vg0;a4?f+dPDWT3D*w}3xy@m|&w5LKEaF=5>tp>fvljsH-tW0j
+z$|!Y?R`48}?5G{xXz9<T&6!robDGA__gQaSTLOP{k&^Gze!SUUC6_j-mKkcT92#hF
+z%I7O-3@$YTu^E#m{U+BF-uqn^)LAD|(9OU(Jn8I;8UrRZzk=fq97zwVjX%4B3rX|R
+Z^9z6`smq4^Z~FiM002ovPDHLkV1ll{-PiyC
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/layers/abcabef7-615f-4d68-9a68-623efbe64612/layer.png b/sprites/spr_rouge_spin_release/layers/abcabef7-615f-4d68-9a68-623efbe64612/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..39d4372469606c7868d006e3e05db07dad999f08
+GIT binary patch
+literal 483
+zcmV<90UZ8`P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp00051Nkl<Zc%03c
+z%WcCj42FLPUc^B5u#QE1=^#eXQ94R5GJ16OFrX=Pc26u=Mh{z}+WtTg1h$xu6iGcg
+z{G#k)_tf+0Hg!jB9e%M?IoOzTPBa6zi{0Jk006^vczSL|6CJxgRsd=ECg3UP6tGmv
+zflE1FSX$8h{ZP88f@?y{aS~n)oI`6X<a7@JA208xEC2QLEm|L1(UvysVt2}SmEx4q
+z)+or(7+$RE#VK_b+KdKfG~bXhTk7D$bwEk36ErCXPpSr&Y2r2)TyQjH7rXzPh|37e
+z8IbA=*pjM=IET;GMh}#4gt#cu{JTU)i@CZTlGCwvsL{i@Xhu|WoJUyZc&anhNClk3
+z@^on_^@#J|1g{l!vg0;a4?f+dPDWT3D*w}3xy@m|&w5LKEaF=5>tp>fvljsH-tW0j
+z$|!Y?R`48}?5G{xXz9<T&6!robDGA__gQaSTLOP{k&^Gze!SUUC6_j-mKkcT92#hF
+z%I7O-3@$YTu^E#m{U+BF-uqn^)LAD|(9OU(Jn8I;8UrRZzk=fq97zwVjX%4B3rX|R
+Z^9z6`smq4^Z~FiM002ovPDHLkV1ll{-PiyC
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/layers/b3c01fde-0f3a-4822-a4cd-8597f4be274e/layer.png b/sprites/spr_rouge_spin_release/layers/b3c01fde-0f3a-4822-a4cd-8597f4be274e/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..c6b74c72d04331c64b0f2ed5e4895d9e92747cb3
+GIT binary patch
+literal 493
+zcmV<J0TTX+P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp0005BNkl<Zc%03c
+zJ#K_B5QQHR9j8Frdq5dMlY^|H93@9dW0ca|1IeeLCe@(XiT{A{Ca+noF!-D2@%X30
+z6J;i|#h#DDSmk~zyWv@-U_(j;Q4HKnW^;=J0JOLE*Ym#XgYVke0*J#G0gpk)fTdyq
+zyqw4LOADH}_obUExF)oGPr|E#b7*b(g084jjSjTkma?<m^SuU+)lZ)^-KGf{3f4?!
+z8;7w{pPW)ht4QDV=(~OoAoMMD@b=c?jQa#l3c-^ugUd8=i}Nlxnlh8w{*B|(VL1X)
+z^$E79t~k!&Q*)yRfOTDy<*;d*XyqZN`R^I!PUboXDkYvC&&Y8=sj6^Tnd7m_a78NM
+zKF3Qf|0H$C`G11fa-F{87Iz(d9L7pIEGH`O^s3zAaDTt+E%_nGwczb+A4awUfUnoj
+z!@I+`?~lC_t?Rn+VI+l0<k8(ChbG6>j&8K{r_zRxOez3w28RZe&zwi#bL+iqPh0R}
+zdzDnq$4aKJv~p;mz$u?jQ!%*M2!uvV9(IacPtat|arg{$F>nq~I=Z5UfJw!#;AE-H
+jNfY1?ui$*ry!8A5&q$8G{y+wY00000NkvXXu0mjf&l&NP
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/layers/e6cb8835-a7c6-446e-870e-739b380f96e1/layer.png b/sprites/spr_rouge_spin_release/layers/e6cb8835-a7c6-446e-870e-739b380f96e1/layer.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..6bd0055fdb9a0ee8b3ce7821db7eb3ae4d7f59c0
+GIT binary patch
+literal 490
+zcmV<G0Tup<P)<h;3K|Lk000e1NJLTq001rk0015c1^@s6Q^PEp00058Nkl<Zc%03c
+zJ8r`;42FLf-f{{9xra3t@zR3?MUK*=bdk}~xrYIrLbE%uU|2nED($}nfnOhgk<_EZ
+z6J=++rLIqxsVjX~@r`?xgN-Q{L^E(Z+s&;G05F_~U)RlOqR%e(1wb0U33v)R1uT^c
+z;AKBvSX$8h{!qH9f@?y{=OnxuIEU6&DCiyly!YA4Kb=m+^`Pape21OwM)}^?LWQL1
+zHWg$nSb|qCPN~{1Vnzcqnx6n-?@|XJ&I9(iPtc?oJn1mFOcS@d;Dn<oJKOEwI4&KQ
+zBOul9U`y(V;~YL$8$AGgzJ63Mgx<bx51ojd=D&MXTFiY2qE<XTo{{5#Qdi-yGRIS$
+z;fPegLyota{z>YN^Zx{|<vP8`t?oGZbeTHouq;&m(W7#!!}a~DH|571*MeW}%frZa
+z!2W$9iTB@>^Yqc$)gp%`$JMrOH1+4whL21x0B#0{29)=lHSneVUfxgZ@n&n4T+XLj
+zW~jAtXrRF^pXwzAml}cCh{>IPlj8~R{U!^lHi#5-GjI-1s-00|z@+9!a6EvL^q|`K
+gvm>~WG!H$$0bk6EJ<6QoT>t<807*qoM6N<$f~}P5Z2$lO
+
+literal 0
+HcmV?d00001
+
+diff --git a/sprites/spr_rouge_spin_release/spr_rouge_spin_release.yy b/sprites/spr_rouge_spin_release/spr_rouge_spin_release.yy
+new file mode 100644
+index 00000000..c449026b
+--- /dev/null
++++ b/sprites/spr_rouge_spin_release/spr_rouge_spin_release.yy
+@@ -0,0 +1,297 @@
++{
++  "$GMSprite": "v2",
++  "%Name": "spr_rouge_spin_release",
++  "bboxMode": 2,
++  "bbox_bottom": 29,
++  "bbox_left": 0,
++  "bbox_right": 45,
++  "bbox_top": 0,
++  "collisionKind": 1,
++  "collisionTolerance": 0,
++  "DynamicTexturePage": false,
++  "edgeFiltering": false,
++  "For3D": false,
++  "frames": [
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "e6cb8835-a7c6-446e-870e-739b380f96e1",
++      "name": "e6cb8835-a7c6-446e-870e-739b380f96e1",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    },
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "abcabef7-615f-4d68-9a68-623efbe64612",
++      "name": "abcabef7-615f-4d68-9a68-623efbe64612",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    },
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "b3c01fde-0f3a-4822-a4cd-8597f4be274e",
++      "name": "b3c01fde-0f3a-4822-a4cd-8597f4be274e",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    },
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "2b455db3-7a12-4735-b3b0-922dcde29405",
++      "name": "2b455db3-7a12-4735-b3b0-922dcde29405",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    },
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "6a393860-7382-4478-805e-d21af28e92b8",
++      "name": "6a393860-7382-4478-805e-d21af28e92b8",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    },
++    {
++      "$GMSpriteFrame": "v1",
++      "%Name": "281fa044-5db9-46e6-bcae-deb184a55d2d",
++      "name": "281fa044-5db9-46e6-bcae-deb184a55d2d",
++      "resourceType": "GMSpriteFrame",
++      "resourceVersion": "2.0"
++    }
++  ],
++  "gridX": 0,
++  "gridY": 0,
++  "height": 30,
++  "HTile": false,
++  "layers": [
++    {
++      "$GMImageLayer": "",
++      "%Name": "d26a8134-2485-4131-937d-df5531742683",
++      "blendMode": 0,
++      "displayName": "default",
++      "isLocked": false,
++      "name": "d26a8134-2485-4131-937d-df5531742683",
++      "opacity": 100.0,
++      "resourceType": "GMImageLayer",
++      "resourceVersion": "2.0",
++      "visible": true
++    }
++  ],
++  "name": "spr_rouge_spin_release",
++  "nineSlice": null,
++  "origin": 9,
++  "parent": {
++    "name": "Rouge",
++    "path": "folders/Sprites/Player/Survivors/Rouge.yy",
++  },
++  "preMultiplyAlpha": false,
++  "resourceType": "GMSprite",
++  "resourceVersion": "2.0",
++  "sequence": {
++    "$GMSequence": "v1",
++    "%Name": "spr_rouge_spin_release",
++    "autoRecord": true,
++    "backdropHeight": 768,
++    "backdropImageOpacity": 0.5,
++    "backdropImagePath": "",
++    "backdropWidth": 1366,
++    "backdropXOffset": 0.0,
++    "backdropYOffset": 0.0,
++    "events": {
++      "$KeyframeStore<MessageEventKeyframe>": "",
++      "Keyframes": [],
++      "resourceType": "KeyframeStore<MessageEventKeyframe>",
++      "resourceVersion": "2.0"
++    },
++    "eventStubScript": null,
++    "eventToFunction": {},
++    "length": 6.0,
++    "lockOrigin": false,
++    "moments": {
++      "$KeyframeStore<MomentsEventKeyframe>": "",
++      "Keyframes": [],
++      "resourceType": "KeyframeStore<MomentsEventKeyframe>",
++      "resourceVersion": "2.0"
++    },
++    "name": "spr_rouge_spin_release",
++    "playback": 1,
++    "playbackSpeed": 30,
++    "playbackSpeedType": 0,
++    "resourceType": "GMSequence",
++    "resourceVersion": "2.0",
++    "showBackdrop": true,
++    "showBackdropImage": false,
++    "timeUnits": 1,
++    "tracks": [
++      {
++        "$GMSpriteFramesTrack": "",
++        "builtinName": 0,
++        "events": [],
++        "inheritsTrackColour": true,
++        "interpolation": 1,
++        "isCreationTrack": false,
++        "keyframes": {
++          "$KeyframeStore<SpriteFrameKeyframe>": "",
++          "Keyframes": [
++            {
++              "Id": {
++                "name": "e6cb8835-a7c6-446e-870e-739b380f96e1",
++                "path": "sprites/SpriteFrames/e6cb8835-a7c6-446e-870e-739b380f96e1.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 0.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "e6cb8835-a7c6-446e-870e-739b380f96e1",
++                    "path": "sprites/SpriteFrames/e6cb8835-a7c6-446e-870e-739b380f96e1.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            },
++            {
++              "Id": {
++                "name": "abcabef7-615f-4d68-9a68-623efbe64612",
++                "path": "sprites/SpriteFrames/abcabef7-615f-4d68-9a68-623efbe64612.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 1.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "abcabef7-615f-4d68-9a68-623efbe64612",
++                    "path": "sprites/SpriteFrames/abcabef7-615f-4d68-9a68-623efbe64612.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            },
++            {
++              "Id": {
++                "name": "b3c01fde-0f3a-4822-a4cd-8597f4be274e",
++                "path": "sprites/SpriteFrames/b3c01fde-0f3a-4822-a4cd-8597f4be274e.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 2.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "b3c01fde-0f3a-4822-a4cd-8597f4be274e",
++                    "path": "sprites/SpriteFrames/b3c01fde-0f3a-4822-a4cd-8597f4be274e.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            },
++            {
++              "Id": {
++                "name": "2b455db3-7a12-4735-b3b0-922dcde29405",
++                "path": "sprites/SpriteFrames/2b455db3-7a12-4735-b3b0-922dcde29405.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 3.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "2b455db3-7a12-4735-b3b0-922dcde29405",
++                    "path": "sprites/SpriteFrames/2b455db3-7a12-4735-b3b0-922dcde29405.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            },
++            {
++              "Id": {
++                "name": "6a393860-7382-4478-805e-d21af28e92b8",
++                "path": "sprites/SpriteFrames/6a393860-7382-4478-805e-d21af28e92b8.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 4.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "6a393860-7382-4478-805e-d21af28e92b8",
++                    "path": "sprites/SpriteFrames/6a393860-7382-4478-805e-d21af28e92b8.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            },
++            {
++              "Id": {
++                "name": "281fa044-5db9-46e6-bcae-deb184a55d2d",
++                "path": "sprites/SpriteFrames/281fa044-5db9-46e6-bcae-deb184a55d2d.yy",
++              }
++              "resourceType": "GMKeyframe<SpriteFrameKeyframe>",
++              "resourceVersion": "2.0",
++              "Key": 5.0,
++              "Length": 1.0,
++              "Stretch": false,
++              "Disabled": false,
++              "IsCreationKey": false,
++              "Channels": {
++                "0": {
++                  "Id": {
++                    "name": "281fa044-5db9-46e6-bcae-deb184a55d2d",
++                    "path": "sprites/SpriteFrames/281fa044-5db9-46e6-bcae-deb184a55d2d.yy",
++                  }
++                  "resourceType": "SpriteFrameKeyframe",
++                  "resourceVersion": "2.0"
++                }
++              }
++            }
++          ],
++          "resourceType": "KeyframeStore<SpriteFrameKeyframe>",
++          "resourceVersion": "2.0"
++        },
++        "modifiers": [],
++        "resourceType": "GMSpriteFramesTrack",
++        "resourceVersion": "2.0",
++        "spriteId": null,
++        "trackColour": 0,
++        "tracks": [],
++        "traits": 0
++      }
++    ],
++    "visibleRange": null,
++    "volume": 1.0,
++    "xorigin": 23,
++    "yorigin": 15,
++  },
++  "swatchColours": null,
++  "swatchPrecision": 2.525,
++  "textureGroupId": {
++    "name": "Default",
++    "path": "texturegroups/Default",
++  },
++  "type": 0,
++  "VTile": false,
++  "width": 46,
++}

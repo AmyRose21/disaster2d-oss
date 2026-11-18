@@ -150,23 +150,29 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
 // retrato). Aliado MUERTO: solo la funda vacia. NO se dibuja para
 // demonizados ni escapados (el demon usa tira fija sin vida que mirar y
 // el escapado ya no esta).
+// v13 (MAX HP POR PERSONAJE): hudAllyBar(tx, ty, hp, maxhp=100) — el
+// relleno y el "+NN" escalan con la vida TOTAL del personaje (Rouge 125,
+// Metal 150, los demas 100 — scr_player_maxhp). Antes el 100 estaba
+// horneado: con 125+ la barrita se quedaba "llena" desde el 100 y el
+// relleno clampado.
 // (tx, ty) = esquina SUPERIOR-IZQUIERDA del tile 26x26 del retrato: la
 // barra sale a su derecha (x = tx+28) centrada en vertical (cy = ty+13),
 // como en la captura. La columna la ancla obj_level/Draw_64.gml (v10).
-hudAllyBar = function(tx, ty, hp)
+hudAllyBar = function(tx, ty, hp, maxhp = 100)
 {
-        var _hp = clamp(hp, 0, 100);
+        var _hp = clamp(hp, 0, maxhp);
+        var _fillMax = 46;
         var _cy = ty + 13;
 
         // funda (casco granate oscuro, 1 px de borde a cada lado)
         draw_set_color(make_color_rgb(84, 12, 12));
         draw_rectangle(tx + 28, _cy - 4, tx + 76, _cy + 4, false);
 
-        // relleno ROJO de 6 de alto — 100 HP = 46 px
+        // relleno ROJO de 6 de alto — maxhp HP = 46 px
         if(_hp > 0)
         {
                 draw_set_color(make_color_rgb(232, 20, 20));
-                draw_rectangle(tx + 29, _cy - 3, tx + 29 + ceil(_hp * 0.46), _cy + 3, false);
+                draw_rectangle(tx + 29, _cy - 3, tx + 29 + ceil(_hp / maxhp * _fillMax), _cy + 3, false);
         }
 
         // "+NN" blanco DENTRO de la barra (micro-fuente del HUD)

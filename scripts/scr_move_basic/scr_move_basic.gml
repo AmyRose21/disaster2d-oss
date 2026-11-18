@@ -795,6 +795,12 @@ function scr_move_basic()
                 // ver scr_amelia_special).
                 if(global.character == CHARACTER_AMELIA && isSpinCharging)
                         return;
+
+                // ROUGE v13 (spindash, reglas de Sonic): igual que
+                // Sonic/Amelia — abajo + Z da revolucadas, no salta
+                // (ver scr_rouge_special).
+                if(global.character == CHARACTER_ROUGE && isSpinCharging)
+                        return;
                 
                 // SALLY CANON v5.4 (fase duelista): igual que Amelia,
                 // no salta mientras carga el spindash (abajo + Z da

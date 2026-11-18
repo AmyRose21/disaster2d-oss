@@ -63,12 +63,13 @@ if(!global.showHud)
 
 var _mob = (os_type == os_android ? 200 : 0);
 
-// v10 (HUD DE LA IMAGEN): los ICONOS DE HABILIDAD se mudan al rincon
-// SUPERIOR DERECHO (x 370..446, anclados con el +370 de drawKeyIcon y
-// _ico=216): el BORDE IZQUIERDO entero pasa a ser la columna del equipo
-// (retratos + barras, obj_level v10) y la BARRA DE VIDA GRANDE propia
-// (bloque v10 de abajo) vive en la banda inferior 242-268 con su "+NN"
-// a doble tamano. La barrita nega queda fija encima de la barra grande.
+// v12 (HUD): los ICONOS DE HABILIDAD siguen en el rincon superior
+// derecho (x 370..446, anclados con el +370 de drawKeyIcon y _ico=216).
+// El BORDE IZQUIERDO entero es la COLUMNA DEL EQUIPO (retratos + barras,
+// obj_level v12) con los ALIADOS apilando de ABAJO hacia ARRIBA y TU
+// fila propia (retrato + barrita "+NN", la unica barra de tu vida tras
+// eliminar la barra verde grande v10) anclada en la banda inferior
+// 242-268. La barrita nega vive encima de esa barrita propia.
 // _mob sigue moviendo SOLO lo que ya movia (las emociones).
 var _ico = 216;
 
@@ -353,19 +354,36 @@ if(instance_exists(global.player) && !global.player.isDead)
                         break;
                 }
 
-                // v4.6 — ROUGE: icono de VUELO (Z, patron Tails: la barrita
-                // se llena mientras recarga en el suelo) + patada X, con
-                // sus sprites propios del TTB (spr_gui_rougeglide /
-                // spr_gui_rougeattack). La patada NO tiene version exe
-                // (jamais se demoniza): su recarga es siempre la de
-                // superviviente.
+                // v13 — ROUGE (REWORK): icono de VUELO patron VANILLA (Z:
+                // mantener = subir, soltar = bajar; la barrita se llena
+                // mientras recarga en el suelo, 15 s) + TORNADO X (i-frames,
+                // recarga 20 s) + SPINDASH (abajo + Z, sin cooldown), con
+                // sus sprites del TTB (spr_gui_rougeglide /
+                // spr_gui_rougeattack / placeholder de Sonic para el spin).
+                // Nada tiene version exe (jamais se demoniza): recargas de
+                // superviviente siempre.
                 case CHARACTER_ROUGE:
                 {
-                        var prog = (min(global.player.flyTimer, 0) / -ROUGE_FLY_RECHARGE);
-                        drawKeyIcon(spr_gui_rougeglide, 0, 23, global.KeyA, prog * 10, 240 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
+                        // v13 — VUELO patron VANILLA: la puerta flyTimer cuenta
+                        // hacia atras desde ROUGE_FLY_RECHARGE cuando NO vuela
+                        // (0 = listo). Icono listo = blanco, recarga = rojo.
+                        var _rprog = 1.0 - (max(global.player.flyTimer, 0) / ROUGE_FLY_RECHARGE);
+                        drawKeyIcon(spr_gui_rougeglide, 0, 23, global.KeyA, _rprog * 10, 240 - _ico, _rprog == 1.0 ? c_white : c_red, _rprog, 0);
 
-                        prog = 1.0 - (min(global.player.attackTimer, ROUGE_ATTACK_RECHARGE) / ROUGE_ATTACK_RECHARGE);
+                        // v13 — TORNADO (X en tierra): recarga attackTimer.
+                        var prog = 1.0 - (min(global.player.attackTimer, ROUGE_ATTACK_RECHARGE) / ROUGE_ATTACK_RECHARGE);
                         drawKeyIcon(spr_gui_rougeattack, 0, 19, global.KeyB, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
+
+                        // v13 — SPINDASH (abajo + Z): sin cooldown (su coste
+                        // es el tiempo de revolucioneo), patron del de Sonic:
+                        // siempre visible, blanco = listo, brilla mas al cargar.
+                        var _rspr = asset_get_index("spr_gui_rougespindash");
+                        if(is_undefined(_rspr) || _rspr < 0)
+                                _rspr = spr_gui_sonicspindash; // placeholder hasta que exista el propio
+
+                        var _rcharging = variable_instance_exists(global.player.id, "isSpinCharging") && global.player.isSpinCharging;
+                        var _rchg = variable_instance_exists(global.player.id, "spinCharge") ? global.player.spinCharge / ROUGE_SPINDASH_CHARGE_MAX : 0;
+                        drawKeyIcon(_rspr, 0, 33, global.KeyA, 10, 222 - _ico, _rcharging ? c_red : c_white, _rcharging ? 0.5 + _rchg * 0.5 : 1, 0);
                         break;
                 }
 
@@ -771,116 +789,16 @@ if(instance_exists(global.player) && !global.player.isDead)
                 }
         }
 
-        // v10: "+NN" a DOBLE tamano para la barra grande (los glifos de la
-        // micro-fuente del HUD — spr_letter1 — dibujados a 2x con sombra
-        // oscura, como el texto de la captura). Mismo mapa de frames que
-        // scr_text_spr: '+' = 77, '1'-'9' = 28-36, '0' = 37.
-        drawBigHpNum = function(xx, yy, str)
-        {
-                var _sx = xx;
-                for(var _g = 1; _g <= string_length(str); _g++)
-                {
-                        var _o = ord(string_char_at(str, _g));
-                        var _ind = 44;
-                        if(_o == 43) _ind = 77;             // '+'
-                        else if(_o == 48) _ind = 37;        // '0'
-                        else if(_o >= 49 && _o <= 57)        // '1'..'9'
-                                _ind = 27 + (_o - 48);
-
-                        // sombra abajo-derecha (como la captura) y glifo blanco 2x
-                        draw_sprite_ext(spr_letter1, _ind, _sx + 2, yy + 2, 2, 2, 0, make_color_rgb(60, 0, 0), 1);
-                        draw_sprite_ext(spr_letter1, _ind, _sx, yy, 2, 2, 0, c_white, 1);
-                        _sx += 12;
-                }
-        }
-
-        // v10 (BARRA DE VIDA "IGUAL A LA IMAGEN") — pedido: la captura de
-        // referencia (TD2DR): retrato en CAJA blanca + barra SEGMENTADA en
-        // 4 tramos (huecos negros) con contorno negro + "+NN" GRANDE a la
-        // derecha (glifos a 2x con sombra, como en la captura). Proporciones
-        // de la captura escaladas al GUI 480x270: caja 26x26, barra 150x14
-        // (relleno de 12) y texto de 12 de alto. Vive en el rincón inferior
-        // IZQUIERDO (donde lo pediste en la v8), ahora en la banda 242-268
-        // que dejo libre la tira del equipo al mudarse a la columna del
-        // borde izquierdo (obj_level v10): justo DEBAJO de tu retrato propio
-        // de la columna (fila 210-236), como el retrato grande del final
-        // de la captura de los aliados.
-        // 148 px = 100 HP (1.48 px/HP); huecos negros de 2 px al 25/50/75
-        // (los 4 tramos clasicos de spr_hp); paleta por vida verde/amarillo/
-        // rojo (en la captura, llena = verde). SOLO supervivientes vivos:
-        // mismo gate de siempre (el EXE no tiene vida que mirar y el
-        // esbirro tiene su HUD propio). La barra de sprite SOBRE LA CABEZA
-        // no se toca: esa es la que ven los demas sobre tu personaje.
-        if(global.character != CHARACTER_EXE && global.player.revivalTimes < 2 && global.player.hp > 0)
-        {
-                var _hbY = 242; // bloque de 26 px (242-268), ex banda de la tira del equipo
-
-                // retrato del menu (el mismo del lobby); Kris usa el
-                // placeholder de Knux hasta que exista spr_menu_kris
-                var _por = spr_menu_knux;
-                switch(global.character)
-                {
-                        case CHARACTER_KRIS: _por = asset_get_index("spr_menu_kris"); if(is_undefined(_por) || _por < 0) _por = spr_menu_knux; break;
-                        case CHARACTER_TAILS: _por = spr_menu_tails; break;
-                        case CHARACTER_KNUX: _por = spr_menu_knux; break;
-                        case CHARACTER_EGGMAN: _por = spr_menu_egg; break;
-                        case CHARACTER_AMY: _por = spr_menu_amy; break;
-                        case CHARACTER_CREAM: _por = spr_menu_cream; break;
-                        case CHARACTER_SALLY: _por = spr_menu_sally; break;
-                        case CHARACTER_AMY_CANON: _por = spr_menu_amy_canon; break;
-                        case CHARACTER_SONIC: _por = spr_menu_sonic_canon; break;
-                        case CHARACTER_SALLY_CANON: _por = spr_menu_sallycanon; break;
-                        case CHARACTER_VANILLA: _por = spr_menu_vanilla; break;
-                        case CHARACTER_METAL: _por = spr_menu_metal; break;
-                        case CHARACTER_AMELIA: _por = spr_menu_amelia; break;
-                        case CHARACTER_BLAZE: _por = spr_menu_blaze; break;
-                        case CHARACTER_FLEETWAY_AMY: _por = spr_menu_amy_fw; break;
-                        case CHARACTER_ROUGE: _por = spr_menu_rouge; break;
-                }
-
-                // caja del avatar (como la captura): marco BLANCO de 2 px +
-                // fondo negro, 26x26 pegado al borde izquierdo
-                draw_set_color(c_white);
-                draw_rectangle(2, _hbY, 28, _hbY + 26, false);
-                draw_set_color(c_black);
-                draw_rectangle(4, _hbY + 2, 26, _hbY + 24, false);
-
-                // retrato centrado con 1 px de aire (draw_sprite_pos: no
-                // depende del origen que tenga el sprite del menu)
-                var _psc = min(20 / sprite_get_width(_por), 20 / sprite_get_height(_por));
-                var _pw = sprite_get_width(_por) * _psc;
-                var _ph = sprite_get_height(_por) * _psc;
-                var _ppx = round(5 + (22 - _pw) / 2);
-                var _ppy = round(_hbY + 3 + (22 - _ph) / 2);
-                draw_sprite_pos(_por, 0, _ppx, _ppy, _ppx + _pw, _ppy, _ppx + _pw, _ppy + _ph, _ppx, _ppy + _ph, 1);
-
-                // barra AL LADO del retrato (empieza en x=30, centrada en
-                // vertical con la caja): contorno negro + relleno por vida
-                draw_set_color(c_black);
-                draw_rectangle(30, 248, 180, 262, false);
-
-                var _hpPct = clamp(global.player.hp / 100, 0, 1);
-                var _hpCol = c_lime;
-                if(global.player.hp < 25)
-                        _hpCol = c_red;
-                else if(global.player.hp < 50)
-                        _hpCol = c_yellow;
-
-                draw_set_color(_hpCol);
-                draw_rectangle(31, 249, 31 + ceil(148 * _hpPct), 261, false);
-
-                // los 4 tramos: huecos negros de 2 px al 25/50/75 (los
-                // segmentos de la barra de la captura)
-                draw_set_color(c_black);
-                for(var _t = 1; _t <= 3; _t++)
-                        draw_rectangle(31 + 37 * _t, 249, 33 + 37 * _t, 261, false);
-
-                // "+NN" GRANDE a la derecha (glifos 2x con sombra, como la
-                // captura)
-                drawBigHpNum(186, 249, "+" + string(floor(max(global.player.hp, 0))));
-
-                draw_set_color(c_white);
-        }
+        // v12 (BARRA VERDE GRANDE ELIMINADA): pedido — "elimina la barra
+        // verde grande y coloca la que es del personaje; no deben salir 2
+        // barras que representen mi vida, yo quiero la que se ve con el
+        // icono". El bloque v10 que dibujaba aqui la barra propia grande
+        // (caja de retrato + barra segmentada + "+NN" a 2x) se borro
+        // ENTERO: tu vida ahora la representa SOLO la fila propia de la
+        // columna del equipo (obj_level v12): tu retrato (el icono de tu
+        // personaje) + su barrita "+NN" (hudAllyBar), anclados en la banda
+        // inferior 242-268, el puesto exacto que ocupaba la barra verde.
+        // La barrita nega (bloque de abajo) vive sobre esa barrita propia.
 
         // v7 (toque negativo) — CARGA NEGATIVA DE JINNA (visible SOLO para
         // la victima, patron de la marca de debilidad de Metal Amy): una
@@ -893,19 +811,21 @@ if(instance_exists(global.player) && !global.player.isDead)
         && global.player.jinnaNegaCharge > 0 && !global.player.isDead)
         {
                 var _negaPct = global.player.jinnaNegaCharge / JINNA_NEGA_MAX;
-                // v10: y fija — vive justo ENCIMA de la barra de vida grande
-                // (242-268), entre tu retrato propio de la columna (que acaba
-                // en y=236) y la barra: x igual que la barra grande (30-180)
+                // v12: la barra verde grande ya NO existe — tu vida es la
+                // barrita propia de la columna (obj_level: retrato + hudAllyBar
+                // en la banda 242-268). Esta carga negativa vive ENCIMA de esa
+                // barrita (justo sobre su funda 251-259): misma x (30) y misma
+                // escala de anchura (46 px = 100%) que su relleno rojo.
                 var _negaX = 30;
-                var _negaY = 237;
+                var _negaY = 244;
                 var _negaCol = make_color_rgb(120, 40, 160); // energía negativa: violeta
                 var _negaAlpha = (variable_instance_exists(global.player.id, "jinnaNegaGrace") && global.player.jinnaNegaGrace > 0) ? 0.45 + 0.3 * sin(current_time / 90) : 0.9;
 
                 draw_set_alpha(_negaAlpha);
                 draw_set_color(c_black);
-                draw_rectangle(_negaX - 1, _negaY - 1, _negaX + 151, _negaY + 5, false);
+                draw_rectangle(_negaX - 1, _negaY - 1, _negaX + 47, _negaY + 5, false);
                 draw_set_color(_negaCol);
-                draw_rectangle(_negaX, _negaY, _negaX + 150 * _negaPct, _negaY + 4, false);
+                draw_rectangle(_negaX, _negaY, _negaX + 46 * _negaPct, _negaY + 4, false);
                 draw_set_alpha(1);
                 draw_set_color(c_white);
         }

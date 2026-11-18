@@ -176,7 +176,7 @@ function scr_metal_special()
         // su hp, mismo modelo que la curacion de Chocola): busca al Dr.
         // Eggman o a Tails entre los puppets vivos y sin demonizar.
         // Con los DOS cerca NO se acumula: manda la del Dr. (7 s).
-        if(!isDead && revivalTimes < 2 && hp < 100)
+        if(!isDead && revivalTimes < 2 && hp < scr_player_maxhp(CHARACTER_METAL)) // v13: max 150
         {
                 var _eggNear = false;
                 var _tailsNear = false;
@@ -207,7 +207,7 @@ function scr_metal_special()
 
                         if(geniusHealTimer <= 0 && (_eggNear || _tailsNear))
                         {
-                                hp = min(100, hp + METAL_GENIUS_HEAL_HP);
+                                hp = min(scr_player_maxhp(CHARACTER_METAL), hp + METAL_GENIUS_HEAL_HP); // v13: max 150
 
                                 audio_play_sound(snd_heal, 0, false);
                                 net_sound_emit(snd_heal);

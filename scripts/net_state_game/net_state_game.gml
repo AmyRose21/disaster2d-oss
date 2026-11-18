@@ -757,7 +757,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 global.player.yspd = 0;
                                 global.player.gspd = 0;
                                 global.player.isDead = false;
-                                global.player.hp = 100;
+                                global.player.hp = scr_player_maxhp(global.character); // v13: minion a vida COMPLETA del personaje (125/150)
                                 global.player.rings = 0;
                                 global.player.hurttime = 60 * 2; // 2 s de i-frames al materializarse
                                 global.player.isHurt = false;
@@ -1944,10 +1944,10 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 global.player.redRingTimer = max(global.player.redRingTimer - cnt, 60);
                         }
                         
-                        if(global.player.rings >= 10 && global.player.hp < 100 && _canHeal)
+                        if(global.player.rings >= 10 && global.player.hp < scr_player_maxhp(global.character) && _canHeal) // v13: max por personaje
                         {
                                 global.player.rings -= 10;
-                                global.player.hp = min(100, global.player.hp + 20);
+                                global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + 20); // v13: max por personaje
                                 audio_play_sound(snd_heal, 0, false);
                                 net_sound_emit(snd_heal);
                                 
@@ -2661,8 +2661,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                         if(global.player.revivalTimes >= 2)
                         {
                                 if(scr_negatouch_is(global.player)
-                                && global.player.hp > 0 && global.player.hp < 100)
-                                        global.player.hp = 100;
+                                && global.player.hp > 0 && global.player.hp < scr_player_maxhp(global.character)) // v13: max
+                                        global.player.hp = scr_player_maxhp(global.character); // v13: cura COMPLETA = vida total
                                 
                                 break;
                         }
@@ -2980,8 +2980,8 @@ function net_state_game(rbuff, nps, isPasstrough)
                         if(global.player.revivalTimes >= 2)
                         {
                                 if(_redRing && scr_negatouch_is(global.player)
-                                && global.player.hp > 0 && global.player.hp < 100)
-                                        global.player.hp = min(100, global.player.hp + JINNA_NEGA_REDHEAL);
+                                && global.player.hp > 0 && global.player.hp < scr_player_maxhp(global.character)) // v13: max
+                                        global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + JINNA_NEGA_REDHEAL); // v13: max
                                 
                                 break;
                         }
@@ -3016,10 +3016,10 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         global.player.redRingTimer = max(global.player.redRingTimer - cnt, 60);
                                 }
                                 
-                                if(global.player.rings >= 10 && global.player.hp < 100 && _canHeal)
+                                if(global.player.rings >= 10 && global.player.hp < scr_player_maxhp(global.character) && _canHeal) // v13: max por personaje
                                 {
                                         global.player.rings -= 10;
-                                        global.player.hp = min(100, global.player.hp + 20);
+                                        global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + 20); // v13: max por personaje
                                         audio_play_sound(snd_heal, 0, false);
                                         net_sound_emit(snd_heal);
                                         
@@ -3156,10 +3156,10 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         global.player.redRingTimer = max(global.player.redRingTimer - cnt, 60);
                                 }
                                 
-                                if(global.player.rings >= 10 && global.player.hp < 100 && _canHeal)
+                                if(global.player.rings >= 10 && global.player.hp < scr_player_maxhp(global.character) && _canHeal) // v13: max por personaje
                                 {
                                         global.player.rings -= 10;
-                                        global.player.hp = min(100, global.player.hp + 20);
+                                        global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + 20); // v13: max por personaje
                                         audio_play_sound(snd_heal, 0, false);
                                         net_sound_emit(snd_heal);
                                         
@@ -3675,7 +3675,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 var _wasDead = global.player.isDead;
                                 
                                 global.player.revivalTimes = 1;
-                                global.player.hp = 100;
+                                global.player.hp = scr_player_maxhp(global.character); // v13: revivir = vida COMPLETA del personaje
                                 global.player.isDead = false;
                                 global.player.hurttime = 60 * 2;
                                 global.player.isMinion = false; // v6: si era minion, ya no lo es
@@ -4760,13 +4760,13 @@ function net_state_game(rbuff, nps, isPasstrough)
                         if(!instance_exists(global.player))
                                  break;
                                  
-                        if(global.player.hp >= 100)
+                        if(global.player.hp >= scr_player_maxhp(global.character)) // v13: max por personaje
                                 return;
                         
                         audio_play_sound(snd_heal, 0, false);
                         net_sound_emit(snd_heal);
                         
-                        global.player.hp = min(100, global.player.hp + 20);
+                        global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + 20); // v13: max por personaje
                         break;
                 }
                 

@@ -56,13 +56,14 @@ with(global.player)
         
                 if(global.character != CHARACTER_EXE)
                 {
-                        // v4.10 blindaje «garic forn»: el anticheat del server
-                        // (states/Game.c) desconecta con hp > 100 en el
-                        // CLIENT_PLAYER_DATA. Las curas ya viajan clampeadas
-                        // (v4.8/v4.9) pero esto garantiza que NINGUNA ruta
-                        // futura pueda mandar un hp fuera de rango: aqui es
-                        // fisicamente imposible que viaje > 100.
-                        buffer_write(buffer, buffer_s8, clamp(hp, 0, 100));
+                        // v13 (MAX HP POR PERSONAJE): el hp viaja ahora como S16
+                        // (antes s8: 150 de Metal Sonic NO cabia en un int8 con
+                        // signo) y clampeado a la vida TOTAL del personaje
+                        // (scr_player_maxhp: Rouge 125 / Metal 150 / resto 100).
+                        // El reader de TODOS los clientes (net_udpprocess) y el
+                        // anti-cheat del server (Game.c, cap por personaje) ya
+                        // leen s16 en la misma posicion — mismo build = alineado.
+                        buffer_write(buffer, buffer_s16, clamp(hp, 0, scr_player_maxhp(global.character)));
                         buffer_write(buffer, buffer_u8, revivalTimes);
                         buffer_write(buffer, buffer_s16, rings);
                 

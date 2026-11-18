@@ -353,6 +353,16 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         if(global.character == CHARACTER_SONIC && (global.player.nerviosState > 0 || global.player.isAttacking))
                 return;
 
+        // v13 (ROUGE) — I-FRAMES DEL TORNADO: durante TODO el recorrido del
+        // tornado (tornadoState > 0, tecla X en tierra) Rouge no recibe dano
+        // — "iframe durante todo el movimiento", patron tornado de Knuckles.
+        // Los peligros que matan sin dano (caer al vacio, scr_player_instakill)
+        // SIGUEN funcionando igual que al overdrive de Metal.
+        if(global.character == CHARACTER_ROUGE
+        && variable_instance_exists(global.player.id, "tornadoState")
+        && global.player.tornadoState > 0)
+                return;
+
         // v5 (KRIS) — I-FRAMES DEL AIR2: la 2a fase del ataque aereo
         // (spr_kris_attack1_air2, estado 41) blinda a Kris mientras dura
         // su animacion (regla de la duena: "con I frame"). Solo el air2:

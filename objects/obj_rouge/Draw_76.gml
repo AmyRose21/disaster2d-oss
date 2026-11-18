@@ -96,6 +96,16 @@ switch(state)
                 break;
 
         case ROUGE_AIR_ATTACK:
+                // v13 TORNADO (spr_rouge_attack2, 2 frames de remolino):
+                // mientras dure el tornadoState NO termina por animacion — lo
+                // cierra scr_rouge_special (timer, pared, stun o muerte) — y
+                // la tira alterna sus 2 frames rapida.
+                if(variable_instance_exists(id, "tornadoState") && tornadoState > 0)
+                {
+                        image_speed = 2;
+                        break;
+                }
+
                 image_speed = 1.5;
 
                 if(image_index >= image_number - 1)
@@ -105,13 +115,25 @@ switch(state)
                 }
                 break;
 
-        // v4.6: estado de VUELO (patron Tails). La tira sigue siendo la
-        // direccional de 5 frames: el frame lo elige scr_rouge_special
-        // segun la velocidad horizontal (0..4 = derecha rapida..izda
-        // rapida), por eso image_speed = 0 y xscale fija a 1
+        // v13: estado de VUELO patron VANILLA (subir y bajar con Z): la tira
+        // spr_rouge_fly (4 frames, alas batiendo) corre en loop — ya NO es
+        // la tira direccional de 5 frames del viejo planeo (el frame lo
+        // anima la tira sola, image_speed normal, xscale de siempre).
         case ROUGE_GLIDE:
-                image_speed = 0;
-                image_xscale = 1;
+                image_speed = 1;
+                break;
+
+        // v13 — SPINDASH: la carga gira MAS RAPIDA cuanta mas carga lleva
+        // (patron del charger de Sonic: 0.5 f/frame vacia -> 1.7 llena).
+        case ROUGE_SPINDASH:
+                image_speed = 0.5 + (spinCharge / ROUGE_SPINDASH_CHARGE_MAX) * 1.2;
+                break;
+
+        // v13 — bola LANZADA: gira con la velocidad real de rodado (igual
+        // que el SPIN clasico).
+        case ROUGE_SPIN_RELEASE:
+                image_speed = abs(xspd) / 5;
+                image_xscale = sign(gspd) == 0 ? image_xscale : sign(gspd);
                 break;
 
         // v4.5 — MORIBUNDA: tirada (spr_rouge_hurt), quieta en su frame

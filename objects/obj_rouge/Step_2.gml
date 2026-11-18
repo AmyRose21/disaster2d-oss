@@ -4,12 +4,17 @@
 #macro ROUGE_ZIPLINE BALANCING+4
 #macro ROUGE_STUCK BALANCING+5
 #macro ROUGE_MORIBUNDA BALANCING+6
+#macro ROUGE_SPINDASH BALANCING+7     // v13: carga del spindash (spr_rouge_spin_charger)
+#macro ROUGE_SPIN_RELEASE BALANCING+8 // v13: bola lanzada (spr_rouge_spin_release)
 
 // v4.4: mismos estados netos que Knuckles (attack=14, air_attack=15,
 // glide=16, zipline=17, stuck=18: viajan en el u8 state del
 // CLIENT_PLAYER_DATA y todos los clientes los resuelven contra
 // player_anims[CHARACTER_ROUGE]). v4.5: 19 = ROUGE_MORIBUNDA (1ra
 // caida tirada: mismo patron del estado 19 de Vanilla).
+// v13: 20 = ROUGE_SPINDASH (carga) y 21 = ROUGE_SPIN_RELEASE (bola
+// lanzada del spindash) — viajan igual: el puppet los resuelve contra
+// la tabla de scr_survivors.
 
 if(!emotion)
         state = IDLE;
@@ -23,6 +28,22 @@ if(isDead)
 if(shockedTimer > 0)
 {
         state = DEAD;
+        return;
+}
+
+// v13 — SPINDASH: la carga del spindash pisa todo lo demas (quieta en
+// el suelo, bola revolucionandose); la bola LANZADA se dibuja con su
+// propia tira mientras dure el lanzamiento (spinDashRelease) y vuelve
+// a la bola clasica del rodar normal cuando el flag se apaga.
+if(isSpinCharging)
+{
+        state = ROUGE_SPINDASH;
+        return;
+}
+
+if(isSpinning && spinDashRelease)
+{
+        state = ROUGE_SPIN_RELEASE;
         return;
 }
 
@@ -73,9 +94,9 @@ if(isStuck)
         return;
 }
 
-// v4.6: el estado 16 (ROUGE_GLIDE) ahora es el VUELO patron Tails
-// (mismo slot/sprite: la tira direccional de 5 frames de planeo
-// sirve de pose de vuelo con las alas extendidas)
+// v13: el estado 16 (ROUGE_GLIDE) es el VUELO patron VANILLA (subir
+// y bajar con Z): mismo slot de siempre — la tabla de scr_survivors
+// ahora lleva spr_rouge_fly (alas batiendo) en el 16.
 if(isFlying)
 {
         state = ROUGE_GLIDE;

@@ -132,7 +132,9 @@ function net_udpprocess(rbuff)
                                         }
                                         else
                                         {
-                                                hp = buffer_read_s(rbuff, buffer_s8);
+                                                // v13 (MAX HP): S16 como lo escribe obj_netclient
+                                                // (Rouge 125 / Metal 150 no cabian en el s8 de antes)
+                                                hp = buffer_read_s(rbuff, buffer_s16);
                                                 revivalTimes = buffer_read_s(rbuff, buffer_u8);
                                                 rings = buffer_read_s(rbuff, buffer_s16);
                                                 

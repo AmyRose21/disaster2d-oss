@@ -458,11 +458,13 @@ global.player_anims[? CHARACTER_ROUGE] =
         spr_rouge_jump, //12 (spin)
         spr_rouge_balancing, //13
         spr_rouge_attack1, //14 = ROUGE_ATTACK: patada AEREA (tecla X en el aire)
-        spr_rouge_attack2, //15 = ROUGE_AIR_ATTACK: patada en TIERRA (tecla X)
-        spr_rouge_glide, //16 = ROUGE_GLIDE: planeo (Z aerea, patron Knux)
+        spr_rouge_attack2, //15 = ROUGE_AIR_ATTACK: TORNADO en TIERRA (tecla X, v13)
+        spr_rouge_fly, //16 = ROUGE_GLIDE: VUELO patron Vanilla (v13: subir y bajar con Z, alas batiendo)
         spr_rouge_zipline, //17 = ROUGE_ZIPLINE
         spr_rouge_stuck, //18 = ROUGE_STUCK: agarre de pared (patron Knux)
-        spr_rouge_hurt //19 = ROUGE_MORIBUNDA (v4.5): 1ra caida, tirada 6 s
+        spr_rouge_hurt, //19 = ROUGE_MORIBUNDA (v4.5): 1ra caida, tirada 6 s
+        spr_rouge_spin_charger, //20 = ROUGE_SPINDASH (v13): carga del spindash (abajo + Z)
+        spr_rouge_spin_release //21 = ROUGE_SPIN_RELEASE (v13): bola lanzada del spindash
 ];
 
 // Kris (v6): layout de estados de KNUCKLES (attack2=14 / attack1=15 /
@@ -884,7 +886,10 @@ global.player_eanims[? CHARACTER_ROUGE] =
         spr_erouge_glide, //16
         spr_erouge_zipline, //17
         spr_erouge_stuck, //18
-        spr_erouge_hurt //19 = ROUGE_MORIBUNDA defensivo
+        spr_erouge_hurt, //19 = ROUGE_MORIBUNDA defensivo
+        // v13: sin arte exe del spindash (Rouge jamas se demoniza): la bola
+        spr_erouge_jump, //20 = ROUGE_SPINDASH (placeholder bola)
+        spr_erouge_jump //21 = ROUGE_SPIN_RELEASE (placeholder bola)
 ];
 
 // KRIS (demonizado): JAMAS se demoniza (regla de la duena: muere
@@ -1289,7 +1294,11 @@ global.player_negaanims[? CHARACTER_ROUGE] =
         spr_rougenega_glide, //16
         spr_rougenega_zipline, //17
         spr_rougenega_stuck, //18
-        spr_rougenega_hurt //19
+        spr_rougenega_hurt, //19
+        // v13: sin arte nega del spindash todavia — placeholder con la
+        // bola nega de siempre (mismo criterio que Kris con su set)
+        spr_rougenega_jump, //20 = ROUGE_SPINDASH (placeholder bola)
+        spr_rougenega_jump //21 = ROUGE_SPIN_RELEASE (placeholder bola)
 ];
 
 // Kris (v5): la energia negativa de Jinna NO CALA en el (regla de la

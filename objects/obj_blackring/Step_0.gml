@@ -20,7 +20,7 @@ if(visible && image_alpha >= 1 && instance_exists(global.player) && place_meetin
 	// Con la vida llena no lo gasta: se queda para otro nega herido.
 	if(global.player.revivalTimes >= 2)
 	{
-		if(scr_negatouch_is(global.player) && global.player.hp > 0 && global.player.hp < 100)
+		if(scr_negatouch_is(global.player) && global.player.hp > 0 && global.player.hp < scr_player_maxhp(global.character)) // v13: max por personaje
 		{
 			var packet = cpacket_tcp(PacketType.CLIENT_BRING_COLLECTED);
 			buffer_write(packet, buffer_u16, nid);
