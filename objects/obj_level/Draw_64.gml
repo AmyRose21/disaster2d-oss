@@ -66,8 +66,9 @@ else
 }
 if(global.showHud && titleCard > 4)
 {       
-        if(obj_netclient.udp_timeout < 60 * 3)
-                draw_sprite(spr_badconnection, floor(current_time/200) % 6, 0, 0);
+        // v10: mala conexion corre a x=104 (el borde izquierdo lo ocupa
+        // ahora la columna del equipo)
+        draw_sprite(spr_badconnection, floor(current_time/200) % 6, 104, 0);
         
         draw_sprite(spr_clock, 0, 211, 0);
         clockAngle = lerp(clockAngle, (-45 * timeFrame), 0.2);
@@ -88,8 +89,24 @@ if(global.showHud && titleCard > 4)
                 }
         }
         
-        // Icons
-        var pos = 480/2 - (ds_map_size(obj_netclient.players) * 28) / 2;
+        // v10 (HUD DE LA IMAGEN): la tira del equipo pasa de la banda
+        // inferior centrada a la COLUMNA del BORDE IZQUIERDO (como la
+        // captura de referencia): retratos 26x26 apilados desde y=2, cada
+        // uno con SU barra de vida AL LADO del retrato (hudAllyBar v10:
+        // roja con funda granate y su "+NN" dentro, no la mini-tira
+        // dentro del retrato). El retrato PROPIO va anclado a la fila de
+        // ABAJO (y 210-236, con hueco encima cuando sobran filas, como
+        // el retrato grande del final en la imagen) y la BARRA GRANDE
+        // propia (v10 del obj_playerui) vive justo debajo (242-268, la
+        // banda que dejo libre la tira al mudarse). Con 9+ filas el paso
+        // se comprime para no salir de pantalla. Los iconos de habilidad
+        // subieron al rincon superior derecho (v10 del obj_playerui):
+        // este borde ya no tiene sitio para ellos, y el ping/fps se
+        // corre junto al reloj.
+        var _colX = 2;
+        var _selfBot = 236; // fila propia: retrato y 210-236
+        var _nRows = ds_map_size(obj_netclient.players) - (ds_map_exists(obj_netclient.players, obj_netclient.exeId) ? 1 : 0);
+        var _rowPitch = (_nRows <= 8) ? 26 : floor(206 / _nRows);
         
         //self icon
         if(obj_netclient.exeId != obj_netclient.nid)
@@ -114,23 +131,24 @@ if(global.showHud && titleCard > 4)
                                 }
                                 
                                 var _hudPair = global.player.redRingTimer > 0 ? scr_hud_strip_red(_hudChar) : scr_hud_strip(_hudChar);
-                                draw_sprite(_hudPair[0], _hudPair[1] + sprIndex, pos, 268);
+                                draw_sprite(_hudPair[0], _hudPair[1] + sprIndex, _colX, _selfBot);
                                 if(global.player.revivalTimes >= 1 && global.player.hp > 0)
                                 {
                                         var _hudHit = scr_hud_hit(_hudChar);
-                                        draw_sprite(_hudHit[0], _hudHit[1], pos, 268);
+                                        draw_sprite(_hudHit[0], _hudHit[1], _colX, _selfBot);
                                 }
                                 
                                 if(global.player.isDead)
                                 {
                                         if(global.player.revivalTimes == 0 && global.player.deadTimer < 31)
-                                                scr_number_spr(pos + 12, 264, string(global.player.deadTimer), global.player.deadColor);
+                                                scr_number_spr(_colX + 12, _selfBot - 4, string(global.player.deadTimer), global.player.deadColor);
                                 }
                                 else if(global.player.shards > 0)
-                                        scr_number_spr(pos + 12, 264, string(global.player.shards), #27ff23);           
+                                        scr_number_spr(_colX + 12, _selfBot - 4, string(global.player.shards), #27ff23);           
                                 
-                                // v1: mini barra de vida del retrato propio (misma que la de los aliados)
-                                hudAllyBar(pos, global.player.hp);
+                                // v10: barra del retrato propio, al lado como los demas (la
+                                // grande de abajo es la tuya; esta es la de la columna)
+                                hudAllyBar(_colX, _selfBot - 26, global.player.hp);
                         }
                         else
                         {
@@ -148,24 +166,22 @@ if(global.showHud && titleCard > 4)
                                                 _ngFrame = 5;
                                         
                                         var _ngPair = global.player.redRingTimer > 0 ? scr_hud_strip_red_nega(_hudChar) : scr_hud_strip_nega(_hudChar);
-                                        draw_sprite(_ngPair[0], _ngPair[1] + _ngFrame, pos, 268);
+                                        draw_sprite(_ngPair[0], _ngPair[1] + _ngFrame, _colX, _selfBot);
                                         
-                                        // v1: el nega ve SU vida real tambien en la barra del retrato propio
-                                        hudAllyBar(pos, global.player.hp);
+                                        // v10: el nega ve SU vida real tambien en la barra de su retrato propio
+                                        hudAllyBar(_colX, _selfBot - 26, global.player.hp);
                                 }
                                 else
                                 {
                                         var _hudDem = scr_hud_demon(_hudChar);
-                                        draw_sprite(_hudDem[0], _hudDem[1], pos, 268);
+                                        draw_sprite(_hudDem[0], _hudDem[1], _colX, _selfBot);
                                 }
                         }
                 }
                 else
                         // [Suite v5.1] escape: brillo si existe; si no, propio o común
-                        if(!scr_lobby_shiny_escape(_hudChar, pos, 268))
-                                scr_hud_escaped_draw(_hudChar, pos, 268);
-                
-                pos += 28;
+                        if(!scr_lobby_shiny_escape(_hudChar, _colX, _selfBot))
+                                scr_hud_escaped_draw(_hudChar, _colX, _selfBot);
         }
         
         var i = 0;
@@ -177,6 +193,7 @@ if(global.showHud && titleCard > 4)
                 if(k == obj_netclient.exeId)
                         continue;
                 
+                var _rowBot = 2 + _rowPitch * i + 26; // v10: fila de este aliado en la columna
                 var player = obj_netclient.players[? k];
                 var inst = noone;
                 
@@ -211,21 +228,21 @@ if(global.showHud && titleCard > 4)
                                 }
                                 
                                 var _hudPair2 = redRing ? scr_hud_strip_red(_pch) : scr_hud_strip(_pch);
-                                draw_sprite(_hudPair2[0], _hudPair2[1] + sprIndex, pos + i * 28, 268);
+                                draw_sprite(_hudPair2[0], _hudPair2[1] + sprIndex, _colX, _rowBot);
                                 if(inst.revivalTimes >= 1 && inst.hp > 0)
                                 {
                                         var _hudHit2 = scr_hud_hit(_pch);
-                                        draw_sprite(_hudHit2[0], _hudHit2[1], pos + i * 28, 268);
+                                        draw_sprite(_hudHit2[0], _hudHit2[1], _colX, _rowBot);
                                 }
                                 
                                 if(inst.revivalTimes == 0 && inst.deadTimer < 31)
-                                        scr_number_spr(pos + i * 28 + 12, 264, string(inst.deadTimer), inst.deadColor);
+                                        scr_number_spr(_colX + 12, _rowBot - 4, string(inst.deadTimer), inst.deadColor);
                                 else if(player_exists && global.character != CHARACTER_EXE && global.player.revivalTimes < 2 && !global.player.isDead && inst.shards > 0)
-                                        scr_number_spr(pos + i * 28 + 12, 264, string(inst.shards), #27ff23);
+                                        scr_number_spr(_colX + 12, _rowBot - 4, string(inst.shards), #27ff23);
                                 
-                                // v1 (BARRA DE VIDA DE ALIADOS): mini barra con el hp real
-                                // del puppet (via UDP) bajo su retrato de la tira del equipo
-                                hudAllyBar(pos + i * 28, inst.hp);
+                                // v10 (BARRA DE VIDA DE ALIADOS): AL LADO del retrato (como la
+                                // imagen), con el hp real del puppet via UDP y su "+NN" dentro
+                                hudAllyBar(_colX, _rowBot - 26, inst.hp);
                         }
                         else
                         {
@@ -243,15 +260,15 @@ if(global.showHud && titleCard > 4)
                                                 _ngFrame2 = 5;
                                         
                                         var _ngPair2 = redRing ? scr_hud_strip_red_nega(_pch) : scr_hud_strip_nega(_pch);
-                                        draw_sprite(_ngPair2[0], _ngPair2[1] + _ngFrame2, pos + i * 28, 268);
+                                        draw_sprite(_ngPair2[0], _ngPair2[1] + _ngFrame2, _colX, _rowBot);
                                         
-                                        // v1: el nega del aliado tambien muestra su vida real en la barra
-                                        hudAllyBar(pos + i * 28, inst.hp);
+                                        // v10: el nega del aliado tambien muestra su vida real en la barra
+                                        hudAllyBar(_colX, _rowBot - 26, inst.hp);
                                 }
                                 else
                                 {
                                         var _hudDem2 = scr_hud_demon(_pch);
-                                        draw_sprite(_hudDem2[0], _hudDem2[1], pos + i * 28, 268);
+                                        draw_sprite(_hudDem2[0], _hudDem2[1], _colX, _rowBot);
                                 }
                         }
                 }
@@ -259,8 +276,8 @@ if(global.showHud && titleCard > 4)
                         {
                                 var _ech = player.character;
                                 // [Suite v5.1] escape: brillo si existe; si no, propio o común
-                                if(!scr_lobby_shiny_escape(_ech, pos + i * 28, 268))
-                                        scr_hud_escaped_draw(_ech, pos + i * 28, 268);
+                                if(!scr_lobby_shiny_escape(_ech, _colX, _rowBot))
+                                        scr_hud_escaped_draw(_ech, _colX, _rowBot);
                         }
                         
                 i++;
@@ -308,13 +325,15 @@ if(global.showHud)
         else if(obj_netclient.ping >= 160)
                 clr = #ff0001;
         
+        // v10: ping/fps/perf junto al reloj (x=268): antes vivian en (4,4),
+        // donde ahora empieza la columna del equipo
         if(obj_netclient.ping <= 0)
-                scr_text_spr(4, 4, $"waiting for players{string_copy("...", 0, (current_time / 500) % 4)}");
+                scr_text_spr(268, 4, $"waiting for players{string_copy("...", 0, (current_time / 500) % 4)}");
         else if(obj_config.showPing)
-                scr_text_spr(4, 4, string(obj_netclient.ping) + "ms", clr);
+                scr_text_spr(268, 4, string(obj_netclient.ping) + "ms", clr);
         
         if(obj_config.showFps)
-                scr_text_spr(4, 10, string(floor(fps_real)) + "fps");
+                scr_text_spr(268, 10, string(floor(fps_real)) + "fps");
         
         // v1 OPTIONS MORE: PERFORMANCE = tiempos de frame en pantalla (fps +
         // ms por frame con media movible; verde < 17ms, amarillo < 34, rojo
@@ -328,7 +347,7 @@ if(global.showHud)
                 if(perfAvg >= 34) _pclr = #ff0001;
                 else if(perfAvg >= 17) _pclr = #ffc400;
                 
-                scr_text_spr(4, 16, string(floor(fps_real)) + "fps " + string_format(perfAvg, 1, 1) + "ms", _pclr);
+                scr_text_spr(268, 16, string(floor(fps_real)) + "fps " + string_format(perfAvg, 1, 1) + "ms", _pclr);
         }
 }
 

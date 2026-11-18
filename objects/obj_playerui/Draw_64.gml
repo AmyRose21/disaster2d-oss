@@ -63,16 +63,20 @@ if(!global.showHud)
 
 var _mob = (os_type == os_android ? 200 : 0);
 
-// v8 (HUD REUBICADO — pedido de la dueña, temporal): los ICONOS DE
-// HABILIDAD van ARRIBA tambien en PC (misma columna superior que ya
-// usaba Android: 218/222/240/250/258 - 200 = 18/22/40/50/58). La BARRA
-// DE VIDA baja al rincón inferior izquierdo (ver bloque v8 de abajo)
-// y la barrita nega queda fija encima de ella. _mob sigue moviendo
-// SOLO lo que ya movía (las emociones): ni iconos ni barra la usan ya.
-var _ico = 200;
+// v10 (HUD DE LA IMAGEN): los ICONOS DE HABILIDAD se mudan al rincon
+// SUPERIOR DERECHO (x 370..446, anclados con el +370 de drawKeyIcon y
+// _ico=216): el BORDE IZQUIERDO entero pasa a ser la columna del equipo
+// (retratos + barras, obj_level v10) y la BARRA DE VIDA GRANDE propia
+// (bloque v10 de abajo) vive en la banda inferior 242-268 con su "+NN"
+// a doble tamano. La barrita nega queda fija encima de la barra grande.
+// _mob sigue moviendo SOLO lo que ya movia (las emociones).
+var _ico = 216;
 
 drawKeyIcon = function(_spr, _frame, _artW, _key, _xx, _yy, _col, _alpha, _hintX)
 {
+        // v10: todo el grupo de iconos se ancla en x=370 (antes 0): el
+        // borde izquierdo ya no esta disponible (columna del equipo).
+        _xx += 370;
         var _h = sprite_get_height(_spr);
 
         // v4.3b: caja de contenido real del sprite (medida sobre los PNG):
@@ -329,12 +333,12 @@ if(instance_exists(global.player) && !global.player.isDead)
                         var val = scr_esbirro_hud(global.player) ? ETAILS_ATTACK_RECHARGE : TAILS_ATTACK_RECHARGE;
                         prog = 1.0 - (global.player.attackTimer / val);
                         var _tcol = prog == 1.0 ? c_white : c_red;
-                        draw_sprite_part_ext(spr_gui_tailsattack, 0, 0, 0, 25, 11, prog * 12, 250 - _ico, 1, 1, _tcol, prog);
+                        draw_sprite_part_ext(spr_gui_tailsattack, 0, 0, 0, 25, 11, 370 + prog * 12, 250 - _ico, 1, 1, _tcol, prog);
 
                         // v5.5: tecla y "(hold)" tambien en Android (mismo
                         // criterio que drawKeyIcon)
-                        scr_text_spr(prog * 12 + 27, 250 - _ico + 2, scr_controls_keycode_to_key(global.KeyB), _tcol, prog);
-                        scr_text_spr(prog * 12 + 3, 250 - _ico + 12, "(hold)", _tcol, prog);
+                        scr_text_spr(370 + prog * 12 + 27, 250 - _ico + 2, scr_controls_keycode_to_key(global.KeyB), _tcol, prog);
+                        scr_text_spr(370 + prog * 12 + 3, 250 - _ico + 12, "(hold)", _tcol, prog);
                         break;
                 }
 
@@ -514,7 +518,7 @@ if(instance_exists(global.player) && !global.player.isDead)
                         draw_set_color(b3);
                         draw_set_alpha(0.9);
                         for(var _pi = 0; _pi < FW_ARROW_MAX; _pi++)
-                                draw_rectangle(2 + _pi * 7, 258 - _ico + 12, 7 + _pi * 7, 261 - _ico + 12, _pi >= _arrows);
+                                draw_rectangle(372 + _pi * 7, 258 - _ico + 12, 377 + _pi * 7, 261 - _ico + 12, _pi >= _arrows);
                         draw_set_color(c_white);
                         draw_set_alpha(1);
                         break;
@@ -767,27 +771,49 @@ if(instance_exists(global.player) && !global.player.isDead)
                 }
         }
 
-        // v8 (BARRA DE VIDA DE PANTALLA, REUBICADA) — pedido: "como ese
-        // TD2DR que tiene un sistema de barra de vida" (referencia GameJolt
-        // td2drUR/938171). v6 la ponia encima de los iconos; v8 la baja al
-        // RINCÓN INFERIOR IZQUIERDO, pegada a la tira del equipo que dibuja
-        // obj_level (y=268, tiles de 242 a 268): retrato A UN LADO de la
-        // barra (centrados en vertical, como en la referencia — el retrato
-        // NO va por encima) y misma posición en PC y Android (abajo es
-        // abajo, sin _mob). Con los iconos ya arriba (v8) el rincón queda
-        // libre en las dos plataformas y NUNCA choca con la tira del equipo
-        // por muchos jugadores que haya (el bloque ocupa 222-240 y la tira
-        // empieza en 242).
-        // 1 px = 1 HP (patron de la barrita nega de abajo); el "+NN" usa
-        // la micro-fuente del HUD (el '+' es el frame 77 de spr_letter1).
-        // SOLO supervivientes vivos: mismo gate que la carga nega (el EXE
-        // no tiene vida que mirar y el esbirro tiene su HUD propio). La
-        // barra de sprite SOBRE LA CABEZA no se toca: esa es la que ven
-        // los demas sobre tu personaje (la dibuja el puppet); esta es la
-        // tuya, fija en pantalla.
+        // v10: "+NN" a DOBLE tamano para la barra grande (los glifos de la
+        // micro-fuente del HUD — spr_letter1 — dibujados a 2x con sombra
+        // oscura, como el texto de la captura). Mismo mapa de frames que
+        // scr_text_spr: '+' = 77, '1'-'9' = 28-36, '0' = 37.
+        drawBigHpNum = function(xx, yy, str)
+        {
+                var _sx = xx;
+                for(var _g = 1; _g <= string_length(str); _g++)
+                {
+                        var _o = ord(string_char_at(str, _g));
+                        var _ind = 44;
+                        if(_o == 43) _ind = 77;             // '+'
+                        else if(_o == 48) _ind = 37;        // '0'
+                        else if(_o >= 49 && _o <= 57)        // '1'..'9'
+                                _ind = 27 + (_o - 48);
+
+                        // sombra abajo-derecha (como la captura) y glifo blanco 2x
+                        draw_sprite_ext(spr_letter1, _ind, _sx + 2, yy + 2, 2, 2, 0, make_color_rgb(60, 0, 0), 1);
+                        draw_sprite_ext(spr_letter1, _ind, _sx, yy, 2, 2, 0, c_white, 1);
+                        _sx += 12;
+                }
+        }
+
+        // v10 (BARRA DE VIDA "IGUAL A LA IMAGEN") — pedido: la captura de
+        // referencia (TD2DR): retrato en CAJA blanca + barra SEGMENTADA en
+        // 4 tramos (huecos negros) con contorno negro + "+NN" GRANDE a la
+        // derecha (glifos a 2x con sombra, como en la captura). Proporciones
+        // de la captura escaladas al GUI 480x270: caja 26x26, barra 150x14
+        // (relleno de 12) y texto de 12 de alto. Vive en el rincón inferior
+        // IZQUIERDO (donde lo pediste en la v8), ahora en la banda 242-268
+        // que dejo libre la tira del equipo al mudarse a la columna del
+        // borde izquierdo (obj_level v10): justo DEBAJO de tu retrato propio
+        // de la columna (fila 210-236), como el retrato grande del final
+        // de la captura de los aliados.
+        // 148 px = 100 HP (1.48 px/HP); huecos negros de 2 px al 25/50/75
+        // (los 4 tramos clasicos de spr_hp); paleta por vida verde/amarillo/
+        // rojo (en la captura, llena = verde). SOLO supervivientes vivos:
+        // mismo gate de siempre (el EXE no tiene vida que mirar y el
+        // esbirro tiene su HUD propio). La barra de sprite SOBRE LA CABEZA
+        // no se toca: esa es la que ven los demas sobre tu personaje.
         if(global.character != CHARACTER_EXE && global.player.revivalTimes < 2 && global.player.hp > 0)
         {
-                var _hbY = 222; // bloque de 18 px (222-240) justo encima de la tira del equipo (242-268)
+                var _hbY = 242; // bloque de 26 px (242-268), ex banda de la tira del equipo
 
                 // retrato del menu (el mismo del lobby); Kris usa el
                 // placeholder de Knux hasta que exista spr_menu_kris
@@ -812,26 +838,27 @@ if(instance_exists(global.player) && !global.player.isDead)
                         case CHARACTER_ROUGE: _por = spr_menu_rouge; break;
                 }
 
-                // caja del avatar: fondo negro + marco blanco (18x18), pegada
-                // al borde izquierdo como en la referencia (los iconos ya no
-                // viven en esta esquina: subieron arriba en la v8)
-                draw_set_color(c_black);
-                draw_rectangle(2, _hbY, 19, _hbY + 17, false);
+                // caja del avatar (como la captura): marco BLANCO de 2 px +
+                // fondo negro, 26x26 pegado al borde izquierdo
                 draw_set_color(c_white);
-                draw_rectangle(2, _hbY, 19, _hbY + 17, true);
+                draw_rectangle(2, _hbY, 28, _hbY + 26, false);
+                draw_set_color(c_black);
+                draw_rectangle(4, _hbY + 2, 26, _hbY + 24, false);
 
-                // retrato centrado con 2 px de aire (draw_sprite_pos: no
+                // retrato centrado con 1 px de aire (draw_sprite_pos: no
                 // depende del origen que tenga el sprite del menu)
-                var _psc = min(14 / sprite_get_width(_por), 14 / sprite_get_height(_por));
+                var _psc = min(20 / sprite_get_width(_por), 20 / sprite_get_height(_por));
                 var _pw = sprite_get_width(_por) * _psc;
                 var _ph = sprite_get_height(_por) * _psc;
-                var _ppx = round(2 + (18 - _pw) / 2);
-                var _ppy = round(_hbY + (18 - _ph) / 2);
+                var _ppx = round(5 + (22 - _pw) / 2);
+                var _ppy = round(_hbY + 3 + (22 - _ph) / 2);
                 draw_sprite_pos(_por, 0, _ppx, _ppy, _ppx + _pw, _ppy, _ppx + _pw, _ppy + _ph, _ppx, _ppy + _ph, 1);
 
-                // barra: AL LADO del retrato (empieza en x=22), fondo negro +
-                // relleno por tramos de vida (mismos cortes 25/50 de la
-                // barrita de sobre la cabeza). 1 px = 1 HP, 100 px = 100 HP
+                // barra AL LADO del retrato (empieza en x=30, centrada en
+                // vertical con la caja): contorno negro + relleno por vida
+                draw_set_color(c_black);
+                draw_rectangle(30, 248, 180, 262, false);
+
                 var _hpPct = clamp(global.player.hp / 100, 0, 1);
                 var _hpCol = c_lime;
                 if(global.player.hp < 25)
@@ -839,18 +866,18 @@ if(instance_exists(global.player) && !global.player.isDead)
                 else if(global.player.hp < 50)
                         _hpCol = c_yellow;
 
-                draw_set_color(c_black);
-                draw_rectangle(21, _hbY + 4, 124, _hbY + 13, false);
                 draw_set_color(_hpCol);
-                draw_rectangle(22, _hbY + 5, 22 + ceil(100 * _hpPct), _hbY + 12, false);
+                draw_rectangle(31, 249, 31 + ceil(148 * _hpPct), 261, false);
 
-                // marcas cada 25 HP (los 4 tramos clasicos de spr_hp)
+                // los 4 tramos: huecos negros de 2 px al 25/50/75 (los
+                // segmentos de la barra de la captura)
                 draw_set_color(c_black);
                 for(var _t = 1; _t <= 3; _t++)
-                        draw_rectangle(22 + 25 * _t, _hbY + 5, 22 + 25 * _t, _hbY + 12, false);
+                        draw_rectangle(31 + 37 * _t, 249, 33 + 37 * _t, 261, false);
 
-                // "+NN" a la derecha de la barra (micro-fuente del HUD)
-                scr_text_spr(128, _hbY + 5, "+" + string(floor(max(global.player.hp, 0))), c_white, 1);
+                // "+NN" GRANDE a la derecha (glifos 2x con sombra, como la
+                // captura)
+                drawBigHpNum(186, 249, "+" + string(floor(max(global.player.hp, 0))));
 
                 draw_set_color(c_white);
         }
@@ -866,19 +893,19 @@ if(instance_exists(global.player) && !global.player.isDead)
         && global.player.jinnaNegaCharge > 0 && !global.player.isDead)
         {
                 var _negaPct = global.player.jinnaNegaCharge / JINNA_NEGA_MAX;
-                var _negaX = 60;
-                // v8: y fija (antes 178 - _mob: en Android quedaba fuera de
-                // pantalla). Ahora vive justo encima de la barra de vida v8
-                // (222) en las dos plataformas
-                var _negaY = 212;
+                // v10: y fija — vive justo ENCIMA de la barra de vida grande
+                // (242-268), entre tu retrato propio de la columna (que acaba
+                // en y=236) y la barra: x igual que la barra grande (30-180)
+                var _negaX = 30;
+                var _negaY = 237;
                 var _negaCol = make_color_rgb(120, 40, 160); // energía negativa: violeta
                 var _negaAlpha = (variable_instance_exists(global.player.id, "jinnaNegaGrace") && global.player.jinnaNegaGrace > 0) ? 0.45 + 0.3 * sin(current_time / 90) : 0.9;
 
                 draw_set_alpha(_negaAlpha);
                 draw_set_color(c_black);
-                draw_rectangle(_negaX - 1, _negaY - 1, _negaX + 102, _negaY + 5, false);
+                draw_rectangle(_negaX - 1, _negaY - 1, _negaX + 151, _negaY + 5, false);
                 draw_set_color(_negaCol);
-                draw_rectangle(_negaX, _negaY, _negaX + 100 * _negaPct, _negaY + 4, false);
+                draw_rectangle(_negaX, _negaY, _negaX + 150 * _negaPct, _negaY + 4, false);
                 draw_set_alpha(1);
                 draw_set_color(c_white);
         }

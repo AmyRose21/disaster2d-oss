@@ -141,40 +141,36 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
         scr_text_spr(127+183, 44+11 + index * 30, $"{ping}", clr);
 }
 
-// v1 (BARRAS DE VIDA DE LA TIRA DEL EQUIPO) — pedido: "y la barra de
-// vida de mis aliados? se supone que deberia aparecer" (referencia
-// tipo Sonic Battle: cada retrato del equipo con SU barra debajo).
-// La tira que dibuja el Draw_64 de este objeto son tiles de 26x26
-// anclados ABAJO en y=268 (banda 242-268, GUI 480x270 confirmado por
-// window_set_size) y los numeros de deadTimer/shards van en y=264
-// (digitos de spr_number anclados arriba: ocupan ~264-269). La barra
-// vive DENTRO del retrato, pegada por encima de esos numeros: fondo
-// negro 24x6 (filas 255-260) + relleno de hasta 22px = 100 HP con la
-// MISMA paleta por tramos que la barra propia v8 del obj_playerui
-// (c_lime 50+, c_yellow 25-49, c_red < 25). Con hp <= 0 (muerto o
-// reviviendo) solo queda el fondo vacio: el frame del retrato ya
-// cuenta el estado. NO se dibuja para demonizados ni escapados (el
-// demon usa tira fija sin vida que mirar y el escapado ya no esta).
-// La llama el Draw_64 para el retrato propio y para cada aliado con
-// vida real (puppet via UDP; nega con su hp de verdad, v11).
-hudAllyBar = function(tx, hp)
+// v10 (BARRAS DE LA IMAGEN) — pedido: "las barras enanas no, IGUAL A LA
+// IMAGEN": barra AL LADO del retrato (ya NO la mini-tira de 24x6 dentro
+// del tile). Funda granate oscuro de 48x8 + relleno ROJO (siempre rojo,
+// como la barra de la captura de los aliados) + "+NN" blanco DENTRO de
+// la barra con la micro-fuente del HUD. La vida es la REAL que sincroniza
+// el server por UDP (la misma que usa el juego para el frame del
+// retrato). Aliado MUERTO: solo la funda vacia. NO se dibuja para
+// demonizados ni escapados (el demon usa tira fija sin vida que mirar y
+// el escapado ya no esta).
+// (tx, ty) = esquina SUPERIOR-IZQUIERDA del tile 26x26 del retrato: la
+// barra sale a su derecha (x = tx+28) centrada en vertical (cy = ty+13),
+// como en la captura. La columna la ancla obj_level/Draw_64.gml (v10).
+hudAllyBar = function(tx, ty, hp)
 {
         var _hp = clamp(hp, 0, 100);
-        var _col = c_lime;
+        var _cy = ty + 13;
 
-        if(_hp < 25)
-                _col = c_red;
-        else if(_hp < 50)
-                _col = c_yellow;
+        // funda (casco granate oscuro, 1 px de borde a cada lado)
+        draw_set_color(make_color_rgb(84, 12, 12));
+        draw_rectangle(tx + 28, _cy - 4, tx + 76, _cy + 4, false);
 
-        draw_set_color(c_black);
-        draw_rectangle(tx + 1, 255, tx + 24, 260, false);
-
+        // relleno ROJO de 6 de alto — 100 HP = 46 px
         if(_hp > 0)
         {
-                draw_set_color(_col);
-                draw_rectangle(tx + 2, 256, tx + 1 + ceil(_hp * 0.22), 259, false);
+                draw_set_color(make_color_rgb(232, 20, 20));
+                draw_rectangle(tx + 29, _cy - 3, tx + 29 + ceil(_hp * 0.46), _cy + 3, false);
         }
+
+        // "+NN" blanco DENTRO de la barra (micro-fuente del HUD)
+        scr_text_spr(tx + 32, _cy - 3, "+" + string(floor(_hp)), c_white, 1);
 
         draw_set_color(c_white);
 };

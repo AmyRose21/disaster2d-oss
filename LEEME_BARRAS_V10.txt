@@ -1,0 +1,117 @@
+=====================================================================
+ BARRAS DE VIDA v10 — "IGUAL A LA IMAGEN" (la que pediste)
+=====================================================================
+
+QUE CAMBIA (el pedido)
+----------------------
+Adios barras enanas. Las dos barras se rehacen CALCADAS de tus
+dos capturas, a escala del GUI del juego (480x270):
+
+  * TU BARRA (la captura del retrato en caja + barra verde):
+    - Caja de avatar de 26x26 con marco BLANCO de 2 px y fondo
+      negro, con el retrato del menu dentro (el mismo del lobby).
+    - Barra de 150 px con CONTORNO NEGRO y 4 TRAMOS (huecos
+      negros de 2 px al 25/50/75), como los segmentos de la
+      captura. 148 px = 100 HP.
+    - "+NN" GRANDE a la derecha: los glifos de la micro-fuente
+      del HUD dibujados al DOBLE (12 px de alto) con sombra
+      oscura, como el texto de la captura.
+    - Sigue en el rincón INFERIOR IZQUIERDO (donde la pediste),
+      ahora en la banda 242-268 que dejo libre la tira del equipo
+      al mudarse (ver abajo).
+
+  * LAS DE LOS ALIADOS (la captura de la columna de retratos):
+    - La tira del equipo SE MUDA de la banda inferior centrada a
+      la COLUMNA del BORDE IZQUIERDO: retratos 26x26 apilados
+      desde y=2, como en tu imagen.
+    - Cada retrato lleva SU barra AL LADO (ya NO la mini-tira de
+      24x6 escondida dentro): funda granate oscuro de 48x8 +
+      relleno ROJO (siempre rojo, como en la captura) + "+NN"
+      blanco DENTRO de la barra.
+    - TU retrato propio va anclado a la fila de ABAJO (y 210-236),
+      justo encima de tu barra grande — como el retrato grande
+      del final de tu captura — con hueco encima cuando sobran
+      filas (tambien como en la captura).
+    - 8 aliados + tu fila + tu barra grande caben PERFECTO en los
+      270 px de alto. Con 9+ filas el paso se comprime solo para
+      no salir de pantalla.
+
+POR QUE SE MOVIDON OTRAS COSAS (necesario, no capricho)
+-------------------------------------------------------
+  * Los ICONOS DE HABILIDAD suben al rincón SUPERIOR DERECHO
+    (x 370..446): el borde izquierdo entero es ahora la columna
+    del equipo, y no quedaba hueco para ellos abajo (tu barra
+    grande ocupa el rincón). Es la unica esquina libre de PC y
+    Android (los botones tactiles de Android empiezan en x=450).
+  * El ping/fps/perf se corre junto al reloj (x=268) y el aviso
+    de mala conexion a x=104: su antiguo rincon (4,4) ahora lo
+    ocupa la primera fila de la columna.
+  * La barrita morada de Jinna (toque negativo) sigue FIJA pero
+    ahora encima de tu barra grande (x 30-180, y 236-243), con
+    su mismo ancho.
+
+QUE NO SE TOCA
+--------------
+  * La barra de sprite SOBRE LA CABEZA de los personajes (la que
+    ven los demas): esa es del puppet y sigue igual.
+  * Los retratos/estados de la columna: misma logica de siempre
+    (frame por vida, anillo rojo, tira nega, tira demon, escapado,
+    numeros de shards/muerte DENTRO del tile, marca de revival).
+    Solo cambia DONDE se dibujan.
+  * El server NO se toca en ningun caso: todo es dibujo del
+    cliente, nada viaja por red.
+
+GEOMETRIA (por si quieres mover algo)
+-------------------------------------
+  Columna (obj_level/Draw_64.gml):   _colX=2, filas y=2+i*paso
+    (paso 26; tu fila propia: _selfBot=236). Los numeros de cada
+    tile van a (_colX+12, fila-4) — igual que antes en relativos.
+  Barra de aliado (obj_level/Create_0.gml, hudAllyBar): funda
+    (tx+28, cy-4)-(tx+76, cy+4), relleno 0.46 px/HP, texto en
+    (tx+32, cy-3).
+  Barra grande (obj_playerui/Draw_64.gml, bloque v10): caja
+    (2,242)-(28,268), barra (30,248)-(180,262), relleno 148 px,
+    tramos en 68/105/142, "+NN" en (186,249) a 2x (drawBigHpNum).
+  Iconos: _ico=216 (filas y 2/24/34/42) y el +370 de drawKeyIcon.
+  Si prefieres las barras de aliados con la paleta verde/amarillo/
+  rojo de vida en vez de SIEMPRE rojo como la captura: son las 3
+  lineas del relleno en hudAllyBar.
+
+ARCHIVOS (3 modificados + 3 nuevos — el zip trae SOLO esto)
+-----------------------------------------------------------
+  objects/obj_level/Create_0.gml        hudAllyBar v10 (barra al lado)
+  objects/obj_level/Draw_64.gml         columna del equipo + ping/badconn
+  objects/obj_playerui/Draw_64.gml      barra grande v10 + iconos + nega
+  scripts/check_barras_v10.py           validador (58/58 OK)
+  scripts/preview_barras_v10.py         maqueta visual (3 vistas)
+  LEEME_BARRAS_V10.txt                  este archivo
+
+INSTALACION
+-----------
+  Descomprime el zip sobre la RAIZ del proyecto (acepta
+  sobreescribir) y recompila el CLIENTE (F5). Nada mas: no hay
+  assets nuevos ni .yyp que tocar. El server no cambia.
+
+NOTA ANDROID
+------------
+  El dpad por defecto vive en (68,187): con 7+ aliados, las barras
+  de las 2 ultimas filas pueden rozar su dibujo. Si te molesta,
+  mueve el dpad desde las opciones (es configurable) o sube
+  _selfBot/achica el paso en el bloque v10 de obj_level.
+
+VERIFICADO (automatico: scripts/check_barras_v10.py — 58/58)
+------------------------------------------------------------
+  * Llaves/parentesis balanceados en los 3 archivos.
+  * Las 4 llamadas hudAllyBar con la firma nueva (tx, ty, hp).
+  * Columna: filas de 26, fila propia 210-236, x=2, sin restos de
+    la tira horizontal vieja (pos/28/268).
+  * Barra grande: caja 26x26 en 242-268, barra 30-180/248-262,
+    4 tramos, "+NN" 2x, nega en (30,237).
+  * Iconos: _ico=216, anclaje +370 en drawKeyIcon y en los 4
+    dibujos directos del racimo.
+  * Sin variables repetidas (cero GM2044 nuevos).
+  * Maqueta visual (preview_barras_v10.py) revisada con vision
+    IA: sin solapes entre columna/iconos/reloj/barra grande/
+    emociones, barras centradas con su retrato, 8 aliados sin
+    chocar con tu fila. Proporciones calzadas contra tus 2
+    capturas de referencia.
