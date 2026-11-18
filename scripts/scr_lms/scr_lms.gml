@@ -1,5 +1,5 @@
 // =====================================================================
-//  v5.3 — LMS «EL SHOW FUERTE» POR PERSONAJE (lista editable).
+//  v5.4 — LMS «EL SHOW FUERTE» POR PERSONAJE (lista a prueba de balas).
 //
 //  Cuando queda UN unico superviviente vivo, el server mira si SU
 //  personaje esta en la lista del show (LMS_SHOWS del server, que
@@ -12,7 +12,18 @@
 //  global.lmsCharSongs: ds_map id de personaje -> array de canciones.
 //  El Suite TD2D (modulo Show LMS) edita esta lista: añade personajes
 //  y sus mus_lms_N (.mp3/.ogg/.wav) con sus duraciones en el server.
-//  La #1 de Sonic es mus_undefeatable (Undefeatable, la original).
+//
+//  v5.4 FIX CRITICO — el error «Variable mus_lms_26 not set before
+//  reading it»: las canciones van ahora como TEXTO entre comillas y se
+//  resuelven con asset_get_index() al tocarlas. Antes iban como asset
+//  directo en la lista: si el .yyp perdia el registro de un sonido
+//  (tipico: GameMaker abierto mientras el Suite escribia; al guardar
+//  desde GM se reescribe el .yyp desde memoria y se borran los sonidos
+//  que GM no habia cargado), el juego REVIENTA al arrancar en esta
+//  misma lista. Ahora una cancion sin registro se SALTA: suena la
+//  primera de SU lista que si exista, y si no existe ninguna el show
+//  sigue sin musica (banner, vida y reloj intactos). El Suite (v1.2)
+//  ademas detecta los registros perdidos y los re-registra con 🩹.
 //
 //  EL SHOW GENERICO SOLO PONE: cancion + banner + vida al 100.
 //  Las demas pasivas son PERSONALES DE SONIC (quedaron de su show
@@ -36,27 +47,29 @@
 #macro LMS_STUN_BONUS 2        // (solo Sonic) segundos EXTRA en sus stuns durante el show
 #macro LMS_SPIN_STUN true      // (solo Sonic) la bola (spindash/dropdash) aturde al bando EXE por contacto
 
-// v5.3 — LISTA DEL SHOW POR PERSONAJE: id -> [canciones]. El server
-// SOLO dispara el show para los personajes de esta lista. El Suite
-// TD2D la reescribe entera al guardar (no editar a mano si se usa el
-// Suite: se sobreescribiria).
+// v5.3 — LISTA DEL SHOW POR PERSONAJE: id -> canciones. Desde v5.4 las
+// canciones van como TEXTO entre comillas (ver fix de arriba): es lo
+// que escribe el Suite y lo que el server espeja en LMS_SHOWS. El
+// server SOLO dispara el show para los personajes de esta lista. El
+// Suite TD2D la reescribe entera al guardar (no editar a mano si se
+// usa el Suite: se sobreescribiria).
 global.lmsCharSongs = ds_map_create();
-global.lmsCharSongs[? CHARACTER_TAILS] = [mus_lms_11];
-global.lmsCharSongs[? CHARACTER_KNUX] = [mus_lms_9, mus_lms_10];
-global.lmsCharSongs[? CHARACTER_EGGMAN] = [mus_lms_4];
-global.lmsCharSongs[? CHARACTER_AMY] = [mus_lms_8, mus_lms_18, mus_lms_19];
-global.lmsCharSongs[? CHARACTER_CREAM] = [mus_lms_6];
-global.lmsCharSongs[? CHARACTER_SALLY] = [mus_lms_7, mus_lms_20];
-global.lmsCharSongs[? CHARACTER_AMY_CANON] = [mus_lms_2];
-global.lmsCharSongs[? CHARACTER_SONIC] = [mus_lms_16, mus_lms_17, mus_lms_22, mus_lms_23];
-global.lmsCharSongs[? CHARACTER_SALLY_CANON] = [mus_lms_3, mus_lms_21];
-global.lmsCharSongs[? CHARACTER_VANILLA] = [mus_lms_5, mus_lms_24];
-global.lmsCharSongs[? CHARACTER_METAL] = [mus_lms_14];
-global.lmsCharSongs[? CHARACTER_AMELIA] = [mus_lms_12];
-global.lmsCharSongs[? CHARACTER_BLAZE] = [mus_lms_15];
-global.lmsCharSongs[? CHARACTER_FLEETWAY_AMY] = [mus_lms_13];
-global.lmsCharSongs[? CHARACTER_ROUGE] = [mus_lms_27, mus_lms_26, mus_lms_28];
-global.lmsCharSongs[? CHARACTER_KRIS] = [mus_lms_25];
+global.lmsCharSongs[? CHARACTER_TAILS] = ["mus_lms_11"];
+global.lmsCharSongs[? CHARACTER_KNUX] = ["mus_lms_9", "mus_lms_10"];
+global.lmsCharSongs[? CHARACTER_EGGMAN] = ["mus_lms_4"];
+global.lmsCharSongs[? CHARACTER_AMY] = ["mus_lms_8", "mus_lms_18", "mus_lms_19"];
+global.lmsCharSongs[? CHARACTER_CREAM] = ["mus_lms_6"];
+global.lmsCharSongs[? CHARACTER_SALLY] = ["mus_lms_7", "mus_lms_20"];
+global.lmsCharSongs[? CHARACTER_AMY_CANON] = ["mus_lms_2"];
+global.lmsCharSongs[? CHARACTER_SONIC] = ["mus_lms_16", "mus_lms_17", "mus_lms_22", "mus_lms_23"];
+global.lmsCharSongs[? CHARACTER_SALLY_CANON] = ["mus_lms_3", "mus_lms_21"];
+global.lmsCharSongs[? CHARACTER_VANILLA] = ["mus_lms_5", "mus_lms_24"];
+global.lmsCharSongs[? CHARACTER_METAL] = ["mus_lms_14"];
+global.lmsCharSongs[? CHARACTER_AMELIA] = ["mus_lms_12"];
+global.lmsCharSongs[? CHARACTER_BLAZE] = ["mus_lms_15"];
+global.lmsCharSongs[? CHARACTER_FLEETWAY_AMY] = ["mus_lms_13"];
+global.lmsCharSongs[? CHARACTER_ROUGE] = ["mus_lms_27", "mus_lms_26", "mus_lms_28"];
+global.lmsCharSongs[? CHARACTER_KRIS] = ["mus_lms_25"];
 
 function scr_lms_play_song(ch, idx)
 {
@@ -76,7 +89,25 @@ function scr_lms_play_song(ch, idx)
         if(idx < 0 || idx >= array_length(_list))
                 idx = 0;
 
-        scr_play_music(_list[idx]);
+        // v5.4: la lista guarda NOMBRES de cancion (texto), no assets:
+        // un sonido sin registrar en el .yyp ya NO revienta el juego.
+        // La elegida no existe -> se salta a la primera de la lista que
+        // SI exista; si no existe ninguna, el show sigue sin musica.
+        var _snd = asset_get_index(_list[idx]);
+        if(_snd < 0)
+        {
+                for(var i = 0; i < array_length(_list); i++)
+                {
+                        _snd = asset_get_index(_list[i]);
+                        if(_snd >= 0)
+                                break;
+                }
+        }
+
+        if(_snd < 0)
+                return;
+
+        scr_play_music(_snd);
 }
 
 function scr_lms_sonic_try_block()

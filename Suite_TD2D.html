@@ -1256,6 +1256,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
     <section class="note">Tras escribir: <b>F5</b> para el cliente <b>y recompila el server</b> (<code>betterserver-oss/compilar_server.bat</code>) — el reloj, el personaje del show y la canción los manda él.</section>
     <section class="note">Quitar una canción con ✕ solo la quita de la lista (la carpeta del audio queda, inofensiva). Las recargas al entrar a mitad del show oyen <b>la misma canción</b> que sonó al arrancarlo.</section>
     <section class="note"><b>Canciones compartidas:</b> si una canción la usan varios personajes (⚠ en la fila), el 🔄 <b>NO se la cambia a los demás</b>: le crea un slot propio nuevo (mus_lms_N aparte) a este personaje. 🔧 separa sin cambiar la canción (copia el audio a un archivo independiente).</section>
+    <section class="note"><b>GameMaker CERRADO al escribir:</b> si lo dejas abierto, su próximo guardado borra del .yyp los sonidos que él no cargó y el juego revienta al arrancar («Variable mus_lms_N not set»). Si ya pasó, el aviso 🚨 de arriba trae el botón <b>🩹</b> para re-registrar los sonidos perdidos sin tocar audios ni listas.</section>
   </aside>
 </div><!-- /mod-lms -->
 
@@ -10529,6 +10530,13 @@ initKeys();
 <script>
 /* =====================================================================
    Suite TD2D — parte 6: módulo «🎤 Show LMS» POR PERSONAJE
+   v1.2: fix «Variable mus_lms_N not set» — detecta canciones de las
+   listas SIN registro en el .yyp (se pierde si GM estaba abierto al
+   escribir: su guardado borra lo que no cargó) y las re-registra con
+   🩹; el writer también re-registra las perdidas, y las listas se
+   escriben como texto seguro (scr_lms v5.4 + asset_get_index: un
+   sonido sin registro ya NO revienta el juego).
+   v1.1: slots propios anti-pisado + 🔧 separar + avisos de compartidas.
 
    El Show Fuerte ya no es solo de Sonic: se asigna MÚSICA POR PERSONAJE.
      - El personaje con canciones en la lista TIENE show; sin canciones,
@@ -10600,7 +10608,8 @@ const LMS = {
   macOrig: null, mac: null,
   srvOk: false, gameOk: false, nsgOk: false,
   undoStack: [], audioCtx: null,
-  yypText: null                       // v1.1 cache del .yyp (nextAsset no pisa assets existentes)
+  yypText: null,                      // v1.1 cache del .yyp (nextAsset no pisa assets existentes)
+  missing: []                         // v1.2 assets en listas SIN registro en el .yyp (el juego revienta)
 };
 
 const mmss = (s) => Math.floor(s / 60) + ':' + String(Math.round(s % 60)).padStart(2, '0');
@@ -10648,6 +10657,23 @@ function lmsYypOk(t) {
   catch (e) { return false; }
 }
 
+// v1.2 — inserción PURA de entradas de sonido en el .yyp (la usan el
+// writer y el botón 🩹 de reparación). Devuelve { text, added } o
+// null si no encuentra la lista "resources" del .yyp. Idempotente:
+// lo que ya está registrado no se toca.
+function yypInsertEntries(yyp, assets) {
+  let out = String(yyp), added = [];
+  for (const a of assets) {
+    if (new RegExp('"name":\\s*"' + a + '"').test(out)) continue;
+    const mres = /"resources"\s*:\s*\[\s*\n/.exec(out);
+    if (!mres) return null;
+    const entry = '    {"id":{"name":"' + a + '","path":"sounds/' + a + '/' + a + '.yy",},},\n';
+    out = out.slice(0, mres.index + mres[0].length) + entry + out.slice(mres.index + mres[0].length);
+    added.push(a);
+  }
+  return { text: out, added: added };
+}
+
 // .yy de sonido a partir del de mus_undefeatable (campos probados del juego)
 function buildSoundYy(tmpl, asset, ext, dur) {
   let yy = tmpl.split('mus_undefeatable').join(asset);
@@ -10682,7 +10708,7 @@ async function songInfo(asset) {
 
 async function scanLms() {
   LMS.chars = {}; LMS.base = 'none'; LMS.scanned = true; LMS.origLists = {};
-  LMS.yypText = null; // v1.1 cache del .yyp a cero al reescanear
+  LMS.yypText = null; LMS.missing = []; // v1.1/v1.2 caches a cero al reescanear
   for (const c of LMS_CHARS) LMS.chars[c.key] = { songs: [] };
 
   const gml = await readText(REL_LMS);
@@ -10695,7 +10721,9 @@ async function scanLms() {
       while ((m = re.exec(gml))) {
         const ent = LMS_CHARS.find(c => c.cm === m[1]);
         if (!ent) continue;
-        const assets = m[2].split(',').map(s => s.trim()).filter(Boolean);
+        // v1.2: se admiten los DOS formatos — con comillas (v5.4, el
+        // actual) y sin comillas (el viejo) — quitándolas si las hay
+        const assets = m[2].split(',').map(s => s.trim().replace(/^["']+|["']+$/g, '')).filter(Boolean);
         for (const a of assets) LMS.chars[ent.key].songs.push(await songInfo(a));
       }
     } else if (/scr_lms_sonic_try_block|global\.lmsSongs/.test(gml)) {
@@ -10733,6 +10761,25 @@ async function scanLms() {
   LMS.gameOk = gc != null && /lms_char/.test(gc);
   const nsg = await readText(REL_NSG);
   LMS.nsgOk = nsg != null && /scr_lms_play_song\(_lmsChar/.test(nsg);
+
+  // v1.2 — canciones de las listas SIN registro en el .yyp: con el
+  // scr_lms v5.4 el juego ya no revienta (salta la canción), pero con
+  // el viejo REVIENTA al arrancar. Causa típica: GameMaker estaba
+  // abierto mientras el Suite escribió (su guardado borra del .yyp
+  // los sonidos que GM no cargó). El botón 🩹 las re-registra.
+  if (LMS.base === 'ok') {
+    const yyp = await lmsYypText();
+    if (yyp) {
+      const seen = new Set();
+      for (const c of LMS_CHARS)
+        for (const s of LMS.chars[c.key].songs)
+          if (!seen.has(s.asset) && !new RegExp('"name":\\s*"' + s.asset + '"').test(yyp)) {
+            seen.add(s.asset);
+            LMS.missing.push(s.asset);
+          }
+      LMS.missing.sort();
+    }
+  }
 }
 
 const editable = () => LMS.base === 'ok';
@@ -10789,10 +10836,21 @@ function renderLms() {
     if (!LMS.srvOk) msgs.push('No encuentro la tabla <code>LMS_SHOWS</code> en <code>betterserver-oss/include/Server.h</code>: sin ella el server no dispara el show para nadie. Copia el <code>Server.h</code> de la entrega y recompila el server.');
     else if (!LMS.gameOk) msgs.push('<code>Game.c</code> no tiene el disparo por personaje: copia el <code>Game.c</code> de la entrega y recompila el server.');
     if (!LMS.nsgOk) msgs.push('<code>net_state_game.gml</code> no sabe tocar la canción por personaje: copia el de la entrega (F5 después).');
+    if (LMS.missing && LMS.missing.length) msgs.push('<b>🚨 ' + LMS.missing.length + ' canción(es) de las listas NO está(n) registrada(s) en el .yyp</b> (' + LMS.missing.map(a => '<code>' + a + '</code>').join(', ') + '): el juego <b>REVIENTA</b> al arrancar («Variable mus_lms_N not set»). Causa típica: GameMaker estaba abierto mientras el Suite escribía. Repáralo con el botón 🩹 de abajo.');
   }
   if (ro) msgs.push('Modo solo lectura: abre la carpeta del proyecto (Chrome/Edge) para escribir.');
   if (msgs.length) { warn.innerHTML = msgs.map(x => '<div style="margin:2px 0">⚠ ' + x + '</div>').join(''); warn.classList.remove('hidden'); }
   else warn.classList.add('hidden');
+  // v1.2 — botón de reparación cuando hay canciones sin registro
+  if (LMS.missing && LMS.missing.length && editable()) {
+    const rb = document.createElement('button');
+    rb.className = 'btn primary';
+    rb.style.cssText = 'margin-top:8px';
+    rb.textContent = '🩹 Re-registrar en el .yyp (' + LMS.missing.length + ')';
+    rb.title = 'Vuelve a registrar en el .yyp los sonidos cuyo registro se perdió (no toca audios ni listas). GameMaker debe estar CERRADO.';
+    rb.addEventListener('click', repairLmsYyp);
+    warn.appendChild(rb);
+  }
 
   // chips de personaje
   const chips = $('#lms-chips');
@@ -11076,7 +11134,9 @@ function buildCharBlock() {
   const lines = ['global.lmsCharSongs = ds_map_create();'];
   for (const c of LMS_CHARS) {
     const songs = LMS.chars[c.key].songs;
-    if (songs.length) lines.push('global.lmsCharSongs[? ' + c.cm + '] = [' + songs.map(s => s.asset).join(', ') + '];');
+    // v1.2: como TEXTO entre comillas (scr_lms v5.4): un sonido sin
+    // registro en el .yyp NO revienta el juego al evaluar la lista
+    if (songs.length) lines.push('global.lmsCharSongs[? ' + c.cm + '] = [' + songs.map(s => '"' + s.asset + '"').join(', ') + '];');
   }
   return lines.join('\n');
 }
@@ -11107,6 +11167,8 @@ async function writeLms() {
   p.repl.forEach(x => lines.push('  · audio nuevo de ' + x.song.asset + ' (' + x.song.ext + ', ' + mmss(x.song.dur) + ')'));
   lines.push('  · scr_lms.gml: listas por personaje — ' + (withShow.length ? withShow.map(c => c.label + ' (' + LMS.chars[c.key].songs.length + ')').join(', ') : 'NADIE con show (LMS apagado)'));
   if (LMS.srvOk) lines.push('  · Server.h: LMS_SHOWS = ' + (withShow.length ? withShow.map(c => c.ch).join(' + ') : '(vacía)'));
+  if (LMS.missing && LMS.missing.length) lines.push('  · .yyp: RE-REGISTRO de ' + LMS.missing.join(', ') + ' (perdió el registro: era la causa del error «mus_lms_N not set»)');
+  lines.push('\n⚠ GameMaker debe estar CERRADO: si lo tienes abierto, su próximo guardado BORRARÍA los registros nuevos del .yyp y el juego reventaría al arrancar.');
   lines.push('\nDespués: F5 (cliente) y RECOMPILAR EL SERVER. ¿Continuar?');
   if (!confirm(lines.join('\n'))) return;
 
@@ -11145,25 +11207,20 @@ async function writeLms() {
       await lmsWrite(audRel, s.bytes);
     }
 
-    // 2) registro .yyp (canciones nuevas y slots propios)
-    const newAssets = p.add.concat(p.forks).filter(x => !x.song.repl).map(x => x.song.asset);
+    // 2) registro .yyp (canciones nuevas, slots propios y — v1.2 —
+    //    las de las listas que estén sin registro: si GM estaba
+    //    abierto y las borró al guardar, se re-registran aquí también)
+    const newAssets = [...new Set(p.add.concat(p.forks).filter(x => !x.song.repl).map(x => x.song.asset).concat(LMS.missing || []))];
     if (newAssets.length) {
       const yypName = await lmsYypName();
       if (!yypName) { toast('No encuentro el .yyp del proyecto.', 'err'); return; }
-      let yyp = await readText(yypName);
-      let changed = false;
-      for (const a of newAssets) {
-        if (yyp.indexOf('"name":"' + a + '"') >= 0) continue;
-        const entry = '    {"id":{"name":"' + a + '","path":"sounds/' + a + '/' + a + '.yy",},},\n';
-        const mres = /"resources"\s*:\s*\[\s*\n/.exec(yyp);
-        if (!mres) { toast('No encuentro la lista "resources" del .yyp: no lo toco.', 'err'); return; }
-        yyp = yyp.slice(0, mres.index + mres[0].length) + entry + yyp.slice(mres.index + mres[0].length);
-        changed = true;
-      }
-      if (changed) {
-        if (!lmsYypOk(yyp)) { toast('El .yyp nuevo NO validaría: no se escribe.', 'err'); return; }
+      const yyp = await readText(yypName);
+      const res = yypInsertEntries(yyp, newAssets);
+      if (!res) { toast('No encuentro la lista "resources" del .yyp: no lo toco.', 'err'); return; }
+      if (res.added.length) {
+        if (!lmsYypOk(res.text)) { toast('El .yyp nuevo NO validaría: no se escribe.', 'err'); return; }
         await lmsBackup(yypName, bdir, undo, false);
-        await lmsWrite(yypName, yyp);
+        await lmsWrite(yypName, res.text);
       }
     }
 
@@ -11202,7 +11259,7 @@ async function writeLms() {
     for (const c of LMS_CHARS) LMS.chars[c.key].songs.forEach(s => { s.isNew = false; s.repl = false; delete s.bytes; delete s.fileName; });
     await scanLms(); renderLms();
     const n = LMS_CHARS.filter(hasShow).length;
-    toast('Show LMS escrito ✓ ' + n + ' personaje(s) con show.\nRecompila el juego (F5) Y el server (compilar_server.bat).');
+    toast('Show LMS escrito ✓ ' + n + ' personaje(s) con show.\nRecompila el juego (F5) Y el server (compilar_server.bat).\n⚠ Si tenías GameMaker abierto: ciérralo SIN guardar, vuelve a ABRIR el proyecto y dale F5.');
   } catch (e) {
     toast('Error al escribir: ' + e.message, 'err');
   }
@@ -11231,6 +11288,47 @@ async function undoLms() {
   LMS.yypText = null; // v1.1 el .yyp pudo volver a atras: cache a cero
   await scanLms(); renderLms();
   toast('Deshecho: restaurado desde la copia.');
+}
+
+// v1.2 — 🩹 REPARAR: re-registra en el .yyp las canciones de las listas
+// cuyo registro se perdió (la causa del error «Variable mus_lms_N not
+// set»: GM abierto al escribir → su guardado borra del .yyp los
+// sonidos que GM no cargó). No toca audios ni listas: solo las
+// entradas que faltan. Deshacer restaura el .yyp anterior.
+async function repairLmsYyp() {
+  if (S.mode !== 'fs') { toast('Modo solo lectura: abre la carpeta del proyecto (Chrome/Edge).', 'warn'); return; }
+  const miss = (LMS.missing || []).slice();
+  if (!miss.length) { toast('No falta ningún registro: todo en orden.'); return; }
+  const have = [], gone = [];
+  for (const a of miss) (await readText('sounds/' + a + '/' + a + '.yy') != null ? have : gone).push(a);
+  if (!have.length) {
+    toast('No puedo reparar: ' + gone.join(', ') + ' no tiene audio en sounds/ (se perdió el archivo).\nQuita esa canción (✕) o vuelve a añadirla. Con el scr_lms v5.4 el juego ya no revienta, pero esa canción no sonará.', 'err');
+    return;
+  }
+  if (!confirm('Voy a RE-REGISTRAR en el .yyp (sin tocar audios ni listas):\n' + have.map(a => '  · ' + a).join('\n')
+    + (gone.length ? '\n\n(' + gone.join(', ') + ' sigue sin audio: no se puede re-registrar)' : '')
+    + '\n\nGameMaker debe estar CERRADO. ¿Continuar?')) return;
+  const undo = [];
+  try {
+    const yypName = await lmsYypName();
+    if (!yypName) { toast('No encuentro el .yyp del proyecto.', 'err'); return; }
+    const yyp = await readText(yypName);
+    const res = yypInsertEntries(yyp, have);
+    if (!res) { toast('No encuentro la lista "resources" del .yyp: no lo toco.', 'err'); return; }
+    if (!res.added.length) { await scanLms(); renderLms(); toast('Ya estaban registradas: nada que reparar.'); return; }
+    if (!lmsYypOk(res.text)) { toast('El .yyp nuevo NO validaría: no se escribe.', 'err'); return; }
+    const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+    const bdir = await ensureDir('_backups_animeditor/' + stamp);
+    await lmsBackup(yypName, bdir, undo, false);
+    await lmsWrite(yypName, res.text);
+    LMS.undoStack.push(undo);
+    LMS.yypText = null; // el .yyp acaba de cambiar: cache a cero
+    await scanLms(); renderLms();
+    toast('Registro .yyp reparado ✓ ' + res.added.length + ' sonido(s)' + (gone.length ? '\n⚠ ' + gone.join(', ') + ' sigue sin audio: quítalo (✕) o re-añádelo.' : '')
+      + '\nCierra GameMaker, VUELVE A ABRIR el proyecto y dale F5.');
+  } catch (e) {
+    toast('Error al reparar: ' + e.message, 'err');
+  }
 }
 
 // ------------------------------------------------------------------

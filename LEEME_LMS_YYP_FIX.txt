@@ -1,0 +1,81 @@
+=============================================================
+ FIX: «Variable mus_lms_26 not set» (Show LMS) — v1.2
+=============================================================
+
+QUE PASO
+--------
+El juego reventaba al arrancar con:
+
+  Variable <unknown_object>.mus_lms_26(101177, -2147483648)
+  not set before reading it.
+  at gml_GlobalScript_scr_lms (line 58)   <- la linea de ROUGE
+
+Tu proyecto SI tenia las carpetas de audio de mus_lms_25 (Kris) y
+mus_lms_26 (Rouge) en sounds/, PERO el .yyp perdio esos 2 registros
+(mus_lms_27 y mus_lms_28 si estaban). Sin registro, GameMaker no
+conoce el sonido y la lista de scr_lms.gml lo referenciaba igual
+-> crash al evaluar la lista de Rouge (27 ok, 26 fantasma, BOOM).
+
+POR QUE SE PERDIERON LOS REGISTROS
+----------------------------------
+GameMaker estaba ABIERTO mientras el Suite escribia. Al darle F5
+(guarda + compila), GM reescribe el .yyp desde SU memoria — y en su
+memoria los sonidos nuevos NO existen (nunca llego a cargarlos). El
+scr_lms.gml en cambio si se recarga solo cuando cambia externamente...
+por eso compilo referencias a sonidos fantasma.
+
+REGLA DE ORO DESDE HOY: cierra GameMaker ANTES de escribir desde el
+Suite. El propio Suite ahora te avisa en el confirm y trae boton de
+reparacion por si vuelve a pasar.
+
+COMO APLICAR EL FIX (elige UNO de los dos)
+------------------------------------------
+OPCION A — git (recomendada):
+  1. Cierra GameMaker.
+  2. Si tienes cambios locales sin commitear, guardalos (commit).
+  3. git pull
+  4. Abre GameMaker de nuevo (que recargue el .yyp) y F5. Listo.
+
+OPCION B — zip (disaster2d_lms_yyp_fix_v1.zip):
+  1. Cierra GameMaker.
+  2. Copia del zip a tu proyecto (reemplazando):
+       Sonicexe The Disaster 2D Remake.yyp   <- los 2 registros reparados
+       scripts/scr_lms/scr_lms.gml           <- v5.4 a prueba de balas
+       Suite_TD2D.html                        <- v1.2 con reparacion
+  3. Abre GameMaker de nuevo y F5. Listo.
+
+QUE TRAE EL FIX
+---------------
+1. .yyp reparado: mus_lms_25 y mus_lms_26 registradas otra vez.
+   Rouge = mus_lms_27, mus_lms_26, mus_lms_28 (tu orden intacto).
+   Kris = mus_lms_25.
+
+2. scr_lms.gml v5.4 — A PRUEBA DE BALAS: las canciones van ahora como
+   texto entre comillas y se resuelven al tocarlas. Si algun dia un
+   sonido pierde otra vez su registro, el juego YA NO REVIENTA: esa
+   cancion se salta y suena otra de la lista del personaje (y si no
+   hay ninguna, el show sigue sin musica: banner, vida y reloj
+   intactos).
+
+3. Suite_TD2D.html v1.2 (modulo Show LMS):
+   - AVISO ROJO con campana si detecta canciones de las listas sin
+     registro en el .yyp (te dice cuales).
+   - Boton de REPARACION: las re-registra el solo (con backup y
+     Deshacer). No toca audios ni listas.
+   - Al escribir cambios, tambien re-registra las que esten perdidas
+     (eso era el agujero por el que se te rompio).
+   - Avisos de «GameMaker CERRADO» antes de escribir y al terminar.
+
+NOTAS
+-----
+- El Server.h NO se toca: tu tabla ya estaba bien (Rouge con sus 3
+  canciones y sus duraciones, Kris con la suya). NO hace falta
+  recompilar el server por este fix.
+- Rouge y Kris ya NO comparten cancion con Blaze: cada una con su
+  slot propio (la proteccion anti-pisado de la semana pasada sigue
+  intacta y probada).
+- Si algun dia el Suite te muestra el aviso rojo: cierra GM, pulsa el
+  boton de reparar, vuelve a ABRIR el proyecto en GM y F5.
+- Validado con scripts/lms_slots_sim.js: 58/58 OK, incluyendo la
+  deteccion del estado EXACTO que rompia tu juego y la reparacion
+  completa con backup.
