@@ -128,6 +128,9 @@ if(global.showHud && titleCard > 4)
                                 }
                                 else if(global.player.shards > 0)
                                         scr_number_spr(pos + 12, 264, string(global.player.shards), #27ff23);           
+                                
+                                // v1: mini barra de vida del retrato propio (misma que la de los aliados)
+                                hudAllyBar(pos, global.player.hp);
                         }
                         else
                         {
@@ -146,6 +149,9 @@ if(global.showHud && titleCard > 4)
                                         
                                         var _ngPair = global.player.redRingTimer > 0 ? scr_hud_strip_red_nega(_hudChar) : scr_hud_strip_nega(_hudChar);
                                         draw_sprite(_ngPair[0], _ngPair[1] + _ngFrame, pos, 268);
+                                        
+                                        // v1: el nega ve SU vida real tambien en la barra del retrato propio
+                                        hudAllyBar(pos, global.player.hp);
                                 }
                                 else
                                 {
@@ -216,6 +222,10 @@ if(global.showHud && titleCard > 4)
                                         scr_number_spr(pos + i * 28 + 12, 264, string(inst.deadTimer), inst.deadColor);
                                 else if(player_exists && global.character != CHARACTER_EXE && global.player.revivalTimes < 2 && !global.player.isDead && inst.shards > 0)
                                         scr_number_spr(pos + i * 28 + 12, 264, string(inst.shards), #27ff23);
+                                
+                                // v1 (BARRA DE VIDA DE ALIADOS): mini barra con el hp real
+                                // del puppet (via UDP) bajo su retrato de la tira del equipo
+                                hudAllyBar(pos + i * 28, inst.hp);
                         }
                         else
                         {
@@ -234,6 +244,9 @@ if(global.showHud && titleCard > 4)
                                         
                                         var _ngPair2 = redRing ? scr_hud_strip_red_nega(_pch) : scr_hud_strip_nega(_pch);
                                         draw_sprite(_ngPair2[0], _ngPair2[1] + _ngFrame2, pos + i * 28, 268);
+                                        
+                                        // v1: el nega del aliado tambien muestra su vida real en la barra
+                                        hudAllyBar(pos + i * 28, inst.hp);
                                 }
                                 else
                                 {

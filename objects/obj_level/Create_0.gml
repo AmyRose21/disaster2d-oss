@@ -140,3 +140,41 @@ drawPing = function(char, exeCharacter, ping, revival, name, index)
         scr_text_spr(127+59, 44+11 + index * 30, name, c_white);
         scr_text_spr(127+183, 44+11 + index * 30, $"{ping}", clr);
 }
+
+// v1 (BARRAS DE VIDA DE LA TIRA DEL EQUIPO) — pedido: "y la barra de
+// vida de mis aliados? se supone que deberia aparecer" (referencia
+// tipo Sonic Battle: cada retrato del equipo con SU barra debajo).
+// La tira que dibuja el Draw_64 de este objeto son tiles de 26x26
+// anclados ABAJO en y=268 (banda 242-268, GUI 480x270 confirmado por
+// window_set_size) y los numeros de deadTimer/shards van en y=264
+// (digitos de spr_number anclados arriba: ocupan ~264-269). La barra
+// vive DENTRO del retrato, pegada por encima de esos numeros: fondo
+// negro 24x6 (filas 255-260) + relleno de hasta 22px = 100 HP con la
+// MISMA paleta por tramos que la barra propia v8 del obj_playerui
+// (c_lime 50+, c_yellow 25-49, c_red < 25). Con hp <= 0 (muerto o
+// reviviendo) solo queda el fondo vacio: el frame del retrato ya
+// cuenta el estado. NO se dibuja para demonizados ni escapados (el
+// demon usa tira fija sin vida que mirar y el escapado ya no esta).
+// La llama el Draw_64 para el retrato propio y para cada aliado con
+// vida real (puppet via UDP; nega con su hp de verdad, v11).
+hudAllyBar = function(tx, hp)
+{
+        var _hp = clamp(hp, 0, 100);
+        var _col = c_lime;
+
+        if(_hp < 25)
+                _col = c_red;
+        else if(_hp < 50)
+                _col = c_yellow;
+
+        draw_set_color(c_black);
+        draw_rectangle(tx + 1, 255, tx + 24, 260, false);
+
+        if(_hp > 0)
+        {
+                draw_set_color(_col);
+                draw_rectangle(tx + 2, 256, tx + 1 + ceil(_hp * 0.22), 259, false);
+        }
+
+        draw_set_color(c_white);
+};
