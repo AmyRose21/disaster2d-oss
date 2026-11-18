@@ -1,0 +1,86 @@
+=====================================================================
+ ROUGE v14 — 4 MEJORAS + TIER SS+ (solo lo pedido)
+=====================================================================
+
+1) ATAQUE CON 2 MODALIDADES (X)
+-------------------------------
+X en el AIRE = spr_rouge_attack1 (la patada aerea, estado 14).
+X en TIERRA = spr_rouge_attack2 (el tornado, estado 15).
+Y lo NUEVO: si se usa EN EL AIRE y TODAVIA LE QUEDA TIEMPO
+(la patada sigue activa) cuando TOCA SUELO, el ataque CAMBIA
+de modo aereo a modo TERRESTRE: arranca el tornado con sus
+i-frames y su recorrido. Si la patada ya termino antes de
+aterrizar, no pasa nada (no hay tornado gratis).
+(archivos: scr_rouge_special.gml — bloque "CAMBIO DE MODO")
+
+2) SLIDE DE SALLY (reemplaza el rodar)
+--------------------------------------
+ABAJO recien pulsada mientras corre (|xspd| >= 2.5) = SLIDE
+con spr_rouge_slide (estado 22) — YA NO el Spin clasico de
+rodar (canSpin = false en obj_rouge/Create_0.gml). Mismas
+reglas exactas que Sally: sale con slideSpeed = xspd + 2 en
+la direccion que llevaba, va PERDIENDO velocidad sola, polvo
+y sonido mientras dura; la cortan stun, el aire, el borde de
+pantalla y quedarse sin velocidad. El spindash (abajo + Z
+PARADA) sigue funcionando igual — no lo toca.
+(archivos: scr_rouge_special.gml, Create_0.gml, Step_2.gml,
+Draw_76.gml, scr_survivors.gml, obj_player_puppet/Draw_0.gml)
+
+3) GLIDE PASIVA (tipo Knuckles)
+--------------------------------
+MANTENER Z al empezar a DESCENDER = planeo con la tira
+DIRECCIONAL spr_rouge_glide (estado 23, 5 frames: el frame
+dice hacia donde planea — el mismo layout del glide de
+Knuckles, verificado contra el sprite nuevo). Izq/der ajustan
+el desliz dentro de +-5, suelta Z = caida libre, la pared la
+AGARRA (spr_rouge_stuck, estado 18 — ya existia).
+ES PASIVA DE VERDAD:
+  * SIN recarga (no gasta flyTimer: convive con el vuelo
+    activo de 5 s/15 s de la v13)
+  * NO esta atada al anillo rojo: con redRingTimer > 0
+    sigue funcionando (pedido literal)
+  * sin tope de tiempo: mientras baje, planea (yspd 1 —
+    siempre desciende, no estanca la partida)
+Cadena natural: vuelo (Z pulsacion fresca) -> al agotarse
+con Z aun mantenida -> glide toma el relevo solo.
+(archivos: scr_rouge_special.gml, Step_2.gml, Draw_76.gml,
+scr_survivors.gml, obj_player_puppet/Draw_0.gml — el agarre
+de pared ya estaba en scr_collision_basic para Rouge)
+
+4) PASIVA «CAZADORA DE TESOROS»
+-------------------------------
+50% (ROUGE_TREASURE_CHANCE) de que un anillo NORMAL cuente
+por 2. NO aplica a los anillos GENERADOS por Cream/Vanilla
+(y Amy Canon, que usa el mismo camino): esos llegan por el
+_state 2 de SERVER_RING_COLLECTED... (ver abajo) y quedan
+apuntados en global.genRingNids — la pasiva los salta.
+Solo el CONTEO local del cliente: CERO cambios de server y
+CERO paquetes (no hay que recompilar nada). El techo de la
+casa se respeta (max 119 anillos: el anticheat desconecta
+con 120+).
+(archivo: net_state_game.gml)
+
+ICONOS GUI
+----------
+spr_gui_rougeattack y spr_gui_rougeglide ya estaban
+referenciados por el HUD de la v13: con los sprites nuevos
+que creaste se ven solos — cero cambios de codigo ahi. El
+glide PASIVO no lleva icono (tu llamada: es pasiva).
+
+ARCHIVOS (solo modificados — 7)
+--------------------------------
+  scripts/scr_rouge_special/scr_rouge_special.gml   (kit v14)
+  scripts/scr_survivors/scr_survivors.gml           (slots 22/23 en las 3 tablas)
+  scripts/net_state_game/net_state_game.gml         (cazadora de tesoros)
+  objects/obj_rouge/Create_0.gml                    (macros + vars + canSpin)
+  objects/obj_rouge/Step_2.gml                      (estados 22/23)
+  objects/obj_rouge/Draw_76.gml                     (anim slide/glide)
+  objects/obj_player_puppet/Draw_0.gml              (glide sin espejo en puppets)
+
+COMO APLICAR
+------------
+  git apply rouge_v14.patch
+(o descomprime el zip encima, mismas rutas). Sin recompilar
+el server. Ademas: abre Tier_Rouge_SSPlus.html (el Tier
+actualizado con la clase SS+ nueva de Rouge y sus planes).
+=====================================================================

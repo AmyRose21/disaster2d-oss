@@ -30,8 +30,34 @@ function scr_rouge_special()
         //     patron tornado de Knuckles). El stun al bando EXE por
         //     contacto lo aplica el cliente de la victima (bit
         //     PLAYER_ATTACKING que viaja con Rouge). Recarga 20 s al
-        //     terminar. El X EN EL AIRE sigue siendo la patada aerea
-        //     (spr_rouge_attack1, estado 14) de siempre.
+        //     terminar.
+        //
+        //  v14 — 2 MODALIDADES DEL ATAQUE (X): spr_rouge_attack1 en el
+        //     AIRE (la patada, estado 14) y spr_rouge_attack2 en TIERRA
+        //     (el tornado, estado 15). Si se usa EN EL AIRE y le queda
+        //     tiempo (la patada sigue activa) cuando TOCA SUELO, el
+        //     ataque CAMBIA de modo aereo a modo terrestre: arranca el
+        //     tornado con sus i-frames y su recorrido (misma recarga).
+        //  v14 — SLIDE DE SALLY: ABAJO mientras corre = slide (no el
+        //     rodar clasico; canSpin = false en el Create). Patron
+        //     exacto de Sally (scr_sally_special): |xspd| >= 2.5 +
+        //     Down recien pulsada; slideSpeed = xspd + 2 y decae sola.
+        //     spr_rouge_slide (estado 22).
+        //  v14 — GLIDE PASIVA (tipo Knuckles): MANTENER Z al empezar a
+        //     DESCENDER = planeo con la tira direccional
+        //     spr_rouge_glide (estado 23; frame = direccion del
+        //     glide_xspd). PASIVA de verdad: SIN recarga y NO esta atada
+        //     al efecto del anillo rojo (el planeo funciona igual con
+        //     redRingTimer > 0). Pared = agarre (spr_rouge_stuck,
+        //     estado 18) via scr_collision_basic (glideTimer = 1 la
+        //     mantiene abierta). El vuelo activo (Z pulsacion fresca)
+        //     sigue siendo una habilidad con recarga: conviven.
+        //
+        //  v14 — PASIVA «CAZADORA DE TESOROS»: 50% (ROUGE_TREASURE_CHANCE)
+        //     de que un anillo NORMAL cuente por 2 (net_state_game,
+        //     SERVER_RING_COLLECTED). NO aplica a los anillos GENERADOS
+        //     por Cream/Vanilla/Amy Canon (los del _state 2 de
+        //     SERVER_RING_STATE: quedan apuntados en genRingNids).
         //
         //  v4.5 — MORIBUNDA: su salvacion de 1ra caida sigue IGUAL
         //  (tirada 6 s inmune, se levanta con 40; la activa
@@ -59,6 +85,9 @@ function scr_rouge_special()
                 isAttacking = false;
                 isGliding = false;
                 isFlying = false; // moribunda no vuela
+
+                // v14: el slide tambien se corta
+                isSliding = false;
 
                 // v13: el tornado y la carga del spindash tambien se cortan
                 tornadoState = 0;
@@ -114,7 +143,7 @@ function scr_rouge_special()
         // guards clasicos. El vuelo/ataque/tornado/hurt/stun lo cancelan.
         if(global.playerControls && isGrounded && !isAttacking && !isHurt
         && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
-        && redRingTimer <= 0 && !isFlying
+        && redRingTimer <= 0 && !isFlying && !isSliding
         && keyboard_check(global.KeyDown) && abs(gspd) < ROUGE_SPINDASH_START_MAX
         && !isSpinning && !isSpinCharging && keyboard_check_pressed(global.KeyA))
         {
@@ -217,7 +246,10 @@ function scr_rouge_special()
         // v4.9 (COYOTE): mismo guard que Vanilla/Tails — si acaba de dejar
         // el suelo dentro de la ventana de salto, el Z se lo lleva el salto
         // normal; el vuelo sale con la siguiente pulsacion.
-        if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isGrounded && !isAttacking && !isSpinCharging
+        // v14: el GLIDE PASIVA de abajo (Z MANTENIDA al descender) es un
+        // camino DISTINTO: no gasta ni mira flyTimer (recarga) y el anillo
+        // rojo no la bloquea — conviven con el vuelo activo.
+        if(global.playerControls && keyboard_check_pressed(global.KeyA) && !isGrounded && !isAttacking && !isSpinCharging && !isGliding
         && !(variable_instance_exists(id, "coyoteTimer") && coyoteTimer > 0 && yspd >= 0))
         {
                 if(!isFlying && flyTimer <= 0)
@@ -235,11 +267,12 @@ function scr_rouge_special()
         }
 
         // ---------------- TORNADO (X en tierra) + PATADA AEREA (X en aire) ----------------
-        // X EN TIERRA: el tornado (spr_rouge_attack2, estado 15) — sale a
-        // 12 px/f y decae hasta 1.5 al cabo de 0.8 s, con i-frames durante
-        // TODO el recorrido (scr_player_hurt). X EN EL AIRE: la patada con
-        // vuelo de siempre (spr_rouge_attack1, estado 14).
-        if(global.playerControls && keyboard_check_pressed(global.KeyB) && attackTimer <= 0 && tornadoState <= 0)
+        // v14 — 2 MODALIDADES del MISMO ataque: X en TIERRA arranca el
+        // tornado (spr_rouge_attack2); X en el AIRE la patada
+        // (spr_rouge_attack1). Y si la patada sigue ACTIVA al tocar suelo,
+        // el ataque cambia de modo aereo a modo TERRESTRE (bloque de
+        // abajo). Pegar manda: corta el vuelo y el planeo (Knuckles).
+        if(global.playerControls && keyboard_check_pressed(global.KeyB) && attackTimer <= 0 && tornadoState <= 0 && !isSliding)
         {
                 if(keyboard_check(global.KeyLeft))
                         image_xscale = -1;
@@ -248,9 +281,21 @@ function scr_rouge_special()
 
                 image_index = 0;
 
+                // pegar corta el planeo pasivo (patron Knuckles)
+                if(isGliding)
+                {
+                        isGliding = false;
+
+                        if(isStuck)
+                        {
+                                canMove = true;
+                                isStuck = false;
+                        }
+                }
+
                 if(isGrounded)
                 {
-                        // --- TORNADO ---
+                        // --- TORNADO (modo terrestre) ---
                         tornadoState = ROUGE_TORNADO_TIME;
                         isAttacking = true;
                         isFlying = false; // pegar manda (corta el vuelo)
@@ -265,7 +310,7 @@ function scr_rouge_special()
                 }
                 else
                 {
-                        // --- PATADA AEREA (la de siempre, patron Sally) ---
+                        // --- PATADA AEREA (modo aereo, la de siempre) ---
                         attackTimer = ROUGE_ATTACK_RECHARGE;
                         isAttacking = true;
                         isFlying = false; // pegar manda (corta el vuelo)
@@ -315,6 +360,26 @@ function scr_rouge_special()
                         attackTimer = revivalTimes >= 2 ? ROUGE_ATTACK_RECHARGE / 2 : ROUGE_ATTACK_RECHARGE;
                 }
         }
+
+        // v14 — CAMBIO DE MODO AEREO -> TERRESTRE: la patada aerea fue
+        // usada EN EL AIRE y TODAVIA LE QUEDA TIEMPO (isAttacking sigue
+        // viva: la animacion no termino) cuando TOCA SUELO -> el ataque
+        // cambia de modalidad y arranca el TORNADO (modo terrestre) con
+        // sus i-frames y su recorrido. Solo se llega aqui aterrizando en
+        // mitad de la patada: el X en tierra ya deja tornadoState > 0 en
+        // el MISMO frame y el tornado terminado apaga isAttacking.
+        if(isAttacking && isGrounded && tornadoState <= 0 && !isHurt && !isDead && shockedTimer <= 0)
+        {
+                tornadoState = ROUGE_TORNADO_TIME;
+                isJumping = false;
+
+                audio_play_sound(snd_dash, 0, false);
+                net_sound_emit(snd_dash);
+
+                // polvareda del cambio de modo (la misma del arranque)
+                repeat(3)
+                        net_quick_effect(x - image_xscale * (4 + irandom(8)), y + 12 + irandom(4), spr_dust, false, -image_xscale, -image_xscale, -irandom(1));
+        }
         else if(isAttacking && !isGrounded)
         {
                 // la patada aerea clasica mantiene su empujoncito horizontal;
@@ -323,10 +388,18 @@ function scr_rouge_special()
                 xspd = image_xscale * 2;
         }
 
-        // el dano corta el vuelo y desarma la bola del spindash
+        // el dano corta el vuelo, el planeo y desarma la bola del spindash
         if(isHurt)
         {
                 isFlying = false;
+                isGliding = false;
+
+                if(isStuck)
+                {
+                        canMove = true;
+                        isStuck = false;
+                }
+
                 spinDashRelease = false;
         }
 
@@ -359,8 +432,162 @@ function scr_rouge_special()
                 net_sound_emit(snd_tails_fly);
         }
 
+        // ---------------- GLIDE PASIVA (v14, tipo Knuckles) ----------------
+        // MANTENER Z al empezar a DESCENDER (yspd > 0) = planeo. NO mira
+        // flyTimer (el vuelo activo es aparte), NO mira redRingTimer (es
+        // una PASIVA: el anillo rojo NO la bloquea) y NO tiene tope de
+        // tiempo: mientras Z siga pulsada, planea — siempre baja (yspd 1),
+        // no puede estancar la partida.
+        // Al despegar el vuelo activo con Z aun MANTENIDA: cuando este
+        // termina (tope de 5 s o soltarla), si Z sigue pulsada el planeo
+        // toma el relevo solo — la cadena natural del pedido.
+        if(global.playerControls && !isGrounded && !isGliding && !isFlying && !isAttacking
+        && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isSliding
+        && !isStuck && yspd > 0 && keyboard_check(global.KeyA))
+        {
+                isGliding = true;
+                isJumping = false;
+                isSpinning = false;
+                spinDashRelease = false;
+                glide_xspd = image_xscale * ROUGE_GLIDE_SPD;
+        }
+
+        // planeo activo (patron Knuckles): izquierda/derecha ajustan el
+        // glide_xspd dentro de +-ROUGE_GLIDE_SPD y la TIRA DIRECCIONAL
+        // spr_rouge_glide (frame 0..4) muestra hacia donde se desliza.
+        // SOLTAR Z = caida libre. La pared la agarra (scr_collision_basic
+        // pide glideTimer > 0 para Rouge: vale 1 mientras planea).
+        if(isGliding)
+        {
+                // puerta del agarre de pared abierta mientras planea
+                glideTimer = 1;
+
+                if(global.playerControls && keyboard_check(global.KeyA))
+                {
+                        if(!isStuck)
+                        {
+                                if(global.playerControls && keyboard_check(global.KeyLeft))
+                                {
+                                        if(glide_xspd > -ROUGE_GLIDE_SPD)
+                                                glide_xspd -= acc * ROUGE_GLIDE_ACC;
+                                }
+                                else if(global.playerControls && keyboard_check(global.KeyRight))
+                                {
+                                        if(glide_xspd < ROUGE_GLIDE_SPD)
+                                                glide_xspd += acc * ROUGE_GLIDE_ACC;
+                                }
+
+                                // tira direccional (frame = intensidad del desliz)
+                                switch(floor(glide_xspd))
+                                {
+                                        case ROUGE_GLIDE_SPD:
+                                        case ROUGE_GLIDE_SPD - 1:
+                                        case ROUGE_GLIDE_SPD - 2:
+                                        case 2:
+                                                image_index = 0;
+                                                break;
+
+                                        case 1:
+                                                image_index = 1;
+                                                break;
+
+                                        case 0:
+                                                image_index = 2;
+                                                break;
+
+                                        case -1:
+                                                image_index = 3;
+                                                break;
+
+                                        case -ROUGE_GLIDE_SPD:
+                                        case -(ROUGE_GLIDE_SPD - 1):
+                                        case -(ROUGE_GLIDE_SPD - 2):
+                                        case -2:
+                                                image_index = 4;
+                                                break;
+                                }
+                        }
+                }
+                else
+                {
+                        // soltar Z = fin del planeo (y del agarre si la habia)
+                        isGliding = false;
+
+                        if(isStuck)
+                        {
+                                canMove = true;
+                                isStuck = false;
+                        }
+                }
+
+                // la tira es direccional (como la de Knuckles): siempre mira
+                // a la derecha, el frame dice el lado — sin espejo.
+                image_xscale = 1;
+                yspd = 1;
+                xspd = glide_xspd;
+
+                // aterrizar o dano cierran el planeo (el dano ya apaga
+                // isGliding arriba en su bloque)
+                if(isGrounded)
+                {
+                        isGliding = false;
+
+                        if(isStuck)
+                        {
+                                canMove = true;
+                                isStuck = false;
+                        }
+                }
+        }
+
+        // ---------------- SLIDE (v14, patron SALLY) ----------------
+        // ABAJO recien pulsada mientras corre (|xspd| >= ROUGE_SLIDE_MIN)
+        // = slide en vez del rodar clasico (canSpin = false en el Create).
+        // Mismas reglas que Sally: slideSpeed = xspd + 2 en la direccion
+        // que llevaba y decae sola; el slide corta stun, aire, borde de
+        // pantalla y quedarse sin velocidad.
+        if(global.playerControls && abs(xspd) >= ROUGE_SLIDE_MIN && keyboard_check_pressed(global.KeyDown) && isGrounded && !isSliding
+        && !isAttacking && !isSpinning && !isSpinCharging && !isHurt && !isDead
+        && shockedTimer <= 0 && !isZipline && !isHiding)
+        {
+                audio_play_sound(snd_sally_slide, 0, false);
+                net_sound_emit(snd_sally_slide);
+
+                isAttacking = false;
+                isSliding = true;
+                slideSpeed = xspd + 2 * sign(xspd);
+        }
+
+        if(isSliding)
+        {
+                if(shockedTimer > 0 || !isGrounded || x <= 1 || x >= room_width - 1)
+                {
+                        isSliding = false;
+                }
+                else if(abs(slideSpeed) > 0)
+                {
+                        slideSpeed -= min(abs(slideSpeed), acc * 2.5) * sign(slideSpeed) * cos(angle);
+
+                        if(floor(x) % 5 == 0)
+                        {
+                                net_quick_effect(x - 8 * sign(slideSpeed), y + 20, spr_dust);
+                                audio_play_sound(snd_sally_slide, 0, false);
+                        }
+
+                        gspd = 0;
+                        xspd = slideSpeed * cos(angle);
+                        yspd = slideSpeed * -sin(angle);
+                }
+                else
+                {
+                        isSliding = false;
+                }
+        }
+
         // ---------------- recarga del vuelo (patron VANILLA) ----------------
         // la puerta flyTimer cuenta hacia atras SOLO cuando NO esta volando.
+        // (OJO: no decrementa glideTimer — para Rouge ya no es una recarga:
+        // vale 1 mientras planea para la puerta del agarre de pared.)
         if(!isFlying && flyTimer > 0)
                 flyTimer--;
 

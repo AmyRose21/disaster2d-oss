@@ -2926,6 +2926,11 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 var _id = buffer_read_s(rbuff, buffer_u8);
                                 var _uid = buffer_read_s(rbuff, buffer_u16);
                                 
+                                // v14 (CAZADORA): higiene del registro de anillos
+                                // GENERADOS (los del _state 2) — el server lo retiro.
+                                if(variable_global_exists("genRingNids"))
+                                        ds_map_delete(global.genRingNids, _uid);
+                                
                                 with(obj_ring)
                                 {
                                         if(nid != _uid)
@@ -2949,6 +2954,16 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 var inst = instance_create_depth(_x, _y, 0, _redRing ? obj_redring : obj_ring);
                                 inst.nid = _uid;
                                 inst.iid = _id;
+                                
+                                // v14 (CAZADORA DE TESOROS, Rouge): estos anillos de
+                                // _state 2 son los GENERADOS por Cream/Vanilla/Amy
+                                // Canon (CLIENT_CREAM_SPAWN_RINGS del server). Su nid
+                                // queda apuntado: la pasiva de Rouge (50% de x2 en
+                                // SERVER_RING_COLLECTED) NO les aplica.
+                                if(!variable_global_exists("genRingNids"))
+                                        global.genRingNids = ds_map_create();
+                                
+                                global.genRingNids[? _uid] = true;
                         }
                         break;
                 }
@@ -2988,6 +3003,11 @@ function net_state_game(rbuff, nps, isPasstrough)
                         
                         if(_redRing)
                         {
+                                // v14 (CAZADORA): higiene — un anillo rojo GENERADO
+                                // (_state 2) tambien sale del registro al recogerse.
+                                if(variable_global_exists("genRingNids"))
+                                        ds_map_delete(global.genRingNids, _eid);
+                                
                                 // PASIVA 1 (Amy Canon): el anillo rojo no puede silenciar sus habilidades
                                 // v4.4 «Ciega» (Amelia): ciega = sin alucinaciones — lo recoge igual
                                 // (el anillo desaparece y el EXE pierde esa trampa) pero sin musica,
@@ -3007,8 +3027,26 @@ function net_state_game(rbuff, nps, isPasstrough)
                         }
                         else
                         {                                               
+                                // v14 — PASIVA «CAZADORA DE TESOROS» (Rouge): 50%
+                                // (ROUGE_TREASURE_CHANCE) de que un anillo NORMAL cuente
+                                // por 2. Los GENERADOS (Cream/Vanilla/Amy Canon: nid
+                                // apuntado en genRingNids por el _state 2 de
+                                // SERVER_RING_STATE) y los de worth propio (los de
+                                // Vanilla valen 3 en servers nuevos) quedan FUERA.
+                                // Puro conteo local: ni server ni paquetes nuevos.
+                                var _gen = variable_global_exists("genRingNids") && ds_map_exists(global.genRingNids, _eid);
+                                var _gain = (_worth > 0) ? _worth : 1;
+                                
+                                if(global.character == CHARACTER_ROUGE && !_gen && _gain == 1 && random(100) < ROUGE_TREASURE_CHANCE)
+                                        _gain = 2;
+                                
+                                if(_gen && variable_global_exists("genRingNids"))
+                                        ds_map_delete(global.genRingNids, _eid); // higiene
+                                
                                 //Hp regen
-                                global.player.rings += _worth > 0 ? _worth : 1;
+                                // v14: techo de la casa (119) respetado tambien con la
+                                // pasiva — el anticheat del server desconecta con 120+.
+                                global.player.rings = min(global.player.rings + _gain, 119);
                                 if(global.player.redRingTimer >= 60)
                                 {
                                         var cnt = ((global.timeMinutes <= 0 && global.timeSeconds <  60) ? 2 : 0.5) * 60;

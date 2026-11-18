@@ -464,7 +464,9 @@ global.player_anims[? CHARACTER_ROUGE] =
         spr_rouge_stuck, //18 = ROUGE_STUCK: agarre de pared (patron Knux)
         spr_rouge_hurt, //19 = ROUGE_MORIBUNDA (v4.5): 1ra caida, tirada 6 s
         spr_rouge_spin_charger, //20 = ROUGE_SPINDASH (v13): carga del spindash (abajo + Z)
-        spr_rouge_spin_release //21 = ROUGE_SPIN_RELEASE (v13): bola lanzada del spindash
+        spr_rouge_spin_release, //21 = ROUGE_SPIN_RELEASE (v13): bola lanzada del spindash
+        spr_rouge_slide, //22 = ROUGE_SLIDE (v14): slide de Sally (abajo corriendo)
+        spr_rouge_glide //23 = ROUGE_GLIDE_AIR (v14): glide PASIVA tipo Knuckles (tira direccional)
 ];
 
 // Kris (v6): layout de estados de KNUCKLES (attack2=14 / attack1=15 /
@@ -889,7 +891,11 @@ global.player_eanims[? CHARACTER_ROUGE] =
         spr_erouge_hurt, //19 = ROUGE_MORIBUNDA defensivo
         // v13: sin arte exe del spindash (Rouge jamas se demoniza): la bola
         spr_erouge_jump, //20 = ROUGE_SPINDASH (placeholder bola)
-        spr_erouge_jump //21 = ROUGE_SPIN_RELEASE (placeholder bola)
+        spr_erouge_jump, //21 = ROUGE_SPIN_RELEASE (placeholder bola)
+        // v14: slide/glide del subdito — sin arte propio todavia: el mas
+        // cercano (bola para el slide, tira glide exe que ya existe)
+        spr_erouge_jump, //22 = ROUGE_SLIDE (placeholder bola)
+        spr_erouge_glide //23 = ROUGE_GLIDE_AIR (la tira direccional exe ya existe)
 ];
 
 // KRIS (demonizado): JAMAS se demoniza (regla de la duena: muere
@@ -1298,7 +1304,11 @@ global.player_negaanims[? CHARACTER_ROUGE] =
         // v13: sin arte nega del spindash todavia — placeholder con la
         // bola nega de siempre (mismo criterio que Kris con su set)
         spr_rougenega_jump, //20 = ROUGE_SPINDASH (placeholder bola)
-        spr_rougenega_jump //21 = ROUGE_SPIN_RELEASE (placeholder bola)
+        spr_rougenega_jump, //21 = ROUGE_SPIN_RELEASE (placeholder bola)
+        // v14: slide/glide nega — placeholder bola para el slide y la tira
+        // glide nega que ya existe (misma regla que el exe de arriba)
+        spr_rougenega_jump, //22 = ROUGE_SLIDE (placeholder bola)
+        spr_rougenega_glide //23 = ROUGE_GLIDE_AIR (la tira direccional nega ya existe)
 ];
 
 // Kris (v5): la energia negativa de Jinna NO CALA en el (regla de la

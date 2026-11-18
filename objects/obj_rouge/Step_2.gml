@@ -6,6 +6,8 @@
 #macro ROUGE_MORIBUNDA BALANCING+6
 #macro ROUGE_SPINDASH BALANCING+7     // v13: carga del spindash (spr_rouge_spin_charger)
 #macro ROUGE_SPIN_RELEASE BALANCING+8 // v13: bola lanzada (spr_rouge_spin_release)
+#macro ROUGE_SLIDE BALANCING+9        // v14: slide de Sally (spr_rouge_slide)
+#macro ROUGE_GLIDE_AIR BALANCING+10   // v14: glide PASIVA tipo Knuckles (spr_rouge_glide)
 
 // v4.4: mismos estados netos que Knuckles (attack=14, air_attack=15,
 // glide=16, zipline=17, stuck=18: viajan en el u8 state del
@@ -15,6 +17,9 @@
 // v13: 20 = ROUGE_SPINDASH (carga) y 21 = ROUGE_SPIN_RELEASE (bola
 // lanzada del spindash) — viajan igual: el puppet los resuelve contra
 // la tabla de scr_survivors.
+// v14: 22 = ROUGE_SLIDE (el slide de Sally) y 23 = ROUGE_GLIDE_AIR
+// (la glide PASIVA tipo Knuckles, tira direccional spr_rouge_glide).
+// Nada de estados nuevos de red: viajan en el mismo u8 de siempre.
 
 if(!emotion)
         state = IDLE;
@@ -51,6 +56,14 @@ if(isSpinning && spinDashRelease)
 if(moribundaState > 0)
 {
         state = ROUGE_MORIBUNDA;
+        return;
+}
+
+// v14 — SLIDE (patron Sally): por encima del ataque para que la
+// patada aterrizada no lo tape — slide (spr_rouge_slide, 1 frame).
+if(isSliding)
+{
+        state = ROUGE_SLIDE;
         return;
 }
 
@@ -97,6 +110,15 @@ if(isStuck)
 // v13: el estado 16 (ROUGE_GLIDE) es el VUELO patron VANILLA (subir
 // y bajar con Z): mismo slot de siempre — la tabla de scr_survivors
 // ahora lleva spr_rouge_fly (alas batiendo) en el 16.
+// v14: el estado 23 (ROUGE_GLIDE_AIR) es la GLIDE PASIVA tipo
+// Knuckles — tira direccional spr_rouge_glide, frame 0..4 = hacia
+// donde planea; el agarre de pared sigue siendo el 18 (ROUGE_STUCK).
+if(isGliding)
+{
+        state = ROUGE_GLIDE_AIR;
+        return;
+}
+
 if(isFlying)
 {
         state = ROUGE_GLIDE;

@@ -75,7 +75,11 @@ switch(character)
         // fabrica como su run (ya NO es la vieja tira direccional espejo del
         // planeo): respeta el image_xscale normal, igual que Knuckles ya no
         // necesita nada aqui.
+        // v14 — la GLIDE PASIVA (ROUGE_GLIDE_AIR) SI es una tira direccional
+        // (spr_rouge_glide, como la de Knuckles): sin espejo, el frame manda.
         case CHARACTER_ROUGE:
+                if(state == ROUGE_GLIDE_AIR)
+                        image_xscale = 1;
                 break;
 }
 

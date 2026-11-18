@@ -61,6 +61,18 @@
 #macro ROUGE_MORIBUNDA_INVULN (60 * 3)
 #macro ROUGE_MORIBUNDA_LEVITATE -0.35 // flota solo si cayo a un hoyo
 
+// v14 — GLIDE PASIVA (tipo Knuckles): velocidad maxima del planeo y
+// aceleracion lateral con las flechas (patron KNUX_GLIDE: 5 y acc*2)
+#macro ROUGE_GLIDE_SPD 5
+#macro ROUGE_GLIDE_ACC 2
+
+// v14 — SLIDE (patron SALLY): minimo de velocidad para deslizar
+#macro ROUGE_SLIDE_MIN 2.5
+
+// v14 — PASIVA «CAZADORA DE TESOROS»: % de que un anillo normal
+// cuente doble (net_state_game; los generados por Cream/Vanilla no)
+#macro ROUGE_TREASURE_CHANCE 50
+
 //Variables
 gspd = 0;
 xspd = 0;
@@ -110,6 +122,10 @@ spinDustTimer = 0;
 spinDashRelease = false;   // true mientras la bola lanzada muestra spr_rouge_spin_release
 // v13 — TORNADO (X): tornadoState > 0 = moviendose con i-frames
 tornadoState = 0;
+
+// v14 — SLIDE (patron Sally): activa con ABAJO corriendo
+isSliding = false;
+slideSpeed = 0;
 bounceTimer = 0;
 shards = 0;
 chunkX = -1000;
@@ -146,7 +162,7 @@ moribundaTimer = 0;
 canLookDown = true;
 canLookUp = true;
 canSpinDash = true;
-canSpin = true;
+canSpin = false; // v14: ABAJO corriendo = SLIDE de Sally (no el rodar)
 specialFunc = scr_rouge_special; /* Function with abilities */
 
 //constants

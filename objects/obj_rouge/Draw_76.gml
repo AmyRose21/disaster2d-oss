@@ -132,6 +132,19 @@ switch(state)
                 image_xscale = sign(gspd) == 0 ? image_xscale : sign(gspd);
                 break;
 
+        // v14 — SLIDE (patron Sally): tira de 1 frame, quieta.
+        case ROUGE_SLIDE:
+                image_speed = 0;
+                break;
+
+        // v14 — GLIDE PASIVA tipo Knuckles: tira DIRECCIONAL de 5 frames
+        // (spr_rouge_glide): el frame lo fija scr_rouge_special segun el
+        // glide_xspd (0=fuerte derecha ... 4=fuerte izquierda) — aqui no
+        // se anima: image_speed 0 y el image_index ya viajo por red.
+        case ROUGE_GLIDE_AIR:
+                image_speed = 0;
+                break;
+
         // v4.5 — MORIBUNDA: tirada (spr_rouge_hurt), quieta en su frame
         case ROUGE_MORIBUNDA:
                 image_speed = 0;
