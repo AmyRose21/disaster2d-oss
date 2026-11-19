@@ -250,8 +250,10 @@ function scr_rouge_special()
         {
                 if(invisTimer <= ROUGE_INVIS_RECHARGE)
                 {
-                        // ACTIVAR (mismo patron de sonidos del exe, sin
-                        // net_sound_emit: sigilo de superviviente)
+                        // ACTIVAR — v36 (duena): SU voz propia al
+                        // desaparecer ("too bad", de los mp3 nuevos),
+                        // fuera los sonidos del exe. Sigilo de
+                        // superviviente: solo local, sin emit.
                         var _play = true;
 
                         for(var _isnd = 46; _isnd < array_length(global.net_snds); _isnd++)
@@ -264,17 +266,48 @@ function scr_rouge_special()
                         }
 
                         if(_play)
-                                audio_play_sound(choose(snd_exe_invisenter, snd_exe_invisenter2), 0, false);
-
-                        audio_play_sound(snd_exe_appear, 0, false);
+                                audio_play_sound(snd_rouge_toobad, 0, false);
 
                         invisTimer = ROUGE_INVIS_DURATION;
                 }
                 else if(invisTimer > 0)
                 {
-                        // corte manual temprano (como el exe)
+                        // corte manual temprano (como el exe): los
+                        // sonidos de APARICION los pone el bloque de
+                        // abajo al ver invisTimer == 0
                         invisTimer = 0;
-                        audio_play_sound(snd_exe_appear, 0, false);
+                }
+        }
+
+        // v36 (duena): APARICION — al terminarse la invisibilidad (o al
+        // cortarla con C) suenan las 2 ULTIMAS voces ("warp surprised" +
+        // "i make my own luck") SUMADAS al sonido de aparicion normal
+        // del exe. Viajan por red (net_sound_emit, patron del exe): la
+        // aparicion es un evento publico — se ve y se oye en todas las
+        // pantallas. Muerta no suena (la muerte la apaga mas arriba).
+        if(invisTimer == 0 && !isDead)
+        {
+                var _play = true;
+
+                for(var _isnd = 46; _isnd < array_length(global.net_snds); _isnd++)
+                {
+                        if(audio_is_playing(global.net_snds[_isnd]))
+                        {
+                                _play = false;
+                                break;
+                        }
+                }
+
+                audio_play_sound(snd_exe_appear, 0, false);
+                net_sound_emit(snd_exe_appear);
+
+                if(_play)
+                {
+                        audio_play_sound(snd_rouge_warp, 0, false);
+                        net_sound_emit(snd_rouge_warp);
+
+                        audio_play_sound(snd_rouge_luck, 0, false);
+                        net_sound_emit(snd_rouge_luck);
                 }
         }
 
@@ -326,6 +359,15 @@ function scr_rouge_special()
 
                 net_quick_effect(x - image_xscale * 12, y + 16, spr_dust, false, -image_xscale, -image_xscale * 2, -1);
         }
+
+        // v37: el bloque v36 que plantaba a Rouge durante el escudo
+        // (gspd=xspd=0) SE RETIRA — era un parche a ciegas del sintoma.
+        // La causa real del "dash" (la duena lo grabo en video): dos
+        // bloques de la v24 pensados solo para tornado/taladro — el
+        // cambio de modo que arrancaba el tornado fantasma al tocar
+        // suelo, y el fallback aereo que empujaba xspd=2 — ambos ya
+        // llevan sus gates abajo. El escudo queda como el del doctor:
+        // anda y cae normal, CERO dash, movibilidad plena.
 
         if(isSpinCharging)
         {
@@ -922,7 +964,14 @@ function scr_rouge_special()
         // tierra ya deja tornadoState > 0 en el MISMO frame, el taladro
         // agotado en el aire apaga isAttacking y el tornado terminado
         // tambien.
-        if(isAttacking && isGrounded && tornadoState <= 0 && !isHurt && !isDead && shockedTimer <= 0)
+        // v37 (bug del video de la duena): este cambio de modo es
+        // EXCLUSIVO del taladro que aterriza — exige drillState > 0.
+        // Sin el gate, la PATADA (v32) y el ESCUDO ELECTRICO (v34) al
+        // tocar suelo con isAttacking arrancaban el tornado COMPLETO
+        // (recorrido, polvareda y snd_dash) con la animacion pisada
+        // por su propio estado: el escudo se veia como "el patron del
+        // torbellino sin la animacion" y la lanzaba hacia adelante.
+        if(isAttacking && isGrounded && tornadoState <= 0 && drillState > 0 && !isHurt && !isDead && shockedTimer <= 0)
         {
                 // el taladro termina aqui: el tornado toma el relevo
                 drillState = 0;
@@ -937,12 +986,15 @@ function scr_rouge_special()
                 repeat(3)
                         net_quick_effect(x - image_xscale * (4 + irandom(8)), y + 12 + irandom(4), spr_dust, false, -image_xscale, -image_xscale, -irandom(1));
         }
-        else if(isAttacking && !isGrounded && tornadoState <= 0 && drillState <= 0)
+        else if(isAttacking && !isGrounded && tornadoState <= 0 && drillState <= 0
+        && kickState <= 0 && eShieldTimer <= 0)
         {
-                // (defensivo: hoy no hay ataque aereo fuera del taladro —
-                // el taladro nunca pasa por aqui (drillState > 0) y el
-                // tornado aereo tampoco (tornadoState > 0): sin estos
-                // gates este bloque pisaba la velocidad de ambos)
+                // (defensivo de la v24, hoy MUERTO para todo ataque real:
+                // taladro (drillState), patada (kickState) y escudo
+                // (eShieldTimer) ya no caen aqui — este fallback empujaba
+                // xspd = 2 a la PATADA y al ESCUDO en el aire (v37: otra
+                // cara del bug del video). Se conserva por si algun dia
+                // hay un ataque aereo sin estado propio.)
                 gspd = 0;
                 xspd = image_xscale * 2;
         }

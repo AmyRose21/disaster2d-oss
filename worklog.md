@@ -5854,3 +5854,41 @@ Work Log:
 Stage Summary:
 - La duena tenia razon y su solucion era la correcta y la mas simple: el seguro que ya tenian las demas habilidades (guard por set) faltaba en la unica habilidad vieja (v13) que nunca lo necesito — al llegar los sets de la v32 quedo como la puerta abierta
 - Leccion: cuando se anade un sistema de "modos" a un personaje existente, AUDITAR todas sus habilidades viejas una por una contra el guard nuevo, no solo las que interactuan con las nuevas
+
+---
+Task ID: rouge-v36-dash-hud-emotico-inmunidad-sonidos
+Agent: main (Z.ai)
+Task: Cinco pedidos de la duena: (1) retirar el dash al escudo electrico, (2) la invisibilidad sin icono ni boton en el HUD, (3) el emotico 3 reproduce el 1, (4) invisibilidad inmune al dano como el exe real, (5) sonidos propios con sus 4 mp3 subidos (una de las 2 primeras al hacerse invisible, las 2 ultimas + el sonido de aparicion del exe al aparecer).
+
+Work Log:
+- DASH del escudo: forense del handler (isAttacking + timers + sonido: CERO impulso) — el "dash" era el DESPLAZAMIENTO RESIDUAL: al activarlo corriendo seguia derrapando con el aura puesta (el estado ROUGE_ESHIELD pisa WALK y no frena nada). FIX: gspd=xspd=0 cada frame mientras eShieldTimer > 0 — plantada como torre electrica (ypsd intacto: en el aire cae vertical)
+- EMOTICO 3: la tabla player_anims[ROUGE] slot 11 apuntaba a spr_rouge_emotion (el sprite del EMOTICO 1 — un typo v13) — el Other_7 y el Draw_76 eran correctos: 1 palabra de fix
+- INMUNIDAD: todo el dano del juego entra por scr_player_hurt (contacto exe/esbirros del puppet, trampas, balas, zonas) — guard nuevo antes de la burbuja de Amy Canon (patron exacto): si ROUGE && invisTimer > 0 → return. El rastreo ya la saltaba desde la v32; ahora tampoco le entra dano
+- HUD: drawKeyIcon es una lambda local del playerui (spr, frame, artW, key, XX, YY, col, alpha, hintX) — boton C de invisibilidad en el set ROUGE (fila 294, bajo la V) con el icono del exe (spr_gui_exeinvisability, patron de SU hud) y la barrita con SU formula (invisTimer negativo / RECHARGE: roja durante invisibilidad+recarga, blanca = lista)
+- SONIDOS: 3 assets NUEVOS (primera vez que se toca el .yyp en una ronda): ffmpeg mp3→wav PCM 16b 44100 stereo + .yy (plantilla del snd_exe_appear, carpeta Sounds/Player) + 3 entradas "id" en el resources del .yyp (+3/-0 exacto, sin GUIDs: proyecto v1 old-style). Eleccion de la "alguna de las 2": rouge-too-bad para el invisible (desaparece burlandose); rouge-surprise-oh-my queda sin usar. Handler: al ACTIVAR solo snd_rouge_toobad (fuera choose(invisenter) y el appear del exe — pedido expreso "para no usar las del exe"); bloque NUEVO de APARICION if(invisTimer == 0 && !isDead): snd_exe_appear + snd_rouge_warp + snd_rouge_luck, los 3 con net_sound_emit (la aparicion es un evento publico: se ve y se oye en todas las pantallas, patron del exe con appear2/3) + anti-solape de net_snds del patron exe; el corte manual ya no lleva sonido propio (los pone el bloque de aparicion una sola vez — antes doblaba). Sin trampa de spawn: invisTimer arranca en ROUGE_INVIS_RECHARGE (-840) desde el Create v32, el == 0 solo cruza al terminarse la duracion
+- Verificacion: check_v36.py 217/217 (todo v32-v35 intacto + [20] completa: plantado, emotico3, inmunidad antes de burbuja, HUD C, sonidos handler sin sonidos del exe en el activar, bloque aparicion con 3 emits, corte sin doble sonido, 3 assets .yy+.wav+yyp 1 vez cada uno + diff yyp +3/-0). 3 fixes al propio checker: la asercion vieja "yyp sin diff" (ahora +3), find de burbuja dentro de la funcion hurt (la del instakill contaba antes), y regex del corte manual reescrita por extraccion de bloque
+- Entregable: download/fix_v36_rouge_dash_hud_emotico_inmunidad_sonidos.zip — 4 GML (special, player_hurt, survivors, playerui/Draw_64) + .yyp + sounds/snd_rouge_{toobad,warp,luck}/ (.yy + .wav) + worklog + LEEME_ROUGE_V36.txt + check_v36.py
+
+Stage Summary:
+- Ronda de pulido a pedido directo: el escudo gano identidad fisica (plantada, no embestida), la invisibilidad gano presencia (boton + inmunidad + voz propia), y un typo de sprite de la v13 mataba el emotico 3 desde siempre
+- Primera edicion del .yyp en 36 versiones (los sonidos lo exigen) — hecha con insercion exacta de 3 lineas al estilo del proyecto (v1, sin GUIDs) y diff +3/-0 verificado
+
+---
+Task ID: rouge-v37-escudo-dash-video
+Agent: main (Z.ai)
+Task: La duena grabo en video que al activar el escudo electrico Rouge se impulsaba hacia adelante "igual al patron del torbellino pero sin la animacion" — y que el escudo de Sally en el mismo boton no lo sufre.
+
+Work Log:
+- VIDEO: el CLI de vision rechazo el mp4 local (error 1210); re-encode h264 y contact sheet 4x4 con los 14 frames (PIL, scripts/v37_sheet.py) → z-ai vision con el sheet: el analisis describia "3-4 copias de Rouge", "orbe blanco 2x su tamano", "particulas rosas" y desplazamiento anormal en t=1.8-3.15s
+- La explicacion TEXTUAL de la duena fue la clave: "impulso automatico igual al torbellino SOLO QUE SIN la animacion; el escudo de Sally en el mismo boton no pasa eso" — el tornado fantasma: movimiento de tornado + animacion pisada por ROUGE_ESHIELD
+- FORENSE: el guard del tornado SI exige rougeMode == ROUGE_MODE_ROGUE (no era el handler directo). Los culpables: DOS bloques de la v24 escritos cuando solo existian tornado/taladro:
+  1) el CAMBIO DE MODO taladro->tornado (special ~972): guard "isAttacking && isGrounded && tornadoState <= 0" sin exigir taladro — al activar el ESCUDO EN TIERRA cumplia todo y arrancaba el tornado COMPLETO (tornadoState = ROUGE_TORNADO_TIME: recorrido, polvareda y snd_dash) con la animacion pisada por el estado ESHIELD = el dash del video. La PATADA al aterrizar tenia el mismo bug hermano
+  2) el FALLBACK AEREO (~985): "else if(isAttacking && !isGrounded && tornadoState <= 0 && drillState <= 0)" empujaba xspd = image_xscale * 2 cada frame — el escudo/patada EN EL AIRE comian ese empujon
+  El escudo de Sally no sufria nada porque NO pone isAttacking (es burbuja, no ataque)
+- FIX (causa, no sintoma): (1) gate drillState > 0 en el cambio de modo (es EXCLUSIVO del taladro que aterriza — su propio comentario lo decia); (2) gates kickState <= 0 && eShieldTimer <= 0 en el fallback aereo (queda muerto para todo ataque actual, se conserva por si algun dia hay un ataque aereo sin estado propio); (3) RETIRADO el parche v36 que plantaba a Rouge (gspd=xspd=0): era fix a ciegas del sintoma — el escudo queda como el del doctor: movilidad plena, CERO dash
+- Verificacion: lint OK; check_v37.py 219/219 (las 3 aserciones v37 nuevas: gate del cambio de modo, gates del fallback, parche v36 retirado; todo v32-v36 intacto). E2E: upstream v33 + v34 + v35 + v37 → 219/219
+- Entregable: download/fix_v37_rouge_escudo_sin_impulso.zip — ZIP COMPLETO ACUMULADO (v36+v37: los 4 GML + .yyp + sounds/ + docs) para que funcione lo aplique o no la v36 antes
+
+Stage Summary:
+- Ronda de depuracion con evidencia en video: la causa no estaba en el handler del escudo sino en DOS bloques legacy de la v24 que las habilidades de la v32/v34 (patada, escudo) encendian sin querer al poner isAttacking
+- Leccion para el futuro del proyecto: cada habilidad nueva que use isAttacking debe tener SU variable de estado propia y los bloques genericos de attack viejos deben listarlas como exclusiones

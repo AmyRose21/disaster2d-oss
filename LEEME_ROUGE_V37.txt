@@ -1,0 +1,53 @@
+=====================================================================
+ ROUGE v37 — EL DASH DEL ESCUDO, ARREGLADO DE RAIZ (con tu video)
+=====================================================================
+
+QUE PASABA (tu video lo delato)
+--------------------------------
+Tu descripcion era PERFECTA: "me impulso hacia adelante, igual al
+patron del torbellino pero sin la animacion". Eso era EXACTAMENTE
+lo que pasaba: al pulsar X con el escudo, DOS bloques viejos del
+codigo (de la epoca en que solo existian el tornado y el taladro)
+se encendian por error porque el escudo pone la bandera "estoy
+atacando":
+
+  * EN TIERRA: un bloque que convertia "taladro que aterriza" en
+    tornado arrancaba EL TORNADO COMPLETO — su recorrido y su
+    velocidad — pero la animacion del escudo pisaba la del
+    remolino: el tornado fantasma. El impulso que veias.
+
+  * EN EL AIRE: otro bloque de emergencia le metia un empujon
+    frontal constante (x2 por frame).
+
+  * El escudo de SALLY no sufre nada porque es una burbuja: no
+    pone la bandera de ataque. Por eso el mismo boton se portaba
+    distinto.
+
+QUE HICE
+--------
+  * Los dos bloques ya piden su condicion correcta: el cambio
+    taladro->tornado SOLO con taladro real, y el empujon de
+    emergencia ya no aplica a la patada ni al escudo.
+  * El parche de la v36 que la dejaba clavada en el sitio durante
+    el escudo RETIRADO: era un vendaje del sintoma. El escudo
+    queda como el del doctor: camina, salta y cae con total
+    normalidad, CERO impulso automatico.
+  * El tornado y el taladro siguen funcionando IGUAL que siempre
+    (el cambio taladro->tornado al aterrizar, intacto).
+  * De paso se arreglo un bug hermano que nadie habia visto: la
+    PATADA al aterrizar tambien arrancaba el tornado fantasma.
+
+PRUEBA RAPIDA (30 segundos)
+---------------------------
+ 1. Set EGGMAN: activa el escudo en TIERRA corriendo — se queda
+    contigo, cero impulso, camina normal con el aura.
+ 2. Salta y activa el escudo EN EL AIRE — cae natural, sin
+    empujon frontal.
+ 3. X en el set normal: el tornado sigue siendo el tornado, y el
+    taladro aereo sigue convirtiendose en tornado al aterrizar.
+
+NOTA: este zip es COMPLETO (incluye TODO lo de la v36: los
+sonidos con tus mp3, la inmunidad de la invisibilidad, el emotico
+3 y el boton C del HUD). Aplicalo tal cual aunque no hayas
+instalado la v36 antes. EL SERVER NO SE TOCA.
+=====================================================================

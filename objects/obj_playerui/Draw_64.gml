@@ -420,6 +420,15 @@ if(instance_exists(global.player) && !global.player.isDead)
                                 var _rcharging = variable_instance_exists(global.player.id, "isSpinCharging") && global.player.isSpinCharging;
                                 var _rchg = variable_instance_exists(global.player.id, "spinCharge") ? global.player.spinCharge / ROUGE_SPINDASH_CHARGE_MAX : 0;
                                 drawKeyIcon(_rspr, 0, 33, global.KeyA, 10, 222 - _ico, _rcharging ? c_red : c_white, _rcharging ? 0.5 + _rchg * 0.5 : 1, 0);
+
+                                // ---- C: INVISIBILIDAD (v36: el icono y el
+                                // boton que faltaban) — el icono del exe
+                                // (patron de SU hud): barrita cuenta la
+                                // RECARGA; roja mientras dura la
+                                // invisibilidad y durante la recarga,
+                                // blanca = lista ----
+                                var _iprog = min(global.player.invisTimer, 0) / ROUGE_INVIS_RECHARGE;
+                                drawKeyIcon(spr_gui_exeinvisability, 0, 25, global.KeyC, _iprog * 4, 294 - _ico, _iprog == 1.0 ? c_white : c_red, _iprog, 0);
                         }
                         else if(global.player.rougeMode == ROUGE_MODE_EGGMAN)
                         {

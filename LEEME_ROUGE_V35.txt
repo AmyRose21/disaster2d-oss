@@ -1,0 +1,41 @@
+=====================================================================
+ ROUGE v35 — EL SEGURO DEL GIRO (1 archivo .gml, SOLO CLIENTE)
+=====================================================================
+
+QUE PASABA
+----------
+ Tenias toda la razon y tu solucion era la correcta: el GIRO
+ (abajo + Z) era la unica habilidad que se le habia olvidado el
+ seguro. El tornado, la invisibilidad, la patada, el escudo, la
+ mina y los anillos YA revisaban que set llevas puesto antes de
+ dispararse... el giro NO: era del sistema viejo (antes de que
+ existiera la V) y entraba igual con EGGMAN / ATAQUE / SOPORTE
+ puesto — por eso se te mezclaba con la X del set.
+
+EL SEGURO (lo que pediste, tal cual)
+------------------------------------
+ Con cualquier set que NO sea ROUGE puesto: abajo + Z NO HACE
+ NADA. Ni carga, ni bola, ni sonido. El giro solo existe en tu
+ set ROUGE de siempre. Al volver con la V (x4 hasta ROUGE), el
+ giro vuelve solo, sin recargas raras ni estados pegados.
+
+ Y OJO: el VUELO (A en el aire) sigue funcionando en TODOS los
+ sets a proposito — es tu forma de moverte, como el salto (la V
+ solo cambia la X y la C).
+
+COMO INSTALAR
+-------------
+ 1) Cierra GameMaker.
+ 2) Copia el zip encima del proyecto (SUSTITUIR): 1 archivo .gml
+    + los documentos.
+ 3) Compila. EL SERVER NO SE TOCA.
+
+PRUEBA RAPIDA (30 segundos)
+---------------------------
+ 1. V hasta EGGMAN: agachate y dale a Z varias veces — NADA.
+    Lo mismo en ATAQUE y SOPORTE. El giro esta cerrado.
+ 2. V hasta ROUGE: agachate + Z — el giro carga y sale como
+    siempre, con sus revolucadas y su sonido.
+ 3. En EGGMAN: X = escudo con aura, C (agachada) = mina. En
+    ATAQUE: X = patada. Nada de Rouge se cuela ya.
+=====================================================================

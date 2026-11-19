@@ -454,7 +454,7 @@ global.player_anims[? CHARACTER_ROUGE] =
         spr_rouge_lookdown, //8
         spr_rouge_emotion1, //9
         spr_rouge_emotion2, //10
-        spr_rouge_emotion, //11
+        spr_rouge_emotion3, //11 — v36 (fix duena): era spr_rouge_emotion (el 1er emotico) — por eso el emotico 3 reproducia el 1
         spr_rouge_jump, //12 (spin)
         spr_rouge_balancing, //13
         spr_rouge_attack1, //14 = ROUGE_ATTACK: patada AEREA (tecla X en el aire)

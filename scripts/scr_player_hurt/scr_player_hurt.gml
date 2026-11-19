@@ -329,7 +329,18 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                 
         if(global.player.isDead)
                 return;
-        
+
+        // v36 (duena: "la invisibilidad debe hacerla inmune al dano
+        // como el exe real"): mientras Rouge esta INVISIBLE no puede
+        // ser herida por nada — todo el dano del juego entra por aqui
+        // (contacto del exe y de los esbirros, trampas, balas, zonas).
+        // El rastreo ya la saltaba desde la v32 (la aguja ni con anillo
+        // rojo); ahora tampoco le entra el dano. Patron de la burbuja
+        // de Amy Canon de abajo.
+        if(global.character == CHARACTER_ROUGE
+        && global.player.invisTimer > 0)
+                return;
+
         // BURBUJA DE SECUESTRO (Amy Canon): mientras esta dentro de la
         // burbuja no puede ser herida por nada (golpes del EXE, esbirros,
         // pinchos, huecos...). Solo sale de ahi con el toque de un
