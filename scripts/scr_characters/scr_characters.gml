@@ -357,9 +357,9 @@ function scr_hud_strip(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerhealth_sallycanon, 0];
         case CHARACTER_VANILLA: return [spr_playerhealth_vanilla, 0];
-        // v4.4: la tira comun llega hasta Fleetway (14 filas); Rouge
-        // reusa la fila de Knuckles (mismo tamano de sprite)
-        case CHARACTER_ROUGE: return [spr_playerhealth, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
+        // v39 (duena): fila PROPIA de Rouge (frames 98-104, los ultimos
+        // del sprite — su arte nuevo) — antes reusaba la de Knuckles
+        case CHARACTER_ROUGE: return [spr_playerhealth, (CHARACTER_ROUGE - CHARACTER_TAILS) * 7];
         // v5 (KRIS): placeholder KNUCKLES en la barra de vida (pedido de
         // la duena) — misma fila que Rouge hasta que llegue su tira
         case CHARACTER_KRIS: return [spr_playerhealth, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
@@ -375,7 +375,8 @@ function scr_hud_strip_red(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerhealth_redring, (CHARACTER_SALLY - CHARACTER_TAILS) * 7];
         case CHARACTER_VANILLA: return [spr_playerhealth_redring, (CHARACTER_CREAM - CHARACTER_TAILS) * 7];
-        case CHARACTER_ROUGE: return [spr_playerhealth_redring, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
+        // v39: fila propia de Rouge (98-104, su arte nuevo) — antes la de Knuckles
+        case CHARACTER_ROUGE: return [spr_playerhealth_redring, (CHARACTER_ROUGE - CHARACTER_TAILS) * 7];
         // v5 (KRIS): fila de Knuckles, igual que la tira comun
         case CHARACTER_KRIS: return [spr_playerhealth_redring, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
     }
@@ -391,8 +392,10 @@ function scr_hud_strip_nega(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerhealth_nega_sallycanon, 0];
         case CHARACTER_VANILLA: return [spr_playerhealth_nega_vanilla, 0];
-        // Rouge reusa la fila de Knuckles, igual que la tira comun
-        case CHARACTER_ROUGE: return [spr_playerhealth_nega, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
+        // v39 (duena): fila NEGA propia de Rouge (98-104, generada con el
+        // transform negademon2: inversion RGB con el contorno (0,0,0)
+        // intacto) — antes reusaba la de Knuckles
+        case CHARACTER_ROUGE: return [spr_playerhealth_nega, (CHARACTER_ROUGE - CHARACTER_TAILS) * 7];
         // v5 (KRIS): fila de Knuckles (defensivo: Kris jamas es nega)
         case CHARACTER_KRIS: return [spr_playerhealth_nega, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
     }
@@ -408,7 +411,8 @@ function scr_hud_strip_red_nega(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerhealth_redring_nega, (CHARACTER_SALLY - CHARACTER_TAILS) * 7];
         case CHARACTER_VANILLA: return [spr_playerhealth_redring_nega, (CHARACTER_CREAM - CHARACTER_TAILS) * 7];
-        case CHARACTER_ROUGE: return [spr_playerhealth_redring_nega, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
+        // v39: fila NEGA propia de Rouge (98-104, mismo transform)
+        case CHARACTER_ROUGE: return [spr_playerhealth_redring_nega, (CHARACTER_ROUGE - CHARACTER_TAILS) * 7];
         // v5 (KRIS): fila de Knuckles (defensivo: Kris jamas es nega)
         case CHARACTER_KRIS: return [spr_playerhealth_redring_nega, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];
     }
@@ -421,7 +425,8 @@ function scr_hud_hit(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerhealth_hit_sallycanon, 0];
         case CHARACTER_VANILLA: return [spr_playerhealth_hit_vanilla, 0];
-        case CHARACTER_ROUGE: return [spr_playerhealth_hit, CHARACTER_KNUX - CHARACTER_TAILS];
+        // v39: icono propio de Rouge (frame 14, el ultimo — su arte nuevo)
+        case CHARACTER_ROUGE: return [spr_playerhealth_hit, CHARACTER_ROUGE - CHARACTER_TAILS];
         // v5 (KRIS): placeholder Knuckles (el icono de "cayo 1 vez" del
         // moribundo sale con la cara de Knuckles hasta su arte propio)
         case CHARACTER_KRIS: return [spr_playerhealth_hit, CHARACTER_KNUX - CHARACTER_TAILS];
@@ -448,7 +453,8 @@ function scr_hud_escaped(char)
     {
         case CHARACTER_SALLY_CANON: return [spr_playerescaped_sallycanon, 0];
         case CHARACTER_VANILLA: return [spr_playerescaped_vanilla, 0];
-        case CHARACTER_ROUGE: return [spr_playerescaped, CHARACTER_KNUX - CHARACTER_TAILS];
+        // v39: icono propio de Rouge (frame 14, el ultimo)
+        case CHARACTER_ROUGE: return [spr_playerescaped, CHARACTER_ROUGE - CHARACTER_TAILS];
         // v5 (KRIS): placeholder Knuckles
         case CHARACTER_KRIS: return [spr_playerescaped, CHARACTER_KNUX - CHARACTER_TAILS];
     }

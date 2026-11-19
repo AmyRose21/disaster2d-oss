@@ -697,6 +697,55 @@
       "name": "465560e2-08d3-4b94-9dd7-f0cecb3d3fe0",
       "resourceType": "GMSpriteFrame",
       "resourceVersion": "2.0"
+    },
+    {
+      "$GMSpriteFrame": "v1",
+      "%Name": "79873768-cb1a-4f78-9f5b-825184e13e31",
+      "name": "79873768-cb1a-4f78-9f5b-825184e13e31",
+      "resourceType": "GMSpriteFrame",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMSpriteFrame": "v1",
+      "%Name": "c7fdab5c-5f9d-4750-bf14-deb45acd188f",
+      "name": "c7fdab5c-5f9d-4750-bf14-deb45acd188f",
+      "resourceType": "GMSpriteFrame",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMSpriteFrame": "v1",
+      "%Name": "64761d54-f720-4447-aae9-7ceed376c138",
+      "name": "64761d54-f720-4447-aae9-7ceed376c138",
+      "resourceType": "GMSpriteFrame",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMSpriteFrame": "v1",
+      "%Name": "4fd562e4-8ae0-4e8a-bbc7-0780824c6646",
+      "name": "4fd562e4-8ae0-4e8a-bbc7-0780824c6646",
+      "resourceType": "GMSpriteFrame",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMSpriteFrame": "v1",
+      "%Name": "1431dea4-36b7-4c56-ac00-aa8fbf4eb4c3",
+      "name": "1431dea4-36b7-4c56-ac00-aa8fbf4eb4c3",
+      "resourceType": "GMSpriteFrame",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMSpriteFrame": "v1",
+      "%Name": "a1ebd457-2aa8-4e0d-bf62-8f1fe45c3591",
+      "name": "a1ebd457-2aa8-4e0d-bf62-8f1fe45c3591",
+      "resourceType": "GMSpriteFrame",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMSpriteFrame": "v1",
+      "%Name": "e89527d2-a7ef-42a7-a653-321d8f9eac54",
+      "name": "e89527d2-a7ef-42a7-a653-321d8f9eac54",
+      "resourceType": "GMSpriteFrame",
+      "resourceVersion": "2.0"
     }
   ],
   "gridX": 0,
@@ -745,7 +794,7 @@
     },
     "eventStubScript": null,
     "eventToFunction": {},
-    "length": 98.0,
+    "length": 105.0,
     "lockOrigin": false,
     "moments": {
       "$KeyframeStore<MomentsEventKeyframe>": "",
@@ -2924,6 +2973,160 @@
               "id": "21735e4f-ffdf-4823-9580-4ee94edc4002",
               "IsCreationKey": false,
               "Key": 97.0,
+              "Length": 1.0,
+              "resourceType": "Keyframe<SpriteFrameKeyframe>",
+              "resourceVersion": "2.0",
+              "Stretch": false
+            },
+            {
+              "$Keyframe<SpriteFrameKeyframe>": "",
+              "Channels": {
+                "0": {
+                  "$SpriteFrameKeyframe": "",
+                  "Id": {
+                    "name": "79873768-cb1a-4f78-9f5b-825184e13e31",
+                    "path": "sprites/spr_playerhealth_redring_nega/spr_playerhealth_redring_nega.yy"
+                  },
+                  "resourceType": "SpriteFrameKeyframe",
+                  "resourceVersion": "2.0"
+                }
+              },
+              "Disabled": false,
+              "id": "7f4784c9-a19a-41ce-afe0-c4d927168e1f",
+              "IsCreationKey": false,
+              "Key": 98.0,
+              "Length": 1.0,
+              "resourceType": "Keyframe<SpriteFrameKeyframe>",
+              "resourceVersion": "2.0",
+              "Stretch": false
+            },
+            {
+              "$Keyframe<SpriteFrameKeyframe>": "",
+              "Channels": {
+                "0": {
+                  "$SpriteFrameKeyframe": "",
+                  "Id": {
+                    "name": "c7fdab5c-5f9d-4750-bf14-deb45acd188f",
+                    "path": "sprites/spr_playerhealth_redring_nega/spr_playerhealth_redring_nega.yy"
+                  },
+                  "resourceType": "SpriteFrameKeyframe",
+                  "resourceVersion": "2.0"
+                }
+              },
+              "Disabled": false,
+              "id": "7f2068ce-b9f3-4fb0-9275-5f8191809d2b",
+              "IsCreationKey": false,
+              "Key": 99.0,
+              "Length": 1.0,
+              "resourceType": "Keyframe<SpriteFrameKeyframe>",
+              "resourceVersion": "2.0",
+              "Stretch": false
+            },
+            {
+              "$Keyframe<SpriteFrameKeyframe>": "",
+              "Channels": {
+                "0": {
+                  "$SpriteFrameKeyframe": "",
+                  "Id": {
+                    "name": "64761d54-f720-4447-aae9-7ceed376c138",
+                    "path": "sprites/spr_playerhealth_redring_nega/spr_playerhealth_redring_nega.yy"
+                  },
+                  "resourceType": "SpriteFrameKeyframe",
+                  "resourceVersion": "2.0"
+                }
+              },
+              "Disabled": false,
+              "id": "182c53c2-1972-4df6-885c-e45cff005140",
+              "IsCreationKey": false,
+              "Key": 100.0,
+              "Length": 1.0,
+              "resourceType": "Keyframe<SpriteFrameKeyframe>",
+              "resourceVersion": "2.0",
+              "Stretch": false
+            },
+            {
+              "$Keyframe<SpriteFrameKeyframe>": "",
+              "Channels": {
+                "0": {
+                  "$SpriteFrameKeyframe": "",
+                  "Id": {
+                    "name": "4fd562e4-8ae0-4e8a-bbc7-0780824c6646",
+                    "path": "sprites/spr_playerhealth_redring_nega/spr_playerhealth_redring_nega.yy"
+                  },
+                  "resourceType": "SpriteFrameKeyframe",
+                  "resourceVersion": "2.0"
+                }
+              },
+              "Disabled": false,
+              "id": "9552f718-d2b5-4d28-8742-209b58350e09",
+              "IsCreationKey": false,
+              "Key": 101.0,
+              "Length": 1.0,
+              "resourceType": "Keyframe<SpriteFrameKeyframe>",
+              "resourceVersion": "2.0",
+              "Stretch": false
+            },
+            {
+              "$Keyframe<SpriteFrameKeyframe>": "",
+              "Channels": {
+                "0": {
+                  "$SpriteFrameKeyframe": "",
+                  "Id": {
+                    "name": "1431dea4-36b7-4c56-ac00-aa8fbf4eb4c3",
+                    "path": "sprites/spr_playerhealth_redring_nega/spr_playerhealth_redring_nega.yy"
+                  },
+                  "resourceType": "SpriteFrameKeyframe",
+                  "resourceVersion": "2.0"
+                }
+              },
+              "Disabled": false,
+              "id": "e3fc8e61-3261-4fc2-a45b-6307bc7db645",
+              "IsCreationKey": false,
+              "Key": 102.0,
+              "Length": 1.0,
+              "resourceType": "Keyframe<SpriteFrameKeyframe>",
+              "resourceVersion": "2.0",
+              "Stretch": false
+            },
+            {
+              "$Keyframe<SpriteFrameKeyframe>": "",
+              "Channels": {
+                "0": {
+                  "$SpriteFrameKeyframe": "",
+                  "Id": {
+                    "name": "a1ebd457-2aa8-4e0d-bf62-8f1fe45c3591",
+                    "path": "sprites/spr_playerhealth_redring_nega/spr_playerhealth_redring_nega.yy"
+                  },
+                  "resourceType": "SpriteFrameKeyframe",
+                  "resourceVersion": "2.0"
+                }
+              },
+              "Disabled": false,
+              "id": "565d1929-a7e9-46f7-8ae1-92a1dbfdb4a4",
+              "IsCreationKey": false,
+              "Key": 103.0,
+              "Length": 1.0,
+              "resourceType": "Keyframe<SpriteFrameKeyframe>",
+              "resourceVersion": "2.0",
+              "Stretch": false
+            },
+            {
+              "$Keyframe<SpriteFrameKeyframe>": "",
+              "Channels": {
+                "0": {
+                  "$SpriteFrameKeyframe": "",
+                  "Id": {
+                    "name": "e89527d2-a7ef-42a7-a653-321d8f9eac54",
+                    "path": "sprites/spr_playerhealth_redring_nega/spr_playerhealth_redring_nega.yy"
+                  },
+                  "resourceType": "SpriteFrameKeyframe",
+                  "resourceVersion": "2.0"
+                }
+              },
+              "Disabled": false,
+              "id": "69047456-4e79-4965-bc9f-55b3f9398b7a",
+              "IsCreationKey": false,
+              "Key": 104.0,
               "Length": 1.0,
               "resourceType": "Keyframe<SpriteFrameKeyframe>",
               "resourceVersion": "2.0",

@@ -1624,6 +1624,8 @@ function player_get(ind)
 //   * Amy Canon: solo con el token local (amy_canon.token)
 //   * Sally Canon: solo siendo operador del server
 //     (global.isOperator, seteado por SERVER_OPERATOR_STATE)
+//   * Rouge y Vanilla: solo el token de Amy (v39 la duena relega a
+//     Rouge al cajon del token, igual que Vanilla)
 //   * Sonic: libre para todos
 // Quien no cumple NO ve el personaje al ciclar en la seleccion ni
 // puede pedirlo (obj_lobby_icon / obj_lobby); y si igual lo pide con
@@ -1646,12 +1648,15 @@ function scr_char_locked(ch)
         if(ch == CHARACTER_VANILLA && global.amyCanonToken == "")
                 return true;
 
-        // v6.3: ROUGE RE-ACTIVADA — el bloqueo v6.2 ("sus sprites no
-        // convencieron") se retira: el set del TTB ya esta restaurado,
-        // sus origins aterran al suelo exacto y su Z ahora es VUELO
-        // patron Tails (v4.6, scr_rouge_special). Publica para todos,
-        // igual que el resto del carrusel. El server tambien la acepta
-        // de nuevo (states/CharSelect.c).
+        // v39 (duena): ROUGE RELEGADA — solo con el token de Amy
+        // (amy_canon.token), igual que Amy Canon y Vanilla: ni publica
+        // ni operadores, exclusiva de la duena del token. La v6.3 la
+        // habia re-activado para todos; vuelve al cajon del token.
+        // OJO: el server (betterserver-oss, states/CharSelect.c) hoy
+        // la sigue aceptando de todos — si se quiere el doble seguro
+        // del server (como Vanilla), hay que tocarlo alla tambien.
+        if(ch == CHARACTER_ROUGE && global.amyCanonToken == "")
+                return true;
 
         // v3 (D.I.B.): Fleetway Amy PASA A SER PUBLICA (pedido de la
         // duena: "la amy fw sera publica"). Salio del token — ahora

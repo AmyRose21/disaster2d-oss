@@ -250,10 +250,12 @@ function scr_rouge_special()
         {
                 if(invisTimer <= ROUGE_INVIS_RECHARGE)
                 {
-                        // ACTIVAR — v36 (duena): SU voz propia al
-                        // desaparecer ("too bad", de los mp3 nuevos),
-                        // fuera los sonidos del exe. Sigilo de
-                        // superviviente: solo local, sin emit.
+                        // ACTIVAR — v39 (duena): EFECTO del exe
+                        // (snd_exe_appear, como al entrar el original)
+                        // + 1 VOZ al azar entre las 2 de desaparecer:
+                        // "surprised oh my" (snd_rouge_ohmy, el mp3
+                        // nuevo) o "too bad" (snd_rouge_toobad). Sigilo
+                        // de superviviente: solo local, sin emit.
                         var _play = true;
 
                         for(var _isnd = 46; _isnd < array_length(global.net_snds); _isnd++)
@@ -265,8 +267,10 @@ function scr_rouge_special()
                                 }
                         }
 
+                        audio_play_sound(snd_exe_appear, 0, false);
+
                         if(_play)
-                                audio_play_sound(snd_rouge_toobad, 0, false);
+                                audio_play_sound(choose(snd_rouge_ohmy, snd_rouge_toobad), 0, false);
 
                         invisTimer = ROUGE_INVIS_DURATION;
                 }
@@ -279,12 +283,14 @@ function scr_rouge_special()
                 }
         }
 
-        // v36 (duena): APARICION — al terminarse la invisibilidad (o al
-        // cortarla con C) suenan las 2 ULTIMAS voces ("warp surprised" +
-        // "i make my own luck") SUMADAS al sonido de aparicion normal
-        // del exe. Viajan por red (net_sound_emit, patron del exe): la
-        // aparicion es un evento publico — se ve y se oye en todas las
-        // pantallas. Muerta no suena (la muerte la apaga mas arriba).
+        // v39 (duena): APARICION — al terminarse la invisibilidad (o al
+        // cortarla con C) suena el EFECTO del exe (snd_exe_appear) + 1
+        // VOZ al azar de las 2 ultimas: "warp surprised"
+        // (snd_rouge_warp) o "i make my own luck" (snd_rouge_luck) —
+        // antes sonaban las 2 SUMADAS. Viajan por red (net_sound_emit,
+        // patron del exe): la aparicion es un evento publico — se ve y
+        // se oye en todas las pantallas. Muerta no suena (la muerte la
+        // apaga mas arriba).
         if(invisTimer == 0 && !isDead)
         {
                 var _play = true;
@@ -303,11 +309,10 @@ function scr_rouge_special()
 
                 if(_play)
                 {
-                        audio_play_sound(snd_rouge_warp, 0, false);
-                        net_sound_emit(snd_rouge_warp);
+                        var _voice = choose(snd_rouge_warp, snd_rouge_luck);
 
-                        audio_play_sound(snd_rouge_luck, 0, false);
-                        net_sound_emit(snd_rouge_luck);
+                        audio_play_sound(_voice, 0, false);
+                        net_sound_emit(_voice);
                 }
         }
 

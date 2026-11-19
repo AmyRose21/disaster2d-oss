@@ -1015,6 +1015,7 @@
     {"id":{"name":"snd_ringlose","path":"sounds/snd_ringlose/snd_ringlose.yy",},},
     {"id":{"name":"snd_roar","path":"sounds/snd_roar/snd_roar.yy",},},
     {"id":{"name":"snd_rouge_luck","path":"sounds/snd_rouge_luck/snd_rouge_luck.yy",},},
+    {"id":{"name":"snd_rouge_ohmy","path":"sounds/snd_rouge_ohmy/snd_rouge_ohmy.yy",},},
     {"id":{"name":"snd_rouge_toobad","path":"sounds/snd_rouge_toobad/snd_rouge_toobad.yy",},},
     {"id":{"name":"snd_rouge_warp","path":"sounds/snd_rouge_warp/snd_rouge_warp.yy",},},
     {"id":{"name":"snd_sally_shield","path":"sounds/snd_sally_shield/snd_sally_shield.yy",},},

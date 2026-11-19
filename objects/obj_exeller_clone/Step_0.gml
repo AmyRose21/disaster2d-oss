@@ -39,14 +39,21 @@ with(obj_player_puppet)
 {
 	if(hp <= 0)
 		continue;
-	
+
 	if(revivalTimes >= 2)
 		continue;
-	
+
+	// v39 (duena): la Rouge INVISIBLE tampoco la delata el clon — su
+	// puppet llega con visible = false por el bit PLAYER_INVIS
+	// (net_udpprocess): mismo filtro de la aguja del exe/exeller/exetior
+	// (jamas la senala) y del scan de Metal Amy.
+	if(character == CHARACTER_ROUGE && !visible)
+		continue;
+
 	var dist = distance_to_object(_clone);
 	if(dist < 240 && dist < _dist)
 	{
-		_target = self;		
+		_target = self;
 		_dist = dist;
 	}
 }
