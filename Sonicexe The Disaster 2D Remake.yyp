@@ -2361,6 +2361,7 @@
     {"id":{"name":"spr_roseheart","path":"sprites/spr_roseheart/spr_roseheart.yy",},},
     {"id":{"name":"spr_rouge_attack1","path":"sprites/spr_rouge_attack1/spr_rouge_attack1.yy",},},
     {"id":{"name":"spr_rouge_attack2","path":"sprites/spr_rouge_attack2/spr_rouge_attack2.yy",},},
+    {"id":{"name":"spr_rouge_attack3","path":"sprites/spr_rouge_attack3/spr_rouge_attack3.yy",},},
     {"id":{"name":"spr_rouge_balancing","path":"sprites/spr_rouge_balancing/spr_rouge_balancing.yy",},},
     {"id":{"name":"spr_rouge_dead","path":"sprites/spr_rouge_dead/spr_rouge_dead.yy",},},
     {"id":{"name":"spr_rouge_emotion","path":"sprites/spr_rouge_emotion/spr_rouge_emotion.yy",},},
