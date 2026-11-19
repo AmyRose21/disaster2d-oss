@@ -2381,6 +2381,7 @@
     {"id":{"name":"spr_rouge_invis_emotion","path":"sprites/spr_rouge_invis_emotion/spr_rouge_invis_emotion.yy",},},
     {"id":{"name":"spr_rouge_invis_emotion1","path":"sprites/spr_rouge_invis_emotion1/spr_rouge_invis_emotion1.yy",},},
     {"id":{"name":"spr_rouge_invis_emotion2","path":"sprites/spr_rouge_invis_emotion2/spr_rouge_invis_emotion2.yy",},},
+    {"id":{"name":"spr_rouge_invis_emotion3","path":"sprites/spr_rouge_invis_emotion3/spr_rouge_invis_emotion3.yy",},},
     {"id":{"name":"spr_rouge_invis_fall","path":"sprites/spr_rouge_invis_fall/spr_rouge_invis_fall.yy",},},
     {"id":{"name":"spr_rouge_invis_fly","path":"sprites/spr_rouge_invis_fly/spr_rouge_invis_fly.yy",},},
     {"id":{"name":"spr_rouge_invis_glide","path":"sprites/spr_rouge_invis_glide/spr_rouge_invis_glide.yy",},},

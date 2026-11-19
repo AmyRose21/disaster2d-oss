@@ -481,9 +481,13 @@ global.player_anims[? CHARACTER_ROUGE] =
 // COMPLETAS animadas (el exe usa 1 frame por estado: las de Rouge
 // llevan todos los frames de cada tira). Solo la ve LA JUGADORA
 // (Draw_76 de obj_rouge): para los demas clientes el bit PLAYER_INVIS
-// esconde su puppet entero. Los slots de ataque (14/15/24/25/26) ni
-// se alcanzan invisibles (pegar apaga la invisibilidad) pero caen en
-// la silueta de andar por pura defensa, patron de la tabla del exe.
+// esconde su puppet entero. v38 (duena): el canal de ANILLOS (25) SI
+// se alcanza invisible (es soporte, no ataque: no apaga la nada) y
+// ahora tiene SU silueta propia (spr_rouge_invis_emotion3, la que
+// faltaba de la v32) — lo mismo en el 11, espejo del fix v36 de la
+// lista normal (el 3er emotico reproducia el 1er emotico). Los slots
+// de ATAQUE (14/15/24: pegar apaga la invisibilidad) y el escudo (26)
+// siguen cayendo a la silueta de andar por pura defensa, patron exe.
 global.player_rougeinvis = ds_map_create();
 global.player_rougeinvis[? CHARACTER_ROUGE] =
 [
@@ -498,7 +502,7 @@ global.player_rougeinvis[? CHARACTER_ROUGE] =
         spr_rouge_invis_lookdown, //8
         spr_rouge_invis_emotion1, //9
         spr_rouge_invis_emotion2, //10
-        spr_rouge_invis_emotion, //11
+        spr_rouge_invis_emotion3, //11 — v38 (duena): espejo del fix v36 de la lista normal (era el 1er emotico — el emotico 3 en silueta reproducia el 1)
         spr_rouge_invis_jump, //12 (spin, mismo sprite)
         spr_rouge_invis_balancing, //13
         spr_rouge_invis_walk, //14 = ataque (defensivo: invisible no pega)
@@ -512,7 +516,7 @@ global.player_rougeinvis[? CHARACTER_ROUGE] =
         spr_rouge_invis_slide, //22
         spr_rouge_invis_glide, //23 = glide PASIVA (tira direccional)
         spr_rouge_invis_walk, //24 = patada (defensivo)
-        spr_rouge_invis_walk, //25 = canal de anillos (defensivo)
+        spr_rouge_invis_emotion3, //25 = canal de ANILLOS (v38: la pose emotico3 en silueta — el canal es soporte y NO apaga la invisibilidad, antes se veia andar)
         spr_rouge_invis_walk //26 = escudo electrico (defensivo)
 ];
 
