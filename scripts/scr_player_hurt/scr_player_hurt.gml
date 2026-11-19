@@ -363,6 +363,15 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         && global.player.tornadoState > 0)
                 return;
 
+        // v32 (HABILIDAD V de Rouge) — I-FRAMES DE LA PATADA (modo
+        // ATTACK): durante TODA la patada de Sally (kickState > 0,
+        // spr_rouge_attack3) Rouge no recibe dano — "con Iframes",
+        // mismo patron del tornado de arriba y del air2 de Kris.
+        if(global.character == CHARACTER_ROUGE
+        && variable_instance_exists(global.player.id, "kickState")
+        && global.player.kickState > 0)
+                return;
+
         // v5 (KRIS) — I-FRAMES DEL AIR2: la 2a fase del ataque aereo
         // (spr_kris_attack1_air2, estado 41) blinda a Kris mientras dura
         // su animacion (regla de la duena: "con I frame"). Solo el air2:
@@ -639,20 +648,36 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                                 if(global.character == CHARACTER_SALLY && global.player.revivalTimes < 2 && global.player.hp <= 20)
                                 {
                                         obj_achivements.rSallyShield++;
-                                        
+
                                         if(obj_achivements.rSallyShield >= 2 && room != room_fartzone && !obj_achivements.achivements[32])
                                         {
                                                 obj_achivements.achivements[32] = true;
                                                 obj_achivements.show();
                                                 obj_achivements.save();
-                                                
+
                                                 obj_achivements.mercoins += 75;
                                                 obj_achivements.save();
                                         }
                                 }
                                 global.player.hurttime = global.character == CHARACTER_SALLY_CANON ? SALLY_CANON_SHIELD_BREAK_INVULN : 60; // Canon: 1 seg base + 2 extra
                                 global.player.shieldTimer = 0;
-                                
+
+                                audio_play_sound(snd_sally_shieldbreak, 0, false);
+                                net_quick_effect(global.player.x, global.player.y, global.player.revivalTimes >= 2 ? spr_shieldbreak2 : spr_shieldbreak, false, 1, 0, 0, 1);
+                                net_sound_emit(snd_sally_shieldbreak);
+                                return;
+                        }
+
+                        // v32 (HABILIDAD V de Rouge): el ESCUDO DE SALLY del
+                        // modo SUPPORT absorbe el golpe IGUAL que el de Sally
+                        // (burbuja fuera, 1 s de gracia, mismo rompimiento —
+                        // el logro de arriba sigue siendo solo de la Sally de
+                        // verdad).
+                        if(global.character == CHARACTER_ROUGE && global.player.shieldTimer > 0)
+                        {
+                                global.player.hurttime = 60;
+                                global.player.shieldTimer = 0;
+
                                 audio_play_sound(snd_sally_shieldbreak, 0, false);
                                 net_quick_effect(global.player.x, global.player.y, global.player.revivalTimes >= 2 ? spr_shieldbreak2 : spr_shieldbreak, false, 1, 0, 0, 1);
                                 net_sound_emit(snd_sally_shieldbreak);

@@ -1114,8 +1114,13 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                            el paquete de anillos tambien es valido para ella.
                            v2.13 «Sol y Luna»: tambien para Amy Canon —
                            su SOL gotea 1 ring cada 7 s por este mismo
-                           camino (ver scr_amy_canon_special). */
-                        AssertOrDisconnect(v->server, v->surv_char == CH_CREAM || v->surv_char == CH_VANILLA || v->surv_char == CH_AMY_CANON);
+                           camino (ver scr_amy_canon_special).
+                           v32 (HABILIDAD V de Rouge): tambien para ROUGE —
+                           los ANILLOS DE VANILLA del modo SUPPORT salen por
+                           este mismo camino (canal de 1 s con la pose
+                           emotico3, ver scr_rouge_special). Mismo cooldown
+                           por jugador de siempre: nada de spawns extra. */
+                        AssertOrDisconnect(v->server, v->surv_char == CH_CREAM || v->surv_char == CH_VANILLA || v->surv_char == CH_AMY_CANON || v->surv_char == CH_ROUGE);
                         /* v2.1.3: cooldown POR JUGADOR (antes: GLOBAL a
                          * toda la partida). Vanilla y Cream soltando
                          * anillos casi a la vez reventaban este assert y el
@@ -1605,10 +1610,17 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                            handler de esos states con el lock geniusTarget
                            (patron dedemonTarget). Sin kick ante datos
                            raros: se ignora en silencio (patron cooldowns),
-                           salvo no ser Eggman / no estar en partida. */
+                           salvo no ser Eggman / no estar en partida.
+                           v32 (HABILIDAD V de Rouge): tambien vale para
+                           ROUGE — su capacidad NATA de MEJORAR TRAMPAS
+                           (el Genio porteado a scr_rouge_special) manda
+                           por este mismo camino con los mismos costes
+                           (3 sensor / 5 trampa) y el mismo cooldown. */
                         AssertOrDisconnect(v->server, v->in_game);
                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
-                        AssertOrDisconnect(v->server, v->surv_char == CH_EGGMAN);
+                        /* v32: Eggman O Rouge (su capacidad nata de mejorar
+                         * trampas, misma barra y mismos costes). */
+                        AssertOrDisconnect(v->server, v->surv_char == CH_EGGMAN || v->surv_char == CH_ROUGE);
                         AssertOrDisconnect(v->server, !(v->plr.flags & PLAYER_DEMONIZED));
 
                         if (v->server->game.end > 0)
@@ -2425,7 +2437,9 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                 {
                         AssertOrDisconnect(v->server, v->in_game);
                         AssertOrDisconnect(v->server, v->id != v->server->game.exe);
-                        AssertOrDisconnect(v->server, v->surv_char == CH_EGGMAN);
+                        /* v32: Eggman O Rouge (la MINA/sensor de su modo
+                         * EGGMAN, mismo paquete y mismo cooldown). */
+                        AssertOrDisconnect(v->server, v->surv_char == CH_EGGMAN || v->surv_char == CH_ROUGE);
                         /* v2.1.3: cooldown POR JUGADOR (antes: global; con
                          * 2+ Eggman en la partida, el 2.o rastreador dentro
                          * de la ventana desconectaba a su dueno). Ignorar

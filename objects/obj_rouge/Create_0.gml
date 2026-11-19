@@ -113,9 +113,125 @@
 #macro ROUGE_DRILL_DIVE 12     // impulso hacia abajo (componente vertical)
 #macro ROUGE_DRILL_DIVE_X 8    // v25: impulso DIAGONAL hacia donde mira
 
+// v32 — MODALIDADES (V): 0 = ROUGE (su set normal), 1 = EGGMAN,
+// 2 = SUPPORT (Sally + Vanilla), 3 = ATTACK (por ahora unicamente
+// Sally). Las habilidades de cada modo van con sus propios timers
+// (locales, cero estados de red para el ciclo en si). modeFlash es el
+// HUD del Draw_64 (nombre de la modalidad al ciclarla).
+rougeMode = 0;         // ROUGE_MODE_* se declara con los macros de arriba
+modeFlash = 0;
+
+// v32 — INVISIBILIDAD (C en modo ROUGE): patron del exe. Empieza
+// "recargada" (invisTimer = ROUGE_INVIS_RECHARGE: la C funciona desde
+// el primer frame, igual que el exe).
+invisTimer = ROUGE_INVIS_RECHARGE;
+
+// v32 — PATADA (X en modo ATTACK): kickState > 0 = patada en curso
+// (estado ROUGE_KICK, i-frames en scr_player_hurt, pad +65% en el
+// puppet de la victima).
+kickState = 0;
+
+// v32 — ESCUDO ELECTRICO (X en modo EGGMAN): eShieldTimer > 0 = aura
+// activa (estado ROUGE_ESHIELD, contacto = stun electrico de 2 s).
+eShieldTimer = 0;
+eShieldRecharge = 0;
+
+// v32 — ESCUDO DE SALLY (X en modo SUPPORT): shieldTimer > 0 = burbuja
+// (absorbe un golpe en scr_player_hurt; bit PLAYER_SALLYSHIELD para
+// los demas clientes, burbuja en su puppet).
+shieldTimer = 0;
+shieldRechrage = 0;
+
+// v32 — ANILLOS (C en modo SUPPORT): ringsChannel > 0 = canal quieto
+// (estado ROUGE_RINGS, pose spr_rouge_emotion3); al terminar sale el
+// CLIENT_CREAM_SPAWN_RINGS. ringsTimer es la recarga.
+ringsChannel = 0;
+ringsTimer = 0;
+
+// v32 — MINA (C en modo EGGMAN): la recarga del sensor (mismo valor y
+// mismo paquete CLIENT_ETRACKER que Eggman).
+trackerRecharge = 0;
+
+// v32 — MEJORAR TRAMPAS (capacidad NATA, todos los modos): el "Genio
+// Malvado" de Eggman (scr_egg_special v3.1) porteado — manteniendo
+// ABAJO sobre una trampa de Amelia (5 anillos) o un sensor de Eggman
+// (3) con anillos de sobra llena la barra del server y la DORA (+25%).
+// Mismas variables de lock/prompt que las de Eggman (geniusTarget*).
+geniusTarget = -1;
+geniusTargetType = -1;
+geniusSendCd = 0;
+
 // v24 — agarre de pared del planeo: 2 s de i-frames POR CADA toque de
 // pared (se aplican al AGARRAR, en scr_collision_basic)
 #macro ROUGE_WALL_IFRAMES (60 * 2)
+
+// =====================================================================
+//  v32 — HABILIDAD V: CAMBIO DE MODALIDAD (la mas poderosa de todas).
+//  V cicla EN ORDEN el set de X y C entre 4 modalidades:
+//    0 ROUGE   : X = taladro (aire) / tornado (tierra) de siempre,
+//                C = INVISIBILIDAD (patron sonic.exe original).
+//    1 EGGMAN  : X = ESCUDO ELECTRICO, C = MINA (el sensor rastreador
+//                de Eggman, mismo paquete y misma recarga).
+//    2 SUPPORT : X = ESCUDO DE SALLY, C = ANILLOS DE VANILLA (la pose
+//                del canal es spr_rouge_emotion3 — "emotico3").
+//    3 ATTACK  : X = PATADA DE SALLY (anim nueva spr_rouge_attack3,
+//                hitbox +65% del ancho del bbox, i-frames durante toda
+//                la patada). C sin asignar (por ahora unicamente Sally).
+//  Y al siguiente V vuelve a la 0 (su set normal). El ciclo es 100%
+//  local (cero paquetes): cada habilidad viaja por su propio camino de
+//  siempre con sus validaciones de siempre.
+// =====================================================================
+#macro ROUGE_MODE_COUNT 4
+#macro ROUGE_MODE_ROUGE 0     // su set normal (X taladro/tornado, C invisibilidad)
+#macro ROUGE_MODE_EGGMAN 1    // X escudo electrico, C mina
+#macro ROUGE_MODE_SUPPORT 2   // X escudo de Sally, C anillos de Vanilla
+#macro ROUGE_MODE_ATTACK 3    // X patada de Sally (por ahora unicamente Sally)
+
+// v32 — INVISIBILIDAD (C en modo ROUGE): patron EXACTO del sonic.exe
+// original (obj_exe/scr_exe_special): invisTimer arranca en la
+// DURACION, baja hasta 0 (se acabo) y SIGUE contando en negativo hasta
+// la RECARGA (negativa): mientras cuenta el tramo negativo la C no
+// puede reactivarse. DURACION: la del exe (EXE_INVIS_DURATION 60*15 =
+// 900) MENOS el 25% pedido por la duena = 675 (11,25 s). RECARGA: la
+// misma del exe (60*14 tras apagarse, suma y cancelacion incluidas).
+#macro ROUGE_INVIS_DURATION 675
+#macro ROUGE_INVIS_RECHARGE -(60 * 14)
+
+// v32 — PATADA (X en modo ATTACK, patron patada aerea de Sally):
+// recarga de Sally (SALLY_ATTACK_RECHARGE 60*15), tira de 8 frames a
+// image_speed 0.75 con los i-frames cubriendo toda la ventana y un
+// pelin mas (ROUGE_KICK_TIME). Hitbox: +65% del ANCHO del bbox en el
+// puppet de la victima (ROUGE_KICK_HITBOX_PCT, patron de los pads de
+// Sally Canon / Jinna / Kris).
+#macro ROUGE_KICK_TIME 16
+#macro ROUGE_KICK_HITBOX_PCT 0.65
+#macro ROUGE_KICK_RECHARGE (60 * 15)
+
+// v32 — ESCUDO ELECTRICO (X en modo EGGMAN, patron escudo de Eggman):
+// 1,5 s de aura de contacto (stun de 2 s con chispazo + sonido
+// electrico en el cliente de la victima) y recarga total de 15 s
+// (EGGMAN_SHIELD_RECHARGE; debilitada 7 s, patron EEGGMAN_*). La
+// recarga se paga AL ACTIVAR (duracion 90 + 15 s de colchon).
+#macro ROUGE_ESHIELD_TIME (60 * 1.5)
+#macro ROUGE_ESHIELD_RECHARGE (60 * 15)
+#macro ROUGE_ESHIELD_RECHARGE_E (60 * 7)
+
+// v32 — ANILLOS (C en modo SUPPORT, patron Vanilla): canal quieto de
+// 1 s (pose spr_rouge_emotion3 = "emotico3") y al terminar
+// CLIENT_CREAM_SPAWN_RINGS (mismo paquete de Vanilla/Cream: anillos
+// que valen 4). Recarga de Vanilla (15 s). Solo la Rouge superviviente
+// (la debilitada no invoca: sus habilidades de combate siguen, el
+// soporte no).
+#macro ROUGE_RINGS_CHANNEL (60 * 1)
+#macro ROUGE_RINGS_RECHARGE (60 * 15)
+
+// v32 — ESCUDO DE SALLY (X en modo SUPPORT): 5 s de burbuja
+// (SALLY_SHIELD_RECHARGE 30 s; debilitada 15 s, patron SALLY_*). Absorbe
+// un golpe (scr_player_hurt, mismo bloqueo que Sally) y viaja con el
+// bit PLAYER_SALLYSHIELD como la de Sally (burbuja en su puppet).
+#macro ROUGE_SHIELD_TIME (60 * 5)
+#macro ROUGE_SHIELD_RECHARGE (60 * 30)
+#macro ROUGE_SHIELD_RECHARGE_E (60 * 15)
 
 // v14 — SLIDE (patron SALLY): minimo de velocidad para deslizar
 #macro ROUGE_SLIDE_MIN 2.5

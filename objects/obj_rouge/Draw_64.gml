@@ -51,3 +51,29 @@ if(hp > 0 && revivalTimes < 2 && instance_exists(obj_bigring))
 	if(_ring != noone)
 		draw_sprite_ext(spr_sindicator2, 0, ceil(x - obj_camera.x), ceil(y - obj_camera.y), 1, 1, point_direction(x, y, _ring.x, _ring.y), c_white, 1);
 }
+
+// ============================================================================
+// v32 — MODALIDAD ACTIVA (HABILIDAD V): el nombre del set bajo la
+// barra de vida. Al ciclarla (modeFlash) sale BRILLANTE 2 s y luego
+// queda fija en tono suave para saber SIEMPRE que X/C lleva puestos.
+// Solo la pantalla de la jugadora (el ciclo no viaja: cada habilidad
+// se delata sola cuando la usa, no por llevar el set puesto).
+// ============================================================================
+if(hp > 0 && !isDead)
+{
+	var _modeName = "ROUGE";
+	var _modeCol = $F2A0C8;
+
+	switch(rougeMode)
+	{
+		case ROUGE_MODE_EGGMAN:  _modeName = "EGGMAN";  _modeCol = $FFD24A; break;
+		case ROUGE_MODE_SUPPORT: _modeName = "SOPORTE"; _modeCol = $6EDD62; break;
+		case ROUGE_MODE_ATTACK:  _modeName = "ATAQUE";  _modeCol = $FF8A3D; break;
+	}
+
+	draw_set_font(fnt_big);
+	draw_set_halign(fa_center);
+	draw_set_valign(fa_middle);
+
+	draw_text_transformed_color(ceil(x - obj_camera.x), ceil(y - obj_camera.y) - offset + 12, _modeName, 0.4, 0.4, 0, _modeCol, _modeCol, _modeCol, _modeCol, modeFlash > 0 ? 1 : 0.55);
+}

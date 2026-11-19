@@ -326,7 +326,17 @@ var _krisPad = 0;
 if(character == CHARACTER_KRIS && isAttacking && state == KRIS_ATK_AIRE + 1)
         _krisPad = ceil((bbox_right - bbox_left) * KRIS_AIR2_HITBOX);
 
-if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad) || (_amyFuerzaPad > 0 && distance_to_object(global.player) <= _amyFuerzaPad) || (_scKickPad > 0 && distance_to_object(global.player) <= _scKickPad) || (_jinnaPad > 0 && distance_to_object(global.player) <= _jinnaPad) || (_krisPad > 0 && distance_to_object(global.player) <= _krisPad))
+// v32 (HABILIDAD V de Rouge) — PATADA DE SALLY del modo ATTACK
+// (estado ROUGE_KICK): hitbox de stuneo un 65% MAS ANCHA que su bbox
+// (regla de la duena: "una hitbox del 65% aumentado"). Mismo mecanismo
+// de pad por distancia que la patada de Sally Canon, el golpe de
+// Sonic y el martillo de Amy: el pad solo AMPLIA el alcance del
+// stuneo; el dano/no-amistoso y el resto de reglas siguen igual.
+var _rougeKickPad = 0;
+if(character == CHARACTER_ROUGE && isAttacking && state == ROUGE_KICK)
+        _rougeKickPad = ceil((bbox_right - bbox_left) * ROUGE_KICK_HITBOX_PCT);
+
+if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad > 0 && distance_to_object(global.player) <= _sonicPad) || (_amyFuerzaPad > 0 && distance_to_object(global.player) <= _amyFuerzaPad) || (_scKickPad > 0 && distance_to_object(global.player) <= _scKickPad) || (_jinnaPad > 0 && distance_to_object(global.player) <= _jinnaPad) || (_krisPad > 0 && distance_to_object(global.player) <= _krisPad) || (_rougeKickPad > 0 && distance_to_object(global.player) <= _rougeKickPad))
 {
         // v5.0 LMS + FIX DJ (v2.15 arrastrado): este bloque de stun/contacto
         // exige isAttacking, pero (a) el DJ de Fleetway Amy NUNCA manda ese
@@ -425,30 +435,50 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         return;
                                         
                                 if(global.character == CHARACTER_SALLY && global.player.shieldTimer > 0)
-                                {                       
+                                {
                                         global.player.isGrounded = false;
                                         global.player.isHurt = true;
                                         global.player.hurttime = 60;
                                         global.player.xspd = sign(global.player.x - x) * 2;
                                         global.player.yspd = -2;
                                         global.player.shieldTimer = 0;
-                                        
+
                                         if(global.player.revivalTimes < 2 && global.player.hp <= 20)
                                         {
                                                 obj_achivements.rSallyShield++;
-                                                
+
                                                 if(obj_achivements.rSallyShield >= 2 && room != room_fartzone && !obj_achivements.achivements[32])
                                                 {
                                                         obj_achivements.achivements[32] = true;
                                                         obj_achivements.show();
                                                         obj_achivements.save();
-                                                        
+
                                                         obj_achivements.mercoins += 75;
                                                         obj_achivements.save();
                                                 }
                                         }
                                         global.player.hurttime = 60;
-                                        
+
+                                        audio_play_sound(snd_sally_shieldbreak, 0, false);
+                                        net_quick_effect(global.player.x, global.player.y, global.player.revivalTimes >= 2 ? spr_shieldbreak2 : spr_shieldbreak, false, 1, 0, 0, 1);
+                                        net_sound_emit(snd_sally_shieldbreak);
+                                        return;
+                                }
+
+                                // v32 (HABILIDAD V de Rouge): el ESCUDO DE SALLY
+                                // del modo SUPPORT bloquea el contacto del esbirro
+                                // IGUAL que el de Sally (misma burbuja, mismo
+                                // rompimiento — el logro de arriba sigue siendo
+                                // exclusivo de la Sally de verdad).
+                                if(global.character == CHARACTER_ROUGE && global.player.shieldTimer > 0)
+                                {
+                                        global.player.isGrounded = false;
+                                        global.player.isHurt = true;
+                                        global.player.hurttime = 60;
+                                        global.player.xspd = sign(global.player.x - x) * 2;
+                                        global.player.yspd = -2;
+                                        global.player.shieldTimer = 0;
+
                                         audio_play_sound(snd_sally_shieldbreak, 0, false);
                                         net_quick_effect(global.player.x, global.player.y, global.player.revivalTimes >= 2 ? spr_shieldbreak2 : spr_shieldbreak, false, 1, 0, 0, 1);
                                         net_sound_emit(snd_sally_shieldbreak);
@@ -818,6 +848,19 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 var xxspd = -sign(x - global.player.x) * 4;
                                                                 
                                 if(character == CHARACTER_EGGMAN)
+                                {
+                                        net_quick_effect(global.player.x, global.player.y, spr_shockparticle);
+                                        stunTime = 2;
+                                        snd = snd_electroshock;
+                                        xxspd = 0;
+                                }
+
+                                // v32 (HABILIDAD V de Rouge): el ESCUDO ELECTRICO
+                                // del modo EGGMAN pega con el ESTILO del doctor —
+                                // chispazo, 2 s de stun y sin empujon — SOLO
+                                // cuando su puppet va en ROUGE_ESHIELD (sus
+                                // ataques propios siguen siendo stuns normales).
+                                if(character == CHARACTER_ROUGE && state == ROUGE_ESHIELD)
                                 {
                                         net_quick_effect(global.player.x, global.player.y, spr_shockparticle);
                                         stunTime = 2;

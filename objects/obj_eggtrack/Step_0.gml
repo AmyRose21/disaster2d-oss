@@ -18,7 +18,10 @@ depth = global.player.depth - 2;
 // todos los supervivientes (Draw_0).
 upgOver = -1;
 
-if(global.character == CHARACTER_EGGMAN
+// v32 (HABILIDAD V de Rouge): su capacidad NATA de MEJORAR TRAMPAS
+// (el Genio de Eggman porteado a scr_rouge_special) tambien ve el
+// prompt — mismas reglas del doctor (encima, con anillos, viva).
+if((global.character == CHARACTER_EGGMAN || global.character == CHARACTER_ROUGE)
 && global.player.revivalTimes < 2 && !global.player.isDead
 && !upgraded && !activated
 && global.player.geniusTarget == nid && global.player.geniusTargetType == 0)

@@ -21,7 +21,16 @@ if(instance_exists(obj_player_puppet))
                 // el velo vuelve a ser indicable (su cuerpo jamas: invisible EXE).
                 if(inst.character == CHARACTER_AMELIA && inst.isHiding && inst.lunaGrace > 0)
                         continue;
-                
+
+                // v32 (HABILIDAD V de Rouge): la Rouge INVISIBLE es INMUNE a
+                // TODO rastreo — la aguja JAMAS la señala, NI SIQUIERA con el
+                // anillo rojo encima (la inmunidad pisa al rojo: por eso va
+                // ANTES del chequeo de abajo). Su puppet llega con
+                // visible = false por el bit PLAYER_INVIS (net_udpprocess),
+                // el mismo del sonic.exe original.
+                if(inst.character == CHARACTER_ROUGE && !inst.visible)
+                        continue;
+
                 if(inst.hasRedRing && (global.character != CHARACTER_EXE || global.player.invisTimer <= 0))
                 {
                         redRings = true;
@@ -84,6 +93,12 @@ if(global.character == CHARACTER_EXE
                         continue;
 
                 if(character == CHARACTER_AMELIA && isHiding && lunaGrace > 0)
+                        continue;
+
+                // v32 (HABILIDAD V de Rouge): la Rouge INVISIBLE tampoco
+                // sale en el SCAN (revelado) de Metal Amy — inmune a TODO
+                // rastreo, agujas y revelados por igual.
+                if(character == CHARACTER_ROUGE && !visible)
                         continue;
 
                 other.scanList[other.scanCount] = id;

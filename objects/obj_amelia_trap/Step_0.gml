@@ -54,9 +54,11 @@ if(!triggerSent && instance_exists(global.player))
 // rescate de Vanilla): 1 = encima de ESTA trampa con anillos, 0 = faltan
 // anillos. Solo corre en el cliente del Eggman (los demas ni lo calculan;
 // la barra upgShow si la ven todos los supervivientes).
+// v32 (HABILIDAD V de Rouge): su capacidad NATA de MEJORAR TRAMPAS ve
+// el mismo prompt (mismas reglas del doctor).
 upgOver = -1;
 
-if(instance_exists(global.player) && global.character == CHARACTER_EGGMAN
+if(instance_exists(global.player) && (global.character == CHARACTER_EGGMAN || global.character == CHARACTER_ROUGE)
 && global.player.revivalTimes < 2 && !global.player.isDead
 && !upgraded && !triggerSent
 && global.player.geniusTarget == nid && global.player.geniusTargetType == 1)

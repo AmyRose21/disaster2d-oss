@@ -1,0 +1,196 @@
+=====================================================================
+ ROUGE v32 — HABILIDAD V: CAMBIO DE MODALIDAD (la mas poderosa)
+ + INVISIBILIDAD estilo sonic.exe + PATADA DE SALLY + MEJORAR TRAMPAS
+ 20 archivos .gml/.yyp + 21 sprites NUEVOS + 1 archivo de SERVER
+ (el server SE RECOMPILA; el cliente se abre normal en GameMaker)
+=====================================================================
+
+QUE SE LE SUMO A ROUGE
+----------------------
+ La tecla V ahora cicla EN ORDEN entre 4 modalidades. Cada una
+ cambia las habilidades X y C, y al cuarto V vuelve a su set normal:
+
+   [ROUGE]   (el de siempre)
+     X = taladro (aire) / tornado (tierra)  — sin cambios
+     C = INVISIBILIDAD (nuevo, ver abajo)
+
+   [EGGMAN]
+     X = ESCUDO ELECTRICO (el del doctor: 1,5 s de aura; quien
+         la toque come stun de 2 s con chispazo y sonido electrico)
+     C = MINA (su sensor rastreador: se coloca igual, mirando
+         ABAJO con el pie firme al borde del suelo; 25 s de recarga)
+
+   [SOPORTE]  (Sally + Vanilla)
+     X = ESCUDO DE SALLY (burbuja de 5 s que absorbe un golpe;
+         todos ven la burbuja; 30 s de recarga)
+     C = ANILLOS DE VANILLA (canal quieto de 1 s y sale la pareja
+         de anillos que valen 4 al recogerlos; 15 s de recarga.
+         LA POSE del canal es la "emotico3" (spr_rouge_emotion3)
+         y la ven todos los jugadores)
+
+   [ATAQUE]  (por ahora unicamente Sally)
+     X = PATADA DE SALLY con animacion NUEVA (spr_rouge_attack3,
+         hecha de sus propias poses de patada) con HITBOX un 65%
+         MAS GRANDE (del ancho de su cuerpo, el mismo sistema de
+         las patadas de Sally Canon) e I-FRAMES durante TODA la
+         patada. Recarga de Sally: 15 s. Vale en tierra y en el
+         aire (mantiene el impulso que lleve)
+     C = (aun sin asignar — queda listo para el siguiente set)
+
+ Y DE REGALO NATIVO (en TODAS las modalidades): MEJORAR TRAMPAS.
+   Igual que el "Genio Malvado" de Eggman: ponte ENCIMA de una
+   trampa de Amelia (5 anillos) o de un sensor/mina (3 anillos),
+   mantén ABAJO con anillos de sobra y la barra del revive se
+   llena (la llena el server): al completarse cobra los anillos y
+   la trampa queda DORADA (+25% de efectividad). Soltar a mitad
+   NO tira el progreso (queda guardado en el server).
+
+LA INVISIBILIDAD (C de su set normal) — al detalle
+---------------------------------------------------
+ * Patron del sonic.exe ORIGINAL: C la activa, C otra vez la corta
+   antes de tiempo.
+ * TU sprite invisible: CONTORNO ROJO (siluetas hechas de sus
+   sprites reales, TODOS los movimientos: andar, correr, saltar,
+   caer, planear, volar, spindash, slide, tirolina, pared...),
+   mismo estilo de contorno que usa el exe. Solo TU pantalla ve
+   el contorno: para los demas jugadores NO ERES VISIBLE en
+   absoluto (igual que el exe invisible).
+ * Dura 675 frames = 11,25 s: EXACTAMENTE un 25% MENOS que los
+   15 s del exe (900), como pediste. La recarga es la MISMA del
+   exe: 14 s despues de apagarse (o de cortarla tu a mano).
+ * INMUNE A TODO RASTREO: la flecha del exe original, la de
+   Exeller, la de Exetior y el ESCAN (revelado) de Metal Amy
+   JAMAS la senalan — NI SIQUIERA si lleva el ANILLO ROJO puesto
+   (la inmunidad pisa al anillo). Metal Amy tampoco la dibuja en
+   su revelado de siluetas.
+ * Sigilo total de sonido: sus sonidos de entrar/aparecer NO se
+   emiten por red (los del exe si se oyen donde esta el; los de
+   ella no delatan NADA).
+ * Pegar (X) la apaga: atacar no es esconderse. Morir tambien la
+   apaga. Con el anillo rojo activo no puede encenderla (el anillo
+   rojo es "todos te ven"). Esbirros y debilitadas no se esconden
+   (solo la Rouge superviviente).
+
+EL HUD DE LA V
+--------------
+ Debajo de su barra de vida sale el NOMBRE de la modalidad activa
+ (ROUGE rosa / EGGMAN dorado / SOPORTE verde / ATAQUE naranja):
+ brillante 2 segundos al ciclar y luego fijo en tono suave, para
+ que SIEMPRE sepas que X/C llevas puestos. El ciclo en si NO
+ viaja por red: nadie sabe que set llevas hasta que lo usas.
+
+COMO INSTALAR
+-------------
+ 1) Cierra GameMaker y el server.
+ 2) El zip lleva las rutas de carpeta completas: copia el
+    contenido de encima de tu proyecto (SUSTITUIR al preguntar).
+    Son 20 archivos de codigo + las 21 carpetas de sprites +
+    el Game.c del server. NADA mas (regla de oro 2: solo lo
+    tocado).
+ 3) El .yyp ya viene con los 21 sprites registrados (el diff es
+    exactamente +21 lineas): abre el proyecto y en la lista de
+    sprites veras spr_rouge_attack3 y los 20 spr_rouge_invis_*.
+ 4) RECOMPILA EL SERVER (betterserver-oss): es el mismo flujo de
+    siempre — esta vez solo cambia states/Game.c. El
+    compilar_server.bat de las rondas v30/v31 lo detecta solo
+    ("Cambios detectados: Game.c").
+ 5) Abre el cliente y a probar (guia de pruebas abajo).
+
+ANTICHEAT (regla de oro 7)
+--------------------------
+ El server hacia botar a Rouge por usar paquetes "prestados".
+ Se abrieron EXACTAMENTE 3 puertas (nada de apagar nada):
+   * CLIENT_ETRACKER (la mina): antes SOLO Eggman -> ahora
+     Eggman o Rouge. El cooldown de 25 s por jugador sigue igual.
+   * CLIENT_EGG_TRAP_UPGRADE_PROGRESS (mejorar trampas): igual,
+     Eggman o Rouge, con los MISMOS costes de 3/5 anillos.
+   * CLIENT_CREAM_SPAWN_RINGS (los anillos de Vanilla): Rouge
+     entra en la lista donde ya estaban Cream, Vanilla y Amy
+     Canon (mismo precedente). Cooldown igual.
+ La patada y el escudo electrico viajan con el bit de ataque de
+ siempre y la excepcion de duracion de la v29 (8000 ms) los cubre
+ sin tocar nada (la patada dura 16 frames y el escudo 90).
+
+GUIA DE PRUEBAS RAPIDAS (2 minutos)
+-----------------------------------
+ 1. Entrad 2+ jugadores (uno exe). Como Rouge: pulsa V — el
+    nombre bajo la barra cambia ROUGE -> EGGMAN -> SOPORTE ->
+    ATAQUE -> ROUGE...
+ 2. INVISIBILIDAD (set ROUGE, tecla C): tu ves un CONTORNO ROJO
+    tuyo; el otro jugador NO te ve en absoluto. El exe no ve tu
+    flecha ni tu silueta en su scan. C otra vez = apareces.
+    Cronometrale: ~11 s (no 15).
+ 3. PATADA (set ATAQUE, X): la anim nueva (patada extendida);
+    pega desde MAS lejos que su patada vieja (+65%) y no recibes
+    dano mientras pateas.
+ 4. ESCUDO ELECTRICO (set EGGMAN, X): el exe que te toque sale
+    electrocutado 2 s con chispazo.
+ 5. MINA (set EGGMAN, C abajo mirando): sale el sensor como la
+    de Eggman.
+ 6. SOPORTE: X = burbuja de Sally (absorbe un golpe; los demas
+    la ven), C = se queda quieta 1 s con la POSE emotico3 y
+    salen los anillos (valen 4).
+ 7. TRAMPAS: en cualquier set, ponte sobre un sensor/mina con
+    anillos y mantén ABAJO: la barra se llena y la trampa se
+    dora (+25%).
+ 8. Que el exe NO te bote el server al usar TODO lo anterior
+    (las 3 puertas + la excepcion v29).
+
+DETALLES FINOS (por si algo se ve raro)
+---------------------------------------
+ * La pose del canal de anillos y las siluetas de la invisibilidad
+   viajan por estados de red NUEVOS (24/25/26) en el mismo u8 de
+   siempre — si algun jugador tiene un cliente VIEJO sin esta
+   ronda, tu Rouge se le veria congelada en su ultima pose al
+   usar la patada/canal/escudo. Todos con el mismo build = todo
+   perfecto (mismo requisito de siempre en este juego).
+ * El set ATTACK solo trae la patada de Sally por ahora (lo
+   pidiste asi: "por ahora unicamente sally"): la C queda libre
+   para el siguiente encargo.
+ * El escudo electrico usa la tira del VUELO (alas fuera) como
+   pose del doctor usa su djump: es un aura de contacto, no una
+   pose de golpe.
+
+ARCHIVOS DEL ZIP (los EXACTAMENTE tocados — regla de oro 2)
+-----------------------------------------------------------
+ Cliente (17 .gml + .yyp):
+   objects/obj_rouge/{Create_0,Step_2,Draw_76,Draw_64,Draw_0}.gml
+   scripts/scr_rouge_special/scr_rouge_special.gml
+   scripts/scr_survivors/scr_survivors.gml
+   scripts/net_udpprocess/net_udpprocess.gml
+   scripts/scr_player_hurt/scr_player_hurt.gml
+   objects/obj_netclient/Step_2.gml
+   objects/obj_player_puppet/{Step_0,Draw_0}.gml
+   objects/obj_eggtrack/Step_0.gml
+   objects/obj_amelia_trap/Step_0.gml
+   objects/obj_exe_indicator/Step_2.gml
+   objects/obj_exeller_indicator/Step_2.gml
+   objects/obj_exetior_indicator/Step_2.gml
+   "Sonicexe The Disaster 2D Remake.yyp"  (+21 sprites registrados)
+ Sprites (21 carpetas nuevas):
+   sprites/spr_rouge_attack3/           (la patada, 8 frames)
+   sprites/spr_rouge_invis_{idle,walk,run,jump,fall,hurt,dead,
+     lookup,lookdown,emotion1,emotion2,emotion,balancing,fly,
+     zipline,stuck,spin_charger,spin_release,slide,glide}/
+ Server (1):
+   betterserver-oss/disasterserver/states/Game.c  (3 puertas
+   anticheat; RECOMPILAR)
+ Documentacion:
+   worklog.md (historial), check_v32.py (verificador 174/174),
+   LEEME_ROUGE_V32.txt (este archivo)
+
+VERIFICACION HECHA (regla de oro 6)
+-----------------------------------
+ * Server compilado de verdad: 87/87 objetos + DisasterServer
+   generado con los cambios (cmake completo, no solo estaticos).
+ * check_v32.py: 174/174 — GML balanceado en los 17 archivos,
+   macros/estados/tablas (27 slots en las 4 tablas), los 21
+   sprites (estructura .yy, PNGs, siluetas con SOLO rojo puro,
+   GUIDs sin colisiones, secuencia de attack3 pixel-exacta),
+   .yyp (+21 exactas y parsea completo), anticheat (3 puertas +
+   v29 intacta) y git (19 modificados + 21 sprites y NADA mas).
+ * E2E: clon fresco del repo + zip aplicado encima + check de
+   nuevo = todo verde desde cero.
+
+ Eso es todo: la V de Rouge es ahora, oficialmente, su habilidad
+ mas poderosa. Que la disfrutes. 🦇

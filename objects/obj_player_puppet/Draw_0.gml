@@ -300,6 +300,16 @@ switch(character)
                 if(state == CREAM_ZIPLINE)
                         draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 16 - 19);
                 break;
+
+        // v32 (HABILIDAD V de Rouge): el ESCUDO DE SALLY del modo
+        // SUPPORT dibuja su burbuja en el puppet con el MISMO bit
+        // PLAYER_SALLYSHIELD de siempre (patron de la Sally vanilla
+        // de arriba: efecto aparte encima del cuerpo, en cualquier
+        // estado).
+        case CHARACTER_ROUGE:
+                if(sallyShield)
+                        draw_sprite(revivalTimes >= 2 ? spr_sallyshield2 : spr_sallyshield, (current_time / 30) % 41, floor(x), floor(y));
+                break;
                 
         case CHARACTER_METAL:
                 if(state == METAL_ZIPLINE)

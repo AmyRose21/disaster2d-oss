@@ -3,9 +3,17 @@
 // (spr_<char>nega_*: inversion pura de SUS sprites, mismo canon
 // que los spr_amynega_* / spr_eggnega_* del build Negagen).
 // El esbirro comun sigue con sus eanims; el superviviente igual.
+// v32 — INVISIBILIDAD (patron sonic.exe original): mientras dure,
+// la jugadora local se ve como CONTORNO ROJO (la tabla
+// global.player_rougeinvis de siluetas spr_rouge_invis_*, misma
+// idea que la mitad "invisible" de la tabla del exe). Para los
+// demas clientes NO hay nada que elegir: el bit PLAYER_INVIS
+// esconde su puppet por completo (como al exe invisible).
 var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
 if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
         arr = global.player_negaanims;
+if(invisTimer > 0)
+        arr = global.player_rougeinvis;
 sprite_index = arr[? CHARACTER_ROUGE][state];
 
 switch(state)
@@ -191,6 +199,32 @@ switch(state)
         case ROUGE_MORIBUNDA:
                 image_speed = 0;
                 image_index = 0;
+                break;
+
+        // v32 — PATADA (modo ATTACK, spr_rouge_attack3): tira de 8
+        // frames a 0.75; se MANTIENE en el ultimo frame y el cierre
+        // lo da el kickState de scr_rouge_special (i-frames hasta el
+        // final). Mismo cierre-por-timer del tornado.
+        case ROUGE_KICK:
+                image_speed = 0.75;
+
+                if(image_index >= image_number - 1)
+                        image_index = image_number - 1;
+                break;
+
+        // v32 — CANAL DE ANILLOS (modo SUPPORT): la pose "emotico3"
+        // (spr_rouge_emotion3) en loop mientras dure el canal quieto
+        // de 1 s (patron del CREAM_SPAWN de Vanilla).
+        case ROUGE_RINGS:
+                image_speed = 1;
+                break;
+
+        // v32 — ESCUDO ELECTRICO (modo EGGMAN, patron del doctor):
+        // aura de contacto sin pose propia de golpe — va con la tira
+        // del VUELO (spr_rouge_fly, alas fuera) girando en loop;
+        // las chispas las pone la victima al tocarla.
+        case ROUGE_ESHIELD:
+                image_speed = 1;
                 break;
 
         case EMOTION1:

@@ -21,7 +21,14 @@ if(instance_exists(obj_player_puppet))
 		// el velo vuelve a ser indicable (su cuerpo jamas: invisible EXE).
 		if(inst.character == CHARACTER_AMELIA && inst.isHiding && inst.lunaGrace > 0)
 			continue;
-		
+
+		// v32 (HABILIDAD V de Rouge): la Rouge INVISIBLE es INMUNE a TODO
+		// rastreo — la aguja JAMAS la señala (ni con el anillo rojo: por
+		// eso va ANTES del chequeo de abajo). visible = false le llega a
+		// su puppet por el bit PLAYER_INVIS (net_udpprocess).
+		if(inst.character == CHARACTER_ROUGE && !inst.visible)
+			continue;
+
 		if(inst.hasRedRing && (global.character != CHARACTER_EXE || global.player.invisTimer <= 0))
 		{
 			redRings = true;

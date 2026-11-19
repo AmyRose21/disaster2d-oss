@@ -1,7 +1,9 @@
-if(effectTime > 0)
+// v32: INVISIBLE no deja RESIDUOS FANTASMA (delatarian su posicion
+// al vuelo: el contorno rojo es solo SU vista local)
+if(effectTime > 0 && invisTimer <= 0)
 {
 	effectTime--;
-	
+
 	if(effectTime % 3 == 0)
 	{
 		var inst = scr_effect_fade_quick(x, y, sprite_index);
@@ -17,3 +19,9 @@ if(effectTime > 0)
 	scr_palette_swap(global.palleteFrom, global.palleteTo);
 	draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
 	shader_reset();
+
+// v32 — BURBUJA del ESCUDO DE SALLY (modo SUPPORT): su propia vista
+// (los demas clientes la dibujan en su puppet con el bit
+// PLAYER_SALLYSHIELD, patron de la Sally vanilla en su Draw_0).
+if(shieldTimer > 0)
+	draw_sprite(revivalTimes >= 2 ? spr_sallyshield2 : spr_sallyshield, (current_time / 30) % 41, floor(x), floor(y));

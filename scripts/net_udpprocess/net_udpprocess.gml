@@ -161,6 +161,23 @@ function net_udpprocess(rbuff)
                                                 
                                                 if(character == CHARACTER_SALLY || character == CHARACTER_SALLY_CANON)
                                                         sallyShield = bitflags & PLAYER_SALLYSHIELD;
+
+                                                // v32 (HABILIDAD V de Rouge): el ESCUDO DE
+                                                // SALLY del modo SUPPORT viaja con el MISMO bit
+                                                // PLAYER_SALLYSHIELD (la burbuja de su puppet la
+                                                // dibuja el case ROUGE del Draw_0). Y la
+                                                // INVISIBILIDAD (C de su set normal) viaja con
+                                                // PLAYER_INVIS — el mismo bit del sonic.exe
+                                                // original: el puppet se esconde ENTERO en este
+                                                // cliente (visible = false) y las agujas de
+                                                // rastreo la saltan (obj_*_indicator). Se
+                                                // escribe CADA paquete (tambien el true): si no,
+                                                // un invisible quedaria invisible para siempre.
+                                                if(character == CHARACTER_ROUGE)
+                                                {
+                                                        sallyShield = bitflags & PLAYER_SALLYSHIELD;
+                                                        visible = !(bitflags & PLAYER_INVIS);
+                                                }
                                                 
                                                 // SONIC: powerboost de Nervios de Acero
                                                 // (estela de fantasmas en este puppet)

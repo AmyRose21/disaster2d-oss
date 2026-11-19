@@ -8,6 +8,9 @@
 #macro ROUGE_SPIN_RELEASE BALANCING+8 // v13: bola lanzada (spr_rouge_spin_release)
 #macro ROUGE_SLIDE BALANCING+9        // v14: slide de Sally (spr_rouge_slide)
 #macro ROUGE_GLIDE_AIR BALANCING+10   // v14: glide PASIVA tipo Knuckles (spr_rouge_glide)
+#macro ROUGE_KICK BALANCING+11        // v32: PATADA de Sally (spr_rouge_attack3, modo ATTACK)
+#macro ROUGE_RINGS BALANCING+12       // v32: canal de ANILLOS (spr_rouge_emotion3, modo SUPPORT)
+#macro ROUGE_ESHIELD BALANCING+13     // v32: ESCUDO ELECTRICO (spr_rouge_fly, modo EGGMAN)
 
 // v4.4: mismos estados netos que Knuckles (attack=14, air_attack=15,
 // glide=16, zipline=17, stuck=18: viajan en el u8 state del
@@ -59,6 +62,16 @@ if(moribundaState > 0)
         return;
 }
 
+// v32 — CANAL DE ANILLOS (C en modo SUPPORT): quieto invocando con la
+// pose spr_rouge_emotion3 (la "emotico3" de la duena) mientras dure
+// ringsChannel (el canal corta si la hieren: scr_rouge_special apaga
+// ringsChannel y el estado vuelve al flujo normal al frame siguiente).
+if(ringsChannel > 0)
+{
+        state = ROUGE_RINGS;
+        return;
+}
+
 // v14 — SLIDE (patron Sally): por encima del ataque para que la
 // patada aterrizada no lo tape — slide (spr_rouge_slide, 1 frame).
 if(isSliding)
@@ -74,9 +87,16 @@ if(isSliding)
 // mostrar. Aqui el estado es el MISMO esquema de Knuckles:
 // en tierra = ROUGE_AIR_ATTACK(15) para el golpe alto,
 // en el aire = ROUGE_ATTACK(14) para el vuelo.
+// v32: la PATADA (modo ATTACK) y el ESCUDO ELECTRICO (modo EGGMAN)
+// pisan el mapeo tierra/aire — cada una con SU estado propio
+// (ROUGE_KICK = spr_rouge_attack3 / ROUGE_ESHIELD = spr_rouge_fly).
 if(isAttacking)
 {
-        if(isGrounded)
+        if(kickState > 0)
+                state = ROUGE_KICK;
+        else if(eShieldTimer > 0)
+                state = ROUGE_ESHIELD;
+        else if(isGrounded)
                 state = ROUGE_AIR_ATTACK;
         else
                 state = ROUGE_ATTACK;

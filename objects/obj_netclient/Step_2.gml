@@ -122,6 +122,22 @@ with(global.player)
                                         bitflags |= PLAYER_SALLYSHIELD;
                         }
 
+                        // v32 (HABILIDAD V de Rouge): el ESCUDO DE SALLY del
+                        // modo SUPPORT manda el MISMO bit que la de Sally (la
+                        // burbuja la dibuja su puppet en los demas clientes) y
+                        // la INVISIBILIDAD de su set normal manda el MISMO bit
+                        // del sonic.exe original (PLAYER_INVIS: los demas
+                        // clientes esconden su puppet entero y las agujas de
+                        // rastreo la saltan, vease net_udpprocess).
+                        if(global.character == CHARACTER_ROUGE)
+                        {
+                                if(shieldTimer > 0)
+                                        bitflags |= PLAYER_SALLYSHIELD;
+
+                                if(invisTimer > 0)
+                                        bitflags |= PLAYER_INVIS;
+                        }
+
                         // SALLY CANON fase DUELISTA (v5.4): tras su 1ra caida
                         // manda PLAYER_POWERBOOST hasta el fin de la ronda. Los
                         // puppets de los demas clientes lo guardan como

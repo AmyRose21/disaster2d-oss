@@ -466,7 +466,51 @@ global.player_anims[? CHARACTER_ROUGE] =
         spr_rouge_spin_charger, //20 = ROUGE_SPINDASH (v13): carga del spindash (abajo + Z)
         spr_rouge_spin_release, //21 = ROUGE_SPIN_RELEASE (v13): bola lanzada del spindash
         spr_rouge_slide, //22 = ROUGE_SLIDE (v14): slide de Sally (abajo corriendo)
-        spr_rouge_glide //23 = ROUGE_GLIDE_AIR (v14): glide PASIVA tipo Knuckles (tira direccional)
+        spr_rouge_glide, //23 = ROUGE_GLIDE_AIR (v14): glide PASIVA tipo Knuckles (tira direccional)
+        spr_rouge_attack3, //24 = ROUGE_KICK (v32): PATADA de Sally (X del modo ATTACK, hitbox +65%, i-frames)
+        spr_rouge_emotion3, //25 = ROUGE_RINGS (v32): canal de ANILLOS (C del modo SUPPORT, la pose "emotico3")
+        spr_rouge_fly //26 = ROUGE_ESHIELD (v32): ESCUDO ELECTRICO (X del modo EGGMAN, patron djump del doctor)
+];
+
+// v32 — SILUETAS de la INVISIBILIDAD de Rouge (C de su set normal,
+// patron sonic.exe original): contornos rojos (spr_rouge_invis_*,
+// 1 px puro (255,0,0)) de TODOS sus movimientos, con las tiras
+// COMPLETAS animadas (el exe usa 1 frame por estado: las de Rouge
+// llevan todos los frames de cada tira). Solo la ve LA JUGADORA
+// (Draw_76 de obj_rouge): para los demas clientes el bit PLAYER_INVIS
+// esconde su puppet entero. Los slots de ataque (14/15/24/25/26) ni
+// se alcanzan invisibles (pegar apaga la invisibilidad) pero caen en
+// la silueta de andar por pura defensa, patron de la tabla del exe.
+global.player_rougeinvis = ds_map_create();
+global.player_rougeinvis[? CHARACTER_ROUGE] =
+[
+        spr_rouge_invis_idle, //0
+        spr_rouge_invis_walk, //1
+        spr_rouge_invis_run, //2
+        spr_rouge_invis_jump, //3
+        spr_rouge_invis_fall, //4
+        spr_rouge_invis_hurt, //5
+        spr_rouge_invis_dead, //6
+        spr_rouge_invis_lookup, //7
+        spr_rouge_invis_lookdown, //8
+        spr_rouge_invis_emotion1, //9
+        spr_rouge_invis_emotion2, //10
+        spr_rouge_invis_emotion, //11
+        spr_rouge_invis_jump, //12 (spin, mismo sprite)
+        spr_rouge_invis_balancing, //13
+        spr_rouge_invis_walk, //14 = ataque (defensivo: invisible no pega)
+        spr_rouge_invis_walk, //15 = ataque (defensivo: invisible no pega)
+        spr_rouge_invis_fly, //16 = ROUGE_GLIDE: vuelo
+        spr_rouge_invis_zipline, //17
+        spr_rouge_invis_stuck, //18 = agarre de pared
+        spr_rouge_invis_hurt, //19 = MORIBUNDA (mismo sprite del hurt)
+        spr_rouge_invis_spin_charger, //20 = carga del spindash
+        spr_rouge_invis_spin_release, //21 = bola lanzada
+        spr_rouge_invis_slide, //22
+        spr_rouge_invis_glide, //23 = glide PASIVA (tira direccional)
+        spr_rouge_invis_walk, //24 = patada (defensivo)
+        spr_rouge_invis_walk, //25 = canal de anillos (defensivo)
+        spr_rouge_invis_walk //26 = escudo electrico (defensivo)
 ];
 
 // Kris (v6): layout de estados de KNUCKLES (attack2=14 / attack1=15 /
@@ -901,7 +945,13 @@ global.player_eanims[? CHARACTER_ROUGE] =
         // v14: slide/glide del subdito — sin arte propio todavia: el mas
         // cercano (bola para el slide, tira glide exe que ya existe)
         spr_erouge_jump, //22 = ROUGE_SLIDE (placeholder bola)
-        spr_erouge_glide //23 = ROUGE_GLIDE_AIR (la tira direccional exe ya existe)
+        spr_erouge_glide, //23 = ROUGE_GLIDE_AIR (la tira direccional exe ya existe)
+        // v32 (habilidad V): sin arte exe propio de la patada/pose/canal —
+        // placeholders con las tiras mas cercanas del mismo set (misma
+        // regla que el slide y el spindash de arriba)
+        spr_erouge_attack1, //24 = ROUGE_KICK: patada (placeholder attack1 exe)
+        spr_erouge_emotion3, //25 = ROUGE_RINGS: canal de anillos (pose exe)
+        spr_erouge_glide //26 = ROUGE_ESHIELD: escudo electrico (placeholder)
 ];
 
 // KRIS (demonizado): JAMAS se demoniza (regla de la duena: muere
@@ -1325,7 +1375,12 @@ global.player_negaanims[? CHARACTER_ROUGE] =
         // v14: slide/glide nega — placeholder bola para el slide y la tira
         // glide nega que ya existe (misma regla que el exe de arriba)
         spr_rougenega_jump, //22 = ROUGE_SLIDE (placeholder bola)
-        spr_rougenega_glide //23 = ROUGE_GLIDE_AIR (la tira direccional nega ya existe)
+        spr_rougenega_glide, //23 = ROUGE_GLIDE_AIR (la tira direccional nega ya existe)
+        // v32 (habilidad V): sin arte nega propio — placeholders con las
+        // tiras mas cercanas del mismo set (misma regla de arriba)
+        spr_rougenega_attack1, //24 = ROUGE_KICK: patada (placeholder)
+        spr_rougenega_emotion, //25 = ROUGE_RINGS: canal de anillos (placeholder)
+        spr_rougenega_glide //26 = ROUGE_ESHIELD: escudo electrico (placeholder)
 ];
 
 // Kris (v5): la energia negativa de Jinna NO CALA en el (regla de la
