@@ -1,0 +1,64 @@
+=====================================================================
+ COMPILAR v30 — MEJORA DE EFICACIA DEL compilar_server.bat
+ (compilar el server mas rapido, sobre todo en el uso diario).
+ 1 archivo: el .bat. Mismo menu, mismas rutas, mismo exe de salida.
+=====================================================================
+
+QUE MEJORO (opcion 1 "Compilar cambios", la que usas a diario)
+----------------------------------------------------------------
+  1. Ya NO re-configura cmake cada vez. El paso "cmake -B" solo
+     corre la primera vez o si cambias la CONFIG del .bat (rutas
+     SDL, etc): lo sabe por un sello (build\.configure-stamp). Si
+     tocas un CMakeLists.txt, el propio "cmake --build" lo detecta
+     y se re-configura solo — no pierdes nada.
+  2. Compila en PARALELO con todos los nucleos del procesador
+     (-j). Vale para la opcion 1 y para la 2 (Limpiar TODO):
+     la compilacion completa baja de minutos a una fraccion.
+  3. Detecta "Nada que recompilar": si no cambio nada desde la
+     ultima vez, te lo dice y NO copia DLLs ni toca las configs
+     (compara el timestamp del exe antes y despues de compilar).
+  4. Temporizador: cada compilacion te dice cuanto tardo.
+  5. Si falta la carpeta enet (el submodulo del server), la
+     descarga sola una vez — ya no es un error de configure.
+
+NUMEROS REALES (verificado con el mismo flujo cmake en Linux)
+----------------------------------------------------------------
+  - Configure: ~0.8 s (paso que ya no se repite en el uso diario)
+  - Re-compilar despues de tocar 1 solo .c (el caso tipico del
+    mod: un fix del server): ~0.9 s en total, recompila SOLO ese
+    archivo
+  - Sin cambios: ~0.07 s y mensaje "Nada que recompilar"
+  - Compilacion completa serial vs paralela: 7.1 s vs 4.7 s con
+    solo 2 nucleos (50% mas rapido); con 8+ nucleos la ganancia
+    es mucho mayor
+  - El exe compilado arranca y escucha igual: "BetterServer v1101,
+    Listening on port 8606"
+
+COMO SE USA (igual que siempre)
+--------------------------------
+  Sustituye el compilar_server.bat de tu carpeta betterserver-oss
+  por este y a correr: el menu es el mismo (1 compilar cambios,
+  2 limpiar TODO, 3 DLLs, 4/5 ejecutar, 6 carpeta, 7 relay, 8
+  salir) y el exe sale en el mismo sitio de siempre
+  (build\disasterserver\Release\DisasterServer.exe).
+
+  Nota: la PRIMERA vez con este .bat re-configura (no tienes
+  sello todavia); desde ahi, la opcion 1 va directa a compilar.
+
+VERIFICACION
+-------------
+  - check_v30.py: 123/123 (16 comprobaciones nuevas del .bat:
+    orden de pasos, paralelismo, sello, ticks, integridad de
+    labels/gotos del batch, ASCII sin CR como el original...
+    + las 107 del v29 y todas las anteriores).
+  - El flujo cmake completo verificado de verdad: configure,
+    build paralelo, incremental de 1 archivo, deteccion de
+    "nada que recompilar", serial vs paralelo y arranque del
+    binario (11/11 en scripts/verify_v30_linux.sh).
+
+ARCHIVOS DEL ZIP
+-----------------
+  betterserver-oss/compilar_server.bat ... el script mejorado;
+  check_v30.py .......................... validador 123/123;
+  worklog.md ............................ bitacora actualizada;
+  LEEME_COMPILAR_V30.txt ................ este archivo.

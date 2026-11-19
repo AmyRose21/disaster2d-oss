@@ -1,12 +1,25 @@
 {
-	"amy_canon_token": "SweetPassion",
 	"port":	8606,
 	"server_count":	1,
-	"ping_limit":	250,
+	"ping_limit":	65535,
 	"log_file":	false,
 	"log_debug":	false,
 	"anticheat":	false,
-	"pride":	true,
+	"pride":	false,
 	"motd":	"",
-	"random_mode":	false
+	"random_mode":	false,
+	"afk_kick_time":	3600,
+	"charselect_time":	30,
+	"practice_time":	60,
+	"lobby_countdown":	5,
+	"mapvote_time":	30,
+	"amy_canon_token":	"SweetPassion",
+	"allow_duplicate_ip":	true,
+	"relay":	{
+		"enabled":	false,
+		"directory_host":	"relaysc.dr2.site",
+		"directory_port":	9001,
+		"username":	"s38bd8ef11f",
+		"password":	"4QvPDem478KMNj5M5KHaxhPF"
+	}
 }
