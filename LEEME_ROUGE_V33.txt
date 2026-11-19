@@ -1,0 +1,78 @@
+=====================================================================
+ ROUGE v33 — FIX DE LOS ICONOS POR MODALIDAD + PATADA/ESCUDO
+ 3 archivos .gml (SOLO CLIENTE: el server NO se toca esta vez)
+=====================================================================
+
+QUE SE ARREGLO (los 2 reportes)
+--------------------------------
+
+ 1) LOS ICONOS DEL HUD (lo que pediste: "cuando cambie de
+    habilidad los iconos de las habilidades sean visibles")
+    El HUD quedo clavado en el set de siempre y nunca enseno el
+    cambio de la V. Ahora en la esquina (donde los iconos de
+    teclas) sale:
+
+      * La tecla V con el ICONO del set que llevas puesto
+        (alas = tu set / escudo del doctor = EGGMAN / burbuja
+        de Sally = SOPORTE / bota de Sally = ATAQUE). Brilla 2
+        segundos al ciclar y luego queda en verde suave.
+      * Debajo, las X y C DEL SET ACTUAL con sus recargas
+        REALES (blanco = lista, rojo = recargando, y la barrita
+        que crece como la de todos):
+          EGGMAN  -> X escudo electrico, C mina
+          SOPORTE -> X escudo de Sally,  C anillos de Vanilla
+          ATAQUE  -> X patada de Sally (C sin asignar todavia)
+      * Tu set normal queda IGUAL que siempre (vuelo Z,
+        tornado X, spindash abajo+Z) + la V nueva abajo.
+
+    Por eso antes "la de vuelo no se veia en la lista": el HUD
+    no cambiaba NADA al ciclar. Ahora si: cada set ensena lo
+    suyo (y en tu set normal la de vuelo sigue ahi, donde
+    siempre).
+
+ 2) LA PATADA Y EL ESCUDO ELECTRICO ("usa el ataque de rouge
+    en vez de las habilidades")
+    Causa: al tocarla el exe/esbirro mientras los usaba, un
+    codigo viejo (el del v4.4, "Rouge patea igual que
+    Knuckles") le robaba el contacto y rebotaba igual que con
+    el tornado de siempre. Por eso no pasaba con el escudo de
+    Sally ni con los anillos: esos van por su propio camino.
+
+      * PATADA (set ATAQUE, X): ahora aturde DE VERDAD —
+        3 segundos de stun con empujon, con su hitbox del
+        65% aumentado, y le entra aunque el exe tenga
+        i-frames activos (mismo sistema que su taladro
+        aereo). Sigue con i-frames tuyos durante toda la
+        patada.
+      * ESCUDO ELECTRICO (set EGGMAN, X): ahora descarga
+        SIEMPRE que te tocan (antes solo entraba si el exe
+        te tocaba sin atacar): chispazo + 2 s de stun
+        electrico + sin empujon, igual que el del doctor.
+      * Tu tornado y tu taladro siguen rebotando IGUAL que
+        siempre (nada de lo viejo se toco).
+
+ 3) DE REGALO: este zip tambien trae el arreglo del error de
+    compilacion del zip v32 ("duplicate case statement" en el
+    puppet). Si ya aplicaste el zip v32.1, este archivo viene
+    identico: no pasa nada por encima.
+
+COMO INSTALAR
+-------------
+ 1) Cierra GameMaker.
+ 2) Copia el contenido del zip encima de tu proyecto
+    (SUSTITUIR al preguntar). Son 3 .gml + los 3 de documentos.
+ 3) Abre y compila el cliente. EL SERVER NO SE TOCA (mismo
+    de la v32).
+
+PRUEBA RAPIDA (1 minuto)
+------------------------
+ 1. Como Rouge, pulsa V: el icono de la V cambia con cada set
+    (alas -> escudo del doctor -> burbuja de Sally -> bota) y
+    las X/C de abajo ensenan las habilidades del set con su
+    recarga.
+ 2. Set ATAQUE: patada al exe pegado a el — queda aturdido 3 s
+    de verdad (no solo rebote).
+ 3. Set EGGMAN: escudo y deja que el exe te ZARPEE — come la
+    descarga electrica de 2 s con chispazo (antes solo salia
+    si te tocaba sin atacar).
+=====================================================================

@@ -301,16 +301,9 @@ switch(character)
                         draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 16 - 19);
                 break;
 
-        // v32 (HABILIDAD V de Rouge): el ESCUDO DE SALLY del modo
-        // SUPPORT dibuja su burbuja en el puppet con el MISMO bit
-        // PLAYER_SALLYSHIELD de siempre (patron de la Sally vanilla
-        // de arriba: efecto aparte encima del cuerpo, en cualquier
-        // estado).
-        case CHARACTER_ROUGE:
-                if(sallyShield)
-                        draw_sprite(revivalTimes >= 2 ? spr_sallyshield2 : spr_sallyshield, (current_time / 30) % 41, floor(x), floor(y));
-                break;
-                
+        // (v32.1: la burbuja del ESCUDO DE SALLY del modo SUPPORT de Rouge
+        // se dibuja ABAJO, fusionada en su case de la tirolina — su case
+        // ya existia aqui desde la v4.4 y un case duplicado no compila.)
         case CHARACTER_METAL:
                 if(state == METAL_ZIPLINE)
                         draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 17 - 19);
@@ -333,8 +326,15 @@ switch(character)
 
         // v4.4 — ROUGE: cuelga de la tirolina a la altura de Knuckles
         // (su sprite mide casi igual: offset 22)
+        // v32 (HABILIDAD V): ADEMAS, el ESCUDO DE SALLY del modo SUPPORT
+        // dibuja su burbuja con el MISMO bit PLAYER_SALLYSHIELD de
+        // siempre (patron de la Sally vanilla: efecto aparte encima del
+        // cuerpo, en cualquier estado — quieta, andando, en tirolina...).
         case CHARACTER_ROUGE:
                 if(state == ROUGE_ZIPLINE)
                         draw_sprite(spr_aiz_zipline, 0, floor(x) - 12, floor(y) - 22 - 19);
+
+                if(sallyShield)
+                        draw_sprite(revivalTimes >= 2 ? spr_sallyshield2 : spr_sallyshield, (current_time / 30) % 41, floor(x), floor(y));
                 break;
 }

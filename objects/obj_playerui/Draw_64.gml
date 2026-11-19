@@ -362,28 +362,99 @@ if(instance_exists(global.player) && !global.player.isDead)
                 // spr_gui_rougeattack / placeholder de Sonic para el spin).
                 // Nada tiene version exe (jamais se demoniza): recargas de
                 // superviviente siempre.
+                // v33 (fix duena "los iconos no cambian"): el HUD CAMBIA con
+                // la modalidad de la V — cada set ensena SUS iconos con SUS
+                // recargas reales (blanco = listo, rojo = recargando), y la
+                // V abajo lleva el icono del set puesto (brillante 2 s al
+                // ciclar con modeFlash, tono suave fijo despues — igual que
+                // el nombre bajo la barra de vida del Draw_64). El set normal
+                // queda INTACTO (vuelo/tornado/spindash donde siempre) y solo
+                // se le suma la V; en los otros modos el vuelo y el spin NO
+                // se dibujan (no aplican: por eso "la de vuelo no se veia"
+                // cuando llevaba otro set puesto).
                 case CHARACTER_ROUGE:
                 {
-                        // v13 — VUELO patron VANILLA: la puerta flyTimer cuenta
-                        // hacia atras desde ROUGE_FLY_RECHARGE cuando NO vuela
-                        // (0 = listo). Icono listo = blanco, recarga = rojo.
-                        var _rprog = 1.0 - (max(global.player.flyTimer, 0) / ROUGE_FLY_RECHARGE);
-                        drawKeyIcon(spr_gui_rougeglide, 0, 23, global.KeyA, _rprog * 10, 240 - _ico, _rprog == 1.0 ? c_white : c_red, _rprog, 0);
+                        // ---- V: el icono del CAMBIO (fila nueva, abajo del
+                        // todo para no montarse con el spin de su set) ----
+                        var _vSpr = spr_gui_rougeglide; // su set: el vuelo
+                        var _vW = 23;
 
-                        // v13 — TORNADO (X en tierra): recarga attackTimer.
-                        var prog = 1.0 - (min(global.player.attackTimer, ROUGE_ATTACK_RECHARGE) / ROUGE_ATTACK_RECHARGE);
-                        drawKeyIcon(spr_gui_rougeattack, 0, 19, global.KeyB, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
+                        if(global.player.rougeMode == ROUGE_MODE_EGGMAN)
+                        {
+                                _vSpr = spr_gui_eggshield;
+                                _vW = 20;
+                        }
+                        else if(global.player.rougeMode == ROUGE_MODE_SUPPORT)
+                        {
+                                _vSpr = spr_gui_sallyshield;
+                                _vW = 20;
+                        }
+                        else if(global.player.rougeMode == ROUGE_MODE_ATTACK)
+                        {
+                                _vSpr = spr_gui_sallyattack;
+                                _vW = 23;
+                        }
 
-                        // v13 — SPINDASH (abajo + Z): sin cooldown (su coste
-                        // es el tiempo de revolucioneo), patron del de Sonic:
-                        // siempre visible, blanco = listo, brilla mas al cargar.
-                        var _rspr = asset_get_index("spr_gui_rougespindash");
-                        if(is_undefined(_rspr) || _rspr < 0)
-                                _rspr = spr_gui_sonicspindash; // placeholder hasta que exista el propio
+                        drawKeyIcon(_vSpr, 0, _vW, global.KeyV, 10, 276 - _ico, global.player.modeFlash > 0 ? c_white : c_lime, global.player.modeFlash > 0 ? 1 : 0.65, 0);
 
-                        var _rcharging = variable_instance_exists(global.player.id, "isSpinCharging") && global.player.isSpinCharging;
-                        var _rchg = variable_instance_exists(global.player.id, "spinCharge") ? global.player.spinCharge / ROUGE_SPINDASH_CHARGE_MAX : 0;
-                        drawKeyIcon(_rspr, 0, 33, global.KeyA, 10, 222 - _ico, _rcharging ? c_red : c_white, _rcharging ? 0.5 + _rchg * 0.5 : 1, 0);
+                        if(global.player.rougeMode == ROUGE_MODE_ROUGE)
+                        {
+                                // ---- set normal (v13, intacto) ----
+                                // VUELO patron VANILLA: la puerta flyTimer cuenta
+                                // hacia atras desde ROUGE_FLY_RECHARGE cuando NO vuela
+                                // (0 = listo). Icono listo = blanco, recarga = rojo.
+                                var _rprog = 1.0 - (max(global.player.flyTimer, 0) / ROUGE_FLY_RECHARGE);
+                                drawKeyIcon(spr_gui_rougeglide, 0, 23, global.KeyA, _rprog * 10, 240 - _ico, _rprog == 1.0 ? c_white : c_red, _rprog, 0);
+
+                                // TORNADO (X en tierra): recarga attackTimer.
+                                var prog = 1.0 - (min(global.player.attackTimer, ROUGE_ATTACK_RECHARGE) / ROUGE_ATTACK_RECHARGE);
+                                drawKeyIcon(spr_gui_rougeattack, 0, 19, global.KeyB, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
+
+                                // SPINDASH (abajo + Z): sin cooldown (su coste
+                                // es el tiempo de revolucioneo), patron del de Sonic:
+                                // siempre visible, blanco = listo, brilla mas al cargar.
+                                var _rspr = asset_get_index("spr_gui_rougespindash");
+                                if(is_undefined(_rspr) || _rspr < 0)
+                                        _rspr = spr_gui_sonicspindash; // placeholder hasta que exista el propio
+
+                                var _rcharging = variable_instance_exists(global.player.id, "isSpinCharging") && global.player.isSpinCharging;
+                                var _rchg = variable_instance_exists(global.player.id, "spinCharge") ? global.player.spinCharge / ROUGE_SPINDASH_CHARGE_MAX : 0;
+                                drawKeyIcon(_rspr, 0, 33, global.KeyA, 10, 222 - _ico, _rcharging ? c_red : c_white, _rcharging ? 0.5 + _rchg * 0.5 : 1, 0);
+                        }
+                        else if(global.player.rougeMode == ROUGE_MODE_EGGMAN)
+                        {
+                                // ---- X: ESCUDO ELECTRICO (recarga total del
+                                // doctor: activo + espera, la misma formula
+                                // del special) ----
+                                var _etot = ROUGE_ESHIELD_TIME + (global.player.revivalTimes >= 2 ? ROUGE_ESHIELD_RECHARGE_E : ROUGE_ESHIELD_RECHARGE);
+                                var _eprog = 1.0 - (max(global.player.eShieldRecharge, 0) / _etot);
+                                drawKeyIcon(spr_gui_eggshield, 0, 20, global.KeyB, _eprog * 10, 240 - _ico, _eprog == 1.0 ? c_white : c_red, _eprog, 0);
+
+                                // ---- C: MINA/SENSOR (25 s del doctor) ----
+                                var _mprog = 1.0 - (max(global.player.trackerRecharge, 0) / EGGMAN_TRACKER_RECHARGE);
+                                drawKeyIcon(spr_gui_eggtrack, 0, 24, global.KeyC, _mprog * 10, 258 - _ico, _mprog == 1.0 ? c_white : c_red, _mprog, 0);
+                        }
+                        else if(global.player.rougeMode == ROUGE_MODE_SUPPORT)
+                        {
+                                // ---- X: ESCUDO DE SALLY (30 s / 15 debilitada) ----
+                                var _stot = global.player.revivalTimes >= 2 ? ROUGE_SHIELD_RECHARGE_E : ROUGE_SHIELD_RECHARGE;
+                                var _sprog = 1.0 - (max(global.player.shieldRechrage, 0) / _stot);
+                                drawKeyIcon(spr_gui_sallyshield, 0, 20, global.KeyB, _sprog * 10, 240 - _ico, _sprog == 1.0 ? c_white : c_red, _sprog, 0);
+
+                                // ---- C: ANILLOS DE VANILLA (15 s) ----
+                                var _gprog = 1.0 - (max(global.player.ringsTimer, 0) / ROUGE_RINGS_RECHARGE);
+                                drawKeyIcon(spr_gui_creamrings, 0, 20, global.KeyC, _gprog * 10, 258 - _ico, _gprog == 1.0 ? c_white : c_red, _gprog, 0);
+                        }
+                        else // ROUGE_MODE_ATTACK
+                        {
+                                // ---- X: PATADA DE SALLY (15 s / 7,5 debilitada;
+                                // recarga attackTimer, patron del tornado) ----
+                                var _ktot = global.player.revivalTimes >= 2 ? ROUGE_KICK_RECHARGE / 2 : ROUGE_KICK_RECHARGE;
+                                var _kprog = 1.0 - (min(max(global.player.attackTimer, 0), _ktot) / _ktot);
+                                drawKeyIcon(spr_gui_sallyattack, 0, 23, global.KeyB, _kprog * 10, 240 - _ico, _kprog == 1.0 ? c_white : c_red, _kprog, 0);
+
+                                // C sin asignar todavia (proximo set): no se dibuja
+                        }
                         break;
                 }
 

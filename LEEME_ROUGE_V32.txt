@@ -1,4 +1,15 @@
 =====================================================================
+ >>> HOTFIX v32.1 (16:50) — ARREGLADO EL ERROR DE COMPILACION <<<
+ El error "duplicate case statement found" en obj_player_puppet era
+ un case CHARACTER_ROUGE repetido (el de la burbuja del escudo pisaba
+ el de la tirolina que existia desde la v4.4). ESTE zip lo trae
+ arreglado: solo cambia objects/obj_player_puppet/Draw_0.gml (la
+ burbuja ahora vive DENTRO del case de la tirolina). Si ya aplicaste
+ el zip v32 anterior: aplica este ENCIMA y compila — ya esta.
+ El server NO se toca en el hotfix (mismo Game.c de la v32).
+=====================================================================
+
+=====================================================================
  ROUGE v32 — HABILIDAD V: CAMBIO DE MODALIDAD (la mas poderosa)
  + INVISIBILIDAD estilo sonic.exe + PATADA DE SALLY + MEJORAR TRAMPAS
  20 archivos .gml/.yyp + 21 sprites NUEVOS + 1 archivo de SERVER

@@ -478,11 +478,15 @@ def main():
         ok("el .yyp completo sigue parseando como JSON de GameMaker")
     except Exception as e:
         bad(f"el .yyp NO parsea: {e}")
-    # diff exacto vs git
+    # diff exacto vs git — v32.1: la v32 ya viene COMMITIDA en el
+    # upstream (la duena la subio: commits aacfebb4 + 165985a3), asi
+    # que el .yyp del arbol debe ser IDENTICO a HEAD: sin diff. (En la
+    # v32 original este check exigia el diff +21 contra el upstream
+    # pre-v32; la linea base se movio.)
     diff = subprocess.run(["git", "-C", REPO, "diff", "--numstat", "--",
                            "Sonicexe The Disaster 2D Remake.yyp"],
                           capture_output=True, text=True).stdout.strip()
-    check(diff.startswith("21"), f"diff del .yyp = exactamente +21 lineas ({diff.split()[0] if diff else '?'})")
+    check(diff == "", f"el .yyp sin cambios locales (la v32 ya viene del upstream)")
 
     # ---------------------------------------------------------- SERVER
     print("\n[13] Server anticheat (betterserver Game.c)")
@@ -502,35 +506,216 @@ def main():
           "anticheat de duracion v29 intacto (8000 ms cubre patada + escudo)")
 
     # --------------------------------------------------- GIT: tocados
-    print("\n[14] Archivos tocados (git) — nada mas que lo de la ronda")
-    # codigo ESTRICTO (19) + payload de documentacion (worklog/LEEME/
-    # checker viajan en el zip por tradicion de las rondas, igual que
-    # en la v29): el arbol de desarrollo y un clon con el zip aplicado
-    # deben dar AMBOS verde.
+    # v32.1: la linea base se MOVIO — la duena commitio la v32 completa
+    # al upstream. Este hotfix trae EXACTAMENTE: el fix del case
+    # duplicado (Draw_0 del puppet) + el payload de documentacion
+    # (worklog/LEEME/checker, ya tracked en el upstream). Cero .yyp,
+    # cero sprites nuevos, cero server.
+    print("\n[14] Archivos tocados (git) — nada mas que el hotfix")
     st = subprocess.run(["git", "-C", REPO, "status", "--porcelain"],
                         capture_output=True, text=True).stdout.strip().split("\n")
-    # git entrecomilla rutas con espacios en --porcelain: quitar comillas
-    modified = sorted(l[3:].strip().strip('"') for l in st if l.strip() and not l.startswith("??"))
-    untracked = sorted(l[3:].strip().strip('"') for l in st if l.startswith("??"))
-    expected_mod = set(GML.values()) | {SRV, "Sonicexe The Disaster 2D Remake.yyp"}
+    # parse robusto: 'XY ruta' (X/Y de 1 char + espacio). Undelete
+    # unstaged es ' D ruta' (3 chars de prefijo); staged es 'D  ruta'.
+    modified = []
+    for l in st:
+        if len(l) >= 4 and l[2] == " ":
+            modified.append(l[3:].strip().strip('"'))
+    modified = sorted(set(modified))
+    expected_hotfix = {"objects/obj_player_puppet/Draw_0.gml"}
     doc_payload = {"worklog.md", "LEEME_ROUGE_V32.txt", "check_v32.py"}
-    extra_mod = set(modified) - expected_mod - doc_payload
-    missing_mod = expected_mod - set(modified)
+    extra_mod = set(modified) - expected_hotfix - doc_payload
+    missing_mod = expected_hotfix - set(modified)
     check(not extra_mod and not missing_mod,
-          f"modificados: los 19 de codigo justos"
+          f"modificados: solo el fix del puppet Draw_0 + docs"
           + (f" (EXTRA: {extra_mod})" if extra_mod else "")
           + (f" (FALTAN: {missing_mod})" if missing_mod else ""))
-    new_dirs = {("/".join(u.split("/")[:2]) if u.count("/") >= 1 else u) for u in untracked}
-    expected_new = {"sprites/" + s for s in new_sprites} | {"betterserver-oss/build", "betterserver-oss/enet"} | doc_payload
-    unexpected = {d for d in new_dirs if d not in expected_new}
-    check(not unexpected, f"carpetas/archivos nuevos = solo sprites v32 + build/enet + doc"
-          + (f" (INESPERADO: {unexpected})" if unexpected else ""))
+
+    # ---- el fix en si: burbuja FUSIONADA en el case de la tirolina ----
+    # (el bug: "duplicate case statement found" — mi case nuevo duplico
+    # el CHARACTER_ROUGE de la tirolina que existia desde la v4.4)
+    t = gml["puppet_draw"]
+    n_rouge_cases = t.count("case CHARACTER_ROUGE:")
+    # 2 legitimos: uno en el switch pequeno del xscale (glide, linea ~80)
+    # y uno en el switch grande de personajes (tirolina + burbuja). El bug
+    # era un 3.o (dos en el MISMO switch grande) — lo caza el [15].
+    check(n_rouge_cases == 2,
+          f"puppet Draw_0: 2 cases CHARACTER_ROUGE (1 por switch — el bug "
+          f"del zip v32 eran 3: dos en el mismo switch grande)")
+    fused = re.search(
+        r"case CHARACTER_ROUGE:\s*\n\s*if\(state == ROUGE_ZIPLINE\)\s*\n\s*draw_sprite\(spr_aiz_zipline[^\n]*\n\s*\n\s*if\(sallyShield\)",
+        t)
+    check(fused is not None,
+          "la burbuja del escudo va DENTRO del case existente de la "
+          "tirolina (fusion, no case aparte)")
+
+    # --------------------------------------------- CASES DUPLICADOS
+    # v32.1: la leccion del bug reportado por la duena ("duplicate case
+    # statement found" en obj_player_puppet/Draw_0 — el case
+    # CHARACTER_ROUGE de la tirolina ya existia desde la v4.4 y el de la
+    # burbuja del escudo lo duplico: un checker que solo mira "existe el
+    # case" nunca lo ve; hay que exigir UNICIDAD dentro de su switch).
+    print("\n[15] Cases duplicados (la leccion del bug v32.1)")
+    dup_total = scan_duplicate_cases(REPO)
+    check(dup_total == 0,
+          "0 cases duplicados en todo el proyecto (labels con macros "
+          "resueltos; los case de strings tipo case \".mute\": son "
+          "legales y quedan fuera)")
 
     # ------------------------------------------------------------ FIN
     print("\n" + "=" * 68)
     print(f" RESULTADO: {PASS} OK / {FAIL} FALLAS")
     print("=" * 68)
     return 1 if FAIL else 0
+
+
+def scan_duplicate_cases(repo):
+    """Detector de cases duplicados por switch (portable: viaja DENTRO
+    del checker para que funcione en cualquier arbol sin depender de
+    scripts/externos). Resuelve los #macro del proyecto a valor
+    numerico; los labels STRING quedan fuera (case ".mute": y case
+    "\\n": son legales y distintos entre si). Devuelve el numero de
+    etiquetas duplicadas, o -1 ante error interno."""
+    def strip_noise(text):
+        out, i, n = [], 0, len(text)
+        while i < n:
+            c = text[i]
+            if c == "\n":
+                out.append(c)
+                i += 1
+            elif c == '"' or c == "'":
+                q = c
+                i += 1
+                while i < n and text[i] != q:
+                    i += 1
+                i += 1
+                out.append(" ")
+            elif c == "/" and i + 1 < n and text[i + 1] == "/":
+                while i < n and text[i] != "\n":
+                    i += 1
+            elif c == "/" and i + 1 < n and text[i + 1] == "*":
+                i += 2
+                while i + 1 < n and not (text[i] == "*" and text[i + 1] == "/"):
+                    if text[i] == "\n":
+                        out.append("\n")
+                    i += 1
+                i += 2
+                out.append(" ")
+            else:
+                out.append(c)
+                i += 1
+        return "".join(out)
+
+    def eval_expr(expr, macros, depth=0):
+        if depth > 12:
+            return None
+        expr = expr.strip()
+        if re.fullmatch(r"-?\d+", expr):
+            return int(expr)
+        if re.fullmatch(r"[A-Za-z_]\w*", expr) and expr in macros:
+            return eval_expr(macros[expr], macros, depth + 1)
+        if expr.startswith("(") and expr.endswith(")"):
+            return eval_expr(expr[1:-1], macros, depth + 1)
+        if expr.startswith("-"):
+            v = eval_expr(expr[1:], macros, depth + 1)
+            return -v if v is not None else None
+        for op in ("+", "-", "*", "/"):
+            parts, lvl, cur = [], 0, ""
+            for ch in expr:
+                if ch == "(":
+                    lvl += 1
+                elif ch == ")":
+                    lvl -= 1
+                if ch == op and lvl == 0:
+                    parts.append(cur)
+                    cur = ""
+                else:
+                    cur += ch
+            parts.append(cur)
+            if len(parts) > 1:
+                vals = [eval_expr(p, macros, depth + 1) for p in parts]
+                if None in vals:
+                    return None
+                v = vals[0]
+                for x in vals[1:]:
+                    if op == "+":
+                        v += x
+                    elif op == "-":
+                        v -= x
+                    elif op == "*":
+                        v *= x
+                    else:
+                        return None if x == 0 else v // x
+                return v
+        return None
+
+    # tabla de macros del proyecto (solo .gml de codigo)
+    macros = {}
+    gml_files = []
+    for root, dirs, files in os.walk(repo):
+        dirs[:] = [d for d in dirs if d not in
+                   ("build", "enet", ".git", "sprites", "sounds", "fonts",
+                    "rooms", "tiles", "paths", "sequences", "shader",
+                    "timelines", "animcurves", "notes", "datafiles",
+                    "extensions", "options")]
+        for f in files:
+            if f.endswith(".gml"):
+                gml_files.append(os.path.join(root, f))
+    try:
+        for path in gml_files:
+            for m in re.finditer(r"#macro\s+([A-Za-z_]\w*)\s+(.+)",
+                                 strip_noise(rd(path))):
+                macros[m.group(1)] = m.group(2).strip()
+
+        dups = 0
+        for path in sorted(gml_files):
+            clean = strip_noise(rd(path))
+            n = len(clean)
+            i = 0
+            while True:
+                sw = clean.find("switch", i)
+                if sw < 0:
+                    break
+                if sw > 0 and (clean[sw - 1].isalnum() or clean[sw - 1] == "_"):
+                    i = sw + 6
+                    continue
+                j = clean.find("{", sw)
+                if j < 0:
+                    break
+                lvl, k = 0, j
+                while k < n:
+                    if clean[k] == "{":
+                        lvl += 1
+                    elif clean[k] == "}":
+                        lvl -= 1
+                        if lvl == 0:
+                            break
+                    k += 1
+                # SIN las llaves delimitadoras: los cases del switch van
+                # a profundidad 0 (con la llave propia incluida quedaban
+                # a 1 y el detector no veia NADA — falso negativo).
+                body = clean[j + 1:k]
+                start_line = clean[:sw].count("\n") + 1
+                depth = 0
+                labels = {}
+                for mm in re.finditer(r"(case\s+([^:]+?)\s*:)|(\{)|(\})", body):
+                    if mm.group(3):
+                        depth += 1
+                    elif mm.group(4):
+                        depth -= 1
+                    elif mm.group(1) is not None and depth == 0:
+                        expr = mm.group(2).strip()
+                        ln = start_line + body[:mm.start()].count("\n")
+                        if not expr:
+                            key = ("str", ln)      # label de string: unico
+                        else:
+                            val = eval_expr(expr, macros)
+                            key = ("num", val) if val is not None else ("raw", expr)
+                        labels.setdefault(key, []).append((ln, expr))
+                dups += sum(1 for hits in labels.values() if len(hits) > 1)
+                i = k + 1
+        return dups
+    except Exception:
+        return -1
 
 
 if __name__ == "__main__":

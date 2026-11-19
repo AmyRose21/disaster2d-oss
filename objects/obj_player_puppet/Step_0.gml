@@ -359,7 +359,15 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 // v4.4: Rouge patea igual que Knuckles/Sally — su
                                 // golpe local tambien repele al ESBIRRO que la toca
                                 // v5: la espada de Kris tambien (patron Knuckles)
-                                if((global.character == CHARACTER_KNUX || global.character == CHARACTER_SALLY || global.character == CHARACTER_ROUGE || global.character == CHARACTER_KRIS) && global.player.isAttacking && global.player.revivalTimes < 2)
+                                // v33 (fix duena): la PATADA (ROUGE_KICK) y el
+                                // ESCUDO ELECTRICO (ROUGE_ESHIELD) ya NO entran
+                                // aqui — este rebote es "el ataque de siempre" y
+                                // les robaba el contacto a sus efectos propios de
+                                // abajo (el stun de la patada y el electrico del
+                                // escudo): al usarlas pasaba lo mismo que con el
+                                // tornado. Solo el tornado/taladro (sus ataques
+                                // de verdad) siguen rebotando.
+                                if((global.character == CHARACTER_KNUX || global.character == CHARACTER_SALLY || global.character == CHARACTER_KRIS || (global.character == CHARACTER_ROUGE && state != ROUGE_KICK && state != ROUGE_ESHIELD)) && global.player.isAttacking && global.player.revivalTimes < 2)
                                 {
                                         global.player.isAttacking = false;
                                         global.player.isHurt = true;
@@ -630,7 +638,13 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 // v4.4: Rouge patea igual que Knuckles/Sally — su
                                 // isAttacking tambien repele el contacto del esbirro
                                 // v5: la espada de Kris tambien (patron Knuckles)
-                                if(global.player.isAttacking && (character == CHARACTER_KNUX || character == CHARACTER_SALLY || character == CHARACTER_ROUGE || character == CHARACTER_KRIS))
+                                // v33 (fix duena): PATADA y ESCUDO ELECTRICO fuera
+                                // de este rebote (mismo arreglo que el bloque del
+                                // esbirro de arriba): sus efectos propios estan mas
+                                // abajo y este return los tapaba cuando el exe
+                                // atacaba al tocarla — "usa el ataque de rouge en
+                                // vez de la habilidad".
+                                if(global.player.isAttacking && (character == CHARACTER_KNUX || character == CHARACTER_SALLY || character == CHARACTER_KRIS || (character == CHARACTER_ROUGE && state != ROUGE_KICK && state != ROUGE_ESHIELD)))
                                 {
                                         global.player.isAttacking = false;
                                         global.player.isHurt = true;
@@ -797,6 +811,66 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         buffer_write(_rpak, buffer_u16, master_id);
                                         buffer_write(_rpak, buffer_u8, 1);
                                         send_server_tcp(_rpak);
+
+                                        scr_exe_stunsound();
+                                }
+
+                                return;
+                        }
+
+                        // =================================================
+                        //  v33 (fix duena) — PATADA DE ROUGE (modo ATTACK,
+                        //  estado ROUGE_KICK): STUN de verdad, no rebote.
+                        //  Antes el contacto caia en el rebote generico del
+                        //  v4.4 ("patea igual que Knuckles") y la patada se
+                        //  sentia igual que el ataque de siempre. Mismo
+                        //  patron que su taladro aereo de abajo: rompe
+                        //  i-frames (entra aunque la victima ya este
+                        //  inmune), 3 s de stun con empujon, CLIENT_PLAYER_
+                        //  HURT + stats. El alcance YA viene ampliado por el
+                        //  pad del +65% del principio (ROUGE_KICK_HITBOX_
+                        //  PCT). Corre en el cliente de la victima (la
+                        //  autoridad de su propio jugador).
+                        // =================================================
+                        if(character == CHARACTER_ROUGE && state == ROUGE_KICK)
+                        {
+                                var _kpstun = 3;
+
+                                global.player.shockedTimer = _kpstun * 60;
+                                global.player.xspd = -sign(x - global.player.x) * 4;
+                                global.player.yspd = -2;
+                                global.player.isGrounded = false;
+
+                                if(global.character == CHARACTER_SALLY)
+                                        global.player.isSliding = false;
+
+                                audio_play_sound(snd_exe_stun, 0, false);
+                                net_sound_emit(snd_exe_stun);
+
+                                // v17 (VIDA REAL DEL NEGA): al subdito negativo
+                                // local el stun le cuesta 20 de vida (autofiltro)
+                                scr_jinna_negatouch_stun_hurt();
+
+                                var _kbuf = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
+                                buffer_write(_kbuf, buffer_u16, master_id);
+                                buffer_write(_kbuf, buffer_u16, x);
+                                buffer_write(_kbuf, buffer_u16, y);
+                                buffer_write(_kbuf, buffer_u16, _kpstun);
+                                send_server_tcp(_kbuf);
+
+                                var _kpak = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
+                                buffer_write(_kpak, buffer_u8, 1);
+                                buffer_write(_kpak, buffer_u16, obj_netclient.nid);
+                                buffer_write(_kpak, buffer_u16, master_id);
+                                buffer_write(_kpak, buffer_u8, _kpstun);
+                                send_server_tcp(_kpak);
+
+                                if(global.character == CHARACTER_EXE)
+                                {
+                                        _kpak = cpacket_tcp(PacketType.CLIENT_MERCOIN_BONUS, true);
+                                        buffer_write(_kpak, buffer_u16, master_id);
+                                        buffer_write(_kpak, buffer_u8, 1);
+                                        send_server_tcp(_kpak);
 
                                         scr_exe_stunsound();
                                 }
