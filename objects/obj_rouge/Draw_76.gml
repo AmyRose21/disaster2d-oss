@@ -133,6 +133,8 @@ switch(state)
                 || (variable_instance_exists(id, "drillState") && drillState > 0))
                 {
                         image_speed = 0.5;
+                if(image_index >= 1)
+                        image_index = 0;
                         break;
                 }
 

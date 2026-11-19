@@ -509,19 +509,25 @@ function scr_rouge_special()
                                 net_quick_effect(x - 10 * image_xscale, y, spr_dust);
 
                         // CHOQUE CONTRA PARED: corta el tornado (patron Metal).
-                        // v26 (bug del video de la duena): el corte SOLO vale si el
-                        // remolino VIAJO desde donde nacio (abs(x - tornadoStartX) >
-                        // ROUGE_TORNADO_WALL_TRAVEL). Sin esta puerta, aterrizar el
-                        // taladro PEGADO a un muro (o pulsar la X al lado de uno)
-                        // mataba el tornado en el PRIMER frame: el place_meeting de
-                        // 4 px ya veia la pared sin haberse movido ni un pixel, la
-                        // habilidad duraba 1-2 frames ("unos milisegundos" de attack2
-                        // y a correr) y la recarga quedaba pagada por nada. Ahora, si
-                        // NACE pegado a la pared, el remolino gira EN EL SITIO toda su
-                        // duracion (colision lo frena, la tira sigue en loop con sus
-                        // i-frames); y si llega a una pared EN PLENA CARRERA sigue
-                        // cortandose igual, con su polvareda y su mini-temblor.
-                        if((place_meeting(x + 4 * image_xscale, y, obj_floor_parent) || place_meeting(x - 4 * image_xscale, y, obj_floor_parent))
+                        // v26: el corte SOLO vale si el remolino VIAJO desde donde
+                        // nacio (abs(x - tornadoStartX) > ROUGE_TORNADO_WALL_TRAVEL);
+                        // si NACE pegado a la pared, gira EN EL SITIO toda su duracion
+                        // (colision lo frena, la tira sigue en loop con sus i-frames).
+                        // v28 (raiz del "tornado no funciona"): el probe usaba
+                        // place_meeting con la MASCARA de Rouge, y la mascara de
+                        // spr_rouge_attack2 cuelga 5 px POR DEBAJO de la linea del
+                        // suelo (bbox_bottom 50 - yorigin 27 = +23, contra los -18
+                        // del snap de scr_collision_basic): el propio suelo contaba
+                        // como "pared" y el tornado moria en el frame 2 sobre
+                        // CUALQUIER terreno, plano o pendiente. Ahora se sondea con
+                        // un PUNTO (position_meeting): inmune a la mascara del
+                        // sprite. El punto va a y - 10 (28 px sobre la linea del
+                        // suelo: ni el suelo plano ni una cuesta de 45 grados suben
+                        // ahi, y el techo de un pasillo de 3 tiles queda a 20 px)
+                        // y a 18 px por delante/detras (1 px mas alla del borde de
+                        // su mascara, +17: dispara EXACTO al tocar la pared, sin
+                        // verla antes de tiempo).
+                        if((position_meeting(x + 18 * image_xscale, y - 10, obj_floor_parent) || position_meeting(x - 18 * image_xscale, y - 10, obj_floor_parent))
                         && abs(x - tornadoStartX) > ROUGE_TORNADO_WALL_TRAVEL)
                         {
                                 tornadoState = 1;

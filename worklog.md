@@ -5695,3 +5695,22 @@ Work Log:
 Stage Summary:
 - Los 3 reportes tenian 3 raices distintas: tabla de anims de la debilitada invertida (v13), trampolin que no limpia drillState + clamp que borra el impulso (v25), y cierre defensivo del estado 14 sin puerta de tornadoState (v13)
 - Todo reproducido en simulador fiel antes de arreglar y verificado despues; 80/80 checks; cero server, cero .yyp, cero objetos nuevos
+
+---
+Task ID: rouge-v28
+Agent: main (Z.ai)
+Task: ROUGE v28 — hipotesis de la duena confirmada: "creo que ya entiendo el ataque... la animacion no se mantiene en bucle ese tiempo o es interrumpido porque detecta el piso quizas como pared o se atasca... el tema es que no funciona"
+
+Work Log:
+- Pull fresco (regla 1): upstream ya contiene v25+v26+v27 (git status limpio salvo mi edicion) — los zips anteriores ya estan aplicados y commiteados en el repo
+- RAIZ (hipotesis de la duena EXACTA): el probe de pared del tornado usaba place_meeting con la MASCARA de Rouge. spr_rouge_attack2: bbox_bottom 50 - yorigin 27 = la mascara cuelga a +23 bajo el origen; el snap de scr_collision_basic (grounded y no-grounded: winner = sensor.y - 18) pone el origen a suelo-18 -> 5 px de mascara DENTRO del suelo SIEMPRE -> place_meeting(x±4, y, obj_floor_parent) = TRUE sobre CUALQUIER terreno. La puerta v26 (>6 px de viaje) solo retraso el corte 1 frame: arranca a 11 px/frame, supera los 6 px en el frame 1 y muere en el frame 2 = "unos milisegundos de attack2"
+- Por que mis sims v26/v27 no lo veian: modelaban los MUROS como objetivo del probe, nunca el suelo mismo como geometria solapante. Por que Metal (patron original del overdrive) no lo sufre visible: su mascara no cuelga bajo la linea del suelo; attack2 es un sprite mas alto con el origen mas arriba. Codigo de Metal INTACTO (es del EXE)
+- Jerarquia confirmada: obj_ghz_slope -> obj_platform_jumptrough -> obj_floor_parent (las pendientes GHZ tambien son objetivo del probe; con mascara, una cuesta de 45 dispara igual que el plano)
+- FIX (1 archivo): scr_rouge_special.gml — probe de PUNTO position_meeting(x ± 18 * image_xscale, y - 10, obj_floor_parent): inmune a la mascara del sprite. 18 px = 1 px mas alla del borde de la mascara (+17): dispara EXACTO al contacto (un probe a ±6 quedaria 11 px corto: la colision frena a Rouge en cara-17 y el punto nunca tocaba la pared -> habria dejado de cortar). y - 10 = 28 px sobre la linea del suelo: ni el plano ni una cuesta de 45 (sube 18 px en 18 px) llegan ahi; el techo de un pasillo de 3 tiles queda a 20 px del punto
+- check_v28.py (91/91): pipeline con geometria REAL (floor_top(x) plano/pendiente, muro con tope, techo de pasillo, colision al borde real de la mascara +17/-21). S3 pre-fix reproduce la muerte al 2o frame en suelo PLANO; S4 pre-fix en cuesta de 45; post-fix: 179 frames de attack2 en ambos y subiendo 400+ px de pendiente. S5 pasillo de 3 tiles sin cortes; S6 muro de 2 tiles corta EXACTO al contacto (para en cara-17, 1 shake). Estaticos nuevos: raiz derivada del .yy del sprite (bbox 50 - origen 27 = 23), cero place_meeting en el CODIGO, pendientes hijas del objetivo del probe, punto a y-10 en ambas direcciones
+- Regresiones: H1/H2/H3 (v26), S1/S2 (v27), sims A-G y todos los estaticos v25/v24/v23 intactos — 91/91
+- Entregable: download/fix_v28_rouge_tornado_suelo_pared.zip — 1 GML (scr_rouge_special) + LEEME_ROUGE_V28 + check_v28 + worklog. Va ENCIMA del v27 (upstream ya lo trae). Recompilar CLIENTE (cero server, cero .yyp/.yy)
+
+Stage Summary:
+- El bug no era del tornado: era el SENSOR con que se buscaba la pared. place_meeting pregunta con la mascara (que en attack2 pisa el suelo); position_meeting pregunta con un punto (inmune al sprite). Regla aprendida: todo probe de suelo/pared en un personaje cuya mascara cambia por estado debe usar PUNTOS, no mascaras
+- La hipotesis de la duena ("detecta el piso como pared") fue el diagnostico correcto; el v26 habia tapado solo el caso "nace pegada a la pared" y por eso el bug parecia intermitente entre pruebas
