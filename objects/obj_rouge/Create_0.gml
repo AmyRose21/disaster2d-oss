@@ -63,10 +63,17 @@
 // v3 que tuvo Sonic: ver su SONIC_ROLL_SPEED_CAP, mismo valor 18).
 #macro ROUGE_ROLL_SPEED_CAP 18
 
-// v13 — TORNADO (X): arranca rapida y decae hasta el minimo
-#macro ROUGE_TORNADO_TIME (60 * 0.8)   // duracion total: 0.8 s
+// v13 — TORNADO (X): arranca rapida y decae hasta el minimo.
+// v25 (pedido de la duena): la habilidad de TIERRA dura 3 s SEGUNDOS
+// (antes 0.8) y su animacion loopea TODA la duracion (Draw_76). El
+// FRENADO no se estira: ROUGE_TORNADO_BRAKE conserva el perfil original
+// (de 12 a 1.5 en 0.8 s) y el resto de la duracion la recorre a la
+// velocidad minima — el dash pega igual, el remolino dura mucho mas.
+#macro ROUGE_TORNADO_TIME (60 * 3)    // duracion total: 3 s
+#macro ROUGE_TORNADO_BRAKE (60 * 0.8) // ventana de frenado 12 -> 1.5 (perfil v13)
 #macro ROUGE_TORNADO_START 12          // velocidad inicial
 #macro ROUGE_TORNADO_MIN 1.5           // velocidad final (decae lineal)
+#macro ROUGE_TORNADO_WALL_TRAVEL 6    // v26: px que debe VIAJAR el remolino antes de que el corte de pared valga
 
 // v4.5 — moribunda (su unica salvacion; patron VANILLA_MORIBUNDA_*)
 #macro ROUGE_MORIBUNDA_TIME (60 * 6)  // tirada en el suelo
@@ -84,8 +91,14 @@
 // resta yAccel para que la gravedad rellene exactamente hasta ahi.
 // Y ROUGE_GLIDE_SPD ya NO es entero — el mapeo de frames de la tira
 // va por RANGOS en scr_rouge_special.
+// v25 (GIRO AGIL, pedido de la duena): con la velocidad subida a 6.25
+// el VIRAR (de -6.25 a +6.25) tardaba un 25% mas que en Knux (10 px de
+// rango vs 12.5 con la MISMA aceleracion) y se sentia PESADA. Ahora
+// ROUGE_GLIDE_ACC 3: su giro completa los 12.5 px en ~89 frames vs los
+// ~107 de Knux — invierte la direccion MAS RAPIDA que el a pesar de
+// volar mas veloz.
 #macro ROUGE_GLIDE_SPD 6.25
-#macro ROUGE_GLIDE_ACC 2
+#macro ROUGE_GLIDE_ACC 3   // v25: giro UN 17% MAS AGIL que el de Knux (ver abajo)
 #macro ROUGE_GLIDE_FALL 0.7922
 
 // v24 — TALADRO AEREO (X en el aire): impulso hacia abajo con duracion
@@ -93,8 +106,12 @@
 // con duracion COMPLETA (2 habilidades en 1). Mientras taladra deja
 // residuos fantasma y su contacto ROMPE los i-frames de la victima
 // (patron de la patada duelista de Sally Canon, aplicado en el puppet).
-#macro ROUGE_DRILL_TIME (60 * 1)  // carga del taladro: 1 s de picada
-#macro ROUGE_DRILL_DIVE 12        // impulso hacia abajo (picada vertical)
+// v25 (pedidos de la duena): el impulso es DIAGONAL (hacia donde mira,
+// ROUGE_DRILL_DIVE_X) y EN EL AIRE NO TIENE LIMITE de tiempo: taladra
+// hasta ATERRIZAR (-> tornado) o que lo corten dano/stun/muerte. Ya no
+// expira solo.
+#macro ROUGE_DRILL_DIVE 12     // impulso hacia abajo (componente vertical)
+#macro ROUGE_DRILL_DIVE_X 8    // v25: impulso DIAGONAL hacia donde mira
 
 // v24 — agarre de pared del planeo: 2 s de i-frames POR CADA toque de
 // pared (se aplican al AGARRAR, en scr_collision_basic)
@@ -156,6 +173,7 @@ spinDustTimer = 0;
 spinDashRelease = false;   // true mientras la bola lanzada muestra spr_rouge_spin_release
 // v13 — TORNADO (X): tornadoState > 0 = moviendose con i-frames
 tornadoState = 0;
+tornadoStartX = 0; // v26: x donde nacio el remolino actual (corte de pared: solo si viajo)
 // v24 — TALADRO AEREO (X en el aire): drillState > 0 = en picada con
 // residuos fantasma; aterrizar con carga restante = tornado COMPLETO
 drillState = 0;

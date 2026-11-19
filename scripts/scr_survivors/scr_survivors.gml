@@ -883,8 +883,14 @@ global.player_eanims[? CHARACTER_ROUGE] =
         spr_erouge_emotion3, //11
         spr_erouge_jump, //12
         spr_erouge_balancing, //13
-        spr_erouge_attack2, //14
-        spr_erouge_attack1, //15
+        // v27 (bug de la duena): estos dos estaban INVERTIDOS desde el
+        // v13 — con revivalTimes >= 2 (Rouge debilitada) el TORNADO en
+        // tierra (estado 15) pintaba la PATADA y la picada aerea (14) el
+        // remolino: spr_rouge_attack2 "no aparecia nunca". Mismo orden que
+        // la tabla normal y la nega de arriba: 14 = attack1 (aerea),
+        // 15 = attack2 (tornado en tierra).
+        spr_erouge_attack1, //14 = ROUGE_ATTACK: picada AEREA (X en el aire)
+        spr_erouge_attack2, //15 = ROUGE_AIR_ATTACK: TORNADO en TIERRA (X)
         spr_erouge_glide, //16
         spr_erouge_zipline, //17
         spr_erouge_stuck, //18

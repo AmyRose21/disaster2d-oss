@@ -1,0 +1,126 @@
+=====================================================================
+ ROUGE v25 — GIRO AGIL · TORNADO 3 s EN LOOP · TALADRO DIAGONAL
+                       E ILIMITADO · RADAR DE LA SALIDA
+ 4 archivos de cliente + la TierList_Mejoras_V5_0.html mejorada.
+ CERO cambios de server. CERO .yyp/.yy. CERO objetos nuevos.
+ (va ENCIMA del commit "ewe" de tu repo, que ya lleva la v24)
+=====================================================================
+
+1) GLIDE: ADIOS PESADEZ AL DAR LA VUELTA
+-----------------------------------------
+ Tu diagnostico era exacto y era matematico: con la velocidad
+ subida a 6.25, virar de -6.25 a +6.25 son 12.5 px que recorrer
+ con la MISMA aceleracion de Knux (que solo recorre 10): el
+ giro tardaba 133 frames (25% mas que el). ROUGE_GLIDE_ACC
+ 2 -> 3: ahora invierte en ~89 frames — un 17% MAS RAPIDA que
+ Knuckles (que tarda ~107) a pesar de volar mas veloz. Todo lo
+ demas del planeo queda igual (0.7922 de caida efectiva, 6.25
+ de punta, i-frames de pared).
+
+2) TORNADO (attack2): 3 SEGUNDOS CON LA ANIMACION EN LOOP
+-----------------------------------------------------------
+ * ROUGE_TORNADO_TIME 0.8 s -> 3 s: la habilidad de TIERRA
+   dura 3 segundos (y el cambio de modo del taladro la arranca
+   COMPLETA, como siempre).
+ * El frenado NO se estira: macro nueva ROUGE_TORNADO_BRAKE
+   (0.8 s) conserva el perfil de siempre (arranca a 12 —el
+   motor lo recorta a 11, como desde la v13— y frena a 1.5 en
+   0.8 s); los 2.2 s restantes los recorre a 1.5 barriendo.
+   Misma pegadura, duracion casi x4.
+ * FIX DEL LOOP (el detalle escondido): image_speed 2 en una
+   tira de 2 frames CLAVA el image_index en 0 (0 + 2 = 2 ->
+   wrap a 0): la tira del remolino llevaba CONGELADA desde la
+   v13. Ahora el tornado usa 0.5 (alterna 0,0,1,1... = remolino
+   girando de verdad) y el taladro usa 1 (0,1,0,1 = giro
+   rapido). El image_index viaja por UDP: los demas clientes
+   ven el mismo loop.
+
+3) TALADRO: DIAGONAL E ILIMITADO EN EL AIRE
+---------------------------------------------
+ * Impulso DIAGONAL: xspd = direccion * 8 ademas del yspd 12 —
+   la picada cae furiosa Y avanza sobre el objetivo (antes era
+   vertical pura).
+ * EN EL AIRE NO TIENE LIMITE: ya no expira a los 60 frames —
+   taladra hasta ATERRIZAR (y ahi arranca el tornado de 3 s
+   completo: "2 habilidades en 1" de verdad) o hasta que lo
+   corten dano/stun/muerte (pagando ahi la recarga de 20 s).
+ * La animacion del taladro (attack1) gira en loop real.
+
+4) RADAR DEL ANILLO VERDE (patron AMY CANON)
+----------------------------------------------
+ Rouge lleva ahora una FLECHA VERDE pegada (spr_sindicator2, la
+ misma de Amy Canon) que apunta al ANILLO DE ESCAPE mas cercano
+ mientras exista. Implementado en el Draw_64 de obj_rouge (que
+ ya tenia evento GUI): informacion PURA del cliente local —
+ cero paquetes, cero servidor, nadie mas la ve. La flecha ROJA
+ del exe NO: esa sigue siendo la exclusiva de Amy Canon.
+ Guardas: viva (hp > 0) y no demonizada.
+
+5) TierList_Mejoras_V5_0.html — MEJORADA (no reemplazada)
+-----------------------------------------------------------
+ Tu archivo ya existia y NO tenia a Rogue (ni a Kris) en el
+ roster. Se lo sume respetando su arquitectura (tabs + JS):
+   * ROGUE en el roster: tier S, ficha completa con el kit v25
+     (5 habilidades, pasiva, a favor/en contra, filas de solo y
+     suditos) e icono base64 generado del ARTE REAL del juego
+   * KRIS tambien entra (tier A, con sus numeros reales: espada
+     14,75 s, doble salto 8 s, slow 3 s)
+   * TAB NUEVO "Rogue vs todos": 15 duelos con LO QUE ROGUE LE
+     GANA / LO QUE EL RIVAL LE GANA / VEREDICTO, sus stats y el
+     changelog v13 -> v25
+   * ROGUE EN EL TOP: rank 6 (renumera 6-10 -> 7-11)
+   * Matchups de Rouge y Kris vs los 5 EXE en la matriz
+   * Mejoras graficas: hover con elevacion en fichas y chips,
+     transicion de las barras y la estetica de la pestaña nueva
+     integrada con el tema
+ Validacion: sintaxis JS verificada con node + smoke test de
+ runtime (16 fichas, 17 filas de matriz y solo, 15 tarjetas vs,
+ sin "undefined", ranks 1-11). Abre sin internet, tambien en el
+ movil.
+
+ARCHIVOS (SOLO los tocados en esta ronda)
+------------------------------------------
+ objects/obj_rouge/Create_0.gml        macros: GLIDE_ACC 3,
+                                       TORNADO_TIME 3 s, TORNADO_BRAKE,
+                                       DRILL_DIVE_X 8 (fuera DRILL_TIME)
+ objects/obj_rouge/Draw_76.gml         loop real de las animaciones
+ objects/obj_rouge/Draw_64.gml         radar de la salida (flecha verde)
+ scripts/scr_rouge_special/scr_rouge_special.gml
+                                       taladro diagonal + ilimitado,
+                                       frenado con BRAKE
+ TierList_Mejoras_V5_0.html            todo el punto 5
+ + check_v25.py (validador) + este LEEME + worklog.md
+
+QUE NO SE TOCO
+---------------
+ * Todo lo de la v24 (rompe-i-frames, fantasmas, i-frames de
+   pared, vuelo Z+Arriba, LMS/spawn curan al max) — cubierto por
+   las regresiones del validador
+ * Todo lo de la v23 (spindash, bypass 18, espejo del glide)
+ * Server (CERO cambios), .yyp/.yy, otros personajes, el resto
+   de la TierList (EXE, fichas, canon vs mod)
+
+VALIDACION
+----------
+ check_v25.py 60/60 OK:
+  - 34 checks estaticos (fixes presentes + regresiones v24/v23
+    + Sonic/Sally/Knuckles intactos + balance de llaves en los
+    5 GML)
+  - 22 simulaciones 1:1: tornado de 3 s con frenado intacto y
+    LOOP (frames 0 y 1); inversion del glide en 87 frames; picada
+    diagonal (12 + 8); taladro ilimitado a los 300 frames;
+    aterrizar = tornado FULL con UNA recarga; Z sola no gasta el
+    vuelo; pared = 120 de i-frames una vez; etc.
+
+ PARA PROBAR EN EL JUEGO (recompilar CLIENTE, el server no cambia)
+ ------------------------------------------------------------------
+  * Planea a toda velocidad y dale la vuelta: responde al toque
+    (ya no pesa).
+  * X en tierra: el remolino dura 3 s ENTEROS y la tira gira en
+    loop todo el recorrido (ya no se congela ni se acaba en un
+    parpadeo).
+  * Salta y pulsa X: picada en DIAGONAL hacia donde miras; taladra
+    sin limite hasta caer — y al caer, tornado completo.
+  * Con el anillo de escape en el mapa: flecha verde pegada a
+    Rouge senalandolo.
+  * Abre TierList_Mejoras_V5_0.html: pestaña "Rogue vs todos".

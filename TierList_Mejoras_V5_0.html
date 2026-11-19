@@ -411,6 +411,43 @@ table.topt td.why{color:var(--dim);line-height:1.45}
   background:linear-gradient(135deg,rgba(60,42,8,.55),rgba(24,17,6,.75));
 }
 
+
+/* ================== V5.0 · PESTAÑA ROGUE VS TODOS + MEJORAS ================== */
+.rghead{display:flex;gap:18px;align-items:flex-start;background:var(--panel);
+  border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:18px 0}
+.rghead .rgbig{width:64px;height:auto;image-rendering:pixelated;flex:0 0 64px}
+.rghead h3{margin-bottom:8px}
+.rghead .rgnote{color:var(--dim);font-size:.9rem;margin-top:8px;max-width:66ch}
+.vscard{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:14px 16px;margin:12px 0;transition:transform .18s ease,border-color .18s ease}
+.vscard:hover{transform:translateY(-2px);border-color:var(--red)}
+.vscard header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.vscard header img{width:30px;height:34px;object-fit:contain}
+.vscard .vsr{color:var(--red)}
+.vscard .vsx{color:var(--faint);font-size:.85rem}
+.vscard .vst{font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:999px;color:#0b0a10}
+.vscard .vsres{margin-left:auto;font-size:.78rem;color:var(--dim);
+  border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.vscard .vscols{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr))}
+.vscard .vsver{margin-top:10px;padding:10px 14px;border-radius:11px;font-size:.9rem;
+  background:linear-gradient(100deg,rgba(230,34,55,.12),rgba(160,106,232,.10));
+  border:1px solid rgba(230,34,55,.35)}
+.vscard .vsver b{color:var(--gold)}
+.rglog{border-left:3px solid var(--red);margin:14px 0 0 6px;padding-left:16px}
+.rglog .it{margin:10px 0}
+.rglog b{color:var(--red)}
+.rglog span{display:block;color:var(--dim);font-size:.9rem;max-width:80ch}
+/* mejoras gráficas generales */
+.card{transition:transform .18s ease,border-color .18s ease}
+.card:hover{transform:translateY(-3px);border-color:var(--red)}
+.chip{transition:transform .15s ease,border-color .15s ease}
+.chip:hover{transform:translateY(-2px);border-color:var(--red)}
+.statrow .bar i{transition:width .5s cubic-bezier(.2,.7,.3,1)}
+@media (max-width:640px){
+  .rghead{flex-direction:column}
+  .rghead .rgbig{width:52px;flex-basis:52px}
+  .vscard .vsres{margin-left:0}
+}
 </style>
 </head>
 <body>
@@ -440,6 +477,7 @@ table.topt td.why{color:var(--dim);line-height:1.45}
   <button data-tab="tiers">Tier list</button>
   <button data-tab="cards">Fichas de personajes</button>
   <button data-tab="matrix">Comparativa vs EXE</button>
+  <button data-tab="rouge">⚔️ Rogue vs todos</button>
   <button data-tab="solo">Solitarios y suditos</button>
   <button data-tab="canon">Canon contra MOD</button>
 </nav>
@@ -541,6 +579,36 @@ table.topt td.why{color:var(--dim);line-height:1.45}
     </div>
     <div class="matrixwrap"><table class="matrix" id="mtable"></table></div>
     <div id="tip"></div>
+  </section>
+
+  <!-- ============================ ROGUE VS TODOS (V5.0.25) ============================ -->
+  <section class="tab" id="tab-rouge">
+    <h2 class="sec"><span class="dot"></span>Rogue contra el plantel entero</h2>
+    <p class="lead">
+      La comparativa pedida por la dueña, habilidad por habilidad: <b>lo que Rogue le gana</b>,
+      <b>lo que el rival le gana</b> y el veredicto de quién manda en cada terreno, con los
+      números del código (velocidades, recargas, stuns e i-frames de la V5.0).
+      «Le gana» no significa que el otro no sirva: significa que en ESE terreno la comparación cae de su lado.
+    </p>
+    <div class="rghead">
+      <img id="rg-img" class="rgbig" alt="Rogue" style="image-rendering:pixelated">
+      <div>
+        <h3>Rogue · tier S (V5.0)</h3>
+        <div class="statrow"><span class="lb">Movilidad</span><span class="bar"><i style="width:100%"></i></span><span class="vl">5</span></div>
+        <div class="statrow"><span class="lb">Presión</span><span class="bar"><i style="width:100%"></i></span><span class="vl">5</span></div>
+        <div class="statrow"><span class="lb">Supervivencia</span><span class="bar"><i style="width:80%"></i></span><span class="vl">4</span></div>
+        <div class="statrow"><span class="lb">Utilidad</span><span class="bar"><i style="width:80%"></i></span><span class="vl">4</span></div>
+        <p class="rgnote">El v13 la hizo jugable, el v24 la hizo temible y el V5.0 la cerró: taladro diagonal ilimitado, tornado de 3 s en loop, giro ágil y radar. Su única asignatura pendiente sigue siendo el daño a distancia.</p>
+      </div>
+    </div>
+    <div id="vs-list"></div>
+    <h2 class="sec" style="margin-top:34px"><span class="dot"></span>De dónde viene su ascenso</h2>
+    <p class="lead">El camino del rework, para quien llegue tarde:</p>
+    <div class="rglog">
+      <div class="it"><b>v13 · la base</b><span>Vida 125, spindash con tope 18, tornado con i-frames, vuelo tipo Vanilla, glide tipo Knuckles, slide, moribunda y anillos dobles.</span></div>
+      <div class="it"><b>v24 · el rework</b><span>El ataque aéreo pasa a ser taladro rompe-i-frames con fantasmas; aterrizar arranca el tornado completo; glide 35 % más lento y 25 % más rápido; 2 s de i-frames por pared; vuelo a Z+↑; el LMS ya no le baja la vida.</span></div>
+      <div class="it"><b>V5.0 · el acabado</b><span>Tornado de tierra a 3 s con la animación en loop real; taladro en diagonal e ilimitado en el aire; giro del glide un 17 % más ágil que el de Knuckles; radar de flecha verde a la salida.</span></div>
+    </div>
   </section>
 
   <!-- ============================ SOLITARIOS ============================ -->
@@ -881,7 +949,9 @@ const SPR = {
   vanilla:'data:image/png;base64,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', metal:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAtCAYAAADsvzj/AAADe0lEQVR42u2XwWojRxCGf2n2oENgc/Sl2QJB8CMsgYEGw76FYSAXP4IuggJd9Ag6ZKHBLxEChoaBxY8gDILCczHsxZgcchGdQ0+3ZsaScaSWNZu4ROPRuNueb6rqryrg3d7t3f4XNvi3B4jYrVXeuleVF4MfDmQXzKnBPux7MKtKdGEI5C/yG/fWUHv/EyJ2AFowWVUCAJS6jPcEshWIiJ0ID07ukV3254TxZe5hiABI20sBNrUN9z0Y3mZ4sKwqwdpGmKq6hghAVK/681JunQTkNZ4JYeVDaQN0DJjkofXtVuPr6isAQNdRNZtlAIDpdB3DTRTQ4OwPyFrlmK7yqFxEiKHVa9XaplwBoqquW+rVhRHZKFoqef5wKMSzYlhd40G45SmRRo3p1J2qT8kelEs6Qf8gjKwqkVUlpP60PJMwSZKr1lrlOKONR4raO10ggSStKdk+h1R+49zHTxg+3W/eyNM93MdP8fqvR19TfgeAR4s/Hi1++llj+HQf15tX9l1JLWp7pV6rHGfgVq4AgBXG+ZFU61Wh1aziITwCULO4/XZRorwet86eAygALOtrAFgYg4Uxp6nszTDIqtK3IFuS1RiDcTYDM2FZ6+x5BwIArooCI8Bprd0IcCebR7bdD6E0Ya73EbTWm9CytgVsrU2WI0kKYteKormHGl6VCJQS4mCQl6CaMF2PpIZI7pEH4RhWIZeJbBPkaNNi0oK4MAZzZhARisLL8Go9RUFAQb7+9BIkKBkzgZliDohIDKPv5QXE+OvZeHY0mIPbeA8hWKscWSU4I4YxwFpN4545gAXgFWzV09BiFih1+WLfNAHw62eLXhsRuxHgRMTdLeDuFnBE7FR+E9fdwv9e5TduBL+nV6oFHy6u/gkSG9/8lzk/m82zqgSRRUHeQ79cpZP/g0PLWjvQWmPODCGNb7d+NR/+e3mBrCpbTWRzT6/k93PdighpGPEiMM5mEOHBhDnWk1trYQQojB30Mle01i4sY4wLIecFgVvffxgjYpfnK9f8vqsv6+2oS8ROqUuU5fhNQ2eI/4gNU3vjVCBJ3S8irh6YojSH6S+o2rE64CR/dAS4CQBbP+yttVh25vbQqkQlS/wSB6kgQnMYbLlj/7Gg0oDUw9Scn8/sjTrTmhSviiLuSzH+DlJ5o+mR5SvPb/POvh46GOQYifv3Hs/1Dw60vC71NhtRAAAAAElFTkSuQmCC', amelia:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAmCAYAAAC29NkdAAAE+klEQVR42r2YQWjbVhjHfy4L7GS04oMJhQktDFF6EInJtM6HMEQxYwcdsqBDYWEHkcMYORRjAoEeRtFCD2HsYMwOHfQQ3DJ86MEMMXLIimrk4lPRwQgPQsnBpCLHbVQ72HqxHZdWaZwPhJ4e7/H93/973/+9Txnew6pFK94/2EMf6dNVFQAvCETfJmTO6+PKeSZZEFeLVtw57E0Fp5omuqqKbwtigA1Zj9P6+uA84FaKFp3DHuZqnsZjHbXnsV6pjI1TTXPQaDRgwGZ8HjJSAVwZcWKu5lGLJUyaNB7rBI3GGLCg0RBh9oZzop6XGmAmDbg8oAOBrFP4IoPxzbfMLxu8bLk0zA0R0mnmBQEecATsp/D7zgzmp/QFB00a5sYYiIu2TBr2RDJMY2hK39GUxc2MwbeBAWhK0iCRpEGoV67JAHQOewPGZ7EHE/aOJphoShKlKOIIUGWdvShgba2CogxAhWGPK3800KaATMNgJk3mMgVkYgk4RVkYAuwC0KvuAvD6lkm97gyyOYreGWAqobaK1tje0qJIhDMBpyjK8FkgDAesJSwmcy78JLGKFlbRQl/QBDiAjiSxF51mrqIoY/MURebLnV+IvjYxDEPMuVCAyX7RFzTUgjbGonOjxL5ZwblRolfdJZc7EY+iKIRhT7zDsIslqanCmyrEakEjAQqwu+5QeuiIBDBX87RafTE+lztha8uiv/cdhmHQq+5S7XmpLw1vBVgtWnECKrHddQe1oJF/EgjgarGEWZSg06Tfz9LvZ6HTRC2WKJdXeX3LvLzbjNftnJ4mfkckwcuWO2DvsE7usH66yFWNxRed2QAU+uWPO5j8djYfDGRp0yE4aIqjsHl/n573IZNRuNCTxOt2hIOEvVEWE3Mf/UZ1VRPt//7+eGzfzjzECWsJq5Mg/b9iGo+PkJ4EAtybFnOhl4Vq0YoTJrxuRwAcFeCrP9wB4Pe1grhQzNd9/ix/L8bpCxrag8rFy8woYxsHe5nJ/ufXNRRFwXVd7vjHbKoq65WKAPsmxi/UNmQ9TpgcrS1s24nrdT+2bSe2bSfehXgXYmv4+P5xfJ5aJPUerPa8TMJEIrjd8lxclrZZ9D8HwDAMXtiOmJO1HcIwPJdAnytJRh11y3OxfHORT376B/nmImVpG4Drtcqgoksy23XplufimSbJNLNtRzgtS9vINxe5bT5Dn6iNPeBh4zN6T5+zsPNvZiY6OGn1uh8nN5cwDNlxofx0ewycqJODgNvmM34sz81OqKeBW1r6CIClpSUURWGnBrZvk8udiLGtVp95IOu67EQAlcs5ixNwAO32K/H96+pXyLKcuXdvD2fF4vjn+2KcYRhj22KmANvtVzx61AagVquJtnZNZiA39pkjbvIyOzOArusShuGZvq0tS5wmYRhS2d9Dumu9t/6m3oO1WiUDTmwYBu32q2FG27RaIa7rCsBgjLQ5s6iZy4wkSbEWRXw6IsxJ1aZFESaMifbp4i5BZiZLUMMwBFOjxb1eqzBf90cAXhKDCXvm8MYyKIxCXq4VuCtJorRMfjYV/WNyuRP6/awI9dpaITOzLBbOVZXl5Ry53AnLyzl0VUWLojOl5UHhKkelkhinKAr1uh/PFOC0v1leEIiw5yf+43hBQEOWRcU38z2YtR1eAPPDUlNRFObrPlnXhbpDdpggScGe6OBots88i99X496liP8f6Gw003wK7pAAAAAASUVORK5CYII=', fleetway_amy:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAtCAYAAAC0wKvmAAAEmElEQVR42q2Wb0gbZxzHPxeF5ZXMxcFk63ZZ2ppCIRiVygQpk7ks9kUYQseglGHBLNQShr4Ya6HDQnG6Ic6JHRtjlEEd3Ti2mh7tJmEvSoc2wb2QKzTzBkNfqNi1exGx9fYiPuedd4lJux883N1zz/P9/v4/D5QhN8L9Bk8o1eWAh1tbIFOcNNzaAkDdxHGpIgI3zd2AfaEAUm+z5IbhqcQdlYI7LLACiPdwawu+UMD2LWQvcJsFbgClxBcKlLXO5iIBvlv7m5euONwC7Km9SWB1zV6alau5wwI312Ruz5raC1mbz5nvxqU5W8xWE1OOBKkupf1m2wLRt6LcPKujZEZQMnAGWK0g8zxuk2/0vmP/viATC/cDMLY9hGhgWC0umaZr8zl8oQB3e5thG9BKEr425RqDBst+o7fgtrX5HHUTxyVHJd/tbbZ9p66nOPL4JL5QAF/I3Q0iLpnbs2CxYjUxZVRbzVMyI5zZdkEMOPL45J6ZYwW3pvHNS1fcLRgDYuF+R84L8V/sNt/nokM234tnWGRlxqXZxSy+94UC+C92s/jhVRN8clJl376XAGjuOmySuBXmamLKkNzSbLf2QmsBHggU9MrlHtHVdZgvn+suSuIpVYXCv8ICKzhAIFDNRnzDtUg7MyNSUQJrPq/N50wLqqrsHm3/rZ3F5CLR2Ke037pg7hWKdWZGJI+VrZjMRYeYiw4RiQTtRfRiNcFg0Hyev3yrvEp2q0rfsRUWJ/rR9Z25mcAMJxZO8NHks0QiSZa6lhxHp7RXTwm3tvB71bd0DP/IMzNf7RTkq6cKVfxnYc6fGAFA13UbZpX14/LyrY9P1L923jq3/PcSWy+vcKj6If7ECAc99zlw4AB16xnq1nduAgc995m4MetwtVTuYS86625JXU8B0PV5yhVLquRWsdm24FhTDLhsUVXN0LS8kc/nzacYPK24gWtge1Z06Ftlui9qvLn1C7kv3ralJoDu9TIG5ryqaoYYZWk+3Rc1jNS4EY+PGpqWNzcL1yTA0LS8Md0XNeLxUZvbdpMUteD9nx4Ri0UAOHpUBiCd1tF1+CyfR5axZVU6rZNMTpprS95Nf97sJJmMAyBvr7eSyLIdJJ3WURSV0dF4+bdrXdcd2qTT+va/AvHG66eIeQrgsVjE/F+WixRFNTdYNyqKytj3Xs5+8wI//HGocEhtu1JRVCKRoLQnweRk0lE8wg0A//xb2Ja9s04kEpQURUVRVNd9RaswHh91TbmHNR8Q7X6F7J11GptqSV39i+8+2SqKU/RH9L2dC1Xt8wWN6/01tjXLiw8AShIUjYHs3wFvaKii3l9DY1MtAI1NtSwvPqChoYr1la0nbxUTbe8aq4kpx6VWzD9VHxJVLPqQiIm1uovFqSJwMQSJaICCZIABY4ABo6Igy7JsqKpmVrGuw+ngMe7J99iv7y/EgUZz/WB+kHPecwAMMyyVJJBl2XADAciSdZB0qD38GvnaRgbg9Xqlkq1iXLuGteUIDXcTZiOnTUUEOEA+nze8Xq/kKQccoEcbpF8dd1UmS5YOtQddx3F2FI0B/4Poui79B553i6lVSZbYAAAAAElFTkSuQmCC',
   blaze:'data:image/png;base64,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', exe:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAsCAYAAAD4rZFFAAADWUlEQVR42u2YTW6jMBiGX6L2HK0jsiDHGCkLXKlXmG4jMlmUHKAHILNIQb0HUsgiUo+BF0Qh98jimwU2MX+dEEiz6SchwDH44ft5bQf4sR/7sdZmnNuRTWIqt6XbsXFTyDqor+yawJUXs0evCDfi1aeSqPG3Mix79Cg9LDp9wKAyyGFhFF6aRKdDs/3qBMtNqxABFYXKB18zJ8uD+XYEbmdeHM4zjyrQaCcqHu/dk7X5pgapCe9+VbzXvVqbKlfzpF5ESQTfzjw02/lVMGm6R7sWVefq1gG5LRBtrOtDfgVX5zEAiDbLQojr8rML6KCN99Sg/up0rwDTwyI7tuMKYNPHtfYkm8RUlpkmveSmdYJIIqSHRZ0i5M9I8Is9eVcR6CbTBLwgM82KACbPV63uWjGun2UqbQcAj9q5iycvEvMy6O/tGG89LmZaizmbxFTxngy9b86w/xPhBaiFVG3MZGAmo6tAFqq9BOqbs2xqtF08hF4OepDHG4AXCQgAfOL0Py2WZ5nGwtosMXwNctCH0Ctc+xOGdJcawcei35zMAf9T8Wp65DbH8DXI5vK/jhT47Lenj0/jKtWtNLO8emlaeilY3fqAa799qAHcr+RSrWnV1JMNLnnIt6Mi4IjnbfvExXr6i/qEbK2TdQtevdLzF98bxrd7Um0rCoA1la7OfXrz7JW5M/VoHcYkRi7EyAW30ShJABCB3yYno02ENBFIE5GHHEmE2c7PJQcAhu8cztyFM+1nI3bXprMzd5Em2QqIjSwAJ7DZzgfes+v1ypLrThcAqIuQn+1JZ+oRtzksE+C2JQGB9cY9TZcl4bfMG0mQ2NUDpNtxtlevmaHytPhunTwvf8VtPFkOZ5qIfIOlF0mwWvb6wYO2la1CHm1EXtHO1CNn7hZCzEYWoo3A0/M3/POm9HEdxhQLInXvTD2iI+XX6zAmOlLetg7j3sTcOBe0qSB0fdTbusrOxcZMRj5AJA8fINWmvOfLdtXnJoB6WOlIFAvKQcuAsTj16wLcasZhYQz+XNy+fgLwwxip1h7IvkgEAAuWlUWejkS4N2C03Dm2kqD0eYxAbzgSHNm+lBsuABBTL8/VT0vjuZewLb16kU4GpUG/ki3VP9CfawlqtM3LPvM83aVnjf8PZUj1CcDR/sgAAAAASUVORK5CYII=', chaos:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAqCAYAAAD1T9h6AAAEeElEQVR42u1YTWgbRxT+1rWT+NBAU6dyG4gULOOokKIQJylUQZOlh6b4EsipOWh7MIYaX1pjXwxegy8phWBMDsGFrg4+FAK5FHppt7MkOdj0x/QQNXRDlYNBak0Mm4Dq2DA9rGY0+yNLIt5VD3mwWB69mf2+ee97b0bAK3tlL2VKJ87DWY35x/7cMJT/LYEwwPtZN8iEvjCRzHmAH30jHfBxtu2m3/mJJJI5Vn1yPxJyPWGD1Sf3FfmFzrYtHtnujo+IscP9A57I8ej5N6NrGvADmRrahKqqAICrK48AAMffeR8AsFPbCkQq1gg0i0qzlLk7PiI+T0+MeaIR5t+VCMiCdrZtTA1tAgCKT/OBFJqeGMNXt7/zRCIqgR9IFZLBy9Y1AvsBDwO7U9vyVCXZJ2oSPZ3uOgc0PTHmAV/dc1Ddc+Bs29ipbQm/ZtGJJALDWY35S2WzfnC4f0CA5ATw7O+6SCpIJHMiGoJkBJWoN6w5NTM5TeTU8DpVeNVyS2v/QINgN6pQWCMK7b7//OpGoE4AANguw2D6Eir2PShvvg04leg10KortxMpboeWXqC65+DQ0gvg9bciiUBbjWw4qzH/rnMShWMWitdeQ21p3AV5dLAepkHs3jyPxZFn2L15Hqk+B6lUisWeQv6qJO++fJzgdvZ0FgDw2x8bYuyTr38EABCiwTB0JTYC/u7rtzACYWaaJubMv+LtxBx8q3znR4owIqZpAkBk4ANlNKxscgEnkjnGwS4/PiGqUfFpuk7SDMyPEnhHZXRqaBNffPa5yGvTNMUhjgtZVVWcPZ3Fe4u/oHDMigV8W1UoDLxsMngA+H3uXKxXyp5OnE3TxPLjEyKFZOME+d9F9RTrOgFN05l9soBvn58J7Lwsbv6dXDrtkwUYBmVd04Cm6YwQgsJ1N9dLNnD5o0uBI4V8uVFVFVdXHuHK5Q9BCAGlFDOz81hfs+prEiUWAhz8hYt5ZKQG7CfBu7P/hvZBNoVm89/NKEosKeR/OQBk0sCNhcXAgc4tp3lRmR5slEEpFfNLNlBctQLrRdoH1tcsZNJ5z1jJbv5jViKZC5yXSra7DqUU36zMx9vIKKWBKHAwHKh8Raw3PEHiwUYZX95YAADMzLrgi6tWPFWIH7jW1ywR/pLtkvr+px/auvRwI4Rgfc3Cp+ML8YlYFrP8PwfPq498T+DCn52f80SIr3HQp9COTNN09rDEWCKZ8zxhPmy34fewxFjUvaC3HfCEEABAxb7nEaemkYDwgbzHL2rr7cSZA+JiDuqGp1xe+EWR9x0RoNRoHNyu51FctaDrGgjRPH6pVIqNGjoodFBKMWro7sUeYHWxxf/TIhfgzOx8oKN+fOUUyuWywsFPl8uB+ZPcv8Qa8/uUAyXT8jRKCIGZUYC+xmNmFOi60fKSfgtA0aCN9OtzcdfuLDMemcgJPPcJ9d87y5gMGQ+znzVdaMHMNDb9yLUpT3pFpgFKDYxKuzkpvbxd42Ifra/hTy8GsJdJqZYT90sTroFWfq1MXqdT+w+G712h8oTAUAAAAABJRU5ErkJggg==',
   exetior:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADUAAAA+CAYAAACLIVOzAAAD10lEQVR42u2YS2gTQRjH/5OmYMDHqQchYI09qIhtD0HPktKHfSB48VIQC7VJQ3sQeu1N0CLWJDWHgmAPPZa2waywHgpFkQhaEZtDCHsIeOiptZBAo+MhmcnOZvvKZvPA+cOS7LeT7fz6n+/7ZheQkpKSkpKSkpKSkpKSkpKSkpL6r0Vsu3G3nxpj9OsCaSooM4ijZCeg5RuTNq8I4/aWD8okDr1mhCNtXkp3Epbm5bAKRXcSRJhEJlE6dNpdmeUxer5TcJi5XPYPaqScMk4u+vAWHgz3AwAu3JsF3F4ORva2yhytu1OHuXfYcttdmRXH6lwzXboVyFmryre8FsfjN59LgeudAhh3zO0FdhJNUv1KS4stUcSXltD3dKNsGVqtjMROGKEg/FzkQLrcA70+BrK3JbplEcxhpztskvkPjwqTb/Mac68AawAyVs6aOUW6/fTIP65Lej7pTKLMLTPHsDFubW5Va7ongGMuGMG6XC5snb1RGJtJoHP/B75ls6Tm1c+sl1TaPMeyOQSyX+AA8HfnCyIAJhulT5XtLszyw+1Fl8slhBZdZxAB0Ln/A5HieUM1X9Ltp2ZLDgCiPQ7shu5iLJsTwL5ls5gExVg2hw5lG3sXL8Lj8dCGgBKqoQEs2uPAg+F+dI0GMboZ42BhEP45uhmD3z8AAOjv9dffKQHIZEPLXXkbEsD0nwAwc38A6XSaRF4/qX31MwU6pr9EH94CAO6YXjP3Cw6NPwtb3xBUDapQqslJqiGD02v8WZgEJubo0Mgg1ldjqLtTx/Ux9uixvBbn1y/dEYv2+moMwalJaJrGzysFqxkUW3YA8HH/Cny+jrLfTAVfVgXMYTcQAP7IsbwWF4Cmgi+F382HphGaD6O9vb2x+pSxEbM8Y2DrqzGoagqqmsJ8aFqAU9VUY78iM3OPLcPvv0tODI0MwufrgKqmsL4aE+KVLj9bc4q5ZJZfDG5oZJA7CAA3z2mWyzqx252jdu/+2x4hZKWM12X5CZDFRwz2vdovNh31AKJfF4jV12ANAVVLOerhEgAEJuZo00IFJuZofGmpLBacKm2TFCVJmwaKbVAB4ODXJxwkXnEATdN4rNpy2u1UqaGK/ajwOWgY0wTyeDw0DEJp8QiDUBZTlCRVlCQNF+NsTFMAKUqS5vN54WDXjEDJZI6PsQJoa051KNvo7buGFmcrP6LOViwsvBN3EgDeK9vQNA2pVB4tzlYAQKVwtkKl+q4hojv/kz9AoBh/4bnM49sTz3leqVdLb5kY3GnBatKnIoZJHldUIrqDP8qcAozYnVfVvF86nT7RfP8B7TANOZLqDosAAAAASUVORK5CYII=', exeller:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEMAAAArCAYAAAAjbTVEAAAEDklEQVR42u2ZMWgcRxSG/xEqhEG2osYBYxg16qRGXXRYg8XFWIUIcRuZQeAmYBUqdJDCTJPCV556M5xRERDGnOGELQRzIKcTBKnKNTshOKS6XFQEqfG42J3R7N6ebcje7Wmt1+zt7u3uzXf/+9/MW+AqruIqPhFkkDe/cU8Zf//f14x8UTCSAABgYmEptn921BpJMGSQEEjQBACYmZUeIKMIJZMfMjW71QPCzKyABE3US3tgy2Xcrq+mqsSHMjW7ZczMSm6AxrK4SbddJd12laSpAgA6ixv482HDDTwtjSyI57ce56aMsSxvlgYFAKbf1gDADTQJ5Jdv/3BKKoyBpvmGBbD2bruvofrpQoIm0oAOI8azhpAc6CMch9QPK85LCltaLQgfwtPZFirti/3z3Qq67Wrsups/mb7qyGtOQrIG0adSgFIaO6617gFyvltxyskDxngWqXG+W4mVVB9QP1OklOKfo1YMZLddxY0c0+h/VRMSNHsGa4/5gPrFV79zlxZpJfdSwJia3TKfUwZ92ScjmJyMAen+9Tj3NcxQ1ibRAGO+obQGS+zTISwehzbp8g3V9wwSNHGY+K70PjPGwSgF56JYC7WJhSWX/zaV6qU9TD876XvtD55CtNbFUIY/i0x6yvzOJkreZ397/PP3qN2dRO3u5OVXhlXFx0y1XtoDAKymKKSxPmfPkULA+NxFloXiR94QBtLPsAustP5GPzCjAmIgZexjIGy/gi2Xw3J6sD9SyhgbxkPqpb0eEJ3FDcw/eQUAON3ZNI31OZM3jPFB3NTvR9hBTiwsAX/HGz6dxQ2nELZcRgMweapkbBggHh7eT/2u7YBZIHmny8DSpLE+Z2xKdNtVcnbUwqOvj51PWAAv3j8AALctJAy2XI792yRo4uyohbV321AH+1AH+64V2LkTbjkXplAwpFQ9ZuhXGBI0sfrshKSlDmMsVyCZw6CUYv7JK2zsX08ttWnNXqUUGGNQSkFKUQwD5VwYrXX0maNzZ7vv64M0IHmCyHTSxbkwnHNQCiil3QAB4OWv/8F/U8a5MMljhZl0cS4MYwx2Jc4YBWPUKSQOLIT23TfXQIImpFRmVGCMZ+kVyRCCQwiJ3978GPUqOKSU0FqH5wBEWVUsGMnQGk4pWoevBmzaKKVAKY8dK0yaSCmIlDIGIlSA615BKQWlpCuh1miFFNBaG6117umSqXlZ7/DNU4gLz5CUQlIK7uUGUxqURkqKfIbm1BTO/KECMDpq7AoZbmU0aABQLO4tVCpQSh2I2LkhQ8l0nqEBwwHUyqeolU8vFONBoFJBRmZioWmtY91yAJje2YQGzKVUhoh+OE/zFAuLC+cbXGsHI4QkYvD8a8WQFJLZQyilA/sX83x98MXGB8F/ExEJTx7mAAAAAElFTkSuQmCC',
-  metalamy:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADUAAAA+CAYAAACLIVOzAAAEdElEQVR42u2Zb2gbZRzHP1cFX5VWYyHFMjqFLG1yUByjL+wSSKdvVBBru85XvhilXa26ykChktQGFES3WTLLQNg7azfxjYLgWk26vuiLStklbQw4Z2lJoAtu+kKk6Pmifa53+TPUPJekcF8Id3mSu9znvr/7Pr+7gCNHjhw5cuTIkSNHjhw5cuTof2jWd1yv1W8/aBeQz90FqUXLuNY7pgMc8hw1xpo+eUU5EFA+d9fugc9XF0aoQXapab1juvngxftqAUmBMgMVXkeFgNUAqrj8BITP3cUs7F5HJhUCVUsNMneWyq0CsJFZsSyr6VJFTpldEstUbtUAq6VTiiwos1Mlk3BPG5kV1PlpBeDeyBXdDheVSsPBfPCp3CrrA30EelS2X4uwZJqnRveWMSA6cqXsvmXANci+ngBCoRAtH0d4vv20BYgyQBuZFeNldq/mk+9SapGnfMcBWFhYAOCBT08RvdazWxKtbcZ39exmUZCIkhQTds2hlgraocQNDYDxXLMFRjnbjX5+uXSQzMsLCqmR7nN38VLiJ8ZzzYznmi2uAOjnl9Gzm0VRXxgaNU8/4dJQ75hx9pXWNg5fPMnWuS/585dbPD73pmXbmLvTkoobmRVjXUZQSIEa6h2zlJIoucMXTxpj+Xy+sGMvinpZYBWXn3BIwPwboL1gKCrDUmVZVajB1GLZs6mc7ebn1z/n1sCHJT/v1venAQFyyHMUdX5akQFWsVPmfk/Pbu6+TAlXSstvNYkTU8pBpa7Sz3w9idT7vutlXC6X1an37xnrp69PSys7KVCiBM3dhHBLuHct8ARzc3NWp/a8CE9eMNZr3vuV6wMLm9eP3HcJ9Kj33T5xQ2NtPUNnh4fJ8BtKXUCVanBF5/5uy190dngI9KiEQiGjfTIDyQKR3iYNphYVM5gox74cfFHGHYC19Ux93U/9l9sSgPWBPgvI1dlLtt0FS99xePKC3vLoY5axYMALQDyRNsZeHe2v70dkZqBAj8r2na39m8PRfgD8qsqJ3t3QiC9+R//gGf1AQBUqGPCS1DT8qsqP6TQ7OzuGa50dHtvAbIUSDiU1jSNeb/0/eClUI5Gis/5ezGc4IxRPpNm+s8Xaesa2sGiQDdRImEbCFohy6h88o9tRglLLzwzTSJi3R1MWMLG0a36S/uClnG62DhFsa+bmH/DwMYhv3gVOGZ/bUYK2QwXbmovexwc+4/KLvx6Meep3JqkHSXPqt6kIANmJiDF2RInslZvJJdP7uo50fQpLgmUn9tfzJ8ZQ56cV8V9VNf75kAbVGnNbxn7I5miNQuyRqySTt/H72wkGvMQTaVv7Pmnlp7yDok/lrPNNFJIvaCQvfWMAASSTtw9OR2HW8MgHut/fzlejl2nCw3XXLMfyT/I0w8Z3Hor9bZtjih0wwYCXqDrDhDZMVJ0BsIA9m/bxtTdlbPeM5tl/mqSqSl2UXyEQYAEy61tmwDtcEqhuJ994Im0BO6eOlwYDnosN3bc3rHn5uVwuKY1pPp+v+Jj+AXSs5q0vR3DXAAAAAElFTkSuQmCC', chocola:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAZCAYAAAA8CX6UAAABdElEQVR42tWUv0vDQBTHv41iA4lQdVCQ3KLFTbeQ4OLmkKU4CS79B1QcxEXEfyF1EkS6CJ0kS4fikq3BsWtDh7RDB61VG2gteA6lR/ojaVKL4BdueO/ufXj3fdwB/0Z2QaZ2QaZhz3PjkrpGaCLZAb/1iLAwzm+jWY6D/9Z+fzVdI1TXCJ2ZV7pGInkVaPpLZYfaBTmww1gQ5HB7maqSCIUILGc5LgDgNO/EQoHGQbyyHHcAxk0DAQCFCPBelQvr1frFU2DMhYVcXt/5xpE6mqRIZq+kFgEAr8bniNm+oLZh0vTVAQBAlURoJ2tIJDvs+WzuP/uPv22YvSlkTdx276EQAZbjsq42zhfQLMcBYAQ04BGf2oshayJdybDiYrUFy3FhOS4ejt8AAPlMfbJHfW+K1RZUSWQwr3Klxkjd3DDkbHcVtfcuah9fbE2CjB1//y0NF/W789O8N1AlEUc3Sz1DM3XkSg02MQAsN/WHNvNP7k/0A83Ho6YwkcgYAAAAAElFTkSuQmCC'
+  metalamy:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADUAAAA+CAYAAACLIVOzAAAEdElEQVR42u2Zb2gbZRzHP1cFX5VWYyHFMjqFLG1yUByjL+wSSKdvVBBru85XvhilXa26ykChktQGFES3WTLLQNg7azfxjYLgWk26vuiLStklbQw4Z2lJoAtu+kKk6Pmifa53+TPUPJekcF8Id3mSu9znvr/7Pr+7gCNHjhw5cuTIkSNHjhw5cuTof2jWd1yv1W8/aBeQz90FqUXLuNY7pgMc8hw1xpo+eUU5EFA+d9fugc9XF0aoQXapab1juvngxftqAUmBMgMVXkeFgNUAqrj8BITP3cUs7F5HJhUCVUsNMneWyq0CsJFZsSyr6VJFTpldEstUbtUAq6VTiiwos1Mlk3BPG5kV1PlpBeDeyBXdDheVSsPBfPCp3CrrA30EelS2X4uwZJqnRveWMSA6cqXsvmXANci+ngBCoRAtH0d4vv20BYgyQBuZFeNldq/mk+9SapGnfMcBWFhYAOCBT08RvdazWxKtbcZ39exmUZCIkhQTds2hlgraocQNDYDxXLMFRjnbjX5+uXSQzMsLCqmR7nN38VLiJ8ZzzYznmi2uAOjnl9Gzm0VRXxgaNU8/4dJQ75hx9pXWNg5fPMnWuS/585dbPD73pmXbmLvTkoobmRVjXUZQSIEa6h2zlJIoucMXTxpj+Xy+sGMvinpZYBWXn3BIwPwboL1gKCrDUmVZVajB1GLZs6mc7ebn1z/n1sCHJT/v1venAQFyyHMUdX5akQFWsVPmfk/Pbu6+TAlXSstvNYkTU8pBpa7Sz3w9idT7vutlXC6X1an37xnrp69PSys7KVCiBM3dhHBLuHct8ARzc3NWp/a8CE9eMNZr3vuV6wMLm9eP3HcJ9Kj33T5xQ2NtPUNnh4fJ8BtKXUCVanBF5/5uy190dngI9KiEQiGjfTIDyQKR3iYNphYVM5gox74cfFHGHYC19Ux93U/9l9sSgPWBPgvI1dlLtt0FS99xePKC3vLoY5axYMALQDyRNsZeHe2v70dkZqBAj8r2na39m8PRfgD8qsqJ3t3QiC9+R//gGf1AQBUqGPCS1DT8qsqP6TQ7OzuGa50dHtvAbIUSDiU1jSNeb/0/eClUI5Gis/5ezGc4IxRPpNm+s8Xaesa2sGiQDdRImEbCFohy6h88o9tRglLLzwzTSJi3R1MWMLG0a36S/uClnG62DhFsa+bmH/DwMYhv3gVOGZ/bUYK2QwXbmovexwc+4/KLvx6Meep3JqkHSXPqt6kIANmJiDF2RInslZvJJdP7uo50fQpLgmUn9tfzJ8ZQ56cV8V9VNf75kAbVGnNbxn7I5miNQuyRqySTt/H72wkGvMQTaVv7Pmnlp7yDok/lrPNNFJIvaCQvfWMAASSTtw9OR2HW8MgHut/fzlejl2nCw3XXLMfyT/I0w8Z3Hor9bZtjih0wwYCXqDrDhDZMVJ0BsIA9m/bxtTdlbPeM5tl/mqSqSl2UXyEQYAEy61tmwDtcEqhuJ994Im0BO6eOlwYDnosN3bc3rHn5uVwuKY1pPp+v+Jj+AXSs5q0vR3DXAAAAAElFTkSuQmCC', chocola:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAZCAYAAAA8CX6UAAABdElEQVR42tWUv0vDQBTHv41iA4lQdVCQ3KLFTbeQ4OLmkKU4CS79B1QcxEXEfyF1EkS6CJ0kS4fikq3BsWtDh7RDB61VG2gteA6lR/ojaVKL4BdueO/ufXj3fdwB/0Z2QaZ2QaZhz3PjkrpGaCLZAb/1iLAwzm+jWY6D/9Z+fzVdI1TXCJ2ZV7pGInkVaPpLZYfaBTmww1gQ5HB7maqSCIUILGc5LgDgNO/EQoHGQbyyHHcAxk0DAQCFCPBelQvr1frFU2DMhYVcXt/5xpE6mqRIZq+kFgEAr8bniNm+oLZh0vTVAQBAlURoJ2tIJDvs+WzuP/uPv22YvSlkTdx276EQAZbjsq42zhfQLMcBYAQ04BGf2oshayJdybDiYrUFy3FhOS4ejt8AAPlMfbJHfW+K1RZUSWQwr3Klxkjd3DDkbHcVtfcuah9fbE2CjB1//y0NF/W789O8N1AlEUc3Sz1DM3XkSg02MQAsN/WHNvNP7k/0A83Ho6YwkcgYAAAAAElFTkSuQmCC',
+  rouge:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAoCAYAAACb3CikAAAEVElEQVR42rWXz2sbRxTHv2u5FKy6+KiGFGzYHI0JOQvrkmYsLcEgQS+9LFJBB0kV6cGm6bGUJqetooMgNnvxxaAlot1dTSgBpf4DfAgUEy9EB9f1sbRsSInC9GDPeFc/Zy15QHhmPbPz2e+89+Y9QKI5rsN832eO6zBEaPVanfm+z+q1eqR1IyHqWGJ1LDEOJPNiAYEl1tST04M09STrNX9kTT15DiTxlf0QMiDKJIjNzIYYN3KPzzu1H6DndXRedvDGezNyfeJwX/Rz5sHYveZllWnkHiOhrwIAzirfwwSg53Wk1lOheRwuCgQAzMmqkdBXwccJfRV6Xh+6LrWegp7XcXb7y0gmMCczqeW0EYTaqNOJa6LCzEU1XhkI3lbUFWmYSCDPF9YGni3unWJx7xSffGsOXVP+4xoU6TfMxb1TAMC/X92AcvveAIz2S8ij2JVAcuaB0nLal15z+ikAIB6PC+9gh88FEO/3w9zr2hxCmVqRoKH6vo94PI5MOgPWKOGLZ2X8+vlr2PdXwBql0DrWKEFLa9MpMkyVQNgXfcuykFpPIbWeAiEkBEMIkQ6e0u5ruzY6LzsAgEw6w0N5aB6ldOx4qsiaMw+Upp5khc98Ec4d1xka2oMKfNz+OTieGFkVWeKmnmQ7f8WDZ47E4b6wn/82vglBaDu/g1KKpp6UCvFKFPclhDDLsmDumiGISXdUCX8rM4sjHGLo+ea+G2lbMhDSigQhzF0TtmtDS2shVbh3bWY20HLaODNfQff/RDwenw0IIYRx6+fGp6U16Hkd5q45kHecma9EzsIvPxkYGVoGAIZaRdUz4LgOUuspAVG88Y+Y2Os8APUa0ApvYe8s4CQ9j1KlJKXI3CQ1+p8dV37D07WHSBzuC4iW00av8wAfHn0AUYuwdxZA1CJuuj1pR1Bk1Qi2ZXX5/IgKb9Fy2jg5uINldRlELYY9hm6j6hnKVAEtaBt8867XDW1Y394GcAdVz4CBKhretoDsel1Q9QjwriENoOoR7lpf40X6BajXAABUPQOEEFQ9Q8wTELNoF/bBADBDrbIWMZjv++LH/39RVoTmAmCEkEiFlbQiH1VuDb3QbNcOPQ8qM8rgpwIJZmcXt7Aic8NqaU0KZiQIpVRY+63a3QEoQgjr96YWuVSjCDKg1jRxZOAZD2Tck3zfx7vSO7SIga7XhaFWRZ8fnYwqUkfzpPZE9IMJElGLiG3FQL2G2Ji7N1WPRMogo4xUiOfKWJaFbDZ7WSpUysJ2stlsaGNKqcJVCB7zlRUhhIgXcSX4uL+84EVV0M5kIKRSRf6ii7+Mf2m5Uh7rKVHy1eiRdczXBVPIKPHjyrXvuKLbdm2RVMvGj5mAcJuJbcUQ24rBsiwUXheErWhpDYZa5WF/dslz0JN83xcg72vHoRRg09sUR3XT7YGoxYkpwZVBuEfxXPbp2kMUyU+gXgMn6fmQB72vHaPrda8NRJlUz0bZ739mi1Ba6PGcGgAAAABJRU5ErkJggg==',
+  kris:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACIAAAAoCAYAAACb3CikAAACeUlEQVR42u1Yv2vbQBh9MposDBnyR7glqJsX4U6G2EtGFwrGHo2XGlLIkJS6pC011OAuwWOMoUNGL07AU42XbBWBeCrNniEgpPU6NKfcD52lVuc4hHyLxUmn7+m99313Z+ApHmgYOl5iWQ7x/blBr1XP0WdWAmRZ4n8BpI2R/5nHAsqsC4Q4N7Nuk1IwmUdRNWlkEePBMPL4gbRuxmjdjCPv1dtdqYzvnREKgv7SXmKu0qh+51Ke13l2x1pnjKONHbJSRvzOJYb9vaWSpC5fykaShU70DY2jjZ30HvH9ubFsJU1iWjpG36N99a23u/jw6ScA4P3+C0ke1aKnbfX97b9W3qeAposJRgMXtaaNUr7CATF1M0ITA7hjo/9dMup0MUEpXyFapLEsh9AErATFwOOem2VznHS1pg0AHCtKRsqGHX7pKXGNpI0KAH59bsHZ3AIAzK8vMF1MAACjgXsLWC5jU5X85Hg3HK82epHlObtlQgVCjFrTxrAPicFQGgrg5HgXuUJBeoF3fh6Of3x5GJlkfn0RXrNszLK5EGitaYesiOVvlg2bqABExcGPdxJIADgo/B2vPH/FeYPKwksT0Vnj2GCTxUW10eNk+RJccUBK+QqKgYdZNiczckpco2zYpNrohWCSJgaAb2/P1FIx1RJ3nDDZqqCmdDa38ObrNpeI9UDSKAYeRgM3NKdY1rGLHls9ceXLNrRi4ElGvZcDlthV2S9WgVCB0dJZVZUgbhNE42o96dGuGrUPTXL4TgXEshzCrjNJ9yrUuKOBi3q7y0lrpJGEjahuGeUntsuyEpk6pFm2+RHlGfb3COsVLXvWpH/C6Jr7FGuJP6HSWIqJ1Q6lAAAAAElFTkSuQmCC'
 };
 
 const TIERS = {
@@ -1253,6 +1323,59 @@ const SURV = [
   solo:3, minions:4,
   soloNote:'A solas juega a las plataformas: flecha-pared, salta encima, repetir; el EXE melee la sufre.',
   minNote:'Con esbirros su zona se vuelve un castillo: flechas en pasillos y DJ para reubicarse; stunea a los esbirros siempre a tope.'
+},
+{
+  key:'rouge', name:'Rogue', mod:true, tier:'S', role:'Duelista aérea · La Joya Perfecta',
+  speed:'11 · 18 en bola · 6,25 planeando', acc:'0.046875',
+  bars:{mov:5, util:4, sup:4, pres:5},
+  solo:5, minions:3,
+  passive:{name:'Moribunda + Cazadora de tesoros', desc:'Su primera caída no mata: 6 s tirada invulnerable y se levanta con 40. Además, el 50 % de los anillos normales cuentan por 2. Y desde la V5.0: radar de flecha verde hacia la salida (el mismo de Amy Canon).'},
+  abilities:[
+    {k:'Z mantenida', n:'Glide pasivo', d:'Cae un 35 % más lento que el de Knuckles, planea un 25 % más rápido y gira más ágil que él; cada agarre de pared le paga 2 s de i-frames.', cd:'libre'},
+    {k:'Z + ↑', n:'Vuelo', d:'5 s de vuelo tipo Vanilla. Con la V5.0 ya no se gasta con una Z suelta: solo se activa con Z + arriba (querer planear ya no cuesta el vuelo).', cd:'15 s'},
+    {k:'X en el aire', n:'Taladro rompe-i-frames', d:'Picada diagonal (12 abajo + 8 al frente) SIN límite de tiempo, con estela de fantasmas: su contacto aturde 3 s aunque la víctima tenga i-frames. Al aterrizar con el taladro vivo encadena el tornado directo.', cd:'20 s (compartida)'},
+    {k:'X en tierra', n:'Tornado (attack2)', d:'3 s de remolino con i-frames: arranca a 11 y frena a 1,5 en 0,8 s, y recorre el resto a velocidad mínima barriendo. La animación loopea toda la duración.', cd:'(la misma del taladro)'},
+    {k:'↓ + Z / ↓', n:'Spindash + Slide', d:'Bola hasta 18 px/f (bypass de velocidad propio) y slide tipo Sally para pasar por debajo.', cd:'libre'}
+  ],
+  plus:[
+    'El único 2-en-1 rompe-i-frames del juego junto a la doble patada de Sally Canon, con UNA sola recarga de 20 s para toda la cadena',
+    '125 de vida (25 más que casi todo el plantel) + moribunda: la puerta de entrada más segura del juego',
+    'La mejor movilidad aérea: glide infinito más lento, más rápido y más ágil que el de Knuckles, con i-frames al tocar pared',
+    'Radar de la salida siempre activo (V5.0) y economía extra con los anillos dobles',
+    'El tornado protege 3 s enteros: presión de melee sin exponerse'
+  ],
+  minus:[
+    'Cero daño a distancia: contra un EXE que kitea solo puede cerrar con movilidad',
+    'Si la stunean a media picada, pagó los 20 s de recarga sin nada a cambio',
+    'El taladro no tiene i-frames propios (solo el tornado)',
+    'Sin herramientas de equipo: ni cura, ni revive, ni delata al EXE'
+  ],
+  soloNote:'Glide + vuelo + moribunda: la superviviente que más herramientas tiene para estirar un 1v1 sin tocar el suelo; el taladro rompe los i-frames con los que el EXE se protege tras cada golpe.',
+  minNote:'El tornado barre esbirros y el glide pasa por encima de la turba, pero sin daño de área sostenido los suditos acaban cerrando: usa la moribunda como seguro y no la gastes.'
+},
+{
+  key:'kris', name:'Kris', mod:true, tier:'A', role:'Esgrimista · El que frena al EXE',
+  speed:'11', acc:'0.046875',
+  bars:{mov:3, util:4, sup:3, pres:4},
+  solo:3, minions:3,
+  passive:{name:'Doble salto con recarga', desc:'Z en pleno salto lo relanza una vez (impulso −8, patrón jetpack de Eggman). No vuela ni planea: es UN salto extra por recarga, la regla de «él no vuela» queda intacta.'},
+  abilities:[
+    {k:'X', n:'Espada', d:'Tajo en tierra; en el aire, el ataque de dos fases. El tajo además programa 3 s de slow que arrancan justo al EXPIRAR el stun.', cd:'14,75 s'},
+    {k:'C', n:'Escudo (parry)', d:'Su «slot glide»: bloquea el golpe del EXE en tierra (mismo sistema que el parry de Sonic).', cd:'corto'},
+    {k:'Z en el aire', n:'Doble salto', d:'El relanzamiento de la pasiva.', cd:'8 s'}
+  ],
+  plus:[
+    'El slow de 3 s post-stun castiga incluso al EXE que escapa del golpe',
+    'Parry + espada + doble salto: kit completo sin ningún hueco grave',
+    'El ataque aéreo de dos fases cubre todo el salto'
+  ],
+  minus:[
+    'Ninguna pieza es la mejor en su categoría: ni el mejor parry, ni el mejor salto, ni el mejor ataque',
+    'Sin vuelo ni planeo: su aire es un pico corto',
+    '100 de vida y sin salvación de caída'
+  ],
+  soloNote:'El slow convierte cada intercambio ganado en una escapada ganada, pero sin vuelo el mapa vertical lo castiga.',
+  minNote:'El escudo aguanta la primera ola y la espada despeja, pero entre suditos el slow se desperdicia: mejor acompañado.'
 }];
 
 /* ------------------------------ EXE ------------------------------ */
@@ -1435,6 +1558,19 @@ const MATRIX = {
        exetior:{v:'e',t:'Su 11 es el único 12 que Eggman casi empata: jetpack + escudo de 15 s aguanta el sitio.'},
        exeller:{v:'d',t:'El teletransporte ignora su jetpack y su escudo.'},
        metalamy:{v:'e',t:'El escudo castiga el melee y el rastreador la delata, pero la bala de 20 lo funde (9 de velocidad).'}}
+,
+  rouge:{
+    exe:{v:'v',t:'La cadena taladro→tornado rompe cada i-frame que se después de recibir daño, y el glide flotado le niega la persecución en el suelo: el trade favorito del EXE original se vuelve su peor pesadilla.'},
+    chaos:{v:'d',t:'El chaos control y el slime a distancia la castigan sin entrar al rango del taladro; sin proyectil solo puede cerrar con movilidad y rezar.'},
+    exetior:{v:'v',t:'El duelista puro es su mejor matchup: cada i-frame que Exetior se da, el taladro se lo rompe; 125 HP + moribunda aguantan el intercambio largo.'},
+    exeller:{v:'d',t:'Los clones y el juego a distancia la sacan del elemento: no puede taladrar lo que no llega a tocar, y los clones gastan su cadena de 20 s.'},
+    metalamy:{v:'e',t:'La bala de 20 cada 3 s la obliga a gastar movilidad, pero 125 HP + moribunda + i-frames de pared aguantan la lluvia mejor que a casi todo el plantel.'}},
+  kris:{
+    exe:{v:'e',t:'El parry castiga el acercamiento y el slow castiga la huida, pero el 11 del EXE sostiene la presión que Kris no puede cerrar solo.'},
+    chaos:{v:'e',t:'El escudo niega el primer toque del slime y la espada tiene alcance, pero el control de zona de Chaos juega su mapa.'},
+    exetior:{v:'v',t:'El duelista entra al rango de la espada: parry + slow + tajo ganan la mayoría de los intercambios limpios.'},
+    exeller:{v:'d',t:'Los clones comen el parry y el teletransporte ignora el slow: juega a adivinar.'},
+    metalamy:{v:'e',t:'La bala lo funde a distancia, pero el doble salto + escudo esquivan la mitad de la lluvia; el slow la frena a ella también.'}}
 };
 
 /* -------------------- SOLITARIOS VS SUDITOS -------------------- */
@@ -1545,6 +1681,140 @@ function soloHtml(){
   return h + '</tbody>';
 }
 
+
+/* ---- V5.0 · ROGUE VS TODOS (la comparativa de la dueña) ---- */
+const VSROUGE = [
+  {key:'amy_canon', name:'Amy Canon', tier:'S', res:'ella, en general',
+   win:['Presión de melee: el tornado dura 3 s con i-frames; el martillo es un pico corto.',
+        'Escape vertical propio (vuelo + glide flotado) frente a su light dash horizontal.',
+        'Más vida base (125 vs 100) y ataque cada 20 s sin compartir botón con el dash.'],
+   lose:['La burbuja: NO se demoniza la primera vez, es la única con «muerto gratis» garantizado.',
+         'Doble información: flecha verde a la salida Y flecha roja al EXE real (Rogue solo tiene la verde).',
+         'Daño mixto sin exponerse: LSA y tarot aéreo con stun de 2 s.'],
+   ver:'Amy Canon llega más viva a la salida; Rogue pega más y domina el aire. Si el mapa exige sobrevivir, ella; si hay que pelear el camino, Rogue.'},
+  {key:'vanilla', name:'Vanilla', tier:'S', res:'cada una en su rol',
+   win:['Todo el apartado ofensivo: Vanilla no tiene presión real.',
+        'Agresión con i-frames y rompe-i-frames mientras ella solo quita presencias.',
+        'Independencia: no necesita equipo alrededor para funcionar.'],
+   lose:['Revive caídos y rescatar esbirros: cambia partidas enteras.',
+         'Cura con anillos para ella y los suyos.',
+         'Chocola bloquea el 65 % del daño: su 1v1 defensivo es el mejor del juego.'],
+   ver:'La mejor soporte contra la mejor duelista aérea. En equipo se llevan las dos; a solas Rouge llega más lejos.'},
+  {key:'sally_canon', name:'Sally Canon', tier:'S', res:'empate técnico',
+   win:['Movilidad: glide + vuelo + slide; ella camina y patea.',
+        'El tornado protege 3 s enteros; su doble patada es una ventana de frames.',
+        'Moribunda con 125 HP de por medio.'],
+   lose:['La doble patada: DOS golpes que rompen i-frames en una animación, con teleport de la víctima al segundo.',
+         'Spindash sin recarga (paga tiempo, no CD).',
+         'Fase 2 completa al revivir en vez de penalización.'],
+   ver:'Su espejo ofensivo: Sally Canon gana el duelo puro, Rogue gana el mapa. La mejor «rompe-i-frames» depende del terreno.'},
+  {key:'sonic', name:'Sonic', tier:'A+', res:'él, por margen de error',
+   win:['Salvación de 1ª caída (moribunda) frente a su dependencia del timing de parry.',
+        'Ataque con i-frames propios: el tornado no la deja expuesta nunca.',
+        'Mejor juego aéreo: glide infinito + vuelo contra su carrera en línea recta.'],
+   lose:['El parry convierte cualquier agresión del EXE en un stun de 3,5 s gratis.',
+         'Nervios de Acero + revive con powerboost: perdona DOS errores graves por ronda.',
+         'Golpe más barato y repetible (sin cadena de 20 s).'],
+   ver:'Sonic es más completo y más difícil de matar por error humano; Rogue pega más fuerte en el intercambio directo.'},
+  {key:'amelia', name:'Amelia', tier:'A+', res:'terreno repartido',
+   win:['Combate directo: Amelia es 100 % objetos y pierde todo 1v1.',
+        'Movilidad real (ella solo tiene el trampolín ajeno).',
+        'La cadena taladro→tornado decide peleas; sus trampas solo las condicionan.'],
+   lose:['INFORMACIÓN: la Auravisión VE al EXE a 350 px y su eco delata; Rogue solo ve la salida.',
+         'Control de mapa sin arriesgar el cuerpo: trampolín, bomba y plátano ganan tiempo gratis.'],
+   ver:'Amelia juega al ajedrez, Rogue a la espada. En mapas grandes su información es única; en presión no hay color.'},
+  {key:'fleetway_amy', name:'Fleetway Amy', tier:'A+', res:'Rogue',
+   win:['Solidez: 25 HP más, moribunda e i-frames durante el ataque.',
+        'Mejor desplazamiento continuo (glide) que su DJ puntual.',
+        'La cadena rompe-i-frames frente a su ballesta de a 8 s por flecha.'],
+   lose:['La ballesta: 3 flechas de daño a distancia.',
+         'El DJ aturde 3,2 s por contacto en el aire.'],
+   ver:'Pega lejos pero no tan fuerte: la solidez de Rogue decide.'},
+  {key:'blaze', name:'Blaze', tier:'A', res:'terreno repartido',
+   win:['Aguante: 125 HP + moribunda + i-frames de pared; Blaze es frágil en el intercambio.',
+        'Melee sostenida: su cadena de 3 s pisa el giro de fuego de 1,5 s.',
+        'Mejor escape: glide infinito contra su doble salto de 12 s.'],
+   lose:['Daño a DISTANCIA: la bola rebotante aturde sin exponerse y Rogue no puede responder.',
+         'Tres habilidades con recargas cortas (9-12 s) contra su cadena de 20 s.',
+         'El giro ardiente rebota: presión en pasillos donde el tornado choca y muere.'],
+   ver:'A distancia Blaze, cuerpo a cuerpo Rogue. Contra un EXE que kitea, tener proyectil pesa.'},
+  {key:'cream', name:'Cream', tier:'A', res:'Rogue',
+   win:['Otra vez todo el apartado de combate.',
+        'Glide sin límite (su vuelo dura 2 s, 5,5 con pasajero).',
+        'Más HP y salvación de caída.'],
+   lose:['Genera anillos para el equipo: la economía de revives y curas.',
+         'El carry más largo con pasajero (5,5 s).'],
+   ver:'Soporte económico contra duelista: Rogue es objetivamente más fuerte sola; Cream vale por lo que aporta a OTROS.'},
+  {key:'metal', name:'Metal Sonic', tier:'A', res:'Rogue',
+   win:['Dos vidas efectivas (moribunda) contra su UNA: sus 150 HP se acaban y no hay segunda.',
+        'Ataque cada 20 s contra su overdrive de 40 s.',
+        'Glide pasivo sin recarga: su overdrive es un pico de 2 s.'],
+   lose:['El pico de velocidad más alto del juego (16 px/f): nadie escapa ni lo alcanza.',
+         'Spark field: control de área sin exponerse.',
+         '50 HP más de techo si no cae.'],
+   ver:'Metal es cristal de altísimo daño, Rogue el acero todoterreno: la moribunda y las recargas inclinan la balanza.'},
+  {key:'kris', name:'Kris', tier:'A', res:'Rogue',
+   win:['El aire: Kris ni vuela ni planea (un doble salto de 8 s); Rogue vive arriba.',
+        'I-frames durante el tornado; el tajo lo deja abierto.',
+        'Moribunda y 25 HP más.'],
+   lose:['El slow de 3 s post-stun castiga incluso huyendo.',
+         'Ataque aéreo de dos fases con más alcance (espada) y recarga más corta (14,75 s).',
+         'El escudo C responde al casteo del EXE; Rogue no tiene defensa activa.'],
+   ver:'El kit más completo de su banda, pero cada pieza es menor: Rogue concentra el poder en el combo y el aire.'},
+  {key:'sally', name:'Sally', tier:'B+', res:'Rogue',
+   win:['Capacidad de aturdir completa (Sally solo tiene escudo).',
+        'Movilidad aérea y presión de área.',
+        'Más vida y moribunda.'],
+   lose:['El escudo con recarga corta niega un contacto entero del EXE.',
+         'Menor exigencia mecánica para sobrevivir.'],
+   ver:'El escudo es bueno, pero es UNA herramienta: el kit de Rouge la cubre y le añade tres más.'},
+  {key:'knux', name:'Knuckles', tier:'B', res:'Rogue, en todo',
+   win:['El glide: cae 35 % más lento, va 25 % más rápido, gira más ágil y agarra pared con 2 s de i-frames (él no tiene).',
+        'Su ataque rompe i-frames y encadena taladro→tornado; su patada es un stun normal.',
+        'Moribunda (él muere la primera) y 25 HP más de techo.'],
+   lose:['Simpleza efectiva: su kit se aprende en una partida.',
+         'Sin cadenas de recarga largas: patea más veces por minuto.'],
+   ver:'La comparación más directa del juego y hoy es de Rouge: es su kit con mejores números en cada apartado. Knuckles queda como la versión de entrada.'},
+  {key:'tails', name:'Tails', tier:'B', res:'Rogue',
+   win:['Presión ofensiva entera (Tails no pega).',
+        'Autosuficiencia total: no necesita que nadie use su taxi.',
+        'Más vida (125 vs 100) y moribunda.'],
+   lose:['Vuelo de equipo: el CARRY transporta aliados (Rogue vuela solo para sí).',
+         'Gestor del escape colectivo.'],
+   ver:'Tails es una herramienta de equipo, no un duelista: solo brilla más cuando el plan es llevar a alguien al anillo.'},
+  {key:'amy', name:'Amy', tier:'B', res:'Rogue',
+   win:['Mejor movilidad aérea y presión sostenida.',
+        'Más vida y salvación de caída.',
+        'El golpe corta vuelo, planeo y bola: más control del intercambio.'],
+   lose:['Su abrazo cura y su rol social de equipo.',
+         'Recargas más cortas en su kit básico.'],
+   ver:'Amy es la versión humilde del rol: Rogue la supera en cada número que comparten.'},
+  {key:'egg', name:'Eggman', tier:'B', res:'depende del equipo',
+   win:['Potencia en solitario: el Genio Malvado necesita trampas puestas y anillos de sobra.',
+        'Mejor melee y mejor vuelo propio (su jetpack es un doble salto de 8 s).',
+        'Más vida y moribunda.'],
+   lose:['El rastreador: al pisar una trampa mejorada, la posición del EXE se revela a TODO el equipo 3 s.',
+         'Escudo de 15 s y sinergia con las trampas de Amelia.'],
+   ver:'En squad coordinado Eggman es oro; en solo queue Rogue aporta más con menos condiciones.'}
+];
+
+function vsHtml(v){
+  const t = `<span class="vst ${tclass(v.tier)}">${v.tier}</span>`;
+  return `<article class="vscard">
+    <header>
+      <img src="${SPR.rouge}" alt="" class="mini" style="image-rendering:pixelated">
+      <b class="vsr">Rogue</b><span class="vsx">contra</span>
+      ${img(v.key)}<b class="vso">${v.name}</b>${t}
+      <span class="vsres">mejor: ${v.res}</span>
+    </header>
+    <div class="vscols">
+      <div class="col pro"><h5>Lo que Rogue le gana</h5><ul>${v.win.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+      <div class="col con"><h5>Lo que ${v.name} le gana</h5><ul>${v.lose.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+    </div>
+    <div class="vsver"><b>Veredicto:</b> ${v.ver}</div>
+  </article>`;
+}
+
 /* ---- montaje ---- */
 tierRows(SURV, $('#tiers-surv'));
 tierRows(EXES, $('#tiers-exe'));
@@ -1552,6 +1822,8 @@ $('#cards-surv').innerHTML = SURV.map(cardHtml).join('');
 $('#cards-exe').innerHTML = EXES.map(cardHtml).join('');
 $('#mtable').innerHTML = matrixHtml();
 $('#stable').innerHTML = soloHtml();
+$('#rg-img').src = SPR.rouge;
+$('#vs-list').innerHTML = VSROUGE.map(vsHtml).join('');
 
 /* ---- v5.0 · EL TOP DE LOS MÁS PODEROSOS (el ranking de la casa) ---- */
 const TOPDATA = [
@@ -1565,15 +1837,17 @@ const TOPDATA = [
    why:'20 s de invisibilidad con recarga de 14 s y 14,4 de velocidad en slime: el depredador puro más rápido del juego. Todo su poder es de contacto… y en ese plano nadie lo supera.'},
   {rank:5, key:'sally_canon', name:'Sally Canon', side:'superviviente', tier:'S',
    why:'La caída se convierte en reinicio con vida llena y desde la v5.8 además entra en Fase Duelista: patada de dos golpes, spindash, rodadura, salto en bola y escudo grupal para el resto de la ronda. La «vida extra» más generosa del juego, ahora con dientes.'},
-  {rank:6, key:'amelia', name:'Amelia', side:'superviviente', tier:'A+',
+  {rank:6, key:'rouge', name:'Rogue', side:'superviviente', tier:'S',
+   why:'La revelación de la V5.0: el único 2-en-1 rompe-i-frames junto a Sally Canon (taladro aéreo diagonal ilimitado → tornado de 3 s con i-frames, todo con UNA recarga), la mejor movilidad aérea del juego (glide que cae un 35 % más lento que el de Knux, planea un 25 % más rápido y gira más ágil, con 2 s de i-frames por toque de pared), 125 de vida + moribunda y ahora radar de la salida. Solo el cero daño a distancia la saca del top 3.'},
+  {rank:7, key:'amelia', name:'Amelia', side:'superviviente', tier:'A+',
    why:'Auravisión gratuita a través de paredes, trampas que no perdonan invisibles, Eclipse que ciega 4 s al EXE y 6 s a su ejército, inmunidad al anillo rojo y emboscada desde dentro del escondite. La mejor información + control de zona del plantel.'},
-  {rank:7, key:'sonic', name:'Sonic', side:'superviviente', tier:'A+',
+  {rank:8, key:'sonic', name:'Sonic', side:'superviviente', tier:'A+',
    why:'18 en espinas — la única movilidad que no respeta los 12 de ningún EXE —, el mejor parry del juego (devuelve proyectiles y aturde) y la primera caída perdonada. El duelista reactivo por excelencia.'},
-  {rank:8, key:'fleetway_amy', name:'Fleetway Amy', side:'superviviente', tier:'A+',
+  {rank:9, key:'fleetway_amy', name:'Fleetway Amy', side:'superviviente', tier:'A+',
    why:'Zonera pura con La Torre bloqueando el 33-40 % del daño, flechas que aturden y se apilan como plataformas para todo el equipo y un DJ que asciende rompiendo persecuciones. Gobierna la media y larga distancia sin exponerse.'},
-  {rank:9, key:'exeller', name:'Exeller', side:'exe', tier:'A+',
+  {rank:10, key:'exeller', name:'Exeller', side:'exe', tier:'A+',
    why:'Clones = información + movilidad + emboscada a la vez: el teletransporte rompe cualquier persecución lineal y flanquea hasta a los aéreos. Solo le falta el golpe a distancia.'},
-  {rank:10, key:'exe', name:'Sonic.exe', side:'exe', tier:'A+',
+  {rank:11, key:'exe', name:'Sonic.exe', side:'exe', tier:'A+',
    why:'El terror original: 15 s de invisibilidad con recarga de 14 s y el mejor kit para castigar errores puntuales. Simple, letal y sin gestión extra — pero las trampas de Amelia ya no lo distinguen.'},
 ];
 

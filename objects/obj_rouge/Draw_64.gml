@@ -32,3 +32,22 @@ if(hp > 0)
 	if(obj_netclient.exeId != obj_netclient.nid && revivalTimes < 2)
 		scr_number_spr(ceil(x-obj_camera.x) - 2, ceil(y-obj_camera.y) - offset - 12, string(global.player.rings), _colour);
 }
+// ============================================================================
+// v25 — RADAR DE LA SALIDA (flecha verde, patron AMY CANON, pedido de la
+// duena): mientras exista el ANILLO DE ESCAPE (obj_bigring), Rouge lleva
+// pegada una flecha verde (spr_sindicator2, la del indicador del juego)
+// que apunta al anillo MAS CERCANO — mismo anclaje y sprite que la de
+// Amy Canon (obj_amycanon_indicators). Informacion PURA del cliente
+// local (obj_rouge solo existe como jugador local; los ajenos son
+// puppets): cero paquetes, cero servidor, nadie mas la ve. La flecha
+// ROJA del exe NO va: esa es la exclusiva de Amy Canon — Rouge pidió
+// solo el radar del anillo. Demonizada (red de seguridad, nunca pasa):
+// apagada para no duplicar la flecha estandar del juego.
+// ============================================================================
+if(hp > 0 && revivalTimes < 2 && instance_exists(obj_bigring))
+{
+	var _ring = instance_nearest(x, y, obj_bigring);
+
+	if(_ring != noone)
+		draw_sprite_ext(spr_sindicator2, 0, ceil(x - obj_camera.x), ceil(y - obj_camera.y), 1, 1, point_direction(x, y, _ring.x, _ring.y), c_white, 1);
+}

@@ -39,15 +39,41 @@ function scr_rouge_special()
         //     ataque CAMBIA de modo aereo a modo terrestre: arranca el
         //     tornado con sus i-frames y su recorrido (misma recarga).
         //  v24 — EL ATAQUE AEREO ES UN TALADRO (rework): impulso hacia
-        //     ABAJO (ROUGE_DRILL_DIVE) con duracion propia
-        //     (ROUGE_DRILL_TIME), residuos FANTASMA (effectTime) y su
+        //     ABAJO (ROUGE_DRILL_DIVE), residuos FANTASMA (effectTime) y su
         //     contacto ROMPE los i-frames de la victima (patron Sally
-        //     Canon, aplicado en obj_player_puppet). Si ATERRIZA con
-        //     carga restante arranca el tornado (attack2) con duracion
-        //     COMPLETA — como si la habilidad de tierra se hubiera
-        //     activado (2 habilidades en 1). El tornado tambien deja
-        //     fantasmas. Una SOLA recarga: se paga cuando termina la
-        //     cadena (taladro agotado en el aire o tornado completado).
+        //     Canon, aplicado en obj_player_puppet). Si ATERRIZA con carga
+        //     restante arranca el tornado (attack2) con duracion COMPLETA
+        //     — como si la habilidad de tierra se hubiera activado (2
+        //     habilidades en 1). El tornado tambien deja fantasmas. Una
+        //     SOLA recarga: se paga cuando termina la cadena.
+        //  v27 — TRAMPOLIN + TORNADO AEREO + ANIMS DEBILITADA:
+        //     (1) el taladro ya NO borra el impulso de un trampolin: si la
+        //     lanzan hacia arriba se corta limpio sin recarga (antes:
+        //     rebote-slam infinito "empujando hacia abajo a perpetuidad");
+        //     (2) el remolino corta limpio (sin recarga) si sale del suelo
+        //     (trampolin/rampa/borde): antes quedaba como tornado FANTASMA
+        //     ("la animacion muere pero el ataque sigue empujando");
+        //     (3) scr_survivors: la tabla de anims de Rouge DEBILITADA
+        //     (revivalTimes >= 2) tenia attack1/attack2 INVERTIDOS: el
+        //     tornado pintaba la patada — por eso spr_rouge_attack2 "no
+        //     aparecia nunca" en tus ultimas pruebas.
+        //  v26 — FIX DEL TORNADO DE 1 FRAME: al aterrizar el taladro
+        //     PEGADO a un muro (o pulsar X al lado de uno), el corte de
+        //     pared lo mataba en el primer frame ("milisegundos" de attack2
+        //     y a correr). Ahora el corte exige que el remolino haya VIAJADO
+        //     desde su origen (tornadoStartX): nacido pegado a la pared gira
+        //     en el sitio toda la duracion; la pared en plena carrera sigue
+        //     cortandolo igual (patron Metal intacto).
+        //  v25 — TALADRO DIAGONAL e ILIMITADO en el aire: el impulso
+        //     ahora cae EN DIAGONAL hacia donde mira (ROUGE_DRILL_DIVE_X)
+        //     y en el aire NO expira: taladra hasta aterrizar o que lo
+        //     corten. El TORNADO de tierra dura 3 s (antes 0.8) con el
+        //     mismo frenado de arranque y su animacion en loop TODO ese
+        //     tiempo. El GLIDE gira un 17% mas rapido que el de Knux
+        //     (ROUGE_GLIDE_ACC 3: la velocidad extra ya no se siente
+        //     pesada al invertir la direccion). Y RADAR: flecha verde a
+        //     la salida cuando existe el anillo (Draw_64, patron Amy
+        //     Canon, solo local).
         //  v24 — GLIDE MEJORADA: cae un 35% MAS LENTO que la de Knuckles
         //     (ROUGE_GLIDE_FALL 0.65 vs su 1) y planea un 25% MAS RAPIDA
         //     (ROUGE_GLIDE_SPD 6.25 vs su 5). El agarre de pared le da
@@ -296,7 +322,8 @@ function scr_rouge_special()
         // ---------------- TORNADO (X en tierra) + TALADRO AEREO (X en aire) ----------------
         // v24 (REWORK del ataque aereo, pedido de la duena): el X en el
         // AIRE ya no es la patada de animacion — es un TALADRO: impulso
-        // hacia ABAJO con duracion propia (ROUGE_DRILL_TIME), deja
+        // hacia ABAJO EN DIAGONAL (v25, ROUGE_DRILL_DIVE + _X) sin limite
+        // de tiempo en el aire (v25), deja
         // RESIDUOS FANTASMA mientras taladra y su contacto ROMPE los
         // i-frames de la victima (patron de la patada duelista de Sally
         // Canon: lo aplica el cliente de la victima en obj_player_puppet).
@@ -347,6 +374,7 @@ function scr_rouge_special()
                 {
                         // --- TORNADO (modo terrestre) ---
                         tornadoState = ROUGE_TORNADO_TIME;
+                        tornadoStartX = x; // v26: origen del remolino (ver corte de pared)
                         isAttacking = true;
                         isFlying = false; // pegar manda (corta el vuelo)
                         isJumping = false;
@@ -361,18 +389,19 @@ function scr_rouge_special()
                 else
                 {
                         // --- TALADRO AEREO (modo aereo, v24) ---
-                        // La recarga NO se paga aqui: arranca cuando la
-                        // cadena de ataque termina (taladro agotado en el
-                        // aire o tornado completado en tierra).
+                        // La recarga NO se paga aqui: la paga el final de
+                        // la cadena (el tornado al terminar, o el corte si
+                        // el taladro cae interrumpido).
                         isAttacking = true;
                         isFlying = false; // pegar manda (corta el vuelo)
                         isJumping = false;
-                        drillState = ROUGE_DRILL_TIME;
+                        drillState = 1;  // v25: BANDERA — en el aire NO hay limite de tiempo
 
-                        // impulso hacia ABAJO en picada vertical (xspd 0:
-                        // el taladro cae, no avanza)
+                        // v25 (pedido de la duena): impulso DIAGONAL hacia
+                        // donde mira (antes picada vertical pura): el taladro
+                        // cae furioso Y avanza sobre el objetivo
                         yspd = ROUGE_DRILL_DIVE;
-                        xspd = 0;
+                        xspd = image_xscale * ROUGE_DRILL_DIVE_X;
                         gspd = 0;
 
                         audio_play_sound(snd_dash, 0, false);
@@ -380,16 +409,17 @@ function scr_rouge_special()
                 }
         }
 
-        // ---------------- taladro aereo activo (v24) ----------------
+        // ---------------- taladro aereo activo (v24, v25 ILIMITADO) ---
         // En picada mientras dure drillState: garantiza la velocidad de
         // taladro (la gravedad sola no baja mas rapido que el impulso) y
         // va dejando RESIDUOS FANTASMA (effectTime: el local los dibuja
         // en Draw_0 y a los demas clientes les llega solo con el bitflag
         // PLAYER_EFFECT de obj_netclient/Step_2 — cero cambios de red).
-        // Lo cortan dano, stun o muerte (pagando la recarga); si se agota
-        // EN EL AIRE tambien la paga y cae normal. Si ATERRIZA con carga
-        // restante NO pasa por aqui el corte: el bloque del cambio de modo
-        // (abajo) le pasa el relevo al tornado con duracion COMPLETA.
+        // v25 (pedido de la duena): EN EL AIRE NO TIENE LIMITE — ya NO
+        // expira por tiempo: taladra hasta ATERRIZAR (el bloque del
+        // cambio de modo de abajo le pasa el relevo al tornado con
+        // duracion COMPLETA) o hasta que lo corten dano/stun/muerte
+        // (pagando ahi la recarga).
         if(drillState > 0)
         {
                 if(isDead || shockedTimer > 0 || isHurt)
@@ -397,6 +427,23 @@ function scr_rouge_special()
                         drillState = 0;
                         isAttacking = false;
                         attackTimer = ROUGE_ATTACK_RECHARGE;
+                }
+                else if(yspd < 0)
+                {
+                        // v27 (bug del trampolin de la duena): si algo la
+                        // LANZA HACIA ARRIBA en mitad del taladro (un
+                        // trampolin: scr_collision_objects le pone yspd
+                        // negativo al aterrizar encima), el clamp de picada
+                        // de abajo lo BORRABA al frame siguiente: la llevaba
+                        // de vuelta al trampolin y otra vez y otra vez —
+                        // rebote-slam INFINITO ("empuja hacia abajo a
+                        // perpetuidad", ataque en tiempo infinito). Un
+                        // taladro que SUBE ya no es un taladro: se corta
+                        // LIMPIO, SIN recarga (lo corto el mapa, no la
+                        // jugadora) y el impulso del trampolin se respeta
+                        // tal cual.
+                        drillState = 0;
+                        isAttacking = false;
                 }
                 else
                 {
@@ -406,15 +453,6 @@ function scr_rouge_special()
                         // residuos fantasma del taladro
                         if(effectTime <= 0)
                                 effectTime = 16;
-
-                        drillState--;
-
-                        if(drillState <= 0 && !isGrounded)
-                        {
-                                // agotado en el aire: fin de la habilidad
-                                isAttacking = false;
-                                attackTimer = ROUGE_ATTACK_RECHARGE;
-                        }
                 }
         }
 
@@ -427,40 +465,79 @@ function scr_rouge_special()
                 // de Metal).
                 if(isDead || shockedTimer > 0)
                         tornadoState = 1; // cortar en el siguiente bloque
-
-                // RAPIDO al arranque y PERDIENDO velocidad hasta el minimo:
-                // transcurrido = ROUGE_TORNADO_TIME - tornadoState
-                var _elapsed = ROUGE_TORNADO_TIME - tornadoState;
-                var _speed = ROUGE_TORNADO_START - (ROUGE_TORNADO_START - ROUGE_TORNADO_MIN) * min(_elapsed / ROUGE_TORNADO_TIME, 1);
-
-                xspd = _speed * image_xscale;
-                gspd = xspd;
-
-                // v24: residuos fantasma del remolino (mismo sistema del
-                // taladro: effectTime local + bitflag PLAYER_EFFECT remoto)
-                if(effectTime <= 0)
-                        effectTime = 16;
-
-                // estela del remolino mientras avanza
-                if(floor(x) mod 3 == 0)
-                        net_quick_effect(x - 10 * image_xscale, y, spr_dust);
-
-                // CHOQUE CONTRA PARED: corta el tornado (patron Metal).
-                if(place_meeting(x + 4 * image_xscale, y, obj_floor_parent) || place_meeting(x - 4 * image_xscale, y, obj_floor_parent))
+                else if(!isGrounded)
                 {
-                        tornadoState = 1;
-                        scr_camera_shake(12, 2, 0.2);
-
-                        repeat(4)
-                                net_quick_effect(x + 8 * image_xscale + random_range(-6, 6), y + random_range(-10, 4), spr_dust);
+                        // v27 (la "animacion muerta que seguia empujando"):
+                        // el remolino es un ataque DE SUELO. Si un trampolin,
+                        // una rampa o el borde de una plataforma la sacan del
+                        // suelo a mitad de carrera, ANTES el ataque seguia
+                        // vivo por detras (isAttacking ya lo habia matado el
+                        // cierre defensivo del estado 14 y el bloque este le
+                        // seguia dando velocidad + fantasmas + i-frames: un
+                        // tornado FANTASMA empujando a una Rouge corriendo).
+                        // Ahora se corta LIMPIO, SIN recarga (la saco del
+                        // suelo el mapa: el impulso del trampolin o la caida
+                        // del borde se respeta tal cual).
+                        tornadoState = 0;
+                        isAttacking = false;
                 }
 
-                tornadoState--;
-
-                if(tornadoState <= 0)
+                // v27: si uno de los cortes de arriba lo cerro este frame,
+                // no queda nada que hacer aqui (antes el movimiento y el
+                // desconteo seguian corriendo con el ataque ya muerto).
+                if(tornadoState > 0)
                 {
-                        isAttacking = false;
-                        attackTimer = revivalTimes >= 2 ? ROUGE_ATTACK_RECHARGE / 2 : ROUGE_ATTACK_RECHARGE;
+                        // RAPIDO al arranque y PERDIENDO velocidad hasta el minimo.
+                        // v25: el frenado termina en ROUGE_TORNADO_BRAKE (0.8 s, el
+                        // perfil de siempre) y NO se estira a la nueva duracion de
+                        // 3 s: pasados los 0.8 s el remolino recorre el resto de la
+                        // habilidad a la velocidad minima (1.5) — misma pegadura de
+                        // arranque, duracion larguisima.
+                        var _elapsed = ROUGE_TORNADO_TIME - tornadoState;
+                        var _speed = ROUGE_TORNADO_START - (ROUGE_TORNADO_START - ROUGE_TORNADO_MIN) * min(_elapsed / ROUGE_TORNADO_BRAKE, 1);
+
+                        xspd = _speed * image_xscale;
+                        gspd = xspd;
+
+                        // v24: residuos fantasma del remolino (mismo sistema del
+                        // taladro: effectTime local + bitflag PLAYER_EFFECT remoto)
+                        if(effectTime <= 0)
+                                effectTime = 16;
+
+                        // estela del remolino mientras avanza
+                        if(floor(x) mod 3 == 0)
+                                net_quick_effect(x - 10 * image_xscale, y, spr_dust);
+
+                        // CHOQUE CONTRA PARED: corta el tornado (patron Metal).
+                        // v26 (bug del video de la duena): el corte SOLO vale si el
+                        // remolino VIAJO desde donde nacio (abs(x - tornadoStartX) >
+                        // ROUGE_TORNADO_WALL_TRAVEL). Sin esta puerta, aterrizar el
+                        // taladro PEGADO a un muro (o pulsar la X al lado de uno)
+                        // mataba el tornado en el PRIMER frame: el place_meeting de
+                        // 4 px ya veia la pared sin haberse movido ni un pixel, la
+                        // habilidad duraba 1-2 frames ("unos milisegundos" de attack2
+                        // y a correr) y la recarga quedaba pagada por nada. Ahora, si
+                        // NACE pegado a la pared, el remolino gira EN EL SITIO toda su
+                        // duracion (colision lo frena, la tira sigue en loop con sus
+                        // i-frames); y si llega a una pared EN PLENA CARRERA sigue
+                        // cortandose igual, con su polvareda y su mini-temblor.
+                        if((place_meeting(x + 4 * image_xscale, y, obj_floor_parent) || place_meeting(x - 4 * image_xscale, y, obj_floor_parent))
+                        && abs(x - tornadoStartX) > ROUGE_TORNADO_WALL_TRAVEL)
+                        {
+                                tornadoState = 1;
+                                scr_camera_shake(12, 2, 0.2);
+
+                                repeat(4)
+                                        net_quick_effect(x + 8 * image_xscale + random_range(-6, 6), y + random_range(-10, 4), spr_dust);
+                        }
+
+                        tornadoState--;
+
+                        if(tornadoState <= 0)
+                        {
+                                isAttacking = false;
+                                attackTimer = revivalTimes >= 2 ? ROUGE_ATTACK_RECHARGE / 2 : ROUGE_ATTACK_RECHARGE;
+                        }
                 }
         }
 
@@ -481,6 +558,7 @@ function scr_rouge_special()
                 // el taladro termina aqui: el tornado toma el relevo
                 drillState = 0;
                 tornadoState = ROUGE_TORNADO_TIME;
+                tornadoStartX = x; // v26: origen del remolino (ver corte de pared)
                 isJumping = false;
 
                 audio_play_sound(snd_dash, 0, false);

@@ -1,0 +1,94 @@
+=====================================================================
+ ROUGE v27 — LOS 3 BUGS NUEVOS (anims de la debilitada + trampolin
+ + tornado fantasma). 3 archivos de cliente. CERO server. CERO
+ .yyp/.yy. Va ENCIMA del v26 (los archivos ya traen todo dentro).
+=====================================================================
+
+LOS TRES REPORTES, RESUELTOS
+-----------------------------
+ 1) "spr_rouge_attack2 SIGUE sin aparecer o usarse"
+    RAIZ: cuando Rouge esta DEBILITADA (revivalTimes >= 2: ha
+    revivido 2+ veces, por eso la recarga te cuesta la mitad), el
+    juego pinta sus sprites desde OTRA tabla (player_eanims, la
+    version "exe" de sus tiras). Esa tabla tenia attack1 y attack2
+    EN LOS SLOTS INVERTIDOS desde que la hice en la v13: el tornado
+    en tierra (estado 15) pintaba la PATADA exe y la picada aerea
+    (14) pintaba el remolino. Por eso attack2 "no aparecia nunca"
+    en tus ultimas pruebas aunque el codigo del tornado estuviera
+    bien — estabas probando con tu Rouge ya debilitada.
+    FIX: slots en el orden correcto (14 = picada, 15 = tornado),
+    igual que la tabla normal y la nega.
+
+ 2) "Trampolin = ataque en tiempo infinito que empuja hacia abajo
+    a perpetuidad hasta re-usar la habilidad"
+    RAIZ: exactamente eso pasaba, por dos piezas encajando mal.
+    El trampolin (codigo compartido con Knuckles) apaga el ataque y
+    cobra la recarga, pero NO limpia el drillState del taladro. Y el
+    taladro fuerza "caer a 12" cada frame: al rebotar (te lanza a
+    -16), al frame siguiente el taladro BORRABA el impulso y te
+    devolvia al trampolio. drillState quedaba atascado para siempre
+    (ya nada lo limpiaba: el cambio de modo exigia isAttacking, que
+    el trampolin mato) siguiendo empujando hacia abajo con fantasmas
+    mientras tu sprite corria normal — hasta que re-usabas la
+    habilidad en el aire y aterrizabas (eso si lo limpiaba).
+    FIX: un taladro que SUBE ya no es un taladro: si algo te lanza
+    hacia arriba, el taladro se corta LIMPIO y el impulso del
+    trampolin se respeta tal cual (sales volando normal). La
+    recarga la cobra el propio trampolin una vez (misma politica
+    que ya tiene con el EXE y Metal: trampolin = cancela ataque).
+
+ 3) "La animacion del tornado muere / deja de reproducirse en vez
+    de continuar"
+    RAIZ: el remolino es un ataque DE SUELO. Si un trampolin, una
+    rampa o el borde de una plataforma te sacaban del suelo a mitad
+    de carrera, el estado saltaba al aereo y su cierre defensivo
+    mataba la animacion... pero el bloque del tornado seguia
+    corriendo por detras: te segia dando velocidad, fantasmas e
+    i-frames con Rouge corriendo/cayendo = un tornado FANTASMA
+    empujando con la animacion muerta (lo que viste).
+    FIX: corte limpio al primer frame fuera del suelo, SIN cobrarte
+    la recarga (te corto el mapa, no perdiste el ataque tu). El
+    cierre defensivo del estado aereo tambien aprendio a respetar
+    el timer del tornado (cinturon y tirantes).
+
+ARCHIVOS
+---------
+ scripts/scr_survivors/scr_survivors.gml   eanims de Rouge (slots
+                                           14/15 corregidos)
+ scripts/scr_rouge_special/scr_rouge_special.gml
+                                           corte limpio del taladro
+                                           al subir + corte limpio
+                                           del tornado fuera del
+                                           suelo
+ objects/obj_rouge/Draw_76.gml             el cierre del estado 14
+                                           respeta tornadoState
+ + check_v27.py (validador) + este LEEME + worklog.md
+
+VALIDACION
+----------
+ * Pipeline fiel (special -> salto -> colision con trampolin y
+   bordes -> maquina de estados -> animacion, orden real de
+   eventos): REPRODUCE los dos bugs sin fix (trampolin: rebote
+   borrado en 1 frame + taladro-fantasma 194 frames clavado al
+   suelo; borde: 84 frames de tornado fantasma empujando con la
+   animacion muerta) y los verifica arreglados (rebote completo +
+   aterrizaje limpio; 0 frames fantasma).
+ * check_v27.py: 80/80 OK — los 8 estaticos nuevos, S1/S2
+   pre/fix, H1/H2/H3 de la v26 intactos (muro al aterrizar, pared
+   en carrera, campo abierto) y TODAS las regresiones v25/v24/v23.
+ * Politica de recargas: los cortes por MAPA (trampolin, borde) NO
+   cobran; el timer agotado y la pared en plena carrera SI (patron
+   Metal de siempre); el trampolin cobra su cancelacion una sola
+   vez (politica del engine, igual que con el EXE).
+
+ PARA PROBAR EN EL JUEGO (recompilar CLIENTE)
+ ---------------------------------------------
+  * Ataque en tierra CON TU ROUGE DEBILITADA (2+ revividas):
+    ahora si deberias ver el remolino (spr_rouge_attack2) girando
+    los 3 s — la patada exe ya no lo tapa.
+  * Taladro directo a un trampolin: rebote limpio hacia arriba
+    (sin slam perpetuo, sin fantasmas clavados), ataque cancelado
+    con su recarga.
+  * Tornado que se sale por un borde o pisa un trampolin: el
+    remolino se corta ahi mismo (sin seguir empujandote con la
+    animacion muerta) y SIN robarte la recarga.

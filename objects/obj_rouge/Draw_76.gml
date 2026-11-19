@@ -85,21 +85,30 @@ switch(state)
         case ROUGE_ATTACK:
                 // v24 TALADRO AEREO (spr_rouge_attack1 girando rapido =
                 // taladro en picada): mientras dure drillState NO termina
-                // por animacion — lo cierra scr_rouge_special (timer,
-                // aterrizar -> tornado, dano, stun o muerte). El cierre
-                // por animacion del final es SOLO defensivo y exige que
-                // NINGUN timer este vivo: en el frame de aterrizar el
-                // drillState todavia va > 0 y cerrar ahi mataba el cambio
-                // de modo al tornado.
+                // por animacion — lo cierra scr_rouge_special (aterrizar
+                // -> tornado, dano, stun o muerte; v25: en el aire ya no
+                // expira). El cierre por animacion del final es SOLO
+                // defensivo y exige que NINGUN timer este vivo: en el frame
+                // de aterrizar el drillState todavia va > 0 y cerrar ahi
+                // mataba el cambio de modo al tornado.
+                // v25 (LOOP REAL): image_speed 2 en una tira de 2 frames
+                // CLAVA el image_index en 0 (0 + 2 = 2 -> wrap a 0): la
+                // tira quedaba congelada. Con 1 alterna 0/1 cada frame =
+                // giro de taladro en loop de verdad.
                 if(variable_instance_exists(id, "drillState") && drillState > 0)
                 {
-                        image_speed = 2;
+                        image_speed = 1;
                         break;
                 }
 
                 image_speed = 1.5;
 
-                if(image_index >= image_number - 1 && drillState <= 0)
+                // v27: este cierre defensivo respeta los DOS timers (el
+                // v24 le puso el drillState; el tornado aereo pasa por AQUI
+                // en el frame en que un trampolin/borde la despega: sin la
+                // puerta del tornadoState mataba isAttacking a mitad del
+                // remolino — la "animacion muerta que seguia empujando").
+                if(image_index >= image_number - 1 && drillState <= 0 && tornadoState <= 0)
                 {
                         isAttacking = false;
                         isGrounded = false;
@@ -108,9 +117,13 @@ switch(state)
 
         case ROUGE_AIR_ATTACK:
                 // v13 TORNADO (spr_rouge_attack2, 2 frames de remolino):
-                // mientras dure el tornadoState NO termina por animacion — lo
-                // cierra scr_rouge_special (timer, pared, stun o muerte) — y
-                // la tira alterna sus 2 frames rapida.
+                // mientras dure el tornadoState NO termina por animacion —
+                // lo cierra scr_rouge_special (timer, pared, stun o muerte).
+                // v25 (LOOP DE VERDAD, pedido de la duena): la tira de 2
+                // frames con image_speed 2 quedaba CLAVADA en el frame 0
+                // (0 + 2 = 2 -> wrap a 0). Con 0.5 los frames alternan
+                // 0,0,1,1,... = remolino girando en LOOP durante TODA la
+                // duracion de la habilidad (3 s) y no solo al principio.
                 // v24: el drillState tambien la mantiene girando — cubre el
                 // frame de ATERRIZAJE del taladro (estado 15 con el
                 // tornadoState todavia en 0: el cambio de modo arranca al
@@ -119,7 +132,7 @@ switch(state)
                 if((variable_instance_exists(id, "tornadoState") && tornadoState > 0)
                 || (variable_instance_exists(id, "drillState") && drillState > 0))
                 {
-                        image_speed = 2;
+                        image_speed = 0.5;
                         break;
                 }
 
