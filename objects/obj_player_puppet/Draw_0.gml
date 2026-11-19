@@ -336,5 +336,13 @@ switch(character)
 
                 if(sallyShield)
                         draw_sprite(revivalTimes >= 2 ? spr_sallyshield2 : spr_sallyshield, (current_time / 30) % 41, floor(x), floor(y));
+
+                // v34 — AURA DEL ESCUDO ELECTRICO (modo EGGMAN de Rouge):
+                // mismo sprite del doctor (patron de su case EGGMAN de
+                // arriba). El estado ROUGE_ESHIELD ya viaja en el u8 de
+                // siempre; antes su puppet solo cambiaba la pose y en las
+                // pantallas ajenas "no salia nada de eggman".
+                if(state == ROUGE_ESHIELD)
+                        draw_sprite(spr_electroshield, (current_time / 30) % 41, floor(x), floor(y));
                 break;
 }

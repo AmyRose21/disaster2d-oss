@@ -297,7 +297,14 @@ function scr_rouge_special()
         // Sonic y Sally NO lo tienen: cada Z fresca (abajo mantenida) suma
         // ROUGE_SPINDASH_REV aunque ya este cargando. Ese es el sistema
         // clasico completo.
-        if(global.playerControls && isGrounded && !isAttacking && !isHurt
+        // v35 (SEGURO pedida por la duena): el giro es del SET ROUGE —
+        // con otro set puesto (eggman/soporte/ataque) abajo+Z no hace
+        // NADA. Igual que ya hacia el tornado (guard de modo en 456) y
+        // la invisibilidad (guard en 246): sin el seguro, el giro seguia
+        // disparandose en los demas sets y se mezclaba con la habilidad
+        // de la X del modo.
+        if(rougeMode == ROUGE_MODE_ROUGE
+        && global.playerControls && isGrounded && !isAttacking && !isHurt
         && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
         && redRingTimer <= 0 && !isFlying && !isSliding
         && keyboard_check(global.KeyDown) && abs(gspd) < ROUGE_SPINDASH_START_MAX
@@ -542,7 +549,7 @@ function scr_rouge_special()
         // Vale en tierra Y en el aire (mantiene el impulso que lleve).
         if(rougeMode == ROUGE_MODE_ATTACK
         && global.playerControls && keyboard_check_pressed(global.KeyB)
-        && attackTimer <= 0 && !isSliding && !isSpinCharging && !isAttacking
+        && kickRecharge <= 0 && !isSliding && !isSpinCharging && !isAttacking
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline
         && !isHiding && redRingTimer <= 0 && ringsChannel <= 0)
         {
@@ -573,7 +580,9 @@ function scr_rouge_special()
 
                 isAttacking = true;
                 kickState = ROUGE_KICK_TIME;
-                attackTimer = revivalTimes >= 2 ? ROUGE_KICK_RECHARGE / 2 : ROUGE_KICK_RECHARGE;
+                // v34: recarga PROPIA (antes attackTimer: el tornado la
+                // dejaba muerta 20 s y ella le robaba 15 s al tornado)
+                kickRecharge = revivalTimes >= 2 ? ROUGE_KICK_RECHARGE / 2 : ROUGE_KICK_RECHARGE;
 
                 audio_play_sound(snd_dash, 0, false);
                 net_sound_emit(snd_dash);
@@ -1260,6 +1269,10 @@ function scr_rouge_special()
         // ---------------- timers de la habilidad V (v32) ----------------
         if(modeFlash > 0)
                 modeFlash--;
+
+        // v34: decay de la recarga PROPIA de la patada
+        if(kickRecharge > 0)
+                kickRecharge--;
 
         if(eShieldRecharge > 0)
                 eShieldRecharge--;

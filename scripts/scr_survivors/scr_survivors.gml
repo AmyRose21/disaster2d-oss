@@ -469,7 +469,10 @@ global.player_anims[? CHARACTER_ROUGE] =
         spr_rouge_glide, //23 = ROUGE_GLIDE_AIR (v14): glide PASIVA tipo Knuckles (tira direccional)
         spr_rouge_attack3, //24 = ROUGE_KICK (v32): PATADA de Sally (X del modo ATTACK, hitbox +65%, i-frames)
         spr_rouge_emotion3, //25 = ROUGE_RINGS (v32): canal de ANILLOS (C del modo SUPPORT, la pose "emotico3")
-        spr_rouge_fly //26 = ROUGE_ESHIELD (v32): ESCUDO ELECTRICO (X del modo EGGMAN, patron djump del doctor)
+        // v34: pose IDLE + el AURA del doctor encima (la dibuja el
+        // Draw_0 local y su puppet) — antes usaba la pose de VUELO y
+        // parecia "su habilidad de siempre"
+        spr_rouge_idle //26 = ROUGE_ESHIELD (v32): ESCUDO ELECTRICO (X del modo EGGMAN, aura spr_electroshield)
 ];
 
 // v32 — SILUETAS de la INVISIBILIDAD de Rouge (C de su set normal,
@@ -951,7 +954,7 @@ global.player_eanims[? CHARACTER_ROUGE] =
         // regla que el slide y el spindash de arriba)
         spr_erouge_attack1, //24 = ROUGE_KICK: patada (placeholder attack1 exe)
         spr_erouge_emotion3, //25 = ROUGE_RINGS: canal de anillos (pose exe)
-        spr_erouge_glide //26 = ROUGE_ESHIELD: escudo electrico (placeholder)
+        spr_erouge_idle //26 = ROUGE_ESHIELD (v34): idle + aura del doctor encima
 ];
 
 // KRIS (demonizado): JAMAS se demoniza (regla de la duena: muere
@@ -1380,7 +1383,7 @@ global.player_negaanims[? CHARACTER_ROUGE] =
         // tiras mas cercanas del mismo set (misma regla de arriba)
         spr_rougenega_attack1, //24 = ROUGE_KICK: patada (placeholder)
         spr_rougenega_emotion, //25 = ROUGE_RINGS: canal de anillos (placeholder)
-        spr_rougenega_glide //26 = ROUGE_ESHIELD: escudo electrico (placeholder)
+        spr_rougenega_idle //26 = ROUGE_ESHIELD (v34): idle + aura del doctor encima
 ];
 
 // Kris (v5): la energia negativa de Jinna NO CALA en el (regla de la

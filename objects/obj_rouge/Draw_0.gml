@@ -25,3 +25,13 @@ if(effectTime > 0 && invisTimer <= 0)
 // PLAYER_SALLYSHIELD, patron de la Sally vanilla en su Draw_0).
 if(shieldTimer > 0)
 	draw_sprite(revivalTimes >= 2 ? spr_sallyshield2 : spr_sallyshield, (current_time / 30) % 41, floor(x), floor(y));
+
+// v34 — AURA DEL ESCUDO ELECTRICO (modo EGGMAN): el mismo sprite
+// animado del doctor (spr_electroshield, patron de su Draw_0 —
+// "if(isAttacking) draw..." centrado en el cuerpo). Antes lo unico
+// que se veia al activarlo era la pose de vuelo del estado y se
+// confundia con SU habilidad de siempre; ahora se ve EL AURA del
+// doctor desde el primer frame (el chispazo de la descarga sigue
+// saliendo en la pantalla de quien la toque).
+if(eShieldTimer > 0)
+	draw_sprite(spr_electroshield, (current_time / 30) % 41, floor(x), floor(y));

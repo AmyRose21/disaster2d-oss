@@ -448,9 +448,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                         else // ROUGE_MODE_ATTACK
                         {
                                 // ---- X: PATADA DE SALLY (15 s / 7,5 debilitada;
-                                // recarga attackTimer, patron del tornado) ----
+                                // v34: recarga PROPIA kickRecharge — antes leia
+                                // attackTimer y el tornado la dejaba muerta 20 s) ----
                                 var _ktot = global.player.revivalTimes >= 2 ? ROUGE_KICK_RECHARGE / 2 : ROUGE_KICK_RECHARGE;
-                                var _kprog = 1.0 - (min(max(global.player.attackTimer, 0), _ktot) / _ktot);
+                                var _kprog = 1.0 - (min(max(global.player.kickRecharge, 0), _ktot) / _ktot);
                                 drawKeyIcon(spr_gui_sallyattack, 0, 23, global.KeyB, _kprog * 10, 240 - _ico, _kprog == 1.0 ? c_white : c_red, _kprog, 0);
 
                                 // C sin asignar todavia (proximo set): no se dibuja

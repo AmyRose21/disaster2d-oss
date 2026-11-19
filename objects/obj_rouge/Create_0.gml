@@ -131,6 +131,13 @@ invisTimer = ROUGE_INVIS_RECHARGE;
 // puppet de la victima).
 kickState = 0;
 
+// v34 (fix duena "la X no dispara la del modo"): recarga PROPIA de la
+// patada — antes usaba attackTimer (la COMPARTIDA del tornado): usar
+// el tornado dejaba la X del modo ATTACK muerta 20 s (y al reves la
+// patada le robaba 15 s al tornado). Independiente, como la del
+// escudo (eShieldRecharge).
+kickRecharge = 0;
+
 // v32 — ESCUDO ELECTRICO (X en modo EGGMAN): eShieldTimer > 0 = aura
 // activa (estado ROUGE_ESHIELD, contacto = stun electrico de 2 s).
 eShieldTimer = 0;

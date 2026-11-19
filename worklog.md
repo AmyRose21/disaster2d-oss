@@ -5817,3 +5817,40 @@ Stage Summary:
 - Las dos quejas tenian la misma raiz de familia: la v32 agrego el sistema de modos pero dejo vivos los caminos VIEJOS que no sabian de el (el HUD v13 y el rebote v4.4) — ambos se parchearon en su lugar exacto sin tocar nada de los demas personajes
 - La patada ahora aturde de verdad (3 s rompe-i-frames con su hitbox +65%) y el escudo electrico descarga SIEMPRE que la tocan (no solo cuando el exe va de paseo)
 - El HUD ensena en todo momento que set lleva puesto la V y las X/C del set con sus recargas reales
+
+---
+Task ID: rouge-v34-identidad-habilidades-prestadas
+Agent: main (Z.ai)
+Task: Aclaracion de la duena tras probar la v33 (commiteada como fa796fd1): "te estoy diciendo cuando cambie a ejemplo eggman... la X no disparara la habilidad de rouge... si no la de eggman y = mente la patada... porque en si rouge sigue usando aun la habilidad de rouge en vez de las de los personajes en cuestion."
+
+Work Log:
+- Forense del disparo: trazado el flujo completo otra vez (guards por modo del tornado/patada/escudo, ciclo V, macros, orden de eventos Step_0->Step_2->Draw, emisor/receptor/puppet) — el DISPARO era correcto: con rougeMode==EGGMAN y X, el unico handler que corre es el del escudo. Descartado reseteo de rougeMode (grep global: solo Create=0 y el ciclo V lo tocan)
+- RAIZ REAL (dos causas que JUNTAS creaban exactamente su reporte):
+  (a) LA PATADA COMPARTIA RECARGA CON EL TORNADO: el handler ponia attackTimer (la recarga del tornado/taladro, 20 s) y su guard exigia attackTimer<=0 — la secuencia natural de prueba (X=tornado en set ROUGE -> ciclar a ATTACK -> X) dejaba la patada MUERTA hasta 20 s: "la X no dispara la del modo"
+  (b) IDENTIDAD VISUAL NULA: el escudo activo se veia como SU VUELO (slot 26 = spr_rouge_fly, el Step_2 pisa WALK con ROUGE_ESHIELD) y sin NADA electrico en su pantalla (el chispazo solo sale en el cliente de la victima); la patada suena a snd_dash (mismo sonido del tornado) y su tira spr_rouge_attack3 se hizo de sus poses de attack1 — ambas se leian como "la habilidad de rouge de siempre"
+- FIX (a) — recarga PROPIA: kickRecharge nueva (Create, guard del handler, set al activar, decay junto a los demas timers v32, HUD del modo ATTACK): patada y tornado ya NO se bloquean entre si; el tornado sigue pagando SU attackTimer al terminar (sin regresion, asertado en [18])
+- FIX (b) — AURA DEL DOCTOR: el juego ya tenia el sprite (spr_electroshield, 41 frames animados con current_time/30) y el patron (obj_egg/Draw_0 "if(isAttacking) draw centrado" + su case en el puppet): copiado EXACTO — en SU pantalla (Draw_0 de obj_rouge, junto a la burbuja de Sally) y para los demas (case ROUGE del puppet con el estado ROUGE_ESHIELD que ya viaja en el u8). El escudo ahora se VE como el del doctor desde el primer frame
+- FIX (b2) — slots 26 de las 3 tablas (anims/eanims/negaanims) → pose IDLE: fuera la pose de vuelo con alas que se confundia con su habilidad; con el aura encima la lectura es inequivoca
+- El doctor como REFERENCIA de diseño verificada: su escudo no fija estado especial (anda normal), viaja solo con el bit isAttacking; Rouge necesita el estado 26 para distinguir escudo de tornado en el puppet (por eso mantiene el suyo), y su animacion durante el escudo queda en pose idle + aura (1,5 s, disimulada por el aura)
+- Verificacion: check_v34.py 197/197 (aserciones v32/v33 intactas + [18] nueva: kickRecharge completa, tornado sin regresion, 2 auras con el patron exacto del doctor, 3 slots idle, HUD con kickRecharge); aserciones v33 actualizadas (slot 26 y HUD ATTACK cambiaban con esta ronda)
+- Entregable: download/fix_v34_rouge_habilidad_de_cada_modo.zip — 6 GML (scr_rouge_special, scr_survivors, obj_rouge Create+Draw_0, puppet Draw_0, playerui Draw_64) + worklog + LEEME_ROUGE_V34.txt + check_v34.py. SOLO CLIENTE
+
+Stage Summary:
+- La leccion de la ronda: "la X no dispara la habilidad del modo" era CIERTA como EXPERIENCIA aunque el disparo fuera correcto — la patada estaba muerta por la recarga compartida y el escudo era invisible como escudo. Las habilidades prestadas necesitan SU recarga y SU look propio desde el primer frame, no solo su logica
+- Diagnostico forense completo de por que la v33 no lo arreglo: la v33 toco el HUD y el CONTACTO (efectos al ser tocada), pero el reporte de la duena iba del DISPARO y la IDENTIDAD visual — dos capas distintas del mismo sintoma
+
+---
+Task ID: rouge-v35-seguro-del-giro
+Agent: main (Z.ai)
+Task: Reporte de la duena tras la v34: "ok aparece el escudo pero aun sigue usando lo de la habilidad del giro de rouge... no puedes colocarle un seguro??? inabilidar la habilidad de rouge si no esta usando (rouge) precisamentE para evitar que se active la habilidad al presionar la X. No se te hace mas facil asi :)"
+
+Work Log:
+- El aura de la v34 funciono (lo confirma), pero el GIRO seguia colarse: forense de TODOS los caminos de entrada de Rouge (grep global de isSpinCharging = true: 1 solo sitio en scr_rouge_special:306) — el SPINDASH (abajo + Z, v13, reglas de Sonic) era el UNICO handler de habilidad SIN guard de modo: tornado (456), invisibilidad (245), patada (543), escudo (591), mina (632) y rings (659) ya exigian SU set, pero el giro se disparaba igual con EGGMAN/ATAQUE/SOPORTE puesto — y abajo+Z en mitad de una prueba de la X se mezclaba con la habilidad del modo
+- FIX (el seguro exacto que pidio la duena, 1 condicion): el guard del spindash abre ahora con rougeMode == ROUGE_MODE_ROUGE — el giro SOLO existe en el set ROUGE; con otro set puesto, abajo+Z no hace NADA (ni carga, ni bola, ni sonido). Al volver al set ROUGE (V x4) el giro vuelve solo, sin estado extra
+- SIN tocar: el VUELO (A, movilidad base en todos los sets — la V solo cambia X y C, diseño v32) y la bola natural del salto (isSpinning, del salto comun del juego)
+- Verificacion: check_v35.py 202/202 (v32+v33+v34 intactas + [19] nueva: guard del giro con modo, 3 guards de modo contados, invisibilidad KeyC con SU guard, vuelo sin cambios, unico camino al giro)
+- Entregable: download/fix_v35_rouge_seguro_del_giro.zip — 1 GML (scr_rouge_special) + worklog + LEEME_ROUGE_V35.txt + check_v35.py. SOLO CLIENTE
+
+Stage Summary:
+- La duena tenia razon y su solucion era la correcta y la mas simple: el seguro que ya tenian las demas habilidades (guard por set) faltaba en la unica habilidad vieja (v13) que nunca lo necesito — al llegar los sets de la v32 quedo como la puerta abierta
+- Leccion: cuando se anade un sistema de "modos" a un personaje existente, AUDITAR todas sus habilidades viejas una por una contra el guard nuevo, no solo las que interactuan con las nuevas
