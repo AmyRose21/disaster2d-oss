@@ -5714,3 +5714,21 @@ Work Log:
 Stage Summary:
 - El bug no era del tornado: era el SENSOR con que se buscaba la pared. place_meeting pregunta con la mascara (que en attack2 pisa el suelo); position_meeting pregunta con un punto (inmune al sprite). Regla aprendida: todo probe de suelo/pared en un personaje cuya mascara cambia por estado debe usar PUNTOS, no mascaras
 - La hipotesis de la duena ("detecta el piso como pared") fue el diagnostico correcto; el v26 habia tapado solo el caso "nace pegada a la pared" y por eso el bug parecia intermitente entre pruebas
+
+---
+Task ID: rouge-v29
+Agent: main (Z.ai)
+Task: Reporte de la duena: "se te olvido poner la excepcion anti kick del anticheat para el ataque de rouge (si, asi como paso con el LSA de amy)"
+
+Work Log:
+- Pull (regla 1): upstream ya traia el v28 aplicado + cambios propios de la duena (sprites attack1/attack2 retocados, Draw_76 con image_index >= 1 -> 0 en el estado 15, backup de animeditor). check_v28 sobre ese estado: 91/91 de base
+- Anticheat localizado: states/Game.c, case CLIENT_PLAYER_DATA — el server acumula el bit PLAYER_ATTACKING de cada paquete y bota con "nuh-uh!" al superar duration (2000 ms generico). Excepciones previas en el MISMO switch: Eggman 3000, Amy Canon 6000 (el LSA: "sin esta excepcion el anticheat generico la bota a mitad de vuelo"), Jinna 6000 (cadena aerea)
+- Disparador de Rouge: el tornado lleva isAttacking ON los 180 frames (3000 ms) > 2000 -> kick a mitad de remolino; el taladro aereo (v25, ilimitado) puede encadenarse al aterrizar en tornado ("2 en 1"): hasta ~6 s continuos. El cliente manda el bit desde obj_netclient/Step_2 (bitflags |= PLAYER_ATTACKING)
+- FIX (1 archivo, SERVER): states/Game.c — case CH_ROUGE: duration = 8000 en el switch de excepciones (subir el techo, no apagar el anticheat: bit fijo > 8 s sigue recibiendo kick). 8000 = cadena peor legitima (taladro ~3 s + tornado 3 s = 6 s) + margen. NO se toco el Game.c de la raiz (muerto: el CMake compila states/Game.c; su case CH_ROUGE es el viejo tope de HP 125)
+- Verificacion REAL del C: 78 fuentes del CMake (lista exacta) + Main.c compiladas con gcc (gcc -c, semantica completa), enet clonado y compilado aparte, ejecutable LINKEADO y smoke test 3 s: "BetterServer v1101, Listening on port 8606, Server is now in Lobby" + JSONs generados. Los .c muertos de la raiz (Game.c/Lobby.c/Server.c) NO compilan y NO estan en la lista del CMake — no se tocan (mismo criterio del v14.3)
+- check_v29.py (107/107): 8 estaticos del server (case con 8000, excepciones previas intactas, tope 2000 intacto, kick "nuh-uh!" intacto, solo en states/Game.c, acumulador y reset intactos, bit del cliente, comentario) + 7 sims del acumulador transcritos del C (K1 reproduce kick pre-fix a los ~2000 ms; K2 tornado sin kick; K3 cadena 2-en-1 de 6000 ms sin kick; K4 anticheat VIVO: 8500 ms fijos = kick a ~8000; K5 LSA Amy sin kick; K6 reset por corte de pared; K7 tope generico 2000) + las 91 del v28 completas + balance de llaves del .c
+- Entregable: download/fix_v29_rouge_anticheat_kick.zip — states/Game.c + LEEME_ROUGE_V29 + check_v29 + worklog. ESTA VEZ SE RECOMPILA EL SERVER (compilar_server.bat o cmake); el cliente no cambia (cero .gml, cero .yyp/.yy)
+
+Stage Summary:
+- Mismo fallo y mismo patron de solucion que el LSA de Amy Canon: habilidad con el bit de ataque ON mas de 2 s seguidos = kick del anticheat; la excepcion por personaje sube el techo sin apagarlo. Cualquier habilidad nueva de mas de 2 s que mande PLAYER_ATTACKING necesita su case (o bajar el bit a mitad, como hizo Jinna en el cliente)
+- Primera ronda que toca el SERVER: el flujo de verificacion subio de escala (gcc sobre la lista exacta del CMake + link + arranque) y quedo documentado para las proximas

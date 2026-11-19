@@ -3035,6 +3035,30 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                                 duration = 6000;
                                                 break;
                                         }
+
+                                        /* Rouge (remolino v24-28): el tornado de
+                                           suelo lleva el bit PLAYER_ATTACKING
+                                           encendido los 180 frames COMPLETOS
+                                           (ROUGE_TORNADO_TIME = 3 s) y el taladro
+                                           aereo (v25, sin limite de tiempo) puede
+                                           ENCadenarse al aterrizar directo en
+                                           tornado (la "2 en 1": taladro de hasta
+                                           ~3 s cayendo + remolino de 3 s = hasta
+                                           ~6 s continuos). Sin esta excepcion, el
+                                           tope generico de 2 s la bota con
+                                           "nuh-uh!" a mitad de remolino (mismo
+                                           fallo que tenia el LSA de Amy Canon).
+                                           8000 ms cubre la cadena legitima peor
+                                           con margen; un cheat con el bit fijo
+                                           mas de 8 s sigue recibiendo el kick
+                                           (mismo mecanismo que las excepciones
+                                           de Eggman, del LSA de Amy Canon y de
+                                           la cadena aerea de Jinna). */
+                                        case CH_ROUGE:
+                                        {
+                                                duration = 8000;
+                                                break;
+                                        }
                                 }
                         }
                         else

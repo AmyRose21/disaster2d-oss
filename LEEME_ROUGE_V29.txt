@@ -1,0 +1,72 @@
+=====================================================================
+ ROUGE v29 — EXCEPCION ANTI-KICK DEL ANTICHEAT PARA SU ATAQUE
+ (mismo patron que el LSA de Amy Canon). 1 archivo de SERVER.
+ ESTA VEZ SE RECOMPILA EL SERVER, NO EL CLIENTE. Cero .gml.
+=====================================================================
+
+QUE PASABA
+------------
+ Tenias razon: era exactamente lo del LSA de Amy. El anticheat del
+ SERVER acumula el bit PLAYER_ATTACKING de cada paquete del jugador
+ y bota con "nuh-uh!" a quien lo lleve mas de 2000 ms (2 s) SEGUIDOS
+ (estados/Game.c, en el bloque CLIENT_PLAYER_DATA).
+
+   - El tornado de Rouge lleva ese bit encendido los 180 frames
+     COMPLETOS (3 s): el remolino iba perfecto y a los 2 segundos
+     el server te botaba a mitad de ataque.
+   - El taladro aereo puede ENCADENARSE al aterrizar directo en
+     tornado (la "2 en 1"): taladro cayendo (~hasta 3 s) + remolino
+     (3 s) = hasta ~6 s seguidos con el bit puesto.
+   - Es LITERALMENTE el mismo fallo que tenia el LSA de Amy Canon
+     antes de su excepcion (la botaba "a mitad de vuelo").
+
+EL FIX (patron LSA, 1 solo archivo)
+------------------------------------
+ En el MISMO switch de excepciones del anticheat (donde ya estaban
+ Eggman 3000, LSA de Amy 6000 y Jinna 6000) entra ahora Rouge:
+
+     case CH_ROUGE:
+             duration = 8000;   // ms
+
+ Se SUBE el techo, NO se apaga el anticheat (misma filosofia de las
+ otras excepciones): un cheat que deje el bit fijo mas de 8 s sigue
+ recibiendo su kick igual. Los 8000 ms cubren la cadena legitima
+ peor (taladro 3 s + tornado 3 s = 6 s) con margen.
+
+ OJO — esta en betterserver-oss/disasterserver/states/Game.c, que es
+ el UNICO Game.c que compila el CMake (el Game.c de la raiz esta
+ muerto desde siempre; no lo toco, como en el fix v14.3 del HP).
+
+VERIFICACION (al 100%, como siempre)
+-------------------------------------
+   - Las 78 fuentes del CMake + Main.c compilan limpias con gcc
+     (sintaxis y semantica completas), el ejecutable LINKEA y
+     arranca: "BetterServer v1101 ... Listening on port 8606,
+     Server is now in Lobby".
+   - check_v29.py: 107/107. K1 reproduce el kick pre-fix a los
+     ~2000 ms de remolino; K2/K3 verifican tornado y cadena 2-en-1
+     sin kick; K4 demuestra que el anticheat SIGUE VIVO (bit fijo
+     de 8.5 s = kick); K5/K7 el LSA de Amy y el tope generico de
+     2000 intactos; K6 el reset del acumulador (corte por pared a
+     mitad no acumula contra el siguiente tornado).
+   - Las 91 comprobaciones del v28 (y todas las v27/v26/v25/v24/
+     v23) siguen dentro y pasando.
+
+COMO APLICARLO
+---------------
+   ESTA VEZ TOCA EL SERVER:
+     1. Descomprime el zip sobre el proyecto (1 archivo .c).
+     2. Recompila el server: compilar_server.bat (Windows) o el
+        cmake de siempre. El CLIENTE NO CAMBIA (cero .gml, cero
+        .yyp/.yy): no hace falta recompilarlo.
+     3. Sustituye el DisasterServer.exe de tu servidor por el nuevo
+        y reinicialo.
+
+ARCHIVOS DEL ZIP
+-----------------
+   betterserver-oss/disasterserver/states/Game.c .. el unico
+     archivo que cambia (el case CH_ROUGE del anticheat + su
+     comentario con el porque);
+   check_v29.py ............................. validador 107/107;
+   worklog.md ............................... bitacora actualizada;
+   LEEME_ROUGE_V29.txt ...................... este archivo.
