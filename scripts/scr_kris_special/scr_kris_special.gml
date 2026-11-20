@@ -298,7 +298,7 @@ function scr_kris_love_lv(_hits)
 }
 
 // Cuenta un impacto de LOVE y sube el LV si toca (y solo entonces):
-// chime local del logro + senal silenciosa para que el puppet de Kris
+// chime local del LV Up (snd_kris_lvup, v47) + senal silenciosa para que el puppet de Kris
 // suba krisLvNet en las demas pantallas (ellas escalan su stun con su
 // propia autoridad). Solo corre en el cliente del propio Kris.
 function scr_kris_love_event(_kind)
@@ -317,9 +317,12 @@ function scr_kris_love_event(_kind)
         {
                 global.player.krisLv = _new;
 
-                // chime local (el de los logros). Los demas no oyen
-                // nada: la senal viaja silenciosa.
-                audio_play_sound(snd_achivement, 0, false);
+                // v47 (duena): el sonido de la subida de LV es el SUYO -
+                // el mp3 "Undertale Sound Effect - LV Up" que subio,
+                // registrado como asset nuevo snd_kris_lvup. Local como
+                // siempre: los demas no oyen nada, la senal viaja
+                // silenciosa.
+                audio_play_sound(snd_kris_lvup, 0, false);
 
                 // senal +1 LV: la reciben los demas clientes en el
                 // CLIENT_SOUND_EMIT (rama de snd_none con gate de

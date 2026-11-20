@@ -361,3 +361,15 @@ instance_create_depth(x, y, 0, obj_player_sensorBL);
 instance_create_depth(x, y, 0, obj_player_sensorBR);
 instance_create_depth(x, y, 0, obj_player_sensorAL);
 instance_create_depth(x, y, 0, obj_player_sensorAR);
+
+// v47 (T4, duena): ROUGE gana las flechas detectoras - las MISMAS
+// de Amy Canon y Vanilla (obj_vanilla_indicators: objeto generico
+// que solo existe en el cliente de su propia jugadora, lo crea
+// obj_vanilla igual): flecha VERDE hacia la salida + flecha ROJA
+// hacia el EXE real. Pedido: "debe ganar el efecto para poder
+// rastrear al exe (la flecha indicadora que tiene amy y vanilla)
+// para detectar al exe durante el invisible" - y funciona
+// INVISIBLE incluida: las flechas son HUD propio (Draw GUI), su
+// cuerpo escondido no las apaga. Demonizada (revivalTimes >= 2)
+// el objeto se apaga solo y rige la flecha estandar del esbirro.
+instance_create_depth(x, y, 0, obj_vanilla_indicators);

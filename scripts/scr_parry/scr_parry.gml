@@ -681,13 +681,12 @@ function scr_parry_success_now()
         // por la red de siempre y asi no se toca el enum de sonidos de red.
         audio_play_sound(Perfect_Parry, 0, false);
 
-        // v46 (LOVE de Kris): bloqueo exitoso = impacto para el nivel
-        // de violencia (la otra fuente son los cuchillazos acertados,
-        // contados en el CLIENT_PLAYER_HURT con pid == mi nid).
-        // TODOS los caminos de exito pasan por aqui: melee, laser
-        // devuelto, anillo negro y el ting del aliado.
-        if(global.character == CHARACTER_KRIS)
-                scr_kris_love_event(2);
+        // v47 (T3): el bloqueo exitoso YA cuenta en su lugar de verdad -
+        // el CLIENT_PLAYER_HURT que el cliente del exe aturdido manda
+        // con pid == el nid de Kris (el v46 lo contaba DOS veces: aqui
+        // y en ese paquete; ahora una sola, cuando el stun aterriza).
+        // Las fuentes del LV quedan: cuchillazo acertado + bloqueo
+        // exitoso, 1 impacto cada una, siempre contadas por red.
 }
 
 // =====================================================================
@@ -981,7 +980,7 @@ function scr_parry_try_stun_attacker()
         // Knockback: AWAY de la victima (self = puppet victima aqui);
         // _emitSound=true porque el sonido viaja con el net_sound_emit de
         // siempre hacia los demas clientes.
-        scr_parry_apply_stun(master_id, -sign(x - global.player.x) * 4, true);
+        scr_parry_apply_stun(master_id, -sign(x - global.player.x) * 4, true, _parrySonic.character);
 
         // v3.4: SENAL hacia el Sonic que cubria (el mismo "ting" que emite
         // la negacion de la victima, posicionado en su nid). Cubre a las
@@ -1009,7 +1008,7 @@ function scr_parry_try_stun_attacker()
 //                  propio paquete de la senal (snd_exe_stun posicionado
 //                  en mi nid), reenviarlo sonaria doble
 // =====================================================================
-function scr_parry_apply_stun(_victimNid, _kx, _emitSound)
+function scr_parry_apply_stun(_victimNid, _kx, _emitSound, _parryChar)
 {
         // ESCUDO ELECTRICO DE EGGMAN esbirro: se consume el RESTO del
         // tiempo del escudo (pasa directo al cooldown completo)
@@ -1043,7 +1042,38 @@ function scr_parry_apply_stun(_victimNid, _kx, _emitSound)
         // dura +2 s (3,5 -> 5,5 s). Vale para el parry de SONIC: durante el
         // LMS el es el unico que puede tener la ventana activa (los
         // demonizados no parrean y Amy Canon ya cayo).
-        global.player.shockedTimer = SONIC_PARRY_STUN_TIME + (global.lmsActive ? LMS_STUN_BONUS * 60 : 0);
+        // v47 (T3, duena): "el aumento de stun tanto del parry como el
+        // propio corte" - el parry de KRIS alarga el stun con su nivel
+        // de violencia, MISMO factor del corte (+5% por LV: LV 10 =
+        // +50%, LV 20 = +100%). El LV lo espeja en ESTE cliente (el
+        // del atacante parreado, que se aturde a si mismo: la
+        // autoridad de siempre) el puppet del Kris con krisLvNet - la
+        // senal silenciosa v46 - y sin senales recibidas vale 1.
+        // _parryChar llega de los DOS llamadores con el personaje del
+        // superviviente que parreo: SOLO Kris escala (el parry de Sonic
+        // y el de Amy Canon quedan en sus 3,5 s de siempre + LMS).
+        var _parryStun = SONIC_PARRY_STUN_TIME + (global.lmsActive ? LMS_STUN_BONUS * 60 : 0);
+
+        if(_parryChar == CHARACTER_KRIS)
+        {
+                var _klvP = 1;
+
+                if(instance_exists(obj_player_puppet))
+                {
+                        with(obj_player_puppet)
+                        {
+                                if(character != CHARACTER_KRIS || isDemonized || isInactive)
+                                        continue;
+
+                                _klvP = variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1;
+                                break;
+                        }
+                }
+
+                _parryStun = _parryStun * (1 + KRIS_LV_STUN_PCT * _klvP);
+        }
+
+        global.player.shockedTimer = _parryStun;
         global.player.xspd = _kx;
         global.player.yspd = -2;
         global.player.isGrounded = false;
@@ -1065,7 +1095,8 @@ function scr_parry_apply_stun(_victimNid, _kx, _emitSound)
         // victima esta identificada
         if(_victimNid >= 0)
         {
-                var _stunSec = (SONIC_PARRY_STUN_TIME + (global.lmsActive ? LMS_STUN_BONUS * 60 : 0)) div 60;
+                // v47: el paquete lleva los segundos YA escalados por el LV
+                var _stunSec = _parryStun div 60;
 
                 var _buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
                 buffer_write(_buffer, buffer_u16, _victimNid);
@@ -1127,6 +1158,7 @@ function scr_parry_stun_signal()
         // ocurrio en SU cliente con el contacto exacto; aqui aproximamos con
         // el contacto local, que tras el lag suele ser el mismo puppet).
         var _victimNid = -1;
+        var _victimChar = -1; // v47: el personaje del parreador (escala del parry de Kris)
         if(instance_exists(obj_player_puppet))
         {
                 with(obj_player_puppet)
@@ -1137,6 +1169,7 @@ function scr_parry_stun_signal()
                         if(place_meeting(x, y, global.player))
                         {
                                 _victimNid = master_id;
+                                _victimChar = character;
                                 break;
                         }
                 }
@@ -1145,5 +1178,5 @@ function scr_parry_stun_signal()
         // knockback hacia atras de donde miro (estoy pegandole a alguien que
         // tengo delante); el sonido NO se reenvia: ya viajo en el paquete de
         // esta senal (los demas lo oyen en 3D desde mi puppet)
-        scr_parry_apply_stun(_victimNid, -global.player.image_xscale * 4, false);
+        scr_parry_apply_stun(_victimNid, -global.player.image_xscale * 4, false, _victimChar);
 }

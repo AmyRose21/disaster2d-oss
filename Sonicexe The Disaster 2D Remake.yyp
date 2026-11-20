@@ -979,6 +979,7 @@
     {"id":{"name":"snd_jina_taunt3","path":"sounds/snd_jina_taunt3/snd_jina_taunt3.yy",},},
     {"id":{"name":"snd_judger","path":"sounds/snd_judger/snd_judger.yy",},},
     {"id":{"name":"snd_jump","path":"sounds/snd_jump/snd_jump.yy",},},
+    {"id":{"name":"snd_kris_lvup","path":"sounds/snd_kris_lvup/snd_kris_lvup.yy",},},
     {"id":{"name":"snd_lava","path":"sounds/snd_lava/snd_lava.yy",},},
     {"id":{"name":"snd_lavaappear","path":"sounds/snd_lavaappear/snd_lavaappear.yy",},},
     {"id":{"name":"snd_lavahit","path":"sounds/snd_lavahit/snd_lavahit.yy",},},

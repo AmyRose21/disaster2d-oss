@@ -68,4 +68,20 @@ if(!isHiding)
         
         if(!isDemonized && hp > 0)
                 scr_number_spr(floor(x-obj_camera.x) - 2, floor(y-obj_camera.y) - 45 - 12, string(rings), _colour);
+
+        // v47 (T2, duena): "los demas jugadores deberian ver el nivel
+        // de Violencia de kris". El LV del puppet de Kris con la MISMA
+        // disposicion del jugador local (una linea encima del contador
+        // de anillos, y este a 12 px de la barra) y el MISMO color
+        // progresivo: blanco en el LV 1, rojo pleno en el LV 20.
+        // krisLvNet es el espejo de la senal silenciosa v46 (sin
+        // senales recibidas vale 1 = LV inicial). Lo ve TODO el que
+        // ya ve la barra de siempre: el exe, los esbirros y el resto
+        // de supervivientes (eclipse/isHiding siguen cortando arriba).
+        if(!isDemonized && hp > 0 && character == CHARACTER_KRIS)
+        {
+                var _klv = variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1;
+                var _klvCol = room == room_act9 ? c_dkgray : merge_color(c_white, c_red, (_klv - 1) / (KRIS_LV_MAX - 1));
+                scr_text_spr(floor(x-obj_camera.x) - 14, floor(y-obj_camera.y) - 45 - 24, "lv " + string(_klv), _klvCol, 1);
+        }
 }

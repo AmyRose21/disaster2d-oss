@@ -1,0 +1,191 @@
+=============================================================
+ RONDA v47 — LOVE v2 DE KRIS + FLECHAS DETECTORAS DE ROUGE
+ The Disaster 2D Remake (GameMaker LTS 2026)
+=============================================================
+
+PEDIDOS DE LA DUEÑA Y QUÉ SE HIZO (uno a uno):
+
+ 1) SONIDO de subida de LV + color progresivo ........... LISTO
+ 2) El LV visible para los demas jugadores .............. LISTO
+ 3) Verificar el aumento de stun (parry + corte) y el
+    slow que no aplicaba ............................... LISTO + FIX
+ 4) Rouge invisible (exe no la ve) + flecha rastreadora . LISTO + AUDITORIA
+
+-------------------------------------------------------------
+1) SONIDO Y COLOR DEL LV
+-------------------------------------------------------------
+ * Asset de sonido NUEVO: snd_kris_lvup — es TU mp3
+   "Undertale Sound Effect - LV Up.mp3" (30230 bytes,
+   44100 Hz, 1.23 s), registrado completo en el .yyp
+   (carpeta sounds/snd_kris_lvup/ con su .yy). Suena en
+   cada subida de nivel de Kris (antes era el chime de
+   logros snd_achivement). Es LOCAL: solo lo oye el
+   cliente de Kris, la senal para los demas sigue siendo
+   la silenciosa de siempre (snd_none, 0 frames).
+
+ * COLOR PROGRESIVO: "1 empieza blanco nivel 1 y ira
+   cambiado a color rojo progresivamente":
+        LV 1  = blanco puro
+        LV 10 = rojo ~medio
+        LV 20 = rojo pleno
+   Formula: merge_color(c_white, c_red, (LV - 1) / 19).
+   Mismo color en la pantalla de Kris (obj_kris/Draw_64)
+   y en la de los demas (puppet). En act9 sigue gris
+   oscuro (patron de siempre).
+
+-------------------------------------------------------------
+2) EL LV VISIBLE PARA LOS DEMAS
+-------------------------------------------------------------
+ El puppet de Kris ahora pinta "lv N" con la misma
+ disposicion del jugador local: barra de vida (y-45),
+ contador de anillos (y-57) y el LV una linea mas arriba
+ (y-69), con el MISMO color progresivo. Lo ve el exe, los
+ esbirros y el resto de supervivientes (todo el que ya ve
+ su barra de siempre; eclipse y escondite siguen
+ cortando el HUD como siempre).
+
+-------------------------------------------------------------
+3) VERIFICACION DEL AUMENTO DE STUN (resultado de la auditoria)
+-------------------------------------------------------------
+ Se audito la cadena completa de punta a punta. Hallazgos:
+
+ a) STUN DEL CORTE: el escalado v46 (+5% por LV) estaba
+    BIEN cableado y sigue intacto:
+       corte -> bit isAttacking (fix v45) -> contacto en
+       el cliente de la victima -> stunTime *= 1+0.05*LV
+       -> shockedTimer, CLIENT_PLAYER_HURT y stats.
+    LV 10 = 3 s -> 4.5 s (+50%) | LV 20 = 6 s (+100%).
+
+ b) STUN DEL PARRY: NO estaba escalado (v46 lo dejo
+    congelado a proposito). AHORA SI: mismo factor del
+    corte, en los DOS caminos (auto-stun local y senal
+    de red de la victima), solo cuando el que parrea es
+    KRIS (el parry de Sonic/Amy Canon queda en 3.5 s):
+       LV 10 = 3.5 s -> 5.25 s | LV 20 = 7 s.
+
+ c) EL SLOW (el que "no estaba aplicando"): la cadena
+    estaba sana — krisSlowCountdown nace del stun en el
+    puppet, expira EXACTO cuando termina el stun y
+    llama scr_player_slow (isSlow + stats al 60% +
+    alarm[4]; el exe dibuja el indicador spr_frozen).
+    Lo que faltaba era que CRECIERA: ahora el slow
+    TAMBIEN escala con el LV, mismo factor:
+       LV 10 = 3 s -> 4.5 s | LV 20 = 6 s.
+    (Prueba visual: al expirar el stun, el exe sale con
+    el hielito spr_frozen encima y corre al 60%.)
+
+ d) FIX EXTRA ENCONTRADO: el v46 contaba el BLOQUEO dos
+    veces (el hook inmediato del parry + el
+    CLIENT_PLAYER_HURT que el exe manda con pid = nid de
+    Kris). Corregido: ahora cada bloqueo cuenta UNA vez,
+    cuando el stun le aterriza de verdad al exe. Las
+    fuentes del LV quedan: cuchillazo acertado + bloqueo
+    exitoso, 1 impacto cada una (misma lista de la v46:
+    lv 2 = 2 impactos, +3 por nivel, lv 20 = 56).
+
+-------------------------------------------------------------
+4) ROUGE: INVISIBILIDAD ANTE EL EXE + FLECHAS
+-------------------------------------------------------------
+ a) AUDITORIA "el exe realmente la deja de ver?": SI.
+    La cadena esta intacta de punta a punta:
+      - Su cliente manda el bit PLAYER_INVIS mientras
+        invisTimer > 0 (obj_netclient/Step_2).
+      - En el cliente del exe ese bit pone visible = false
+        al puppet COMPLETO (net_udpprocess): ni cuerpo,
+        ni barra, ni nombre — visible=false apaga TODOS
+        sus eventos de dibujado, incluido el HUD.
+      - Las 3 agujas de rastreo del exe (exe/exeller/
+        exetior) la saltan SIEMPRE, incluso con anillo
+        rojo encima.
+    La silueta roja (spr_rouge_invis_*) solo existe en la
+    PANTALLA DE LA PROPIA ROUGE (su Draw_76, para que
+    ella se vea a si misma — misma convencion del exe
+    invisible). Si alguien la vio "en la pantalla del
+    exe", era build/cache viejo: cura abajo. (Ojo: el exe
+    puede TOCARLA igual — puede dar con ella a tientas,
+    como el resto de invisibles del juego.)
+
+ b) FLECHAS DETECTORAS (pedido): Rouge gana las flechas
+    de Amy Canon / Vanilla (obj_vanilla_indicators,
+    objeto generico ya existente): VERDE hacia la salida
+    + ROJA hacia el EXE REAL. Funcionan INVISIBLE
+    incluida (son HUD propio; su cuerpo escondido no las
+    apaga). Demonizada se apagan solas (rigue la flecha
+    estandar del esbirro). Cero red, cero server.
+
+-------------------------------------------------------------
+ARCHIVOS DEL ZIP (solo modificados/creados en la ronda)
+-------------------------------------------------------------
+ Sonicexe The Disaster 2D Remake.yyp  (entrada del sonido nuevo)
+ sounds/snd_kris_lvup/snd_kris_lvup.yy        (NUEVO)
+ sounds/snd_kris_lvup/snd_kris_lvup.mp3       (NUEVO - tu mp3)
+ scripts/scr_kris_special/scr_kris_special.gml
+ objects/obj_kris/Draw_64.gml
+ objects/obj_player_puppet/Draw_64.gml
+ objects/obj_player_puppet/Step_0.gml
+ scripts/scr_parry/scr_parry.gml
+ objects/obj_rouge/Create_0.gml
+ objects/obj_kris/Create_0.gml       (v46 - por si no lo aplicaste*)
+ scripts/net_state_game/net_state_game.gml (v46 - por si no lo aplicaste*)
+ (*) Los 2 ultimos son de la v46: si ya aplicaste
+ kris_v46_love.zip son BYTE-IDENTICOS (no cambian nada);
+ si NO lo aplicaste, hacen que este zip funcione solo.
+
+ INSTALACION: copiar las carpetas conservando la ruta
+ sobre el proyecto y abrir el .yyp. El sonido aparece en
+ la carpeta Sounds del IDE junto a los demas.
+
+-------------------------------------------------------------
+AVISO DE CACHE (curacion v43/v44 — obligatoria aqui)
+-------------------------------------------------------------
+ Se agrego UN RECURSO nuevo (snd_kris_lvup) al .yyp: el
+ set de assets cambio. Insertado DENTRO del bloque de
+ sounds y DETRAS de los 339 objects -> NINGUN indice de
+ objeto se mueve (el error fantasma v43 no puede
+ repetirse). Aun asi, por el cambio de assets, antes de
+ compilar (VM o YYC):
+  1. Borrar C:\Users\AM\AppData\Roaming\GameMakerStudio2-LTS2026\Cache\GMS2CACHE\Sonicexe_T_EAB73F4B
+  2. Borrar C:\Users\AM\AppData\Local\GameMakerStudio2-LTS2026\GMS2TEMP\Sonicexe_The_Disaster_2D_Remake_2BA16C0A_YYC
+  3. Clean (Broom icono) y recompilar.
+
+-------------------------------------------------------------
+ANTI-CHEAT (regla 7 — sin nuevas superficies de ataque)
+-------------------------------------------------------------
+ * CERO archivos del server (.c/.cpp/.h intocados).
+ * CERO PacketType nuevos; cero entradas nuevas en
+   net_snds: la senal del LV sigue siendo la silenciosa
+   snd_none (canal que Exeller ya usa hoy).
+ * El stun del parry escalado lo aplica el ATACANTE
+   (el exe se aturde a si mismo): la autoridad de la
+   victima NO cambia. krisLvNet (el LV espejado) tiene
+   tope 20 en el propio receptor.
+ * El slow escalado lo aplica la victima sobre si misma
+   (scr_player_slow, mismo camino que hierba/humo).
+ * Las flechas de Rouge son HUD 100% local: no revelan
+   al exe nada que Amy Canon/Vanilla ya no sepan, y no
+   viajan por red.
+ * El sonido nuevo es un asset local (no viaja).
+
+-------------------------------------------------------------
+PROTOCOLO DE PRUEBA (2 clientes: Kris + exe)
+-------------------------------------------------------------
+ 1. Sonido/color: con Kris, sube de LV (2 impactos =
+    lv 2) -> suena tu mp3 y el "lv 2" pasa de blanco a
+    rosado; a partir de ahi cada nivel se pone mas rojo
+    (lv 20 = rojo pleno).
+ 2. Otros jugadores: en la pantalla del exe (o de otro
+    superviviente) aparece "lv N" sobre la barra del
+    puppet de Kris con el mismo color progresivo.
+ 3. Stun/slow: con el exe, deja que el corte te pegue ->
+    el stun dura mas segun el LV (lv 10: 4.5 s) y al
+    terminar sale el hielito (spr_frozen) y corres al
+    60% durante el slow escalado (lv 10: 4.5 s). Con el
+    parry: que Kris bloquee tu ataque -> el stun dura
+    3.5 s * (1 + 0.05 * LV).
+ 4. Rouge: como Rouge pulsa C (invisible) -> TU ves tu
+    silueta roja (solo tu pantalla); en la pantalla del
+    exe NO hay nada (ni cuerpo ni barra ni aguja). Y a ti
+    te aparecen las 2 flechas (verde salida / roja exe)
+    incluso invisible.
+
+ Verificacion interna: check_v47.py -> 82 OK / 0 FALLO.

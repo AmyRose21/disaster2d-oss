@@ -31,9 +31,11 @@ if(hp > 0)
 		scr_number_spr(ceil(x-obj_camera.x) - 2, ceil(y-obj_camera.y) - offset - 12, string(global.player.rings), _colour);
 
 	// v46 (LOVE): el LV de Kris por encima de su barra de vida (una
-	// linea mas arriba que el contador de anillos). En rojo, mismo
-	// patron de color del nombre del clon de Exeller (act9 lo apaga a
-	// gris oscuro).
+	// linea mas arriba que el contador de anillos).
+	// v47 (duena): color PROGRESIVO - "1 empieza blanco nivel 1 y
+	// ira cambiando a color rojo progresivamente mediante el nivel":
+	// merge_color del blanco al rojo pleno entre el LV 1 y el LV 20
+	// (KRIS_LV_MAX). Act9 lo apaga a gris oscuro como siempre.
 	if(variable_instance_exists(id, "krisLv") && krisLv > 0)
-		scr_text_spr(ceil(x - obj_camera.x) - 14, ceil(y - obj_camera.y) - offset - 24, "lv " + string(krisLv), room == room_act9 ? c_dkgray : c_red, 1);
+		scr_text_spr(ceil(x - obj_camera.x) - 14, ceil(y - obj_camera.y) - offset - 24, "lv " + string(krisLv), room == room_act9 ? c_dkgray : merge_color(c_white, c_red, (krisLv - 1) / (KRIS_LV_MAX - 1)), 1);
 }

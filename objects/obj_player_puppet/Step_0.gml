@@ -242,7 +242,16 @@ if(variable_instance_exists(id, "krisSlowCountdown") && krisSlowCountdown > 0)
         krisSlowCountdown--;
 
         if(krisSlowCountdown <= 0)
-                scr_player_slow(KRIS_SLOW_TIME);
+        {
+                // v47 (T3, duena): el SLOW del corte TAMBIEN crece con
+                // el LV - mismo factor del stun (+5% por LV: LV 10 =
+                // +50%, LV 20 = +100%): la ralentizacion pasa de 3 s
+                // fijos a 3 s escalados. krisLvNet es el LV espejado en
+                // ESTE puppet (el de Kris) por la senal silenciosa v46;
+                // sin senales recibidas vale 1 (LV inicial).
+                var _kslv = variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1;
+                scr_player_slow(KRIS_SLOW_TIME * (1 + KRIS_LV_STUN_PCT * _kslv));
+        }
 }
 
 //hack
@@ -970,8 +979,9 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 // senal silenciosa del CLIENT_SOUND_EMIT; sin senales
                                 // recibidas vale 1 (LV inicial). La AUTORIDAD no
                                 // cambia: la victima (este cliente) se sigue aplicando
-                                // el stun a si misma - y el slow de 3 s (KRIS_SLOW_TIME)
-                                // queda fijo como siempre: solo el stun crece.
+                                // el stun a si misma. v47 (duena): el SLOW post-stun
+                                // TAMBIEN crece con el mismo factor del LV (lo aplica
+                                // el bloque del inicio del Step al expirar el stun).
                                 if(character == CHARACTER_KRIS)
                                 {
                                         var _klv = variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1;
