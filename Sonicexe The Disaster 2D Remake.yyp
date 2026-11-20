@@ -2745,6 +2745,7 @@
     {"id":{"name":"spr_yspring_up","path":"sprites/spr_yspring_up/spr_yspring_up.yy",},},
     {"id":{"name":"statui","path":"sprites/statui/statui.yy",},},
     {"id":{"name":"super_esmerald","path":"sprites/super_esmerald/super_esmerald.yy",},},
+    {"id":{"name":"super_form","path":"sprites/super_form/super_form.yy",},},
   ],
   "resourceType":"GMProject",
   "resourceVersion":"2.0",

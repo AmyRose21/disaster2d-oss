@@ -371,5 +371,6 @@
     {"name":"spr_vanilla_zipline","order":15,"path":"sprites/spr_vanilla_zipline/spr_vanilla_zipline.yy",},
     {"name":"spr_watersplash","order":5,"path":"sprites/spr_watersplash/spr_watersplash.yy",},
     {"name":"super_esmerald","order":1,"path":"sprites/super_esmerald/super_esmerald.yy",},
+    {"name":"super_form","order":48,"path":"sprites/super_form/super_form.yy",},
   ],
 }
