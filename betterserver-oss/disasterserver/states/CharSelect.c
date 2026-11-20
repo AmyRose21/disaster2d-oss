@@ -223,11 +223,27 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
                         return true;
                 }
 
-                /* v6.3: ROUGE RE-ACTIVADA — el bloqueo v6.2 se retira
-                   (sprites del TTB restaurados, origins aterran al suelo
-                   exacto y su Z es VUELO patron Tails, v4.6). El cliente
-                   tampoco la bloquea ya (scr_char_locked). Personaje
-                   publico para todos. */
+                /* v40 (duena): ROUGE RELEGADA AL TOKEN — misma regla que
+                   Amy Canon y Vanilla: solo el jugador con el token de Amy
+                   (amy_authed, el mismo CLIENT_AMY_AUTH) puede elegir a
+                   Rouge; ni operadores ni publica. A los demas se les
+                   responde igual que si estuviera ocupada (result=0: el
+                   cliente suena nono y la tacha) y no se registra ni
+                   difunde nada. El cliente (v39, scr_char_locked) ya la
+                   oculta del carrusel sin el token: este bloque es el
+                   DOBLE SEGURO del server contra clientes editados. La
+                   v6.3 la habia re-activado para todos; vuelve al cajon
+                   del token. */
+                if (id == CH_ROUGE && !v->amy_authed)
+                {
+                        PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+                        PacketWrite(&pack, packet_write8, id + 1);
+                        PacketWrite(&pack, packet_write8, 0);
+                        RAssert(packet_send(v->peer, &pack, true));
+
+                        Info("%s (id %d) tried to pick [Rouge] without unlock!", v->nickname.value, v->id);
+                        return true;
+                }
 
                 /* v3 (D.I.B.): Fleetway Amy PASO A SER PUBLICA (pedido de
                    la duena: "la amy fw sera publica"). Este bloque de

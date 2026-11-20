@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"lobby_force",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":118.20635,
+  "exportDir":"",
+  "name":"lobby_force",
+  "parent":{
+    "name":"Music",
+    "path":"folders/Sounds/Music.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"lobby_force.ogg",
+  "volume":1.0,
+}

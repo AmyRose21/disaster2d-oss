@@ -5931,3 +5931,22 @@ Work Log:
 Stage Summary:
 - Los 5 pedidos eran 4 cambios quirurgicos + 1 auditoria: la leccion es que "puede el exe verla" no es una pregunta de UN sistema sino de TODOS los ojos del bando exe (puppet, 3 agujas, scan, clones) — y el unico que se colo era el que nadie habia auditado porque su indicador parece de "proximidad" pero es de vision
 - El transform nega derivado empiricamente (inversion RGB con contorno negro intacto) reproduce el negademon2 sin tocar los 98 frames existentes: mismo patron para la siguiente tira que llegue
+
+---
+Task ID: rouge-v40-token-server-icono-propio
+Agent: main (Z.ai)
+Task: Dos pedidos de la duena: (1) Rouge seleccionable y visible SOLO con el token activo igual que Amy Canon y Vanilla — el faltante era el DOBLE SEGURO del server; (2) reemplazar el placeholder de Knuckles de Rouge en la seleccion de personajes por su icono propio (la duena subio arte nuevo).
+
+Work Log:
+- PULL (regla de oro): 2 intentos — el primero vino "up to date" (el push aun no habia aterrizado); el segundo trajo 713464b5 "ewe": la duena amplio spr_lobby_icon de 13 a 14 frames (frame 13 = icono de Rouge, 0fbcd801, +su layer PNG; .yy reescrito por el IDE con GMSequence v1, 14 keyframes == 14 frames en orden). Verificado 19/19 (dimensiones 24x24, PNGs todos presentes y con contenido, GUID nuevo unico en el proyecto, .yyp intacto con el sprite registrado 1 vez, los 13 frames viejos en su orden original)
+- T1 TOKEN — CLIENTE ya estaba (v39): scr_char_locked relegates Rouge a amy_canon.token; carrusel salta su slot (obj_lobby_icon) y retrato/placa ocultos (obj_lobby). Re-verificado intacto tras el pull
+- T1 TOKEN — SERVER (el faltante, pedido de la duena "como Amy Canon y Vanilla"): states/CharSelect.c aceptaba a Rouge de cualquiera desde la v6.3 (el bloque de rechazo se habia retirado). BLOQUE NUEVO antes de v->surv_char = id: id == CH_ROUGE && !v->amy_authed => SERVER_LOBBY_CHARACTER_RESPONSE con result=0 (el cliente la tacha y suena nono, igual que "ocupada"), se loguea el intento y NO se registra ni difunde nada. Mismo amy_authed del CLIENT_AMY_AUTH (el token de Amy). La copia legacy disasterserver/CharSelect.c (raiz, tabs, sin compilar) NO se toco: el CMakeLists solo compila states/
+- T2 ICONO PROPIO: el placeholder estaba en scr_lobby_icon_frame (scr_characters.gml): case CHARACTER_ROUGE devolvia CHARACTER_KNUX + 1 (el frame de Knuckles) "hasta que exista tira ampliada" — la tira ya existe: frame 13. Fix: case CHARACTER_ROUGE: return 13. Un solo punto de cambio porque TODOS los consumidores pasan por el resolvedor: carrusel (scr_lobby_shiny_setup via obj_lobby_icon), pantalla de resultados (scr_lobby_icon_pair en net_state_results) y lista de espera (obj_menu_waiting). Kris conserva SU placeholder de Knuckles por pedido expreso (v5/v39)
+- Verificacion visual del frame: VLM identifica #13 = Rouge (cara blanca, orejas de murcielago rosas); pixel a pixel: 486/576 distinto al frame de Knux y 485/576 al de Blaze, paleta Rouge (104 blancos + 55 rosas de 491 opacos)
+- Verificacion: check_v40.py 52/52 (con un bug propio corregido a mitad de camino: la firma check(cond,msg) estaba invertida respecto a todas las llamadas — dos aserciones falsas quedaban enmascaradas como OK; rehecho y re-pasado entero). Incluye gcc -fsyntax-only del CharSelect.c (compila limpio; las 2 advertencias enum-compare son preexistentes de la linea 22). E2E: pull + fix = 52/52
+- Anti-cheat: CERO red del lado cliente (el cambio es un case de icono); el server rechaza a Rouge sin token ANTES de asignar surv_char — un cliente editado que la pida recibe result=0 igual que con Amy Canon/Vanilla/Jinna. Jugadores CON el token la eligen normal
+- Entregable: download/fix_v40_rouge_token_server_icono.zip — scripts/scr_characters/scr_characters.gml + betterserver-oss/disasterserver/states/CharSelect.c + worklog.md + LEEME_ROUGE_V40.txt + check_v40.py. OJO: el server hay que RECOMPILARLO (compilar_server.bat) para que el doble seguro tome efecto
+
+Stage Summary:
+- La v39 dejo el token de Rouge "a medias" (solo cliente) y el propio LEEME v39 lo advertia; esta ronda cierra el circulo con el rechazo del server en el mismo patron exacto de Amy Canon/Vanilla
+- El placeholder de icono vivia en UN solo resolvedor (scr_lobby_icon_frame) que alimenta carrusel + resultados + lista de espera: una linea de fix y la seleccion entera deja de prestar el icono de Knuckles

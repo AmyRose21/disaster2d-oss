@@ -10,7 +10,7 @@
   "compression":3,
   "compressionQuality":9,
   "conversionMode":0,
-  "duration":21.942858,
+  "duration":21.896418,
   "exportDir":"",
   "name":"Solo_ending_Alt",
   "parent":{

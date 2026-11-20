@@ -1,0 +1,65 @@
+=====================================================================
+ ROUGE v40 — SOLO CON EL TOKEN (todas las puertas) + ICONO PROPIO
+=====================================================================
+
+1) ROUGE RELEGADA AL TOKEN — CIERRE TOTAL
+------------------------------------------
+   * La v39 la escondio del LADO CLIENTE (scr_char_locked): sin el
+     amy_canon.token NO aparece en el carrusel, ni retrato, ni placa.
+     Eso ya estaba y sigue intacto.
+   * FALTABA EL SERVER: hasta hoy el betterserver aceptaba a Rouge de
+     CUALQUIERA que editara su cliente (la v6.3 le habia quitado el
+     bloqueo). CERRADO: states/CharSelect.c ahora la rechaza con
+     result=0 (la tacha y suena nono, igual que "ocupada") y ni
+     registra ni difunde nada — EXACTAMENTE el mismo bloque que ya
+     tenian Amy Canon, Vanilla y Jinna. Rouge queda igual que Amy
+     Canon y Vanilla de punta a punta:
+        sin token  -> ni la ves ni la pides; si un cliente editado
+                      la pide, el server la rechaza igual
+        con token  -> todo normal
+   * OJO: para que el lado server tome efecto hay que RECOMPILAR el
+     DisasterServer.exe (compilar_server.bat de siempre). Sin
+     recompilar, el server viejo sigue aceptandola (el cliente ya
+     la oculta igual).
+   * La copia vieja CharSelect.c de la raiz no se toco (no se compila:
+     el CMake usa states/CharSelect.c).
+
+2) ICONO PROPIO EN LA SELECCION
+--------------------------------
+   * Tu spr_lobby_icon actualizado (14 frames: agregaste a Rouge al
+     final, frame 13, detras de Blaze) ya esta CABLEADO: el icono de
+     Rouge en la seleccion de personajes, en la pantalla de
+     resultados y en la lista de espera usan TU frame 13. Ya no
+     presta el de Knuckles.
+   * Kris conserva SU placeholder de Knuckles en el icono (pedido
+     tuyo de la v5, igual que su retrato y su HUD).
+
+VERIFICACION (check_v40.py: 52/52)
+-----------------------------------
+   * Token cliente intacto (lock de Rouge/Amy Canon/Vanilla, carrusel
+     salta su slot, retrato/placa ocultos).
+   * Token server nuevo: bloque ANTES de la asignacion, patron
+     identico al de Vanilla/Jinna, compila limpio (gcc -fsyntax-only).
+   * Icono: Rouge -> frame 13; Kris -> frame de Knux intacto;
+     Metal 10 / Amelia 11 / Blaze 12 intactos.
+   * Tu sprite: 14 frames == 14 keyframes en orden, PNGs todos con
+     contenido, GUID nuevo unico en el proyecto, .yyp intacto, los 13
+     frames viejos sin tocar.
+   * Regresion: solo los 2 archivos de esta ronda.
+
+PRUEBA RAPIDA (2 minutos)
+--------------------------
+ 1. Sin amy_canon.token: Rouge no sale en el carrusel (como Amy Canon
+    y Vanilla). PON el token: Rouge aparece normal y se puede pedir.
+ 2. Con el server RECOMPILADO: entra sin token con un cliente editado
+    que pida a Rouge -> el server la rechaza (en la consola del
+    server sale "tried to pick [Rouge] without unlock!").
+ 3. Con el token puesto, cicla hasta Rouge: el icono pequeno junto al
+    nombre y el de la lista de espera son TU icono nuevo (murcielago
+    blanco/rosa), ya no el rojo de Knuckles.
+
+NOTA DEL ZIP: solo lo tocado esta ronda (2 archivos de codigo + el
+worklog + este LEEME + el checker). Va ENCIMA de tu proyecto tal como
+esta en GitHub (tu pull del sprite YA viene incluido en el repo, no
+va en el zip). El server se recompila con su compilar_server.bat.
+=====================================================================

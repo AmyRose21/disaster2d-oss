@@ -264,12 +264,14 @@ function scr_lobby_icon_frame(char)
         case CHARACTER_METAL: return 10;
         case CHARACTER_AMELIA: return 11;
         case CHARACTER_BLAZE: return 12;
-        // v4.4: la tira comun tiene 13 frames (hasta Fleetway); Rouge
+        // v40 (duena): ICONO PROPIO de Rouge en la seleccion — ella
+        // amplio la tira comun a 14 frames (frame 13 = Rouge, justo
+        // despues de Blaze, misma secuencia Metal 10 / Amelia 11 /
+        // Blaze 12). Ya no reusa el frame de Knuckles.
+        case CHARACTER_ROUGE: return 13;
+        // v5 (KRIS): placeholder KNUCKLES (pedido de la duena) —
         // reusa el frame de Knuckles hasta que exista tira ampliada
-        case CHARACTER_ROUGE: return CHARACTER_KNUX + 1;
-        // v5 (KRIS): placeholder KNUCKLES (pedido de la duena) — mismo
-        // criterio que Rouge: reusa el frame de Knuckles hasta que
-        // exista tira ampliada / frame propio
+        // o frame propio (Rouge ya tiene el suyo, arriba)
         case CHARACTER_KRIS: return CHARACTER_KNUX + 1;
     }
     return char + 1;
