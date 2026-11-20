@@ -4,7 +4,7 @@ else
 {
 	image_blend = c_white;
 			
-	if(obj_unlockables.palettes[? tableIndex].name == skinName[palette+1])
+	if(instance_exists(obj_unlockables) && obj_unlockables.palettes[? tableIndex].name == skinName[palette+1])
 		image_blend = c_green;
 }
 
@@ -96,7 +96,7 @@ var state = $"\\price `{price}~";
 if(isAvaiable())
 {
 	state = "|equip~";
-	if(obj_unlockables.palettes[? tableIndex].name == skinName[palette+1])
+	if(instance_exists(obj_unlockables) && obj_unlockables.palettes[? tableIndex].name == skinName[palette+1])
 		state = "@equipped~";
 }
 

@@ -5989,3 +5989,22 @@ Work Log:
 Stage Summary:
 - "A Eggman no le pasa" porque su escudo nunca tocaba la maquina de estados: el fix consistio en copiar EXACTAMENTE ese patron (aura encima, isAttacking como canal) en vez de inventar uno nuevo
 - El estado 26 dejo de ser "pose del escudo" y paso a ser canal-reservado: el cuerpo anima normal en local Y en las pantallas ajenas, y el chispazo sigue cayendo por el bit PLAYER_ATTACKING que ya viajaba
+
+---
+Task ID: error-v43-menu-skins
+Agent: main (Z.ai)
+Task: Pedido de la duena: salio un error en el juego — "Unable to find any instance for object index '310' name 'obj_tile'" en obj_menu_skin Create_0 linea 57. Sin desvios.
+
+Work Log:
+- PULL (regla de oro): sandbox reciclado — repo re-clonado desde github.com/AmyRose21/disaster2d-oss. Commit nuevo ea5f737a = MI v42 aplicada byte a byte (verificado contra el zip) + su reformato IDE del sprite spr_rouge_invis_emotion3.yy (mismas 10 GUIDs: solo re-serializacion, sin cambio funcional)
+- DIAGNOSTICO: la linea 57 accede obj_unlockables, NO obj_tile. Recompute del orden de objetos del .yyp: obj_kris se inserto en la posicion 147 el 17-nov (c6073e2d) y desplazo +1 todo lo posterior: obj_unlockables ERA el #310 (el indice del error) y hoy #310 = obj_tile (el nombre fantasma). Como Create_0.gml no cambiaba desde el importe del 15-nov, el IDE reutilizo su BYTECODE CACHEADO pre-kris: al abrir un skin custom (palette==2) pidio "objeto 310" = obj_tile de hoy → cero instancias en room_menu → crash. El repo esta SANO: obj_unlockables se crea en room_logo (primera room del RoomOrderNodes) y es persistente
+- FIX (quirurgico, byte-level con tabs exactos): Create_0.gml +9 lineas — rama guard else if(!instance_exists(obj_unlockables)) ANTES de la rama custom, con fallback a PALLETE_DEFAULT (nunca mas hard-crash al abrir skins); tocar el archivo ademas INVALIDA la entrada de cache especifica y fuerza su recompilacion con indices frescos. Draw_0.gml +2 lineas — los 2 accesos .name (borde verde / @equipped) con instance_exists. Dif total: 11+/2-
+- SIN TOCAR: .yyp, .yy, rooms, sonidos, scripts, red, click de equip (fuera del reporte), TODO el resto
+- Verificacion: check_v43.py 21 checks — A guard Create (rama+fallback+ramas originales intactas), B guard Draw (2 guards, cero accesos sin guard), C sintaxis balanceada, D git (solo 2 .gml + docs, churn 13, cero .yyp/.yy), E anti-cheat (cero red nueva), F evidencia del diagnostico (indices pre/pos kris, archivo sin tocar desde 548a66df), G sanidad del repo (persistent + room_logo + room_menu)
+- Anti-cheat: CERO superficie — cambio 100% local de menu, instance_exists y PALLETE_DEFAULT (macro existente). Nada de packets ni server
+- LEEME_ERROR_V43.txt: ademas del fix, la cura de fondo para su build (cerrar GameMaker completo y reabrir; boton Clean si persiste; siempre F5 completo, nunca run-from-current-room para el menu)
+
+Stage Summary:
+- El error nombraba un objeto que no aparece en el archivo: era bytecode cacheado del IDE con indices pre-obj_kris apuntando hoy a obj_tile — la leccion es que tras aplicar zips/pulls externos hay que reabrir el IDE antes de compilar
+- El guard convierte el hard-crash en un skin default y de paso invalida el cache del archivo tocado
+- Entregable: download/error_v43_menu_skins.zip — Create_0.gml + Draw_0.gml + LEEME_ERROR_V43.txt + check_v43.py + worklog.md

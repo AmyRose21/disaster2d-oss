@@ -51,6 +51,15 @@ else if(palette != 2)
 	from = global.palettes[? tableIndex][palette].from;
 	to = global.palettes[? tableIndex][palette].to;
 }
+else if(!instance_exists(obj_unlockables))
+{
+	// v43: guard del menu de skins. Si obj_unlockables no existe (cache
+	// del IDE desincronizado tras aplicar cambios externos al proyecto,
+	// o arranque directo desde room_menu), cae a la paleta default en vez
+	// de tirar "Unable to find any instance" en el Create.
+	from = PALLETE_DEFAULT;
+	to = PALLETE_DEFAULT;
+}
 else
 {
 	show_debug_message(tableIndex);
