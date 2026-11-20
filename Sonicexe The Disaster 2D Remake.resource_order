@@ -10,6 +10,7 @@
     {"name":"hitsparks","order":1,"path":"folders/Sprites/Effects/hitspark/hitsparks.yy",},
     {"name":"objects","order":2,"path":"folders/Sprites/Effects/hitspark/objects.yy",},
     {"name":"sounds","order":3,"path":"folders/Sprites/Effects/hitspark/sounds.yy",},
+    {"name":"Esmerald","order":1,"path":"folders/Sprites/Objects/Esmerald.yy",},
     {"name":"Amy Fleetway","order":3,"path":"folders/Sprites/Player/Survivors/Amy Fleetway.yy",},
     {"name":"Kris","order":4,"path":"folders/Sprites/Player/Survivors/Kris.yy",},
     {"name":"Sally Canon","order":1,"path":"folders/Sprites/Player/Survivors/Sally Canon.yy",},
@@ -369,5 +370,6 @@
     {"name":"spr_vanilla_walk","order":18,"path":"sprites/spr_vanilla_walk/spr_vanilla_walk.yy",},
     {"name":"spr_vanilla_zipline","order":15,"path":"sprites/spr_vanilla_zipline/spr_vanilla_zipline.yy",},
     {"name":"spr_watersplash","order":5,"path":"sprites/spr_watersplash/spr_watersplash.yy",},
+    {"name":"super_esmerald","order":1,"path":"sprites/super_esmerald/super_esmerald.yy",},
   ],
 }
