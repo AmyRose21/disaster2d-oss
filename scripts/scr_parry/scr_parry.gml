@@ -680,6 +680,14 @@ function scr_parry_success_now()
         // Local a proposito: los demas clientes ya oyen el "ting" (snd_parry)
         // por la red de siempre y asi no se toca el enum de sonidos de red.
         audio_play_sound(Perfect_Parry, 0, false);
+
+        // v46 (LOVE de Kris): bloqueo exitoso = impacto para el nivel
+        // de violencia (la otra fuente son los cuchillazos acertados,
+        // contados en el CLIENT_PLAYER_HURT con pid == mi nid).
+        // TODOS los caminos de exito pasan por aqui: melee, laser
+        // devuelto, anillo negro y el ting del aliado.
+        if(global.character == CHARACTER_KRIS)
+                scr_kris_love_event(2);
 }
 
 // =====================================================================

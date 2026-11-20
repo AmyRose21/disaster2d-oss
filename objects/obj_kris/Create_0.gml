@@ -90,6 +90,14 @@ moribundaTimer = 0;
 // (0 = ninguna, 1 = tajo en tierra, 2 = air1, 3 = air2)
 krisAtkVariant = 0;
 
+// LOVE (v46): nivel de violencia de Kris. Sube con los impactos
+// acertados - cuchillazos de la espada + bloqueos del escudo - segun
+// la lista de scr_kris_love_lv. Se pinta sobre la barra de vida
+// (Draw_64) y alarga el stun de la espada en las pantallas ajenas.
+// Reset por partida: vive en el Create del jugador.
+krisLvHits = 0;
+krisLv = 1;
+
 // ESCUDO (patron parry): la maquina de fases vive en scr_parry_step
 // (scr_parry.gml). Cooldowns:
 //   parryState 0=nada, 1=windup, 2=ventana activa, 4=exito

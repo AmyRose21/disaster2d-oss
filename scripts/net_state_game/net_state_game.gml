@@ -2715,6 +2715,14 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 if(!instance_exists(global.player))
                                         break;
                                 
+                                // v46 (LOVE de Kris): este CLIENT_PLAYER_HURT
+                                // lo emite el cliente de la victima con el nid del
+                                // ATACANTE en pid - pid == mi nid = mi espada calo
+                                // en SU pantalla (alli la autoridad). Cuchillazo
+                                // acertado: sube el nivel de violencia.
+                                if(global.character == CHARACTER_KRIS)
+                                        scr_kris_love_event(1);
+                                
                                 scr_camera_shake(20, 2, 0.2);
                         }
                         
@@ -2830,6 +2838,22 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 scr_chocola_net_event(CHOCOLA_NET_SUPPORT, master_id);
                                         else if(global.net_snds[sid] == snd_chocola_dive)
                                                 scr_chocola_net_event(CHOCOLA_NET_HUNT_SMALL, master_id);
+                                        // v46 (LOVE de Kris): la SENAL SILENCIOSA de subida de
+                                        // LV. La emite el cliente del propio Kris con
+                                        // net_sound_emit(snd_none) - 0 frames: nada suena - y
+                                        // aqui espeja su LV en su puppet con el gate de
+                                        // personaje (los snd_none que Exeller emite hoy por red
+                                        // con choose() en su clon nunca tocan esta rama: su
+                                        // puppet no es Kris). Con krisLvNet el Step_0 del
+                                        // puppet escala su stun con la autoridad de siempre:
+                                        // la victima se lo aplica a si misma.
+                                        else if(global.net_snds[sid] == snd_none && character == CHARACTER_KRIS)
+                                        {
+                                                if(variable_instance_exists(id, "krisLvNet"))
+                                                        krisLvNet = min(krisLvNet + 1, KRIS_LV_MAX);
+                                                else
+                                                        krisLvNet = 2;
+                                        }
                                         
                                         scr_audio_play_3d(emitter, global.net_snds[sid], false, 0);
                                         break;

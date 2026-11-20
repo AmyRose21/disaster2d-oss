@@ -29,4 +29,11 @@ if(hp > 0)
 
 	if(obj_netclient.exeId != obj_netclient.nid && revivalTimes < 2)
 		scr_number_spr(ceil(x-obj_camera.x) - 2, ceil(y-obj_camera.y) - offset - 12, string(global.player.rings), _colour);
+
+	// v46 (LOVE): el LV de Kris por encima de su barra de vida (una
+	// linea mas arriba que el contador de anillos). En rojo, mismo
+	// patron de color del nombre del clon de Exeller (act9 lo apaga a
+	// gris oscuro).
+	if(variable_instance_exists(id, "krisLv") && krisLv > 0)
+		scr_text_spr(ceil(x - obj_camera.x) - 14, ceil(y - obj_camera.y) - offset - 24, "lv " + string(krisLv), room == room_act9 ? c_dkgray : c_red, 1);
 }

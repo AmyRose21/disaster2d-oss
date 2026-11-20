@@ -963,6 +963,20 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 
                                 if(character == CHARACTER_BLAZE && state == BLAZE_BURNING)
                                         snd = snd_blaze_go;
+
+                                // v46 (LOVE de Kris): el nivel de violencia alarga el
+                                // stun de su espada +5% por LV (LV 10 = +50%, LV 20 =
+                                // +100% sobre los 3 s de base). krisLvNet lo espeja la
+                                // senal silenciosa del CLIENT_SOUND_EMIT; sin senales
+                                // recibidas vale 1 (LV inicial). La AUTORIDAD no
+                                // cambia: la victima (este cliente) se sigue aplicando
+                                // el stun a si misma - y el slow de 3 s (KRIS_SLOW_TIME)
+                                // queda fijo como siempre: solo el stun crece.
+                                if(character == CHARACTER_KRIS)
+                                {
+                                        var _klv = variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1;
+                                        stunTime = stunTime * (1 + KRIS_LV_STUN_PCT * _klv);
+                                }
                                 var buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
                                 buffer_write(buffer, buffer_u16, master_id);
                                 buffer_write(buffer, buffer_u16, x);

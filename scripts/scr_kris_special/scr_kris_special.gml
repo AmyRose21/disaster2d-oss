@@ -53,6 +53,10 @@
 // ---- ralentizacion post-stun de la espada (v2) ----
 #macro KRIS_SLOW_TIME 3             // segundos de slow que arrancan al EXPIRAR el stun de 3 s
 
+// ---- LOVE (v46): nivel de violencia de Kris ----
+#macro KRIS_LV_MAX 20           // tope del LV: +100% de stun (2x)
+#macro KRIS_LV_STUN_PCT 0.05     // +5% del stun base por LV (LV 10 = +50%, LV 20 = +100%)
+
 // ---- moribunda (patron Rouge v4.5, mismos numeros) ----
 #macro KRIS_MORIBUNDA_TIME (60 * 6)  // tirado en el suelo
 #macro KRIS_MORIBUNDA_HEAL 40        // se levanta con poca vida
@@ -245,4 +249,81 @@ function scr_kris_block_attacker_air(_from, _target)
                 return (_from.state == JUMP || _from.state == FALL);
 
         return _from.y < _target.y - 10;
+}
+
+// =====================================================================
+//  v46 - LOVE (nivel de violencia de Kris, Undertale/Deltarune)
+//
+//  Pedido de la duena: "el lv debe aparecerle por encima de su barra
+//  de vida; mientras mas cuchillazos acierte con la habilidad o
+//  bloquee, sube su nivel de violencia, y mientras mas nivel el stun
+//  durara mas (lv 10 = +50%, lv 20 = +100%)".
+//
+//  Fuentes de progreso (1 impacto cada una):
+//   * CUCHILLAZO ACERTADO: cada stun que la espada le provoca al bando
+//     EXE en la pantalla de la victima. Lo cuenta el propio cliente de
+//     Kris con el CLIENT_PLAYER_HURT que llega con pid == su nid (lo
+//     emite el cliente de la victima, que es la autoridad: esa senal
+//     NO se puede falsificar desde el cliente de Kris).
+//   * BLOQUEO EXITOSO del escudo: todos los caminos de exito pasan por
+//     scr_parry_success_now (melee, laser devuelto, anillo negro y el
+//     ting del aliado).
+//  El LV sube con la LISTA de scr_kris_love_lv, se pinta sobre la
+//  barra de vida (obj_kris/Draw_64) y alarga el stun de la espada
+//  +5% por LV en las pantallas ajenas (obj_player_puppet/Step_0):
+//  LV 10 = +50%, LV 20 = +100% (tope). La victima sigue siendo la
+//  autoridad de siempre y el slow post-stun queda fijo en 3 s.
+//  La subida de LV viaja por la SENAL SILENCIOSA net_sound_emit
+//  (snd_none) - 0 frames, nada suena; Exeller ya emite snd_none por
+//  red hoy (choose de su clon), el canal esta probado. Cero paquetes
+//  nuevos, cero server (regla 7 intacta).
+// =====================================================================
+
+// La LISTA de impactos necesarios (acumulados) para cada LV - la duena
+// puede tunear estos numeros: lv 2 = 2 impactos, +3 por nivel hasta
+// lv 20 = 56 impactos (cada impacto = 1 cuchillazo acertado O 1 bloqueo
+// exitoso).
+function scr_kris_love_lv(_hits)
+{
+        static _th = [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47, 50, 53, 56];
+
+        var _lv = 1;
+        for(var _i = 0; _i < array_length(_th); _i++)
+        {
+                if(_hits >= _th[_i])
+                        _lv = _i + 2;
+        }
+
+        return min(_lv, KRIS_LV_MAX);
+}
+
+// Cuenta un impacto de LOVE y sube el LV si toca (y solo entonces):
+// chime local del logro + senal silenciosa para que el puppet de Kris
+// suba krisLvNet en las demas pantallas (ellas escalan su stun con su
+// propia autoridad). Solo corre en el cliente del propio Kris.
+function scr_kris_love_event(_kind)
+{
+        if(global.character != CHARACTER_KRIS)
+                return;
+
+        if(!instance_exists(global.player) || !variable_instance_exists(global.player.id, "krisLvHits"))
+                return;
+
+        global.player.krisLvHits++;
+
+        var _new = scr_kris_love_lv(global.player.krisLvHits);
+
+        if(_new > global.player.krisLv)
+        {
+                global.player.krisLv = _new;
+
+                // chime local (el de los logros). Los demas no oyen
+                // nada: la senal viaja silenciosa.
+                audio_play_sound(snd_achivement, 0, false);
+
+                // senal +1 LV: la reciben los demas clientes en el
+                // CLIENT_SOUND_EMIT (rama de snd_none con gate de
+                // personaje) y la espejan en el puppet de Kris.
+                net_sound_emit(snd_none);
+        }
 }
