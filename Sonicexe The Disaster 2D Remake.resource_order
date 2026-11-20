@@ -283,6 +283,7 @@
     {"name":"spr_rouge_spin_charger","order":35,"path":"sprites/spr_rouge_spin_charger/spr_rouge_spin_charger.yy",},
     {"name":"spr_rouge_spin_release","order":34,"path":"sprites/spr_rouge_spin_release/spr_rouge_spin_release.yy",},
     {"name":"spr_rouge_stuck","order":3,"path":"sprites/spr_rouge_stuck/spr_rouge_stuck.yy",},
+    {"name":"spr_rouge_super_form","order":48,"path":"sprites/spr_rouge_super_form/spr_rouge_super_form.yy",},
     {"name":"spr_rouge_traped","order":4,"path":"sprites/spr_rouge_traped/spr_rouge_traped.yy",},
     {"name":"spr_rouge_walk","order":25,"path":"sprites/spr_rouge_walk/spr_rouge_walk.yy",},
     {"name":"spr_rouge_zipline","order":38,"path":"sprites/spr_rouge_zipline/spr_rouge_zipline.yy",},
@@ -371,6 +372,5 @@
     {"name":"spr_vanilla_zipline","order":15,"path":"sprites/spr_vanilla_zipline/spr_vanilla_zipline.yy",},
     {"name":"spr_watersplash","order":5,"path":"sprites/spr_watersplash/spr_watersplash.yy",},
     {"name":"super_esmerald","order":1,"path":"sprites/super_esmerald/super_esmerald.yy",},
-    {"name":"super_form","order":48,"path":"sprites/super_form/super_form.yy",},
   ],
 }
