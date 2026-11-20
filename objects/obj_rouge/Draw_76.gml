@@ -235,16 +235,3 @@ switch(state)
                 image_speed = 1;
                 break;
 }
-
-// v49 — SUPER FORM (prueba): mientras el test de la super forma este
-// activo se dibuja su animacion propia (spr_rouge_super_form, la tira
-// del transform con sus frames de flash) en lugar de la resuelta por
-// estado — el recolor SRB2 lo aplica Draw_0 con la paleta global
-// encadenada (ver scr_rouge_super). Muerta o demonizada muestra la
-// tira de siempre: la prueba no pisa la muerte.
-if(variable_instance_exists(id, "superFormTest") && superFormTest
-&& !isDead && revivalTimes < 2)
-{
-        sprite_index = spr_rouge_super_form;
-        image_speed = 1;
-}

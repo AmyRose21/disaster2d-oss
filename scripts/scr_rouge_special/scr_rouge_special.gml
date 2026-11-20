@@ -206,30 +206,6 @@ function scr_rouge_special()
         }
 
         // =================================================================
-        //  v49 — SUPER FORM (prueba de la duena): V + ARRIBA activa o
-        //  quita el TEST VISUAL de la super forma (scr_rouge_super:
-        //  animacion propia spr_rouge_super_form + recolor "truco
-        //  SRB2" encadenado a la paleta con la que Draw_0 pinta a
-        //  Rouge). V SOLA sigue ciclando modalidades como siempre —
-        //  el guard !KeyUp del ciclo de abajo evita que el V de la
-        //  combinacion tambien ciclas. El toggle es 100% LOCAL:
-        //  cero paquetes, cero estado de red.
-        // =================================================================
-        var _superKey = (keyboard_check(global.KeyV) && keyboard_check(global.KeyUp));
-
-        if(global.playerControls && _superKey && !isDead && shockedTimer <= 0)
-        {
-                if(!superFormLock)
-                {
-                        superFormLock = true;
-                        scr_rouge_super();
-                }
-        }
-
-        if(!_superKey)
-                superFormLock = false;
-
-        // =================================================================
         //  v32 — HABILIDAD V: CAMBIO DE MODALIDAD (la mas poderosa).
         //  Cicla EN ORDEN el set de X y C: ROUGE -> EGGMAN -> SUPPORT
         //  (Sally + Vanilla) -> ATTACK (por ahora unicamente Sally) -> y
@@ -240,7 +216,7 @@ function scr_rouge_special()
         // =================================================================
         if(global.playerControls && keyboard_check_pressed(global.KeyV)
         && !isDead && shockedTimer <= 0 && !isHurt && !isAttacking
-        && ringsChannel <= 0 && !isSpinCharging && !keyboard_check(global.KeyUp))
+        && ringsChannel <= 0 && !isSpinCharging)
         {
                 // cambiar de modalidad APAGA la invisibilidad (la
                 // invisibilidad es la C de su set normal: sin set
