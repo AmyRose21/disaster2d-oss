@@ -360,14 +360,15 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 // golpe local tambien repele al ESBIRRO que la toca
                                 // v5: la espada de Kris tambien (patron Knuckles)
                                 // v33 (fix duena): la PATADA (ROUGE_KICK) y el
-                                // ESCUDO ELECTRICO (ROUGE_ESHIELD) ya NO entran
-                                // aqui — este rebote es "el ataque de siempre" y
-                                // les robaba el contacto a sus efectos propios de
-                                // abajo (el stun de la patada y el electrico del
-                                // escudo): al usarlas pasaba lo mismo que con el
-                                // tornado. Solo el tornado/taladro (sus ataques
-                                // de verdad) siguen rebotando.
-                                if((global.character == CHARACTER_KNUX || global.character == CHARACTER_SALLY || global.character == CHARACTER_KRIS || (global.character == CHARACTER_ROUGE && state != ROUGE_KICK && state != ROUGE_ESHIELD)) && global.player.isAttacking && global.player.revivalTimes < 2)
+                                // ESCUDO ELECTRICO ya NO entran aqui — este
+                                // rebote es "el ataque de siempre" y les robaba el
+                                // contacto a sus efectos propios de abajo (el stun
+                                // de la patada y el electrico del escudo). v42: el
+                                // escudo ya NO viaja como estado 26 (su cuerpo anima
+                                // NORMAL); se detecta por isAttacking + estado que
+                                // NO sea de ataque. El rebote queda SOLO para el
+                                // tornado/taladro (14/15, sus ataques de verdad).
+                                if((global.character == CHARACTER_KNUX || global.character == CHARACTER_SALLY || global.character == CHARACTER_KRIS || (global.character == CHARACTER_ROUGE && (state == ROUGE_ATTACK || state == ROUGE_AIR_ATTACK))) && global.player.isAttacking && global.player.revivalTimes < 2)
                                 {
                                         global.player.isAttacking = false;
                                         global.player.isHurt = true;
@@ -643,8 +644,11 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 // esbirro de arriba): sus efectos propios estan mas
                                 // abajo y este return los tapaba cuando el exe
                                 // atacaba al tocarla — "usa el ataque de rouge en
-                                // vez de la habilidad".
-                                if(global.player.isAttacking && (character == CHARACTER_KNUX || character == CHARACTER_SALLY || character == CHARACTER_KRIS || (character == CHARACTER_ROUGE && state != ROUGE_KICK && state != ROUGE_ESHIELD)))
+                                // vez de la habilidad". v42: el escudo ya NO viaja
+                                // como estado 26 — se detecta por isAttacking +
+                                // estado que NO sea de ataque; el rebote queda SOLO
+                                // para el tornado/taladro (14/15).
+                                if(global.player.isAttacking && (character == CHARACTER_KNUX || character == CHARACTER_SALLY || character == CHARACTER_KRIS || (character == CHARACTER_ROUGE && (state == ROUGE_ATTACK || state == ROUGE_AIR_ATTACK))))
                                 {
                                         global.player.isAttacking = false;
                                         global.player.isHurt = true;
@@ -931,10 +935,12 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
 
                                 // v32 (HABILIDAD V de Rouge): el ESCUDO ELECTRICO
                                 // del modo EGGMAN pega con el ESTILO del doctor —
-                                // chispazo, 2 s de stun y sin empujon — SOLO
-                                // cuando su puppet va en ROUGE_ESHIELD (sus
-                                // ataques propios siguen siendo stuns normales).
-                                if(character == CHARACTER_ROUGE && state == ROUGE_ESHIELD)
+                                // chispazo, 2 s de stun y sin empujon — SOLO con
+                                // el escudo activo (v42: ya NO viaja como estado 26:
+                                // isAttacking + estado que NO sea de sus ataques de
+                                // verdad 14/15/24 — sus ataques propios siguen
+                                // siendo stuns normales).
+                                if(character == CHARACTER_ROUGE && state != ROUGE_ATTACK && state != ROUGE_AIR_ATTACK && state != ROUGE_KICK)
                                 {
                                         net_quick_effect(global.player.x, global.player.y, spr_shockparticle);
                                         stunTime = 2;

@@ -139,7 +139,8 @@ kickState = 0;
 kickRecharge = 0;
 
 // v32 — ESCUDO ELECTRICO (X en modo EGGMAN): eShieldTimer > 0 = aura
-// activa (estado ROUGE_ESHIELD, contacto = stun electrico de 2 s).
+// activa (contacto = stun electrico de 2 s). v42: el aura NO pisa la
+// animacion (patron Eggman): isAttacking viaja como su canal.
 eShieldTimer = 0;
 eShieldRecharge = 0;
 

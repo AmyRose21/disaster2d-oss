@@ -220,9 +220,11 @@ switch(state)
                 break;
 
         // v32 — ESCUDO ELECTRICO (modo EGGMAN, patron del doctor):
-        // aura de contacto sin pose propia de golpe — va con la tira
-        // del VUELO (spr_rouge_fly, alas fuera) girando en loop;
-        // las chispas las pone la victima al tocarla.
+        // aura de contacto sin pose propia. v42: este estado ya NO se
+        // asigna (la animacion fluye normal y el aura la dibuja Draw_0
+        // con eShieldTimer); el case queda SOLO defensivo por si algun
+        // camino viejo llegara a fijar el 26: que ANIME en vez de
+        // congelarse en un frame.
         case ROUGE_ESHIELD:
                 image_speed = 1;
                 break;

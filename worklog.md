@@ -5970,3 +5970,22 @@ Work Log:
 Stage Summary:
 - La musica de la seleccion de personajes no era una room: era el paquete SERVER_LOBBY_EXE recibido en DOS estados distintos (directo del lobby o tras la votacion) — tocar un solo handler habria dejado el otro path con la musica vieja
 - musList del Options > More es parte del sistema de musica: cualquier pista nueva que suene tiene que entrar a la lista o el slider deja de alcanzarla en vivo
+
+---
+Task ID: escudo-v42-anima-normal
+Agent: main (Z.ai)
+Task: Pedido de la duena: el escudo electrico del modo EGGMAN de Rouge congela la animacion Idle (el mismo bug del escudo de Sally de hace tiempo). El escudo no deberia hacer NINGUNA animacion: es solo el escudo, no debe reemplazar ninguna (a Eggman no le pasa — ¿por que a Rouge si?).
+
+Work Log:
+- PULL (regla de oro): bloqueado por la v41 local; verificado byte a byte que la duena ya la habia aplicado y pusheado (24c76bd3) + commit nuevo 782164ad (solo Select_char_force.yy). Checkout limpio + fast-forward. Estado: worklog/LEEME/check del remoto identicos a los mios
+- DIAGNOSTICO: (a) Eggman NO sufre el bug porque obj_egg/Step_2 NO tiene rama isAttacking: su escudo (tambien isAttacking=true) nunca toca el estado y el aura la dibuja Draw_0/puppet encima; (b) Rouge SI porque scr_rouge_special deja isAttacking=true y obj_rouge/Step_2 entraba a la rama isAttacking -> state = ROUGE_ESHIELD (26) con return: TODO el mapeo normal quedaba pisado durante los 1,5 s (parada = pose idle clavada sin respirar; andando = deslizamiento en pose idle). Mismo patron del bug del escudo de Sally Canon (worklog v5.6: "el escudo atado a la animacion") — y la duena lo describio con las mismas palabras
+- FIX (patron Eggman/Sally v5.6): (1) obj_rouge/Step_2: rama isAttacking ahora gated con eShieldTimer <= 0 — con el escudo activo la maquina de estados fluye NORMAL (idle respirando por Other_7, WALK/RUN/JUMP/FALL/LOOKUP...); isAttacking SIGUE true durante el escudo (el canal). (2) Puppets re-key del estado 26 al patron del doctor: aura (puppet Draw_0) y chispazo (puppet Step_0, cliente de la victima) = isAttacking + estado que NO sea 14/15/24 (sus ataques de verdad); los 2 rebotes genericos quedan SOLO para tornado/taladro (v33 intacta: patada y escudo caen a sus efectos propios). CERO protocolo nuevo: el bit PLAYER_ATTACKING ya viajaba para Rouge (obj_netclient v4.4) — es el MISMO canal del escudo de Eggman
+- SIN TOCAR: scr_rouge_special (activacion isAttacking+eShieldTimer, expiracion, v37 drillState gate, fallback 995), obj_egg, tablas de anims (slot 26 reservado), .yyp/.yy/sonidos, TODO el lado red y el server. La PATADA (24), TORNADO (15) y TALADRO (14) conservan su animacion propia
+- Ediciones a NIVEL DE BYTE (lesson v41): indentacion por espacios de obj_rouge/obj_player_puppet conservada exacta; diff 46+/29- repartido en 5 .gml + comentarios v42
+- Verificacion: check_v42.py 39/39 — A fix local (gate presente, cero asignaciones del 26, cascada intacta, aura local por eShieldTimer, Other_7 respira, case 26 defensivo), B canal puppet (netclient ya manda PLAYER_ATTACKING para Rouge, aura/chispazo/rebotes re-key, cero state==26 vivo), C sin regresiones (special intacto, obj_egg intacto, tablas intactas, cero net), D sintaxis, E git (5 .gml + docs, churn 75), F anti-cheat (cero red nueva, autoridad de la victima intacta). 4 agujas del check corregidas a mitad de camino (formato del pad de patada, umbral de churn, filtro de #macro-comentario)
+- Anti-cheat: CERO superficie nueva — mismas lineas de red de siempre, mismas validaciones; el cambio es puramente visual/animacion del lado cliente
+- Entregable: download/escudo_v42_anima_normal.zip — obj_rouge/Step_2 + Draw_76 + Create_0 + obj_player_puppet/Step_0 + Draw_0 + LEEME_ESCUDO_V42.txt + check_v42.py + worklog.md
+
+Stage Summary:
+- "A Eggman no le pasa" porque su escudo nunca tocaba la maquina de estados: el fix consistio en copiar EXACTAMENTE ese patron (aura encima, isAttacking como canal) en vez de inventar uno nuevo
+- El estado 26 dejo de ser "pose del escudo" y paso a ser canal-reservado: el cuerpo anima normal en local Y en las pantallas ajenas, y el chispazo sigue cayendo por el bit PLAYER_ATTACKING que ya viajaba

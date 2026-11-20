@@ -10,7 +10,7 @@
 #macro ROUGE_GLIDE_AIR BALANCING+10   // v14: glide PASIVA tipo Knuckles (spr_rouge_glide)
 #macro ROUGE_KICK BALANCING+11        // v32: PATADA de Sally (spr_rouge_attack3, modo ATTACK)
 #macro ROUGE_RINGS BALANCING+12       // v32: canal de ANILLOS (spr_rouge_emotion3, modo SUPPORT)
-#macro ROUGE_ESHIELD BALANCING+13     // v32: ESCUDO ELECTRICO (spr_rouge_fly, modo EGGMAN)
+#macro ROUGE_ESHIELD BALANCING+13     // v32: ESCUDO ELECTRICO (v42: reserva del puppet, ya NO se asigna local)
 
 // v4.4: mismos estados netos que Knuckles (attack=14, air_attack=15,
 // glide=16, zipline=17, stuck=18: viajan en el u8 state del
@@ -87,15 +87,21 @@ if(isSliding)
 // mostrar. Aqui el estado es el MISMO esquema de Knuckles:
 // en tierra = ROUGE_AIR_ATTACK(15) para el golpe alto,
 // en el aire = ROUGE_ATTACK(14) para el vuelo.
-// v32: la PATADA (modo ATTACK) y el ESCUDO ELECTRICO (modo EGGMAN)
-// pisan el mapeo tierra/aire — cada una con SU estado propio
-// (ROUGE_KICK = spr_rouge_attack3 / ROUGE_ESHIELD = spr_rouge_fly).
-if(isAttacking)
+// v32: la PATADA (modo ATTACK) pisa el mapeo tierra/aire con su
+// estado propio (ROUGE_KICK = spr_rouge_attack3).
+// v42 (fix duena, patron del doctor y del escudo de Sally v5.6): el
+// ESCUDO ELECTRICO ya NO pisa NINGUN estado — es SOLO el aura
+// (la dibuja Draw_0 con eShieldTimer, encima del cuerpo). Mientras
+// dura, la animacion fluye NORMAL (idle respirando, andar, correr,
+// salto...): antes el estado quedaba CLAVADO en ROUGE_ESHIELD y se
+// congelaba la pose de idle. El isAttacking que deja el escudo sigue
+// viajando igual (bit PLAYER_ATTACKING, el MISMO canal del escudo
+// de Eggman) para que los puppets dibujen el aura y apliquen el
+// chispazo de contacto.
+if(isAttacking && eShieldTimer <= 0)
 {
         if(kickState > 0)
                 state = ROUGE_KICK;
-        else if(eShieldTimer > 0)
-                state = ROUGE_ESHIELD;
         else if(isGrounded)
                 state = ROUGE_AIR_ATTACK;
         else

@@ -339,10 +339,12 @@ switch(character)
 
                 // v34 — AURA DEL ESCUDO ELECTRICO (modo EGGMAN de Rouge):
                 // mismo sprite del doctor (patron de su case EGGMAN de
-                // arriba). El estado ROUGE_ESHIELD ya viaja en el u8 de
-                // siempre; antes su puppet solo cambiaba la pose y en las
-                // pantallas ajenas "no salia nada de eggman".
-                if(state == ROUGE_ESHIELD)
+                // arriba). v42 (patron Eggman): ya NO viaja como estado 26
+                // — su cuerpo anima NORMAL en las pantallas ajenas (idle
+                // respirando, andar, correr); se detecta con isAttacking +
+                // estado que NO sea de sus ataques de verdad (14/15 tornado
+                // o taladro, 24 patada).
+                if(isAttacking && state != ROUGE_ATTACK && state != ROUGE_AIR_ATTACK && state != ROUGE_KICK)
                         draw_sprite(spr_electroshield, (current_time / 30) % 41, floor(x), floor(y));
                 break;
 }
