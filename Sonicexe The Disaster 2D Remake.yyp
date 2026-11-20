@@ -1266,6 +1266,7 @@
     {"id":{"name":"spr_amy_run_canon","path":"sprites/spr_amy_run_canon/spr_amy_run_canon.yy",},},
     {"id":{"name":"spr_amy_run_fw","path":"sprites/spr_amy_run_fw/spr_amy_run_fw.yy",},},
     {"id":{"name":"spr_amy_run","path":"sprites/spr_amy_run/spr_amy_run.yy",},},
+    {"id":{"name":"spr_amy_super_transform","path":"sprites/spr_amy_super_transform/spr_amy_super_transform.yy",},},
     {"id":{"name":"spr_amy_tarot_float","path":"sprites/spr_amy_tarot_float/spr_amy_tarot_float.yy",},},
     {"id":{"name":"spr_amy_walk_canon","path":"sprites/spr_amy_walk_canon/spr_amy_walk_canon.yy",},},
     {"id":{"name":"spr_amy_walk_fw","path":"sprites/spr_amy_walk_fw/spr_amy_walk_fw.yy",},},

@@ -151,6 +151,7 @@
     {"name":"spr_amy_projectile_fw","order":14,"path":"sprites/spr_amy_projectile_fw/spr_amy_projectile_fw.yy",},
     {"name":"spr_amy_run_canon","order":13,"path":"sprites/spr_amy_run_canon/spr_amy_run_canon.yy",},
     {"name":"spr_amy_run_fw","order":15,"path":"sprites/spr_amy_run_fw/spr_amy_run_fw.yy",},
+    {"name":"spr_amy_super_transform","order":15,"path":"sprites/spr_amy_super_transform/spr_amy_super_transform.yy",},
     {"name":"spr_amy_tarot_float","order":35,"path":"sprites/spr_amy_tarot_float/spr_amy_tarot_float.yy",},
     {"name":"spr_amy_walk_canon","order":40,"path":"sprites/spr_amy_walk_canon/spr_amy_walk_canon.yy",},
     {"name":"spr_amy_walk_fw","order":16,"path":"sprites/spr_amy_walk_fw/spr_amy_walk_fw.yy",},
