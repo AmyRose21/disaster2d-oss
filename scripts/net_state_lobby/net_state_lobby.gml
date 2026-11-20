@@ -91,7 +91,10 @@ function net_state_lobby(rbuff, nps, isPasstrough)
 			
 			exeId = whoExe;
 			state = STATE_CHARSELECT;
-			scr_play_music(mus_lobby_epic);
+			// v41 (MUSICA SELECT): mus_lobby_epic -> Select_char_force
+			// (nueva musica de la seleccion de personaje; arranca cuando el
+			// server elige al EXE y empieza la fase de seleccion).
+			scr_play_music(Select_char_force);
 			
 			with(obj_lobby_prolet)
 			{

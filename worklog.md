@@ -5950,3 +5950,23 @@ Work Log:
 Stage Summary:
 - La v39 dejo el token de Rouge "a medias" (solo cliente) y el propio LEEME v39 lo advertia; esta ronda cierra el circulo con el rechazo del server en el mismo patron exacto de Amy Canon/Vanilla
 - El placeholder de icono vivia en UN solo resolvedor (scr_lobby_icon_frame) que alimenta carrusel + resultados + lista de espera: una linea de fix y la seleccion entera deja de prestar el icono de Knuckles
+
+---
+Task ID: musica-v41-lobby-seleccion
+Agent: main (Z.ai)
+Task: Pedido unico de la duena: cambiar la musica del lobby (nueva pista lobby_force, subida al repo) y la de la seleccion de personajes (Select_char_force). Sin desvios.
+
+Work Log:
+- PULL (regla de oro): venia bloqueado por los archivos v40 locales (CharSelect.c, scr_characters.gml, worklog, LEEME, check) — la duena ya habia aplicado y pusheado MI v40 (diff 0 contra el remoto). Backup en backup_v40/, checkout limpio, pull 82c27563 "ewe": llegan sounds/lobby_force (.ogg 2.4 MB, 118 s), sounds/Select_char_force (.ogg 4.6 MB, 236 s), sounds/Lobby1_0_TD (.mp3 134.5 s = misma duracion exacta que mus_lobby: copia del viejo) y los 3 ya registrados por el IDE en .yyp + resource_order (341 sounds). V40 Rouge verificado intacto en el remoto (byte a byte contra el backup)
+- MAPEO antes de tocar: la musica del "lobby" vive en room_lobby/RoomCreationCode (mus_lobby_1) y cubre TODAS las entradas porque la room se recrea en cada vuelta (net_state_game x3, net_tcpprocess, net_state_pending, obj_level/Alarm_2); la musica de "seleccion de personajes" NO es una room: es el paquete SERVER_LOBBY_EXE que llega en DOS estados (net_state_lobby si no hubo votacion, net_state_vote si la hubo) — mus_lobby_epic en ambos. El arranque de partida corta la musica en obj_lobby/Draw_64 (scr_stop_music, intacto). mus_lobby_1 y mus_lobby_epic quedan como assets sin uso
+- FIX 1 (lobby): RoomCreationCode.gml -> scr_play_music(lobby_force)
+- FIX 2 (seleccion): net_state_lobby.gml y net_state_vote.gml (ambos handlers del SERVER_LOBBY_EXE) -> scr_play_music(Select_char_force). Un solo handler quedaria a medias: el path lobby->vote->select sonaria la vieja
+- FIX 3 (volumen Options > More): las 2 pistas entran a global.musList (91 -> 93): sin esto el slider MUSIC VOLUME no las alcanza mientras suenan (solo al reentrar a la room), y TODO el resto de la musica del juego responde en vivo. Comentarios 91->93
+- LECCION DE PROCESO (regla de oro 6): la edicion con herramienta reescribio net_state_lobby y net_state_vote COMPLETOS (tabs -> espacios, 647/207 lineas de diff churn). Detectado por el verificador (marcaba buffer_read como lineas nuevas), restaurados con git checkout y re-aplicado el cambio a NIVEL DE BYTES (replace con \t identicos al original): diff final 5+6+5+12 lineas, tabs y LF intactos. check_v41.py endurecido con un check de churn para detectar esto en el futuro
+- Verificacion: check_v41.py — A lobby (llamada unica en la room, 6 vueltas cubiertas), B seleccion (2 handlers, cero reproducciones de mus_lobby_1/epic en todo el proyecto, fade intacto), C assets (yy+ogg+nombre exacto+.yyp+resource_order), D volumen (93 sin dupes, sfx 238 intacta, gain en scr_play_music), E sintaxis balanceada, F git (solo 4 .gml + docs, ningun .yyp/.yy/audio), G anti-cheat (cero lineas de red, churn acotado)
+- Anti-cheat: CERO superficie — cambio 100% cliente (musica), sin packets, sin server, sin logica de juego. Nada nuevo que vigilar esta ronda
+- Entregable: download/musica_v41_lobby_seleccion.zip — RoomCreationCode.gml + net_state_lobby.gml + net_state_vote.gml + scr_menu_more.gml + worklog.md + LEEME_MUSICA_V41.txt + check_v41.py. Nota: Lobby1_0_TD quedo en el repo SIN USO (no se pidio cablearla a nada)
+
+Stage Summary:
+- La musica de la seleccion de personajes no era una room: era el paquete SERVER_LOBBY_EXE recibido en DOS estados distintos (directo del lobby o tras la votacion) — tocar un solo handler habria dejado el otro path con la musica vieja
+- musList del Options > More es parte del sistema de musica: cualquier pista nueva que suene tiene que entrar a la lista o el slider deja de alcanzarla en vivo

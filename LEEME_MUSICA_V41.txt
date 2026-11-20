@@ -1,0 +1,72 @@
+=====================================================================
+ MUSICA v41 — LOBBY y SELECCION DE PERSONAJES
+=====================================================================
+
+1) MUSICA NUEVA DEL LOBBY
+------------------------------------------
+   * lobby_force ahora suena al entrar al lobby y cada vez que se
+     vuelve a el (tras una partida, al ser echado de la sala, al
+     reconectar). Antes era mus_lobby_1.
+   * No hay fugas: la room del lobby se recrea en cada vuelta y es
+     la unica que dispara esta musica.
+
+2) MUSICA NUEVA EN LA SELECCION DE PERSONAJES
+------------------------------------------
+   * Select_char_force suena durante TODA la seleccion de
+     personajes (cuando el server ya elige al EXE y arranca la
+     fase de elegir personaje). Antes era mus_lobby_epic.
+   * El cambio cubre los DOS caminos: cuando la seleccion llega
+     directo desde el lobby, y cuando llega despues de la votacion
+     de mapas (el mismo paquete del server se recibe en estados
+     distintos — tocar solo uno habria dejado el otro camino con
+     la musica vieja).
+   * Al arrancar la partida la musica se corta con el fundido de
+     siempre — eso no se toco.
+
+3) VOLUMEN DEL OPTIONS > MORE
+------------------------------------------
+   * Las dos pistas nuevas entraron a la lista de musica del menu
+     Options > More (93 temas ahora): el slider MUSIC VOLUME las
+     alcanza EN VIVO, igual que a cualquier otra musica del juego.
+     Sin esto solo habrian respondido al reentrar a la room.
+
+4) LO QUE NO SE TOCO
+------------------------------------------
+   * Ningun .yyp, ningun .yy, ningun audio: tus pistas ya venian
+     registradas del push (lobby_force, Select_char_force y
+     Lobby1_0_TD, 341 sonidos en total).
+   * Lobby1_0_TD quedo en el repo SIN USO: no pediste conectarla a
+     nada. Cuando quieras usarla (jukebox, otra room, un ending...),
+     dime donde y la cableo.
+   * mus_lobby_1 y mus_lobby_epic siguen en el proyecto como assets
+     (ya no se reproducen en ningun lado; se dejaron para poder
+     volver atras si algun dia quieres).
+
+VERIFICACION (check_v41.py: 41/41)
+-----------------------------------
+   * Lobby: la room tiene 1 sola llamada de musica y es
+     lobby_force; las 6 vueltas al lobby quedan cubiertas (la room
+     siempre se recrea).
+   * Seleccion: los 2 handlers del paquete del server apuntan a
+     Select_char_force y quedan CERO reproducciones de la musica
+     vieja en todo el proyecto (incluida la lista de espera).
+   * Assets: .yy + .ogg presentes, nombres exactos (lobby_force /
+     Select_char_force), registrados en el .yyp y en el
+     resource_order.
+   * Volumen: lista de musica en 93, sin duplicados; la lista de
+     sonidos intacta (238); scr_play_music sigue aplicando el
+     volumen al reproducir.
+   * Formato: los .gml editados conservan sus tabs y finales de
+     linea originales (diff de 5+6+5+12 lineas, nada reescrito).
+   * Git: SOLO 4 .gml modificados + docs. Cero .yyp/.yy/audio.
+   * Anti-cheat: cero — cambio 100% de musica en el cliente, nada
+     de red, nada del server.
+
+INSTALAR
+-----------------------------------
+   * Descomprime el zip SOBRE la carpeta del proyecto (respetando
+     scripts/, rooms/ y la raiz).
+   * Abre el proyecto en GameMaker y dale Run una vez para
+     compilar. Esta vez NO hay que recompilar el server.
+   * Para re-verificar todo cuando quieras:
+     python3 check_v41.py

@@ -22,5 +22,5 @@
   "resourceVersion":"2.0",
   "sampleRate":44100,
   "soundFile":"Select_char_force.ogg",
-  "volume":1.0,
+  "volume":0.59,
 }

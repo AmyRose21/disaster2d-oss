@@ -14,7 +14,7 @@
 //   3  WEATHER             lluvia (GHZ) y nieve (NAP) + sonido de lluvia     controladores
 //   4  SCREEN OVERLAYS     vignettes y overlays de pantalla                  obj_level / dotdotdot_i
 //   5  PERFORMANCE         tiempos de frame en pantalla                      obj_level
-//   6  MUSIC VOLUME        0-10, aplica a los 91 assets de musica           aqui (apply_volumes)
+//   6  MUSIC VOLUME        0-10, aplica a los 93 assets de musica           aqui (apply_volumes)
 //   7  SOUND VOLUME        0-10, aplica a los 231 assets de sonido          aqui (apply_volumes)
 //   8  LOOK AHEAD          off / 5%..50%: cuanto mira adelante la camara     obj_camera
 //   9  LOOK AHEAD BY       facing (fijo) / speed (segun velocidad)           obj_camera
@@ -38,9 +38,13 @@
 // Listas de assets para los volumenes (audio_sound_gain con el ID del ASSET
 // cambia las instancias actuales Y las futuras reproducciones: no hace falta
 // tocar los 286 audio_play_sound del proyecto).
+// v41 (MUSICA LOBBY/SELECT): anadidos lobby_force y Select_char_force —
+// ahora son la musica activa del lobby y de la seleccion; sin estar aqui el
+// slider MUSIC VOLUME no los alcanza mientras suenan (solo al reentrar a la
+// room), y cada otra musica del juego si responde en vivo.
 global.musList = [
-        Best_ending, Best_ending_Alt, Duo_ending, Solo_ending, Solo_ending_Alt, Standard_Ending,
-        Standard_Ending_Alt, mus_act9, mus_act9_chase, mus_alphagentemple, mus_alphagentemple_chase, mus_angelisland,
+        Best_ending, Best_ending_Alt, Duo_ending, Select_char_force, Solo_ending, Solo_ending_Alt, Standard_Ending,
+        Standard_Ending_Alt, lobby_force, mus_act9, mus_act9_chase, mus_alphagentemple, mus_alphagentemple_chase, mus_angelisland,
         mus_angelisland_chase, mus_bluespheres, mus_darktower, mus_darktower_chase, mus_deserttown, mus_deserttown_chase,
         mus_dotdotdot, mus_dotdotdot2, mus_dotdotdot_chase, mus_exewin, mus_fartzone, mus_fartzone_chase,
         mus_hauntdream, mus_hauntdream_chase, mus_hideandseek2, mus_hideandseek2_chase, mus_hill, mus_hill_chase,
@@ -421,7 +425,7 @@ function scr_menu_more_desc(_data)
 }
 
 // ============================================================================
-// apply_volumes: fija el gain por ASSET para musica (91) y sonido (231).
+// apply_volumes: fija el gain por ASSET para musica (93) y sonido (238).
 // Con el ID del asset, audio_sound_gain cambia las instancias sonando ahora
 // y todas las reproducciones futuras. Se llama al cargar la config y al
 // mover los sliders.

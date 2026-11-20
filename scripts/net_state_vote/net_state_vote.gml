@@ -38,7 +38,11 @@ function net_state_vote(rbuff, nps, isPasstrough)
 			
 			exeId = whoExe;
 			state = STATE_CHARSELECT;
-			scr_play_music(mus_lobby_epic);
+			// v41 (MUSICA SELECT): mus_lobby_epic -> Select_char_force
+			// (misma musica que en net_state_lobby: este es el MISMO paquete
+			// SERVER_LOBBY_EXE recibido durante la votacion — sin esto el path
+			// lobby->vote->select quedaria con la musica vieja).
+			scr_play_music(Select_char_force);
 			
 			with(obj_lobby_prolet)
 			{

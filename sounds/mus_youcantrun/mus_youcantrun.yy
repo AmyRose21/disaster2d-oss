@@ -10,7 +10,7 @@
   "compression":3,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":82.18131,
+  "duration":82.18122,
   "exportDir":"",
   "name":"mus_youcantrun",
   "parent":{
