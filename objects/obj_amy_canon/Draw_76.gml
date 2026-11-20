@@ -93,6 +93,13 @@ if(variable_instance_exists(id, "superFormPhase") && superFormPhase > 0)
                         case EMOTION2: sprite_index = spr_super_amy_emoticon2; break;
                         case EMOTION3: sprite_index = spr_super_amy_emoticon3; break;
                         case AMY_CANON_TAROT: sprite_index = spr_super_amy_fly_idle; break;
+                        
+                        // v52: el LANZADO viaja como el estado de la acometida
+                        // (la tira super solo se resuelve en el cliente local);
+                        // el LSA y el LIGHT DASH de la super usan la tira de
+                        // carrera super (spr_super_amy_run).
+                        case AMY_CANON_DASH:      sprite_index = spr_super_amy_hrow_hammer; break;
+                        case AMY_CANON_LIGHTDASH: sprite_index = spr_super_amy_run; break;
                 }
         }
 }
@@ -188,7 +195,13 @@ switch(state)
         // El fin de la acometida lo controla dashTimeLeft en
         // scr_amy_canon_special.gml, no la animacion.
         case AMY_CANON_DASH:
-                image_speed = AMY_CANON_DASH_ANIMSPD;
+                // v52: el gesto del HAMMER THROW comparte este estado: su tira
+                // corre a su propia velocidad y se frena en el ultimo frame
+                // (una sola pasada); la acometida de siempre sigue en loop.
+                image_speed = isHammerThrowing ? AMY_SUPER_HTHROW_ANIMSPD : AMY_CANON_DASH_ANIMSPD;
+                
+                if(isHammerThrowing && image_index >= image_number - 1)
+                        image_index = image_number - 1;
                 
                 if(!isDashing)
                         isAttacking = false;

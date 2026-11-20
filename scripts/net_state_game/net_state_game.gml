@@ -2809,6 +2809,19 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         // arranque del rayo jamas entra por esta rama.
                                         scr_lsa_stun_signal();
                                 }
+                                else if(global.net_snds[sid] == snd_none)
+                                {
+                                        // v52 (SUPER AMY): senal del golpe del HAMMER THROW —
+                                        // la emite el cliente de Amy cuando su martillo lanzado
+                                        // llega hasta ESTE jugador del bando EXE (exe o esbirro
+                                        // demonizado). Mismo modelo de confianza que el LSA y
+                                        // Chocola: la victima se aturde a si misma con
+                                        // scr_amy_super_hammer_signal (3.5 s, IGNORA i-frames).
+                                        // snd_none = senal SILENTI (0 frames): nada suena aqui y
+                                        // nada choca — el snd_none BROADCAST de Kris viaja con
+                                        // shouldPlay=false y jamas entra por esta rama.
+                                        scr_amy_super_hammer_signal();
+                                }
                                 else
                                         audio_play_sound(global.net_snds[sid], false, 0);
                         }

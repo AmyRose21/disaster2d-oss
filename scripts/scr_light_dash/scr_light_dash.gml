@@ -801,8 +801,11 @@ function scr_light_dash_ghost(xx, yy)
         _ghost.image_angle = lightDashDeg; // grados, ya canonizado
         _ghost.fadeSpeed = LIGHT_DASH_GHOST_FADE;
         _ghost.depth = depth + 1; // detras del jugador
-        _ghost.palleteFrom = global.palleteFrom;
-        _ghost.palleteTo = global.palleteTo;
+        // v52 (super): la estela copia el sprite ACTUAL — con la super
+        // activa es spr_super_amy_run y sus colores ya vienen horneados:
+        // SIN paleta (el mismo criterio del Draw_0 con los fantasmas).
+        _ghost.palleteFrom = (variable_instance_exists(id, "superFormPhase") && superFormPhase > 0) ? [] : global.palleteFrom;
+        _ghost.palleteTo = (variable_instance_exists(id, "superFormPhase") && superFormPhase > 0) ? [] : global.palleteTo;
 }
 
 // scr_light_dash_exit(): fin del dash. Deja el impulso del ultimo

@@ -80,6 +80,33 @@
 // =====================================================================
 #macro AMY_CANON_SOL_RING_EVERY (60 * 7)
 
+// =====================================================================
+//  v52 — SUPER AMY: HAMMER THROW (lanzada de martillo). Tecla C EN EL
+//  SUELO con la super activa (fase 2): REEMPLAZA a la acometida de
+//  martillo de la forma normal. El gesto corre la tira
+//  spr_super_amy_hrow_hammer (10 frames) UNA sola pasada y el martillo
+//  (obj_martillo_de_amy, sprite spr_martillo_de_amy) sale EXACTO en el
+//  frame 7, vuela girando (spriteroll) y stunea 3.5 s al tocar al bando
+//  EXE IGNORANDO i-frames. El LSA de la forma normal sigue funcionando
+//  en la super (C en el aire) con su CD de siempre (dashTimer, ahora
+//  solo suyo): la lanzada tiene CD PROPIO y no comparte enfriamiento
+//  con nadie. Valores ajustables:
+//    * CD = 5 segundos (AMY_SUPER_HTHROW_RECHARGE).
+//    * STUN = 3.5 segundos (AMY_SUPER_HTHROW_STUN), ignorando i-frames.
+//    * VELOCIDAD = pixeles/frame del martillo en vuelo.
+//    * SPIN = grados/frame del spriteroll (24 = una vuelta cada 15 steps).
+//    * FRAME = frame de la tira donde el martillo sale (el 7).
+//    * ANIMSPD = velocidad de la tira (0.5 = la pasada dura 20 steps).
+//    * TIME = duracion total del gesto en frames.
+// =====================================================================
+#macro AMY_SUPER_HTHROW_RECHARGE (60 * 5)   // CD de la lanzada (5 segundos)
+#macro AMY_SUPER_HTHROW_STUN (60 * 3.5)     // stun del martillo al impactar (3.5 segundos)
+#macro AMY_SUPER_HTHROW_SPEED 11            // velocidad del martillo (px/frame, como la carrera)
+#macro AMY_SUPER_HTHROW_SPIN 24             // grados/frame del spriteroll (una vuelta cada 15 steps)
+#macro AMY_SUPER_HTHROW_FRAME 7             // frame de la tira donde sale el martillo
+#macro AMY_SUPER_HTHROW_ANIMSPD 0.5         // velocidad de la tira del lanzado
+#macro AMY_SUPER_HTHROW_TIME 24             // duracion del gesto (frames; la tira pasa en 20)
+
 //Variables
 gspd = 0;
 xspd = 0;
@@ -273,3 +300,11 @@ instance_create_depth(x, y, 0, obj_amycanon_indicators);
 // Draw_0 mientras superFormPhase > 0.
 superFormPhase = 0;
 superFormLock = false;
+
+// v52 — HAMMER THROW (lanzada de martillo, C en tierra con la super):
+// CD y estado del gesto. El latch evita que el martillo salga 2 veces
+// (el frame 7 dura 2 steps con anim 0.5 — mismo truco que dashSwingLatch).
+hammerThrowTimer = 0;       // cooldown (CD) de la lanzada en frames (5 s)
+isHammerThrowing = false;   // true durante el gesto de lanzar
+hammerThrowTimeLeft = 0;    // frames que le quedan al gesto
+hammerThrowLatch = false;  // el martillo sale UNA sola vez por lanzada (frame 7)

@@ -102,6 +102,16 @@ if(isLightDashing)
         return;
 }
 
+// v52 — HAMMER THROW (super): el gesto de la lanzada viaja con el MISMO
+// byte de estado que la acometida (AMY_CANON_DASH): los puppets de los
+// demas clientes ya resuelven ese estado sin tocar el array de red (la
+// super es local todavia — alla la ven como la acometida de siempre).
+if(isHammerThrowing)
+{
+        state = AMY_CANON_DASH;
+        return;
+}
+
 // La acometida (ataque 3) se revisa ANTES que el ataque normal,
 // porque durante la acometida isAttacking tambien esta en true
 // y si no, se mostraria el sprite del ataque 1 en vez del ataque 3.

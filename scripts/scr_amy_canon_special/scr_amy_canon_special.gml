@@ -26,10 +26,16 @@ function scr_amy_canon_special()
                 if(dashTimer <= 2)
                         dashTimer = 2;
                         
+                // v52: el anillo rojo tambien congela el CD del HAMMER
+                // THROW de la super (mismo trato que la acometida).
+                if(hammerThrowTimer <= 2)
+                        hammerThrowTimer = 2;
+                        
                 isAttacking = false;
                 isDashing = false;
                 isTarotDashing = false; // el anillo rojo tambien corta el impulso aereo
                 isTarotFloat = false;   // ... y la pasiva del tarot
+                isHammerThrowing = false; // ... y el gesto de la lanzada
         }
         
         // Escondida (agachada en un escondite): no puede usar la
@@ -45,10 +51,15 @@ function scr_amy_canon_special()
                 if(dashTimer <= 60 * 2)
                         dashTimer = 60 * 2;
                         
+                // v52: escondida tambien congela el CD de la lanzada.
+                if(hammerThrowTimer <= 60 * 2)
+                        hammerThrowTimer = 60 * 2;
+                        
                 isAttacking = false;
                 isDashing = false;
                 isTarotDashing = false; // escondida: nada de impulsos aereos
                 isTarotFloat = false;
+                isHammerThrowing = false; // ... ni lanzadas de martillo
         }
         
         // =================================================================
@@ -212,7 +223,10 @@ function scr_amy_canon_special()
         // Se activa con la tecla C (global.KeyC), SOLO EN EL SUELO (en el
         // aire la C es el LSA de scr_light_dash) y cuando el CD (dashTimer,
         // compartido con el LSA) llega a 0.
-        if(global.playerControls && !isDashing && isGrounded && !isLightDashing && keyboard_check_pressed(global.KeyC) && dashTimer <= 0)
+        // v52: SOLO en la forma NORMAL (superFormPhase == 0). Con la super
+        // activa la C en tierra es el HAMMER THROW (lanzada de martillo),
+        // que REEMPLAZA a la acometida y tiene su propio CD.
+        if(global.playerControls && superFormPhase == 0 && !isDashing && isGrounded && !isLightDashing && keyboard_check_pressed(global.KeyC) && dashTimer <= 0)
         {
                 // Direccion: si aprietas izquierda/derecha al iniciar,
                 // la acometida va hacia ese lado; si no, hacia donde miras.
@@ -278,6 +292,81 @@ function scr_amy_canon_special()
                 }
         }
         
+        // =================================================================
+        //  v52 — SUPER AMY: HAMMER THROW (lanzada de martillo). Tecla C
+        //  EN EL SUELO con la super activa (fase 2): REEMPLAZA a la
+        //  acometida de la forma normal. El gesto corre la tira
+        //  spr_super_amy_hrow_hammer UNA sola pasada y el martillo sale
+        //  EXACTO en el frame 7 (AMY_SUPER_HTHROW_FRAME, con latch
+        //  anti-doble como el golpe de la acometida). El proyectil
+        //  (obj_martillo_de_amy) vuela girando (spriteroll) y stunea 3.5 s
+        //  al tocar al bando EXE IGNORANDO i-frames. CD PROPIO de 5 s
+        //  (hammerThrowTimer): NO comparte enfriamiento con la acometida
+        //  ni con el LSA — el LSA de la forma normal sigue disponible en
+        //  la super (C en el aire) con su CD de siempre (dashTimer, que
+        //  en la super ya es solo suyo).
+        // =================================================================
+        if(global.playerControls && superFormPhase == 2 && !isHammerThrowing && isGrounded
+        && !isDashing && !isLightDashing && !isTarotDashing && !isHJ && !isAttacking
+        && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
+        && bubbleState != AMY_BUBBLE_ACTIVE && redRingTimer <= 0
+        && keyboard_check_pressed(global.KeyC) && hammerThrowTimer <= 0)
+        {
+                // Direccion: si aprietas izquierda/derecha al iniciar, la
+                // lanzada va hacia ese lado; si no, hacia donde miras.
+                if(keyboard_check(global.KeyLeft))
+                        image_xscale = -1;
+                else if(keyboard_check(global.KeyRight))
+                        image_xscale = 1;
+                
+                isHammerThrowing = true;
+                hammerThrowTimeLeft = AMY_SUPER_HTHROW_TIME;
+                hammerThrowLatch = false;
+                image_index = 0;   // el gesto arranca del frame 0: el martillo sale en el 7
+                
+                hammerThrowTimer = AMY_SUPER_HTHROW_RECHARGE;
+                
+                audio_play_sound(snd_dash, 0, false);
+                net_sound_emit(snd_dash);
+        }
+        
+        // --- v52: DURANTE el gesto de la lanzada ---
+        if(isHammerThrowing)
+        {
+                hammerThrowTimeLeft--;
+                
+                // Cancelaciones: dano, stun, muerte, tirolina, caida al
+                // vacio, fin del tiempo o borde de la sala.
+                if(shockedTimer > 0 || isHurt || isDead || isZipline || !isGrounded || hammerThrowTimeLeft <= 0 || x <= 1 || x >= room_width - 1)
+                {
+                        isHammerThrowing = false;
+                }
+                else
+                {
+                        // Se planta para lanzar (sin avance, a diferencia de
+                        // la acometida: es un golpe a distancia).
+                        gspd = 0;
+                        xspd = 0;
+                        
+                        // EL MARTILLO SALE EN EL FRAME 7 de la tira, una sola
+                        // vez por lanzada (el latch evita el disparo doble:
+                        // con anim 0.5 el frame dura 2 steps).
+                        if(floor(image_index) == AMY_SUPER_HTHROW_FRAME && !hammerThrowLatch)
+                        {
+                                hammerThrowLatch = true;
+                                
+                                var _hammer = instance_create_depth(x + 26 * image_xscale, y - 2, 0, obj_martillo_de_amy);
+                                _hammer.dir = image_xscale;
+                                
+                                audio_play_sound(snd_snap, 0, false);
+                                net_sound_emit(snd_snap);
+                        }
+                        
+                        if(floor(image_index) != AMY_SUPER_HTHROW_FRAME)
+                                hammerThrowLatch = false;
+                }
+        }
+        
         // El impulso aereo (tecla X) deja isAttacking en true para el stuneo;
         // en el aire gspd no se usa y durante la ACOMETIDA no hay que frenar.
         if(isAttacking && !isDashing)
@@ -299,6 +388,11 @@ function scr_amy_canon_special()
         // en el suelo (mismo comportamiento que el salto alto).
         if(dashTimer > 0 && isGrounded && !isDashing)
                 dashTimer--;
+        
+        // v52: el CD del HAMMER THROW baja SIEMPRE (como el del impulso
+        // aereo): 5 s completos de relojo, sin pausa en el aire.
+        if(hammerThrowTimer > 0)
+                hammerThrowTimer--;
         
         // =================================================================
         //  v2.13 — SOL («Sol y Luna»): goteo AUTOMATICO de 1 ring cada
