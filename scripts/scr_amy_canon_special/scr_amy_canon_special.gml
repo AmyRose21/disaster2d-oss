@@ -51,6 +51,50 @@ function scr_amy_canon_special()
                 isTarotFloat = false;
         }
         
+        // =================================================================
+        //  v51 — SUPER AMY CANON (prueba de la duena): V + ARRIBA activa
+        //  o quita el TEST de la super forma. Maquina de fases:
+        //    0 -> 1: tira de transformacion (spr_amy_super_transform,
+        //    UNA sola pasada — Draw_76 la corre y al terminar pasa solo a
+        //    fase 2). image_index = 0 a mano: cambiar sprite_index NO
+        //    resetea el frame por si solo.
+        //    2 -> 0: apagar (superFormPhase = 0 basta: no hay paleta que
+        //    restaurar, los colores super vienen horneados en los
+        //    propios sprites).
+        //  En fase 1 el toggle se ignora (no se corta la tira a medias).
+        //  V SOLA sigue siendo el PARRY de siempre: el guard de ARRIBA
+        //  en el input del parry (scr_parry) evita que el V de la
+        //  combinacion lo dispare. 100% LOCAL: cero paquetes, cero
+        //  estado de red (la super real con sync va en su ronda).
+        // =================================================================
+        var _superKey = (keyboard_check(global.KeyV) && keyboard_check(global.KeyUp));
+
+        if(global.playerControls && _superKey && bubbleState != AMY_BUBBLE_ACTIVE
+        && !isDead && shockedTimer <= 0 && isGrounded && !isHurt && !isZipline
+        && !isHiding && !isAttacking && !isSpinCharging && nerviosState == 0
+        && bounceTimer <= 0 && parryState == 0 && !isDashing && !isLightDashing)
+        {
+                if(!superFormLock)
+                {
+                        superFormLock = true;
+
+                        if(superFormPhase == 0)
+                        {
+                                superFormPhase = 1;
+                                image_index = 0;
+                                audio_play_sound(snd_buble, 0, false);
+                        }
+                        else if(superFormPhase == 2)
+                        {
+                                superFormPhase = 0;
+                                audio_play_sound(snd_buble, 0, false);
+                        }
+                }
+        }
+
+        if(!_superKey)
+                superFormLock = false;
+
         // v6.0 — LATCH DEL FRENADO del light dash: los 2 frames despues de
         // frenar el dash con la X, el impulso de tarot no puede encenderse
         // con ESE mismo toque (frenar no es encadenar; lo arma

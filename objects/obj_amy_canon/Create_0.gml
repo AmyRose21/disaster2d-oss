@@ -259,3 +259,17 @@ instance_create_depth(x, y, 0, obj_player_sensorAR);
 // Sensores pasivos de Amy Canon (solo en SU cliente): flecha verde hacia
 // la salida + flecha azul hacia el exe. Ver obj_amycanon_indicators.
 instance_create_depth(x, y, 0, obj_amycanon_indicators);
+
+// v51 — SUPER AMY CANON (prueba de la duena): V + ARRIBA activa el
+// test de la super forma. FASES (superFormPhase): 0 = apagada /
+// 1 = transformando (la tira spr_amy_super_transform UNA sola
+// pasada) / 2 = super activa: CAMBIO DIRECTO de sprite por estado
+// (idle/run/jump/fall/hurt/emoticones/float con sus sprites
+// super de colores horneados — cero paleta, cero riesgo a la ropa:
+// esa es la razon de la mudanza desde Rouge). Otra vez V + ARRIBA
+// en fase 2 la apaga. Estado LOCAL puro: no viaja nada por red
+// (prueba; la super real con sync va en su ronda). Input en
+// scr_amy_canon_special, dibujado en Draw_76, paleta saltada en
+// Draw_0 mientras superFormPhase > 0.
+superFormPhase = 0;
+superFormLock = false;

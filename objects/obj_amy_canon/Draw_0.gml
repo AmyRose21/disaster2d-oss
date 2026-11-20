@@ -9,8 +9,9 @@ if(effectTime > 0)
                 inst.image_index = image_index;
                 inst.image_speed = 0;
                 inst.depth = depth+10;
-                inst.palleteFrom = global.palleteFrom;
-                inst.palleteTo = global.palleteTo;
+                // v51: fantasma SIN paleta mientras la super este activa
+                inst.palleteFrom = (variable_instance_exists(id, "superFormPhase") && superFormPhase > 0) ? [] : global.palleteFrom;
+                inst.palleteTo = (variable_instance_exists(id, "superFormPhase") && superFormPhase > 0) ? [] : global.palleteTo;
         }
 }
 
@@ -69,10 +70,18 @@ if(parryState == 2)
 // continuo de punta a punta. La pose rotada de cada fantasma sale de
 // lightDashDeg/lightDashFace (lo mismo que dibuja el cuerpo).
 
-        if(variable_global_exists("scr_amy_cyber"))
-                scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, sprite_index, image_index);
-        else
-                scr_palette_swap(global.palleteFrom, global.palleteTo);
+        // v51 — SUPER AMY: los sprites super traen los colores
+        // HORNEADOS — mientras la super este activa NO se aplica paleta
+        // de skin ni modo cyber (recolorearia arte que ya viene
+        // coloreado de fabrica). Se dibuja tal cual; el shader_reset
+        // de abajo queda inocuo sin ningun shader puesto.
+        if(!(variable_instance_exists(id, "superFormPhase") && superFormPhase > 0))
+        {
+                if(variable_global_exists("scr_amy_cyber"))
+                        scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, sprite_index, image_index);
+                else
+                        scr_palette_swap(global.palleteFrom, global.palleteTo);
+        }
         // v6.0 — FIX ROTACION INVISIBLE: saltar EN BOLA conserva isSpinning (v5.3
         // del manejo) y este ternario forzaba angle = 0 con ese flag — durante el
         // light dash el rayo volaba DE LADO hacia los anillos de ARRIBA sin girar

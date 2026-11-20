@@ -648,6 +648,10 @@ function scr_parry_step()
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
         && !isAttacking && !isSpinCharging && nerviosState == 0
         && bounceTimer <= 0
+        // v51 — SUPER AMY: V + ARRIBA ya no dispara el parry de Amy
+        // Canon (esa combinacion es el toggle de la super forma en
+        // scr_amy_canon_special); V sola sigue pariando igual.
+        && !((global.character == CHARACTER_AMY_CANON) && keyboard_check(global.KeyUp))
         && keyboard_check_pressed(scr_parry_key()))
         {
                 parryState = 1;

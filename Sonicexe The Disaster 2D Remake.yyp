@@ -1153,6 +1153,7 @@
     {"id":{"name":"hitspark_hard","path":"sprites/hitspark_hard/hitspark_hard.yy",},},
     {"id":{"name":"hitspark_light","path":"sprites/hitspark_light/hitspark_light.yy",},},
     {"id":{"name":"hitspark_medium","path":"sprites/hitspark_medium/hitspark_medium.yy",},},
+    {"id":{"name":"martillo_de_amy","path":"sprites/martillo_de_amy/martillo_de_amy.yy",},},
     {"id":{"name":"spd_hd_colliison","path":"sprites/spd_hd_colliison/spd_hd_colliison.yy",},},
     {"id":{"name":"spr_abyss_target","path":"sprites/spr_abyss_target/spr_abyss_target.yy",},},
     {"id":{"name":"spr_abyss","path":"sprites/spr_abyss/spr_abyss.yy",},},

@@ -55,6 +55,48 @@ if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
         arr = global.player_negaanims;
 sprite_index = arr[? CHARACTER_AMY_CANON][state];
 
+// v51 — SUPER AMY CANON (prueba, V + ARRIBA): FASE 1 = la tira
+// spr_amy_super_transform UNA sola pasada (image_speed 0.2 ~= 1/3 de
+// segundo); al tocar su ultimo frame pasa a FASE 2 = super activa:
+// CAMBIO DIRECTO de sprite por estado — sus sprites super traen los
+// colores horneados, no hay paleta que aplicar (Draw_0 salta el swap
+// mientras superFormPhase > 0). Muerta o demonizada revierte sola (la
+// prueba no pisa la muerte). Nega-touched: los sprites nega mandan.
+if(variable_instance_exists(id, "superFormPhase") && superFormPhase > 0)
+{
+        if(isDead || revivalTimes >= 2)
+                superFormPhase = 0;
+        else if(superFormPhase == 1)
+        {
+                sprite_index = spr_amy_super_transform;
+                image_speed = 0.2;
+                if(image_index >= image_number - 1)
+                        superFormPhase = 2;
+        }
+        else if(!(variable_instance_exists(id, "isNegatouch") && isNegatouch))
+        {
+                // FASE 2: solo los estados con sprite super — el resto
+                // (agacharse, lookup, balancing, zipline, dead, habilidades)
+                // sigue con su sprite normal hasta que exista su version
+                // super. WALK usa el de RUN mientras no haya tira de
+                // caminar super (misma pose de carrera, misma velocidad
+                // de animacion del caso WALK).
+                switch(state)
+                {
+                        case IDLE:     sprite_index = spr_super_amy_idle;      break;
+                        case WALK:     sprite_index = spr_super_amy_run;      break;
+                        case RUN:      sprite_index = spr_super_amy_run;      break;
+                        case JUMP:     sprite_index = spr_super_amy_jump;     break;
+                        case FALL:     sprite_index = spr_super_amy_fall;     break;
+                        case HURT:     sprite_index = spr_super_amy_hurt;     break;
+                        case EMOTION1: sprite_index = spr_super_amy_emoticon1; break;
+                        case EMOTION2: sprite_index = spr_super_amy_emoticon2; break;
+                        case EMOTION3: sprite_index = spr_super_amy_emoticon3; break;
+                        case AMY_CANON_TAROT: sprite_index = spr_super_amy_fly_idle; break;
+                }
+        }
+}
+
 switch(state)
 {
         case IDLE:
