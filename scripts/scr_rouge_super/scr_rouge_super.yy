@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_rouge_super",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_rouge_super",
+  "parent":{
+    "name":"Specials",
+    "path":"folders/Scripts/Players/Specials.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

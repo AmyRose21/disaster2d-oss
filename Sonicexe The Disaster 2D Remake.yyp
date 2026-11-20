@@ -703,6 +703,7 @@
     {"id":{"name":"scr_prefetch_group","path":"scripts/scr_prefetch_group/scr_prefetch_group.yy",},},
     {"id":{"name":"scr_raycast","path":"scripts/scr_raycast/scr_raycast.yy",},},
     {"id":{"name":"scr_rouge_special","path":"scripts/scr_rouge_special/scr_rouge_special.yy",},},
+    {"id":{"name":"scr_rouge_super","path":"scripts/scr_rouge_super/scr_rouge_super.yy",},},
     {"id":{"name":"scr_sally_canon_fase2","path":"scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.yy",},},
     {"id":{"name":"scr_sally_special","path":"scripts/scr_sally_special/scr_sally_special.yy",},},
     {"id":{"name":"scr_sonic_special","path":"scripts/scr_sonic_special/scr_sonic_special.yy",},},

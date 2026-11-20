@@ -373,3 +373,11 @@ instance_create_depth(x, y, 0, obj_player_sensorAR);
 // cuerpo escondido no las apaga. Demonizada (revivalTimes >= 2)
 // el objeto se apaga solo y rige la flecha estandar del esbirro.
 instance_create_depth(x, y, 0, obj_vanilla_indicators);
+
+// v49 — SUPER FORM (prueba de colores de la duena): V + ARRIBA activa
+// o quita el test visual de la super forma (animacion propia
+// spr_rouge_super_form + recolor estilo SRB2 encadenado a la paleta
+// de skins con la que Draw_0 pinta a Rouge — ver scr_rouge_super).
+// Estado LOCAL puro: no viaja nada por red (es una prueba).
+superFormTest = false;
+superFormLock = false;
