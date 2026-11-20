@@ -6008,3 +6008,21 @@ Stage Summary:
 - El error nombraba un objeto que no aparece en el archivo: era bytecode cacheado del IDE con indices pre-obj_kris apuntando hoy a obj_tile — la leccion es que tras aplicar zips/pulls externos hay que reabrir el IDE antes de compilar
 - El guard convierte el hard-crash en un skin default y de paso invalida el cache del archivo tocado
 - Entregable: download/error_v43_menu_skins.zip — Create_0.gml + Draw_0.gml + LEEME_ERROR_V43.txt + check_v43.py + worklog.md
+
+---
+Task ID: kris-v45-corte-puppet
+Agent: main (Z.ai)
+Task: Pedido de la duena: "para kris su habilidad corte no tiene hitbox en el puppet el enemigo nunca recibe el golpe". Sin desvios.
+
+Work Log:
+- FETCH (regla de oro): sandbox reciclado — repo re-clonado desde github.com/AmyRose21/disaster2d-oss. Sin commits nuevos desde 3b60fdb2 (mi v44). HEAD = v44 docs-only, sin codigo pendiente
+- DIAGNOSTICO: la cadena del corte se caia en el RECEPTOR. El emisor (obj_netclient/Step_2) manda el bit PLAYER_ATTACKING para Kris desde que existe (c6073e2d, 17-nov), pero net_udpprocess.gml solo lee ese bit para los personajes de SU lista (Knux/Eggman/Amy/AmyCanon/Sally/SallyCanon/Sonic/Metal/Rouge) — KRIS NUNCA ESTUVO AHI (git log -S: cero commits que lo hayan tocado con Kris). Resultado: puppet.isAttacking siempre false en el cliente del enemigo → TODO el bloque de contacto/stun del puppet era codigo muerto para Kris (corte tierra 20, air1 40 y air2 41 con su pad +50%) → el enemigo jamas recibia el golpe. Mismo bug documentado de Sonic v4 y Metal v2.8 ("sin esta linea el puppet nunca queda isAttacking en el cliente del EXE")
+- FIX (1 linea, byte-level con indentacion de espacios exacta): net_udpprocess.gml — `|| character == CHARACTER_KRIS` al final de la lista del receptor del bit (simetria con el emisor, que tambien lo tiene al final). +5 comentarios v45. La cadena completa queda: corte → bit viaja → puppet.isAttacking → contacto (place_meeting o _krisPad air2) → stun 3 s por el camino normal (CLIENT_PLAYER_HURT de siempre) + krisSlowCountdown (slow v2, ya estaba) → estadisticas de siempre
+- SIN TOCAR: obj_netclient (emisor ya correcto), obj_player_puppet, scr_kris_special, obj_kris, .yyp/.yy, server, packets, bitflags
+- Verificacion: check_v45.py 19 checks — A fix presente/unico con los 9 personajes previos intactos + rama EXE intacta, B cadena completa emisor→receptor→stun→slow→pad verificada contra los archivos, C sintaxis balanceada, D git (1 .gml + docs, churn 7, cero .yyp/.yy), E anti-cheat: MISMO paquete y MISMO bit de siempre, cero superficie nueva, autoridad de la victima intacta
+- Anti-cheat: CERO — no se agrega ningun bit ni packet nuevo; se corrige a QUIEN se le lee un bit que ya viajaba. El stun lo sigue aplicando el cliente de la victima con sus validaciones de siempre
+- Entregable: download/kris_v45_corte_puppet.zip — net_udpprocess.gml + LEEME_KRIS_CORTES_V45.txt + check_v45.py + worklog.md
+
+Stage Summary:
+- Bug de lista-desincronizada: emisor y receptor del bit PLAYER_ATTACKING mantenian listas separadas de personajes; Kris se agrego solo al lado del emisor. Leccion: cada personaje con ataque por contacto nuevo debe entrar en AMBAS listas (obj_netclient/Step_2 emisor + net_udpprocess receptor)
+- El corte ahora stunea al bando EXE en las pantallas ajenas exactamente igual que en local: 3 s de stun + 3 s de slow al expirar, hitbox +50% en air2

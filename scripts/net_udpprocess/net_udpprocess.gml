@@ -152,7 +152,12 @@ function net_udpprocess(rbuff)
                                                 // v2.8: METAL igual — sin el bit, el stun de contacto del
                                                 // overdrive y del spark field era codigo muerto (el caso
                                                 // METAL de obj_player_puppet Step_0 jamas se ejecutaba).
-                                                if(character == CHARACTER_KNUX || character == CHARACTER_EGGMAN || (character == CHARACTER_AMY || character == CHARACTER_AMY_CANON) || character == CHARACTER_SALLY || character == CHARACTER_SALLY_CANON || character == CHARACTER_SONIC || character == CHARACTER_METAL || character == CHARACTER_ROUGE)
+                                                // v45 (KRIS) — mismo caso: el emisor (obj_netclient)
+                                                // manda el bit desde que Kris existe, pero sin Kris
+                                                // en ESTA lista el puppet nunca quedaba isAttacking:
+                                                // todo el bloque de stun del corte era codigo muerto
+                                                // y el enemigo jamas recibia el golpe.
+                                                if(character == CHARACTER_KNUX || character == CHARACTER_EGGMAN || (character == CHARACTER_AMY || character == CHARACTER_AMY_CANON) || character == CHARACTER_SALLY || character == CHARACTER_SALLY_CANON || character == CHARACTER_SONIC || character == CHARACTER_METAL || character == CHARACTER_ROUGE || character == CHARACTER_KRIS)
                                                         isAttacking = bitflags & PLAYER_ATTACKING;
                                                         
                                                 isHurt = bitflags & PLAYER_HURT;

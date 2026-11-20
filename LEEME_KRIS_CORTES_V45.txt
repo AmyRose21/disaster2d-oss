@@ -1,0 +1,79 @@
+================================================================
+ v45 — FIX: EL CORTE DE KRIS NO PEGABA EN LAS PANTALLAS AJENAS
+          (el enemigo nunca recibia el golpe)
+================================================================
+
+QUE PASO (diagnostico)
+-----------------------
+El corte de Kris si viaja por red, pero se caia a mitad de
+camino:
+
+ 1. El cliente de Kris (EMISOR, obj_netclient/Step_2.gml) manda
+    el bit PLAYER_ATTACKING — ahi Kris SI estaba listado (desde
+    que Kris existe, commit del 17-nov).
+
+ 2. El cliente del ENEMIGO (RECEPTOR, net_udpprocess.gml)
+    lee ese bit y se lo pone al puppet... PERO SOLO para los
+    personajes de su lista, y KRIS NO ESTABA EN ESA LISTA
+    (Knux, Eggman, Amy, Amy Canon, Sally, Sally Canon, Sonic,
+    Metal, Rouge... sin Kris).
+
+Resultado: el puppet de Kris en la pantalla del enemigo tenia
+isAttacking = false SIEMPRE. Todo el bloque de contacto/stun
+del puppet (que exige isAttacking) era CODIGO MUERTO para Kris:
+corte en tierra (estado 20), aire fase 1 (40) y fase 2 (41)
+—including su hitbox ampliada del +50%— no existian para el
+enemigo. Por eso "nunca recibe el golpe": para su cliente, Kris
+nunca estaba atacando.
+
+Es EXACTAMENTE el mismo bug que sufrieron Sonic (v4) y Metal
+(v2.8) — el comentario de al lado de la linea lo documenta:
+"sin esta linea el puppet de Sonic nunca queda isAttacking en
+el cliente del EXE -> el golpe no aturdia". A Kris le paso
+igual porque la lista del receptor nunca se actualizo cuando
+se agrego el personaje.
+
+EL FIX (1 linea + comentarios)
+-----------------------------
+ scripts/net_udpprocess/net_udpprocess.gml:
+   - Agregado `|| character == CHARACTER_KRIS` a la lista del
+     receptor del bit PLAYER_ATTACKING (rama supervivientes).
+   - Comentario v45 documentando el caso.
+
+Con esto la cadena completa del corte vuelve a funcionar en el
+cliente del enemigo (que es la autoridad de su propio jugador,
+como TODO el daño del juego):
+   corte -> bit viaja -> puppet.isAttacking -> contacto ->
+   stun 3 s (CLIENT_PLAYER_HURT de siempre) + ralentizacion
+   de 3 s al expirar (krisSlowCountdown, ya estaba) + hitbox
+   +50% del air2 (ya estaba).
+
+NO se toco: obj_netclient (emisor, ya estaba bien), el puppet,
+scr_kris_special, obj_kris, .yyp/.yy, el server, los packets.
+
+QUE DEBES HACER
+---------------
+ 1. Reemplaza scripts/net_udpprocess/net_udpprocess.gml por el
+    del zip (o aplica el cambio de 1 linea a mano).
+ 2. Recompila el CLIENTE (el server no se toca: mismo paquete,
+    mismo bit de siempre — solo se corrigio a quien se le lee).
+ 3. Prueba: Kris a cortes de un EXE/esbirro en la pantalla del
+    enemigo — ahora stun 3 s + slow 3 s, igual que en local.
+
+VERIFICACION
+------------
+ check_v45.py → 19 checks: fix presente y unico, los 9
+ personajes previos de la lista intactos, rama EXE intacta,
+ cadena completa emisor->receptor->stun->slow verificada,
+ cero regresiones en scr_kris_special/obj_kris/puppet,
+ sintaxis balanceada, churn 7 lineas, cero .yyp/.yy tocados,
+ anti-cheat: MISMO bit y MISMO paquete de siempre (cero
+ superficie nueva, la autoridad sigue siendo el cliente de
+ la victima).
+
+ARCHIVOS DEL ZIP
+----------------
+ scripts/net_udpprocess/net_udpprocess.gml  (MODIFICADO — 1 linea)
+ LEEME_KRIS_CORTES_V45.txt                  (este archivo)
+ check_v45.py                                (verificador)
+ worklog.md                                 (bitacora actualizada)
