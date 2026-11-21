@@ -3,10 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0f1114">
-<meta name="description" content="Suite TD2D — editor de animaciones, recargas, imágenes, enfriamientos, botones, shows LMS y muelles del remake de Sonic.exe The Disaster 2D.">
-<title>Suite TD2D · editor del juego</title>
+<title>Suite TD2D v6.1</title>
+<meta name="description" content="Suite TD2D v6.1 — editor todo-en-uno del remake de Sonic.exe The Disaster 2D: animaciones, arte, números, sistema y personajes.">
 <style>
+
+/* ================================================================
+   SUITE TD2D v6.1 — TEMA
+   Capa 1 · rebase: variables y base (el CSS de módulos de abajo
+   usa estas mismas variables, así el conjunto queda unificado)
+   ================================================================ */
+:root{
+  --bg:#0c0e12; --panel:#151920; --panel2:#10131a; --line:#242a36;
+  --txt:#dfe4ee; --mut:#8b93a3; --gold:#e8b84b; --gold2:#f3d47e;
+  --green:#57c98a; --red:#e06666; --blue:#5b9ce0; --orange:#e8a04b;
+  --mono:ui-monospace,'Cascadia Mono','JetBrains Mono',Consolas,monospace;
+  --sans:system-ui,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 var(--sans)}
+.hidden{display:none !important}
+code{font-family:var(--mono)}
+
+/* ================================================================
+   Capa 2 · CSS DE MÓDULOS — el conjunto completo del original
+   (visor, timeline, transporte, arte, personajes, números,
+   sistema, diálogos): 507 selectores verificados en el juego.
+   ================================================================ */
+
 :root{
   --bg:#0f1114; --panel:#16191f; --panel2:#1c2028; --line:#2a2f3a;
   --txt:#dfe3ea; --mut:#8b93a3; --gold:#e8b84b; --gold2:#f5d68a;
@@ -640,60 +664,148 @@ button:active:not(:disabled){transform:translateY(0)}
 .toast{animation:toast-in .18s ease}
 @keyframes toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+
+/* ================================================================
+   Capa 3 · TEMA v6.1 — categorías en barra lateral
+   El layout original es topbar horizontal; aquí se convierte en
+   sidebar por categorías con la misma paleta. Sobrescribe solo
+   lo de la carcasa; los módulos quedan igual (capa 2).
+   ================================================================ */
+
+/* ---- shell: columnas (sidebar + main) ---- */
+/* !important: el CSS de módulos (capa 2) trae body{flex-direction:column}
+   del layout topbar-horizontal original; aquí se fuerza el layout lateral */
+body{display:flex !important;flex-direction:row !important;overflow:hidden !important}
+#shell-side{width:216px;flex:none;background:var(--panel2);
+  border-right:1px solid var(--line);display:flex;flex-direction:column;
+  overflow-y:auto;overscroll-behavior:contain}
+#shell-main{flex:1;display:flex;flex-direction:column;min-width:0;height:100vh}
+
+/* ---- sidebar: marca + categorías ---- */
+#brand{display:block;padding:15px 16px 11px;border-bottom:1px solid var(--line);
+  margin:0;font-size:19px;letter-spacing:.3px;color:var(--txt)}
+#brand b{color:var(--gold)}
+#brand span{display:block;color:var(--mut);font-size:10.5px;margin-top:3px;
+  letter-spacing:.4px;font-weight:400}
+.cat{padding:9px 0 3px}
+.cat-title{padding:2px 16px;color:var(--mut);font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1.7px}
+#modnav{display:flex;flex-direction:column;gap:2px;padding:0 8px}
+#modnav .mnav{display:flex;align-items:center;gap:9px;width:100%;
+  padding:7px 10px;text-align:left;font:inherit;font-size:13px;color:var(--txt);
+  background:transparent;border:1px solid transparent;border-radius:8px;cursor:pointer}
+#modnav .mnav:hover{background:#1a2029;border-color:var(--line)}
+#modnav .mnav.sel{background:#241f12;border-color:#4a3d1c;color:var(--gold2)}
+#modnav .mnav .ic{flex:none;width:20px;text-align:center}
+#modnav-note{margin-top:auto;padding:11px 16px;color:var(--mut);font-size:10.5px;
+  border-top:1px solid var(--line);line-height:1.5;letter-spacing:.2px}
+
+/* ---- topbar: se convierte en fila de proyecto, sin marca ---- */
+#topbar{flex-wrap:wrap;gap:8px;padding:9px 14px}
+#brand-top{display:none}
+
+/* ---- subnav de módulo: píldoras dentro del área de trabajo ---- */
+.subnav{border-bottom:1px solid var(--line)}
+
+/* ---- v6.2 · fixes de la captura del usuario ---- */
+
+/* FIX 3: miniaturas de placas — 478px de bitmap metidos a 236px CSS
+   dejaban media pixel (garble). Se renderiza a media resolución ENTERA
+   (239x20) y el CSS lo muestra 1:1; nítido con image-rendering. */
+.arte-row .arte-thumb{width:239px;height:20px}
+
+/* FIX 5: el zoom del banner no debe salir del área: el control va
+   DESPUÉS del canvas en la misma fila scrolleable, con flex:none
+   para que el scrollbar del prevbox lo alcance. */
+#mod-arte .arte-prevbox{gap:10px}
+#mod-arte .arte-prevbox .zoomctl{flex:none;margin-left:auto;position:sticky;right:0;
+  background:var(--panel);padding:4px 6px;border-radius:6px;z-index:2}
+#arte-preview{max-width:none;flex:none}
+
+/* v6.3: botoncito «＋ crear» en filas sin placa */
+.btn.mini{padding:2px 9px;font-size:11.5px;border-radius:6px;flex:none;margin-left:auto}
+
+/* FIX 4: etiquetas largas de la sidebar se cortaban; ahora envuelven. */
+#modnav .mnav,.modnav-grp .mnav{white-space:normal;line-height:1.25}
+#brand{white-space:normal}
+
+/* ---- móvil ---- */
+@media (max-width:760px){
+  body{flex-direction:column;overflow:auto}
+  #shell-side{width:100%;max-height:46vh;border-right:none;
+    border-bottom:1px solid var(--line)}
+  #shell-main{height:auto}
+  aside.side{width:150px}
+}
+
 </style>
 </head>
 <body>
+<input type="file" id="dir-input" webkitdirectory multiple hidden>
 
-<script>
-/* v3.8.1 — contador de errores JS durante el arranque (lo lee el autochequeo del final).
-   El bug de la v3.8 (interfaz muerta) era exactamente esto: un error sin capturar
-   en el primer script y nadie lo veía. Ahora queda contado y visible. */
-window.__bootErrors = 0;
-window.addEventListener('error', function () { window.__bootErrors++; });
-</script>
+<div id="shell-side">
+  <h1 id="brand">TD2D <b>Suite</b><span>v6.1 · recodificada</span></h1>
+  <div class="cat"><div class="cat-title">Animaciones</div>
+   <nav class="modnav-grp" id="modnav">
+    <button class="mnav" data-mod="anim"><span class="ic">🎬</span>Editor de animaciones</button>
+   </nav>
+  </div>
+  <div class="cat"><div class="cat-title">Arte e imágenes</div>
+   <nav class="modnav-grp">
+    <button class="mnav" data-mod="arte"><span class="ic">🖼</span>Arte (placas, iconos, fin)</button>
+    <button class="mnav" data-mod="img"><span class="ic">✨</span>Brillo de imágenes</button>
+   </nav>
+  </div>
+  <div class="cat"><div class="cat-title">Números</div>
+   <nav class="modnav-grp">
+    <button class="mnav" data-mod="cd"><span class="ic">⏱</span>Recargas y enfriamientos</button>
+   </nav>
+  </div>
+  <div class="cat"><div class="cat-title">Sistema</div>
+   <nav class="modnav-grp">
+    <button class="mnav" data-mod="keys"><span class="ic">🎮</span>Botones</button>
+    <button class="mnav" data-mod="lms"><span class="ic">🎤</span>Show LMS</button>
+    <button class="mnav" data-mod="muelles"><span class="ic">🪀</span>Muelles</button>
+   </nav>
+  </div>
+  <div class="cat"><div class="cat-title">Personajes</div>
+   <nav class="modnav-grp">
+    <button class="mnav" data-mod="pj"><span class="ic">👤</span>Crear personajes</button>
+   </nav>
+  </div>
+  <div id="modnav-note">tú mueves · el código se escribe solo</div>
+</div>
 
-<audio id="bgm" loop preload="none" src="https://file.garden/aoWRYc0-p1TyFbL9/Sonic.exe%20The%20Disaster%201.0%20Lobby%20Music%20(OST).mp3"></audio>
+<div id="shell-main">
+  <header id="topbar">
+    <button id="btn-open" class="btn primary">📂 Abrir carpeta del proyecto</button>
+    <button id="btn-open-ro" class="btn">👁 Solo mirar</button>
+    <button id="btn-reopen" class="btn hidden">↻ Reabrir</button>
+    <button id="btn-demo" class="btn">🧪 Demo</button>
+    <button id="btn-yypfix" class="btn hidden">🩹 Reparar .yyp</button>
+    <span class="sp"></span>
+    <span id="proj-status">sin proyecto abierto</span>
+    <div id="music-ctl" class="hidden">
+      <button id="btn-music" class="btn">🎵</button>
+      <input id="music-vol" type="range" min="0" max="100" value="40">
+    </div>
+    <button id="btn-help" class="btn">❓ Ayuda</button>
+  </header>
 
-<header id="topbar">
-  <div id="brand">TD2D <b>Suite</b><span>animaciones · recargas · imágenes · enfriamientos · botones</span></div>
-  <button id="btn-open" class="btn primary">Abrir carpeta del proyecto</button>
-  <button id="btn-open-ro" class="btn">Elegir carpeta (solo lectura)</button>
-  <button id="btn-reopen" class="btn hidden" title="Vuelve a abrir la última carpeta del proyecto usada en esta Suite con un clic (sin volver a buscarla)">↺ Reabrir última carpeta</button>
-  <button id="btn-demo" class="btn">Demo</button>
-  <button id="btn-yypfix" class="btn" title="Diagnostica y repara el .yyp del proyecto si GameMaker dice que está corrupto (copia de seguridad incluida)">🔧 Reparar .yyp</button>
-  <span id="music-ctl" class="hidden">
-    <button id="btn-music" class="btn" title="Música del lobby — Sonic.exe The Disaster 1.0 (OST)">🎵 Música</button>
-    <input id="music-vol" type="range" min="0" max="1" step="0.01" value="0.3" title="Volumen de la música">
-  </span>
-  <span id="proj-status">sin proyecto</span>
-  <div class="spacer"></div>
-  <button id="btn-help" class="btn ghost">Ayuda</button>
-  <input id="dir-input" type="file" webkitdirectory multiple class="hidden">
-</header>
+  <nav id="subnav-cd" class="subnav hidden">
+    <button class="subnav-btn sel" data-cdsub="tune">Números y recargas</button>
+    <button class="subnav-btn" data-cdsub="srv">Enfriamientos del juego</button>
+  </nav>
+  <nav id="subnav-arte" class="subnav hidden">
+    <button class="subnav-btn sel" data-artesub="placas">Barra de información</button>
+    <button class="subnav-btn" data-artesub="iconos">Icono de selección</button>
+    <button class="subnav-btn" data-artesub="finales">Pantalla de fin</button>
+    <button class="subnav-btn" data-artesub="habilidades">Iconos de habilidades</button>
+    <button class="subnav-btn" data-artesub="imagenes">Imágenes (brillo)</button>
+  </nav>
 
-<nav id="modnav">
-  <button class="mnav sel" data-mod="anim">🎬 Animaciones</button>
-  <button class="mnav" data-mod="cd">⏱ Enfriamientos</button>
-  <button class="mnav" data-mod="arte">🖼 Arte e imágenes</button>
-  <button class="mnav" data-mod="keys">🎮 Botones</button>
-  <button class="mnav" data-mod="lms">🎤 Show LMS</button>
-  <button class="mnav" data-mod="muelles">🪀 Muelles</button>
-  <button class="mnav" data-mod="pj">👤 Personajes</button>
-  <span id="modnav-note">tú mueves · el código se escribe solo</span>
-</nav>
-<nav id="subnav-cd" class="subnav hidden">
-  <button class="subnav-btn sel" data-cdsub="tune">Números y recargas</button>
-  <button class="subnav-btn" data-cdsub="srv">Enfriamientos del juego</button>
-</nav>
-<nav id="subnav-arte" class="subnav hidden">
-  <button class="subnav-btn sel" data-artesub="placas">Barra de información</button>
-  <button class="subnav-btn" data-artesub="iconos">Icono de selección</button>
-  <button class="subnav-btn" data-artesub="finales">Pantalla de fin</button>
-  <button class="subnav-btn" data-artesub="habilidades">Iconos de habilidades</button>
-  <button class="subnav-btn" data-artesub="imagenes">Estados y objetos</button>
-</nav>
-
-<div id="mods">
+  <div id="mods">
 <div id="mod-anim" class="mod">
 
   <aside id="left">
@@ -807,8 +919,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
       <div id="cd-list"></div>
     </section>
   </aside>
-</div><!-- /mod-anim -->
-
+</div>
 <div id="mod-tune" class="mod hidden">
   <aside class="side">
     <div class="side-head">Personaje</div>
@@ -845,48 +956,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
     <section class="note">Las macros con <b>E</b> delante (EMETAL_…, EBLAZE_…) son la versión del personaje <b>demonizado / escapado</b>: suelen ser recargas más cortas. Se editan igual, cada una con su deslizador.</section>
     <section class="note">Nada se toca hasta que pulsas <b>Escribir</b>: antes verás el antes/después exacto, y siempre queda copia en <code>_backups_animeditor/</code> con botón de deshacer.</section>
   </aside>
-</div><!-- /mod-tune -->
-
-<div id="mod-img" class="mod hidden">
-  <aside class="side">
-    <div class="tabs">
-      <button class="tab active" data-itab="estados">Estados</button>
-      <button class="tab" data-itab="objetos">Objetos</button>
-    </div>
-    <div id="img-tab-estados" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
-      <div id="img-char-list" style="flex:1;overflow-y:auto;padding:6px"></div>
-      <div id="img-state-block" class="hidden" style="border-top:1px solid var(--line);max-height:50%;display:flex;flex-direction:column">
-        <div class="side-head"><span id="img-state-title">Estados</span></div>
-        <label class="toggleline" id="img-demon-line" style="padding:0 10px"><input type="checkbox" id="img-chk-demon"> demonizada (eanims)</label>
-        <div id="img-state-list" style="overflow-y:auto;flex:1;padding:6px"></div>
-      </div>
-    </div>
-    <div id="img-tab-objetos" class="hidden" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
-      <input id="img-obj-search" placeholder="Buscar objeto o sprite…" style="margin:6px;width:calc(100% - 12px)">
-      <div id="img-obj-list" style="flex:1;overflow-y:auto;padding:6px"></div>
-    </div>
-  </aside>
-  <main class="mid">
-    <div class="imgstage">
-      <canvas id="img-viewer" width="420" height="200"></canvas>
-      <div id="img-viewer-hud">elige un estado o un objeto</div>
-    </div>
-    <button id="img-btn-swap" class="btn primary hidden" style="align-self:flex-start">Cambiar este sprite…</button>
-    <div id="img-context" style="flex:1;overflow-y:auto"></div>
-  </main>
-  <aside class="rightpane">
-    <section>
-      <h3>Cambios a escribir</h3>
-      <div id="img-edits"><div class="muted">nada todavía</div></div>
-      <div id="img-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-        <button id="img-write" class="btn primary" style="flex:1;min-width:130px">Escribir en los archivos</button>
-        <button id="img-undo">Deshacer último</button>
-      </div>
-    </section>
-    <section class="note">Cambiar el sprite de un <b>estado</b> reescribe la tabla <code>player_anims</code>: como los puppets de los demás clientes resuelven por esa misma tabla, el cambio se ve en todas las pantallas sin tocar nada más.</section>
-  </aside>
-</div><!-- /mod-img -->
-
+</div>
 <div id="mod-srv" class="mod hidden">
   <aside class="side">
     <div class="side-head">Enfriamientos del juego</div>
@@ -927,8 +997,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
     <section class="note">Cada fila dice quién la impone: <b>🖥 server</b> (C, se recompila) o <b>solo cliente</b> (macro GML, F5 y listo). Si el cliente manda la habilidad antes de que termine la recarga <b>del server</b>, el paquete se <b>ignora en silencio</b> y la habilidad «no sale»: eso es una fila ⚠ desincronizada, y el botón <b>«cuadrar»</b> la arregla al vuelo.</section>
     <section class="note">Tras escribir macros del cliente basta recompilar el juego (F5). Si tocaste <b>Game.c</b>, recompila también el server (<code>betterserver-oss/compilar_server.bat</code>) y reinícalo: el C no se recarga solo. Siempre queda copia en <code>_backups_animeditor/</code> por archivo y botón de deshacer.</section>
   </aside>
-</div><!-- /mod-srv -->
-
+</div>
 <div id="mod-arte" class="mod hidden">
   <div id="arte-subnav-space"></div>
 
@@ -1190,8 +1259,46 @@ window.addEventListener('error', function () { window.__bootErrors++; });
       <section class="note">Importa tu imagen, <b>reduce la escala</b> hasta el tamaño adecuado, colócala y escribe: el Suite guarda el PNG (raíz + layers) al tamaño exacto del sprite. Ideal para cambiar el icono de una habilidad existente.</section>
     </aside>
   </div>
-</div><!-- /mod-arte -->
-
+</div>
+<div id="mod-img" class="mod hidden">
+  <aside class="side">
+    <div class="tabs">
+      <button class="tab active" data-itab="estados">Estados</button>
+      <button class="tab" data-itab="objetos">Objetos</button>
+    </div>
+    <div id="img-tab-estados" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <div id="img-char-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+      <div id="img-state-block" class="hidden" style="border-top:1px solid var(--line);max-height:50%;display:flex;flex-direction:column">
+        <div class="side-head"><span id="img-state-title">Estados</span></div>
+        <label class="toggleline" id="img-demon-line" style="padding:0 10px"><input type="checkbox" id="img-chk-demon"> demonizada (eanims)</label>
+        <div id="img-state-list" style="overflow-y:auto;flex:1;padding:6px"></div>
+      </div>
+    </div>
+    <div id="img-tab-objetos" class="hidden" style="display:flex;flex-direction:column;overflow:hidden;flex:1">
+      <input id="img-obj-search" placeholder="Buscar objeto o sprite…" style="margin:6px;width:calc(100% - 12px)">
+      <div id="img-obj-list" style="flex:1;overflow-y:auto;padding:6px"></div>
+    </div>
+  </aside>
+  <main class="mid">
+    <div class="imgstage">
+      <canvas id="img-viewer" width="420" height="200"></canvas>
+      <div id="img-viewer-hud">elige un estado o un objeto</div>
+    </div>
+    <button id="img-btn-swap" class="btn primary hidden" style="align-self:flex-start">Cambiar este sprite…</button>
+    <div id="img-context" style="flex:1;overflow-y:auto"></div>
+  </main>
+  <aside class="rightpane">
+    <section>
+      <h3>Cambios a escribir</h3>
+      <div id="img-edits"><div class="muted">nada todavía</div></div>
+      <div id="img-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <button id="img-write" class="btn primary" style="flex:1;min-width:130px">Escribir en los archivos</button>
+        <button id="img-undo">Deshacer último</button>
+      </div>
+    </section>
+    <section class="note">Cambiar el sprite de un <b>estado</b> reescribe la tabla <code>player_anims</code>: como los puppets de los demás clientes resuelven por esa misma tabla, el cambio se ve en todas las pantallas sin tocar nada más.</section>
+  </aside>
+</div>
 <div id="mod-keys" class="mod hidden">
   <aside class="side">
     <div class="side-head">Personaje</div>
@@ -1215,8 +1322,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
     <section class="note"><b>Seguro:</b> solo toca al <b>cliente</b> — la red y el server ni se enteran (ellos ya reciben «usó la habilidad X», no la tecla). En Android los botones táctiles emulan estas mismas teclas, así que el cambio aplica igual en el móvil. Las condiciones de mecánica (en el aire, en el suelo, parado…) se conservan: solo cambias teclas y combinaciones.</section>
     <section class="note">Si quitas el «↓» a una habilidad que lo pedía, su icono del HUD pierde el «↓+» pintado (y al revés), para que el icono no mienta. Nada se escribe hasta que pulsas <b>Escribir</b>; siempre queda copia en <code>_backups_animeditor/</code> y botón de deshacer.</section>
   </aside>
-</div><!-- /mod-keys -->
-
+</div>
 <div id="mod-lms" class="mod hidden">
   <aside class="side" style="overflow-y:auto">
     <div class="side-head">El Show Fuerte</div>
@@ -1258,8 +1364,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
     <section class="note"><b>Canciones compartidas:</b> si una canción la usan varios personajes (⚠ en la fila), el 🔄 <b>NO se la cambia a los demás</b>: le crea un slot propio nuevo (mus_lms_N aparte) a este personaje. 🔧 separa sin cambiar la canción (copia el audio a un archivo independiente).</section>
     <section class="note"><b>GameMaker CERRADO al escribir:</b> si lo dejas abierto, su próximo guardado borra del .yyp los sonidos que él no cargó y el juego revienta al arrancar («Variable mus_lms_N not set»). Si ya pasó, el aviso 🚨 de arriba trae el botón <b>🩹</b> para re-registrar los sonidos perdidos sin tocar audios ni listas.</section>
   </aside>
-</div><!-- /mod-lms -->
-
+</div>
 <div id="mod-muelles" class="mod hidden">
   <aside class="side">
     <div class="side-head">Personaje</div>
@@ -1291,8 +1396,7 @@ window.addEventListener('error', function () { window.__bootErrors++; });
     <section class="note"><b>Robusto por diseño:</b> un personaje cuyo sprite <b>no esté en la lista</b> usa su caída de siempre — ni errores ni cambios. La Suite además escribe la llamada <code>scr_fall_anim();</code> en su <code>case FALL</code> (si el case es simple; si toca otras cosas, te da el snippet para pegarlo a mano).</section>
     <section class="note">Nada se toca hasta que pulsas <b>Escribir</b>: antes verás el antes/después exacto, y siempre queda copia en <code>_backups_animeditor/</code> con botón de deshacer. Tras escribir, recompila (F5).</section>
   </aside>
-</div><!-- /mod-muelles -->
-
+</div>
 <div id="mod-pj" class="mod hidden">
   <!-- ═══ ROSTER (izquierda) ═══ -->
   <aside class="pj-side">
@@ -1403,127 +1507,66 @@ window.addEventListener('error', function () { window.__bootErrors++; });
       <div class="pj-faq-b">Mueve TODO a <code>_personajes_eliminados/&lt;pj&gt;/</code> con un manifiesto y limpia los registros. Solo con el ÚLTIMO personaje del enum (los índices viajan por red). <b>Restaurar</b> lo devuelve a su slot si sigue libre. Siempre hay copia en <code>_backups_animeditor/</code> y botón de deshacer.</div>
     </details>
   </aside>
-</div><!-- /mod-pj -->
-
-</div><!-- /mods -->
-
-<div id="toasts"></div>
-
+</div>
 <dialog id="sprpicker">
   <h2>Elegir un sprite</h2>
   <input id="sprpick-search" placeholder="Buscar… (ej: metal, trap, revival)" style="width:100%">
   <div id="sprpick-grid"></div>
   <div class="close-row"><button id="sprpick-cancel" class="btn">Cancelar</button></div>
 </dialog>
-
 <dialog id="help">
-  <h2>Suite TD2D — cómo se usa</h2>
+  <h2>Suite TD2D v6 — cómo se usa</h2>
+  <p>Todo está en la <b>barra lateral izquierda</b>, ordenado por categorías. Abre primero tu proyecto
+  (arriba a la derecha) y luego entra al módulo que necesites; cada uno escribe el código por ti.</p>
+
   <h4>1. Abrir tu proyecto</h4>
-  <p>Botón <b>Abrir carpeta del proyecto</b> (Chrome o Edge) y elige la carpeta raíz del juego
-  (la que contiene <code>scripts/</code>, <code>objects/</code> y <code>sprites/</code>).
-  Así puedes <b>escribir</b> los cambios directo en los GML, con copia de seguridad automática.
-  En otros navegadores usa <b>Elegir carpeta (solo lectura)</b>: te dará el archivo entero para copiar y pegar en GameMaker.</p>
-  <h4>2. Módulo 🎬 Animaciones</h4>
-  <p>Elige personaje → estado y verás la tira animada a la velocidad que tiene HOY.
-  Arrastra los marcadores <b style="color:#57c98a">A</b> (el loop EMPIEZA aquí) y <b style="color:#e8924b">B</b> (TERMINA aquí),
-  ajusta la velocidad y escribe: <code>Draw_76.gml</code> (image_speed y cortes) y <code>Other_7.gml</code> (punto de repetición del idle).</p>
-  <h4>3. Módulo ⏱ Enfriamientos (2 pestañas unidas)</h4>
-  <p>Antes eran dos módulos separados; ahora viven en el mismo botón con sub-pestañas. <b>Números y recargas:</b>
-  todas las recargas (<code>*_RECHARGE</code>) y duraciones del personaje, con deslizador y <b>vista previa de la barra</b>
-  comparando «ahora» contra «propuesta» en tiempo real, y los otros números (velocidad máxima, aceleración…).
-  <b>Enfriamientos del juego:</b> el inventario completo de enfriamientos, cliente y server, en una sola lista.</p>
-  <h4>4. Módulo 🖼 Arte e imágenes</h4>
-  <p><b>Barra de información:</b> edita la placa de cada personaje (<code>spr_char_info</code>) igual que el juego la pinta:
-  nombre con su color (o estilo killer), 3 líneas de texto con los <b>colores de escape</b> del juego ({r} {g} {b}…),
-  iconos incrustables ({icon:…}), medidor de chevrones y vista previa en vivo. <b>Sin límite de letras:</b> si el nombre
-  es largo, la línea 1 se corre a la derecha para no taparla. Al elegir un personaje la placa se
-  <b>decodifica sola</b>: el texto aparece ya editable (no hace falta redibujar nada a mano). Escribe los PNG
-  (raíz + layers) con respaldo y deshacer. <b>Icono de selección:</b> los exeicon (sprites propios de cada killer,
-  6 fotogramas) se editan directo: una imagen que rellena todos o una por fotograma, con
-  escala/desplazamiento/espejo/clave cromática y vista previa del lobby. La tira compartida
-  <code>spr_lobby_icon</code> <b>ya no se toca</b>.
-  <b>✨ Retratos con brillo:</b> convierte el retrato de un superviviente en un <b>sprite independiente</b>
-  (como los killers, tipo Metal Amy): crea <code>spr_lobby_icon_sh_&lt;pj&gt;</code> (selección) y
-  <code>spr_lobby_esc_sh_&lt;pj&gt;</code> (escapó) <b>al tamaño exacto de tus imágenes</b> (24×24, 58×62, lo que sea)
-  + parches GML con respaldo: al seleccionar al personaje, el código redirige a su sprite propio. El icono de
-  «escapó» se centra solo en su hueco de la barra sea cual sea el tamaño (v3.9.1).
-  Compatible con Amy (canon), Sonic, Amelia y compañía; Sally (canon) y
-  Vanilla comparten el de Sally/Cream como en el juego. Los resultados no se tocan (usan el normal).
-  <b>Pantalla de fin:</b> reemplaza los 4 finales genéricos o crea finales <b>por killer</b> (sprite nuevo + registro .yyp
-  + parche GML con guardia). <b>Iconos de habilidades:</b> el editor de los <code>spr_gui_*</code> del HUD — el icono
-  recortado junto a su tecla (como se ve en partida), con escala para reducir la imagen importada al tamaño del
-  hueco. <b>Estados y objetos:</b> el módulo de imágenes clásico.</p>
-  <h4>5. (dentro de Enfriamientos)</h4>
-  <p><b>El inventario completo</b>: cada enfriamiento del juego en una sola lista — las ~55 macros del <b>cliente</b>
-  (<code>AMY_ATTACK_RECHARGE</code>, <code>SONIC_PARRY_CD_*</code>… en <code>objects/*/Create_0.gml</code> y <code>scripts/scr_*_special</code>)
-  <b>y</b> las que impone de verdad el <b>server</b> (<code>betterserver-oss/disasterserver/states/Game.c</code>,
-  <code>v->plr_cooldowns[...] = N * TICKSPERSEC</code>). Elige personaje a la izquierda: cada fila dice quién la impone y,
-  si es de las emparejadas, trae el chip de sincronía: cliente <b>por debajo</b> del server = habilidad «no sale» (marcada ⚠,
-  con botón <b>cuadrar</b>). Hay filtros (server / desincronizadas / demonizadas), búsqueda y escala ÷2 ×2 por personaje.
-  Las E-marcos (EXE…) son la versión demonizada. Tras escribir: macros → F5; Game.c → <b>recompila el server</b> y reinícalo.</p>
-  <h4>5. Módulo 🎮 Botones de habilidades</h4>
-  <p><b>El modo edición de habilidades:</b> elige un personaje y asigna qué botón lanza cada una —
-  Salto (Z), Especial 1 (X), Especial 2 (C), Especial 3 (V), con direcciones mantenidas (↓ ↑ ← →) o
-  <b>combos de dos teclas</b> (mantener una y pulsar otra). Aprovecha el sistema de letras dinámicas v4.3:
-  el icono del HUD pasa a mostrar la tecla nueva al momento. Se reescribe la condición de teclado en
-  <code>scr_*_special.gml</code> y la tecla del icono en <code>obj_playerui/Draw_64.gml</code> — nada de red ni server,
-  y en Android los botones táctiles emulan las mismas teclas, así que aplica igual.</p>
-  <h4>6. Módulo 🎤 Show LMS</h4>
-  <p>La música del <b>Show Fuerte</b>, ahora <b>por personaje</b>: elige quién tiene show
-  asignándole canciones (el que no tenga música, no le aplica — y punto). Cada personaje acepta
-  <b>todas las canciones que quieras</b> (.mp3, .ogg o .wav — GameMaker convierte los .mp3 solo):
-  al quedar como último superviviente, el server elige una <b>al azar de SU lista</b> y sube el reloj
-  a <b>su duración</b> (se lee automáticamente del audio). El show genérico solo rellena la vida;
-  las pasivas extra son personales (las de Sonic: bloqueo, i-frames, stun extra y la bola que
-  aturde) y se editan aquí mismo. Tras escribir: F5 <b>y recompilar el server</b>
-  (el personaje del show y la canción elegida los manda él).</p>
-  <h4>7. Módulo 🪀 Muelles</h4>
-  <p>La caída “tipo trampolín” del Sonic clásico, configurable por personaje: al rebotar en un muelle,
-  <b>subida</b> = mientras asciende, <b>bajada</b> = al caer. Para cada fase eliges el <b>frame</b> (pose fija,
-  el caso típico de 2 frames: f0 sube / f1 cae) o un <b>bucle</b> de varios frames con su velocidad.
-  Todo vive en la lista <code>global.fallAnims</code> de <code>scr_survivors.gml</code> y en una única línea
-  (<code>scr_fall_anim();</code>) en el <code>case FALL</code> de cada personaje de la lista — la Suite la escribe sola.
-  Un personaje sin configurar usa su caída de siempre: ni errores ni cambios (robusto para el futuro).
-  Metal, Metal demonizado, Blaze y Blaze demonizada ya vienen configurados.</p>
-  <p><b>v53.1 — placas:</b> la barra de info lee el mapa REAL del juego: <code>obj_lobby/Draw_0.gml</code>
-  (<code>else if(sprInd == N) _infoFrame = M</code> → frame de la tira · <code>draw_sprite(spr_char_info_X…)</code> → placa
-  propia) cruzado con el roster. Cada personaje edita SU placa; quien no tenga ninguna aparece en «Sin placa (aún)»
-  con su aviso, nunca la de otro.</p>
-  <p><b>v53 — auto-discovery:</b> <b>NADIE necesita estar en una lista fija nunca más</b>. Un
-  <b>roster</b> compartido se deriva de los macros <code>CHARACTER_*</code> de <code>scr_survivors.gml</code>
-  tras cada escaneo, y TODAS las barras de personajes (placas, retratos con brillo, superviviente,
-  enfriamientos, LMS, muelles, animaciones) lo consumen: <b>un personaje nuevo aparece solo en todas
-  partes</b>, incluso los creados con 👤 Personajes. El módulo LMS además adopta en caliente las
-  canciones que encuentre en <code>scr_lms.gml</code> de personajes fuera de su lista: ya no puede
-  borrar shows por no conocer a alguien.</p>
-  <p><b>v52 — super forma:</b> los personajes con super (Amy canon) aparecen también con su
-  <b>sprite de caída super</b> (<code>spr_super_amy_fall</code>) en el catálogo, marcado ✨super. Su fila va en
-  la misma <code>global.fallAnims</code>: el switch super del Draw_76 cambia el sprite <i>antes</i> de que el
-  switch principal llame a <code>scr_fall_anim()</code>, así que la configuración aplica sola. En 🎬 Animaciones y
-  🖼 Imágenes, los estados con sprite super llevan la chispa ✨ — cambiarles el sprite edita su case
-  en el switch super del Draw_76 (no la tabla <code>player_anims</code>).</p>
-  <h4>Módulo 👤 Personajes</h4>
-  <p>El <b>constructor y gestor de personajes</b>, con roster de tarjetas y retratos reales, filtros
-  (activos / off / reservados), búsqueda y registro vivo de cambios. <b>Añadir:</b> dale una carpeta con
-  subcarpetas por estado (<code>idle/ walk/ run/ jump/ fall/…</code> con PNGs numerados; acepta nombres en
-  español: <code>correr/ caminar/…</code>) y construye todo el personaje: sprites con <b>orígenes clavados al
-  suelo</b> (pies − 17, la distancia exacta de los sensores), objeto y script special clonados del padre que
-  elijas, y los 16 registros (macro, anims, paletas, lobby, server…). Estados que falten se heredan del padre.
-  Opcionales: <code>menu/</code>, <code>info/</code>, <code>e/</code>, <code>nega/</code>.
-  <b>Activar / Desactivar</b> sin borrar nada (cliente + server). <b>Eliminar</b> manda a papelera
-  (<code>_personajes_eliminados/</code>, solo el último del enum) y <b>Restaurar</b> lo trae de vuelta.</p>
-  <h4>8. Música</h4>
-  <p>El botón <b>🎵 Música</b> de la barra de arriba pone el tema del lobby
-  (<i>Sonic.exe The Disaster 1.0 OST</i>) mientras editas, en bucle y con control de volumen.
-  Si lo dejaste encendido, vuelve solo en tu próxima visita.</p>
-  <h4>9. Escribir (todos los módulos)</h4>
-  <p>El panel derecho muestra el antes/después exacto de cada archivo. <b>Escribir</b> guarda una copia en
-  <code>_backups_animeditor/</code> y tiene botón de deshacer. Después compila el juego (F5).
-  El multijugador no necesita recompilar el server para animaciones ni macros: el frame exacto viaja por red
-  y las macros son de cliente. Solo el módulo 🖥 Servidor toca C.</p>
+  <p><b>📂 Abrir carpeta del proyecto</b> (Chrome o Edge): elige la carpeta raíz del juego (la que contiene
+  <code>scripts/</code>, <code>objects/</code> y <code>sprites/</code>). Así puedes <b>escribir</b> los cambios
+  directo en los GML, con copia de seguridad automática. En otros navegadores usa <b>👁 Solo mirar</b>:
+  te dará el archivo entero para copiar y pegar en GameMaker. <b>🧪 Demo</b> abre un proyecto de ejemplo
+  para probar la Suite sin riesgo.</p>
+
+  <h4>Categoría «Animaciones»</h4>
+  <p><b>🎬 Editor de animaciones</b>: elige personaje → estado y verás la tira animada a la velocidad real
+  del juego. Mueve velocidad, punto de reenganche (A/B) o frames de intro/bucle y <b>Escribir</b> parchea
+  el <code>Draw_76.gml</code> y el <code>Other_7.gml</code> del personaje.</p>
+
+  <h4>Categoría «Arte e imágenes»</h4>
+  <p><b>🖼 Arte</b> con 4 sub-pestañas: <b>Barra de información</b> (las placas del lobby: nombre, medidor,
+  color — cada personaje edita SU placa, sacadas del mapa real de <code>obj_lobby/Draw_0.gml</code>),
+  <b>Icono de selección</b>, <b>Pantalla de fin</b> e <b>Iconos de habilidades</b> (HUD).
+  <b>✨ Brillo de imágenes</b>: cambia el sprite de cualquier estado u objeto con preview, escalado y croma.</p>
+
+  <h4>Categoría «Números»</h4>
+  <p><b>⏱ Recargas y enfriamientos</b> con 2 sub-pestañas: <b>Números y recargas</b> (vida, daño, velocidad,
+  salto… de cada personaje, con preview de la barra del juego) y <b>Enfriamientos del juego</b> (el inventario
+  completo: servidor en C y cliente en GML, con sincronización explicada).</p>
+
+  <h4>Categoría «Sistema»</h4>
+  <p><b>🎮 Botones</b>: qué tecla o combinación lanza cada habilidad (el HUD muestra la tecla real al instante).
+  <b>🎤 Show LMS</b>: música por personaje — quien tiene canción, tiene show. <b>🪀 Muelles</b>: caída tipo
+  trampolín por sprite (frame fijo o bucle en subida/bajada).</p>
+
+  <h4>Categoría «Personajes»</h4>
+  <p><b>👤 Crear personajes</b>: dale una carpeta con subcarpetas por estado (<code>idle/ walk/ run/…</code> con
+  PNGs) y la Suite construye TODO: sprites con orígenes clavados, objeto, script special, registros, server y
+  placa. También eliminar (solo el último del enum) y restaurar.</p>
+
+  <h4>Música de la Suite</h4>
+  <p>El botón 🎵 del encabezado pone la música del lobby mientras editas. No toca tu proyecto.</p>
+
+  <h4>Escribir cambios (todos los módulos)</h4>
+  <p>El botón <b>Escribir</b> guarda una copia en <code>_backups_animeditor/</code> antes de tocar nada, y
+  <b>Deshacer</b> restaura la versión anterior. El parche del <code>.yyp</code> escribe solo si la estructura
+  del JSON es válida tras el cambio (lo re-parsea para comprobarlo).</p>
+
   <div class="close-row"><button id="help-close" class="btn primary">Entendido</button></div>
 </dialog>
+  </div>
+</div>
 
+<audio id="bgm" loop hidden></audio>
+<div id="toasts"></div>
 <script>
 /* =====================================================================
    NUCLEO del Editor de Animaciones TD2D — funciones puras de analisis
@@ -2356,10 +2399,8 @@ window.addEventListener('error', function () { window.__bootErrors++; });
     lineDiff: lineDiff
   };
 });
-
 </script>
 <script>
-/* ===== Editor de Animaciones TD2D — parte 1: estado, archivos, proyecto ===== */
 (() => {
 'use strict';
 const C = window.AnimCore;
@@ -2962,17 +3003,24 @@ function clearSpriteView() {
   $('#viewer-hud').textContent = 'elige un personaje y un estado';
 }
 
-// fin de la parte 1 (la parte 2 sigue en el mismo <script>)
+// fin de la parte 1 (la parte 2 sigue en el mismo )
 
 /* ===== Editor de Animaciones TD2D — parte 2: interfaz, reproductor, escritura ===== */
 
 /* --------------------------------- utilidades --------------------------------- */
 
 function toast(msg, kind) {
+  // v6.2 — no apilar avisos identicos (el mismo click repetido sobre una
+  // fila "sin placa" lanzaba N copias del mismo texto) ni infinitos:
+  const host = $('#toasts');
+  for (const el of [...host.children]) {
+    if (el.textContent === msg) return; // ya hay uno igual en pantalla
+  }
+  while (host.children.length >= 4) host.firstChild.remove();
   const d = document.createElement('div');
   d.className = 'toast ' + (kind || '');
   d.textContent = msg;
-  $('#toasts').appendChild(d);
+  host.appendChild(d);
   setTimeout(() => d.classList.add('gone'), 3200);
   setTimeout(() => d.remove(), 3600);
 }
@@ -3691,14 +3739,11 @@ catch (e) {
 }
 
 })();
-
 </script>
 <script>
 /* ===== Suite TD2D — parte 3: módulos «⏱ Recargas y números» e «🖼 Imágenes» =====
-   Funciona sobre window.__animtool (app1+app2) y window.AnimCore. No toca el
-   estado del módulo de animaciones: cada módulo gestiona sus cambios y los
-   sincroniza con S.pendingFiles/S.edits, que writeEdits/undoLast escriben
-   con copia de seguridad y deshacer. */
+   Funciona sobre window.__animtool y window.AnimCore. No toca el estado
+   del editor de animaciones: cada módulo gestiona sus cambios. */
 (() => {
 'use strict';
 const C = window.AnimCore;
@@ -4164,6 +4209,7 @@ async function tuneAfterWrite() {
   renderTuneEdits();
 }
 
+
 /* =====================================================================
    MÓDULO 🖼 IMÁGENES DE HABILIDADES
    ===================================================================== */
@@ -4620,6 +4666,8 @@ function imgTick(t) {
 
 /* ================= re-escaneo de proyecto / escritura ================= */
 
+/* ================= re-escaneo de proyecto / escritura ================= */
+
 window.__onProjectScan = function () {
   Tune.index = null; Tune.entity = null; Tune.orig = {}; Tune.working = {}; Tune.changes = [];
   Img.orig = {}; Img.working = {}; Img.changes = []; Img.objIndex = null; Img.objSel = null;
@@ -4650,7 +4698,7 @@ async function copyWorkingFile(btn) {
 
 function init3() {
   // navegación de módulos
-  $$('#modnav .mnav').forEach(b => b.addEventListener('click', () => switchModule(b.dataset.mod)));
+  $$('.mnav').forEach(b => b.addEventListener('click', () => switchModule(b.dataset.mod)));
 
   // ---- recargas ----
   $('#tune-ent-list').addEventListener('click', (e) => {
@@ -4759,8 +4807,15 @@ function init3() {
 
 init3();
 
-})();
+/* v6.1 — marca visual del módulo activo al arrancar (switchModule es
+   interno; esto pinta el .sel correcto sin tocar su lógica) */
+try {
+  const _m = (window.__animtool && window.__animtool.S.module) || 'anim';
+  document.querySelectorAll('.mnav').forEach(b =>
+    b.classList.toggle('sel', b.dataset.mod === _m));
+} catch (e) { }
 
+})();
 </script>
 <script>
 /* ===== Suite TD2D — parte 4 (v3.4): módulo «❄ Enfriamientos (todos)» =====
@@ -6790,7 +6845,8 @@ if (typeof module !== 'undefined' && module.exports) {
 
 initKeys();
 })();
-
+</script>
+<script>
 /* ================= MÓDULO ARTE (v3.5) ================= */
 /* ============================================================
    ARTE CORE — decodificador y renderizador de placas (spr_char_info)
@@ -7491,7 +7547,19 @@ initKeys();
 
   async function plaqueMapFor() {
     const ros = S.roster || [];
-    if (!ros.length) return CLASSIC_PLAQUE_MAP.map(x => Object.assign({}, x));
+    if (!ros.length) {
+      // v6.3.1: sin roster (modo demo) tambien asignar uids a las propias —
+      // sin ellos el click daba sel=undefined y el toast nombraba a Tails
+      const outD = CLASSIC_PLAQUE_MAP.map(x => Object.assign({}, x));
+      const usedD = new Set(EXTRA_PLAQUES.map(e => e.id));
+      let uidD = 100;
+      for (const e of outD) {
+        if (!e.sprite) continue;
+        while (usedD.has(uidD)) uidD++;
+        e.uid = uidD; usedD.add(uidD);
+      }
+      return outD;
+    }
     // 1) parsear obj_lobby/Draw_0.gml: sprInd -> frame de tira | sprite propio
     const byIdx = new Map();
     const drawTxt = await readText('objects/obj_lobby/Draw_0.gml');
@@ -7531,15 +7599,24 @@ initKeys();
       const ck = CLASSIC_MACRO[r.macro] || CLASSIC_MACRO[r.key] || r.id;
       const classic = CLASSIC_PLAQUE_MAP.find(c => (c.key === ck || c.key === r.id || c.key === r.key) && !!c.killer === !!r.isExe) || null;
       let ent = byIdx.get((r.isExe ? 'k:' : 's:') + r.idx) || null;
-      if (!ent && classic && classic.frame != null) ent = { frame: classic.frame };
-      else if (!ent && classic && classic.sprite) ent = { sprite: classic.sprite };
       // 3) placa propia del roster aunque Draw_0 no la redirija (añadida a
       //    mano o por el módulo 👤 PJ): sprites/spr_char_info_<id>/
+      //    v6.3.2: ANTES del idx crudo — una placa propia existente es
+      //    siempre mas fiable que adivinar un frame de la tira
       if (!ent) {
         const spr = 'spr_char_info_' + r.id;
         const yy = await readText('sprites/' + spr + '/' + spr + '.yy');
         if (yy != null) ent = { sprite: spr };
       }
+      // v6.3.2: sin redirect ni sprite propio, el juego dibuja
+      // _infoFrame = sprInd (idx REAL de la macro del roster) — solo
+      // supervivientes conocidos de la tira (classic con frame); los
+      // killers tienen SU enum (idx 0..4 propio) y los añadidos sin
+      // placa conocida van a 'missing' (botón crear), nunca a la placa
+      // de otro personaje
+      if (!ent && !r.isExe && classic && classic.frame != null && r.idx != null && r.idx >= 0 && r.idx < 16) ent = { frame: r.idx };
+      if (!ent && classic && classic.frame != null) ent = { frame: classic.frame };
+      else if (!ent && classic && classic.sprite) ent = { sprite: classic.sprite };
       if (!ent) { out.push({ key: r.id, name: prettyCharName(r), killer: r.isExe, missing: true }); continue; }
       out.push({
         key: r.id,
@@ -7563,7 +7640,12 @@ initKeys();
   }
 
   async function loadPlaqueSprite() {
-    if (A.spriteMeta) return A.spriteMeta;
+    // v6.3.1: los extras (placas propias por uid) se cargan SIEMPRE que
+    // falten — el early-return saltaba la carga al pasar de demo a
+    // proyecto (A.spriteMeta ya puesto, extras sin bitmap)
+    const needExtras = (A.plaqueMap || []).some(ex => ex.sprite && ex.uid != null && !A.plaqueCache.has(ex.uid));
+    if (A.spriteMeta && !needExtras) return A.spriteMeta;
+    const fromDemo = !A.spriteMeta || A.spriteMeta.demo;
     initAssets();
     let meta = null;
     const yy = await readText('sprites/' + PLAQUE_SPRITE + '/' + PLAQUE_SPRITE + '.yy');
@@ -7642,6 +7724,7 @@ initKeys();
     if (e) return e.name;
     const fixed = EXTRA_PLAQUES.find(x => x.id === i);
     if (fixed) return fixed.name;
+    if (i == null || i === undefined) return '(sin placa)';
     return AR.plaqueNames[i] || ('Placa ' + i);
   }
   // 'FLEETWAY_AMY' -> 'Fleetway Amy' (para nombres crudos del roster)
@@ -7663,7 +7746,12 @@ initKeys();
   async function decodeFrame(i) {
     if (A.decoded.has(i)) return A.decoded.get(i);
     await loadPlaqueSprite();
-    const bmp = A.plaqueCache.get(i);
+    let bmp = A.plaqueCache.get(i);
+    // v6.3.1: en demo las placas propias (uid 100+) no tienen bitmap del
+    // proyecto — usar el frame 0 de la demo como suplente para que se
+    // puedan editar y llevarse el PNG a GameMaker a mano
+    if (!bmp && (A.spriteMeta && A.spriteMeta.demo) && i >= 100)
+      bmp = A.plaqueCache.get(0);
     if (!bmp) return null;
     const rgba = bitmapToRgba(bmp);
     A.lastRgba = rgba;
@@ -7829,16 +7917,19 @@ initKeys();
     // frames compartidos — Vanilla/Cream — editan la MISMA placa pero el
     // titulo siempre nombra al elegido)
     const mkRow2 = (e, extraNote) => {
-      const i = e.frame != null ? e.frame : e.uid;
+      const i = e.frame != null ? e.frame : (e.uid != null ? e.uid : -1);
       const row = document.createElement('div');
       row.className = 'arte-row' + (A.sel === i && (!A.selKey || A.selKey === e.key) ? ' sel' : '') + (A.dirty.has(i) ? ' dirty' : '');
       row.dataset.idx = i;
       const thumb = document.createElement('canvas');
-      thumb.width = AC.W; thumb.height = AC.H;
+      // v6.2: media resolucion ENTERA (478/2=239) — el CSS a 236 hacia una
+      // escala no entera y las miniaturas salian garbleadas
+      thumb.width = Math.round(AC.W / 2); thumb.height = Math.round(AC.H / 2);
       thumb.className = 'arte-thumb';
       const tctx = thumb.getContext('2d');
+      tctx.imageSmoothingEnabled = false;
       const bmp = A.plaqueCache.get(i);
-      if (bmp) tctx.drawImage(bmp, 0, 0);
+      if (bmp) tctx.drawImage(bmp, 0, 0, thumb.width, thumb.height);
       const lbl = document.createElement('span');
       lbl.textContent = e.name;
       const badge = document.createElement('span');
@@ -7857,11 +7948,15 @@ initKeys();
       row.className = 'arte-row' + (A.sel === i ? ' sel' : '') + (A.dirty.has(i) ? ' dirty' : '');
       row.dataset.idx = i;
       const thumb = document.createElement('canvas');
-      thumb.width = AC.W; thumb.height = AC.H;
+      // v6.2: media resolucion ENTERA (478/2=239) — el CSS a 236 hacia una
+      // escala no entera y las miniaturas salian garbleadas
+      thumb.width = Math.round(AC.W / 2); thumb.height = Math.round(AC.H / 2);
       thumb.className = 'arte-thumb';
       const tctx = thumb.getContext('2d');
-      const bmp = A.plaqueCache.get(i);
-      if (bmp) tctx.drawImage(bmp, 0, 0);
+      tctx.imageSmoothingEnabled = false;
+      // v6.3.1: en demo las propias (uid 100+) muestran el suplente (frame 0)
+      const bmp = A.plaqueCache.get(i) || ((A.spriteMeta && A.spriteMeta.demo && i >= 100) ? A.plaqueCache.get(0) : null);
+      if (bmp) tctx.drawImage(bmp, 0, 0, thumb.width, thumb.height);
       const lbl = document.createElement('span');
       // v53.1: la fila se llama como el PERSONAJE (no como el frame):
       // Vanilla comparte la placa de Cream pero su fila dice "Vanilla"
@@ -7906,7 +8001,14 @@ initKeys();
         lbl.textContent = e.name + ' — sin placa';
         row.appendChild(lbl);
         row.title = 'sprites/spr_char_info_' + e.key + '/ no existe y obj_lobby/Draw_0.gml no lo redirige';
-        row.addEventListener('click', () => toast(e.name + ' no tiene placa todavía: crea sprites/spr_char_info_' + e.key + '/ (el módulo 👤 Personajes lo hace al añadir el personaje) o añade su else if(sprInd == ...) en obj_lobby/Draw_0.gml.', 'warn'));
+        // v6.3: click abre la placa NUEVA desde cero (placeholder editable)
+        row.addEventListener('click', () => selectNewPlaque(e));
+        const mk = document.createElement('button');
+        mk.className = 'btn mini';
+        mk.textContent = '＋ crear';
+        mk.title = 'Crear sprites/spr_char_info_' + e.key + '/ desde cero (al Escribir)';
+        mk.addEventListener('click', (ev) => { ev.stopPropagation(); selectNewPlaque(e); });
+        row.appendChild(mk);
         list.appendChild(row);
       }
     }
@@ -7914,19 +8016,208 @@ initKeys();
     for (const e of killers) mkRow2(e, e.sprite ? e.sprite + ' · placa propia' : null);
   }
 
+  /* v6.3 — helpers del módulo 👤 Personajes (compartidos via window);
+     fallback local si el módulo PJ aún no cargó (orden de <script>). */
+  const _pj = window.__pjHelpers || {};
+  const pjUuid = _pj.pjUuid || function () {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    const u = new Uint8Array(16); crypto.getRandomValues(u);
+    u[6] = (u[6] & 15) | 64; u[8] = (u[8] & 63) | 128;
+    const h = Array.from(u, b => b.toString(16).padStart(2, '0')).join('');
+    return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+  };
+  const pjLenientParse = _pj.pjLenientParse || function (s) {
+    try { return JSON.parse(String(s).replace(/,(\s*[}\]])/g, '$1')); } catch (e) { return null; }
+  };
+  const pjLenientErr = _pj.pjLenientErr || function (s) {
+    try { JSON.parse(String(s).replace(/,(\s*[}\]])/g, '$1')); return null; } catch (e) { return e.message; }
+  };
+  const pjYypName = _pj.pjYypName || async function () {
+    try {
+      for (const [rel, f] of S.files.entries()) if (/\.yyp$/.test(rel)) return rel;
+    } catch (e) { }
+    return null;
+  };
+
+  /* ================= v6.3 · CREAR PLACA DESDE CERO =================
+     Para personajes «sin placa» (missing en plaqueMap). El click abre un
+     placeholder editable; al pulsar Escribir se crea el sprite completo
+     (igual que el módulo 👤 Personajes): .yy plantilla spr_char_info_fw,
+     PNG + layer con GUIDs frescos, else if(sprInd==N) en obj_lobby/Draw_0.gml
+     y entrada en el .yyp. Deshacer (Arte) revierte todo. */
+
+  // uid negativo y único para placeholders: nunca choca con frames 0..15
+  // ni con las placas propias (100+)
+  function newPlaqueUid(e) {
+    A._newPlaques = A._newPlaques || {};
+    if (A._newPlaques[e.key] != null) return A._newPlaques[e.key];
+    let uid = -100;
+    const used = new Set(Object.values(A._newPlaques));
+    while (used.has(uid)) uid--;
+    A._newPlaques[e.key] = uid;
+    return uid;
+  }
+
+  function selectNewPlaque(e) {
+    const uid = newPlaqueUid(e);
+    // modelo editable de arranque: su nombre en la placa, 3 líneas vacías,
+    // medidor -1. La placa base es TRANSPARENTE (nueva de cero).
+    const ed = {
+      name: (e.name || e.key || '').toLowerCase(),
+      nameColor: '#ffffff',
+      nameInv: false,
+      lines: [
+        { y: 5, kind: 'L1', text: '' },
+        { y: 18, kind: 'L2', text: '' },
+        { y: 31, kind: 'L3', text: '' }
+      ],
+      meter: -1
+    };
+    // registrar en el estado del módulo: cache vacía + modelo en A.models
+    const cv = document.createElement('canvas');
+    cv.width = AC.W; cv.height = AC.H;   // placeholder transparente
+    A.plaqueCache.set(uid, cv);
+    A._edits = A._edits || {};
+    A._edits[uid] = ed;
+    A.sel = uid;
+    A.selKey = e.key;
+    A._newSel = e;          // entrada del roster seleccionada (para escribir)
+    buildPlaqueList();
+    fillEditor(uid, ed);
+    previewPlaque();
+    toast('Placa nueva para ' + e.name + '. Edítala y pulsa «Escribir»: se creará sprites/spr_char_info_' + e.key + '/ y su línea en obj_lobby/Draw_0.gml.', 'ok');
+  }
+
+  // patch del obj_lobby/Draw_0.gml para el personaje e (roster entry) —
+  // devuelve el texto parcheado o null. Sigue el formato del módulo PJ.
+  // registra el sprite en el .yyp (formato del módulo PJ, con backup)
+  async function newPlaqueRegisterYyp(spriteName, undoGroup, stamp, bdir) {
+    const yypName = await pjYypName();
+    if (yypName == null) return { err: 'No encuentro el .yyp del proyecto.' };
+    let yyp = await readText(yypName);
+    if (yyp == null) return { err: 'No puedo leer ' + yypName };
+    if (yyp.indexOf('"name":"' + spriteName + '"') >= 0) return { ok: true, already: true };
+    const entry = '{"id":{"name":"' + spriteName + '","path":"sprites/' + spriteName + '/' + spriteName + '.yy",},},';
+    const m = /"resources"\s*:\s*\[\s*\n/.exec(yyp);
+    if (!m) return { err: 'No encuentro "resources" en el .yyp: no lo toco.' };
+    const out = yyp.slice(0, m.index + m[0].length) + '    ' + entry + '\n' + yyp.slice(m.index + m[0].length);
+    // validar ANTES de escribir (salud del .yyp)
+    const verr = pjLenientErr(out);
+    if (verr) return { err: 'El .yyp nuevo NO sería válido — no se escribe nada.' };
+    // backup del original
+    const blobOld = await readBlob(yypName);
+    const bname = yypName.split('/').pop() + '.arte' + stamp + '.bak';
+    if (blobOld) {
+      const bfh = await bdir.getFileHandle(bname, { create: true });
+      const bw = await bfh.createWritable(); await bw.write(blobOld); await bw.close();
+    }
+    await arteWriteFile(yypName, new Blob([out], { type: 'text/plain' }));
+    undoGroup.push({ rel: yypName, backup: blobOld ? (bdir._rel ? bdir._rel + '/' : '_backups_animeditor/' + stamp + '/') + bname : null, isYyp: true, spriteName });
+    return { ok: true };
+  }
+
+  async function newPlaquePatchLobby(e, spriteName) {
+    const rel = 'objects/obj_lobby/Draw_0.gml';
+    const txt = await readText(rel);
+    if (txt == null) return { err: 'No encuentro ' + rel };
+    // ya está redirigido (placa creada antes): no duplicar
+    const reDone = new RegExp('draw_sprite\\(\\s*' + spriteName + '\\s*,');
+    if (reDone.test(txt)) return { txt, rel, already: true };
+    // el sprInd del personaje: macro o índice directo
+    const r = (S.roster || []).find(x => x.id === e.key || x.key === e.key) || e;
+    const cond = r.macro ? ('sprInd == ' + r.macro) : ('sprInd == ' + (r.idx != null ? r.idx : 0));
+    const line = 'else if (' + cond + ')\n                        draw_sprite(' + spriteName + ', 0, 1, 232-5); // [Suite Arte] placa de ' + (e.name || e.key);
+    // ancla: tras el último draw_sprite(spr_char_info_...) del bloque de placas
+    const reAny = /draw_sprite\(\s*spr_char_info_\w+\s*,\s*0\s*,\s*1\s*,\s*232-5\s*\);[^\n]*/g;
+    let last = null, m;
+    while ((m = reAny.exec(txt))) last = { index: m.index, end: m.index + m[0].length };
+    let out;
+    if (last) out = txt.slice(0, last.end) + '\n                ' + line + txt.slice(last.end);
+    else {
+      // sin ancla: tras el último _infoFrame = N; (formato tira)
+      const reIF = /_infoFrame\s*=\s*\d+;[^\n]*/g;
+      while ((m = reIF.exec(txt))) last = { index: m.index, end: m.index + m[0].length };
+      if (!last) return { err: 'No encuentro el bloque de placas en obj_lobby/Draw_0.gml' };
+      out = txt.slice(0, last.end) + '\n        ' + line + txt.slice(last.end);
+    }
+    return { txt: out, rel };
+  }
+
+  // crea el sprite completo sprites/spr_char_info_<id>/ con 1 frame.
+  // v6.3.1: CLONA EL TEXTO de la plantilla (spr_char_info_fw) cambiando
+  // nombres y GUIDs — tolerante al formato pretty del juego real Y al
+  // compacto de una linea (el parser JSON estricto fallaba con este).
+  async function newPlaqueWriteSprite(e, rgba, undoGroup, bdir) {
+    const spriteName = 'spr_char_info_' + e.key;
+    const tmplRel = 'sprites/spr_char_info_fw/spr_char_info_fw.yy';
+    const raw = await readText(tmplRel);
+    if (raw == null) return { err: 'No encuentro la plantilla ' + tmplRel };
+    // extraer con el parser tolerante del suite (tracks->frames)
+    const meta = C.parseSpriteYy(raw);
+    if (!meta || !meta.frames.length || !meta.layers.length)
+      return { err: 'La plantilla ' + tmplRel + ' no tiene frames/layers.' };
+    const guid0 = meta.frames[0];       // GUID del frame 0 de la plantilla
+    const layer0 = meta.layers[0];      // GUID de su layer
+    // GUIDs frescos
+    const fg = pjUuid();
+    const layerGuid = pjUuid();
+    // clonar texto: nombre del sprite + GUID del frame + GUID del layer.
+    // El nombre de la plantilla aparece como "spr_char_info_fw" (con o sin
+    // %); los GUIDs como strings literales.
+    let yy = raw;
+    yy = yy.split('spr_char_info_fw').join(spriteName);
+    yy = yy.split(guid0).join(fg);
+    yy = yy.split(layer0).join(layerGuid);
+    // validar el resultado
+    const verr = pjLenientErr(yy);
+    if (verr) return { err: 'El .yy generado para ' + spriteName + ' no valida: ' + verr };
+    // PNG del editable
+    const img = rgbaToImage(rgba);
+    const blob = await new Promise(res => img.toBlob(res, 'image/png'));
+    // rutas de destino segun el formato del template:
+    // - frame: sprites/<spr>/<fg>.png  (y layers/<fg>/<layer>.png)
+    // el template puede referenciar layers/f-guid/layer.lua (compacto):
+    // el PNG del layer es layers/<fg>/<layerGuid>.png como el juego real
+    const writes = [
+      { rel: 'sprites/' + spriteName + '/' + spriteName + '.yy', blob: new Blob([yy], { type: 'text/plain' }) },
+      { rel: 'sprites/' + spriteName + '/' + fg + '.png', blob: blob },
+      { rel: 'sprites/' + spriteName + '/layers/' + fg + '/' + layerGuid + '.png', blob: blob }
+    ];
+    for (const w of writes) {
+      await arteWriteFile(w.rel, w.blob);
+      undoGroup.push({ rel: w.rel, backup: null, binary: w.blob.type !== 'text/plain', isNew: true, spriteName });
+    }
+    return { spriteName, fg, layerGuid };
+  }
+
   async function selectPlaque(i, selKey) {
     // guardar el editable de la placa anterior
-    if (A.sel >= 0 && A.dirty.has(A.sel)) {
+    if (A.sel !== -1 && A.sel != null && A.dirty.has(A.sel)) {
       A._edits = A._edits || {};
       A._edits[A.sel] = currentEditable();
     }
-    A.sel = i;
+    const prevSel = A.sel, prevKey = A.selKey;
+    A.sel = (i == null) ? -1 : i;
     A.selKey = selKey || null;   // v53.1: personaje elegido (frame compartido)
+    if (i == null) { toast('Esa placa no existe (uid sin asignar).', 'err'); A.sel = prevSel; A.selKey = prevKey; return; }
     const model = await decodeFrame(i);
-    if (!model) { toast('No puedo leer la placa de ' + plaqueName(i) + '.', 'err'); return; }
+    if (!model) {
+      // v6.3.1: nombre correcto en el error (plaqueName(undefined) decia
+      // 'Tails') y NO dejar la seleccion rota: restaurar la anterior
+      const nm = (selKey ? selKey : plaqueName(i));
+      toast('No puedo leer la placa de ' + nm + (A.spriteMeta && A.spriteMeta.demo ? ' (modo demo: sin proyecto abierto).' : '.'), 'err');
+      A.sel = prevSel; A.selKey = prevKey;
+      buildPlaqueList();
+      return;
+    }
     buildPlaqueList();
     const ed = modelToEditable(A.models.get(i));
     fillEditor(i, ed);
+    // v6.3.1: en demo las propias usan el frame 0 como suplente — el nombre
+    // decodificado diria 'tails': poner el del personaje
+    const exDemo = extraPlaqueOf(i);
+    if (exDemo && A.spriteMeta && A.spriteMeta.demo && ed.name === 'tails' && selKey)
+      { ed.name = (selKey || '').toLowerCase(); fillEditor(i, ed); }
     previewPlaque();
   }
 
@@ -7975,7 +8266,7 @@ initKeys();
   }
 
   function previewPlaque() {
-    if (A.sel < 0) return;
+    if (A.sel === -1 || A.sel == null) return;
     const ed = currentEditable();
     const rgba = renderEditable(ed, A.sel);
     const img = rgbaToImage(rgba);
@@ -8025,7 +8316,9 @@ initKeys();
   }
 
   function markDirty() {
-    if (A.sel < 0) return;
+    // v6.3: -1 = sin seleccion; los uids NEGATIVOS de placeholders nuevos
+    // (-100, -101...) SI son seleccion valida
+    if (A.sel === -1 || A.sel == null) return;
     A.dirty.add(A.sel);
     A._edits = A._edits || {};
     A._edits[A.sel] = currentEditable();
@@ -8043,6 +8336,56 @@ initKeys();
     const undoGroup = [];
     try {
       const bdir = await ensureDir('_backups_animeditor/' + stamp);
+      bdir._rel = '_backups_animeditor/' + stamp;   // v6.3: para backups .yyp
+      // v6.3 — PLACAS NUEVAS (placeholders uid<0): crear sprite completo
+      const news = [...A.dirty].filter(i => i < 0);
+      for (const i of news) {
+        const key = (A._newPlaques ? Object.keys(A._newPlaques).find(k => A._newPlaques[k] === i) : null)
+                 || (A._newSel && A._newSel.key) || null;
+        const e = (A.plaqueMap || []).find(x => x.key === key) || A._newSel;
+        if (!e) { toast('Placeholder sin personaje asociado (uid ' + i + '): se omite.', 'err'); continue; }
+        const ed = currentEditableFor(i);
+        const rgba = renderEditable(ed, i);
+        let solidCount = 0;
+        for (let px = 3; px < rgba.length; px += 4) if (rgba[px] >= 200) solidCount++;
+        if (solidCount < 40) {
+          toast('La placa nueva de ' + e.name + ' quedaria casi vacia (' + solidCount + ' px); se omite. Escribe al menos el nombre.', 'err');
+          continue;
+        }
+        const spriteName = 'spr_char_info_' + e.key;
+        // 1) sprite completo (.yy + PNG + layer)
+        const w1 = await newPlaqueWriteSprite(e, rgba, undoGroup, bdir);
+        if (w1 && w1.err) { toast(w1.err, 'err'); continue; }
+        // 2) parche obj_lobby/Draw_0.gml
+        const w2 = await newPlaquePatchLobby(e, spriteName);
+        if (w2 && w2.err) { toast(w2.err, 'err'); continue; }
+        if (!(w2 && w2.already)) {
+          const relLobby = 'objects/obj_lobby/Draw_0.gml';
+          let backed = false;
+          try {
+            const orig = await readBlob(relLobby);
+            if (orig) {
+              const bfh = await bdir.getFileHandle('lobby_' + stamp + '_Draw_0.gml.bak', { create: true });
+              const bw = await bfh.createWritable(); await bw.write(orig); await bw.close();
+              backed = true;
+            }
+          } catch (er) { /* nuevo */ }
+          await arteWriteFile(relLobby, new Blob([w2.txt], { type: 'text/plain' }));
+          undoGroup.push({ rel: relLobby, backup: backed ? bdir._rel + '/lobby_' + stamp + '_Draw_0.gml.bak' : null, isGml: true, spriteName });
+        }
+        // 3) registro en .yyp
+        const w3 = await newPlaqueRegisterYyp(spriteName, undoGroup, stamp, bdir);
+        if (w3 && w3.err) { toast(w3.err, 'err'); continue; }
+        // 4) estado: el personaje ya no está «missing»
+        if (A.plaqueMap) {
+          const ent = A.plaqueMap.find(x => x.key === e.key);
+          if (ent) { delete ent.missing; ent.sprite = spriteName; ent.uid = i < 0 ? null : ent.uid; ent.uid = newPlaqueUid(e); ent.uid = -newPlaqueUid(e); ent.uid = newPlaqueUid(e); }
+        }
+        A.dirty.delete(i);
+        A._newPlaques && delete A._newPlaques[e.key];
+        toast('Placa de ' + e.name + ' creada: sprites/' + spriteName + '/ + línea en obj_lobby/Draw_0.gml' + (w3 && w3.already ? ' (ya estaba en el .yyp)' : ' + registro en el .yyp') + '.', 'ok');
+      }
+      // flujo original para las placas de la tira / propias
       for (const i of A.dirty) {
         const ed = currentEditableFor(i);
         const rgba = renderEditable(ed, i);
@@ -8287,16 +8630,60 @@ initKeys();
     const g = A.arteUndo.pop();
     if (!g) { toast('Nada que deshacer en Arte.'); return; }
     try {
+      // v6.3: al revés — primero BORRAR los creados, luego restaurar copias
+      const created = g.filter(it => it.isNew || it.isGml || it.isYyp);
+      for (let k = created.length - 1; k >= 0; k--) {
+        const it = created[k];
+        if (it.isNew) {
+          // borrar archivo del sprite nuevo
+          try {
+            const parts = normPath(it.rel).split('/').filter(Boolean);
+            let dh = S.rootHandle;
+            for (let j = 0; j < parts.length - 1; j++) dh = await dh.getDirectoryHandle(parts[j]);
+            const fh = await dh.getFileHandle(parts[parts.length - 1]);
+            await fh.remove();
+          } catch (e2) { /* ya no existe */ }
+          continue;
+        }
+        if (it.backup) {
+          const blob = await readBlob(it.backup);
+          if (blob) { await arteWriteFile(it.rel, blob); continue; }
+        }
+        // sin backup (archivo nuevo): quitar la entrada/linea anadida
+        if (it.isYyp) {
+          const yypName = await pjYypName();
+          let yyp = yypName ? await readText(yypName) : null;
+          if (yyp != null && it.spriteName) {
+            const re = new RegExp('^[ \\t]*\\{"[^\\n]*"name":"' + it.spriteName + '"[^\\n]*\\},?[ \\t]*\\r?\\n', 'gm');
+            await arteWriteFile(yypName, new Blob([yyp.replace(re, '')], { type: 'text/plain' }));
+          }
+          continue;
+        }
+        if (it.isGml) {
+          const txt = await readText(it.rel);
+          if (txt != null && it.spriteName) {
+            const re2 = new RegExp('\\n[ \\t]*else if \\(sprInd == [^\\n]*\\n[ \\t]*draw_sprite\\(' + it.spriteName + ', 0, 1, 232-5\\);[^\\n]*', 'g');
+            await arteWriteFile(it.rel, new Blob([txt.replace(re2, '\\n')], { type: 'text/plain' }));
+          }
+          continue;
+        }
+      }
       for (const it of g) {
-        if (!it.backup) continue;
+        if (it.isNew || it.isGml || it.isYyp || !it.backup) continue;
         const blob = await readBlob(it.backup);
         if (!blob) { toast('No encuentro la copia: ' + it.backup, 'err'); return; }
         await arteWriteFile(it.rel, blob);
       }
+      // recargar estado
+      A._newPlaques = {}; A._newSel = null;
+      A.plaqueMap = await plaqueMapFor();
       A.decoded.clear(); A.models.clear(); A.plaqueCache.clear(); A.spriteMeta = null;
       await loadPlaqueSprite();
-      await selectPlaque(A.sel >= 0 ? A.sel : 0);
-      toast('Deshecho: placas restauradas desde la copia.');
+      buildPlaqueList();
+      if (A.sel < 0) await selectPlaque(0);
+      else if (A.plaqueCache.has(A.sel)) await selectPlaque(A.sel);
+      else await selectPlaque(0);
+      toast('Deshecho: placas restauradas / creaciones eliminadas.');
     } catch (e) { toast('Error al deshacer: ' + e.message, 'err'); }
   }
 
@@ -11082,10 +11469,10 @@ initKeys();
 
   // gancho de depuración/pruebas (sin efecto en el uso normal)
   window.__arteDebug = { buildShinyYy: buildShinyYy, buildShinyGmlText: buildShinyGmlText,
+    newPlaquePatchLobby: newPlaquePatchLobby, newPlaqueUid: newPlaqueUid,
     shRefresh: shRefreshChars, survRefresh: survRefreshChars, shChars: () => SH_CHARS, survChars: () => SURV_CHARS,
     plaqueName: plaqueName, plaqueMapFor: plaqueMapFor, cacheSize: () => A.plaqueCache.size, state: () => A };
 })();
-
 </script>
 <script>
 /* =====================================================================
@@ -14273,50 +14660,10 @@ else pjInit();
 
 
 window.pjMod = { PJ, pjScan, pjClassifyFiles, pjPlanAdd, pjBuildSpriteYy, pjSetActive, pjRunAdd, pjDelete, pjRestore, pjUndoLast, pjPatchTexts, pjWriteObjectAndScript, pjRenderAll };
+/* v6.3 — helpers compartidos con el módulo Arte (crear placa desde cero) */
+window.__pjHelpers = { pjUuid: pjUuid, pjLenientParse: pjLenientParse, pjLenientErr: pjLenientErr, pjReEsc: pjReEsc, pjYypName: pjYypName };
 })();
 /* ===== Suite TD2D — módulo 👤 PERSONAJES — FIN ===== */
-
-</script>
-<script>
-/* v3.8.1 — AUTOCHEQUEO DE ARRANQUE: si algún módulo no se cargó, se ve AQUÍ y en la
-   consola (F12), en vez de quedarse la interfaz muerta sin decir nada. */
-(function () {
-  var fails = [];
-  if (!window.__animtoolInitOk) fails.push('módulo 🎬 Animaciones no arrancó');
-  if (typeof window.setCdSub !== 'function') fails.push('módulo ⏱ Enfriamientos no arrancó');
-  if (typeof window.__yypfix !== 'function' || typeof window.enterArte !== 'function') fails.push('módulo 🖼 Arte no arrancó');
-  if (typeof window.enterLms !== 'function') fails.push('módulo 🎤 Show LMS no arrancó');
-  if (typeof window.enterMuelles !== 'function') fails.push('módulo 🪀 Muelles no arrancó');
-  if (typeof window.enterPj !== 'function') fails.push('módulo 👤 Personajes no arrancó');
-  if (window.__bootErrors) fails.push(window.__bootErrors + ' error(es) JS durante el arranque (mira la consola F12)');
-  if (fails.length) {
-    console.error('SUITE TD2D — NO CARGÓ COMPLETO:', fails.join(' · '));
-    var d = document.createElement('div');
-    d.id = 'boot-banner';
-    d.textContent = '⚠ Suite incompleto: ' + fails.join(' · ') + '. Recarga con F5 y, si sigue, avisa con este texto.';
-    d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#c0392b;color:#fff;font:13px/1.5 system-ui,sans-serif;padding:8px 14px;text-align:center';
-    document.body.appendChild(d);
-  }
-  /* v6 QoL — reabrir el último módulo usado (y su sub-pestaña) tras cargar
-     TODO: se simula el clic en el botón de la nav para recorrer el camino
-     oficial (switchModule), nunca un atajo directo. Sin memoria disponible
-     (localStorage capado en file://) simplemente arranca en Animaciones. */
-  try {
-    var T = window.__animtool;
-    var cs = localStorage.getItem('td2d_cdsub');
-    var as = localStorage.getItem('td2d_artesub');
-    if (T && T.S) {
-      if (cs === 'srv' || cs === 'tune') T.S.cdSub = cs;
-      if (as) T.S.arteSub = as;
-    }
-    var mod = localStorage.getItem('td2d_module');
-    var valid = { anim: 1, cd: 1, arte: 1, keys: 1, lms: 1, muelles: 1, pj: 1 };
-    if (mod && valid[mod] && mod !== 'anim') {
-      var b = document.querySelector('#modnav .mnav[data-mod="' + mod + '"]');
-      if (b) b.click();
-    }
-  } catch (e) { }
-})();
 </script>
 </body>
 </html>
