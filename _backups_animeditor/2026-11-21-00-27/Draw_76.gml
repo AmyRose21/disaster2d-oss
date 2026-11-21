@@ -1,0 +1,258 @@
+// PARRY (tecla V): estados 60-64, ANTES que el abrazo y que el array de
+// scr_survivors (el 60 no existe en el array). Sprite por nombre con
+// fallback al suyo de ataque (scr_parry_sprite), igual que hace Sonic
+// con los suyos. Mismas velocidades de animacion que el de Sonic.
+if(scr_parry_state_is(state))
+{
+        var _pspr = scr_parry_sprite(state, global.character, variable_instance_exists(id, "isNegatouch") && isNegatouch);
+
+        if(_pspr != -1)
+                sprite_index = _pspr;
+
+        switch(state)
+        {
+                case SONIC_PARRY_INICIO:
+                        image_index = 0;
+                        image_speed = max(image_number / SONIC_PARRY_WINDUP, 0.05);
+                        break;
+
+                case SONIC_PARRY_INICIO_ACT:
+                        image_speed = max(image_number / (SONIC_PARRY_WINDOW + SONIC_PARRY_GRACE), 0.05);
+                        break;
+
+                case SONIC_PARRY_EXITO:
+                        // v4.2: duracion por personaje (scr_parry_exito_time):
+                        // su animacion de 10 frames ya NO se comprime en 22
+                        // frames; se reproduce COMPLETA a su ritmo (pedido del
+                        // usuario: "debe durar toda su animacion").
+                        image_speed = max(image_number / scr_parry_exito_time(global.character), 0.05);
+                        break;
+        }
+
+        return;
+}
+
+// ABRAZO COMBINADO: el estado AMY_CANON_HUG NO va por el array de
+// scr_survivors (se intercepta aqui, igual que el parry de Sonic en
+// su Draw_76): mientras Amy abraza su cuerpo ni siquiera se dibuja;
+// Draw_0 pinta el sprite combinado en el punto medio con Sonic.
+// Poner esto ANTES de leer el array (el indice 24 no existe en el).
+if(state == AMY_CANON_HUG)
+{
+        sprite_index = spr_amy_hug_canon;
+        image_speed = 0;
+        image_index = 0;
+        return;
+}
+
+// v11 (NEGAGEN, 3 FORMAS): 1 normal / 2 NEGA / 3 demonizada.
+// El subdito NEGATIVO usa la TIRA NEGA propia del personaje
+// (spr_<char>nega_*: inversion pura de SUS sprites, mismo canon
+// que los spr_amynega_* / spr_eggnega_* del build Negagen).
+// El esbirro comun sigue con sus eanims; el superviviente igual.
+var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
+if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+        arr = global.player_negaanims;
+sprite_index = arr[? CHARACTER_AMY_CANON][state];
+
+// v51 — SUPER AMY CANON (prueba, V + ARRIBA): FASE 1 = la tira
+// spr_amy_super_transform UNA sola pasada (image_speed 0.2 ~= 1/3 de
+// segundo); al tocar su ultimo frame pasa a FASE 2 = super activa:
+// CAMBIO DIRECTO de sprite por estado — sus sprites super traen los
+// colores horneados, no hay paleta que aplicar (Draw_0 salta el swap
+// mientras superFormPhase > 0). Muerta o demonizada revierte sola (la
+// prueba no pisa la muerte). Nega-touched: los sprites nega mandan.
+if(variable_instance_exists(id, "superFormPhase") && superFormPhase > 0)
+{
+        if(isDead || revivalTimes >= 2)
+                superFormPhase = 0;
+        else if(superFormPhase == 1)
+        {
+                sprite_index = spr_amy_super_transform;
+                image_speed = 0.2;
+                if(image_index >= image_number - 1)
+                        superFormPhase = 2;
+        }
+        else if(!(variable_instance_exists(id, "isNegatouch") && isNegatouch))
+        {
+                // FASE 2: solo los estados con sprite super — el resto
+                // (agacharse, lookup, balancing, zipline, dead, habilidades)
+                // sigue con su sprite normal hasta que exista su version
+                // super. WALK usa el de RUN mientras no haya tira de
+                // caminar super (misma pose de carrera, misma velocidad
+                // de animacion del caso WALK).
+                switch(state)
+                {
+                        case IDLE:     sprite_index = spr_super_amy_idle;      break;
+                        case WALK:     sprite_index = spr_super_amy_run;      break;
+                        case RUN:      sprite_index = spr_super_amy_run;      break;
+                        case JUMP:     sprite_index = spr_super_amy_jump;     break;
+                        case FALL:     sprite_index = spr_super_amy_fall;     break;
+                        case HURT:     sprite_index = spr_super_amy_hurt;     break;
+                        case EMOTION1: sprite_index = spr_super_amy_emoticon1; break;
+                        case EMOTION2: sprite_index = spr_super_amy_emoticon2; break;
+                        case EMOTION3: sprite_index = spr_super_amy_emoticon3; break;
+                        case AMY_CANON_TAROT: sprite_index = spr_super_amy_fly_idle; break;
+
+                        // v52 (fix): el impulso de tarot (tecla X, aire) usa
+                        // la tira super spr_super_amy_tarot_attack (la misma
+                        // pose del impulso pero con los colores super).
+                        case AMY_CANON_TAROTDASH: sprite_index = spr_super_amy_tarot_attack; break;
+
+                        // v52: el LANZADO viaja como el estado de la acometida
+                        // (la tira super solo se resuelve en el cliente local);
+                        // el LSA y el LIGHT DASH de la super usan la tira de
+                        // carrera super (spr_super_amy_run).
+                        case AMY_CANON_DASH:      sprite_index = spr_super_amy_hrow_hammer; break;
+                        case AMY_CANON_LIGHTDASH: sprite_index = spr_super_amy_run; break;
+                }
+        }
+}
+
+switch(state)
+{
+        case IDLE:
+                image_speed = 1;
+                if(image_index >= 2)
+                        image_index = 0;
+                break;
+                
+        case HURT:
+                image_speed = 0;
+                image_index = 0;
+                break;
+                
+        case BALANCING:
+                image_xscale = edgeDir;
+                image_speed = 1;
+                break;
+                
+        case WALK:
+                image_speed = 0.2 + (abs(xspd) / (maxHSpeed));
+                break;
+                
+        case FALL:
+                image_index = 0;
+                break;
+                
+        case RUN:
+                image_speed = max(abs(xspd) / 20, 0.5);
+                break;
+                
+        case JUMP:
+                image_speed = 1.1;
+                
+                if(image_index >= image_number - 1)
+                        isJumping = false;
+                break;
+                
+        case DEAD:
+                // v20 (NEGA): la tira DEAD del subdito negativo hace de
+                // animacion de STUN (el slot 6 del mirror nega copio el
+                // dead del superviviente): UNA pasada y se queda en el
+                // ultimo frame, no en bucle como el stun del esbirro demon.
+                if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
+                {
+                        image_speed = 0.5;
+
+                        if(image_index >= image_number - 1)
+                        image_index = image_number - 1;
+
+                        break;
+                }
+
+                if(revivalTimes >= 2)
+                {
+                        image_speed = 0.5;
+                        break;
+                }
+                
+                if(isGrounded)
+                        image_speed = 1;
+                else
+                        image_speed = 0;
+                
+                if(image_index >= image_number - 1)
+                        image_index = image_number - 1;
+                break;
+                
+        case LOOKUP:
+        case LOOKDOWN:
+                image_speed = 1;
+                
+                // Stop on last frame
+                if(image_index >= 1)
+                        image_index = 1;
+                        
+                break;
+                
+        case SPIN:
+                image_speed = abs(xspd) / 5;
+                break;
+                
+        case AMY_CANON_ATTACK:
+                image_speed = 0.3;
+
+                if(image_index >= image_number - 1)
+                        isAttacking = false;
+                break;
+                
+        // ATAQUE 3: acometida de martillo. La animacion corre en LOOP
+        // a la velocidad AMY_CANON_DASH_ANIMSPD (ajustable en Create_0.gml).
+        // El fin de la acometida lo controla dashTimeLeft en
+        // scr_amy_canon_special.gml, no la animacion.
+        case AMY_CANON_DASH:
+                // v52: el gesto del HAMMER THROW comparte este estado: su tira
+                // corre a su propia velocidad y se frena en el ultimo frame
+                // (una sola pasada); la acometida de siempre sigue en loop.
+                image_speed = isHammerThrowing ? AMY_SUPER_HTHROW_ANIMSPD : AMY_CANON_DASH_ANIMSPD;
+                
+                if(isHammerThrowing && image_index >= image_number - 1)
+                        image_index = image_number - 1;
+                
+                if(!isDashing)
+                        isAttacking = false;
+                break;
+                
+        // PASIVA TAROT: flotacion (sprite de 9 frames en loop).
+        case AMY_CANON_TAROT:
+                image_speed = 0.5;
+                break;
+                
+        // HABILIDAD 2 (tecla X) en el aire: impulso de tarot con el sprite
+        // nuevo spr_amy_attack1_canon (2 frames en loop; el fin lo controla
+        // tarotDashTimeLeft en scr_amy_canon_special).
+        case AMY_CANON_TAROTDASH:
+                image_speed = AMY_CANON_TAROTDASH_ANIMSPD;
+                break;
+                
+        // v5.9 — LIGHT DASH: el rayo recorre la cadena de anillos rotado
+        // por la variable angle (metodo de las pendientes). Animacion en
+        // loop rapido; el fin lo controla scr_light_dash (la cadena se
+        // agota o algo cancela el dash), no la animacion.
+        case AMY_CANON_LIGHTDASH:
+                image_speed = LIGHT_DASH_ANIMSPD;
+                break;
+                
+        // ESTADO BURBUJA (secuestro): sprites de 1 frame; la variante
+        // (frente/izquierda/derecha) la elige Step_2 segun bubbleDir.
+        case AMY_CANON_CAPTURE:
+        case AMY_CANON_CAPTURE_L:
+        case AMY_CANON_CAPTURE_R:
+                image_speed = 0;
+                image_index = 0;
+                break;
+                
+        case AMY_CANON_HJUMP:
+                image_speed = 0.3;
+                
+                if(image_index >= image_number - 1)
+                        isHJ = false;
+                break;
+                
+        case EMOTION1:
+        case EMOTION2:
+        case EMOTION3:
+                image_speed = 1;                
+                break;
+}

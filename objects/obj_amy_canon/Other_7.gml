@@ -1,10 +1,11 @@
 switch(state)
 {
 	case IDLE:
-		image_index = image_number - 4;
+		image_index = image_number - 14;
 		break;
 		
 	case EMOTION1:
+		image_index = image_number - 1;
 		if(keyboard_check(global.KeyEm1))
 			image_index = 0;
 		else
@@ -16,6 +17,7 @@ switch(state)
 		break;
 		
 	case EMOTION2:
+		image_index = image_number - 1;
 		if(keyboard_check(global.KeyEm2))
 			image_index = 0;
 		else
@@ -36,4 +38,8 @@ switch(state)
 			emotion = false;
 		}
 		break;
-}
+
+	case JUMP:
+		image_index = image_number - 1;
+		break;
+	}

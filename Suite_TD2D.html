@@ -1485,6 +1485,12 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   (<code>scr_fall_anim();</code>) en el <code>case FALL</code> de cada personaje de la lista — la Suite la escribe sola.
   Un personaje sin configurar usa su caída de siempre: ni errores ni cambios (robusto para el futuro).
   Metal, Metal demonizado, Blaze y Blaze demonizada ya vienen configurados.</p>
+  <p><b>v52 — super forma:</b> los personajes con super (Amy canon) aparecen también con su
+  <b>sprite de caída super</b> (<code>spr_super_amy_fall</code>) en el catálogo, marcado ✨super. Su fila va en
+  la misma <code>global.fallAnims</code>: el switch super del Draw_76 cambia el sprite <i>antes</i> de que el
+  switch principal llame a <code>scr_fall_anim()</code>, así que la configuración aplica sola. En 🎬 Animaciones y
+  🖼 Imágenes, los estados con sprite super llevan la chispa ✨ — cambiarles el sprite edita su case
+  en el switch super del Draw_76 (no la tabla <code>player_anims</code>).</p>
   <h4>Módulo 👤 Personajes</h4>
   <p>El <b>constructor y gestor de personajes</b>, con roster de tarjetas y retratos reales, filtros
   (activos / off / reservados), búsqueda y registro vivo de cambios. <b>Añadir:</b> dale una carpeta con
@@ -1697,13 +1703,20 @@ window.addEventListener('error', function () { window.__bootErrors++; });
 
   // Etiquetas sueltas "case X:" en orden de aparicion.
   function parseStateCases(gml) {
+    // v52: solo el switch PRINCIPAL (el de MAS cases). Los Draw_76 con super
+    // forma llevan antes un switch "super" con cases de una linea que PISAN
+    // el sprite (case FALL: sprite_index = spr_super_amy_fall; break;) —
+    // sin esto el parser confundia el case del super con el de verdad.
+    var host = gml, base = 0;
+    var msw = findMainSwitch(gml);
+    if (msw) { host = gml.slice(msw.bo + 1, msw.cb); base = msw.bo + 1; }
     var re = /(^|\n)[ \t]*case\s+([A-Za-z_]\w*)\s*:/g;
     var cases = [], m;
-    while ((m = re.exec(gml))) {
+    while ((m = re.exec(host))) {
       cases.push({
         state: m[2],
-        labelStart: m.index + (m[1] ? 1 : 0),
-        bodyStart: m.index + m[0].length
+        labelStart: base + m.index + (m[1] ? 1 : 0),
+        bodyStart: base + m.index + m[0].length
       });
     }
     return cases;
@@ -1864,6 +1877,139 @@ window.addEventListener('error', function () { window.__bootErrors++; });
       gml: g2, changed: true, old: null, inserted: true,
       shared: grp.labels.length > 1 ? grp.labels : null
     };
+  }
+
+  /* ================== v52: SWITCH SUPER del Draw_76 ==================
+     Personajes con super forma (Amy canon v51/v52): su Draw_76 lleva un
+     switch(state) "super" con cases de UNA LINEA
+       case ESTADO: sprite_index = spr_super_x; break;
+     que pisan el sprite ANTES del switch principal. Este bloque sabe
+     parsearlo / editarlo / extenderlo de forma segura:
+       - findSuperSwitch(gml): el switch(state) cuyo cuerpo SOLO tiene
+         cases de una linea "sprite_index = spr_" (un Draw_76 normal no
+         los tiene: el principal escribe image_speed).
+       - parseSuperCases(gml): [{state, spr, start, line}] de esos cases.
+     El switch PRINCIPAL se detecta aparte (findMainSwitch): el switch
+     (state) con MAS cases del archivo. */
+  function switchBody(text, start) {
+    var bo = text.indexOf('{', start);
+    if (bo < 0) return null;
+    var d = 0, inStr = false, inLc = false, inBc = false;
+    for (var i = bo; i < text.length; i++) {
+      var c = text[i], p = text[i - 1];
+      if (inLc) { if (c === '\n') inLc = false; continue; }
+      if (inBc) { if (c === '/' && p === '*') { inBc = false; } continue; }
+      if (inStr) { if (c === '"' && p !== '\\') inStr = false; continue; }
+      if (c === '/' && text[i + 1] === '/') { inLc = true; continue; }
+      if (c === '/' && text[i + 1] === '*') { inBc = true; continue; }
+      if (c === '"') { inStr = true; continue; }
+      if (c === '{') d++;
+      else if (c === '}') { d--; if (d === 0) return { bo: bo, cb: i }; }
+    }
+    return null;
+  }
+
+  function switchSpans(text) {
+    var out = [], re = /(^|\n)[ \t]*switch[ \t]*\([ \t]*state[ \t]*\)/g, m;
+    while ((m = re.exec(text))) out.push({ start: m.index + (m[1] ? 1 : 0) });
+    return out;
+  }
+
+  // El switch principal: el de MAS cases. En obj_amy_canon hay 3 switch(state)
+  // (super con 12, hug con 3 y principal con 23): el mayor es el principal.
+  function findMainSwitch(gml) {
+    var spans = switchSpans(gml);
+    if (!spans.length) return null;
+    var best = null, bestN = -1;
+    for (var i = 0; i < spans.length; i++) {
+      var b = switchBody(gml, spans[i].start);
+      if (!b) continue;
+      var n = (gml.slice(b.bo, b.cb).match(/case\s+[A-Za-z_]\w*\s*:/g) || []).length;
+      if (n > bestN) { bestN = n; best = { start: spans[i].start, bo: b.bo, cb: b.cb, cases: n }; }
+    }
+    return best;
+  }
+
+  // El switch super: switch(state) cuyo cuerpo SOLO tiene cases de una
+  // linea "case X: sprite_index = spr_y; break;". Si no hay ninguno -> null.
+  function findSuperSwitch(gml) {
+    var spans = switchSpans(gml);
+    for (var i = spans.length - 1; i >= 0; i--) {
+      var b = switchBody(gml, spans[i].start);
+      if (!b) continue;
+      var body = gml.slice(b.bo, b.cb);
+      var oneLiners = body.match(/(^|\n)[ \t]*case\s+[A-Za-z_]\w*\s*:\s*sprite_index\s*=\s*spr_\w+\s*;\s*break\s*;/g);
+      var allCases = (body.match(/case\s+[A-Za-z_]\w*\s*:/g) || []).length;
+      if (oneLiners && oneLiners.length >= 2 && oneLiners.length === allCases)
+        return { start: spans[i].start, bo: b.bo, cb: b.cb, cases: allCases };
+    }
+    return null;
+  }
+
+  function parseSuperCases(gml) {
+    var sw = findSuperSwitch(gml);
+    if (!sw) return [];
+    var body = gml.slice(sw.bo, sw.cb);
+    var out = [], re = /(^|\n)([ \t]*)case\s+([A-Za-z_]\w*)\s*:\s*sprite_index\s*=\s*(spr_\w+)\s*;\s*break\s*;/g, m;
+    while ((m = re.exec(body))) {
+      out.push({
+        state: m[3], spr: m[4], indent: m[2],
+        start: sw.bo + m.index,
+        line: m[0]
+      });
+    }
+    return out;
+  }
+
+  // Cambia el sprite de un case super. Si el estado NO existe en el switch
+  // super, lo INSERTA antes de la llave de cierre del switch.
+  function setSuperSprite(gml, state, newSpr) {
+    var sw = findSuperSwitch(gml);
+    if (!sw) return { gml: gml, changed: false, error: 'sin-switch-super' };
+    var cases = parseSuperCases(gml);
+    var cur = null;
+    for (var i = 0; i < cases.length; i++) if (cases[i].state === state) { cur = cases[i]; break; }
+    if (cur) {
+      if (cur.spr === newSpr) return { gml: gml, changed: false, error: 'igual' };
+      // reconstruir la linea conservando su alineacion interna
+      var line = gml.slice(cur.start, cur.start + cur.line.length);
+      if (!/sprite_index\s*=\s*spr_\w+/.test(line)) return { gml: gml, changed: false, error: 'linea-rara' };
+      var newLine = line.replace(/sprite_index\s*=\s*spr_\w+/, 'sprite_index = ' + newSpr);
+      return {
+        gml: gml.slice(0, cur.start) + newLine + gml.slice(cur.start + cur.line.length),
+        changed: true, old: cur.spr, inserted: false
+      };
+    }
+    // insertar tras la ultima linea de case del switch super (con su
+    // indent), para que quede hermanado y el remove sea inverso exacto
+    var last = cases[cases.length - 1];
+    var ind = last ? last.indent : '\t\t\t\t';
+    var ins = ind + 'case ' + state + ': sprite_index = ' + newSpr + '; break;\n';
+    var cut = last ? last.start + last.line.length : sw.cb;
+    if (gml[cut] === '\n') cut++;   // saltar el \n que cierra esa linea
+    return {
+      gml: gml.slice(0, cut) + ins + gml.slice(cut),
+      changed: true, old: null, inserted: true
+    };
+  }
+
+  // Quita el case de una linea del switch super (p.ej. el FALL que pisa la
+  // caida: la gestion pasa al switch principal via scr_fall_anim()).
+  function removeSuperCase(gml, state) {
+    var cases = parseSuperCases(gml);
+    for (var i = 0; i < cases.length; i++) {
+      if (cases[i].state === state) {
+        // la linea matcheada empieza en su \n previo: empezar DESPUES,
+        // para conservar el salto de la linea anterior
+        var start = cases[i].start + (cases[i].line.charAt(0) === '\n' ? 1 : 0);
+        var end = cases[i].start + cases[i].line.length;
+        // llevarse tambien el salto de linea que lo sigue
+        if (gml[end] === '\r') end++;
+        if (gml[end] === '\n') end++;
+        return { gml: gml.slice(0, start) + gml.slice(end), changed: true, removed: cases[i].spr };
+      }
+    }
+    return { gml: gml, changed: false };
   }
 
   /* ---- tope de loop a mitad de tira (guard en Draw_76): if(idx>=B+1) idx=A ---- */
@@ -2175,6 +2321,11 @@ window.addEventListener('error', function () { window.__bootErrors++; });
     parseStateCases: parseStateCases,
     parseCaseGroups: parseCaseGroups,
     findCase: findGroup,
+    findMainSwitch: findMainSwitch,
+    findSuperSwitch: findSuperSwitch,
+    parseSuperCases: parseSuperCases,
+    setSuperSprite: setSuperSprite,
+    removeSuperCase: removeSuperCase,
     caseBlockText: caseBlockText,
     getImageSpeed: getImageSpeed,
     setImageSpeed: setImageSpeed,
@@ -2689,6 +2840,7 @@ async function selectChar(c, isExe) {
     step2: !!S.gml.step2, create0: !!S.gml.create0
   };
   S.states = C.parseObjectStates(S.gml.step2);
+  appendSuperEntries();
   const demonLine = $('#demon-line');
   demonLine.classList.toggle('hidden', isExe || !c.eanims);
   renderCharList(); renderStates(); renderGamePanel(); clearSpriteView();
@@ -2697,12 +2849,26 @@ async function selectChar(c, isExe) {
 function useTable(t) {
   S.table = t;
   S.entries = (t === 'eanims' ? (S.char && S.char.eanims) : (S.char && S.char.anims)) || [];
+  appendSuperEntries();
   renderStates(); clearSpriteView();
 }
 
 function stateNameFor(e) {
+  if (e.superCase) return e.superCase;
   if (e.idx < C.BASE_STATES.length) return C.BASE_STATES[e.idx];
   return S.states[e.idx] || String(e.idx);
+}
+
+// v52: estados de SUPER FORMA (switch super del Draw_76): se añaden al
+// final de la lista con la chispa ✨. La velocidad y el bucle se editan
+// igual (el image_speed del super vive en el MISMO case del switch
+// principal); el sprite se cambia desde el módulo 🖼 Imágenes.
+function appendSuperEntries() {
+  if (!S.char || !S.gml.draw76 || !C.parseSuperCases) return;
+  const sup = C.parseSuperCases(S.gml.draw76);
+  for (const sc of sup)
+    S.entries.push({ spr: sc.spr, idx: null, superCase: sc.state,
+      label: '✨ ' + sc.state + ' (super)', comment: 'super' });
 }
 
 async function selectState(e) {
@@ -3045,7 +3211,7 @@ function renderGamePanel() {
   let html = '';
   html += '<div class="kv"><span>objeto</span><b>' + esc(obj) + '</b></div>';
   if (S.sel) {
-    html += '<div class="kv"><span>estado</span><b>' + esc(S.sel.stateName) + ' (' + S.sel.idx + ')</b></div>';
+    html += '<div class="kv"><span>estado</span><b>' + esc(S.sel.stateName) + (S.sel.idx != null ? ' (' + S.sel.idx + ')' : '') + '</b></div>';
     html += '<div class="kv"><span>tira</span><b>' + esc(S.sel.spr) + (S.spr ? ' · ' + S.spr.n + 'f · ' + S.spr.w + '×' + S.spr.h : '') + '</b></div>';
     const gs = S.gml.draw76 ? C.getImageSpeed(S.gml.draw76, S.sel.stateName) : null;
     if (!S.gml.draw76) html += '<div class="kv warn"><span>Draw_76</span><b>no existe</b></div>';
@@ -3453,6 +3619,7 @@ function init() {
 // (recargas, imágenes, enfriamientos, arte) siguen arrancando sobre __animtool.
 window.__animtool = {
   S: S, openFiles: openFiles, startDemo: startDemo, computeEdits: computeEdits,
+  scanProject: scanProject, selectChar: selectChar, useTable: useTable,
   setMarker: setMarker, attachFs: attachFs, writeEdits: writeEdits, undoLast: undoLast,
   refreshAfterWrite: refreshAfterWrite, selectState: selectState,
   readText: readText, readBlob: readBlob, fsWalkFile: fsWalkFile, fsWalkDir: fsWalkDir,
@@ -4024,7 +4191,17 @@ function imgEntries() {
   const p = C.parseSurvivors(txt);
   const c = p.chars.find(x => x.key === Img.char.key);
   if (!c) return [];
-  return (Img.table === 'eanims' ? c.eanims : c.anims) || [];
+  return ((Img.table === 'eanims' ? c.eanims : c.anims) || []).concat(superImgEntries());
+}
+
+// v52: estados del switch super del Draw_76 (✨): cambiarles el sprite
+// escribe su case de una linea en Draw_76.gml, no la tabla player_anims.
+function superImgEntries() {
+  if (!Img.char || !Img.char.obj || !Img.draw76 || !C.parseSuperCases) return [];
+  return C.parseSuperCases(Img.draw76).map(sc => ({
+    spr: sc.spr, idx: 'super', superCase: sc.state,
+    label: '✨ ' + sc.state + ' (super)'
+  }));
 }
 
 function renderImgStates() {
@@ -4054,7 +4231,7 @@ async function selectImgState(e) {
   Img.sel = { kind: 'state', e };
   renderImgStates();
   $('#img-btn-swap').classList.remove('hidden');
-  const stateName = e.label;
+  const stateName = e.superCase || e.label;
   const gs = Img.draw76 ? C.getImageSpeed(Img.draw76, stateName) : null;
   let speed = 0.5, dyn = false;
   if (gs && gs.found) {
@@ -4080,8 +4257,11 @@ function renderImgContext() {
     host.innerHTML =
       '<div class="kv"><span>estado</span><b>' + esc(e.label) + ' (' + e.idx + ')</b></div>' +
       '<div class="kv"><span>sprite actual</span><b>' + esc(e.spr) + (Img.prev ? ' · ' + Img.prev.n + 'f' : '') + '</b></div>' +
-      '<div class="kv"><span>de dónde sale</span><b>global.player_' + esc(Img.table) + '[? ' + esc(Img.char.key) + '][' + e.idx + ']</b></div>' +
-      '<div class="kv"><span>archivo</span><b>' + esc(rel) + '</b></div>' +
+      (e.superCase
+        ? '<div class="kv"><span>de dónde sale</span><b>switch super del Draw_76 — case ' + esc(e.superCase) + '</b></div>' +
+          '<div class="kv"><span>archivo</span><b>objects/' + esc(Img.char.obj) + '/Draw_76.gml</b></div>'
+        : '<div class="kv"><span>de dónde sale</span><b>global.player_' + esc(Img.table) + '[? ' + esc(Img.char.key) + '][' + e.idx + ']</b></div>' +
+          '<div class="kv"><span>archivo</span><b>' + esc(rel) + '</b></div>') +
       (Img.prev && Img.prev.dyn ? '<div class="kv warn"><span>velocidad</span><b>fórmula dinámica → preview a 0.5</b></div>' :
         '<div class="kv"><span>velocidad de preview</span><b>' + (Img.prev ? C.fmtSpeed(Img.prev.speed) : '?') + ' (la del Draw_76)</b></div>') +
       '<div class="note">La misma tabla la usan los puppets de los demás clientes: el cambio se ve en todas las pantallas.</div>';
@@ -4225,6 +4405,25 @@ async function applySpritePick(name) {
   if (!Img.sel) return;
   if (Img.sel.kind === 'state') {
     const e = Img.sel.e;
+    // v52: estado de SUPER FORMA -> case del switch super en Draw_76.gml
+    if (e.superCase) {
+      const rel = 'objects/' + Img.char.obj + '/Draw_76.gml';
+      await ensureImgOrig(rel);
+      const r = C.setSuperSprite(imgWorking(rel), e.superCase, name);
+      if (!r.changed) {
+        toast(r.error === 'igual' ? 'Ese estado super ya usa ' + name
+          : 'No pude cambiar el case super (' + r.error + ')', r.error === 'igual' ? 'warn' : 'err');
+        return;
+      }
+      Img.working[rel] = r.gml;
+      rebuildImgChanges();
+      renderImgStates();
+      const ne = imgEntries().find(x => x.superCase === e.superCase) || e;
+      Img.sel = { kind: 'state', e: ne };
+      await selectImgState(ne);
+      toast('Sprite super de ' + e.superCase + ': ' + (r.old || '(case nuevo)') + ' → ' + name + '. Pulsa «Escribir».');
+      return;
+    }
     const rel = tableRel();
     await ensureImgOrig(rel);
     const r = C.setTableSprite(imgWorking(rel), Img.table, Img.char.key, e.idx, name);
@@ -4318,10 +4517,14 @@ async function imgAfterWrite() {
     }
   }
   rebuildImgChanges();
-  if (Img.char) renderImgStates();
+  if (Img.char && Img.char.obj) {
+    const drel = 'objects/' + Img.char.obj + '/Draw_76.gml';
+    if (Img.orig[drel] != null) Img.draw76 = Img.orig[drel];
+    renderImgStates();
+  }
   if (Img.sel && Img.sel.kind === 'state') {
     const entries = imgEntries();
-    const ne = entries.find(x => x.idx === Img.sel.e.idx);
+    const ne = entries.find(x => Img.sel.e.superCase ? x.superCase === Img.sel.e.superCase : x.idx === Img.sel.e.idx);
     if (ne) await selectImgState(ne);
   } else if (Img.sel && Img.sel.kind === 'ref' && Img.objSel) {
     renderImgRefs();
@@ -11406,11 +11609,27 @@ window.__onProjectScan = (function (prev) {
   }
 
   /* ---------- generar el bloque GML completo (marcado) ---------- */
-
   function genBlock(rows) {
     rows = (rows || []).map(normRow);
     var w = 14;
     rows.forEach(function (r) { if (r.spr.length + 2 > w) w = r.spr.length + 2; });
+    function lista(arr, nombre) {
+      var s = '';
+      if (arr.length) {
+        s += 'global.' + nombre + ' = [\n';
+        arr.forEach(function (r, i) {
+          var pad = w - r.spr.length;
+          if (pad < 1) pad = 1;
+          s += '        [' + r.spr + ',' + ' '.repeat(pad) +
+            fmtN(r.rs) + ', ' + fmtN(r.rc) + ', ' + fmtN(r.fs) + ', ' + fmtN(r.fc) + ', ' + fmtN(r.sp) + ']' +
+            (i < arr.length - 1 ? ',' : ' ') + (r.note ? ' // ' + r.note : '') + '\n';
+        });
+        s += '];\n';
+      } else {
+        s += 'global.' + nombre + ' = [];\n';
+      }
+      return s;
+    }
     var out = BLOCK_BEGIN + '\n';
     out += '// Caida "tipo trampolin" por sprite, para el case FALL del Draw_76:\n';
     out += '//   [sprite, frameSubida, nFramesSubida, frameBajada, nFramesBajada, velBucle]\n';
@@ -11419,21 +11638,11 @@ window.__onProjectScan = (function (prev) {
     out += '//   En el personaje:  case FALL:  scr_fall_anim();  (una sola linea).\n';
     out += '//   Un sprite que NO este en la lista usa la caida clasica de siempre\n';
     out += '//   (fallback seguro: ni errores ni cambios para personajes sin configurar).\n';
-    out += 'global.fallAnims = [';
-    if (!rows.length) {
-      out += '\n];';
-    } else {
-      out += '\n';
-      rows.forEach(function (r, i) {
-        var pad = w - r.spr.length;
-        if (pad < 1) pad = 1;
-        out += '        [' + r.spr + ',' + ' '.repeat(pad) +
-          fmtN(r.rs) + ', ' + fmtN(r.rc) + ', ' + fmtN(r.fs) + ', ' + fmtN(r.fc) + ', ' + fmtN(r.sp) + ']' +
-          (i < rows.length - 1 ? ',' : ' ') + (r.note ? ' // ' + r.note : '') + '\n';
-      });
-      out += '];';
-    }
-    out += '\n\n';
+    out += '// v52: los sprites de SUPER FORMA (p.ej. spr_super_amy_fall) van en la\n';
+    out += '//   MISMA lista: el switch super del Draw_76 pone el sprite ANTES del\n';
+    out += '//   switch principal, asi que scr_fall_anim() ya lo ve con sprite_index.\n';
+    out += lista(rows, 'fallAnims');
+    out += '\n';
     out += '// La llama el case FALL del Draw_76 del personaje: busca el sprite en\n';
     out += '// global.fallAnims y aplica su configuracion; si no esta, caida clasica.\n';
     out += 'function scr_fall_anim()\n';
@@ -11511,9 +11720,29 @@ window.__onProjectScan = (function (prev) {
 
   function findFallCase(gml) {
     gml = String(gml);
-    var m = /(^|\n)([ \t]*)case\s+FALL\s*:/.exec(gml);
-    if (!m) return null;
-    var g = { labelStart: m.index + m[1].length, indent: m[2], bodyStart: m.index + m[0].length };
+    // v52: el case FALL del switch PRINCIPAL, no el de una linea del switch
+    // "super" (case FALL: sprite_index = spr_super_amy_fall; break;) que
+    // aparece ANTES en los Draw_76 con super forma. Se buscan TODOS los
+    // case FALL y se queda con el que tenga cuerpo multi-linea (el super
+    // es una sola linea: "case FALL: sprite_index = ...; break;").
+    var re = /(^|\n)([ \t]*)case\s+FALL\s*:/g, m, elegido = null;
+    while ((m = re.exec(gml))) {
+      var bodyStart = m.index + m[0].length;
+      // case de UNA LINEA (el del switch super: "case FALL: sprite_index =
+      // spr_super_amy_fall; break;"): su etiqueta lleva el break en la MISMA
+      // linea fisica -> se salta. El case de verdad del switch principal
+      // abre cuerpo en las lineas siguientes.
+      var nlAt = gml.indexOf('\n', m.index);
+      var labelLine = gml.slice(m.index, nlAt < 0 ? gml.length : nlAt);
+      if (/break\s*;/.test(labelLine)) continue;
+      var bre = /(^|\n)[ \t]*case\s+[A-Za-z_]\w*\s*:/g;
+      bre.lastIndex = bodyStart;
+      var n = bre.exec(gml);
+      var end = n ? n.index + n[1].length : gml.length;
+      elegido = { labelStart: m.index + m[1].length, indent: m[2], bodyStart: bodyStart, end: end };
+    }
+    if (!elegido) return null;
+    var g = elegido;
     var bre = /(^|\n)[ \t]*case\s+[A-Za-z_]\w*\s*:/g;
     bre.lastIndex = g.bodyStart;
     var n = bre.exec(gml);
@@ -11643,7 +11872,18 @@ async function ensureMuellesData() {
   M.origDraw = {};
   for (const c of cat) {
     const t = await T.readText('objects/' + c.obj + '/Draw_76.gml');
-    if (t != null) M.origDraw[c.obj] = t;
+    if (t != null) {
+      M.origDraw[c.obj] = t;
+      // v52: sprite de caída de SUPER FORMA (si el Draw_76 tiene switch
+      // super). Va a la MISMA global.fallAnims: el switch super cambia
+      // sprite_index ANTES de que el switch principal llame a
+      // scr_fall_anim(), así que la fila del sprite super ya aplica.
+      if (C.parseSuperCases) {
+        const sf = C.parseSuperCases(t).find(x => x.state === 'FALL');
+        if (sf && !c.sprs.some(s => s.spr === sf.spr))
+          c.sprs.push({ spr: sf.spr, note: c.name + ' (✨super)' });
+      }
+    }
   }
   M.ready = true;
 }
@@ -11678,8 +11918,9 @@ function rowWarn(r) {
 function rowTitle(r) {
   const c = charOf(r.spr);
   if (c) {
-    const dem = c.sprs.length > 1 && c.sprs[1].spr === r.spr;
-    return c.name + (dem ? ' (demonizado)' : '');
+    const s = c.sprs.find(x => x.spr === r.spr);
+    if (s && s.note && s.note !== c.name) return s.note;
+    return c.name;
   }
   return r.note || r.spr;
 }

@@ -1510,6 +1510,9 @@ if(array_length(global.sonicAtkAireNega) == 0)
 //   En el personaje:  case FALL:  scr_fall_anim();  (una sola linea).
 //   Un sprite que NO este en la lista usa la caida clasica de siempre
 //   (fallback seguro: ni errores ni cambios para personajes sin configurar).
+// v52: los sprites de SUPER FORMA (p.ej. spr_super_amy_fall) van en la
+//   MISMA lista: el switch super del Draw_76 pone el sprite ANTES del
+//   switch principal, asi que scr_fall_anim() ya lo ve con sprite_index.
 global.fallAnims = [
         [spr_metal_fall,            0, 1, 1, 1, 0.15], // Metal Sonic
         [spr_emetal_fall,           0, 1, 1, 1, 0.15], // Metal Sonic (demonizado)
@@ -1522,7 +1525,15 @@ global.fallAnims = [
         [spr_blazenega_fall,        0, 1, 1, 1, 0.15], // Blaze (nega)
         [spr_sallynega_fall_canon,  0, 1, 4, 1, 0.15], // SALLY_CANON (nega)
         [spr_amelianega_fall,       0, 1, 1, 1, 0.15], // AMELIA (nega)
-        [spr_kris_fall,             0, 1, 1, 1, 0.15]  // KRIS
+        [spr_kris_fall,             0, 1, 1, 1, 0.15], // KRIS
+        [spr_amy_fall_canon,        0, 1, 0, 1, 0.15], // AMY_CANON
+        [spr_eamy_fall_canon,       0, 1, 0, 1, 0.15], // AMY_CANON (demonizado)
+        [spr_super_amy_fall,        0, 1, 1, 1, 0.15], // AMY_CANON (✨super)
+        [spr_rouge_fall,            0, 1, 1, 1, 0.15], // ROUGE
+        [spr_erouge_fall,           0, 1, 1, 1, 0.15], // ROUGE (demonizado)
+        [spr_amy_fall_fw,           0, 1, 0, 1, 0.15], // FLEETWAY_AMY
+        [spr_eamy_fall_fw,          0, 1, 0, 1, 0.15], // FLEETWAY_AMY (demonizado)
+        [spr_jinna_fall,            0, 1, 1, 1, 0.15]  // JINNA
 ];
 
 // La llama el case FALL del Draw_76 del personaje: busca el sprite en

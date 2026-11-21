@@ -93,7 +93,12 @@ if(variable_instance_exists(id, "superFormPhase") && superFormPhase > 0)
                         case EMOTION2: sprite_index = spr_super_amy_emoticon2; break;
                         case EMOTION3: sprite_index = spr_super_amy_emoticon3; break;
                         case AMY_CANON_TAROT: sprite_index = spr_super_amy_fly_idle; break;
-                        
+
+                        // v52 (fix): el impulso de tarot (tecla X, aire) usa
+                        // la tira super spr_super_amy_tarot_attack (la misma
+                        // pose del impulso pero con los colores super).
+                        case AMY_CANON_TAROTDASH: sprite_index = spr_super_amy_tarot_attack; break;
+
                         // v52: el LANZADO viaja como el estado de la acometida
                         // (la tira super solo se resuelve en el cliente local);
                         // el LSA y el LIGHT DASH de la super usan la tira de
@@ -108,6 +113,8 @@ switch(state)
 {
         case IDLE:
                 image_speed = 1;
+                if(image_index >= 15)
+                        image_index = 0;
                 break;
                 
         case HURT:
@@ -125,9 +132,11 @@ switch(state)
                 break;
                 
         case FALL:
-                image_index = 0;
+                // (MUELLES): frames de subida/bajada configurados con la
+                // Suite (global.fallAnims en scr_survivors.gml)
+                scr_fall_anim();
                 break;
-                
+
         case RUN:
                 image_speed = max(abs(xspd) / 20, 0.5);
                 break;
