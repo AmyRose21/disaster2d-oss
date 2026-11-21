@@ -187,6 +187,10 @@ else if(state == 2 || state == 3)
                         draw_sprite(spr_char_info_vanilla, 0, 1, 232-5);
                 else if(sprInd == 13)
                         draw_sprite(spr_char_info_fw, 0, 1, 232-5);
+                else if (sprInd == CHARACTER_KRIS)
+                        draw_sprite(spr_char_info_kris, 0, 1, 232-5); // [Suite Arte] placa de Kris
+                else if (sprInd == CHARACTER_ROUGE)
+                        draw_sprite(spr_char_info_rouge, 0, 1, 232-5); // [Suite Arte] placa de Rouge
                 else
                         draw_sprite(spr_char_info, _infoFrame, 1, 232-5);
         }

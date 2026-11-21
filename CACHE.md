@@ -1269,3 +1269,30 @@ y las pistas nuevas de 20-28s se cortaban).
   Validador 139/139 + server cmake limpio + smoke test OK. LEEME_
   LMS_V1.txt con macros ajustables y guion de prueba. Pendiente:
   partida real.
+
+- 2026-11-21 (editor-v54): RONDA DEL EDITOR (Suite_TD2D.html, la
+  herramienta web de la raiz del repo — NO es el juego). BUG OFF-BY-ONE
+  en plaqueMapFor (v53.1): cruzaba los redirects de obj_lobby/Draw_0.gml
+  (comparan sprInd, idx 0-based de chars[]) con el idx de la MACRO
+  CHARACTER_* (1-based) => cada redirect caia en el personaje ANTERIOR;
+  Rouge heredaba el placeholder Knux de Kris y Kris quedaba missing.
+  FIX: clave sprInd real = macroIdx-1 (survivors); killers tal cual.
+  Rouge ahora = "sin placa" + boton crear (el juego hoy le dibuja la
+  placa de BLAZE cruda, peor que placeholder); Kris = frame 1 (su
+  placeholder Knux real del juego). GENERADOR regenIconRouterBlock
+  sincronizado 1:1 con el bloque ACTUAL (v39/v40: Rouge icono 13 + fila
+  propia (CHARACTER_ROUGE-CHARACTER_TAILS)*7 + hit/demon/escaped propios;
+  antes escribia Rouge=Knux en todo y un "Escribir" BORRABA el estado
+  real). NUEVOS en el editor: nombre con tags de color {r}..{w} (igual
+  que las lineas; decodePlaque emite name.tagged por runs con
+  tagOfColor), 8 presets "nombre rapido", y boton "+ propio" en TODAS
+  las filas de la tira = CARTEL INDEPENDIENTE para cualquier personaje
+  (mismo flujo del "+ crear": placeholder editable + Escribir crea
+  sprites/spr_char_info_<key> + redirect + .yyp). fw/sallycanon/
+  vanilla ya eran sprites propios (v53.1, se mantiene). Version del
+  Suite: v6.4. Validador scripts/check_v54.py (32/32) + E2E Node con
+  archivos reales + browser vivo (agent-browser). LECCION NUEVA (8.16):
+  al cruzar sprInd (chars[]) con roster (macro): restar 1 en survivors;
+  y CADA generador que reescribe un bloque GML debe regenerarse 1:1 con
+  el bloque ACTUAL del repo, no con la version congelada de cuando se
+  escribio (regenIconRouterBlock v5.2 borraba v39/v40).

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Suite TD2D v6.1</title>
-<meta name="description" content="Suite TD2D v6.1 — editor todo-en-uno del remake de Sonic.exe The Disaster 2D: animaciones, arte, números, sistema y personajes.">
+<title>Suite TD2D v6.4</title>
+<meta name="description" content="Suite TD2D v6.4 — editor todo-en-uno del remake de Sonic.exe The Disaster 2D: animaciones, arte, números, sistema y personajes.">
 <style>
 
 /* ================================================================
@@ -618,7 +618,9 @@ dialog .close-row{display:flex;justify-content:flex-end;margin-top:14px}
 .arte-linectl label{min-width:60px;font-size:12.5px;color:var(--mut);padding-top:7px}
 .arte-linectl textarea{flex:1;font:13px/1.55 ui-monospace,Consolas,monospace;min-height:48px;resize:vertical}
 #arte-colorbar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:12.5px}
-#arte-colorbar button{background:none;border:1px solid var(--line);border-radius:3px;cursor:pointer;padding:3px 8px;font-size:12.5px}
+#arte-colorbar button,#arte-name-presets button{background:none;border:1px solid var(--line);border-radius:3px;cursor:pointer;padding:3px 8px;font-size:12.5px}
+#arte-name-presets{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+#arte-name-presets button:hover{border-color:var(--acc)}
 #arte-colorbar button:hover{border-color:var(--acc)}
 #arte-icontray{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
 .arte-icbtn{background:#181820;border:1px solid var(--line);border-radius:4px;cursor:pointer;padding:4px;line-height:0}
@@ -745,7 +747,7 @@ body{display:flex !important;flex-direction:row !important;overflow:hidden !impo
 <input type="file" id="dir-input" webkitdirectory multiple hidden>
 
 <div id="shell-side">
-  <h1 id="brand">TD2D <b>Suite</b><span>v6.1 · recodificada</span></h1>
+  <h1 id="brand">TD2D <b>Suite</b><span>v6.4 · placas corregidas</span></h1>
   <div class="cat"><div class="cat-title">Animaciones</div>
    <nav class="modnav-grp" id="modnav">
     <button class="mnav" data-mod="anim"><span class="ic">🎬</span>Editor de animaciones</button>
@@ -1022,8 +1024,20 @@ body{display:flex !important;flex-direction:row !important;overflow:hidden !impo
         <div class="arte-rowline">
           <label>Nombre</label>
           <input id="arte-name" spellcheck="false" style="min-width:260px">
-          <input id="arte-name-color" type="color" title="Color del nombre">
+          <input id="arte-name-color" type="color" title="Color base del nombre">
           <label class="chkline"><input type="checkbox" id="arte-name-inv"> estilo killer (relleno negro)</label>
+        </div>
+        <div class="arte-rowline" id="arte-name-presets">
+          <span class="muted">nombre rápido:</span>
+          <button data-npreset="#ffffff" style="color:#fff" title="blanco — el clásico">■ blanco</button>
+          <button data-npreset="#c20037" style="color:#e5506f" title="rojo del juego">■ rojo</button>
+          <button data-npreset="#0fff39" style="color:#37e07a" title="verde del juego">■ verde</button>
+          <button data-npreset="#b824ff" style="color:#c07af0" title="morado del juego">■ morado</button>
+          <button data-npreset="#5d67ff" style="color:#8f9bff" title="azul del juego">■ azul</button>
+          <button data-npreset="#ffdb00" style="color:#ffe066" title="amarillo del juego">■ amarillo</button>
+          <button data-npreset="#ea6014" style="color:#ff9a4d" title="naranja del juego">■ naranja</button>
+          <button data-npreset="#646464" style="color:#9a9a9a" title="gris del juego">■ gris</button>
+          <span class="muted" style="font-size:11.5px">· o escribe <code>{r}así{w}</code> en el nombre para pintarlo por letras (como las líneas)</span>
         </div>
         <div class="arte-rowline"><span id="arte-width-info" class="muted" style="font-size:11.5px"></span></div>
         <div class="arte-rowline">
@@ -7192,10 +7206,36 @@ initKeys();
     var nameText = nameWords.map(function (w) { return w.map(function (e) { return e.ch; }).join(''); }).join(' ');
     var nameColor = nameWords.length && nameWords[0].length ? nameWords[0][0].color : [255, 255, 255];
     var nameInv = nameWords.length && nameWords[0].length ? !!nameWords[0][0].inv : false;
+    // v54: NOMBRE MULTICOLOR — si los glifos del nombre varian de color,
+    // se emiten tags {r}/{g}/... por RUN (el color base queda en el
+    // primer run y cada cambio de color abre su tag; {w} al final).
+    // nearestTag es tolerante: colores fuera de paleta no emiten tag y
+    // caen en el input color base (mismo criterio que las lineas).
+    var nameTags = '';
+    (function () {
+      var flat = [];
+      for (var wi = 0; wi < nameWords.length; wi++) {
+        if (wi) flat.push({ ch: ' ', color: null });
+        for (var ei = 0; ei < nameWords[wi].length; ei++) flat.push(nameWords[wi][ei]);
+      }
+      var txt = '';
+      var active = '';
+      for (var fj = 0; fj < flat.length; fj++) {
+        var cj = flat[fj].color;
+        if (cj && fj > 0) {
+          var tgj = tagOfColor(cj);
+          if (tgj && active !== tgj) { txt += '{' + tgj + '}'; active = tgj; }
+        }
+        txt += flat[fj].ch;
+      }
+      if (active && active !== 'w') txt += '{w}';
+      nameTags = txt;
+    })();
     res.name = {
       text: nameText, color: nameColor, inv: nameInv,
       x0: nameWords.length ? nameWords[0][0].x0 : 2,
-      icons: l1n.filter(function (e) { return e.type === 'icon'; })
+      icons: l1n.filter(function (e) { return e.type === 'icon'; }),
+      tagged: nameTags
     };
     // post-filtro: puntuacion de etiqueta mal leida ('(' <-> ':' etc.):
     // - palabra que termina en '(' y sin ')' en la linea => es ':'
@@ -7297,6 +7337,18 @@ initKeys();
   // dibuja UNA palabra con caja: texto con marcadores {r} {g}... {icon:id}
   // texto simple (sin marcadores) = color unico.
   // tokens: [{t:'txt',s,color}|{t:'icon',id}]
+  // v54: tag del juego mas cercano a un color RGB (null si esta lejos
+  // de los 8 de la paleta): para decodificar nombres multicolor.
+  function tagOfColor(c) {
+    var colors = { r: [194, 0, 55], g: [15, 255, 57], p: [184, 36, 255], b: [93, 103, 255], y: [255, 219, 0], o: [234, 96, 20], gr: [100, 100, 100], w: [255, 255, 255] };
+    var best = null, bd = 96;
+    for (var t in colors) {
+      var d = Math.abs(colors[t][0] - c[0]) + Math.abs(colors[t][1] - c[1]) + Math.abs(colors[t][2] - c[2]);
+      if (d < bd) { bd = d; best = t; }
+    }
+    return best;
+  }
+
   function tokenize(text) {
     var out = [], re = /\{(r|g|p|b|y|o|gr|w|icon:[a-z0-9_]+)\}/g, m, last = 0;
     var colors = { r: [194, 0, 55], g: [15, 255, 57], p: [184, 36, 255], b: [93, 103, 255], y: [255, 219, 0], o: [234, 96, 20], gr: [100, 100, 100], w: [255, 255, 255] };
@@ -7568,13 +7620,23 @@ initKeys();
       // numeros directos. Los DOS enums comparten idx 0..4: la clave de
       // byIdx es (isExe:idx) para no mezclar killers con supervivientes.
       const valOf = new Map();
-      for (const r of ros) { valOf.set(r.macro, (r.isExe ? 'k:' : 's:') + r.idx); }
+      // v54 FIX OFF-BY-ONE: obj_lobby compara sprInd, el indice 0-based de
+      // chars[] (= macroIdx - 1 para supervivientes). Antes se cruzaba con
+      // el macroIdx tal cual: cada redirect caia en el personaje ANTERIOR
+      // (Rouge heredaba el placeholder Knux de Kris; Kris quedaba missing).
+      // Killers: idx tal cual (su enum es 0-based y su sprInd ya lleva el
+      // offset +CHARACTER_KRIS que Draw_0 les resta antes de comparar).
+      for (const r of ros) { valOf.set(r.macro, (r.isExe ? 'k:' : 's:') + (r.isExe ? r.idx : (r.idx != null ? r.idx - 1 : 0))); }
       const re = /if\s*\(sprInd\s*==\s*([A-Za-z_]\w*|\d+)\)\s*\r?\n\s*([^\n]+);/g;
       let m;
       while ((m = re.exec(drawTxt))) {
         let idx;
         if (/^\d+$/.test(m[1])) { idx = parseInt(m[1], 10); if (idx >= 16) continue; }
         else {
+          // v54: valOf ya guarda la clave sprInd 0-based (macro-1) para
+          // supervivientes: el redirect de Sonic (sprInd==7 -> frame 11)
+          // cae en CHARACTER_SONIC, no en Amy Canon. Kris (sprInd==15 ->
+          // frame 1 Knux) ya se encuentra; Rouge (14) deja de heredarlo.
           const v = valOf.get(m[1]);
           if (v == null) continue;
           byIdx.set(v, null);   // marcar y seguir: el set real va abajo con v
@@ -7598,7 +7660,10 @@ initKeys();
     for (const r of ros) {
       const ck = CLASSIC_MACRO[r.macro] || CLASSIC_MACRO[r.key] || r.id;
       const classic = CLASSIC_PLAQUE_MAP.find(c => (c.key === ck || c.key === r.id || c.key === r.key) && !!c.killer === !!r.isExe) || null;
-      let ent = byIdx.get((r.isExe ? 'k:' : 's:') + r.idx) || null;
+      // v54: clave sprInd 0-based para supervivientes (macro-1); killers
+      // tal cual. Sin esto Rouge no encontraba su redirect y Kris caia
+      // en el placeholder del siguiente.
+      let ent = byIdx.get((r.isExe ? 'k:' : 's:') + (r.isExe ? r.idx : (r.idx != null ? r.idx - 1 : 0))) || null;
       // 3) placa propia del roster aunque Draw_0 no la redirija (añadida a
       //    mano o por el módulo 👤 PJ): sprites/spr_char_info_<id>/
       //    v6.3.2: ANTES del idx crudo — una placa propia existente es
@@ -7609,12 +7674,13 @@ initKeys();
         if (yy != null) ent = { sprite: spr };
       }
       // v6.3.2: sin redirect ni sprite propio, el juego dibuja
-      // _infoFrame = sprInd (idx REAL de la macro del roster) — solo
+      // _infoFrame = sprInd (idx REAL de chars[], = macro-1) — solo
       // supervivientes conocidos de la tira (classic con frame); los
       // killers tienen SU enum (idx 0..4 propio) y los añadidos sin
       // placa conocida van a 'missing' (botón crear), nunca a la placa
-      // de otro personaje
-      if (!ent && !r.isExe && classic && classic.frame != null && r.idx != null && r.idx >= 0 && r.idx < 16) ent = { frame: r.idx };
+      // de otro personaje. v54: frame = sprInd (macro-1), no el macro:
+      // Rouge (macro 15) dibuja el frame 14 en el juego, no el 15.
+      if (!ent && !r.isExe && classic && classic.frame != null && r.idx != null && r.idx - 1 >= 0 && r.idx - 1 < 16) ent = { frame: r.idx - 1 };
       if (!ent && classic && classic.frame != null) ent = { frame: classic.frame };
       else if (!ent && classic && classic.sprite) ent = { sprite: classic.sprite };
       if (!ent) { out.push({ key: r.id, name: prettyCharName(r), killer: r.isExe, missing: true }); continue; }
@@ -7795,7 +7861,10 @@ initKeys();
       return out.trim();
     };
     return {
-      name: model.name.text,
+      // v54: el nombre conserva SUS tags de color (decodePlaque los emite
+      // por runs de color): el campo nombre los muestra y drawText los
+      // pinta al render/escribir — mismo efecto de color que las líneas.
+      name: (model.name.tagged && model.name.tagged !== model.name.text) ? model.name.tagged : model.name.text,
       nameColor: rgbHex(model.name.color),
       nameInv: !!model.name.inv,
       lines: model.lines.map(ln => ({
@@ -7873,6 +7942,9 @@ initKeys();
     const nameAdv = (ed.name && ed.name.length) ? measureNameAdvance(ed.name, 2) : { pen: 2, ink: 1 };
     const l1x = Math.max(defaultX('L1'), nameAdv.ink + 8);
     // construir modelo para render
+    // v54: el nombre acepta los MISMOS tags de color del juego que las
+    // lineas ({r}kris{w}...): drawText ya los tokenizea; el input color
+    // queda como color BASE (lo que pilla todo texto sin tag).
     const model = { name: { text: ed.name, color: hexToRgb(ed.nameColor), inv: ed.nameInv, x0: 2 }, lines: [] };
     for (const ln of ed.lines) {
       const kind = ln.kind;
@@ -7990,7 +8062,22 @@ initKeys();
     const killers = map.filter(e => e.killer && !e.missing);
     const killersNo = map.filter(e => e.killer && e.missing);
     mkHead('Supervivientes');
-    for (const e of withPlaque) mkRow2(e, (e.sprite ? e.sprite : null) || (e.key === 'vanilla' ? 'comparte la placa de Cream (como en el juego)' : null));
+    // v54: CARTEL INDEPENDIENTE — cualquier personaje puede pasar a placa
+    // PROPIA (spr_char_info_<key> + redirect en obj_lobby): el mismo flujo
+    // del botón «＋ crear». La fila muestra «＋ propio» cuando aún usa la
+    // tira común (los missing ya tienen su «＋ crear» abajo).
+    for (const e of withPlaque) {
+      mkRow2(e, (e.sprite ? e.sprite : null) || (e.key === 'vanilla' ? 'comparte la placa de Cream (como en el juego)' : null));
+      if (!e.sprite) {
+        const row = list.lastChild;
+        const mk = document.createElement('button');
+        mk.className = 'btn mini';
+        mk.textContent = '＋ propio';
+        mk.title = 'Convertir a placa INDEPENDIENTE sprites/spr_char_info_' + e.key + '/ (editable de cero; el juego pasa a dibujarla solo a ella)';
+        mk.addEventListener('click', (ev) => { ev.stopPropagation(); selectNewPlaque(e); });
+        row.appendChild(mk);
+      }
+    }
     if (noPlaque.length || killersNo.length) {
       mkHead('Sin placa (aún)');
       for (const e of noPlaque.concat(killersNo)) {
@@ -8242,10 +8329,13 @@ initKeys();
     const exP = extraPlaqueOf(i);
     // v53.1: el título nombra al PERSONAJE seleccionado (no al frame):
     // Vanilla comparte la placa de Cream pero dice "Vanilla", con nota
+    // v54: placeholders nuevos (uid<0) dicen 'placa NUEVA (independiente)'
+    const isNew = i < 0;
     const selEntry = (A.plaqueMap || []).find(e => (A.selKey && e.key === A.selKey) || (!A.selKey && (e.frame != null ? e.frame : e.uid) === i));
     $('#arte-cur-name').textContent = (selEntry ? selEntry.name : plaqueName(i))
-      + (exP ? ' (placa propia: ' + exP.sprite + ')'
-             : (selEntry && selEntry.frame != null ? ' · placa de la tira (frame ' + selEntry.frame + ')' : ''));
+      + (isNew ? ' · placa NUEVA (independiente: se creará sprites/spr_char_info_' + (A.selKey || '?') + ')'
+               : (exP ? ' (placa propia: ' + exP.sprite + ')'
+                      : (selEntry && selEntry.frame != null ? ' · placa de la tira (frame ' + selEntry.frame + ')' : '')));
     updateDirtyUI();
   }
 
@@ -11050,12 +11140,13 @@ initKeys();
     b += '        case CHARACTER_METAL: return 10;\n';
     b += '        case CHARACTER_AMELIA: return 11;\n';
     b += '        case CHARACTER_BLAZE: return 12;\n';
-    b += '        // v4.4: la tira comun tiene 13 frames (hasta Fleetway); Rouge\n';
+    b += '        // v40 (duena): ICONO PROPIO de Rouge en la seleccion — la\n';
+    b += '        // tira comun se amplio a 14 frames (frame 13 = Rouge, justo\n';
+    b += '        // despues de Blaze). Ya NO reusa el frame de Knuckles.\n';
+    b += '        case CHARACTER_ROUGE: return 13;\n';
+    b += '        // v5 (KRIS): placeholder KNUCKLES (pedido de la duena) —\n';
     b += '        // reusa el frame de Knuckles hasta que exista tira ampliada\n';
-    b += '        case CHARACTER_ROUGE: return CHARACTER_KNUX + 1;\n';
-    b += '        // v5 (KRIS): placeholder KNUCKLES (pedido de la duena) — mismo\n';
-    b += '        // criterio que Rouge: reusa el frame de Knuckles hasta que\n';
-    b += '        // exista tira ampliada / frame propio\n';
+    b += '        // o frame propio (Rouge ya tiene el suyo, arriba)\n';
     b += '        case CHARACTER_KRIS: return CHARACTER_KNUX + 1;\n';
     b += '    }\n';
     b += '    return char + 1;\n';
@@ -11142,9 +11233,9 @@ initKeys();
     b += '    switch(char)\n';
     b += '    {\n';
     for (const c of ownHp) b += '        case ' + c.macro + ': return [spr_playerhealth_' + c.key + ', 0];\n';
-    b += '        // v4.4: la tira comun llega hasta Fleetway (14 filas); Rouge\n';
-    b += '        // reusa la fila de Knuckles (mismo tamano de sprite)\n';
-    b += '        case CHARACTER_ROUGE: return [spr_playerhealth, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];\n';
+    b += '        // v39 (duena): fila PROPIA de Rouge (frames 98-104, los ultimos\n';
+    b += '        // del sprite — su arte nuevo) — antes reusaba la de Knuckles\n';
+    b += '        case CHARACTER_ROUGE: return [spr_playerhealth, (CHARACTER_ROUGE - CHARACTER_TAILS) * 7];\n';
     b += '        // v5 (KRIS): placeholder KNUCKLES en la barra de vida (pedido de\n';
     b += '        // la duena) — misma fila que Rouge hasta que llegue su tira\n';
     b += '        case CHARACTER_KRIS: return [spr_playerhealth, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];\n';
@@ -11160,7 +11251,8 @@ initKeys();
     b += '    {\n';
     b += '        case CHARACTER_SALLY_CANON: return [spr_playerhealth_redring, (CHARACTER_SALLY - CHARACTER_TAILS) * 7];\n';
     b += '        case CHARACTER_VANILLA: return [spr_playerhealth_redring, (CHARACTER_CREAM - CHARACTER_TAILS) * 7];\n';
-    b += '        case CHARACTER_ROUGE: return [spr_playerhealth_redring, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];\n';
+    b += '        // v39: fila propia de Rouge (98-104, su arte nuevo) — antes la de Knuckles\n';
+    b += '        case CHARACTER_ROUGE: return [spr_playerhealth_redring, (CHARACTER_ROUGE - CHARACTER_TAILS) * 7];\n';
     b += '        // v5 (KRIS): fila de Knuckles, igual que la tira comun\n';
     b += '        case CHARACTER_KRIS: return [spr_playerhealth_redring, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];\n';
     b += '    }\n';
@@ -11176,8 +11268,10 @@ initKeys();
     b += '    {\n';
     b += '        case CHARACTER_SALLY_CANON: return [spr_playerhealth_nega_sallycanon, 0];\n';
     b += '        case CHARACTER_VANILLA: return [spr_playerhealth_nega_vanilla, 0];\n';
-    b += '        // Rouge reusa la fila de Knuckles, igual que la tira comun\n';
-    b += '        case CHARACTER_ROUGE: return [spr_playerhealth_nega, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];\n';
+    b += '        // v39 (duena): fila NEGA propia de Rouge (98-104, generada con el\n';
+    b += '        // transform negademon2: inversion RGB con el contorno (0,0,0)\n';
+    b += '        // intacto) — antes reusaba la de Knuckles\n';
+    b += '        case CHARACTER_ROUGE: return [spr_playerhealth_nega, (CHARACTER_ROUGE - CHARACTER_TAILS) * 7];\n';
     b += '        // v5 (KRIS): fila de Knuckles (defensivo: Kris jamas es nega)\n';
     b += '        case CHARACTER_KRIS: return [spr_playerhealth_nega, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];\n';
     b += '    }\n';
@@ -11193,7 +11287,8 @@ initKeys();
     b += '    {\n';
     b += '        case CHARACTER_SALLY_CANON: return [spr_playerhealth_redring_nega, (CHARACTER_SALLY - CHARACTER_TAILS) * 7];\n';
     b += '        case CHARACTER_VANILLA: return [spr_playerhealth_redring_nega, (CHARACTER_CREAM - CHARACTER_TAILS) * 7];\n';
-    b += '        case CHARACTER_ROUGE: return [spr_playerhealth_redring_nega, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];\n';
+    b += '        // v39: fila NEGA propia de Rouge (98-104, mismo transform)\n';
+    b += '        case CHARACTER_ROUGE: return [spr_playerhealth_redring_nega, (CHARACTER_ROUGE - CHARACTER_TAILS) * 7];\n';
     b += '        // v5 (KRIS): fila de Knuckles (defensivo: Kris jamas es nega)\n';
     b += '        case CHARACTER_KRIS: return [spr_playerhealth_redring_nega, (CHARACTER_KNUX - CHARACTER_TAILS) * 7];\n';
     b += '    }\n';
@@ -11205,7 +11300,8 @@ initKeys();
     b += '    switch(char)\n';
     b += '    {\n';
     for (const c of ownHit) b += '        case ' + c.macro + ': return [spr_playerhealth_hit_' + c.key + ', 0];\n';
-    b += '        case CHARACTER_ROUGE: return [spr_playerhealth_hit, CHARACTER_KNUX - CHARACTER_TAILS];\n';
+    b += '        // v39: icono propio de Rouge (frame 14, el ultimo — su arte nuevo)\n';
+    b += '        case CHARACTER_ROUGE: return [spr_playerhealth_hit, CHARACTER_ROUGE - CHARACTER_TAILS];\n';
     b += '        // v5 (KRIS): placeholder Knuckles (el icono de "cayo 1 vez" del\n';
     b += '        // moribundo sale con la cara de Knuckles hasta su arte propio)\n';
     b += '        case CHARACTER_KRIS: return [spr_playerhealth_hit, CHARACTER_KNUX - CHARACTER_TAILS];\n';
@@ -11218,7 +11314,8 @@ initKeys();
     b += '    switch(char)\n';
     b += '    {\n';
     for (const c of ownDem) b += '        case ' + c.macro + ': return [spr_playerhealth_demon_' + c.key + ', 0];\n';
-    b += '        case CHARACTER_ROUGE: return [spr_playerhealth_demon, CHARACTER_KNUX - CHARACTER_TAILS];\n';
+    b += '        // v39: icono propio de Rouge (frame 14, el ultimo — su arte nuevo)\n';
+    b += '        case CHARACTER_ROUGE: return [spr_playerhealth_demon, CHARACTER_ROUGE - CHARACTER_TAILS];\n';
     b += '        // v5 (KRIS): fila de Knuckles (defensivo: Kris jamas se demoniza)\n';
     b += '        case CHARACTER_KRIS: return [spr_playerhealth_demon, CHARACTER_KNUX - CHARACTER_TAILS];\n';
     b += '    }\n';
@@ -11230,7 +11327,8 @@ initKeys();
     b += '    switch(char)\n';
     b += '    {\n';
     for (const c of ownEsc) b += '        case ' + c.macro + ': return [spr_playerescaped_' + c.key + ', 0];\n';
-    b += '        case CHARACTER_ROUGE: return [spr_playerescaped, CHARACTER_KNUX - CHARACTER_TAILS];\n';
+    b += '        // v39: icono propio de Rouge (frame 14, el ultimo)\n';
+    b += '        case CHARACTER_ROUGE: return [spr_playerescaped, CHARACTER_ROUGE - CHARACTER_TAILS];\n';
     b += '        // v5 (KRIS): placeholder Knuckles\n';
     b += '        case CHARACTER_KRIS: return [spr_playerescaped, CHARACTER_KNUX - CHARACTER_TAILS];\n';
     b += '    }\n';
@@ -11319,6 +11417,14 @@ initKeys();
     $$('#arte-colorbar button[data-tag]').forEach(b => b.addEventListener('click', () => {
       const ta = A.lastFocus || $('#arte-l1');
       insertAtCursor(ta, '{' + b.dataset.tag + '}');
+      rerender();
+    }));
+    // v54: presets del NOMBRE — un clic pinta el nombre entero (setea el
+    // color base); con el campo nombre enfocado además inserta el tag, así
+    // se puede combinar el efecto por letras con el selector libre.
+    $$('#arte-name-presets button[data-npreset]').forEach(b => b.addEventListener('click', () => {
+      $('#arte-name-color').value = b.dataset.npreset;
+      if (A.lastFocus === $('#arte-name')) insertAtCursor(A.lastFocus, '');
       rerender();
     }));
     ['#arte-l1', '#arte-l2', '#arte-l3', '#arte-name'].forEach(id => {
