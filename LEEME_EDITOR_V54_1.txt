@@ -1,0 +1,90 @@
+========================================
+ v54.1 — LA PLACA DE JINNA EN EL EDITOR
+========================================
+
+LO QUE PASÓ
+-----------
+Pediste investigar el frame 16 del char-info (spr_char_info): es la placa de
+JINNA. El juego la dibuja bien desde hace tiempo:
+
+    obj_lobby/Draw_0.gml:
+    if(sprInd == CHARACTER_KRIS + 5)
+            _infoFrame = 16; // jinna (v1 D.I.B.): su placa del mod
+
+El sprite spr_char_info tiene 17 frames (0-16): los 16 conocidos + el de
+Jinna al final (b0fb75d2...png, commiteado el 17-nov junto al redirect).
+Contenido real de la placa (decodificado con el mismo decoder del Suite,
+96% de roundtrip):
+    nombre:  j{p}ina{w}          (la J en morado, resto blanco)
+    L1:      mobility: very high (+ iconos de medidor)
+    L2:      offense: punch 2 hp) grub
+    L3:      special ability: teleport
+
+LOS 3 BUGS QUE ENCONTRÉ EN EL EDITOR (todos del lado de la Suite, el juego
+NO se toca):
+-----------------------------------------------
+1) EL MAPA NO VEÍA EL REDIRECT DE JINNA.
+   plaqueMapFor parsea obj_lobby/Draw_0.gml para saber qué placa ve cada
+   personaje, pero su regex solo entendía:
+       if(sprInd == MACRO)      y      if(sprInd == 15)
+   y el redirect de Jinna es ARITMÉTICO:
+       if(sprInd == CHARACTER_KRIS + 5)
+   Resultado: Jinna aparecía como "SIN PLACA (botón crear)" aunque ya tiene
+   la suya. Si le dabas a "+ crear" duplicabas una placa existente.
+   FIX: la regex ahora acepta MACRO + N (y MACRO - N), y el resultado se
+   resuelve en la escala correcta (la del MACRO), generando las DOS claves
+   posibles (survivor 's:N' / killer 'k:N') — la que no aplica la ignora el
+   cruce. Metal Amy (KRIS+4 -> frame 15) cae por el mismo camino.
+
+2) EL FRAME 16 NUNCA SE CARGABA.
+   loadPlaqueSprite cargaba SOLO los frames 0..15 (un 16 hardcodeado de
+   cuando la tira tenía 16 placas): al hacer click en la fila de Jinna,
+   "No puedo leer la placa de Jinna". Ahora recorre TODOS los frames del
+   sprite (length del .yy = 17).
+
+3) (BONUS, pre-existente de la v53) CARGAR PROYECTO ROMPÍA LA CADENA DE
+   REFRESCO. La parte 3 de la Suite usaba "Cd" en __onProjectScan, pero Cd
+   se declara en la parte 4 (otro <script>): ReferenceError al cargar
+   proyecto => los caches de placas no se limpiaban al re-escanear.
+   FIX: guard de typeof. (Este error estaba en el HTML que me pasaste, no
+   lo introdujo ninguna de mis rondas.)
+
+QUÉ VES AHORA EN LA SUITE
+-------------------------
+Módulo Arte > Barra de información:
+  * Fila "Jinna" en la sección Killers, con su miniatura (frame 16 real).
+  * Click en ella: título "Jinna · placa de la tira (frame 16)", y el editor
+    carga TODO el contenido:
+      nombre:  j{p}ina{w}
+      L1: {b}mobility:{w} {gr}very{w} {gr}high{w} {icon:ic00} {gr}high{w} {icon:ic01}
+      L2: {o}offense:{w} punch: {icon:ic11} {gr}2{w} {gr}hp){w} grub {icon:ic00} {icon:ic06} {icon:ic05} {icon:ic16}
+      L3: {b}special{w} {b}ability:{w} teleport
+  * Editable como cualquier otra placa: cambiar nombre/lineas/medidor y
+    "Escribir en el proyecto" reescribe el frame 16 del spr_char_info.
+
+VERIFICACIÓN (check_v54_1.py, 17/17 OK)
+---------------------------------------
+  A. parser: regex aritmética + dual-key + macroIdx presentes
+  B. carga: bucle usa nFrames del sprite (17), no el 16 viejo
+  C. guard typeof Cd (bug pre-existente)
+  D. CERO .gml/.yy/.yyp del juego tocados (el Suite es herramienta externa)
+  E. evidencia del juego: redirect KRIS+5->16 y KRIS+4->15 intactos, sprite
+     de 17 frames, PNG del frame 16 en su sitio
+  F. sintaxis balanceada (plaqueMapFor 31/31, loadPlaqueSprite 21/21)
+  G. E2E del mapa contra archivos reales: Jinna frame 16, todo lo demás
+     idéntico (Exeller 10, Metal Amy 15, Rouge sin placa, Kris 1...)
+Además: test en vivo con navegador (proyecto real inyectado, PNG incluidos):
+fila Jinna -> click -> editor lleno, 0 errores de página.
+Y roundtrip de decodificación: 18366/19120 px (96.06%) idénticos.
+
+CÓMO APLICAR
+------------
+1. Cierra GameMaker (si lo tienes abierto, sus caches pueden pisar cambios).
+2. Copia Suite_TD2D.html a la raíz de tu repo (reemplaza el actual).
+3. Abre el Suite en Chrome/Edge, "📂 Abrir carpeta del proyecto", Arte >
+   Barra de información, click en Jinna: ya está su placa editable.
+
+NOTA ANTI-CONFUSIÓN: si en el lobby del juego Jinna no te muestra la placa,
+eso sería OTRO bug (del juego, no del editor) — pero hoy el redirect está
+sano: quien la vea mal es porque su build vieja no tiene el frame 16 del
+sprite (17 placas). Con este repo actualizado el lobby la dibuja bien.

@@ -1434,6 +1434,8 @@
     {"id":{"name":"spr_chaos_zipline","path":"sprites/spr_chaos_zipline/spr_chaos_zipline.yy",},},
     {"id":{"name":"spr_char_bars","path":"sprites/spr_char_bars/spr_char_bars.yy",},},
     {"id":{"name":"spr_char_info_fw","path":"sprites/spr_char_info_fw/spr_char_info_fw.yy",},},
+    {"id":{"name":"spr_char_info_kris","path":"sprites/spr_char_info_kris/spr_char_info_kris.yy",},},
+    {"id":{"name":"spr_char_info_rouge","path":"sprites/spr_char_info_rouge/spr_char_info_rouge.yy",},},
     {"id":{"name":"spr_char_info_sallycanon","path":"sprites/spr_char_info_sallycanon/spr_char_info_sallycanon.yy",},},
     {"id":{"name":"spr_char_info_vanilla","path":"sprites/spr_char_info_vanilla/spr_char_info_vanilla.yy",},},
     {"id":{"name":"spr_char_info","path":"sprites/spr_char_info/spr_char_info.yy",},},

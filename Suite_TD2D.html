@@ -4687,7 +4687,10 @@ window.__onProjectScan = function () {
   Img.orig = {}; Img.working = {}; Img.changes = []; Img.objIndex = null; Img.objSel = null;
   Img.char = null; Img.sel = null; Img.prev = null;
   ffCache.clear();
-  Cd.discovered = false;        // v53: re-descubrir con el roster nuevo
+  // v54.1 FIX PRE-EXISTENTE (v53): Cd vive en la parte 4 (scope distinto) y
+  // explotaba aqui con ReferenceError al cargar proyecto, cortando la cadena
+  // de __onProjectScan => los caches (placas incluida) no se limpiaban.
+  if (typeof Cd !== 'undefined') Cd.discovered = false;        // v53: re-descubrir con el roster nuevo
   if (S.module === 'tune') enterTune();
   else if (S.module === 'img') enterImg();
 };
@@ -7626,13 +7629,53 @@ initKeys();
       // (Rouge heredaba el placeholder Knux de Kris; Kris quedaba missing).
       // Killers: idx tal cual (su enum es 0-based y su sprInd ya lleva el
       // offset +CHARACTER_KRIS que Draw_0 les resta antes de comparar).
-      for (const r of ros) { valOf.set(r.macro, (r.isExe ? 'k:' : 's:') + (r.isExe ? r.idx : (r.idx != null ? r.idx - 1 : 0))); }
-      const re = /if\s*\(sprInd\s*==\s*([A-Za-z_]\w*|\d+)\)\s*\r?\n\s*([^\n]+);/g;
+      // v54.1: valOf guarda la clave sprInd 0-based; macroIdx el valor de
+      // MACRO tal cual (para resolver aritmetica sprInd == MACRO + N, que
+      // Draw_0 compara en la escala de chars[] de los killers).
+      const macroIdx = new Map();
+      for (const r of ros) {
+        valOf.set(r.macro, (r.isExe ? 'k:' : 's:') + (r.isExe ? r.idx : (r.idx != null ? r.idx - 1 : 0)));
+        macroIdx.set(r.macro, r.idx);
+      }
+      // v54.1: tambien comparaciones ARITMETICAS (sprInd == CHARACTER_KRIS + 5
+      // = Jinna -> frame 16): sin esto la fila de Jinna caia a 'missing'
+      // aunque el juego le dibuja SU placa.
+      // v54.2b: la condicion puede llevar comentario '//' al final
+      // (el writer v54.2 escribe 'sprInd == 15 // CHARACTER_KRIS ...'):
+      // (?:\s*\/\/[^\n]*)? tras el ')' para no perder el redirect.
+      const re = /if\s*\(sprInd\s*==\s*([A-Za-z_]\w*(?:\s*[+\-]\s*\d+)?|\d+)\)(?:\s*\/\/[^\n]*)?\s*\r?\n\s*([^\n]+);/g;
       let m;
       while ((m = re.exec(drawTxt))) {
         let idx;
         if (/^\d+$/.test(m[1])) { idx = parseInt(m[1], 10); if (idx >= 16) continue; }
         else {
+          // v54.1: comparacion ARITMETICA (sprInd == CHARACTER_KRIS + 5 =
+          // Jinna, chars[21]). La macro se resuelve en la escala del MACRO
+          // (no macro-1): Draw_0 compara el sprInd de chars[] de killers, que
+          // ya lleva el +CHARACTER_KRIS completo. El resultado puede caer en
+          // un survivor ('s:N' = macro resultante - 1) o en un killer
+          // ('k:N' = macro resultante - CHARACTER_KRIS): se setean AMBAS
+          // claves posibles y el cruce del roster se queda con la suya.
+          const am = /^([A-Za-z_]\w*)\s*([+\-])\s*(\d+)$/.exec(m[1]);
+          if (am) {
+            const mi = macroIdx.get(am[1]);
+            if (mi == null) continue;
+            const off = (am[2] === '-' ? -1 : 1) * parseInt(am[3], 10);
+            const macroX = mi + off;
+            const keys = [];
+            if (macroX - 1 >= 0) keys.push('s:' + (macroX - 1));
+            const krisIdx = macroIdx.get('CHARACTER_KRIS');
+            if (krisIdx != null && macroX >= krisIdx) keys.push('k:' + (macroX - krisIdx));
+            for (const v2 of keys) {
+              byIdx.set(v2, null);
+              const st0b = m[2];
+              const f0b = /_infoFrame\s*=\s*(\d+)/.exec(st0b);
+              const s0b = /draw_sprite\(\s*spr_char_info_(\w+)/.exec(st0b);
+              if (f0b) byIdx.set(v2, { frame: parseInt(f0b[1], 10) });
+              else if (s0b) byIdx.set(v2, { sprite: 'spr_char_info_' + s0b[1] });
+            }
+            continue;
+          }
           // v54: valOf ya guarda la clave sprInd 0-based (macro-1) para
           // supervivientes: el redirect de Sonic (sprInd==7 -> frame 11)
           // cae en CHARACTER_SONIC, no en Amy Canon. Kris (sprInd==15 ->
@@ -7664,14 +7707,26 @@ initKeys();
       // tal cual. Sin esto Rouge no encontraba su redirect y Kris caia
       // en el placeholder del siguiente.
       let ent = byIdx.get((r.isExe ? 'k:' : 's:') + (r.isExe ? r.idx : (r.idx != null ? r.idx - 1 : 0))) || null;
+      // v54.2b: placa propia EXISTENTE GANA al redirect de tira (_infoFrame):
+      // en el JUEGO la cadena draw_sprite(spr_char_info_X) va ANTES del
+      // else de la tira, asi que si sprites/spr_char_info_<id> existe y
+      // Draw_0 la dibuja, el editor debe editar ESA. Sin esto Kris (con
+      // _infoFrame=1 de placeholder Y sprite propio nuevo) editaria el
+      // frame 1 (¡Knux!) creyendo que es su placa.
+      {
+        const spr = 'spr_char_info_' + r.id;
+        const yy = await readText('sprites/' + spr + '/' + spr + '.yy');
+        if (yy != null) ent = { sprite: spr };
+        else if (ent && ent.frame != null && !ent.sprite) { /* tira: se queda */ }
+      }
       // 3) placa propia del roster aunque Draw_0 no la redirija (añadida a
       //    mano o por el módulo 👤 PJ): sprites/spr_char_info_<id>/
       //    v6.3.2: ANTES del idx crudo — una placa propia existente es
       //    siempre mas fiable que adivinar un frame de la tira
       if (!ent) {
-        const spr = 'spr_char_info_' + r.id;
-        const yy = await readText('sprites/' + spr + '/' + spr + '.yy');
-        if (yy != null) ent = { sprite: spr };
+        const spr2 = 'spr_char_info_' + r.id;
+        const yy2 = await readText('sprites/' + spr2 + '/' + spr2 + '.yy');
+        if (yy2 != null) ent = { sprite: spr2 };
       }
       // v6.3.2: sin redirect ni sprite propio, el juego dibuja
       // _infoFrame = sprInd (idx REAL de chars[], = macro-1) — solo
@@ -7718,7 +7773,13 @@ initKeys();
     if (yy != null) meta = C.parseSpriteYy(yy);
     A.spriteMeta = meta || { frames: AR.demoPlaques.map((_, i) => 'demo' + i), layers: ['demo'], w: AC.W, h: AC.H, demo: !meta };
     // cargar bitmaps
-    for (let i = 0; i < 16; i++) {
+    // v54.1 FIX FRAME 16: el bucle tenia un 16 hardcodeado (la tira tenia
+    // 16 placas hasta Metal Amy); el sprite real ya tiene 17 frames y el
+    // redirect de Jinna apunta al 16 => nunca se cargaba, selectPlaque(16)
+    // decia 'No puedo leer la placa de Jinna'. Se recorren TODOS los frames
+    // del sprite (demo: 16 embebidas).
+    const nFrames = A.spriteMeta.demo ? Math.min(AR.demoPlaques.length, 16) : A.spriteMeta.frames.length;
+    for (let i = 0; i < nFrames; i++) {
       if (A.plaqueCache.has(i)) continue;
       let bmp = null;
       if (A.spriteMeta.demo) {
@@ -8120,8 +8181,20 @@ initKeys();
     try { JSON.parse(String(s).replace(/,(\s*[}\]])/g, '$1')); return null; } catch (e) { return e.message; }
   };
   const pjYypName = _pj.pjYypName || async function () {
+    // v54.2 FIX: el fallback anterior SOLO escaneaba S.files (modo files,
+    // solo lectura) => en modo "Abrir carpeta" (fs) devolvia null y el
+    // registro de la placa en el .yyp FALLABA con un toast, dejando el
+    // sprite sin registrar => "Variable spr_char_info_X not set" en el
+    // juego. Este bloque corre ANTES que el modulo PJ (que define el
+    // bueno en window.__pjHelpers), por eso el fallback tiene que valer
+    // por si solo: fs recorre la raiz, files escanea el indice.
     try {
-      for (const [rel, f] of S.files.entries()) if (/\.yyp$/.test(rel)) return rel;
+      if (S.mode === 'fs' && S.rootHandle) {
+        for await (const [name, h] of S.rootHandle.entries())
+          if (h.kind === 'file' && /\.yyp$/.test(name)) return name;
+      } else if (S.files && S.files.entries) {
+        for (const [rel, f] of S.files.entries()) if (/\.yyp$/.test(rel)) return rel;
+      }
     } catch (e) { }
     return null;
   };
@@ -8199,21 +8272,84 @@ initKeys();
       const bw = await bfh.createWritable(); await bw.write(blobOld); await bw.close();
     }
     await arteWriteFile(yypName, new Blob([out], { type: 'text/plain' }));
+    // v54.2 FIX: RELEER y VERIFICAR que la entrada quedo escrita. La
+    // version anterior devolvia ok sin mirar: si GameMaker (abierto)
+    // pisaba el .yyp al guardar, el sprite quedaba sin registrar y el
+    // juego reventaba con "Variable spr_char_info_X not set".
+    const back = await readText(yypName);
+    if (back == null || back.indexOf('"name":"' + spriteName + '"') < 0) {
+      if (blobOld) await arteWriteFile(yypName, blobOld);   // restaurar
+      return { err: 'El .yyp se escribio pero NO quedo la entrada de ' + spriteName + ' (¿GameMaker abierto?). Se restauro la copia anterior: cierra GameMaker y repite la escritura.' };
+    }
     undoGroup.push({ rel: yypName, backup: blobOld ? (bdir._rel ? bdir._rel + '/' : '_backups_animeditor/' + stamp + '/') + bname : null, isYyp: true, spriteName });
-    return { ok: true };
+    // v54.2: registrar tambien en <proyecto>.resource_order (el formato
+    // que usa el IDE moderno junto al .yyp; fw/sallycanon/vanilla estan
+    // ahi). Fallo aqui NO es fatal: solo se omite (aviso).
+    let roOk = false;
+    try {
+      const roName = yypName.replace(/\.yyp$/, '.resource_order');
+      const roTxt = await readText(roName);
+      if (roTxt != null && roTxt.indexOf('"name":"' + spriteName + '"') < 0) {
+        const entry2 = '    {"name":"' + spriteName + '","order":1,"path":"sprites/' + spriteName + '/' + spriteName + '.yy",},},';
+        const mRO = /"ResourceOrderSettings"\s*:\s*\[\s*\n/.exec(roTxt);
+        if (mRO) {
+          const roOut = roTxt.slice(0, mRO.index + mRO[0].length) + entry2 + '\n' + roTxt.slice(mRO.index + mRO[0].length);
+          if (!pjLenientErr(roOut)) {
+            const roOld = await readBlob(roName);
+            if (roOld) {
+              const rbfh = await bdir.getFileHandle(roName.split('/').pop() + '.arte' + stamp + '.bak', { create: true });
+              const rbw = await rbfh.createWritable(); await rbw.write(roOld); await rbw.close();
+              undoGroup.push({ rel: roName, backup: (bdir._rel ? bdir._rel + '/' : '_backups_animeditor/' + stamp + '/') + roName.split('/').pop() + '.arte' + stamp + '.bak', isYyp: true, spriteName });
+            }
+            await arteWriteFile(roName, new Blob([roOut], { type: 'text/plain' }));
+            roOk = true;
+          }
+        }
+      } else roOk = true;   // ya estaba / no existe resource_order
+    } catch (eRO) { /* opcional */ }
+    return { ok: true, roOk };
   }
 
   async function newPlaquePatchLobby(e, spriteName) {
     const rel = 'objects/obj_lobby/Draw_0.gml';
     const txt = await readText(rel);
     if (txt == null) return { err: 'No encuentro ' + rel };
-    // ya está redirigido (placa creada antes): no duplicar
+    // v54.2 FIX OFF-BY-ONE: selected es el MACRO (1-based) y sprInd es
+    // selected-1 (0-based, indice de chars[]): la linea tiene que
+    // comparar sprInd == charsIdx (macro - 1) para supervivientes. La
+    // version anterior escribia 'sprInd == CHARACTER_X' (macro tal cual):
+    // la placa de Rouge se dibujaba con KRIS seleccionado (15==15) y
+    // Rouge nunca la veia. Killers: su sprInd ya lleva +CHARACTER_KRIS y
+    // Draw_0 les compara en escala macro => macro tal cual.
+    const r = (S.roster || []).find(x => x.id === e.key || x.key === e.key) || e;
+    const charsIdx = (!r.isExe && r.idx != null && r.idx > 0) ? (r.idx - 1) : r.idx;
+    // v54.2c: el comentario va FUERA del parentesis (estilo del juego y
+    // legible por el parser de placas: 'else if (sprInd == 14) // MACRO').
+    // Con el comentario DENTRO del parentesis la regex del mapa no veia
+    // la linea propia del personaje recien creada.
+    const cond = (!r.isExe && charsIdx != null)
+      ? ('sprInd == ' + charsIdx)
+      : (r.macro ? ('sprInd == ' + r.macro) : ('sprInd == ' + (r.idx != null ? r.idx : 0)));
+    const condNote = (!r.isExe && charsIdx != null)
+      ? (' // ' + (r.macro || e.key) + ' (chars[' + charsIdx + '])')
+      : '';
+    const line = 'else if (' + cond + ')' + condNote + '\n                        draw_sprite(' + spriteName + ', 0, 1, 232-5); // [Suite Arte] placa de ' + (e.name || e.key);
+    // v54.2: linea vieja MAL indexada de una escritura anterior (sprInd ==
+    // MACRO 1-based)? se REEMPLAZA por la condicion correcta en vez de
+    // anadir una segunda (dos redirects para el mismo personaje = el
+    // primero gana y el mal sigue vivo). Va ANTES del reDone: reDone solo
+    // debe cortar cuando la linea ya esta BIEN indexada.
+    if (r.macro && !r.isExe) {
+      const reBad = new RegExp('(else if \\s*\\(\\s*sprInd \\s*==\\s*' + r.macro + '\\s*\\)\\s*\\r?\\n\\s*)draw_sprite\\(\\s*' + spriteName + '\\s*,');
+      const mBad = reBad.exec(txt);
+      if (mBad) {
+        const out2 = txt.replace(reBad, 'else if (' + cond + ')' + condNote + '\n                        draw_sprite(' + spriteName + ',');
+        return { txt: out2, rel, fixed: true };
+      }
+    }
+    // ya está redirigido (placa creada antes y BIEN indexada): no duplicar
     const reDone = new RegExp('draw_sprite\\(\\s*' + spriteName + '\\s*,');
     if (reDone.test(txt)) return { txt, rel, already: true };
-    // el sprInd del personaje: macro o índice directo
-    const r = (S.roster || []).find(x => x.id === e.key || x.key === e.key) || e;
-    const cond = r.macro ? ('sprInd == ' + r.macro) : ('sprInd == ' + (r.idx != null ? r.idx : 0));
-    const line = 'else if (' + cond + ')\n                        draw_sprite(' + spriteName + ', 0, 1, 232-5); // [Suite Arte] placa de ' + (e.name || e.key);
     // ancla: tras el último draw_sprite(spr_char_info_...) del bloque de placas
     const reAny = /draw_sprite\(\s*spr_char_info_\w+\s*,\s*0\s*,\s*1\s*,\s*232-5\s*\);[^\n]*/g;
     let last = null, m;
@@ -8428,7 +8564,12 @@ initKeys();
       const bdir = await ensureDir('_backups_animeditor/' + stamp);
       bdir._rel = '_backups_animeditor/' + stamp;   // v6.3: para backups .yyp
       // v6.3 — PLACAS NUEVAS (placeholders uid<0): crear sprite completo
+      // v54.2: aviso preventivo — si GameMaker esta abierto con el
+      // proyecto, SU guardado pisa el .yyp y borra los sprites que el
+      // no cargo (leccion del modulo LMS). No se puede detectar desde
+      // el navegador: se recuerda en cada escritura con placa nueva.
       const news = [...A.dirty].filter(i => i < 0);
+      if (news.length) toast('Cierra GameMaker antes de continuar si lo tienes abierto con este proyecto: su guardado borraria del .yyp las placas nuevas.', 'warn');
       for (const i of news) {
         const key = (A._newPlaques ? Object.keys(A._newPlaques).find(k => A._newPlaques[k] === i) : null)
                  || (A._newSel && A._newSel.key) || null;
@@ -8449,7 +8590,9 @@ initKeys();
         // 2) parche obj_lobby/Draw_0.gml
         const w2 = await newPlaquePatchLobby(e, spriteName);
         if (w2 && w2.err) { toast(w2.err, 'err'); continue; }
-        if (!(w2 && w2.already)) {
+        // v54.2: 'fixed' = ya habia una linea (mal indexada por una
+        // escritura anterior) y se CORRIGIO: hay que escribir igual.
+        if (!(w2 && w2.already) || (w2 && w2.fixed)) {
           const relLobby = 'objects/obj_lobby/Draw_0.gml';
           let backed = false;
           try {
@@ -8469,7 +8612,16 @@ initKeys();
         // 4) estado: el personaje ya no está «missing»
         if (A.plaqueMap) {
           const ent = A.plaqueMap.find(x => x.key === e.key);
-          if (ent) { delete ent.missing; ent.sprite = spriteName; ent.uid = i < 0 ? null : ent.uid; ent.uid = newPlaqueUid(e); ent.uid = -newPlaqueUid(e); ent.uid = newPlaqueUid(e); }
+          // v54.2: el triple 'ent.uid =' dejaba uid = newPlaqueUid(e)
+          // (NEGATIVO: la fila volvia a comportarse como placeholder).
+          // Lo correcto: re-deducir uid de placa propia (100+) con el
+          // mismo reparto de plaqueMapFor (nunca negativo).
+          if (ent) {
+            delete ent.missing; ent.sprite = spriteName;
+            const used = new Set((A.plaqueMap || []).filter(x => x.uid != null).map(x => x.uid).concat(EXTRA_PLAQUES.map(x => x.id)));
+            let u = 100; while (used.has(u)) u++;
+            ent.uid = u;
+          }
         }
         A.dirty.delete(i);
         A._newPlaques && delete A._newPlaques[e.key];
@@ -8752,8 +8904,11 @@ initKeys();
         if (it.isGml) {
           const txt = await readText(it.rel);
           if (txt != null && it.spriteName) {
-            const re2 = new RegExp('\\n[ \\t]*else if \\(sprInd == [^\\n]*\\n[ \\t]*draw_sprite\\(' + it.spriteName + ', 0, 1, 232-5\\);[^\\n]*', 'g');
-            await arteWriteFile(it.rel, new Blob([txt.replace(re2, '\\n')], { type: 'text/plain' }));
+            // v54.2: la condicion ya no es solo macro: tambien digito
+            // 0-based con comentario de chars[]. La regex lo cubre.
+            const re2 = new RegExp('\\n[ \\t]*else if \\(sprInd == [^\\n\\r]*\\r?\\n[ \\t]*draw_sprite\\(' + it.spriteName + ', 0, 1, 232-5\\);[^\\n]*', 'g');
+            const outG = txt.replace(re2, '\\n');
+            await arteWriteFile(it.rel, new Blob([outG], { type: 'text/plain' }));
           }
           continue;
         }

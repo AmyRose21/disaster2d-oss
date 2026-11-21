@@ -1296,3 +1296,37 @@ y las pistas nuevas de 20-28s se cortaban).
   y CADA generador que reescribe un bloque GML debe regenerarse 1:1 con
   el bloque ACTUAL del repo, no con la version congelada de cuando se
   escribio (regenIconRouterBlock v5.2 borraba v39/v40).
+
+- 2026-11-21 (editor-v54.2): CRASH REAL EN EL JUEGO por el writer de
+  placas v54: "Variable spr_char_info_rouge not set" en obj_lobby
+  Draw_0 line 193 al pasar de Rouge a Kris. CAUSA DOBLE: (1) el writer
+  escribia 'else if (sprInd == CHARACTER_ROUGE)' — macro 1-based (15)
+  contra sprInd 0-based (Rouge 14): la linea se disparaba con KRIS
+  seleccionado (15==15) y llamaba draw_sprite(spr_char_info_rouge);
+  (2) el sprite NUNCA se registro en el .yyp porque pjYypName (fallback
+  local del bloque Arte, que corre ANTES que el modulo PJ setee
+  window.__pjHelpers) solo escaneaba S.files (modo files, solo lectura)
+  => en modo fs devolvia null => newPlaqueRegisterYyp fallaba con un
+  toast y seguia. REPARACION del juego: Draw_0.gml con 'sprInd == 14'
+  (Rouge) y 'sprInd == 15' (Kris) + registro de los 2 sprites en el .yyp
+  (2530->2532) + 2 entradas en .resource_order. WRITER FIXEADO (8
+  parches + v54.2b + v54.2c): pjYypName robusto (fs recorre raiz),
+  condicion 0-based con comentario FUERA del parentesis (v54.2c: dentro
+  del parentesis la regex del mapa no la veia), reemplazo de linea
+  vieja mal indexada ANTES del reDone (idempotente), registro .yyp con
+  RELECTURA-VERIFICACION + resource_order, uid 100+ re-deducido (trio
+  'ent.uid=' absurdo eliminado), undo con regex de digito, aviso
+  "cierra GameMaker" al crear placas nuevas, parser del mapa tolera
+  comentario tras la condicion, y sprite propio EXISTENTE gana al
+  redirect de tira en plaqueMapFor (orden del juego: la cadena
+  draw_sprite propia va antes del else de la tira; sin esto Kris
+  editaria el frame 1 Knux). Validador check_v54_2.py 33/33 + E2E Node
+  6/6 (malo->fixed, bueno->already sin duplicar, killers macro, parser
+  ve lineas nuevas, yypName 3 modos) + browser vivo (mapa: Rouge y Kris
+  = sprites propios, Jinna frame 16 intacta, click Rouge abre su placa,
+  0 errores). LECCION NUEVA (8.17): un writer que emite GML debe emitir
+  SOLO sintaxis que el propio parser del Suite puede releer — el
+  comentario dentro del parentesis rompia el roundtrip; y CADA
+  escritura de recurso (.yyp) debe re-leerse y verificarse, porque el
+  paso anterior puede haber fallado en silencio (toast perdido) o
+  GameMaker abierto puede pisarla al guardar.

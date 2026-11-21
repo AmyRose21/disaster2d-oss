@@ -166,6 +166,8 @@
     {"name":"spr_cbeamy_run_fw","order":22,"path":"sprites/spr_cbeamy_run_fw/spr_cbeamy_run_fw.yy",},
     {"name":"spr_cbeamy_walk_fw","order":23,"path":"sprites/spr_cbeamy_walk_fw/spr_cbeamy_walk_fw.yy",},
     {"name":"spr_char_info_fw","order":1,"path":"sprites/spr_char_info_fw/spr_char_info_fw.yy",},
+    {"name":"spr_char_info_kris","order":1,"path":"sprites/spr_char_info_kris/spr_char_info_kris.yy",},
+    {"name":"spr_char_info_rouge","order":1,"path":"sprites/spr_char_info_rouge/spr_char_info_rouge.yy",},
     {"name":"spr_char_info_sallycanon","order":1,"path":"sprites/spr_char_info_sallycanon/spr_char_info_sallycanon.yy",},
     {"name":"spr_char_info_vanilla","order":1,"path":"sprites/spr_char_info_vanilla/spr_char_info_vanilla.yy",},
     {"name":"spr_corpse_amy_canon","order":25,"path":"sprites/spr_corpse_amy_canon/spr_corpse_amy_canon.yy",},
