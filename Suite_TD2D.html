@@ -1485,6 +1485,17 @@ window.addEventListener('error', function () { window.__bootErrors++; });
   (<code>scr_fall_anim();</code>) en el <code>case FALL</code> de cada personaje de la lista — la Suite la escribe sola.
   Un personaje sin configurar usa su caída de siempre: ni errores ni cambios (robusto para el futuro).
   Metal, Metal demonizado, Blaze y Blaze demonizada ya vienen configurados.</p>
+  <p><b>v53.1 — placas:</b> la barra de info lee el mapa REAL del juego: <code>obj_lobby/Draw_0.gml</code>
+  (<code>else if(sprInd == N) _infoFrame = M</code> → frame de la tira · <code>draw_sprite(spr_char_info_X…)</code> → placa
+  propia) cruzado con el roster. Cada personaje edita SU placa; quien no tenga ninguna aparece en «Sin placa (aún)»
+  con su aviso, nunca la de otro.</p>
+  <p><b>v53 — auto-discovery:</b> <b>NADIE necesita estar en una lista fija nunca más</b>. Un
+  <b>roster</b> compartido se deriva de los macros <code>CHARACTER_*</code> de <code>scr_survivors.gml</code>
+  tras cada escaneo, y TODAS las barras de personajes (placas, retratos con brillo, superviviente,
+  enfriamientos, LMS, muelles, animaciones) lo consumen: <b>un personaje nuevo aparece solo en todas
+  partes</b>, incluso los creados con 👤 Personajes. El módulo LMS además adopta en caliente las
+  canciones que encuentre en <code>scr_lms.gml</code> de personajes fuera de su lista: ya no puede
+  borrar shows por no conocer a alguien.</p>
   <p><b>v52 — super forma:</b> los personajes con super (Amy canon) aparecen también con su
   <b>sprite de caída super</b> (<code>spr_super_amy_fall</code>) en el catálogo, marcado ✨super. Su fila va en
   la misma <code>global.fallAnims</code>: el switch super del Draw_76 cambia el sprite <i>antes</i> de que el
@@ -2557,7 +2568,48 @@ async function scanProject() {
   $('#btn-open').classList.toggle('hidden', S.mode === 'demo');
   $('#btn-open-ro').classList.toggle('hidden', S.mode === 'demo');
   clearSelection();
+  buildRoster();
   if (typeof window.__onProjectScan === 'function') window.__onProjectScan();
+}
+
+/* ============ v53: ROSTRO COMPARTIDO (auto-discovery) ============
+   UNICA fuente de verdad sobre los personajes del proyecto. Se deriva
+   de scr_survivors.gml tras cada escaneo (y tras cada escritura): los
+   macros CHARACTER_* en orden de enum, con su obj y su sprite FALL.
+   Los módulos con barras de personaje (placas, retratos, brillo,
+   superviviente, enfriamientos, LMS) filtran S.roster en vez de usar
+   listas fijas: un personaje NUEVO aparece solo en todas partes. */
+function buildRoster() {
+  const out = [];
+  const push = (c, isExe) => {
+    if (!c) return;
+    const key = String(c.key).replace(/^(CHARACTER_|EXE_)/, '');
+    // id canonico: minusculas, sin SUBGUIONES (convencion del modulo PJ:
+    // AMY_CANON -> amycanon, FLEETWAY_AMY -> fleetwayamy... pero el PJ ya
+    // genera 'fleetway'/'sallycanon' heredando nombres de sprites; se
+    // normaliza con la tabla de alias de abajo)
+    out.push({
+      key: key, id: normCharId(key), macro: c.key,
+      name: c.name || key, obj: c.obj || null, idx: c.idx,
+      isExe: !!isExe, anims: c.anims || null, eanims: c.eanims || null
+    });
+  };
+  (S.chars || []).forEach(c => push(c, false));
+  (S.exes || []).forEach(e => push(e, true));
+  S.roster = out;
+}
+// convierte 'AMY_CANON' en 'amycanon' (el id que usa el modulo PJ para
+// sus sprites: spr_menu_amycanon, spr_char_info_amycanon...)
+const CHAR_ID_ALIASES = {
+  fleetwayamy: 'fleetway', amycanon: 'amycanon', sallycanon: 'sallycanon'
+};
+function normCharId(up) {
+  const id = up.toLowerCase();
+  return CHAR_ID_ALIASES[id.replace(/_/g, '')] || id;
+}
+// util para los modulos: entrada del roster por macro CHARACTER_*
+function rosterByMacro(mk) {
+  return (S.roster || []).find(r => r.macro === mk) || null;
 }
 
 /* --------------------------- carga de un sprite --------------------------- */
@@ -3620,6 +3672,7 @@ function init() {
 window.__animtool = {
   S: S, openFiles: openFiles, startDemo: startDemo, computeEdits: computeEdits,
   scanProject: scanProject, selectChar: selectChar, useTable: useTable,
+  rosterByMacro: rosterByMacro, buildRoster: buildRoster,
   setMarker: setMarker, attachFs: attachFs, writeEdits: writeEdits, undoLast: undoLast,
   refreshAfterWrite: refreshAfterWrite, selectState: selectState,
   readText: readText, readBlob: readBlob, fsWalkFile: fsWalkFile, fsWalkDir: fsWalkDir,
@@ -4572,6 +4625,7 @@ window.__onProjectScan = function () {
   Img.orig = {}; Img.working = {}; Img.changes = []; Img.objIndex = null; Img.objSel = null;
   Img.char = null; Img.sel = null; Img.prev = null;
   ffCache.clear();
+  Cd.discovered = false;        // v53: re-descubrir con el roster nuevo
   if (S.module === 'tune') enterTune();
   else if (S.module === 'img') enterImg();
 };
@@ -4753,8 +4807,27 @@ for (const id of Object.keys(SRV_PAIR)) {
   }
 }
 
-/* ---------- inventario de archivos del cliente con enfriamientos ---------- */
-const CD_FILES = [
+/* ---------- inventario de archivos del cliente con enfriamientos ----------
+   v53: la lista de archivos se DERIVA del roster (objetos de personajes +
+   scripts special + los systemicos). Rouge, Kris y cualquier personaje
+   nuevo entran solos; discoverExtraFiles() sigue cazando el resto. */
+function cdFilesFor() {
+  const files = new Set();
+  for (const r of (S.roster || [])) {
+    if (!r.obj) continue;
+    files.add('objects/' + r.obj + '/Create_0.gml');
+    // convencion del juego: scripts/scr_<base>_special/scr_<base>_special.gml
+    const base = r.obj.replace(/^obj_/, '');
+    files.add('scripts/scr_' + base + '_special/scr_' + base + '_special.gml');
+  }
+  // systemicos (no son personajes pero tienen macros de enfriamiento)
+  ['scripts/scr_carry/scr_carry.gml', 'scripts/scr_parry/scr_parry.gml',
+   'scripts/scr_chocola/scr_chocola.gml', 'scripts/scr_metalamy_special/scr_metalamy_special.gml']
+    .forEach(f => files.add(f));
+  return [...files];
+}
+// fallback (demo): la lista clásica
+const CD_FALLBACK = [
   'objects/obj_amy/Create_0.gml',
   'objects/obj_amy_canon/Create_0.gml',
   'objects/obj_chaos/Create_0.gml',
@@ -4776,6 +4849,7 @@ const CD_FILES = [
   'scripts/scr_metalamy_special/scr_metalamy_special.gml',
   'scripts/scr_parry/scr_parry.gml',
 ];
+function cdFileList() { return (S.roster || []).length ? cdFilesFor() : CD_FALLBACK; }
 
 const CD_GROUPS = [
   { key: 'srv',     label: '🖥 Servidor (Game.c)', isSrv: true },
@@ -4953,7 +5027,7 @@ function isCdMacro(name) { return /(RECHARGE|CD|COOLDOWN)/.test(name); }
 
 async function loadCd() {
   Cd.files = {}; Cd.macros = []; Cd.groups = [];
-  for (const rel of CD_FILES) {
+  for (const rel of cdFileList()) {
     const t = await T.readText(rel);
     Cd.files[rel] = { orig: t, work: t, found: t != null };
   }
@@ -4993,8 +5067,14 @@ function refreshRegistry() {
       d.role = 'sub'; d.subKind = 'demon'; m.subs.push(d);
     }
   }
-  // grupos
-  Cd.groups = CD_GROUPS.map(g => ({ ...g }));
+  // grupos — v53: derivados del roster (un grupo por personaje, con su
+  // etiqueta bonita); fallback a CD_GROUPS en demo. Los archivos que no
+  // pertenezcan a nadie van a «Otros», como siempre.
+  if ((S.roster || []).length) {
+    Cd.groups = cdGroupsFor();
+  } else {
+    Cd.groups = CD_GROUPS.map(g => ({ ...g }));
+  }
   const known = new Set();
   for (const g of Cd.groups) (g.files || []).forEach(f => known.add(f));
   const others = [];
@@ -5004,6 +5084,26 @@ function refreshRegistry() {
     if (has) others.push(rel);
   }
   if (others.length) Cd.groups.push({ key: 'otros', label: 'Otros (encontrados al escanear)', files: others });
+}
+
+// v53 — grupos por personaje desde el roster: label bonito + sus archivos
+// (objeto Create_0 + script special si existe en Cd.files)
+function cdGroupsFor() {
+  const out = [{ key: 'srv', label: '🖥 Servidor (Game.c)', isSrv: true }];
+  const rels = new Set(Object.keys(Cd.files));
+  for (const r of (S.roster || [])) {
+    const files = [];
+    if (r.obj) {
+      const f1 = 'objects/' + r.obj + '/Create_0.gml';
+      if (rels.has(f1)) files.push(f1);
+      const base = r.obj.replace(/^obj_/, '');
+      const f2 = 'scripts/scr_' + base + '_special/scr_' + base + '_special.gml';
+      if (rels.has(f2)) files.push(f2);
+    }
+    if (!files.length) continue;
+    out.push({ key: r.id, label: (r.isExe ? r.name + ' (killer)' : r.name), files });
+  }
+  return out;
 }
 
 function groupOfRel(rel) {
@@ -5494,10 +5594,13 @@ async function resetGroup() {
 
 /* --------------------------- descubrimiento --------------------------- */
 
+// v53: mini-API para tests y add-ons (el módulo vive en un IIFE)
+window.__cdtool = { cdFileList: cdFileList, cdGroupsFor: cdGroupsFor, loadCd: loadCd, refreshRegistry: refreshRegistry };
+
 async function discoverExtraFiles() {
   if (Cd.discovered || S.mode === 'demo' || !S.mode) return;
   Cd.discovered = true;
-  const known = new Set(CD_FILES);
+  const known = new Set(cdFileList());
   const hits = [];
   const consider = (rel) => {
     if (known.has(rel) || hits.includes(rel)) return false;
@@ -7346,6 +7449,119 @@ initKeys();
 
   // ---------- lectura de la placa actual del proyecto ----------
   const PLAQUE_SPRITE = 'spr_char_info';
+
+  /* ===== v53.1: MAPA DE PLACAS desde el JUEGO =====
+     obj_lobby/Draw_0.gml es quien decide qué placa ve cada personaje:
+       else if(sprInd == N) _infoFrame = M;                 -> frame de la tira
+       else if(sprInd == N) draw_sprite(spr_char_info_X...) -> placa propia
+     Se parsea y se cruza con el roster (CHARACTER_* -> idx). Así Rouge,
+     Kris o cualquier personaje nuevo aparece con SU placa, sea de la
+     tira o propia, exactamente como las ve el juego. Fallback: el mapeo
+     clásico (demo / Draw_0 ausente). */
+  const CLASSIC_PLAQUE_MAP = [
+    { key: 'tails',      name: 'Tails',        frame: 0 },
+    { key: 'knux',       name: 'Knuckles',     frame: 1 },
+    { key: 'eggman',     name: 'Eggman',       frame: 2 },
+    { key: 'amy',        name: 'Amy Rose',     frame: 3 },
+    { key: 'cream',      name: 'Cream',        frame: 4 },
+    { key: 'sally',      name: 'Sally',        frame: 5 },
+    { key: 'amycanon',   name: 'Amy (canon)',  frame: 6 },
+    { key: 'sonic',      name: 'Sonic',        frame: 11 },
+    { key: 'metal',      name: 'Metal Sonic',  frame: 12 },
+    { key: 'amelia',     name: 'Amelia',       frame: 13 },
+    { key: 'blaze',      name: 'Blaze',        frame: 14 },
+    { key: 'sallycanon', name: 'Sally Canon',  sprite: 'spr_char_info_sallycanon', meter: 5 },
+    { key: 'vanilla',    name: 'Vanilla',      sprite: 'spr_char_info_vanilla', meter: 4 },
+    { key: 'fleetway',   name: 'Fleetway Amy', sprite: 'spr_char_info_fw', meter: 3 },
+    { key: 'exe',        name: 'EXE Original', frame: 7,  killer: true },
+    { key: 'chaos',      name: 'Chaos',        frame: 8,  killer: true },
+    { key: 'exetior',    name: 'Exetior',      frame: 9,  killer: true },
+    { key: 'exeller',    name: 'Exeller',      frame: 10, killer: true },
+    { key: 'metalamy',   name: 'Metal Amy',    frame: 15, killer: true }
+  ];
+  const CLASSIC_MACRO = {
+    CHARACTER_TAILS: 'tails', CHARACTER_KNUX: 'knux', CHARACTER_EGGMAN: 'eggman',
+    CHARACTER_AMY: 'amy', CHARACTER_CREAM: 'cream', CHARACTER_SALLY: 'sally',
+    CHARACTER_AMY_CANON: 'amycanon', CHARACTER_SONIC: 'sonic', CHARACTER_METAL: 'metal',
+    CHARACTER_AMELIA: 'amelia', CHARACTER_BLAZE: 'blaze', CHARACTER_SALLY_CANON: 'sallycanon',
+    CHARACTER_VANILLA: 'vanilla', CHARACTER_FLEETWAY_AMY: 'fleetway',
+    EXE_ORIGINAL: 'exe', EXE_CHAOS: 'chaos', EXE_EXETIOR: 'exetior',
+    EXE_EXELLER: 'exeller', EXE_METALAMY: 'metalamy'
+  };
+
+  async function plaqueMapFor() {
+    const ros = S.roster || [];
+    if (!ros.length) return CLASSIC_PLAQUE_MAP.map(x => Object.assign({}, x));
+    // 1) parsear obj_lobby/Draw_0.gml: sprInd -> frame de tira | sprite propio
+    const byIdx = new Map();
+    const drawTxt = await readText('objects/obj_lobby/Draw_0.gml');
+    if (drawTxt != null) {
+      // el juego compara contra macros (sprInd == CHARACTER_X / EXE_X) o
+      // numeros directos. Los DOS enums comparten idx 0..4: la clave de
+      // byIdx es (isExe:idx) para no mezclar killers con supervivientes.
+      const valOf = new Map();
+      for (const r of ros) { valOf.set(r.macro, (r.isExe ? 'k:' : 's:') + r.idx); }
+      const re = /if\s*\(sprInd\s*==\s*([A-Za-z_]\w*|\d+)\)\s*\r?\n\s*([^\n]+);/g;
+      let m;
+      while ((m = re.exec(drawTxt))) {
+        let idx;
+        if (/^\d+$/.test(m[1])) { idx = parseInt(m[1], 10); if (idx >= 16) continue; }
+        else {
+          const v = valOf.get(m[1]);
+          if (v == null) continue;
+          byIdx.set(v, null);   // marcar y seguir: el set real va abajo con v
+          const st0 = m[2];
+          const f0 = /_infoFrame\s*=\s*(\d+)/.exec(st0);
+          const s0 = /draw_sprite\(\s*spr_char_info_(\w+)/.exec(st0);
+          if (f0) byIdx.set(v, { frame: parseInt(f0[1], 10) });
+          else if (s0) byIdx.set(v, { sprite: 'spr_char_info_' + s0[1] });
+          continue;
+        }
+        const st = m[2];
+        const f = /_infoFrame\s*=\s*(\d+)/.exec(st);
+        if (f) { byIdx.set('s:' + idx, { frame: parseInt(f[1], 10) }); byIdx.set('k:' + idx, { frame: parseInt(f[1], 10) }); continue; }
+        const s = /draw_sprite\(\s*spr_char_info_(\w+)/.exec(st);
+        if (s) { byIdx.set('s:' + idx, { sprite: 'spr_char_info_' + s[1] }); byIdx.set('k:' + idx, { sprite: 'spr_char_info_' + s[1] }); }
+      }
+    }
+    // 2) cruzar con el roster (por macro, por id normalizado — exes:
+    // EXE_ORIGINAL -> id 'original' -> key clasica 'exe' — y killer flag)
+    const out = [];
+    for (const r of ros) {
+      const ck = CLASSIC_MACRO[r.macro] || CLASSIC_MACRO[r.key] || r.id;
+      const classic = CLASSIC_PLAQUE_MAP.find(c => (c.key === ck || c.key === r.id || c.key === r.key) && !!c.killer === !!r.isExe) || null;
+      let ent = byIdx.get((r.isExe ? 'k:' : 's:') + r.idx) || null;
+      if (!ent && classic && classic.frame != null) ent = { frame: classic.frame };
+      else if (!ent && classic && classic.sprite) ent = { sprite: classic.sprite };
+      // 3) placa propia del roster aunque Draw_0 no la redirija (añadida a
+      //    mano o por el módulo 👤 PJ): sprites/spr_char_info_<id>/
+      if (!ent) {
+        const spr = 'spr_char_info_' + r.id;
+        const yy = await readText('sprites/' + spr + '/' + spr + '.yy');
+        if (yy != null) ent = { sprite: spr };
+      }
+      if (!ent) { out.push({ key: r.id, name: prettyCharName(r), killer: r.isExe, missing: true }); continue; }
+      out.push({
+        key: r.id,
+        name: (classic && classic.name) || prettyCharName(r),
+        frame: ent.frame != null ? ent.frame : undefined,
+        sprite: ent.sprite || undefined,
+        meter: classic ? classic.meter : undefined,
+        killer: r.isExe
+      });
+    }
+    // 4) uids ÚNICOS para las propias (fix colisión 101=Vanilla):
+    //    continúan tras los fijos 100/101/102 sin repetir
+    const used = new Set(EXTRA_PLAQUES.map(e => e.id));
+    let uid = 100;
+    for (const e of out) {
+      if (!e.sprite) continue;
+      while (used.has(uid)) uid++;
+      e.uid = uid; used.add(uid);
+    }
+    return out;
+  }
+
   async function loadPlaqueSprite() {
     if (A.spriteMeta) return A.spriteMeta;
     initAssets();
@@ -7369,21 +7585,22 @@ initKeys();
       }
       if (bmp) A.plaqueCache.set(i, bmp);
     }
-    // v5.2: placas PROPIAS de Sally Canon / Vanilla / Fleetway (sprites
-    // independientes de 1 frame; copias de las de Sally/Cream/Amy).
-    // Solo si existen en el proyecto (base v5.1 del juego).
+    // v53.1: placas PROPIAS — todas las que el MAPA resolvió por sprite
+    // (las 3 clásicas + Rouge/Kris/personajes nuevos), cargadas por su
+    // uid único. El mapa ya está en A.plaqueMap (lo carga enterPlaques).
     A.extraMeta = A.extraMeta || {};
-    for (const ex of EXTRA_PLAQUES) {
-      if (A.plaqueCache.has(ex.id)) continue;
+    for (const ex of (A.plaqueMap || [])) {
+      if (!ex.sprite || ex.uid == null) continue;
+      if (A.plaqueCache.has(ex.uid)) continue;
       const yx = await readText('sprites/' + ex.sprite + '/' + ex.sprite + '.yy');
-      if (yx == null) { A.extraMeta[ex.id] = null; continue; }
+      if (yx == null) { A.extraMeta[ex.uid] = null; continue; }
       const m = C.parseSpriteYy(yx);
-      A.extraMeta[ex.id] = m;
+      A.extraMeta[ex.uid] = m;
       if (!m || !m.frames.length) continue;
       const fg = m.frames[0];
       let blob = m.layers.length ? await readBlob('sprites/' + ex.sprite + '/layers/' + fg + '/' + m.layers[0] + '.png') : null;
       if (!blob) blob = await readBlob('sprites/' + ex.sprite + '/' + fg + '.png');
-      if (blob) A.plaqueCache.set(ex.id, await createImageBitmap(blob));
+      if (blob) A.plaqueCache.set(ex.uid, await createImageBitmap(blob));
     }
     return A.spriteMeta;
   }
@@ -7394,11 +7611,43 @@ initKeys();
     { id: 101, name: 'Vanilla', sprite: 'spr_char_info_vanilla', key: 'vanilla', meter: 4, note: 'copia propia de la de Cream' },
     { id: 102, name: 'Fleetway Amy', sprite: 'spr_char_info_fw', key: 'fleetway', meter: 3, note: 'placa propia del juego (v2.14)' }
   ];
-  function extraPlaqueOf(i) { return EXTRA_PLAQUES.find(e => e.id === i) || null; }
+  function extraPlaqueOf(i) {
+    const ex = EXTRA_PLAQUES.find(e => e.id === i);
+    if (ex) return ex;
+    // v53.1: placas propias resueltas por el mapa (Draw_0 / sprite propio)
+    const e = (A.plaqueMap || []).find(x => x.uid === i);
+    if (!e) return null;
+    return { id: e.uid, name: e.name, sprite: e.sprite, key: e.key,
+             meter: e.meter != null ? e.meter : 3, note: e.note || 'placa propia (auto)' };
+  }
+  let _nameCache = null;   // v53.1: cache de nombres si A.plaqueMap falta
   function plaqueName(i) {
+    // v53.1: extras por su uid; frames de la tira por el MAPA del juego
+    // (obj_lobby/Draw_0.gml) — NUNCA por idx crudo del roster: los frames
+    // 7-10/15 son de killers y los idx nuevos (Rouge 14, Kris 15...)
+    // colisionarian con ellos.
     const ex = extraPlaqueOf(i);
     if (ex) return ex.name;
+    let pm = A.plaqueMap;
+    if (!pm) {
+      if (!_nameCache) {
+        // sin mapa (modulo no entrado): nombres clasicos de la tira.
+        // v53.1c: uid 100/101/102 siguen nombrando a las 3 propias fijas.
+        _nameCache = CLASSIC_PLAQUE_MAP.filter(c => c.frame != null)
+          .map(c => ({ frame: c.frame, name: c.name }));
+      }
+      pm = _nameCache;
+    }
+    const e = pm.find(x => x.frame === i);
+    if (e) return e.name;
+    const fixed = EXTRA_PLAQUES.find(x => x.id === i);
+    if (fixed) return fixed.name;
     return AR.plaqueNames[i] || ('Placa ' + i);
+  }
+  // 'FLEETWAY_AMY' -> 'Fleetway Amy' (para nombres crudos del roster)
+  function prettyCharName(rc) {
+    return String(rc.name || rc.key).replace(/_/g, ' ').toLowerCase()
+      .replace(/(^|\s)\S/g, c => c.toUpperCase());
   }
 
   function bitmapToRgba(bmp) {
@@ -7563,6 +7812,7 @@ initKeys();
 
   async function enterPlaques() {
     initAssets();
+    A.plaqueMap = await plaqueMapFor();   // v53.1: el mapa manda
     await loadPlaqueSprite();
     autoFitZoom();
     buildPlaqueList();
@@ -7575,7 +7825,34 @@ initKeys();
     list.innerHTML = '';
     // v5.2: lista AGRUPADA — supervivientes aparte de los killers, y al final
     // las placas PROPIAS de Sally Canon / Vanilla / Fleetway si existen
-    const mkRow = (i, extraNote) => {
+    // v53.1: fila con SU nombre y click que recuerda el personaje (los
+    // frames compartidos — Vanilla/Cream — editan la MISMA placa pero el
+    // titulo siempre nombra al elegido)
+    const mkRow2 = (e, extraNote) => {
+      const i = e.frame != null ? e.frame : e.uid;
+      const row = document.createElement('div');
+      row.className = 'arte-row' + (A.sel === i && (!A.selKey || A.selKey === e.key) ? ' sel' : '') + (A.dirty.has(i) ? ' dirty' : '');
+      row.dataset.idx = i;
+      const thumb = document.createElement('canvas');
+      thumb.width = AC.W; thumb.height = AC.H;
+      thumb.className = 'arte-thumb';
+      const tctx = thumb.getContext('2d');
+      const bmp = A.plaqueCache.get(i);
+      if (bmp) tctx.drawImage(bmp, 0, 0);
+      const lbl = document.createElement('span');
+      lbl.textContent = e.name;
+      const badge = document.createElement('span');
+      badge.className = 'arte-badge';
+      badge.textContent = A.dirty.has(i) ? '●' : '';
+      const rowlbl = document.createElement('span');
+      rowlbl.className = 'arte-rowlbl';
+      rowlbl.append(lbl, badge);
+      row.append(thumb, rowlbl);
+      if (extraNote) row.title = extraNote;
+      row.addEventListener('click', () => selectPlaque(i, e.key));
+      list.appendChild(row);
+    };
+    const mkRow = (i, extraNote, ownLabel) => {
       const row = document.createElement('div');
       row.className = 'arte-row' + (A.sel === i ? ' sel' : '') + (A.dirty.has(i) ? ' dirty' : '');
       row.dataset.idx = i;
@@ -7586,7 +7863,9 @@ initKeys();
       const bmp = A.plaqueCache.get(i);
       if (bmp) tctx.drawImage(bmp, 0, 0);
       const lbl = document.createElement('span');
-      lbl.textContent = plaqueName(i);
+      // v53.1: la fila se llama como el PERSONAJE (no como el frame):
+      // Vanilla comparte la placa de Cream pero su fila dice "Vanilla"
+      lbl.textContent = ownLabel || plaqueName(i);
       const badge = document.createElement('span');
       badge.className = 'arte-badge';
       badge.textContent = A.dirty.has(i) ? '●' : '';
@@ -7605,24 +7884,44 @@ initKeys();
       h.textContent = txt;
       list.appendChild(h);
     };
+    // v53.1: las filas vienen del MAPA (Draw_0 + roster). Cada entrada
+    // apunta a SU placa: frame de la tira o sprite propio por uid. Los
+    // personajes SIN placa van a su propia sección con aviso — nunca
+    // fingen tener la de otro (bug v53: Rouge/Kris caían en los frames
+    // de Blaze/Metal Amy).
+    const map = A.plaqueMap || [];
+    const withPlaque = map.filter(e => !e.killer && !e.missing);
+    const noPlaque = map.filter(e => !e.killer && e.missing);
+    const killers = map.filter(e => e.killer && !e.missing);
+    const killersNo = map.filter(e => e.killer && e.missing);
     mkHead('Supervivientes');
-    for (const i of [0, 1, 2, 3, 4, 5, 6, 11, 12, 13, 14]) mkRow(i);
-    const extras = EXTRA_PLAQUES.filter(e => A.plaqueCache.has(e.id));
-    if (extras.length) {
-      mkHead('Placas propias');
-      for (const e of extras) mkRow(e.id, e.sprite + ' · ' + e.note);
+    for (const e of withPlaque) mkRow2(e, (e.sprite ? e.sprite : null) || (e.key === 'vanilla' ? 'comparte la placa de Cream (como en el juego)' : null));
+    if (noPlaque.length || killersNo.length) {
+      mkHead('Sin placa (aún)');
+      for (const e of noPlaque.concat(killersNo)) {
+        const row = document.createElement('div');
+        row.className = 'arte-row';
+        row.style.opacity = '.55';
+        const lbl = document.createElement('span');
+        lbl.textContent = e.name + ' — sin placa';
+        row.appendChild(lbl);
+        row.title = 'sprites/spr_char_info_' + e.key + '/ no existe y obj_lobby/Draw_0.gml no lo redirige';
+        row.addEventListener('click', () => toast(e.name + ' no tiene placa todavía: crea sprites/spr_char_info_' + e.key + '/ (el módulo 👤 Personajes lo hace al añadir el personaje) o añade su else if(sprInd == ...) en obj_lobby/Draw_0.gml.', 'warn'));
+        list.appendChild(row);
+      }
     }
     mkHead('Killers');
-    for (const i of [7, 8, 9, 10, 15]) mkRow(i);
+    for (const e of killers) mkRow2(e, e.sprite ? e.sprite + ' · placa propia' : null);
   }
 
-  async function selectPlaque(i) {
+  async function selectPlaque(i, selKey) {
     // guardar el editable de la placa anterior
     if (A.sel >= 0 && A.dirty.has(A.sel)) {
       A._edits = A._edits || {};
       A._edits[A.sel] = currentEditable();
     }
     A.sel = i;
+    A.selKey = selKey || null;   // v53.1: personaje elegido (frame compartido)
     const model = await decodeFrame(i);
     if (!model) { toast('No puedo leer la placa de ' + plaqueName(i) + '.', 'err'); return; }
     buildPlaqueList();
@@ -7642,7 +7941,7 @@ initKeys();
     sel.innerHTML = '';
     for (let m = 0; m < 16; m++) {
       const o = document.createElement('option');
-      o.value = m; o.textContent = 'Medidor de ' + (AR.plaqueNames[m] || m);
+      o.value = m; o.textContent = 'Medidor de ' + (plaqueName(m) || m);
       sel.appendChild(o);
     }
     const oN = document.createElement('option');
@@ -7650,7 +7949,12 @@ initKeys();
     sel.appendChild(oN);
     sel.value = String(ed.meter);
     const exP = extraPlaqueOf(i);
-    $('#arte-cur-name').textContent = plaqueName(i) + (exP ? ' (placa propia: ' + exP.sprite + ')' : '');
+    // v53.1: el título nombra al PERSONAJE seleccionado (no al frame):
+    // Vanilla comparte la placa de Cream pero dice "Vanilla", con nota
+    const selEntry = (A.plaqueMap || []).find(e => (A.selKey && e.key === A.selKey) || (!A.selKey && (e.frame != null ? e.frame : e.uid) === i));
+    $('#arte-cur-name').textContent = (selEntry ? selEntry.name : plaqueName(i))
+      + (exP ? ' (placa propia: ' + exP.sprite + ')'
+             : (selEntry && selEntry.frame != null ? ' · placa de la tira (frame ' + selEntry.frame + ')' : ''));
     updateDirtyUI();
   }
 
@@ -8079,6 +8383,10 @@ initKeys();
     bindSvEvents();
     buildSurvList();
     buildIconSpriteList();
+    // v53: el select de retratos con brillo se reconstruye cada vez (la
+    // lista viene del roster: personajes nuevos aparecen solos)
+    shRefreshChars();
+    buildShCharSelect();
     if (IC.enteredOnce) return;
     IC.enteredOnce = true;
     if (!IC.sprite) {
@@ -9131,7 +9439,9 @@ initKeys();
   // El juego los usa vía los parches GML que escribe el Suite
   // (scr_characters.gml + obj_lobby_icon + obj_level).
 
-  const SH_CHARS = [
+  // v53: SH_CHARS se deriva del roster del proyecto (auto-discovery).
+  // Fallback (demo): la lista clásica con sus slots del lobby.
+  const SH_FALLBACK = [
     { key: 'tails', label: 'Tails', macro: 'CHARACTER_TAILS', slot: 2 },
     { key: 'knux', label: 'Knuckles', macro: 'CHARACTER_KNUX', slot: 3 },
     { key: 'eggman', label: 'Eggman', macro: 'CHARACTER_EGGMAN', slot: 4 },
@@ -9144,7 +9454,29 @@ initKeys();
     { key: 'amelia', label: 'Amelia', macro: 'CHARACTER_AMELIA', slot: 11 },
     { key: 'blaze', label: 'Blaze', macro: 'CHARACTER_BLAZE', slot: 12 }
   ];
+  let SH_CHARS = SH_FALLBACK;   // se recalcula en shRefreshChars()
 
+  // v53 — recalcula SH_CHARS desde el roster; el slot del lobby se
+  // mantiene para los chars clásicos (retratos de la tira comun) y los
+  // nuevos van al final (retrato propio creado por el modulo).
+  function shRefreshChars() {
+    if (!(S.roster || []).length) { SH_CHARS = SH_FALLBACK; return; }
+    const out = [];
+    for (const r of S.roster) {
+      if (r.isExe) continue;
+      const old = SH_FALLBACK.find(f => f.macro === r.macro);
+      out.push({
+        key: r.id, label: prettyLabel(r), macro: r.macro,
+        slot: old ? old.slot : null
+      });
+    }
+    SH_CHARS = out;
+    if (SH_CHARS.length && !SH_CHARS.some(c => c.key === SH.char)) SH.char = SH_CHARS[0].key;
+  }
+  function prettyLabel(r) {
+    return String(r.name || r.key).replace(/_/g, ' ').toLowerCase()
+      .replace(/(^|\s)\S/g, c => c.toUpperCase());
+  }
   const SH = {
     char: 'amycanon', reel: [], w: 24, h: 24,   // v3.9: tamaño nativo de las imágenes
     tr: { scale: 1, dx: 0, dy: 0, flipX: false, flipY: false, chromaOn: false, chromaColor: '#ff00ff', chromaTol: 40, bg: 'transparent' },
@@ -9729,7 +10061,10 @@ initKeys();
   // del HUD y barra de vida (7 estados + golpeado + demonizado).
   // Sally Canon y Vanilla usan COPAS propias desde la base v5.1 del juego.
 
-  const SURV_CHARS = [
+  // v53: SURV_CHARS se deriva del roster del proyecto (auto-discovery);
+  // fallback en demo = lista clásica. frame/block solo aplican a los
+  // clásicos (los nuevos van por sprite propio, como sallycanon).
+  const SURV_FALLBACK = [
     { key: 'tails', label: 'Tails', macro: 'CHARACTER_TAILS', frame: 2, block: 0 },
     { key: 'knux', label: 'Knuckles', macro: 'CHARACTER_KNUX', frame: 3, block: 1 },
     { key: 'eggman', label: 'Eggman', macro: 'CHARACTER_EGGMAN', frame: 4, block: 2 },
@@ -9745,6 +10080,22 @@ initKeys();
     { key: 'blaze', label: 'Blaze', macro: 'CHARACTER_BLAZE', frame: 12, block: 10 },
     { key: 'fleetway', label: 'Fleetway Amy', macro: 'CHARACTER_FLEETWAY_AMY', frame: 13, block: 13, iconOwn: 'spr_lobby_icon_fw', note: 'icono propio del juego (v2.14); escapó y barra en la tira común (bloque 13)' }
   ];
+  let SURV_CHARS = SURV_FALLBACK;   // v53: se recalcula con survRefreshChars()
+
+  function survRefreshChars() {
+    if (!(S.roster || []).length) { SURV_CHARS = SURV_FALLBACK; return; }
+    const out = [];
+    for (const r of S.roster) {
+      if (r.isExe) continue;
+      const old = SURV_FALLBACK.find(f => f.macro === r.macro);
+      if (old) { out.push(Object.assign({}, old)); continue; }
+      out.push({
+        key: r.id, label: prettyLabel(r), macro: r.macro,
+        ownOnly: true, note: 'personaje nuevo — retrato propio (auto)'
+      });
+    }
+    SURV_CHARS = out;
+  }
   const OWN_ICON_SPR = { sallycanon: 'spr_lobby_icon_sallycanon', vanilla: 'spr_lobby_icon_vanilla', fleetway: 'spr_lobby_icon_fw' };
   const HP_LABELS = ['sano', '−20%', '−40%', '−60%', '−80%', 'caído', 'revivido', 'golpeado', 'demonizado'];
 
@@ -9774,6 +10125,7 @@ initKeys();
   function buildSurvList() {
     const el = $('#sv-list');
     if (!el) return;
+    survRefreshChars();          // v53: siempre fresco
     el.innerHTML = '';
     for (const c of SURV_CHARS) {
       const row = document.createElement('div');
@@ -10702,6 +11054,8 @@ initKeys();
   window.enterArte = async function () {
     initAssets();
     bindEvents();
+    shRefreshChars();
+    survRefreshChars();
     const sub = S.arteSub || 'placas';
     $$('#subnav-arte .subnav-btn').forEach(x => x.classList.toggle('sel', x.dataset.artesub === sub));
     $$('.arte-subpane').forEach(p => p.classList.toggle('hidden', p.dataset.sub !== sub));
@@ -10721,12 +11075,15 @@ initKeys();
     return function () {
       A.plaqueCache.clear(); A.decoded.clear(); A.models.clear(); A.spriteMeta = null;
       A.extraMeta = null; SV.metaCache = {}; A.sel = -1; A.dirty.clear();
+      A.plaqueMap = null;   // v53.1: re-derivar al re-escanear
       if (typeof prev === 'function') prev();
     };
   })(window.__onProjectScan);
 
   // gancho de depuración/pruebas (sin efecto en el uso normal)
-  window.__arteDebug = { buildShinyYy: buildShinyYy, buildShinyGmlText: buildShinyGmlText };
+  window.__arteDebug = { buildShinyYy: buildShinyYy, buildShinyGmlText: buildShinyGmlText,
+    shRefresh: shRefreshChars, survRefresh: survRefreshChars, shChars: () => SH_CHARS, survChars: () => SURV_CHARS,
+    plaqueName: plaqueName, plaqueMapFor: plaqueMapFor, cacheSize: () => A.plaqueCache.size, state: () => A };
 })();
 
 </script>
@@ -10782,7 +11139,13 @@ const MAX_SONGS = 16; // = LMS_MAX_SONGS del server
 
 // Los 16 supervivientes, mismo orden que scr_survivors.gml (CHARACTER_*)
 // y Server.h (CH_*). sonic => pasivas personales de fábrica.
-const LMS_CHARS = [
+/* v53 — LMS_CHARS se deriva del ROSTER del proyecto (auto-discovery).
+   Antes: lista fija; Rouge y Kris ya tenian show en scr_lms.gml y
+   Server.h pero faltaban aqui, y un "escribir" del modulo los BORRABA
+   del juego. Ahora: cualquier CHARACTER_* de scr_survivors aparece
+   solo. El id del server (CH_*) se deriva: CHARACTER_FLEETWAY_AMY ->
+   CH_FLEETWAY_AMY. Fallback en demo: la lista clásica. */
+const LMS_FALLBACK = [
   { key: 'tails',       label: 'Tails',        cm: 'CHARACTER_TAILS',       ch: 'CH_TAILS' },
   { key: 'knux',        label: 'Knuckles',     cm: 'CHARACTER_KNUX',        ch: 'CH_KNUX' },
   { key: 'eggman',      label: 'Eggman',       cm: 'CHARACTER_EGGMAN',      ch: 'CH_EGGMAN' },
@@ -10797,12 +11160,32 @@ const LMS_CHARS = [
   { key: 'amelia',      label: 'Amelia',       cm: 'CHARACTER_AMELIA',      ch: 'CH_AMELIA' },
   { key: 'blaze',       label: 'Blaze',        cm: 'CHARACTER_BLAZE',       ch: 'CH_BLAZE' },
   { key: 'fleetway',    label: 'Fleetway Amy', cm: 'CHARACTER_FLEETWAY_AMY', ch: 'CH_FLEETWAY_AMY' },
-  // v4.4/v5: Rouge y Kris ya tenian show en scr_lms.gml y Server.h pero
-  // faltaban aqui (sin estar en la lista, un "escribir" del modulo los
-  // BORRABA de la lista del juego y de la tabla del server)
   { key: 'rouge',       label: 'Rouge',        cm: 'CHARACTER_ROUGE',       ch: 'CH_ROUGE' },
   { key: 'kris',        label: 'Kris',         cm: 'CHARACTER_KRIS',        ch: 'CH_KRIS' }
 ];
+let LMS_CHARS = LMS_FALLBACK;   // v53: se recalcula en lmsRefreshChars()
+
+function lmsChOf(macro) { return 'CH_' + String(macro).replace(/^CHARACTER_/, ''); }
+function lmsLabelOf(r) {
+  const old = LMS_FALLBACK.find(f => f.cm === r.macro);
+  if (old) return old.label;
+  return String(r.name || r.key).replace(/_/g, ' ').toLowerCase()
+    .replace(/(^|\s)\S/g, c => c.toUpperCase());
+}
+function lmsRefreshChars() {
+  if (!(S.roster || []).length) { LMS_CHARS = LMS_FALLBACK; return; }
+  const out = [];
+  for (const r of S.roster) {
+    if (r.isExe) continue;   // el show es de supervivientes
+    const old = LMS_FALLBACK.find(f => f.cm === r.macro);
+    out.push({
+      key: r.id, label: lmsLabelOf(r), cm: r.macro, ch: lmsChOf(r.macro),
+      personal: old ? old.personal : undefined
+    });
+  }
+  LMS_CHARS = out;
+  if (LMS_CHARS.length && !LMS_CHARS.some(c => c.key === LMS.sel)) LMS.sel = LMS_CHARS[0].key;
+}
 
 const LMS = {
   scanned: false, base: 'none',       // none | old (solo Sonic) | ok (por personaje)
@@ -10910,6 +11293,7 @@ async function songInfo(asset) {
 }
 
 async function scanLms() {
+  lmsRefreshChars();          // v53: chars desde el roster
   LMS.chars = {}; LMS.base = 'none'; LMS.scanned = true; LMS.origLists = {};
   LMS.yypText = null; LMS.missing = []; // v1.1/v1.2 caches a cero al reescanear
   for (const c of LMS_CHARS) LMS.chars[c.key] = { songs: [] };
@@ -10922,12 +11306,21 @@ async function scanLms() {
       const re = /global\.lmsCharSongs\[\?\s*(CHARACTER_\w+)\]\s*=\s*\[([^\]]*)\]/g;
       let m;
       while ((m = re.exec(gml))) {
-        const ent = LMS_CHARS.find(c => c.cm === m[1]);
+        let ent = LMS_CHARS.find(c => c.cm === m[1]);
+        // v53: un macro desconocido (personaje nuevo añadido a mano al
+        // scr_lms.gml del juego) se ADOPTA en caliente: aparece en la
+        // lista y su show ya no se pierde al escribir. No puede ser del
+        // roster (ya refrescado): se deriva su id del propio macro.
+        if (!ent && (S.roster || []).some(r => r.macro === m[1])) {
+          const r = (S.roster || []).find(x => x.macro === m[1]);
+          ent = { key: r.id, label: lmsLabelOf(r), cm: r.macro, ch: lmsChOf(r.macro) };
+          LMS_CHARS.push(ent);
+        }
         if (!ent) continue;
         // v1.2: se admiten los DOS formatos — con comillas (v5.4, el
         // actual) y sin comillas (el viejo) — quitándolas si las hay
         const assets = m[2].split(',').map(s => s.trim().replace(/^["']+|["']+$/g, '')).filter(Boolean);
-        for (const a of assets) LMS.chars[ent.key].songs.push(await songInfo(a));
+        for (const a of assets) LMS.chars[ent.key] = LMS.chars[ent.key] || { songs: [] }, LMS.chars[ent.key].songs.push(await songInfo(a));
       }
     } else if (/scr_lms_sonic_try_block|global\.lmsSongs/.test(gml)) {
       // LMS viejo (solo Sonic): se muestra como referencia, no se edita
@@ -11552,9 +11945,13 @@ window.enterLms = async function () {
   renderLms();
 };
 
+// v53: mini-API para tests y add-ons (el módulo vive en un IIFE)
+window.__lmstool = { refresh: lmsRefreshChars, scan: scanLms, chars: () => LMS_CHARS, state: () => LMS, buildCharBlock: buildCharBlock, buildShowsTable: buildShowsTable };
+
 window.__onProjectScan = (function (prev) {
   return function () {
     LMS.scanned = false; LMS.chars = {}; LMS.macOrig = null; LMS.mac = null;
+    lmsRefreshChars();          // v53: chars desde el roster recién escaneado
     if (typeof prev === 'function') prev();
   };
 })(window.__onProjectScan);
