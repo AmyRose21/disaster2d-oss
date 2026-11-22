@@ -26,14 +26,19 @@ else
 	y += vspd;
 
 	// clavar al suelo (el mismo floor parent que camina el player).
+	// place_meeting usa el bbox del sprite de la caja (30px, origin arriba):
+	// el while RETROCEDE hasta que el bbox deja de tocar — la base queda
+	// EXACTAMENTE sobre la superficie. (v64 metio aqui un y += 30 que
+	// la VOLVIA A ENTERRAR 30px dentro del suelo -> caja invisible en
+	// pantalla: eso era lo que se veia en la captura. El while es todo.)
 	if(place_meeting(x, y, obj_floor_parent))
 	{
 		while(place_meeting(x, y, obj_floor_parent))
 			y -= 1;
 		grounded = true;
 		vspd = 0;
-		// aterrizaje con polvita (el mismo polvo de los aterrizajes).
-		scr_effect_quick(x + 15, y + 24, spr_dust, 0.5, true);
+		// aterrizaje con polvita en la BASE de la caja.
+		scr_effect_quick(x + 15, y + 30, spr_dust, 0.5, true);
 	}
 	// ===== TRAMPOLIN / ABISMO -> reporte al server =====
 	// La caja cayo sobre un resorte (el trampolin la lanzaria al vacio)

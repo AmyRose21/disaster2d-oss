@@ -187,3 +187,129 @@ Cliente GM:  scripts/net_packets/net_packets.gml (enum +1)
              scripts/scr_collision_objects/scr_collision_objects.gml
              (rompible solo apoyada)
 Validador:   check_v63.py (python3 check_v63.py) — TODO OK (v2+v3).
+
+==============================================================================
+ v64 — FIX DIMINUTA + FIX "SALEN DEBAJO DE LA TIERRA" (mismo dia)
+==============================================================================
+QUE PASO (según tus capturas, confirmadas mirándolas con visión IA)
+----------------------------------------------------------------------
+- La caja VIVA se veía DIMINUTA: el fix del residuo gigante (escala
+  0.47) se estaba aplicando a TODAS las cajas, no solo a la rota.
+- Las cajas salían DEBAJO DE LA TIERRA / flotando lejos: derivé el suelo
+  creyendo que los tiles de obj_solid_block medían 64x64 — en realidad
+  son 128x128 (spr_block). Todo el suelo estaba corrido 64px.
+- La caja ROTA y su residuo ya se veían BIEN (ese era el objetivo v63).
+
+QUE CAMBIO
+----------
+1. Escala: la caja VIVA va SIEMPRE a escala 1.0 (Create y estado 3).
+   El 0.47 existe SOLO en el estado 2 (caja rota): el residuo pasa de
+   64x64 a ~30x15 — el hueco exacto de la caja que estuvo ahí.
+2. Residuo APOYADO: al romperse, el residuo sube 15px para que su
+   parte visible quede sobre la superficie donde estaba la caja (tu
+   sprite spr_boxused lleva el contenido abajo, no arriba).
+3. Tabla RE-derivada con los tiles reales de 128x128: ahora son 13
+   zonas y cada caja NACE APOYADA (su base clava en la superficie del
+   suelo, y = top del suelo - 30). Regresa la zona (304,994) que la
+  v63 había descartado por un falso abismo (era el tile corrido).
+4. El aterrizaje de la gravedad pule la posición: se apoya con su
+   BASE (no con el top del sprite), y el polvo sale de la base.
+
+TABLA v64 (13 zonas)
+--------------------
+{728,922} {1104,930} {2792,930} {304,994} {2992,1162} {3092,1162}
+{3240,1234} {3580,1234} {4080,1250} {1132,1250} {2560,1378}
+{2656,1378} {1296,1378}
+
+ARCHIVOS QUE NECESITAS COPIAR (solo 4!)
+----------------------------------------
+Servidor C:  betterserver-oss/disasterserver/maps/KindAndFair.c
+Cliente GM:  objects/obj_itembox/Create_0.gml
+              objects/obj_itembox/Step_2.gml
+              scripts/net_state_game/net_state_game.gml
+Validador:   check_v64.py (python3 check_v64.py) — TODO OK (v2+v3+v4).
+
+==============================================================================
+ v65 — FIX "NO SE VE NINGUNA CAJA" (cajas enterreadas / cayendo en bucle)
+==============================================================================
+QUE PASO (segun tu captura 660x480, verificada dos veces con vision IA)
+----------------------------------------------------------------------
+- En tu captura NO aparece ni UNA de nuestras cajas. Los dos monitores
+  que se ven (arriba-derecha y abajo-izquierda, ~70px, pantalla con
+  ESTATICA sin icono, marco gris) son los TV del SHELTER del juego —
+  decorativos, no item boxes. Nuestras cajas llevan icono dentro
+  (anillo/escudo/botas) y miden 30px.
+- Rastreando por que no salia NINGUNA, encontre DOS bugs reales:
+  1. ENTERRADA: en el aterrizaje puse un "y += 30" DESPUES del bucle
+     de colision — la caja quedaba clavada 30px DENTRO del suelo:
+     totalmente invisible. Era literalmente lo que decias: "salen
+     debajo de la tierra".
+  2. BUCLE DE VACIO: el desplazamiento +24 en x se aplicaba SIEMPRE;
+     en 6 de las 13 zonas el x final caia FUERA del ancho del bloque
+     de suelo -> esa caja caia al vacio para siempre (relocalizada
+     y re-localizada, sin llegar a verse nunca).
+
+QUE CAMBIO
+----------
+1. Aterrizaje: el bucle while(place_meeting) y-=1 YA deja la caja
+   apoyada exacta (base = superficie). El "y += 30" esta ELIMINADO.
+   El polvo del aterrizaje sale de la base (y+30).
+2. Tabla re-derivada (derive_spawns_v65.py): el +24 en x se aplica
+   SOLO si hay suelo bajo ese x final; si no, la zona se queda en la
+   columna del anillo (que si tiene suelo). Y verificacion final: las
+   15 zonas tienen suelo bajo su x EXACTO (cero zonas al vacio).
+3. Bonus: el filtro corregido recupero 2 zonas que habian sido
+   descartadas injustamente (1188 y 1412 en la zona baja del mapa).
+
+TABLA v65 (15 zonas, TODAS con suelo verificado en su x exacto)
+---------------------------------------------------------------
+{728,922} {1104,930} {2792,930} {304,994} {2992,1162} {3068,1162}
+{3240,1234} {3580,1234} {4080,1250} {1132,1250} {1188,1378}
+{1412,1378} {2560,1378} {2656,1378} {1296,1378}
+
+ARCHIVOS QUE NECESITAS COPIAR (solo 4!)
+----------------------------------------
+Servidor C:  betterserver-oss/disasterserver/maps/KindAndFair.c
+Cliente GM:  objects/obj_itembox/Step_2.gml      (el fix del enterrado)
+              scripts/net_state_game/net_state_game.gml (v64: viva 1.0,
+                residuo 0.47 — si ya copiaste la v64, este va igual)
+              objects/obj_itembox/Create_0.gml    (v64: viva 1.0)
+Validador:   check_v65.py (python3 check_v65.py) — TODO OK (v2..v5).
+
+==============================================================================
+ v66 — FIX "RESIDUO FLOTANDO" + "2 CAJAS EN EL MISMO SITIO"
+==============================================================================
+QUE PASO (segun tu captura 144x144, verificada con vision IA + pixeles)
+----------------------------------------------------------------------
+1. RESIDUO FLOTANDO: al romperse la caja, su casco roto quedaba ~15px
+   EN EL AIRE por encima del suelo ("aparece arriba del lugar
+   original"). Causa exacta: en el estado ROTA del cliente aplicaba
+   "y -= 15" creyendo que el contenido del sprite spr_boxused (que
+   vive en la mitad inferior, filas 32-63 de 64) quedaba arriba y
+   habia que bajarlo. Al reves: a escala 0.47 ese contenido cae en la
+   mitad INFERIOR del area de dibujo de 30px (local y 15-30), o sea el
+   residuo YA apoya su base en la superficie sin tocar nada. El -15 lo
+   LEVANTABA. Fix: y sin tocar (solo escala 0.47 y grounded).
+
+2. DOS CAJAS EN UN SLOT: el server marcaba un spawner como "ocupado"
+   solo si su caja estaba VIVA; una caja ROTA en countdown (~25-30 s
+   de residuo visible) dejaba su slot "libre" -> el siguiente sorteo
+   podia parir otra caja ENCIMA del residuo (tu "2 en un solo slot").
+   Fix: el slot queda ocupado por TODA entidad existente (viva o rota)
+   hasta que muera de verdad. Extra: elimine el re-freesado del
+   "relocated" — un punto que acaba de usarse ya no se reusa al
+   instante (honra tu regla "tp a zona OTRA").
+
+QUE CAMBIO (2 archivos)
+------------------------
+Servidor C:  betterserver-oss/disasterserver/maps/KindAndFair.c
+   (used[] marca todas las entidades; sin re-freesado relocated)
+Cliente GM:  scripts/net_state_game/net_state_game.gml
+   (estado ROTA sin el y -= 15; el resto va igual que la v65)
+
+VERIFICADO
+----------
+gcc + link 0 undefined; check_v66.py TODO OK (73 checks, incluye los
+dos fixes nuevos: "SIN y -= 15" y "used[] marca TODAS").
+Vision IA sobre tu captura re-escalada x4 confirmo el residuo
+flotando ~15px sobre el suelo ANTES del fix (gap 5-15px).

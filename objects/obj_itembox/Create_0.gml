@@ -3,9 +3,9 @@
 // difunde el servidor. La posicion la marca el paquete de spawn (el
 // servidor es la unica verdad de posicion — nada de instance_find).
 // v63 GRAVEDAD: la caja nace CAYENDO (grounded=false) y el Step la
-// clava al suelo (regla de la duena: como los juegos clasicos). Los 9
-// spawners nuevos estan a <=32px del suelo asi que la caida es un
-// micro-descenso visual, pero nunca vuelve a ver una caja flotando.
+// clava al suelo (regla de la duena: como los juegos clasicos). Los
+// spawners v64 nacen APOYADOS (y = top del suelo - 30): la caida es un
+// micro-descenso de cortesia, pero nunca vuelve a ver una caja flotando.
 nid = 0;
 type = 0;          // ITEMTYPE_* (0=ring,1=shield,2=invinc,3=lightning,4=boots)
 isBroken = false;
@@ -13,13 +13,14 @@ grounded = false; // v63: false = cayendo (el Step la apoya y clava)
 vspd = 0;         // v63: velocidad de caida (gravedad 0.2 de la casa)
 reported = false; // v63: CLIENT_BOX_RELOCATE ya enviado (anti-spam 1x)
 
-// v63 FIX RESIDUO GIGANTE: spr_boxused mide 64x64 con el contenido abajo
-// (y 32-63) — dibujado tal cual se veia ENORME junto a la caja de 30x30.
-// Escala 0.47: el contenido del residuo pasa a ~30x15 y el punto de
-// apoyo queda en su sitio (origin 0). Aplica igual a la caja rota y al
-// sprite del objeto (nunca cambia el tamano de la caja viva).
-image_xscale = 0.47;
-image_yscale = 0.47;
+// v64 FIX DIMINUTA: la escala 0.47 del v63 se aplicaba AQUI (a la caja
+// VIVA tambien) — por eso se veia diminuta en pantalla (VLM la midio
+// ~16px contra los ~24-30 que debe medir). La caja viva va SIEMPRE a
+// escala 1.0; el 0.47 es cosa del ESTADO 2 (net_state_game) cuando la
+// caja se rompe y su sprite pasa a spr_boxused (64x64 con el contenido
+// abajo): ahi si, el residuo a 0.47 ocupa ~30px como la caja viva.
+image_xscale = 1;
+image_yscale = 1;
 
 // v63: reporte de relocalizacion (trampolin/abismo) — patron del paquete
 // del juego (cpacket_tcp + send_server_tcp). UNA sola vez (reported).

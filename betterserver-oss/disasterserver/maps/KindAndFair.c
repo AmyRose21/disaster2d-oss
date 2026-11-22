@@ -5,29 +5,31 @@
 #include <CMath.h>
 #include <stdlib.h>
 
-/* v63 ITEM BOX v3 — tabla RE-DERIVADA de los ring spawners REALES del
-   room (regla de la duena: las cajas aparecen como zonas de posible
-   aparicion de ANILLOS, PERO solo los que estan CERCA DEL SUELO, nunca
-   los que estan muy arriba; y sin resorte/trampolin debajo). Derivacion
-   (scripts/derive_spawns_v63.py, datos de room_kindandfair.yy):
-   de los 32 obj_ring_spawner quedaron 9 — se descartaron los altos
-   (y<900: fila de 496/537), los que caen al abismo (sin solido debajo
-   en 400px: 280,1000 / 640,1064 / 680-728,924 / 1832-2024,1328 /
-   2916,952 / 3068,1168 / 3556,1240...), los que tienen resorte en
-   radio 48px (680,924 pega con obj_bspring_right) y redundancias
-   (<96px entre si). Offset +24px en x para no pisar la fila de anillos.
-   La pista de boost Kaf (y=610, x 3477-3952) queda FUERA (ninguno de
-   los 9 la toca: sus y van de 940 a 1388). */
+/* v65 ITEM BOX v5 — fix tras captura 660x480 de la duena (CERO cajas
+   visibles; solo se veian los TV grises del shelter con estatica —
+   nuestras cajas llevan iconos). Dos bugs reales hallados y corregidos:
+   (A) Step_2 v64 metia un y += 30 DESPUES del while de colision: la
+   caja quedaba ENTERRADA 30px en el suelo -> invisible. (B) derive v64
+   desplazaba x +24 SIEMPRE: 6 de 13 zonas quedaban sin suelo bajo el
+   x final (fuera del ancho del solido) -> caja cayendo al vacio en
+   bucle de relocalizacion. Tabla re-derivada con derive_spawns_v65.py:
+   x solo se desplaza +24 si hay suelo en el x final (si no, se queda
+   en la columna del anillo); y = top del suelo en la x ELEGIDA - 30
+   (caja APOYADA, base en la superficie); VERIFICACION FINAL: las 15
+   zonas tienen suelo bajo su x exacto (0 sin suelo). Reglas de la
+   duena intactas: nada de la fila alta, nada de abismo, sin resorte a
+   48px, sin redundantes <96px; pista de boost fuera. */
 static const uint16_t kaf_itembox_spawns[][2] = {
-	{ 1104,  940}, { 2792,  956}, { 2992, 1168}, { 3240, 1240},
-	{ 4080, 1256}, { 1132, 1276}, { 2560, 1376}, { 2656, 1376},
-	{ 1296, 1388},
+	{  728,  922}, { 1104,  930}, { 2792,  930}, {  304,  994},
+	{ 2992, 1162}, { 3068, 1162}, { 3240, 1234}, { 3580, 1234},
+	{ 4080, 1250}, { 1132, 1250}, { 1188, 1378}, { 1412, 1378},
+	{ 2560, 1378}, { 2656, 1378}, { 1296, 1378},
 };
 #define KAF_ITEMBOX_SPAWN_COUNT (int)(sizeof(kaf_itembox_spawns) / sizeof(kaf_itembox_spawns[0]))
 
 /* v63: nunca-repetir — el ultimo spawner usado queda vetado en el
    siguiente roll (la caja "nunca nace en el mismo lugar" de la duena;
-   con 9 puntos y max 4 vivas hay holgura siempre). */
+   con 15 zonas y max 4 vivas hay holgura siempre). */
 static uint8_t itembox_last_spawner = 255;
 
 /* Sorteo con pesos desiguales: anillo comun (35%), escudo 20%, los tres
@@ -125,21 +127,24 @@ bool kaf_tick(Server* server)
 
 		if (alive < ITEMBOX_MAX && found < ITEMBOX_MAX * 3)
 		{
-			/* spawners ocupados: un nid por entidad viva (el nid ES el
-			   spawner: la caja vive y muere en el mismo punto). */
+			/* v66 FIX SLOT DOBLE: un spawner queda ocupado por TODA
+			   entidad existente (viva o ROTA en countdown — la rota
+			   todavia muestra su residuo boxused en ese punto ~25-30 s).
+			   La v64/v65 solo marcaba las vivas (timer < 0): una rota
+			   "liberaba" su slot y el siguiente roll podia parir otra
+			   caja ENCIMA del residuo (2 en un slot, lo que vio la duena).
+			   nid ES el spawner: caja y residuo viven y mueren en el
+			   mismo punto. */
 			uint8_t used[KAF_ITEMBOX_SPAWN_COUNT];
 			memset(used, 0, sizeof(used));
 			for (int i = 0; i < found; i++)
-				if (boxes[i].nid < KAF_ITEMBOX_SPAWN_COUNT && boxes[i].timer < 0)
+				if (boxes[i].nid < KAF_ITEMBOX_SPAWN_COUNT)
 					used[boxes[i].nid] = 1;
-			/* v63: la caja relocalizada tambien desocupa su punto — su
-			   reemplazo puede nacer incluso en el MISMO spawner... no:
-			   mejor vetarlo este roll tambien (duena: "tp a zona
-			   aleatoria OTRA"); used[] ya lo libera abajo, lo vetamos
-			   via itembox_last_spawner solo si era el unico usado. */
-			for (int i = 0; i < found; i++)
-				if (boxes[i].relocated && boxes[i].nid < KAF_ITEMBOX_SPAWN_COUNT && boxes[i].nid != itembox_last_spawner)
-					used[boxes[i].nid] = 0;
+			/* v66: cero re-freesado del relocated — su punto sigue
+			   ocupado hasta que su entidad muera de verdad (el RELOCATE
+			   original ya fuerzo timer 0 arriba: muere este mismo tick y
+			   difunde su state 4). Honra la regla "tp a zona OTRA":
+			   un spawner que acaba de usarse NO se reusa al instante. */
 
 			int free_count = 0;
 			for (int i = 0; i < KAF_ITEMBOX_SPAWN_COUNT; i++)

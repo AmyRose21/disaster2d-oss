@@ -393,6 +393,49 @@
   fuera de room. Rotura (cuerpo y proyectil) solo grounded && !reported.
   Verificado: gcc+LINK REAL 0 undefined, GML balanceado, check_v63.py
   TODO OK (v2+v3, 64 checks), enum 186=186.
+- v64 (mismo dia, tras capturas de la duena en juego real: "salen debajo
+  de tierra... la caja se ve diminuta" — VLM midio la viva a ~16px vs
+  ~24px que debe, flotando/mal ubicada; la rota OK): DOS bugs medibles:
+  (A) el 0.47 del residuo se ponia en Create -> TODAS las cajas vivas
+  diminutas; (B) derive asumiendo tiles de suelo 64x64 cuando spr_block
+  es 128x128 (yy_sprite_parse) -> suelo corrido 64px -> cajas bajo
+  tierra. FIX: Create/state3 escala 1.0 en la viva; SOLO state2 (rota)
+  pone image_xscale/yscale 0.47 + y -= 15 (contenido del boxused vive
+  en y 32-63: residuo visible ~30x15 en la mitad superior del hueco,
+  matematica validada por script); tabla re-derivada con derive_spawns_
+  v64.py (tiles 128, y = top_suelo - 30 = APOYADA, x+24 re-verificado
+  en el x final): 13 zonas (vuelve 304,994 que la v63 descarto por
+  falso abismo del tile corrido; la 704,924 recupera suelo a 128px);
+  Step del aterrizaje: tras el while retrocede+30 (se apoya con la
+  BASE), polvo en y+30. Verificado: gcc+LINK 0 undefined, check_v64.py
+  TODO OK (66 checks: escala 1.0 viva en codigo real sin comentarios,
+  residuo 0.47+y-15, tabla 13 con 304,994/728,922/1296,1378).
+- v65 (tras captura 660x480 de la duena: CERO cajas visibles; los 2
+  monitores grises con estatica son TV del shelter obj_angleallower
+  spr_red 32x32, decorativos — VLM 2 rondas: sin icono, marco gris,
+  ~70px escalados): dos bugs reales: (A) Step_2 v64 tenia "y += 30"
+  tras el while(place_meeting) y-=1 -> caja ENTERRADA 30px bajo la
+  superficie = invisible ("salen debajo de la tierra"); (B) derive v64
+  aplicaba +24 en x SIEMPRE -> 6/13 zonas con x final fuera del ancho
+  del solido -> caja cayendo al vacio en bucle de RELOCATE (por eso
+  tampoco se veian). FIX: Step_2 sin el +=30 (while apoya exacto,
+  polvo en y+30); derive_spawns_v65.py con ground_below (top a 0..64px
+  bajo el anillo, tiles 128 reales) y x condicional (+24 solo con
+  suelo en x final, si no columna del anillo): 15 zonas, verificacion
+  final 0 sin suelo (recupera 1188/1412 injustamente descartadas).
+  Verificado: gcc+LINK 0 undefined, check_v65.py TODO OK (68 checks:
+  tabla 15 con 1188/1412/3068 sin 3092, sin "y += 30" en codigo real,
+  polvo y+30). El zoom visual de la captura: TV 32px se ve ~70px ->
+  escala ~2.2; nuestras cajas 30px se veran ~66px en pantalla.
+- v66 (captura 144x144 de la duena, VLM x4 + pixeles): (A) residuo
+  rota FLOTABA ~15px sobre el suelo — el "y -= 15" del estado 2 en
+  net_state_game.gml estaba INVERTIDO: contenido spr_boxused (filas
+  32-63) a escala 0.47 cae en local y 15-30 del area de 30px = YA
+  apoya; fix = quitar el -=15 (solo 0.47 + grounded). (B) 2 cajas en
+  un slot: used[] del roll solo marcaba vivas (timer<0) — rota en
+  countdown (residuo 25-30s) liberaba su spawner; fix = used[] marca
+  TODA entidad existente + sin re-freesado del relocated ("zona OTRA"
+  estricta). check_v66.py TODO OK (73 checks); gcc+LINK 0 undefined.
 - Known deltas vs design doc (doc said "extend KAFMONITOR pair"; final
   choice was a cleaner NEW pair + activation kept as new CLIENT_BOX_
   ACTIVATE — same semantics, no versioning ambiguity between states with

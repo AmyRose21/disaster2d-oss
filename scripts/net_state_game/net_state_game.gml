@@ -2353,15 +2353,16 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 // v63 GRAVEDAD: la caja (re)nace CAYENDO — el Step la
                                 // apoya en el suelo (regla de la duena: nada de cajas
                                 // en el aire). Reset completo del estado v63: reported
-                                // (por si es una re-difusion tras un RELOCATE) y escala
-                                // (el Create ya la deja bien, pero una instancia
-                                // reusada pudo quedar en boxused rota).
+                                // (por si es una re-difusion tras un RELOCATE).
+                                // v64 FIX DIMINUTA: escala 1.0 SIEMPRE en la viva (el
+                                // 0.47 de la v63 aqui volvia diminuta a la caja recien
+                                // nacida; el 0.47 es SOLO del residuo roto en state 2).
                                 _inst.grounded = false;
                                 _inst.vspd = 0;
                                 _inst.reported = false;
                                 _inst.visible = true;
-                                _inst.image_xscale = 0.47;
-                                _inst.image_yscale = 0.47;
+                                _inst.image_xscale = 1;
+                                _inst.image_yscale = 1;
                                 
                                 switch(_type)
                                 {
@@ -2426,11 +2427,23 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 
                                 _inst.isBroken = true;
                                 _inst.sprite_index = spr_boxused;
-                                // v63: la rota queda apoyada (ya no cae ni reporta) y
-                                // con la escala del Create la explosion y el residuo
-                                // quedan alineados al tamano de la caja (fix gigante).
+                                // v63: la rota queda apoyada (ya no cae ni reporta).
+                                // v64 FIX RESIDUO: spr_boxused es 64x64 con el contenido
+                                // en la MITAD INFERIOR (y 32-63) — dibujado tal cual
+                                // quedaba ENORME (el bug gigante de la v62); a escala 0.47
+                                // el contenido visible mide ~30x15 = el hueco exacto de la
+                                // caja que estuvo ahi.
+                                // v66 FIX FLOTANTE: el contenido del sprite (filas 32-63)
+                                // a escala 0.47 cae en la MITAD INFERIOR del area de dibujo
+                                // de 30px (local y 15-30) — o sea el residuo YA apoya su
+                                // base en la superficie sin ningun ajuste. El y -= 15 de
+                                // la v64 estaba INVERTIDO: levantaba el residuo 15px al
+                                // aire (el "aparece arriba del lugar original" de la
+                                // captura). Fix: y SIN TOCAR.
                                 _inst.grounded = true;
                                 _inst.vspd = 0;
+                                _inst.image_xscale = 0.47;
+                                _inst.image_yscale = 0.47;
                                 
                                 scr_audio_play_3d(_inst.emitter, snd_break, false, 0);
                                 net_quick_effect(_inst.x + 15, _inst.y + 15, spr_explosion);
