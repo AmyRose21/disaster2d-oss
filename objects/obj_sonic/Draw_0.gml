@@ -67,3 +67,11 @@ scr_powerboost_fx_flash(floor(x), floor(y - 6), parryFlash);
 // pattern): los personajes sin la variable no la tocan.
 if(variable_instance_exists(id, "electricShieldTimer") && electricShieldTimer > 0)
         draw_sprite(spr_electroshield, (current_time / 30) % 41, floor(x), floor(y));
+
+// v71 ITEM BOX v3 — escudo de burbuja de la caja (shieldTimer): mismo
+// patrón del eléctrico de arriba — burbuja animada encima del cuerpo en
+// cualquier estado. Lazy var (coyoteTimer pattern): personajes sin la
+// variable (o sin caja) no la tocan; Sally/SallyCanon/Rouge la dibujan
+// en su propio Draw.
+if(variable_instance_exists(id, "shieldTimer") && shieldTimer > 0)
+        draw_sprite(revivalTimes >= 2 ? spr_sallyshield2 : spr_sallyshield, (current_time / 30) % 41, floor(x), floor(y));

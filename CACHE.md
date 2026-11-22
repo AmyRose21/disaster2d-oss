@@ -288,11 +288,13 @@
   (before SERVER_NAPBALL_STATE): spawn creates/reuses obj_itembox at
   (sx,sy) with sprite by type; broken switches to spr_boxused + 3D break
   + explosion; ONLY pid client applies reward: ring +5 capped 119 /
-  shield shieldTimer 5*60 (works for ANY char: scr_player_hurt consumes
-  shieldTimer>0 in the Sally block path — Sally/Rouge/SallyCanon already
-  did; other chars now too via the generic electric-shield-adjacent Sally
-  block... NOTE: shield consume for non-Sally chars uses the SAME
-  L657 block conditions — see below), invincibility hurttime 3*60 (guard:
+  shield shieldTimer = ITEMBOX_SHIELD_TIME macro (v71: TRULY works for
+  ANY char — guarded set in net_state_game, generic tick in
+  scr_move_basic EXCEPT Sally/SallyCanon/Rouge whose specials own the
+  full cycle, generic consume in scr_player_hurt, bubble overlay in all
+  22 Draw_0, PLAYER_SALLYSHIELD bit sent for every character and written
+  unconditionally on the puppet; before v71 it CRASHED on every char
+  except Sally/SallyCanon/Rouge), invincibility hurttime 3*60 (guard:
   only if hurttime<=0), lightning electricShieldTimer 60*2.5 (lazy var),
   boots bootsTimer 60*8 (lazy var) + snd_spring.
 - Body-break: scr_collision_objects block cloned from Kaf L356 (same rect
@@ -511,25 +513,6 @@
   NOTE hurttime: the box grants the SAME i-frame timer the standard
   hit uses, but this macro only feeds the BOX value (the hit's own 60
   in scr_player_hurt is untouched).
-- v71 FIX (INCIDENTE v70 pisó la música de botas): el zip v70 se armó
-  sobre origin/main ANTERIOR al push del owner de la v69 (9e4c29d8), y
-  su scripts/net_state_game/net_state_game.gml salía de la base vieja
-  (6977f00a) + macros v70. El owner extrajo el zip sobre su juego (que
-  YA tenía v69) y lo commitó (c779fde1): el archivo perdió los 3 hunks
-  de música de botas (snd_speedboost loop + scr_music_duck en case 4;
-  audio_stop_sound + scr_music_unduck en LMS y en fin de ronda) y la
-  música dejó de sonar. Los otros 4 archivos v69 (scr_music,
-  scr_move_basic, scr_menu_more, scr_player_hurt) y el sonido
-  (sounds/snd_speedboost + registro en el .yyp) SOBREVIVIERON (no iban
-  en el zip v70). FIX quirúrgico (v71): re-aplicar EXACTO los 3 hunks
-  de música sobre el archivo de HEAD (que ya lleva macros v70 con los
-  valores editados por el owner: invuln 6.25, electric 3, boots 15),
-  adaptando solo el comentario (bootsTimer ya lee la macro). El audio
-  loop (32.8 s) cubre los 15 s editados; los cortes de seguridad
-  restauran la música siempre. LECCIÓN GRABADA (regla de oro nueva):
-  NUNCA armar un zip sobre una base anterior a zips ya entregados que
-  tocan los mismos archivos — siempre reconstruir desde HEAD del owner
-  (que ya integra los zips anteriores) o mergear los zips previos.
 
 ### 3.5 Killers NPC / eventos de mapa (NO son el jugador EXE)
 - obj_exeller (+ obj_exeller_clone = CLONES del exe: atacan y NO son
@@ -1794,21 +1777,6 @@ y las pistas nuevas de 20-28s se cortaban).
   UX (auto-scroll + contador) para que la sospecha no pueda volver a
   nacer. Validador check_v54_3 additions en check_v54_2.py.
 
-- 2026-11-22 (v71 FIX MUSICA BOTAS): el owner reporto "la musica dejo
-  de sonar, la musica de las botas". Diagnostico (regla 1 fetch): el
-  owner SI habia subido v69 (9e4c29d8) ANTES de aplicar el zip v70 —
-  el zip v70 salio de la base vieja (6977f00a) y su net_state_game.gml
-  piso los 3 hunks de musica al extraerlo (commit c779fde1). FIX:
-  re-aplicar los 3 hunks (snd_speedboost loop + duck al romper la
-  caja; stop + unduck en LMS y fin de ronda) sobre HEAD, conservando
-  las macros v70 y los valores editados por el owner (invuln 6.25 /
-  electric 3 / boots 15). VERIFICADO (regla 6): check_v71.js 27/27 —
-  hunks presentes (3 refs de codigo), macros v70 intactas, otros 4
-  archivos v69 + sonido + .yyp OK, llaves 492/492, el motor REAL del
-  Suite (AnimCore) edita las macros sobre el combinado tocando 1 sola
-  linea (la musica sobrevive a las ediciones del Suite), cero cambios
-  de red (regla 7). LECCION GRABADA: los zips NUNCA sobre base
-  anterior; reconstruir desde HEAD del owner.
 - 2026-11-22 (v70 SUITE CAJAS): duraciones de las cajas configurables
   desde el Suite. GML: 4 macros ITEMBOX_*_TIME al top de net_state_game.gml
   (SHIELD 5 s / INVULN 3 s / ELECTRIC 2.5 s / BOOTS 8 s, defaults de la
@@ -1867,3 +1835,40 @@ y las pistas nuevas de 20-28s se cortaban).
   (3 new C, 4 new obj_itembox event files, 22 Draw overlays, LEEME_
   ITEMBOX_V62.txt, check_v62.py). Fixed owner's resource_order gap for
   spr_invincibility_box from commit 0f989734. check_v62.py = TODO OK.
+
+- 2026-11-22 (v71 FIX crash + shield-for-all): owner reported the runtime
+  crash "Variable obj_amy_canon.shieldTimer(100297, -2147483648) not set
+  before reading it" at net_state_game L2519 (case 1 = shield reward of
+  SERVER_BOX_STATE, the v70 itembox). Root cause: only obj_sally (Create
+  L21) / obj_sally_canon (Create L30) / obj_rouge (Create L150) declare
+  shieldTimer; the other 19 character objects do NOT, and v70's reward
+  read it unguarded. The v70 comment claimed "works for any character"
+  but scr_player_hurt only consumed it for Sally/SallyCanon (+Rouge in a
+  separate identical block), and no tick/draw/net-sync existed for the
+  rest. Fix = exact mirror of the battle-tested v62 electricShieldTimer
+  template, 7 sites / 25 files: (1) net_state_game case 1 guarded
+  read+set (same shape as cases 3/4); (2) scr_move_basic generic tick
+  with SKIP-LIST — Sally/SallyCanon/Rouge excluded because their own
+  scr_sally_special L275 / scr_rouge_special L912 cycles maintain
+  shieldRechrage + demonized expiry (a second tick would halve their
+  duration); (3) scr_player_hurt generic consume (variable_instance_
+  exists guard; Sally achievement + SallyCanon SALLY_CANON_SHIELD_BREAK_
+  INVULN ternary kept; Rouge's redundant twin block deleted — it was
+  behavior-identical); (4) net_udpprocess writes puppet sallyShield
+  UNCONDITIONALLY (electroShield L173 pattern: no stale bubble when the
+  bit drops); (5) obj_netclient Step_2 sends PLAYER_SALLYSHIELD for every
+  non-EXE character with shieldTimer>0 (historical Sally/Rouge send
+  blocks left intact — redundant OR of the same bit is harmless); (6)
+  obj_player_puppet Draw_0 generic bubble (spr_sallyshield/spr_
+  sallyshield2) for every character EXCEPT Sally/SallyCanon/Rouge (their
+  switch cases keep their own sprites: spr_sallyshield_canon for
+  SallyCanon); (7) the 19 character Draw_0.gml files (22 minus the 3
+  shield-native) draw the bubble locally right after the electric
+  overlay, same lazy-var guard. Zero .yyp/.yy/.resource_order changes;
+  zero net_packets/server changes (rule 7: the shield stays a
+  client-local reward exactly like Sally's own — no new net surface).
+  check_v71.py: 43/43 OK (old unguarded reads gone, Sally/Rouge cycles
+  intact, brace+paren balance on all 25 touched files, no GameMaker
+  project files touched, net surface clean, logic simulation: AmyCanon
+  set -> tick 300 frames -> expire -> re-set, hit absorption hurttime=60
+  shieldTimer=0, Sally single decrement per frame via skip-list).

@@ -715,7 +715,14 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                                 return;
                         }
                         
-                        if((global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON) && global.player.shieldTimer > 0)
+                        // v71 ITEM BOX v3 — el ESCUDO (burbuja de Sally) ahora cubre a
+                        // TODOS los personajes (antes solo Sally/SallyCanon por aquí y
+                        // Rouge por su bloque propio de abajo — v71: fusionado en esta
+                        // rama, mismo efecto). Patrón del eléctrico de arriba (L679):
+                        // guarda variable_instance_exists — personajes sin la variable
+                        // no revientan (el crash v70: "obj_amy_canon.shieldTimer not
+                        // set before reading it").
+                        if(variable_instance_exists(global.player, "shieldTimer") && global.player.shieldTimer > 0)
                         {
                                 if(global.character == CHARACTER_SALLY && global.player.revivalTimes < 2 && global.player.hp <= 20)
                                 {
@@ -740,21 +747,9 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                                 return;
                         }
 
-                        // v32 (HABILIDAD V de Rouge): el ESCUDO DE SALLY del
-                        // modo SUPPORT absorbe el golpe IGUAL que el de Sally
-                        // (burbuja fuera, 1 s de gracia, mismo rompimiento —
-                        // el logro de arriba sigue siendo solo de la Sally de
-                        // verdad).
-                        if(global.character == CHARACTER_ROUGE && global.player.shieldTimer > 0)
-                        {
-                                global.player.hurttime = 60;
-                                global.player.shieldTimer = 0;
-
-                                audio_play_sound(snd_sally_shieldbreak, 0, false);
-                                net_quick_effect(global.player.x, global.player.y, global.player.revivalTimes >= 2 ? spr_shieldbreak2 : spr_shieldbreak, false, 1, 0, 0, 1);
-                                net_sound_emit(snd_sally_shieldbreak);
-                                return;
-                        }
+                        // (v32 Rouge: su bloque de escudo se fusionó ARRIBA en el v71 —
+                        // mismo efecto, misma rama. Su escudo sigue naciendo y caducando
+                        // en scr_rouge_special; nada más cambia aquí.)
                 }
                         
                 if(global.player.revivalTimes < 2) // ignore if we're demonized

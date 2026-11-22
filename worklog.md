@@ -6125,51 +6125,17 @@ Stage Summary:
 - El juego lee las 4 macros ITEMBOX_*_TIME (mismos valores por defecto de siempre: 5/3/2.5/8 s)
 
 
-Task: v71 — FIX: la música de las botas dejó de sonar tras aplicar v70.
+Task: v71 — crash reportado en runtime: "Variable obj_amy_canon.shieldTimer(100297, -2147483648) not set before reading it" at net_state_game L2519 (reward escudo de la caja, v70). Trace completo: net_state_game L2519 -> net_tcpprocess L207 -> net_poll L100 -> obj_netclient Step_2 L1.
 
 Work Log:
-- FETCH (regla 1, clave esta vez): origin/main AVANZÓ — el owner subió
-  la v69 completa (9e4c29d8: los 5 archivos + docs del zip v69) y
-  DESPUÉS la v70 (c779fde1: Suite + macros + docs + un backup
-  _backups_animeditor con el net_state_game.gml pre-v70). Diagnóstico:
-  el zip v70 se armó sobre la base vieja (6977f00a, ANTES del push de
-  v69) y su scripts/net_state_game/net_state_game.gml NO llevaba los 3
-  hunks de música de botas de la v69. Al extraerlo sobre el juego del
-  owner (que ya tenía v69), los PISÓ. Confirmado por diff: HEAD tiene 0
-  refs a snd_speedboost en net_state_game.gml; los otros 4 archivos v69
-  y el sonido (.ogg/.yy/.yyp) sobrevivieron intactos.
-- FIX QUIRÚRGICO (scripts/apply_v71_fix.py): re-aplicar EXACTO los 3
-  hunks de la v69 sobre HEAD: (1) case 4 botas: audio_play_sound(
-  snd_speedboost, 0, true) + scr_music_duck() (adaptado: bootsTimer ya
-  lee ITEMBOX_BOOTS_TIME; comentario nuevo documenta que el loop de
-  32.8 s cubre los tiempos editables y los cortes de seguridad
-  restauran siempre); (2) LMS: audio_stop_sound + scr_music_unduck
-  antes de la canción del show; (3) fin de ronda: stop + unduck antes
-  de la room de resultados. Nada más: macros v70 intactas con los
-  valores EDITADOS por el owner (invuln 6.25 / electric 3 / boots 15).
-- VERIFICACIÓN (regla 6): check_v71.js 27/27 OK — hunks de música
-  presentes (3 refs en código, exactamente como v69), macros v70 + sus
-  usos intactos, otros 4 archivos v69 presentes, sounds/snd_speedboost
-  (.ogg + .yy) existe y el .yyp lo registra, llaves 492/492 y
-  paréntesis 1779/1779, el motor REAL del Suite (factory de AnimCore
-  extraído del HTML) lee las macros del combinado (5/6.25/3/15 s) y
-  edita botas 15→20 s tocando EXACTAMENTE 1 línea — la música
-  SOBREVIVE a las ediciones del módulo Cajas —, regla 7 limpia (cero
-  cambios en net_packets/ betterserver-oss/ states/, solo
-  net_state_game.gml + docs tocados). Durante la verificación
-  encontré 3 bugs MÍOS en el checker (regex \b doble-escapado, nombre
-  .yyp hardcodeado mal, contar menciones en comentarios como refs y
-  new Function devolviendo la factory sin llamarla): corregidos y
-  re-corridos — los FAIL eran del checker, no del fix.
-- LECCIÓN GRABADA (regla de oro nueva en CACHE/LEARNING): NUNCA armar
-  un zip sobre una base anterior a zips ya entregados que tocan los
-  mismos archivos. Siempre fetch primero y reconstruir desde el HEAD
-  del owner (que ya integra los zips anteriores). La v70 lo violó
-  porque se construyó mientras el push de v69 seguía pendiente.
-- Entregable: download/v71_fix_musica_botas.zip — solo
-  scripts/net_state_game/net_state_game.gml + docs + checker.
+- FETCH (regla 1): clon limpio de origin/main (HEAD c779fde1 = v70 ya commiteada con las macros ITEMBOX_*_TIME y el módulo Cajas del Suite). CACHE.md/LEARNING.md recuperados intactos.
+- INVESTIGACIÓN (regla 8): (1) causa raíz: solo obj_sally (Create L21) / obj_sally_canon (Create L30) / obj_rouge (Create L150) declaran shieldTimer; los otros 19 personajes NO — y el case 1 de v70 leía global.player.shieldTimer SIN guarda. (2) el comentario v70 prometía "funciona en cualquier personaje" pero scr_player_hurt solo consumía para Sally/SallyCanon (+Rouge en un bloque aparte IDENTICO), sin tick/visual/bitflag para el resto: el reward estaba roto para 19/22 personajes. (3) TODAS las demás lecturas de shieldTimer del repo están protegidas por checks de personaje (scr_move_basic L130/L315, obj_netclient Step_2 L128-148, scr_parry, obj_player_puppet, los 3 proyectiles) — el crash era SOLO el código nuevo v70. (4) template de la casa para "reward que funciona en todos": el electricShieldTimer de v62 (set con guarda -> tick en move_basic -> consume en player_hurt -> overlay en los 22 Draw_0 -> bit PLAYER_ELECTROSHIELD -> escritura incondicional en el puppet -> draw genérico del puppet).
+- FIX (scripts/fix_v71.py, 7 sitios / 25 archivos, espejo 1:1 del template eléctrico): (1) net_state_game case 1 con guarda variable_instance_exists (misma forma que los cases 3/4 — el crash fix); (2) tick genérico de shieldTimer en scr_move_basic con SKIP-LIST Sally/SallyCanon/Rouge (sus specials scr_sally_special L275 / scr_rouge_special L912 ya llevan el ciclo completo: recarga shieldRechrage + expiración demonizada — un segundo tick los agotaría al doble); (3) scr_player_hurt: condición genérica (logro de Sally y ternario de SallyCanon anidados intactos) + bloque twin de Rouge ELIMINADO (era idéntico en comportamiento); (4) net_udpprocess: sallyShield escrito SIEMPRE en el puppet (patrón electroShield L173 — sin burbujas fantasma); (5) obj_netclient Step_2: bit PLAYER_SALLYSHIELD para todo personaje no-EXE (bloques históricos Sally/Rouge intactos: OR redundante inocuo); (6) obj_player_puppet Draw_0: burbuja genérica para el resto (los 3 con case propio excluidos); (7) 19 Draw_0 de personajes (22 menos Sally/SallyCanon/Rouge): burbuja local tras el overlay eléctrico, misma guarda lazy.
+- VERIFICACIÓN (regla 6): check_v71.py 43/43 OK — lecturas sin guarda FUERA, ticks/consumos eléctricos y de botas intactos, ciclos propios de Sally/Rouge intactos (scr_sally_special L277 y scr_rouge_special L914 sin tocar), llaves Y paréntesis balanceados en los 25 archivos (lexer GML consciente de comentarios/strings), CERO archivos .yyp/.yy/.resource_order tocados, superficie de red limpia, y simulación de lógica: Amy Canon setea -> 300 frames exactos de tick -> expira -> re-setea con caja nueva -> el golpe consume (hurttime 60, shieldTimer 0) -> Sally solo UN decremento por frame (skip-list).
+- ANTI-CHEAT (regla 7): cero cambios de red/server (net_packets, C server, protocolo intactos). El escudo sigue siendo estado client-local como el de Sally propia: no hay paquete nuevo que falsificar; el reward nace del SERVER_BOX_STATE con pid (solo el cliente del pid que rompió la caja lo aplica) y no se acumula (idempotente mientras vive).
+- Entregable: download/v71_escudo_burbuja_todos.zip — 25 GML + CACHE.md + LEARNING.md + worklog.md + LEEME_ITEMBOX_V71.txt + check_v71.py.
 
 Stage Summary:
-- La música de las botas vuelve a sonar (v69 restaurada sobre la v70,
-  sin perder las macros del módulo Cajas ni los valores editados).
-
+- El crash: el reward de escudo leía una variable que solo 3 personajes declaran — fix con la guarda variable_instance_exists del patrón eléctrico
+- El feature: el escudo de la caja ahora funciona COMPLETO para los 22 personajes (protege un golpe en scr_player_hurt, dura los segundos de la macro del Suite, burbuja visible local y en las pantallas ajenas) — espejo exacto del escudo eléctrico de v62
+- Sally/SallyCanon/Rouge conservan su ciclo propio con sus matices (recarga, demonizado); el EXE no viaja ni consume (igual que el eléctrico)

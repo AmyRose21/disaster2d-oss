@@ -294,6 +294,19 @@ function scr_move_basic()
                         scr_music_unduck();
                 }
         }
+
+        // v71 ITEM BOX v3 — tick del ESCUDO DE BURBUJA (shieldTimer) para el
+        // RESTO de personajes: Sally/SallyCanon/Rouge NO pasan por aquí (sus
+        // specials scr_sally_special L275 / scr_rouge_special L912 ya llevan
+        // el ciclo completo con matices propios — demonizado, recarga
+        // shieldRechrage — y un segundo tick los agotaría al DOBLE de
+        // velocidad). El de la CAJA solo dura y expira (patrón exacto del
+        // eléctrico de arriba).
+        if(variable_instance_exists(id, "shieldTimer") && shieldTimer > 0
+        && global.character != CHARACTER_SALLY
+        && global.character != CHARACTER_SALLY_CANON
+        && global.character != CHARACTER_ROUGE)
+                shieldTimer--;
         
         if(isBoosting)
         {

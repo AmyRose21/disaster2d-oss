@@ -125,6 +125,18 @@ with(global.player)
                         && variable_instance_exists(global.player, "electricShieldTimer")
                         && global.player.electricShieldTimer > 0)
                                 bitflags |= PLAYER_ELECTROSHIELD;
+
+                        // v71 ITEM BOX v3 — ESCUDO DE BURBUJA para TODOS: mismo bit
+                        // PLAYER_SALLYSHIELD de siempre. Sally/SallyCanon/Rouge lo
+                        // siguen mandando en sus bloques de abajo (redundante e
+                        // inocuo: OR del mismo bit); el RESTO de personajes con
+                        // escudo de caja manda AQUÍ (patrón exacto del eléctrico de
+                        // arriba). Con este bit el puppet remoto dibuja la burbuja en
+                        // su Draw_0 (genérico nuevo).
+                        if(global.character != CHARACTER_EXE
+                        && variable_instance_exists(global.player, "shieldTimer")
+                        && global.player.shieldTimer > 0)
+                                bitflags |= PLAYER_SALLYSHIELD;
                         if(global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON)
                         {
                                 if(shieldTimer > 0)

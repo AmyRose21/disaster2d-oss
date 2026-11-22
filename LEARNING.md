@@ -132,6 +132,9 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
 7. Stay on top of anti-cheat: any new attack vector needs an exception/
    guard added.
 8. Research EVERYTHING needed — nothing escapes to the editor.
+9. ALWAYS write what was learned into LEARNING.md (this file) — it is
+   the agent's memory: log hits and misses so knowledge accumulates
+   across chats.
 
 ## Anti-cheat surface (rule 7 current state)
 
@@ -195,35 +198,56 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   — the factory ends before the final '});' (that closes factory+UMD
   wrapper together; slice needs + '}' to close the function body).
 
-## v71 — boots music lost after v70 zip — lessons
+## v71 — the shieldTimer crash (bug class + template fix)
 
-- ROOT CAUSE (process bug, not code bug): v70 was built on origin/main
-  BEFORE the owner pushed v69, and its net_state_game.gml came from the
-  OLD base + new macros. When the owner unzipped v70 over their game
-  (which already had v69) and committed, the file LOST the 3 boots-music
-  hunks. Music died. The other 4 v69 files survived (not in the zip).
-- NEW GOLDEN RULE (recorded): when building any new version, FIRST
-  fetch and check whether the owner has already pushed previous zips.
-  NEVER build a zip from a base that predates delivered zips touching
-  the same files. Reconstruct from the owner's HEAD (it already
-  integrates the previous zips) or merge the previous zips into the
-  base explicitly. Consequence of skipping: silent feature removal
-  that looks like a regression of someone else's change.
-- Detection was instant because the symptom was precise ("the boots
-  music stopped") and the v69 feature was fully documented in CACHE.
-  grep for the feature's code markers (snd_speedboost refs in
-  net_state_game) vs the delivered zip's content told the whole story
-  in one diff. Keep feature markers greppable in CACHE for this.
-- The fix was SURGICAL: re-apply only the lost hunks (adapted to the
-  new context — bootsTimer now reads the v70 macro; comment updated to
-  document the audio-loop-vs-time interaction: 32.8 s loop covers the
-  owner's edited 15 s, and the Suite can keep editing time without
-  ever touching the music lines — verified: AnimCore.setMacro changes
-  exactly 1 line and the music survives).
-- Checker hygiene: three of my own checker bugs produced false FAILs
-  (template-string double-escaped \b regex, hardcoded wrong .yyp
-  filename, counting comment mentions as code refs, and new Function
-  returning the FACTORY instead of calling it — `factory()` vs
-  `factory`). Manual verification of the underlying truth BEFORE
-  trusting a checker's FAIL output: the checker is code too, and a
-  FAIL can be the checker's bug, not the feature's.
+- **The error**: "Variable obj_amy_canon.shieldTimer(100297, -2147483648)
+  not set before reading it" at net_state_game L2519 — a dot-READ of a
+  variable THIS instance never declared. In this runtime dot-WRITES
+  create the variable on the instance (the v62/v70 rewards rely on it:
+  `global.player.electricShieldTimer = ...` works), but dot-READS on an
+  instance without it are FATAL.
+- **Who declares what matters**: only obj_sally (Create L21),
+  obj_sally_canon (Create L30) and obj_rouge (Create L150) declare
+  shieldTimer. The other 19 character objects don't. ANY new code reading
+  a character-specific timer on `global.player` MUST use
+  variable_instance_exists first — that is the house pattern (reward
+  cases 3/4, every electricShieldTimer site).
+- **The template** for "box reward that works for EVERY character" is the
+  v62 electricShieldTimer lifecycle (clone it 1:1): guarded set in
+  net_state_game -> guarded tick in scr_move_basic -> guarded consume in
+  scr_player_hurt -> overlay in every character Draw_0 -> bitflag sent
+  from obj_netclient Step_2 -> written UNCONDITIONALLY on the puppet in
+  net_udpprocess -> drawn generically in obj_player_puppet Draw_0.
+- **Countdown skip-list**: when adding a generic per-frame tick for a
+  timer that SOME characters already tick in their own special script,
+  EXCLUDE those characters or it runs at 2x speed. shieldTimer skip-list:
+  Sally+SallyCanon (they SHARE scr_sally_special L275, which also keeps
+  shieldRechrage and the demonized-expiry effect) and Rouge
+  (scr_rouge_special L912). The three projectile paths
+  (obj_tails_projectile / obj_blaze_fireball / obj_metal_amy_bullet)
+  keep their Sally-only shield-break by original design — same as the
+  electric shield, which doesn't stop projectiles either.
+- **Puppet bit vars must be written EVERY packet** (net_udpprocess):
+  conditionally writing leaves stale TRUEs that never clear when the
+  bit drops. Unconditional `var = bitflags & BIT` is safe (false for
+  those who don't use it) and self-cleaning. electroShield L173 is the
+  reference; sallyShield now follows it.
+- **Draw exclusions**: characters that already draw their own version of
+  an overlay (Sally/SallyCanon/Rouge for the bubble) must be excluded
+  from the GENERIC overlay — locally (don't add the block to their
+  Draw_0) and on puppets (`character != CHARACTER_X` guards) — else
+  double draw.
+- **Redundant OR of the same bitflag is harmless**: the historical
+  Sally/Rouge PLAYER_SALLYSHIELD send blocks in obj_netclient Step_2
+  were left intact (least-risk edit policy — every untouched line is a
+  line that cannot break).
+- **scr_move_basic runs for ALL 22 characters including killers**
+  (obj_exe/obj_exetior/obj_exeller/obj_metalamy call it from Step_0),
+  so a tick there covers every playable object; hurt-consumption stays
+  behind `global.character != CHARACTER_EXE`, exactly like the electric
+  shield's.
+- **Twin consume blocks**: Rouge's shield-break block in scr_player_hurt
+  was behavior-identical (minus an achievement) to the Sally block —
+  generalizing the Sally block's condition preserved Rouge exactly and
+  allowed deleting the twin. When merging, diff the two blocks FIRST
+  and keep every character-specific line nested inside the generic one.

@@ -164,8 +164,16 @@ function net_udpprocess(rbuff)
                                                 hasRedRing = bitflags & PLAYER_REDRING;
                                                 effect = bitflags & PLAYER_EFFECT;
                                                 
-                                                if(character == CHARACTER_SALLY || character == CHARACTER_SALLY_CANON)
-                                                        sallyShield = bitflags & PLAYER_SALLYSHIELD;
+                                                // v71 ITEM BOX v3 — el ESCUDO DE BURBUJA viaja para TODOS
+                                                // los personajes (antes solo Sally/SallyCanon por aquí y
+                                                // Rouge en su bloque de abajo — ambos quedan ahora como
+                                                // re-escritura redundante e inocua del mismo bit): patrón
+                                                // del electroShield de abajo (L173) — escrito SIEMPRE en
+                                                // cada paquete (bit a bit: ni burbujas fantasma al caer el
+                                                // bit ni estados viejos pegados). El puppet dibuja la
+                                                // burbuja: case propio para Sally/SallyCanon/Rouge, draw
+                                                // genérico nuevo para el resto (Draw_0).
+                                                sallyShield = bitflags & PLAYER_SALLYSHIELD;
 
                                                 // v62 ITEM BOX v2 — escudo electrico de la caja en el
                                                 // puppet del portador (bit 7 compartido con SLIME: solo

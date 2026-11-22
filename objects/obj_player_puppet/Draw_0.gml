@@ -355,3 +355,13 @@ switch(character)
 // cualquier estado. Bit 7 del PLAYER_DATA (PLAYER_ELECTROSHIELD).
 if(electroShield)
         draw_sprite(spr_electroshield, (current_time / 30) % 41, floor(x), floor(y));
+
+// v71 ITEM BOX v3 — ESCUDO DE BURBUJA de la caja para el RESTO de
+// personajes: mismo patrón del eléctrico de arriba (efecto aparte encima
+// del cuerpo en cualquier estado, sin tocar la animación). Sally/
+// SallyCanon/Rouge lo dibujan en su case propio del switch de arriba
+// (sprites propios: spr_sallyshield / spr_sallyshield_canon) — el resto
+// pasa por aquí con la burbuja clásica (bit PLAYER_SALLYSHIELD, ahora
+// escrito para TODOS en net_udpprocess).
+if(sallyShield && character != CHARACTER_SALLY && character != CHARACTER_SALLY_CANON && character != CHARACTER_ROUGE)
+        draw_sprite(revivalTimes >= 2 ? spr_sallyshield2 : spr_sallyshield, (current_time / 30) % 41, floor(x), floor(y));
