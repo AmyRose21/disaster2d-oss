@@ -514,6 +514,43 @@
   hit uses, but this macro only feeds the BOX value (the hit's own 60
   in scr_player_hurt is untouched).
 
+- v73 (2026-11-23, feedback de la duena) — 2 reglas nuevas sobre este
+  sistema:
+  (A) EXE DENIAL: "los Exes no podran obtener buff pero si pueden
+      destruir las cajas negandole el buff al que esta pasando por
+      ahi". Server-side (la capa que manda, regla 7):
+      ItemBoxMap.c CLIENT_BOX_ACTIVATE calcula
+      uint16_t reward = (v->server->game.exe == v->id) ? 0 : v->id;
+      (game.exe = peer id del Exe de la ronda, expresion exacta de
+      Lib.c disaster_server_peer) y itembox_activate difunde el
+      break con pid 0 = NADIE cobra (el convenio que ya existia para
+      breaks por proyectil de Tails: peer ids empiezan en 1, Server.c
+      v->id = incomingPeerID + 1, peer_msg rechaza id 0 => pid 0
+      nunca coincide con un cliente real). El Exe rompe atacando
+      (scr_collision_objects SIN cambios: EXE en la lista de ataque,
+      invisible sigue sin poder — anti-grief) y todos ven la caja
+      romperse; nadie aplica el buff. MISMO veto en KindAndFair.c
+      CLIENT_KAFMONITOR_ACTIVATE para los monitores Kaf (el boost Kaf
+      es un buff: pid 0). Cliente (defensa en profundidad contra
+      binarios mezclados viejo/nuevo): net_state_game.gml tiene 2
+      guardas nuevas if(global.character == CHARACTER_EXE) break;
+      justo tras el check obj_netclient.nid != _pid — una en el case
+      SERVER_BOX_STATE state 2 (rewards de caja) y otra en
+      SERVER_KAFMONITOR_STATE state 2 (boost Kaf). CHARACTER_EXE lo
+      comparten las 6 variantes de killer (Original/Chaos/Exetior/
+      Exeller/MetalAmy/Jinna: global.exeCharacter lleva la variante).
+      Cero paquetes nuevos / protocolo intacto.
+  (B) FIX INMUNIDAD: "si el jugador obtenia otra inmunidad (cajas
+      invulnerable) no se reiniciaba la duracion max". El case 2 del
+      reward tenia guard if(global.player.hurttime <= 0) (patron
+      !ya-activo del boost Kaf) => con CUALQUIER inmunidad vigente
+      (otra caja o los i-frames del golpe de 180f) la caja nueva se
+      gastaba en vacio. Ahora la asignacion es incondicional:
+      global.player.hurttime = ITEMBOX_INVULN_TIME (= 60*6.25 = 375f)
+      — cada caja invulnerable SIEMPRE reinicia al maximo. Los cases
+      1/3/4 (escudo/electrico/botas) CONSERVAN su guard !ya-activo
+      (semantica intencional de la casa: no apilan ni refrescan).
+
 ### 3.5 Killers NPC / eventos de mapa (NO son el jugador EXE)
 - obj_exeller (+ obj_exeller_clone = CLONES del exe: atacan y NO son
   obj_player_puppet => mi flecha roja los ignora por diseno), obj_exetior
@@ -529,7 +566,7 @@
                           libdisnet.so + fuente Android).
 - disasterserver/, data/ . (auxiliares del proyecto).
 
-### 3.7 SQUASH & STRETCH — WSS v72 (port del mod Lua de SRB2, 2026-11-23)
+### 3.7 SQUASH & STRETCH — WSS v72 (port del mod Lua de SRB2, 2026-11-23; RETUNED v73)
 - scripts/scr_wss/scr_wss.gml = TODO el sistema (4 funciones + 16 macros
   WSS_*): scr_wss_update (jugador local, la engancha el FINAL de
   scr_collision_basic — los 22 personajes la llaman desde su Step_0
@@ -545,9 +582,20 @@
   por |yspd|); SQUASH Landing (impacto) / State (cambio de sprite en
   suelo, salta bola/carga/aterrizaje) / Speed (postura por |gspd|,
   saturando en WSS_SPEED_FULL=12, asignacion absoluta como el Lua);
-  RETURN Sharp/Smooth (decay 0.12 = feel del fase 2)/Jelly (muelle
-  K=0.035 D=0.88, overshoot ~10%, 3 cruces, 51 frames — calibrado por
+  RETURN Sharp/Smooth (decay 0.10)/Jelly (muelle
+  K=0.035 D=0.88, overshoot -0.138 (~31% de la amplitud, misma
+  proporcion que v72), 3 cruces, 60 frames — calibrado por
   simulacion).
+- v73 RETUNE (feedback: "la caida se nota un poco pero el salto y lo
+  demas no se nota mucho"): WSS_STRETCH_MAX 0.35->0.45,
+  WSS_TAKEOFF_GAIN 0.045->0.085, WSS_AIRFLOW_GAIN 0.030->0.055,
+  WSS_SQUASH_MAX 0.30->0.42, WSS_IMPACT_GAIN 0.030->0.050,
+  WSS_STATE_SQUASH 0.18->0.24, WSS_SMOOTH_DECAY 0.12->0.10.
+  Numeros nuevos (salto jumpForce 7): estiron 0.450 (SATURA el tope;
+  antes 0.315), visible frame 1: 0.405 (antes 0.277), aplaste salto
+  normal -0.35 (antes -0.21), caida fuerte -0.42 (satura), Smooth
+  37f (antes 28f), Sharp 15f, Jelly 60f/3 cruces/-0.138. Solo macros:
+  cero logica nueva, las formulas/anclaje red intactas.
 - ANCLAJE AL SUELO (mismo metodo que _f2yoff): yoff = (sprite_height -
   sprite_yoffset) * (1 - escalaY_total) => el pie queda plantado.
 - DONDE SE APLICA: los 22 Draw_0 de personajes (linea base
@@ -574,9 +622,13 @@
   cortocircuitar en el codigo original y no existen en todos).
 - Macros tuneables desde el Suite (motor #macro de AnimCore, patron
   ITEMBOX_*_TIME v70). WSS_ENABLED 0 = sistema apagado, draws
-  identicos. Validador: check_v72.py (balance lexer GML, parches
-  exactos, .yyp 2542 recursos sin dupes, superficie git == 30 archivos,
-  cero red/server, simulacion numerica de triggers/returns/anclaje).
+  identicos. Validador: check_v73.py (SUSTITUYE a check_v72.py:Lexer
+  balance 28 GML, parches v72 intactos + valores v73 exactos, fix
+  inmunidad y exe-denial verificados, gcc -fsyntax-only de los 2 .c
+  del server con stub enet auto-generado, .yyp 2542 recursos sin
+  dupes, superficie git nucleo v73 (+v72 si sigue sin commitear),
+  cero protocolo/netclient, simulacion numerica completa con los
+  macros nuevos).
 
 ## 4. PERSONAJES
 ### Survivors (macros en scripts/scr_survivors/scr_survivors.gml, base TAILS=1)
@@ -706,6 +758,17 @@
   validacion en el sandbox — NO commitear.
 - REGLA: cambios de stats/habilidades/validacion tocan cliente Y server
   (recompilar); cambios solo visuales (draw/indicadores) no tocan server.
+- v73 (2026-11-23): PRIMER cambio server-side desde v68 —
+  entities/ItemBoxMap.c y maps/KindAndFair.c ganan el veto de Exe en
+  los handlers CLIENT_BOX_ACTIVATE / CLIENT_KAFMONITOR_ACTIVATE
+  (reward pid 0 si game.exe == v->id; ver 3.4.2 v73-A). gcc
+  -fsyntax-only con stub enet (punteros opacos: ENetPeer/ENetHost/
+  ENetPacket + ENetPeer.roundTripTime) verifica ambos .c sin traer
+  el submodule. La expresion game.exe == v->id es la MISMA que Lib.c
+  usa en produccion (disaster_server_peer) => riesgo MSVC ~0.
+  OJO: el usuario debe RECOMPILAR el server (compilar_server.bat
+  opcion 2) para el veto server-side; sin recompilar, las guardas
+  del cliente siguen negando el buff en el cliente del Exe.
 
 ### 6.1 RELAY / PUERTOS (analisis relay-v1, 26/10)
 - PREGUNTA: el server v1101 ¿soporta relay o lo bloquea? RESPUESTA: NI LO
@@ -1936,3 +1999,23 @@ y las pistas nuevas de 20-28s se cortaban).
   smooth 28f / jelly 51f 3 cruces overshoot -0.108, anclaje al suelo
   exacto, puppet sin squash falso en pendientes). Entregable:
   download/v72_wss_squash_stretch.zip.
+- 2026-11-23 (v73 WSS retune + Exe sin buffs + fix inmunidad): feedback
+  de la duena en 3 puntos, los 3 entregados. (1) "la caida se nota un
+  poco pero el salto y lo demas no se nota mucho" => retune de 7 macros
+  del WSS (ver 3.7): estiron del salto 0.315->0.450 (satura tope),
+  aplaste normal 0.21->0.35, Smooth 28f->37f, Jelly misma proporcion
+  (60f, 3 cruces, -0.138). (2) "los exes no podran obtener buff pero
+  si pueden destruir las cajas negandole el buff al que esta pasando
+  por hay" => exe denial a 2 capas (server ItemBoxMap.c/KindAndFair.c
+  pid 0 + 2 guardas cliente en net_state_game; ver 3.4.2 v73-A y 6).
+  (3) "fix a un bug de inmunidad: si el jugador obtenia otra inmunidad
+  (cajas invulnerable) no se reiniciaba la duracion max" => case 2 del
+  reward ahora asigna hurttime = ITEMBOX_INVULN_TIME incondicional
+  (ver 3.4.2 v73-B). Validador check_v73.py (59 checks, SUSTITUYE a
+  check_v72.py) TODOS OK: lexer balance 28 GML, parches v72 intactos,
+  macros v73 exactos, fix + denial verificados, gcc -fsyntax-only 2 .c
+  con stub enet, .yyp/.resource_order OK, superficie git nucleo v73
+  (+v72 sin commitear) sin protocolo/netclient, simulacion numerica
+  completa + logica de las 2 reglas portada. Entregable:
+  download/v73_exe_denial_invuln_fix_wss.zip. El usuario debe
+  RECOMPILAR el server. El push a GitHub lo hace la duena.

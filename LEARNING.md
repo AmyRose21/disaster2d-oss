@@ -325,3 +325,73 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   runs Stretch→Squash→ReturnScale in sequence, so the return animation
   eats into the trigger's first frame (0.35 → 0.277 visible). Keep it
   when porting, and encode it in the simulation assertions.
+
+## v73 — exe denial + invuln reset + WSS retune — lessons
+
+- **"Refresh to max" vs "guard !already-active" are different reward
+  semantics — confirm which one each reward needs.** The v62 reward
+  switch cloned the Kaf boost's `if(timer <= 0)` guard for ALL four
+  timed rewards; for the invulnerability box that was a BUG to the
+  owner (picking a second invuln box while immune wasted it). Fix =
+  unconditional `hurttime = ITEMBOX_INVULN_TIME` (always resets to
+  max). Shield/electric/boots KEEP the guard (intended no-stack
+  semantics). When porting a guard pattern to N sites, ask which of
+  the N want refresh-to-max.
+- **The exe denial reused TWO existing house conventions, so the
+  diff is one line per site**: (1) `pid 0 = nobody collects` — the
+  Tails-projectile break convention (`is_proj ? 0 : pid` in
+  ItemBox.c/kafbox_activate); peer ids start at 1
+  (`v->id = incomingPeerID + 1`, Server.c; `peer_msg` rejects id 0),
+  so pid 0 can never match a real client. (2) `server->game.exe ==
+  v->id` is the production "is this peer the round's exe" expression
+  (Lib.c `disaster_server_peer`) — mirror it verbatim instead of
+  inventing a new check.
+- **Server-side denial beats client-side for rule 7**: the reward pid
+  is decided by the SERVER (itemboxmap_tcpmsg knows PeerData* v), so
+  a modded exe client cannot self-award. Client guards
+  (`global.character == CHARACTER_EXE` after the `nid != _pid` check)
+  are still worth adding as defense-in-depth for MIXED BINARIES (new
+  client + old un-recompiled server), which WILL happen because the
+  owner compiles client and server at different times.
+- **All 6 killer variants share `global.character == CHARACTER_EXE`**
+  (Original/Chaos/Exetior/Exeller/MetalAmy/Jinna — the variant lives
+  in `global.exeCharacter` / server `exe_char`). One check covers
+  every killer.
+- **`gcc -fsyntax-only` + a 10-line enet stub verifies server .c
+  edits without the submodule**: the project headers only use
+  ENetPeer/ENetHost/ENetPacket as opaque pointers, so a stub with
+  those typedefs (+ `roundTripTime` for .c files) is enough for
+  syntax AND struct-member checking (`v->server->game.exe` fails
+  loudly if the field didn't exist). check_v73.py regenerates the
+  stub in a tempdir at run time; on Windows (no gcc) the check is
+  skipped with a note, not a failure.
+- **Retuning preserves FEEL RATIOS, not absolute numbers**: doubling
+  WSS_TAKEOFF_GAIN raised the jump stretch 0.315→0.450 (now
+  saturates the cap); the Jelly spring (linear system) keeps its
+  overshoot RATIO (~31% of amplitude: -0.108→-0.138) and crossing
+  count automatically — only the settle frames grew (51→60, absolute
+  epsilon cutoffs). Simulate before/after and assert the ratios.
+- **Validator false positives to remember**: (1) counting a packet
+  NAME in a file counts comments too — count the send line
+  (`cpacket_tcp(PacketType.X)`) instead; (2) "TODO" is the Spanish
+  word for "all" in this codebase's comments ("TODO el anti-cheat")
+  — use `TODO:`/FIXME (with colon) for leftover-markers in C files;
+  (3) when a per-file set is derived from a list that EXCLUDES one
+  special case (obj_sally_canon has a different Draw patch), the
+  git-surface check built from the same list forgets it too.
+- **The git-status surface check must tolerate BOTH owner states**:
+  v72 still uncommitted (v72 files appear as modified) or already
+  committed (only v73 files appear). Encode: core-v73 must be
+  present; v72 files are allowed-but-optional; anything else fails.
+  The owner extracts zips over their tree in either state.
+- **THE EDIT TOOL CAN REINDENT WHOLE TAB-INDENTED FILES**: editing
+  ItemBoxMap.c/KindAndFair.c (server .c files use TABs) converted
+  EVERY tab in the file to spaces — the raw diff showed 329+68
+  changed lines vs 21 real ones (`git diff --stat` vs
+  `git diff --ignore-all-space --stat` — run BOTH after every edit;
+  they must match). Fix protocol: `git checkout --` the file, then
+  re-apply via a Python script with literal `\t` anchors, assert
+  count==1, and open with `newline=""` so line endings stay
+  byte-identical (scripts/reapply_v73_c.py is the template). From
+  now on: server .c (TAB) patches go through byte-exact Python,
+  never the interactive editor.

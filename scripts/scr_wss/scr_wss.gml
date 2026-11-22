@@ -40,7 +40,12 @@
 //                    1 = Smooth: vuelta exponencial (mismo feel que
 //                       SALLY_CANON_SQ_DECAY del fase 2).
 //                    2 = Jelly: muelle amortiguado con rebote (overshoot
-//                       ~10% y 3 cruces, calibrado por simulacion a 60fps).
+//                       ~-0.14 y 3 cruces, calibrado por simulacion a 60fps).
+//
+// v73 RETUNING (feedback de la duena: "la caida se nota un poco pero el
+// salto y lo demas no se nota mucho"): gains al doble, topes +29%/+40% y
+// Smooth un pelin mas lento — estiron del salto 0.315 -> 0.450, aplaste
+// de aterrizaje normal 0.21 -> 0.35. Misma proporcion de rebote Jelly.
 //
 // Los valores viven en macros para que el Suite (Suite_TD2D.html) pueda
 // tunearlos con su motor de #macro ya existente (mismo patron que
@@ -52,16 +57,16 @@
 #macro WSS_STRETCH_STYLE 0
 #macro WSS_SQUASH_STYLE 0
 #macro WSS_RETURN_STYLE 1
-#macro WSS_STRETCH_MAX 0.35
-#macro WSS_SQUASH_MAX 0.30
-#macro WSS_TAKEOFF_GAIN 0.045
-#macro WSS_AIRFLOW_GAIN 0.030
-#macro WSS_IMPACT_GAIN 0.030
-#macro WSS_STATE_SQUASH 0.18
+#macro WSS_STRETCH_MAX 0.45
+#macro WSS_SQUASH_MAX 0.42
+#macro WSS_TAKEOFF_GAIN 0.085
+#macro WSS_AIRFLOW_GAIN 0.055
+#macro WSS_IMPACT_GAIN 0.050
+#macro WSS_STATE_SQUASH 0.24
 #macro WSS_SPEED_FULL 12
 #macro WSS_X_RATIO 0.6
 #macro WSS_SHARP_STEP 0.030
-#macro WSS_SMOOTH_DECAY 0.12
+#macro WSS_SMOOTH_DECAY 0.10
 #macro WSS_JELLY_K 0.035
 #macro WSS_JELLY_DAMP 0.88
 
@@ -223,8 +228,8 @@ function scr_wss_return()
         else
         {
                 // Jelly: muelle amortiguado — rebota y se pasa un pelin
-                // antes de asentarse (overshoot ~10%, ~3 cruces, calibrado
-                // por simulacion: 0.35 -> -0.108 -> asienta en 51 frames)
+                // antes de asentarse (3 cruces, calibrado por simulacion:
+                // 0.45 -> -0.138 -> asienta en 60 frames)
                 wssVel += (0 - wssSq) * WSS_JELLY_K;
                 wssVel *= WSS_JELLY_DAMP;
                 wssSq += wssVel;
