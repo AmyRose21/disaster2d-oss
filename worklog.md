@@ -6124,3 +6124,52 @@ Stage Summary:
 - El Suite tiene un módulo «📦 Cajas» (categoría Sistema) donde se configuran los segundos de las 4 recompensas de las cajas (botas e invulnerabilidad pedidas + escudo Sally y escudo eléctrico de regalo), con el mismo motor de escritura/backups/deshacer del resto del Suite
 - El juego lee las 4 macros ITEMBOX_*_TIME (mismos valores por defecto de siempre: 5/3/2.5/8 s)
 
+
+Task: v71 — FIX: la música de las botas dejó de sonar tras aplicar v70.
+
+Work Log:
+- FETCH (regla 1, clave esta vez): origin/main AVANZÓ — el owner subió
+  la v69 completa (9e4c29d8: los 5 archivos + docs del zip v69) y
+  DESPUÉS la v70 (c779fde1: Suite + macros + docs + un backup
+  _backups_animeditor con el net_state_game.gml pre-v70). Diagnóstico:
+  el zip v70 se armó sobre la base vieja (6977f00a, ANTES del push de
+  v69) y su scripts/net_state_game/net_state_game.gml NO llevaba los 3
+  hunks de música de botas de la v69. Al extraerlo sobre el juego del
+  owner (que ya tenía v69), los PISÓ. Confirmado por diff: HEAD tiene 0
+  refs a snd_speedboost en net_state_game.gml; los otros 4 archivos v69
+  y el sonido (.ogg/.yy/.yyp) sobrevivieron intactos.
+- FIX QUIRÚRGICO (scripts/apply_v71_fix.py): re-aplicar EXACTO los 3
+  hunks de la v69 sobre HEAD: (1) case 4 botas: audio_play_sound(
+  snd_speedboost, 0, true) + scr_music_duck() (adaptado: bootsTimer ya
+  lee ITEMBOX_BOOTS_TIME; comentario nuevo documenta que el loop de
+  32.8 s cubre los tiempos editables y los cortes de seguridad
+  restauran siempre); (2) LMS: audio_stop_sound + scr_music_unduck
+  antes de la canción del show; (3) fin de ronda: stop + unduck antes
+  de la room de resultados. Nada más: macros v70 intactas con los
+  valores EDITADOS por el owner (invuln 6.25 / electric 3 / boots 15).
+- VERIFICACIÓN (regla 6): check_v71.js 27/27 OK — hunks de música
+  presentes (3 refs en código, exactamente como v69), macros v70 + sus
+  usos intactos, otros 4 archivos v69 presentes, sounds/snd_speedboost
+  (.ogg + .yy) existe y el .yyp lo registra, llaves 492/492 y
+  paréntesis 1779/1779, el motor REAL del Suite (factory de AnimCore
+  extraído del HTML) lee las macros del combinado (5/6.25/3/15 s) y
+  edita botas 15→20 s tocando EXACTAMENTE 1 línea — la música
+  SOBREVIVE a las ediciones del módulo Cajas —, regla 7 limpia (cero
+  cambios en net_packets/ betterserver-oss/ states/, solo
+  net_state_game.gml + docs tocados). Durante la verificación
+  encontré 3 bugs MÍOS en el checker (regex \b doble-escapado, nombre
+  .yyp hardcodeado mal, contar menciones en comentarios como refs y
+  new Function devolviendo la factory sin llamarla): corregidos y
+  re-corridos — los FAIL eran del checker, no del fix.
+- LECCIÓN GRABADA (regla de oro nueva en CACHE/LEARNING): NUNCA armar
+  un zip sobre una base anterior a zips ya entregados que tocan los
+  mismos archivos. Siempre fetch primero y reconstruir desde el HEAD
+  del owner (que ya integra los zips anteriores). La v70 lo violó
+  porque se construyó mientras el push de v69 seguía pendiente.
+- Entregable: download/v71_fix_musica_botas.zip — solo
+  scripts/net_state_game/net_state_game.gml + docs + checker.
+
+Stage Summary:
+- La música de las botas vuelve a sonar (v69 restaurada sobre la v70,
+  sin perder las macros del módulo Cajas ni los valores editados).
+

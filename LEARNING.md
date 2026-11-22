@@ -194,3 +194,36 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   factory function and `new Function('return (' + factorySrc + ')')()`
   — the factory ends before the final '});' (that closes factory+UMD
   wrapper together; slice needs + '}' to close the function body).
+
+## v71 — boots music lost after v70 zip — lessons
+
+- ROOT CAUSE (process bug, not code bug): v70 was built on origin/main
+  BEFORE the owner pushed v69, and its net_state_game.gml came from the
+  OLD base + new macros. When the owner unzipped v70 over their game
+  (which already had v69) and committed, the file LOST the 3 boots-music
+  hunks. Music died. The other 4 v69 files survived (not in the zip).
+- NEW GOLDEN RULE (recorded): when building any new version, FIRST
+  fetch and check whether the owner has already pushed previous zips.
+  NEVER build a zip from a base that predates delivered zips touching
+  the same files. Reconstruct from the owner's HEAD (it already
+  integrates the previous zips) or merge the previous zips into the
+  base explicitly. Consequence of skipping: silent feature removal
+  that looks like a regression of someone else's change.
+- Detection was instant because the symptom was precise ("the boots
+  music stopped") and the v69 feature was fully documented in CACHE.
+  grep for the feature's code markers (snd_speedboost refs in
+  net_state_game) vs the delivered zip's content told the whole story
+  in one diff. Keep feature markers greppable in CACHE for this.
+- The fix was SURGICAL: re-apply only the lost hunks (adapted to the
+  new context — bootsTimer now reads the v70 macro; comment updated to
+  document the audio-loop-vs-time interaction: 32.8 s loop covers the
+  owner's edited 15 s, and the Suite can keep editing time without
+  ever touching the music lines — verified: AnimCore.setMacro changes
+  exactly 1 line and the music survives).
+- Checker hygiene: three of my own checker bugs produced false FAILs
+  (template-string double-escaped \b regex, hardcoded wrong .yyp
+  filename, counting comment mentions as code refs, and new Function
+  returning the FACTORY instead of calling it — `factory()` vs
+  `factory`). Manual verification of the underlying truth BEFORE
+  trusting a checker's FAIL output: the checker is code too, and a
+  FAIL can be the checker's bug, not the feature's.

@@ -9,6 +9,10 @@
 // scr_player_hurt), escudo eléctrico 2.5 s (Eggman 1.5 + 1 s pedido de la
 // dueña), botas 8 s (Power Sneakers: tope +3 y acc x1.5, control total —
 // NO la carrera forzada del Kaf).
+// v71: las botas suenan con snd_speedboost en loop + scr_music_duck()
+// (v69, abajo en case 4): si alargas este tiempo el audio acompana
+// hasta 32.8 s de loop; los cortes de seguridad (LMS / fin de ronda /
+// muerte en scr_player_instakill) restauran la musica siempre.
 #macro ITEMBOX_SHIELD_TIME (60 * 5)
 #macro ITEMBOX_INVULN_TIME (60 * 6.25)
 #macro ITEMBOX_ELECTRIC_TIME (60 * 3)
@@ -2539,7 +2543,19 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 if(!variable_instance_exists(global.player, "bootsTimer") || global.player.bootsTimer <= 0)
                                                 {
                                                         global.player.bootsTimer = ITEMBOX_BOOTS_TIME;
-                                                        audio_play_sound(snd_spring, 0, false);
+                                                        
+                                                        // v69: Power Sneakers con SU musica — mientras dura
+                                                        // el efecto suena snd_speedboost y la musica del
+                                                        // nivel se silencia con el MISMO metodo del
+                                                        // anti-camping (obj_player_warning: duck a 0).
+                                                        // El audio loop dura 32.8 s > 8 s del efecto:
+                                                        // sobra; scr_music_unduck al expirar (scr_move_basic).
+                                                        // v71: bootsTimer lee la macro ITEMBOX_BOOTS_TIME
+                                                        // (modulo Cajas del Suite) — la musica acompana
+                                                        // el tiempo que sea, el loop solo se corta al
+                                                        // expirar/restaurar (32.8 s alcanza para 15 s+).
+                                                        audio_play_sound(snd_speedboost, 0, true);
+                                                        scr_music_duck();
                                                 }
                                                 break;
                                 }
@@ -3813,6 +3829,16 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // (dos canciones a la vez). Vale igual para el
                         // broadcast y para el re-envio al que se reconecta.
                         scr_stop_map_music();
+
+                        // v69 (BOTAS): el show del LMS pone musica nueva —
+                        // si quedaba el snd_speedboost sonando (botas activas
+                        // en el frame en que el server dispara el show) se
+                        // apaga AQUI, y el duck de la musica se deshace porque
+                        // scr_play_music arranca gain fresco. Mismo corte de
+                        // seguridad que hace scr_stop_map_music para las
+                        // layers directas de los mapas especiales.
+                        audio_stop_sound(snd_speedboost);
+                        scr_music_unduck();
 
                         scr_lms_play_song(_lmsChar, _lmsSong);
                         instance_create_depth(0, 0, 0, obj_lms_banner);
@@ -5282,6 +5308,14 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // se muere solo con el cambio de room — sin esto se
                         // colaba ENCIMA de la musica del ending.
                         scr_stop_map_music();
+                        
+                        // v69 (BOTAS): fin de ronda con botas activas —
+                        // mismo corte de seguridad del LMS: el sonido
+                        // largo se apaga y la musica duckeada vuelve a su
+                        // gain normal antes de la room de resultados
+                        // (musica nueva: mus_exewin / mus_survwin / etc.).
+                        audio_stop_sound(snd_speedboost);
+                        scr_music_unduck();
                         
                         gameEnds = true;
                         isReady = true;

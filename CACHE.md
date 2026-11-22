@@ -511,6 +511,25 @@
   NOTE hurttime: the box grants the SAME i-frame timer the standard
   hit uses, but this macro only feeds the BOX value (the hit's own 60
   in scr_player_hurt is untouched).
+- v71 FIX (INCIDENTE v70 pisó la música de botas): el zip v70 se armó
+  sobre origin/main ANTERIOR al push del owner de la v69 (9e4c29d8), y
+  su scripts/net_state_game/net_state_game.gml salía de la base vieja
+  (6977f00a) + macros v70. El owner extrajo el zip sobre su juego (que
+  YA tenía v69) y lo commitó (c779fde1): el archivo perdió los 3 hunks
+  de música de botas (snd_speedboost loop + scr_music_duck en case 4;
+  audio_stop_sound + scr_music_unduck en LMS y en fin de ronda) y la
+  música dejó de sonar. Los otros 4 archivos v69 (scr_music,
+  scr_move_basic, scr_menu_more, scr_player_hurt) y el sonido
+  (sounds/snd_speedboost + registro en el .yyp) SOBREVIVIERON (no iban
+  en el zip v70). FIX quirúrgico (v71): re-aplicar EXACTO los 3 hunks
+  de música sobre el archivo de HEAD (que ya lleva macros v70 con los
+  valores editados por el owner: invuln 6.25, electric 3, boots 15),
+  adaptando solo el comentario (bootsTimer ya lee la macro). El audio
+  loop (32.8 s) cubre los 15 s editados; los cortes de seguridad
+  restauran la música siempre. LECCIÓN GRABADA (regla de oro nueva):
+  NUNCA armar un zip sobre una base anterior a zips ya entregados que
+  tocan los mismos archivos — siempre reconstruir desde HEAD del owner
+  (que ya integra los zips anteriores) o mergear los zips previos.
 
 ### 3.5 Killers NPC / eventos de mapa (NO son el jugador EXE)
 - obj_exeller (+ obj_exeller_clone = CLONES del exe: atacan y NO son
@@ -1775,6 +1794,21 @@ y las pistas nuevas de 20-28s se cortaban).
   UX (auto-scroll + contador) para que la sospecha no pueda volver a
   nacer. Validador check_v54_3 additions en check_v54_2.py.
 
+- 2026-11-22 (v71 FIX MUSICA BOTAS): el owner reporto "la musica dejo
+  de sonar, la musica de las botas". Diagnostico (regla 1 fetch): el
+  owner SI habia subido v69 (9e4c29d8) ANTES de aplicar el zip v70 —
+  el zip v70 salio de la base vieja (6977f00a) y su net_state_game.gml
+  piso los 3 hunks de musica al extraerlo (commit c779fde1). FIX:
+  re-aplicar los 3 hunks (snd_speedboost loop + duck al romper la
+  caja; stop + unduck en LMS y fin de ronda) sobre HEAD, conservando
+  las macros v70 y los valores editados por el owner (invuln 6.25 /
+  electric 3 / boots 15). VERIFICADO (regla 6): check_v71.js 27/27 —
+  hunks presentes (3 refs de codigo), macros v70 intactas, otros 4
+  archivos v69 + sonido + .yyp OK, llaves 492/492, el motor REAL del
+  Suite (AnimCore) edita las macros sobre el combinado tocando 1 sola
+  linea (la musica sobrevive a las ediciones del Suite), cero cambios
+  de red (regla 7). LECCION GRABADA: los zips NUNCA sobre base
+  anterior; reconstruir desde HEAD del owner.
 - 2026-11-22 (v70 SUITE CAJAS): duraciones de las cajas configurables
   desde el Suite. GML: 4 macros ITEMBOX_*_TIME al top de net_state_game.gml
   (SHIELD 5 s / INVULN 3 s / ELECTRIC 2.5 s / BOOTS 8 s, defaults de la
