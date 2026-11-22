@@ -13,6 +13,14 @@
 #      linea en el CHANGELOG (seccion 11) y seguir escribiendo worklog.md.
 #   4. Si el usuario reporta un bug/feature nuevo: anotarlo en seccion 9
 #      (PENDIENTES) en el mismo momento.
+#   4b. REGLAS DE ORO del duena (2026-11-22): (1) fetch SIEMPRE al iniciar;
+#       (2) zip SOLO modificados/creados vs origin/main; (3) re-analizar
+#       solo archivos editados recientemente o editados por mi antes del
+#       pull; (4) investigar a fondo + registrar en worklog/CACHE;
+#       (5) LEARNING.md (ingles) siempre actualizado e incluido en el zip;
+#       (6) verificar al 100% (incluye .yyp/.yy/.gml sin errores);
+#       (7) pendiente del anti-cheat (nuevos ataques -> excepciones);
+#       (8) nada se escapa al editor. Detalle completo: LEARNING.md.
 #   5. Este archivo = mapa estatico (QUE ES cada cosa). worklog.md = historia
 #      cronologica (QUE HICIMOS). No duplicar el worklog aqui.
 #
@@ -436,6 +444,36 @@
   countdown (residuo 25-30s) liberaba su spawner; fix = used[] marca
   TODA entidad existente + sin re-freesado del relocated ("zona OTRA"
   estricta). check_v66.py TODO OK (73 checks); gcc+LINK 0 undefined.
+- v67 (sim C real de 2 rondas): RE-ENTRADA a Kind sin cajas para
+  siempre — UB en kaf_tick: "ItemBox boxes[N]" por VALOR castearlo a
+  (Entity**) (game_find escribe PUNTEROS) y leer boxes[i].timer/.nid
+  in-place = basura; en MSVC alive puede leer >=4 -> roll bloqueado
+  para siempre (y used[] leia nid falsos -> slots fantasma). Fix:
+  ItemBox* boxes[] + -> (patron de la casa, igual que kaf_tcpmsg).
+  Extra cliente: state 1 re-difusion crea la instancia faltante como
+  ROTA (boxused 0.47) si no existe. Sim: antes nid=0/timer=0/pos=(0,0)
+  en todas (UB directo); con fix 4-6 cajas por ronda rompiendo cada
+  30 s. check_v67.py TODO OK (79 checks).
+- v68 (duena: "hay que aplicarselo a todos los mapas" + reglas de oro
+  1-8): SISTEMA CENTRAL ItemBoxMap.c/.h (roll + ACTIVATE/RELOCATE) para
+  TODOS los mapas con tabla auto-generada ItemBoxSpawnTables.c
+  (derive_spawns_all_v68.py: semillas obj_ring_spawner, suelo real =
+  familia obj_floor_parent resuelta por CADENA DE PARENTS dinamica con
+  dims del sprite escalado; Torture Cave/Haunting Dream = mega-sprites
+  de colision per-pixel leidos del PNG (verde 0,255,27 / amarillo
+  251,242,54); vetos resorte/hazard 48px, nada de fila alta 40%,
+  dedupe 96x64, y=top_suelo-30). 25/25 mapas (min 3, total 262).
+  Hooks en states/Game.c (el REAL de CMake; el disasterserver/Game.c
+  de la raiz es copia vieja QUE NO COMPILA — no tocar): checkstart ->
+  itemboxmap_init (reset por ronda EXPLICITO, sin heuristicas de
+  elapsed), state_tick -> itemboxmap_tick, handletcp ->
+  itemboxmap_tcpmsg (packet_seek(0) tras el tcp_msg del mapa).
+  KindAndFair.c vuelve a stock (KafBox monitors; tabla v65 = mapa 7
+  en el dispatch). Sim multimap 10/10 rondas OK (5 mapas x 2,
+  rompiendo cada 30 s) + link 0 undefined + check_v68.py TODO OK
+  (30 checks). NUEVOS ARCHIVOS DE CONOCIMIENTO: LEARNING.md (ingles,
+  regla 5) + CACHE.md en ingles pendiente de migrar seccion por
+  seccion (se mantiene comoindice bilingue).
 - Known deltas vs design doc (doc said "extend KAFMONITOR pair"; final
   choice was a cleaner NEW pair + activation kept as new CLIENT_BOX_
   ACTIVATE — same semantics, no versioning ambiguity between states with

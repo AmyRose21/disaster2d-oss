@@ -2394,16 +2394,39 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 // READY (re-difusion): reposicion por si acaso — el
                                 // respawn real crea estado 3 de nuevo. Cero cambios
                                 // visuales (la caja rota sigue en boxused).
+                                // v67: si NO existe instancia con este nid, la re-difusion
+                                // llega a un cliente que cambio de room/volvio a entrar:
+                                // ignorarla dejaria un hueco silencioso (el server cree
+                                // que la caja ya vive ahi pero el cliente nunca la ve).
+                                // Crearla como ROTA (boxused apoyada): es el estado real
+                                // de esa entidad — hasta que su countdown expire.
                                 var _num = instance_number(obj_itembox);
+                                var _found = false;
                                 for(var _i = 0; _i < _num; _i++)
                                 {
                                         var _e = instance_find(obj_itembox, _i);
                                         if(_e.nid == _nid)
                                         {
+                                                _found = true;
                                                 _e.x = _sx;
                                                 _e.y = _sy;
                                                 break;
                                         }
+                                }
+                                if(!_found)
+                                {
+                                        var _inst = instance_create_depth(_sx, _sy, 0, obj_itembox);
+                                        _inst.nid = _nid;
+                                        _inst.type = _type;
+                                        _inst.x = _sx;
+                                        _inst.y = _sy;
+                                        _inst.isBroken = true;
+                                        _inst.sprite_index = spr_boxused;
+                                        _inst.grounded = true;
+                                        _inst.vspd = 0;
+                                        _inst.image_xscale = 0.47;
+                                        _inst.image_yscale = 0.47;
+                                        _inst.visible = true;
                                 }
                         }
                         else if(_state == 2)

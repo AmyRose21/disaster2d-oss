@@ -81,6 +81,8 @@ set(SOURCES
         "entities/TCAcid.c"
         "entities/KAFSpeedBox.c"
         "entities/ItemBox.c"
+        "entities/ItemBoxMap.c"
+        "entities/ItemBoxSpawnTables.c"
         "entities/TailsDoll.c"
         "entities/DTBall.c"
         "entities/DTStalactits.c"

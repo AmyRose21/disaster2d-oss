@@ -313,3 +313,122 @@ gcc + link 0 undefined; check_v66.py TODO OK (73 checks, incluye los
 dos fixes nuevos: "SIN y -= 15" y "used[] marca TODAS").
 Vision IA sobre tu captura re-escalada x4 confirmo el residuo
 flotando ~15px sobre el suelo ANTES del fix (gap 5-15px).
+
+==============================================================================
+ v67 — FIX "RE-ENTRO A KIND Y YA NO APARECEN LAS CAJAS"
+==============================================================================
+QUE PASO
+--------
+La 1a entrada a Kind and Fair spawneaba cajas; al volver a entrar (2a
+ronda del mismo servidor), ninguna aparecia jamas. Causa raiz hallada
+con SIMULACION REAL del server (DyList.c + ItemBox.c + KindAndFair.c
+reales compilados juntos, 2 rondas de 120 s con delta 1/60):
+
+EL BUG: el bloque del roll en kaf_tick usaba
+   ItemBox boxes[ITEMBOX_MAX * 3];           // structs POR VALOR
+   game_find(server, (Entity**)boxes, ...);   // escribe PUNTEROS
+y luego leia boxes[i].timer / .nid / .relocated IN-PLACE. game_find
+escribe PUNTEROS Entity* en esos slots (patron de la casa: Vase*,
+DTStalactits*, KafBox*...), asi que leerlos como struct incrustado es
+LECTURA DE BASURA (undefined behavior). En mi sim gcc la basura leia
+timer=0 (benigno), pero en MSVC/Windows la basura de stack puede leer
+timer < 0 para TODO -> "alive" >= ITEMBOX_MAX(4) -> EL ROLL QUEDA
+BLOQUEADO PARA SIEMPRE: no nace ninguna caja mas en esa sesion de
+server. El mismo UB hacia que used[] del v66 leyera nid falsos ->
+slots fantasma (cajas encimadas o spawn en sitio ocupado).
+
+ESTO EXPLICA los 3 sintomas que fuiste viendo: cajas encimadas (v66,
+used[] leia nid basura), residuo flotando (v66, era solo el y-=15) y
+ahora el "no aparecen al re-entrar" (alive basura >= 4).
+
+QUE CAMBIO (2 archivos)
+------------------------
+Servidor C:  betterserver-oss/disasterserver/maps/KindAndFair.c
+   kaf_tick: ItemBox* boxes[] + -> (patron correcto de la casa, el
+   mismo que ya usaba kaf_tcpmsg). Semantica v66 intacta: used[]
+   marca TODAS las entidades, sin re-freesado del relocated.
+Cliente GM:  scripts/net_state_game/net_state_game.gml
+   state 1 (READY re-difusion): si la instancia no existe (cliente
+   que re-entra / cambio de room), se crea como ROTA (boxused apoyada
+   a 0.47) en vez de ignorar el paquete — antes el server creia que la
+   caja viva ahi y el cliente jamas la veia.
+
+VERIFICADO (todo reproducible)
+------------------------------
+1. SIMULACION REAL 2 rondas x 120 s, ANTES del fix: instrumentada con
+   prints mostraba nid=0 timer=0 pos=(0,0) en TODAS las "cajas" —
+   pura basura de stack (confirmacion directa del UB).
+2. MISMA simulacion CON el fix: ronda1 = 4-6 cajas, ronda2 = 4-6
+   cajas, incluso rompiendo cajas cada 30 s (flujo rota -> countdown
+   -> respawn OK, el roll nunca se bloquea).
+3. gcc + link: 0 undefined references.
+4. check_v67.py: TODO OK (79 checks — los 73 de la v66 + 6 nuevos
+   que exigen el patron por-puntero y la re-creacion del state 1).
+
+==============================================================================
+ v68 — SISTEMA CENTRAL DE CAJAS PARA TODOS LOS MAPAS + reglas de oro
+==============================================================================
+PEDIDO
+------
+"Hay que aplicarselo a todos los mapas. colocaremos un sistema que pueda
+aplicarsela a todo mapa y cualquiera que se anade posteriormente."
+Anotadas tambien las 8 reglas de oro (fetch siempre, zip solo-modificados,
+re-analisis dirigido, registro de lo trabajado, cache+learning en ingles
+siempre actualizados e incluidos en el zip, verificacion al 100% con
+cuidado de .yyp/.yy, vigilancia del anti-cheat, investigar a fondo).
+
+ARQUITECTURA (server, 3 hooks — cero cambios en los 25 mapas .c)
+----------------------------------------------------------------
+entities/ItemBoxMap.c/.h .... el roll v62-v67 y los handlers ACTIVATE/
+                             RELOCATE, ahora por MAP ID.
+entities/ItemBoxSpawnTables.c  AUTO-GENERADO por derive_spawns_all_v68.py
+                             (script en workspace/scripts/): tabla de
+                             zonas por mapa + dispatch g_itembox_tables.
+states/Game.c ................ 3 hooks: tras map init -> itemboxmap_init
+                             (reset por ronda EXPLICITO); tras map tick
+                             -> itemboxmap_tick; tras cb.tcp_msg ->
+                             itemboxmap_tcpmsg (con packet_seek(0)).
+KindAndFair.c ............... vuelve a stock: solo monitores KafBox. Su
+                             tabla v65 es el mapa 7 del dispatch.
+NUEVO MAPA FUTURO? ......... derivar zonas con el script (una linea en
+                             GAME_ROOMS) y el sistema lo toma solo.
+
+COMO SE DERIVARON LAS ZONAS (regla 8: investigacion completa)
+-------------------------------------------------------------
+- El suelo REAL del juego es la familia obj_floor_parent (el player
+  camina y la caja aterriza contra ese parent; obj_solid_parent HEREDA
+  de floor_parent). Se resolvio la cadena de parents de cada objeto del
+  repo dinamicamente y las dims salen del sprite escalado.
+- Semillas: obj_ring_spawner de cada room (marcan zonas transitables).
+- Vetos: resorte/hazard a <=48px, fila alta (y < 40% del room), abismo
+  (sin suelo a <=64px bajo el punto), dedupe 96x64.
+- Torture Cave y Haunting Dream NO tienen tiles: TODO su terreno es un
+  mega-sprite de colision pintado (per-pixel). El generador lee el PNG
+  del frame y detecta el color solido mayoritario (TC verde 0,255,27;
+  HD amarillo 251,242,54). 27/27 y 31/31 rings con suelo, respectivamente.
+- Resultado: 25/25 mapas con zonas (min 3 en Majin Forest y Fart Zone,
+  total 262; Kind and Fair conserva su tabla v65 exacta).
+
+VERIFICACION (regla 6)
+----------------------
+- Simulacion REAL multimap (DyList.c + ItemBox.c + ItemBoxMap.c +
+  ItemBoxSpawnTables.c + KindAndFair.c compilados juntos): 5 mapas
+  (7/15/0/22/21) x 2 rondas de 120 s rompiendo cajas cada 30 s:
+  10/10 rondas spawnearon (4-6 cajas por ronda), el roll nunca se
+  bloquea, cap de 4 vivas intacto.
+- gcc: los 4 .c compilan; link 0 undefined references.
+- check_v68.py: TODO OK (30 checks: hooks, tablas 25/25, patron
+  por-puntero v67, anti-cheat, CMakeLists, .gml balanceado, .yyp OK).
+- Anti-cheat (regla 7) intacto y ahora heredado por TODOS los mapas:
+  AssertOrDisconnect(in_game), activate idempotente (no farmeo de
+  anillos re-rompiendo), RELOCATE one-shot.
+
+ENTREGA (regla 2: solo modificados/creados vs origin/main)
+-----------------------------------------------------------
+server: states/Game.c, maps/KindAndFair.c, CMakeLists.txt,
+        entities/ItemBoxMap.c (nuevo), entities/ItemBoxSpawnTables.c
+        (nuevo), include/entities/ItemBoxMap.h (nuevo)
+repo:   CACHE.md, LEARNING.md (nuevo), LEEME_ITEMBOX_V62.txt,
+        check_v68.py (nuevo)
+(v62-v66 ya estan en origin/main; v67 de la sesion anterior va en este
+mismo zip: KindAndFair.c ya contiene la refactorizacion completa.)

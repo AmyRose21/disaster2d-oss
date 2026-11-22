@@ -21,6 +21,7 @@
 #include <entities/MetalAmyBullet.h>
 #include <entities/EggmanTracker.h>
 #include <entities/ExellerClone.h>
+#include <entities/ItemBoxMap.h>
 
 bool game_end(Server* server, Ending ending, bool achiv)
 {
@@ -471,6 +472,11 @@ bool game_checkstart(Server* server)
 
                 srand((unsigned int)time(NULL));
                 RAssert(g_mapList[server->game.map].cb.init(server));
+                /* v68 ITEM BOX v7: reset central por ronda (TODO mapa).
+                   Tras el init del mapa, agenda el primer roll de cajas
+                   (FIRST_DELAY). Mapas sin tabla derivada: queda inactivo
+                   todo el tick (zones <= 0). */
+                RAssert(itemboxmap_init(server));
                 Info(LOG_YLW "Game started! " LOG_RST "(Time %ds)", server->game.time_sec);
 
                 server->game.started = true;
@@ -3302,6 +3308,13 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 
         RAssert(packet_seek(packet, 0));
         RAssert(g_mapList[v->server->game.map].cb.tcp_msg(v, packet));
+        /* v68 ITEM BOX v7: handler central de CLIENT_BOX_ACTIVATE /
+           CLIENT_BOX_RELOCATE (TODO mapa con tabla). Se llama SIEMPRE
+           tras el tcp_msg del mapa: el mapa ya no posee los cases
+           (KindAndFair los cedio al sistema central; su tcp_msg
+           re-lee el cuerpo — los PacketRead avanzan cursor local). */
+        RAssert(packet_seek(packet, 0));
+        RAssert(itemboxmap_tcpmsg(v, packet));
         return true;
 }
 
@@ -3831,6 +3844,8 @@ bool game_state_tick(Server* server)
         RAssert(game_player_tick(server));
         RAssert(game_entity_tick(server));
         RAssert(g_mapList[server->game.map].cb.tick(server));
+        /* v68 ITEM BOX v7: roll central de cajas (TODO mapa con tabla). */
+        RAssert(itemboxmap_tick(server));
 
         server->game.time -= server->delta;
         return true;
