@@ -373,12 +373,18 @@ typedef enum
            sx,sy EN el paquete (unica verdad de posicion: ningun cliente
            adivina con instance_find). SERVER_BOX_STATE (state u8):
            3=spawn (nid,type,pid_dummy,sx,sy) / 2=rota+reward a pid /
-           1=ready. CLIENT_BOX_ACTIVATE (nid, proj): romper la caja nid —
+           4=despawn al expirar (nid,type,pid_dummy,sx,sy) / 1=ready.
+           CLIENT_BOX_ACTIVATE (nid, proj): romper la caja nid —
            recompensa difundida por el server al pid validado, nunca
-           pedida por el cliente. Mismo orden que el enum del cliente
-           (net_packets.gml); anadido AL FINAL en los DOS lados. */
+           pedida por el cliente. CLIENT_BOX_RELOCATE (nid): v63 — el
+           cliente que la ve reporto que cayo sobre un trampolin o al
+           abismo (el server no tiene colision de mapa); el server marca
+           la entidad y la re-spawnea en otro punto libre. Mismo orden
+           que el enum del cliente (net_packets.gml); anadido AL FINAL
+           en los DOS lados. */
         CLIENT_BOX_ACTIVATE,
-        SERVER_BOX_STATE
+        SERVER_BOX_STATE,
+        CLIENT_BOX_RELOCATE
 } PacketType;
 
 typedef struct

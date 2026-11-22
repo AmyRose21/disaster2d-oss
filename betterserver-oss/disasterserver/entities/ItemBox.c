@@ -15,6 +15,8 @@
    3 = spawn (nid, type, pid_breaker_dummy, sx, sy)
    2 = rota por pid (nid, type, pid, sx, sy) — el reward lo aplica SOLO
        el cliente del pid (patron boost Kaf)
+   4 = despawn al expirar (nid, type, dummy, sx, sy) — el cliente destruye
+       la instancia boxused (sin esto quedaba colgada indefinidamente)
    1 = reparable/ready (nid, type, dummy, sx, sy) — re-difusion por si
        un cliente se reconecta (roundtrip: todo estado lleva TODO el
        contexto) */
@@ -22,13 +24,16 @@
 static bool itembox_broadcast(Server* server, uint8_t state, ItemBox* box, uint16_t pid)
 {
 	Packet pack;
-	RAssert(PacketCreate(&pack, SERVER_BOX_STATE));
-	RAssert(PacketWrite(&pack, packet_write8, state));
-	RAssert(PacketWrite(&pack, packet_write8, box->nid));
-	RAssert(PacketWrite(&pack, packet_write8, box->type));
-	RAssert(PacketWrite(&pack, packet_write16, pid));
-	RAssert(PacketWrite(&pack, packet_write16, (uint16_t)box->pos.x));
-	RAssert(PacketWrite(&pack, packet_write16, (uint16_t)box->pos.y));
+	/* ojo: PacketCreate/PacketWrite YA se expanden a RAssert(...) (Log.h),
+	   no se envuelven en otro RAssert — RAssert(if(...)) no compila (C2059).
+	   Patron exacto de KAFSpeedBox.c/Ring.c. */
+	PacketCreate(&pack, SERVER_BOX_STATE);
+	PacketWrite(&pack, packet_write8, state);
+	PacketWrite(&pack, packet_write8, box->nid);
+	PacketWrite(&pack, packet_write8, box->type);
+	PacketWrite(&pack, packet_write16, pid);
+	PacketWrite(&pack, packet_write16, (uint16_t)box->pos.x);
+	PacketWrite(&pack, packet_write16, (uint16_t)box->pos.y);
 	server_broadcast(server, &pack, true);
 	return true;
 }
@@ -60,12 +65,28 @@ bool itembox_tick(Server* server, Entity* entity)
 		return true;
 	}
 
-	/* expiro: despawn silencioso de la entidad (la caja rota ya mostro
-	   boxused 25+ s; el mapa decide si vuelve a sortear este nid). No
-	   difundimos nada: el cliente ya la dejo en boxused y el siguiente
-	   spawn con el MISMO nid la resetea via state 3 (redifusion completa
-	   con sx,sy — el roundtrip cubre la reconstruccion). */
-	return false; /* game_entity_tick la retira */
+	/* expiro: difundir DESPAWN (state 4) y morir. Sin esto la boxused
+	   quedaria colgada en el cliente hasta que el azar re-sortee ese
+	   nid; con esto la instancia se destruye limpia (ring_uninit
+	   difunde su remocion igual). El mapa re-sortea el hueco cuando
+	   quiera — si vuelve a salir este nid, su state 3 la crea de
+	   cero (reusa solo si existe, y ya no existe). */
+	itembox_broadcast(server, 4, box, 0);
+	return false; /* game_entity_tick la retira via uninit */
+}
+
+bool itembox_uninit(Server* server, Entity* entity)
+{
+	/* Definido porque MakeItemBox lo referencia (LNK2019 si falta) y
+	   porque broadcast-aqui es el convenio Ring.c. La muerte por tick
+	   ya difundio el state 4 arriba; este hook cubre los despawns
+	   que NO pasan por el tick (game_despawn directo: fin de ronda,
+	   limpieza de mapa). Silencioso y sin paquete: mismo NULL-safe de
+	   Game.c (uninit se llama solo si != NULL). */
+	ItemBox* box = (ItemBox*)entity;
+	(void)box;
+	(void)server;
+	return true;
 }
 
 bool itembox_activate(Server* server, ItemBox* box, uint16_t pid, uint8_t is_proj)

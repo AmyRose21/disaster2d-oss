@@ -2350,6 +2350,18 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 _inst.x = _sx;
                                 _inst.y = _sy;
                                 _inst.isBroken = false;
+                                // v63 GRAVEDAD: la caja (re)nace CAYENDO — el Step la
+                                // apoya en el suelo (regla de la duena: nada de cajas
+                                // en el aire). Reset completo del estado v63: reported
+                                // (por si es una re-difusion tras un RELOCATE) y escala
+                                // (el Create ya la deja bien, pero una instancia
+                                // reusada pudo quedar en boxused rota).
+                                _inst.grounded = false;
+                                _inst.vspd = 0;
+                                _inst.reported = false;
+                                _inst.visible = true;
+                                _inst.image_xscale = 0.47;
+                                _inst.image_yscale = 0.47;
                                 
                                 switch(_type)
                                 {
@@ -2358,6 +2370,22 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         case 2: _inst.sprite_index = spr_invincibility_box; break;
                                         case 3: _inst.sprite_index = spr_lightning_shield_box; break;
                                         case 4: _inst.sprite_index = spr_speedboots_box; break;
+                                }
+                        }
+                        else if(_state == 4)
+                        {
+                                // DESPAWN al expirar la rota: destruir la instancia
+                                // boxused (sin esto quedaba colgada hasta que el azar
+                                // re-sorteara este nid). Destroy_0 libera el emitter.
+                                var _num = instance_number(obj_itembox);
+                                for(var _i = 0; _i < _num; _i++)
+                                {
+                                        var _e = instance_find(obj_itembox, _i);
+                                        if(_e.nid == _nid)
+                                        {
+                                                instance_destroy(_e);
+                                                break;
+                                        }
                                 }
                         }
                         else if(_state == 1)
@@ -2398,6 +2426,11 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 
                                 _inst.isBroken = true;
                                 _inst.sprite_index = spr_boxused;
+                                // v63: la rota queda apoyada (ya no cae ni reporta) y
+                                // con la escala del Create la explosion y el residuo
+                                // quedan alineados al tamano de la caja (fix gigante).
+                                _inst.grounded = true;
+                                _inst.vspd = 0;
                                 
                                 scr_audio_play_3d(_inst.emitter, snd_break, false, 0);
                                 net_quick_effect(_inst.x + 15, _inst.y + 15, spr_explosion);

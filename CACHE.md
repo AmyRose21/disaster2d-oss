@@ -334,6 +334,65 @@
   Ring.c baseline shows 0 because it doesn't use PacketCreate at
   top-level statement position; the 7 Log.h errors on ItemBox.c match
   the KAFSpeedBox.c pattern with stdlib included).
+- FIX POST-ENTREGA (2026-11-22 mismo dia, reporte de la dueña con el
+  build MSVC real): ItemBox.c linea 25 C2059/C2449 — habia envuelto
+  PacketCreate/PacketWrite en un RAssert(...) exterior. Esas macros YA
+  expanden a RAssert(...) (Packet.h L429-433, Log.h L52), asi que
+  RAssert(if(...)) no compila. Corregido al patron exacto de la casa
+  (KAFSpeedBox.c L8/Ring.c L31: PacketCreate/PacketWrite desnudos);
+  verificado gcc -fsyntax-only -I include (con stub enet) = 0 errores en
+  ItemBox.c/KindAndFair.c/Maps.c. La nota previa sobre "7 errores de
+  Log.h en ItemBox.c" era ESTE bug mal diagnosticado (no un artefacto
+  preexistente): KAFSpeedBox.c no lo mostraba porque nunca anido. ZIP
+  v62_itembox reempaquetado con el fix + LEEME nota FIX POST-ENTREGA.
+- FIX POST-ENTREGA 2 (LNK2019 reportado por la duena con el build MSVC):
+  itembox_uninit estaba declarado en ItemBox.h y referenciado por el
+  macro MakeItemBox pero NUNCA definido en ItemBox.c -> linker sin
+  resolver desde KindAndFair.obj (kaf_tick expande el macro). Definido
+  (silencioso, NULL-convenio invertido: Ring.c define uninit, KafBox
+  pasa NULL — itembox necesita definido porque el macro lo nombra).
+  Bonus del diagnostico: al expirar la rota ahora se difunde
+  SERVER_BOX_STATE state=4 despawn y el cliente DESTRUYE la instancia
+  boxused (net_state_game bloque _state==4 antes del _state==1);
+  antes quedaba colgada indefinidamente si ese nid no re-salia
+  sorteado. Packet.h comment actualizado con el state 4. Verificacion
+  END-TO-END nueva: no solo sintaxis — gcc -c de ItemBox.o/
+  KindAndFair.o/KAFSpeedBox.o reales + LINK con stubs de infra
+  (packet_new, server_broadcast, game_spawn/find, map_*) = 0
+  undefined references (scripts/link_check_v62.c + link_stubs_v62.c
+  guardados). check_v62.py 50/50 OK tras el cambio de cliente.
+- v63 (mismo dia, pedido de la duena tras probar la v62: "algunas cajas
+  estaban en el aire... se me ocurrio una idea"): 4 reglas suyas ->
+  implementadas todas:
+  (1) GRAVEDAD: obj_itembox nace CAYENDO (grounded=false, vspd con la
+  gravedad de entidades de la casa 0.2 — patron obj_darktower_sisipart)
+  y el Step_2 la clava en obj_floor_parent con polvo scr_effect_quick.
+  (2) NUNCA-REPETIR: itembox_last_spawner veta el spawner del roll
+  anterior (goto-gen con free_count>1).
+  (3) RESIDUO GIGANTE (bug real): spr_boxused 64x64 con contenido
+  abajo (y 32-63, midido con PIL: bbox opaco 64x32) vs cajas 30x30 ->
+  Create pone image_xscale/yscale 0.47 y el state 3 las resetea (el
+  residuo ocupa ~30px como la caja).
+  (4) ZONAS = ring spawners FILTRADOS (derive_spawns_v63.py sobre
+  room_kindandfair.yy real): de 32 quedaron 9 — descartados los altos
+  (y<900: fila 496/537), sin-suelo-en-400px (abismo real: 280,1000 /
+  640,1064 / 680-728,924 / 1832-2024,1328 / 2916,952 / 3068,1168 /
+  3556,1240), con-resorte-cerca (680,924 vs obj_bspring_right 640,952,
+  radio 48) y redundantes (<96px). Tabla final +24px offset de la fila
+  de anillos: (1104,940)(2792,956)(2992,1168)(3240,1240)(4080,1256)
+  (1132,1276)(2560,1376)(2656,1376)(1296,1388).
+  (5) TP SI TRAMPOLIN/ABISMO: nuevo paquete CLIENT_BOX_RELOCATE(nid) al
+  FINAL de los DOS enums (186=186 sync, enum_sync_v63.py con strip de
+  comentarios /* */ — el check v62 contaba items dentro de comentarios
+  y por eso daba 324 vs 333: falsos positivos); handler KindAndFair.c
+  marca box->relocated (nuevo campo bool en ItemBox.h, MakeItemBox
+  pasa 0 extra); kaf_tick fuerza timer=0 en las relocated (mueren via
+  uninit=state 4) y el MISMO tick sortea el reemplazo. Cliente:
+  report_relocate() method en Create (cpacket+send, reported 1x,
+  visible=false), Step reporta si place_meeting(obj_spring_parent) o
+  fuera de room. Rotura (cuerpo y proyectil) solo grounded && !reported.
+  Verificado: gcc+LINK REAL 0 undefined, GML balanceado, check_v63.py
+  TODO OK (v2+v3, 64 checks), enum 186=186.
 - Known deltas vs design doc (doc said "extend KAFMONITOR pair"; final
   choice was a cleaner NEW pair + activation kept as new CLIENT_BOX_
   ACTIVATE — same semantics, no versioning ambiguity between states with
