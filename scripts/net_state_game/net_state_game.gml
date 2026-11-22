@@ -2493,7 +2493,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 if(obj_netclient.nid != _pid)
                                         break;
                                 
-                                // v74: el Exe JAMAS cobra rewards de caja (regla de
+                                // v75: el Exe JAMAS cobra rewards de caja (regla de
                                 // la duena: puede romperla para negarle el buff a
                                 // quien pase por ahi, pero el no cobra nada). El
                                 // server ya difunde pid 0 cuando el Exe la rompe;
@@ -2539,7 +2539,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 break;
                                         
                                         case 2: // invencibilidad
-                                                // v74 FIX (bug de la duena): si el jugador
+                                                // v75 FIX (bug de la duena): si el jugador
                                                 // ya tenia una inmunidad (de otra caja
                                                 // invulnerable o de los i-frames del golpe)
                                                 // la caja nueva NO refrescaba la duracion

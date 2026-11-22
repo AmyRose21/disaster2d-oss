@@ -52,13 +52,7 @@ bool kaf_tcpmsg(PeerData* v, Packet* packet)
 			if (!game_find(v->server, (Entity**)box, "kafbox", 11))
 				break;
 
-			/* v73 EXE DENIAL (regla de la duena: el Exe no obtiene
-			   buffs): rompe el monitor Kaf — le niega el boost a
-			   quien pase por ahi — pero cobra nada. pid 0 = nadie,
-			   el mismo convenio de itembox/proyectil. Server-side
-			   (regla 7): cliente modificado no puede cobrarlo. */
-			uint16_t reward = (v->server->game.exe == v->id) ? 0 : v->id;
-			RAssert(kafbox_activate(v->server, box[nid], reward, proj));
+			RAssert(kafbox_activate(v->server, box[nid], v->id, proj));
 			break;
 		}
 

@@ -434,3 +434,37 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   puppet / hook / .yyp / scr_wss.yy were byte-identical, so only 3
   files needed real re-merging — 10 minutes of diffing saved a blind
   full rebase and documented exactly what the owner applied.
+
+## v75 — owner applied the STALE v73 zip over their newer repo — lessons
+
+- **A DELIVERED ZIP IS A TIME CAPSULE — the owner can apply it at any
+  moment, over a repo that has moved on.** They applied the v73 zip
+  AFTER committing their own boots-music work (ef3c5d87). The zip's
+  net_state_game.gml was built on the pre-music base, so extracting it
+  wholesale DELETED their music (0 snd_speedboost refs in the result).
+  Full-file zips must be built from the owner's CURRENT commit — fetch
+  immediately before zipping — and the LEEME must name the required
+  base commit. When the owner reports a symptom, FIRST check what state
+  their repo is actually in (fetch + diff) — the "KAF boost doesn't
+  affect the exe" report was 100% explained by `git show` of their new
+  commit, not by any bug in v74.
+- **Versioning discipline when a correction supersedes an applied
+  version:** the owner had v73 applied while v74 (the correction)
+  existed only in chat. v75 therefore ships as a full-state delivery
+  ON TOP of their actual commit (8ec415a1): remove the wrong v73 parts
+  (KAF veto), re-add what the stale zip destroyed (their boots music),
+  keep what is already right (item-box denial, WSS retune — do NOT
+  re-ship identical files, golden rule 2). The symptom diagnosis lives
+  in the worklog so future sessions can trace it.
+- **The KAF boost was DESIGNED to affect the exe**: isBoosting is
+  declared by all 22 characters and consumed in scr_move_basic L311
+  (forced gspd 12) with an explicit EXE_CHAOS special case — original
+  behavior includes the killer. scr_collision_objects breaks monitors
+  on `_isAttacking || isBoosting` for everyone (invis exe still cannot:
+  anti-grief). "Comportamiento normal" for a house feature = READ THE
+  ORIGINAL CODE PATHS for every character class before scoping rules.
+- **A server-side veto outlives its client removal**: with the v73
+  server binary still compiled, the exe breaking a KAF monitor gets pid
+  0 from the server and NOTHING reaches the client guard (pid 0 != nid
+  → break). Reverting a server-side rule REQUIRES a server recompile to
+  take effect — say so loudly in the LEEME.

@@ -6258,3 +6258,82 @@ Stage Summary:
   similares, LISTAR los N en la nota de entrega para que la duena pueda
   vetar en una linea — v73 lo pago con un zip completo superseded
 - check_v74.py sustituye a check_v73.py (borrar el viejo si quedo)
+
+---
+Task ID: v75-kaf-exe-boost-boots-music
+Agent: main (Z.ai)
+Task: Reporte de la duena: "el efecto de la caja Kaf no afecta al exe te
+      dije que la caja de Kaf original tendria su comportamiento normal
+      que le afectaria tanto al exe como al survi solo las cajas normales
+      creadas rings speedboost invencibilidad escudo normal y electrica
+      serian para survivors". El boost Kaf debe afectar a Exe Y survivors;
+      solo las 5 cajas nuevas son survivors-only.
+
+Work Log:
+- FETCH (regla 1): git fetch origin — commit NUEVO 8ec415a1 ("ewe",
+  2026-11-22 19:12): LA DUENA APLICO EL ZIP DE LA v73 (LEEME_V73.txt +
+  check_v73.py + los 4 archivos de codigo + docs v73, todos blob-exact
+  contra backups_v73). La v74 (correccion de alcance) quedo solo en el
+  chat — nunca aplicada. Su commit anterior ef3c5d87 traia SU musica de
+  botas v69 restaurada DENTRO de net_state_game.gml.
+- DIAGNOSTICO (regla 8): (1) El "no afecta al exe" del KAF = el veto
+  v73 (KindAndFair.c pid-0 + guarda cliente) que ella tiene aplicado.
+  (2) COLATERAL CAZADO: el zip v73 borro su musica de botas — su
+  net_state_game.gml en 8ec415a1 es byte-identico al de la v73 (blob
+  9fc8ee7e), construido ANTES de su commit: 0 referencias a
+  snd_speedboost quedan en su repo. (3) El boost SI esta disenado para
+  el Exe: isBoosting lo declaran los 22 Create (incluidos los 6
+  killers), lo consume scr_move_basic L311 (gspd forzado 12) con caso
+  especial EXE_CHAOS, y scr_collision_objects rompe el monitor con
+  (_isAttacking || isBoosting) para todos (invis no, anti-grief).
+  Quitar el veto restaura la funcion completa sin nada nuevo.
+- IMPLEMENTACION v75 (encima de 8ec415a1, base = lo que ella TIENE):
+  (1) net_state_game.gml = version v74 (construida sobre ef3c5d87:
+  lleva SU musica de botas + guarda Exe SOLO en SERVER_BOX_STATE + fix
+  de inmunidad, SIN guarda KAF), relabel v74->v75 en los 2 comentarios
+  propios. (2) KindAndFair.c restaurado BYTE-A-BYTE al original
+  pre-v73 (ef3c5d87): quien rompe el monitor cobra el boost, Exe
+  incluido. (3) ItemBoxMap.c y scr_wss.gml SIN tocar — los de su repo
+  (v73) son funcionalmente identicos a v74 (solo etiquetas de
+  comentario): NO van en el zip (regla 2). (4) Docs: versiones
+  corregidas v74 + entradas v75 (esta).
+- VERIFICACION (regla 6): check_v75.py (SUSTITUYE a v73/v74) = 60+
+  checks TODOS OK: balance lexer 28 GML; parches v72 intactos; macros
+  retune EXACTOS (arbol); KindAndFair.c PRISTINO por CONTENIDO (sin
+  uint16_t reward, sin game.exe, linea original kafbox 1x — sin
+  depender de historia por el clone shallow); seccion KAFMONITOR sin
+  veto + flujo original; guarda caja 1x; fix inmunidad; musica de
+  botas 1/1/2/2 RESTAURADA; ItemBoxMap.c del ARBOL con el veto (check
+  de contenido, no de superficie); gcc -fsyntax-only 2 .c con stub
+  enet; .yyp 2542/.resource_order/.yy; superficie == nucleo v75
+  (net_state_game.gml + KindAndFair.c + docs + check_v75.py +
+  LEEME_V75.txt) con ItemBoxMap.c/scr_wss.gml PROHIBIDOS en superficie
+  (ya correctos en su base); simulaciones (retune + inmunidad siempre
+  375 + reward_pid cajas + KAF sin veto: quien rompe cobra).
+- ANTI-CHEAT (regla 7): el veto de cajas nuevas vive en el SERVER
+  (ItemBoxMap.c, ya en su repo) + guarda cliente (SERVER_BOX_STATE);
+  el KAF vuelve a su flujo original (sin cambios de red; pid del que
+  rompe, como siempre). Cero paquetes nuevos, protocolo intacto
+  (verificado).
+- ZIP (regla 2): v75_kaf_exe_boost_boots_music.zip = net_state_game.gml
+  + KindAndFair.c + CACHE.md + LEARNING.md + worklog.md + check_v75.py
+  + LEEME_V75.txt (7 archivos; ItemBoxMap.c/scr_wss.gml excluidos por
+  identicos a su base). Roundtrip verificado: clon fresco 8ec415a1 +
+  unzip + diff -rq == 0 + check_v75.py desde el arbol extraido ==
+  TODOS OK.
+- OJO DUENA (GRITADO EN EL LEEME): RECOMPILAR EL SERVER
+  (compilar_server.bat opcion 2) — el binario v73 lleva el pid-0 del
+  Kaf; sin recompilar, el Exe rompe el monitor, el server manda pid 0 y
+  NADIE cobra (la guarda del cliente ya no existe, pero pid 0 no
+  coincide con ningun nid). Solo con el server recompilado el boost
+  vuelve al Exe.
+
+Stage Summary:
+- El misterio resuelto en un fetch: ella aplico la v73 (que llevaba el
+  veto Kaf por el mal entendido) — y de paso el zip viejo borro su
+  musica de botas nueva; v75 arregla las dos cosas sobre SU estado real
+- v75 = KindAndFair.c original byte-a-byte + guard KAF del cliente
+  fuera + musica de botas restaurada + (conserva) veto de cajas nuevas
+  para los 5 tipos, fix de inmunidad y retune WSS
+- RECOMPILAR el server es OBLIGATORIO para que el boost Kaf vuelva a
+  afectar al Exe (el pid-0 vive en el binario v73)

@@ -624,7 +624,7 @@
   cortocircuitar en el codigo original y no existen en todos).
 - Macros tuneables desde el Suite (motor #macro de AnimCore, patron
   ITEMBOX_*_TIME v70). WSS_ENABLED 0 = sistema apagado, draws
-  identicos. Validador: check_v74.py (SUSTITUYE a check_v73.py: lexer
+  identicos. Validador: check_v75.py (SUSTITUYE a check_v73.py: lexer
   balance 28 GML, parches v72 intactos + valores v74 exactos, fix
   inmunidad y exe-denial SOLO-cajas-nuevas verificados, KindAndFair.c
   PRISTINO exigido, musica de botas de la duena protegida como
@@ -2046,3 +2046,33 @@ y las pistas nuevas de 20-28s se cortaban).
   superset del v73. Entregable: download/v74_kaf_original_cajas_exe.zip.
   OJO si aplico la v73 antes: git checkout -- KindAndFair.c (instruido
   en LEEME_V74.txt). Server: RECOMPILAR igual (ItemBoxMap.c cambio).
+
+- 2026-11-23 (v75 — KAF afecta al Exe de nuevo + restauracion de la
+  musica de botas): la duena reporto "el efecto de la caja Kaf no afecta
+  al exe te dije que la caja de Kaf original tendria su comportamiento
+  normal que le afectaria tanto al exe como al survi solo las cajas
+  normales creadas rings speedboost invencibilidad escudo normal y
+  electrica serian para survivors". CAUSA RAIZ: ella aplico el ZIP DE LA
+  v73 (commit 8ec415a1), que llevaba el veto Kaf (mal entendido de v73,
+  corregido solo en el chat como v74 — nunca aplicado). ADEMAS el zip
+  v73 borro SIN QUERER su musica de botas: su net_state_game.gml quedo
+  byte-identico al de la v73, que fue construido ANTES de su commit
+  ef3c5d87 (boots music) — extraer el zip reemplazo el archivo completo
+  y se llevo puesto el loop snd_speedboost + scr_music_duck + los 2
+  cortes (verificado: 0 referencias a snd_speedboost en 8ec415a1).
+  v75 (encima de 8ec415a1): (1) KindAndFair.c restaurado BYTE-A-BYTE al
+  original pre-v73 (ef3c5d87) — quien rompe el monitor cobra el boost,
+  Exe incluido (el bloque del boost en scr_move_basic L311 hasta maneja
+  a EXE_CHAOS: diseno original para todos); (2) guard KAF del cliente
+  REMOVIDA de SERVER_KAFMONITOR_STATE; (3) musica de botas RESTAURADA
+  (3 hunks de ef3c5d87); (4) se conserva TODO lo demas: guarda Exe SOLO
+  en SERVER_BOX_STATE (los 5 tipos de caja nueva — rings, botas,
+  invencibilidad, escudo, electrico — son survivors-only, lista
+  confirmada por la duena), fix de inmunidad, veto ItemBoxMap.c, retune
+  WSS. ItemBoxMap.c y scr_wss.gml SIN cambios (los de la v73 aplicada
+  son identicos en funcion). OBLIGATORIO: RECOMPILAR el server — el
+  binario v73 lleva el pid-0 del Kaf y sin recompilar el Exe seguira
+  sin cobrar el boost aunque el cliente ya no tenga la guarda (pid 0 no
+  coincide con ningun nid). Validador check_v75.py (SUSTITUYE a
+  check_v73.py y check_v74.py). Entregable:
+  download/v75_kaf_exe_boost_boots_music.zip.
