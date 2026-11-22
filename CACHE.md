@@ -95,6 +95,94 @@
 - Rings/curacion: obj_ring, obj_ring_spawner, obj_ringspawn, obj_redring,
   scr_survivor_heal/revive.
 - Minijuego: obj_minigame + obj_minisnoc_*.
+
+### 3.4.1 ITEM BOX (MONITOR) SYSTEM — "Kafmonitors" (investigated 2026-11-22)
+- WHAT IT IS: Sonic-style item monitors ("TV boxes"). In TD2DR they exist
+  ONLY in room_kindandfair ("Kind And Fair" / KAF) — no other map uses
+  them. Server-authoritative like every other map gimmick.
+- THE ONE OBJECT: objects/obj_kaf_speedboobster (folder: Level Specific/
+  Kind And Fair; sprite: 30x30, 2 frames: [0]=whole box, [1]=broken).
+  Events: Create_0 (nid=0, isBroken=false, audio emitter w/ falloff
+  250-500), Destroy_0 (frees emitter), Step_2 (=Step normal event; keeps
+  emitter gain tied to camera distance AND breaks on Tails' projectile:
+  CLIENT_KAFMONITOR_ACTIVATE nid+proj=true). NO Draw event: the sprite is
+  drawn by GameMaker default. image_index doubles as the broken-state
+  visual (no sprite change needed).
+- BREAKING IT (client side, scripts/scr_collision_objects/
+  scr_collision_objects.gml ~L356, inside scr_collision_objects_after()):
+  player rect (x±6, y-20..y+20) vs box. Conditions to break:
+  !isBroken && image_index==0 && (_isAttacking OR isBoosting).
+  _isAttacking covers: EXE, Amy(+canon), Knux, Eggman, Sally(+canon),
+  Sonic basic attack; Amy jump/landing (AMY_HJUMP or FALL), anyone
+  spinning (isSpinning), Sally slide. EXE with invisTimer>0 CANNOT break
+  boxes (anti-grief/stealth design). isBoosting players BREAK boxes on
+  touch (boost chains through boxes). The LOCAL client sends
+  CLIENT_KAFMONITOR_ACTIVATE (TCP): u8 nid, bool proj=false.
+- SERVER (betterserver-oss/disasterserver/entities/KAFSpeedBox.{c,h} +
+  maps/KindAndFair.c): kaf_init spawns 11 KafBox entities (nid 0..10),
+  kaf_tcpmsg handles the CLIENT packet with AssertOrDisconnect(in_game)
+  (anti-cheat: only in-game players, TCP-ordered), nid read WITHOUT
+  bounds check on the wire but clamped in effect: client maps nid ->
+  instance via instance_find(nid % instance_number). kafbox_activate
+  broadcasts SERVER_KAFMONITOR_STATE(2, nid, pid|0) and sets timer =
+  (25+rand()%5)*TICKSPERSEC. kafbox_tick: on timer end broadcasts
+  state=1 (box REGENERATES/repairs: clients reset image_index=0,
+  isBroken=false). kafbox_init (state 0) is the initial-sync frame.
+- BOOST (the reward): handled in net_state_game.gml SERVER_KAFMONITOR_STATE
+  case (~L2260): state 2 => every client marks the box broken +
+  scr_audio_play_3d(snd_break) + net_quick_effect(x+15,y+15,
+  spr_explosion) [NOTE: spr_explosion is NOT in global.net_effs array —
+  the effect packet writes index -1, so the explosion visual is
+  effectively local-only; other clients still see the broken frame].
+  ONLY the client whose obj_netclient.nid == _pid (and only if
+  !isBoosting already) gets: isBoosting=true, isSpinning=false,
+  isJumping=false. If broken by projectile, pid=0 => nobody gets boost.
+- BOOST MECHANICS (scripts/scr_move_basic/scr_move_basic.gml ~L267):
+  while isBoosting && isGrounded: gspd = 12*image_xscale (fastest run
+  in the game), gspd -= 0.125*sin(angle) (slope correction), xspd=
+  gspd*cos(angle), yspd = gspd*-sin(angle), then RETURN (skips normal
+  control: it's a forced run). effectTime=16 starts the speed-lines
+  afterimage (obj Draw_0: every 3 frames spawns scr_effect_fade_quick
+  clone). Boost is CANCELLED by: hitting a wall (scr_collision_basic
+  xspd=0 on sens collide), springs (scr_collision_objects L171/328
+  isBoosting=false), player hurt (scr_player_hurt 5x), move_basic
+  clamps, per-character interactions (Knux/Rogue unstick glide,
+  Sally shield drop, Eggman shield recharge, Amy canon dash cancel,
+  Chaos stuckTimer reset). Amelia docs note (scr_amelia_special header):
+  isBoosting is EXCLUSIVE to the boots since v2.4 — her jump no longer
+  triggers it (bug: uncontrollable forced run).
+- THE TIP: scr_globals.gml L132 (in-game tips array, Kind And Fair tip):
+  "avoid breaking speed monitors, as they will launch you right in the
+  spikes without letting you stop running until you meet a wall or get
+  hurt" — the boost is a HAZARD, not a power-up, in this map's design.
+- ROOM PLACEMENT: 11 instances in room_kindandfair "Instances" layer:
+  (613,1122) (1810,1378) (2085,530) (2268,530) (2441,530) (2977,930)
+  (3371,1234) (3477,610) (3632,610) (3792,610) (3952,610). The
+  cluster (3477..3952, y=610) is a runway of 4 boxes.
+- NEW ART (owner's commit 9dff8484 "up", 2026-11-21 — she is EXPANDING
+  the system): 6 new sprites in folders/Sprites/Objects/Itembox/
+  (registered in .yyp + resource_order, all integrity-verified: parse OK,
+  frame PNGs + layer PNGs on disk, playbackSpeed 30/5, 30x30 except
+  boxused 64x64 1 frame): spr_ring_box (4f), spr_shield_box (4f),
+  spr_invincibility_box (2f @5fps), spr_lightning_shield_box (4f),
+  spr_speedboots_box (4f, playbackSpeed 0.0 — deliberate: static icon,
+  the OLD spr_kindnfair_speedboobs [2f, folder Zones/KindAndFair] still
+  exists for the live object), spr_boxused (1f 64x64 — likely the
+  post-break "empty box" visual). No new objects/code wired to these
+  sprites yet: art-only commit. To USE them: either swap sprite_index on
+  obj_kaf_speedboobster per-box-type, or clone the object per type and
+  add a boxtype var to the nid/pid protocol (extend the u8 payload —
+  protocol 1101 has room; mirror server entities in maps/KindAndFair.c
+  kaf_init/kaf_tcpmsg; keep 11-instance nid modulo mapping).
+- EXTENDING IT (the recipe): (1) new sprite folder files + .yyp +
+  resource_order registration (all 3 must move together — lesson 8.17);
+  (2) object variant with its own reward logic in the same
+  CLIENT/SERVER_KAFMONITOR_STATE packets (add type byte after nid) OR
+  new PacketType entries in net_packets.gml + include/Packet.h (they must
+  stay IN SYNC, same numeric order); (3) reward application point for
+  local-player effects is the net_state_game case block; (4) boxused
+  sprite suggests reusing frame 1 "broken" convention with a dedicated
+  empty-box sprite instead of image_index=1.
 ### 3.5 Killers NPC / eventos de mapa (NO son el jugador EXE)
 - obj_exeller (+ obj_exeller_clone = CLONES del exe: atacan y NO son
   obj_player_puppet => mi flecha roja los ignora por diseno), obj_exetior
@@ -1357,3 +1445,16 @@ y las pistas nuevas de 20-28s se cortaban).
   verificar si X esta bajo el fold de una lista scrolled — y arreglar el
   UX (auto-scroll + contador) para que la sospecha no pueda volver a
   nacer. Validador check_v54_3 additions en check_v54_2.py.
+
+- 2026-11-22 (itembox-investigation): FETCH found new owner commit
+  9dff8484 ("up"): applies our v54.3 editor fix + ADDS 6 new item box
+  sprites (ring/shield/invincibility/lightning-shield/speedboots/
+  boxused) in a new folder sprites/folders Itembox + .yyp +
+  resource_order — she is expanding the Kafmonitor system. Full
+  investigation of the CURRENT system added as section 3.4.1: the one
+  object (obj_kaf_speedboobster), break conditions in
+  scr_collision_objects, the CLIENT/SERVER_KAFMONITOR_STATE protocol,
+  server KafSpeedBox.c entity (11 boxes, 25-30 s respawn), the boost
+  reward (isBoosting=true forced 12px/frame run, cancelled by walls/
+  springs/hurt), Tails projectile interaction, the in-map hazard tip,
+  and the exact recipe to extend it for the 6 new box types.
