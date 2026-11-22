@@ -377,12 +377,16 @@ enum PacketType
            sx,sy EN el paquete (unica verdad de posicion: ningun cliente
            adivina con instance_find). SERVER_BOX_STATE (state u8):
            3=spawn (nid,type,pid_dummy,sx,sy) / 2=rota+reward a pid /
-           1=ready. CLIENT_BOX_ACTIVATE (nid, proj): romper la caja nid —
-           recompensa difundida por el server al pid validado, nunca
-           pedida por el cliente. Mismo orden que include/Packet.h;
-           anadido AL FINAL en los DOS lados. */
+           4=despawn al expirar / 1=ready. CLIENT_BOX_ACTIVATE (nid,
+           proj): romper la caja nid — recompensa difundida por el
+           server al pid validado, nunca pedida por el cliente.
+           CLIENT_BOX_RELOCATE (nid): v63 — esta caja cayo sobre un
+           trampolin o al abismo; el server la re-spawnea en otro punto.
+           Mismo orden que include/Packet.h; anadido AL FINAL en los
+           DOS lados. */
         CLIENT_BOX_ACTIVATE,
-        SERVER_BOX_STATE
+        SERVER_BOX_STATE,
+        CLIENT_BOX_RELOCATE
 }
 
 #macro STATE_PENDING -1

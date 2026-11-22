@@ -34,8 +34,9 @@ typedef struct
 	uint8_t	 type;
 	double	 timer;      /* <0: viva; >=0: countdown a respawn-ready */
 	bool	 activated;  /* rota (boxused) */
+	bool	 relocated;  /* v63: el cliente reporto trampolin/abismo -> el tick la re-spawnea en otro punto */
 } ItemBox;
-#define MakeItemBox(nid, type) ((ItemBox) { MakeEntity("itembox", 0, 0) itembox_init, itembox_tick, itembox_uninit, nid, type, -1, 0, })
+#define MakeItemBox(nid, type) ((ItemBox) { MakeEntity("itembox", 0, 0) itembox_init, itembox_tick, itembox_uninit, nid, type, -1, 0, 0, })
 
 bool itembox_activate(Server* server, ItemBox* box, uint16_t pid, uint8_t is_proj);
 

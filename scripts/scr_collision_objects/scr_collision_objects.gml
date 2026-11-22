@@ -394,8 +394,10 @@ function scr_collision_objects_after()
         // EXE invisible no puede — anti-grief conservado). La diferencia:
         // el paquete lleva el nid de ITEM BOX (CLIENT_BOX_ACTIVATE) y el
         // server difunde el reward al pid de ESTE cliente.
+        // v63: solo rompible APoyada (grounded) — una caja en plena
+        // caida o escondida (reported, esperando su RELOCATE) no se rompe.
         var _boxInst = collision_rectangle(x - 6, y - 20, x + 6, y + 20, obj_itembox, false, true);
-        if(_boxInst != noone && !_boxInst.isBroken)
+        if(_boxInst != noone && !_boxInst.isBroken && _boxInst.grounded && !_boxInst.reported)
         {
                 var _boxAttacking = false;
                 var ch2 = global.character;

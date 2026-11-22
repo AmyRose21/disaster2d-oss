@@ -5,21 +5,30 @@
 #include <CMath.h>
 #include <stdlib.h>
 
-/* v62 ITEM BOX v2 — los ~20 puntos de caja del mapa (x, y). Hand-placed
-   por la dueña siguiendo el convenio obj_ring_spawner: posiciones validas
-   POR CONSTRUCCION (suelo transitable, fuera de paredes/precipicios —
-   ninguna fue calculada en runtime). Derivadas de las alturas del censo
-   de spawners de anillos del room (280,1000)...(4056,1256): misma altura
-   de suelo que los anillos ya usan, desplazadas lateralmente para no
-   pisarlos. La pista de boost Kaf (y=610, x 3477-3952) queda FUERA. */
+/* v63 ITEM BOX v3 — tabla RE-DERIVADA de los ring spawners REALES del
+   room (regla de la duena: las cajas aparecen como zonas de posible
+   aparicion de ANILLOS, PERO solo los que estan CERCA DEL SUELO, nunca
+   los que estan muy arriba; y sin resorte/trampolin debajo). Derivacion
+   (scripts/derive_spawns_v63.py, datos de room_kindandfair.yy):
+   de los 32 obj_ring_spawner quedaron 9 — se descartaron los altos
+   (y<900: fila de 496/537), los que caen al abismo (sin solido debajo
+   en 400px: 280,1000 / 640,1064 / 680-728,924 / 1832-2024,1328 /
+   2916,952 / 3068,1168 / 3556,1240...), los que tienen resorte en
+   radio 48px (680,924 pega con obj_bspring_right) y redundancias
+   (<96px entre si). Offset +24px en x para no pisar la fila de anillos.
+   La pista de boost Kaf (y=610, x 3477-3952) queda FUERA (ninguno de
+   los 9 la toca: sus y van de 940 a 1388). */
 static const uint16_t kaf_itembox_spawns[][2] = {
-	{  344, 1000}, {  592, 1064}, {  656, 1064}, {  872,  924},
-	{ 1216,  940}, { 1144, 1276}, { 1260, 1344}, { 1480, 1276},
-	{ 1692, 1328}, { 2208, 1328}, { 2352, 1328}, { 2424,  537},
-	{ 2588, 1376}, { 2848,  956}, { 3044, 1168}, { 3280, 1240},
-	{ 3644, 1240}, { 3924, 1256},
+	{ 1104,  940}, { 2792,  956}, { 2992, 1168}, { 3240, 1240},
+	{ 4080, 1256}, { 1132, 1276}, { 2560, 1376}, { 2656, 1376},
+	{ 1296, 1388},
 };
 #define KAF_ITEMBOX_SPAWN_COUNT (int)(sizeof(kaf_itembox_spawns) / sizeof(kaf_itembox_spawns[0]))
+
+/* v63: nunca-repetir — el ultimo spawner usado queda vetado en el
+   siguiente roll (la caja "nunca nace en el mismo lugar" de la duena;
+   con 9 puntos y max 4 vivas hay holgura siempre). */
+static uint8_t itembox_last_spawner = 255;
 
 /* Sorteo con pesos desiguales: anillo comun (35%), escudo 20%, los tres
    raros 15% c/u. Misma tabla en el cliente (macros BOX_*_WEIGHT). */
@@ -100,6 +109,20 @@ bool kaf_tick(Server* server)
 			if (boxes[i].timer < 0)
 				alive++;
 
+		/* v63 RELOCATE: las cajas marcadas por CLIENT_BOX_RELOCATE se
+		   retiran AQUI (despawn state 4 al cliente via uninit) y devuelven
+		   su spawner a la pool del roll de abajo — la nueva nace en OTRO
+		   punto libre en el MISMO tick (el duena pidio tp inmediato a
+		   otra zona aleatoria, no esperar 20 s). */
+		for (int i = 0; i < found; i++)
+		{
+			if (!boxes[i].relocated)
+				continue;
+			/* forzar su muerte en este tick: el game_entity_tick llama
+			   uninit (difunde state 4) y retira la entidad. */
+			boxes[i].timer = 0;
+		}
+
 		if (alive < ITEMBOX_MAX && found < ITEMBOX_MAX * 3)
 		{
 			/* spawners ocupados: un nid por entidad viva (el nid ES el
@@ -109,6 +132,14 @@ bool kaf_tick(Server* server)
 			for (int i = 0; i < found; i++)
 				if (boxes[i].nid < KAF_ITEMBOX_SPAWN_COUNT && boxes[i].timer < 0)
 					used[boxes[i].nid] = 1;
+			/* v63: la caja relocalizada tambien desocupa su punto — su
+			   reemplazo puede nacer incluso en el MISMO spawner... no:
+			   mejor vetarlo este roll tambien (duena: "tp a zona
+			   aleatoria OTRA"); used[] ya lo libera abajo, lo vetamos
+			   via itembox_last_spawner solo si era el unico usado. */
+			for (int i = 0; i < found; i++)
+				if (boxes[i].relocated && boxes[i].nid < KAF_ITEMBOX_SPAWN_COUNT && boxes[i].nid != itembox_last_spawner)
+					used[boxes[i].nid] = 0;
 
 			int free_count = 0;
 			for (int i = 0; i < KAF_ITEMBOX_SPAWN_COUNT; i++)
@@ -122,7 +153,12 @@ bool kaf_tick(Server* server)
 				rnd = rand() % KAF_ITEMBOX_SPAWN_COUNT;
 				if (used[rnd])
 					goto gen;
+				/* v63 nunca-repetir: vetar el ultimo spawner que uso el
+				   roll anterior (si hay alternativa libre). */
+				if (rnd == itembox_last_spawner && free_count > 1)
+					goto gen;
 
+				itembox_last_spawner = (uint8_t)rnd;
 				ItemBox box = MakeItemBox((uint8_t)rnd, itembox_roll_type());
 				box.pos.x = (double)kaf_itembox_spawns[rnd][0];
 				box.pos.y = (double)kaf_itembox_spawns[rnd][1];
@@ -178,6 +214,31 @@ bool kaf_tcpmsg(PeerData* v, Packet* packet)
 				}
 			if (target)
 				RAssert(itembox_activate(v->server, target, v->id, proj));
+			break;
+		}
+
+		/* v63: la caja del nid cayo en un trampolin o al abismo en el
+		   cliente que la ve (el server no tiene colision de mapa — el
+		   reporte es la unica fuente, patron CLIENT_FWBOLT_HIT). El server
+		   marca la entidad "relocate" y el SIGUIENTE kaf_tick la retira y
+		   sortea un spawner libre distinto. El cliente la destruyo ya:
+		   el despawn llega como SERVER_BOX_STATE 4 normal. */
+		case CLIENT_BOX_RELOCATE:
+		{
+			AssertOrDisconnect(v->server, v->in_game);
+			PacketRead(nid, packet, packet_read8, uint8_t);
+
+			ItemBox* box[KAF_ITEMBOX_SPAWN_COUNT];
+			int found = game_find(v->server, (Entity**)box, "itembox", KAF_ITEMBOX_SPAWN_COUNT);
+			for (int i = 0; i < found; i++)
+			{
+				if (box[i]->nid != nid || box[i]->relocated)
+					continue;
+				/* solo una vez por caja (anti-spam): marcamos y dejamos
+				   que el tick haga el trabajo ordenado. */
+				box[i]->relocated = true;
+				break;
+			}
 			break;
 		}
 	}
