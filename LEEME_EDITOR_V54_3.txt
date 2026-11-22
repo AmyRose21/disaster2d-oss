@@ -1,0 +1,86 @@
+================================================================
+ v54.3 — "ROUGE NO ESTÁ EN EL EDITOR" — INVESTIGACIÓN + FIX
+================================================================
+
+QUÉ PASÓ (tu screenshot)
+------------------------
+Volví a mirar TODO con lupa. Rouge NO fue quitada del editor — está
+ahí, en su sitio. Lo que muestra tu captura es la lista de personajes
+DESCPLAZADA (scrolleada): la ventana visible termina en "Fleetway
+Amy" (tu fila seleccionada) y hay barra de desplazamiento abajo.
+
+El ORDEN real de la lista completa son 22 filas:
+
+  Supervivientes:
+    Tails, Knuckles, Eggman, Amy Rose, Cream, Sally, Amy (canon),
+    Sonic, Sally Canon, Vanilla, Metal Sonic, Amelia, Blaze,
+    Fleetway Amy, ROUGE, KRIS
+  Killers:
+    EXE Original, Chaos, Exetior, Exeller, Metal Amy, Jinna
+
+Rouge y Kris están JUSTO debajo de lo que se ve en tu captura — una
+vuelta de rueda del ratón. No faltan ni se movieron: ni en la v54,
+ni en la v54.2 ni ahora. Las pruebas de tu propia captura lo
+confirman: arriba dice "22 personajes", y NO existe ninguna sección
+"Sin placa (aún)" (esa sección solo aparece cuando a alguien le
+falta la placa).
+
+Y en el juego está todo corregido de la ronda anterior (tú misma la
+aplicaste y compilaste): Rouge ve SU cartel (sprInd == 14), Kris el
+suyo (sprInd == 15), y el crash desapareció. Tu re-guardado del
+sprite de Rouge desde GameMaker quedó perfecto (lo verifiqué: .yy
+nuevo con sus GUIDs, PNG y layer en sus sitios, registro en el .yyp).
+
+PERO TENÍAS RAZÓN EN FONDO
+--------------------------
+Si la lista te hizo PENSAR que Rouge desapareció, el editor tiene un
+problema real de diseño: la fila seleccionada puede quedar FUERA de
+la vista (debajo del corte), y una lista cortada sin indicación
+parece una lista incompleta. Eso lo arreglo de verdad en la v54.3:
+
+ 1. AUTO-SCROLL DE LA FILA SELECCIONADA: ahora cuando se selecciona
+    una placa (por click, al escribir, al deshacer, o al crear una
+    nueva), su fila SE MUESTRA SIEMPRE — la lista baja sola hasta
+    ella. Nunca más una selección "invisible".
+
+ 2. CONTADOR DE FILAS: junto al título "Personaje" ahora dice
+    "22 filas · ▼" — al pasar el ratón te recuerda: "los killers van
+    DESPUÉS de Kris; baja con la rueda del ratón". Imposible creer
+    que alguien no está.
+
+ 3. Lo mismo al crear una placa nueva: la fila del placeholder (que
+    vive al final de "Sin placa (aún)") se desplaza a la vista
+    automáticamente.
+
+VERIFICACIÓN (regla de oro 6)
+-----------------------------
+ * Sintaxis de los 9 bloques <script>: 0 errores.
+ * E2E del writer de placas (6/6): sin regresiones — línea mala se
+   corrige, línea buena no se duplica, killers en escala macro.
+ * Scroll smoke (3/3): fila Rouge a la vista, fila Kris por índice,
+   null-safe.
+ * Browser en vivo con tu proyecto real: click en "Rouge" y click
+   en "Kris" desde la parte alta de la lista → ambas filas se
+   auto-desplazan a la vista, quedan seleccionadas, el editor abre
+   "Rouge (placa propia: spr_char_info_rouge)", contador "22 filas"
+   visible, 0 errores de página.
+ * Tu sprite re-guardado: .yy parsea, PNG frame + layer existen,
+   registro en .yyp y resource_order intactos.
+
+ARCHIVOS DE ESTA RONDA (solo los tocados)
+------------------------------------------
+Suite_TD2D.html      (editor: auto-scroll + contador — v54.3)
+CACHE.md             (historial, actualizado)
+worklog.md           (historial, actualizado)
+LEEME_EDITOR_V54_3.txt (este archivo)
+
+El juego NO se toca esta ronda: ya está perfecto de la v54.2 (tú
+misma lo aplicaste con el zip anterior y compilaste).
+
+CÓMO COMPROBARLO EN 10 SEGUNDOS
+-------------------------------
+Abre el editor → pestaña Arte → "Barra de información". Verás
+"22 filas · ▼" junto al título. Baja la lista con la rueda: Rouge y
+Kris están entre Fleetway Amy y los killers. Haz click en Rouge: la
+fila se ilumina, se ve entera (aunque estuviera abajo del todo) y el
+editor carga su cartel.

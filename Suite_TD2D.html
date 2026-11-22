@@ -8123,6 +8123,17 @@ initKeys();
     const killers = map.filter(e => e.killer && !e.missing);
     const killersNo = map.filter(e => e.killer && e.missing);
     mkHead('Supervivientes');
+    // v54.3: contador de filas del panel — que NUNCA mas parezca que
+    // alguien 'no esta': la lista tiene N filas y se ve una ventana.
+    {
+      const total = withPlaque.length + noPlaque.length + killers.length + killersNo.length;
+      const cnt = document.createElement('span');
+      cnt.className = 'muted';
+      cnt.style.cssText = 'float:right;font-weight:400';
+      cnt.textContent = total + ' filas · ▼';
+      cnt.title = 'La lista completa tiene ' + total + ' filas: los killers van DESPUÉS de Kris. Baja con la rueda del ratón.';
+      list.appendChild(cnt);
+    }
     // v54: CARTEL INDEPENDIENTE — cualquier personaje puede pasar a placa
     // PROPIA (spr_char_info_<key> + redirect en obj_lobby): el mismo flujo
     // del botón «＋ crear». La fila muestra «＋ propio» cuando aún usa la
@@ -8162,6 +8173,31 @@ initKeys();
     }
     mkHead('Killers');
     for (const e of killers) mkRow2(e, e.sprite ? e.sprite + ' · placa propia' : null);
+    // v54.3 FIX UX (susto de la duena): si hay una fila SELECCIONADA,
+    // llevarla a la vista SIEMPRE (antes la seleccion poda quedar bajo el
+    // fold y la fila parecia 'desaparecida' del editor). Si no hay
+    // seleccion y la lista esta recien construida, dejarla donde este.
+    if (A.sel != null && A.sel !== -1) scrollSelIntoView();
+  }
+
+  // v54.3: lleva la fila seleccionada de la lista a la vista. Busca la
+  // fila por uid/frame Y por personaje (selKey) porque las filas
+  // compartidas (frame de tira) se marcan por key.
+  function scrollSelIntoView() {
+    const list = $('#arte-plaque-list');
+    if (!list) return;
+    const rows = [...list.querySelectorAll('.arte-row')];
+    let target = null;
+    const selIdx = A.sel;
+    const selKey = A.selKey;
+    for (const r of rows) {
+      if (selKey && (r.textContent || '').toLowerCase().indexOf(selKey) >= 0) { target = r; break; }
+      if (!selKey && +r.dataset.idx === selIdx) { target = r; break; }
+    }
+    if (!target && selIdx != null) {
+      target = rows.find(r => +r.dataset.idx === selIdx) || null;
+    }
+    if (target) target.scrollIntoView({ block: 'nearest' });
   }
 
   /* v6.3 — helpers del módulo 👤 Personajes (compartidos via window);
@@ -8245,6 +8281,9 @@ initKeys();
     buildPlaqueList();
     fillEditor(uid, ed);
     previewPlaque();
+    // v54.3: la fila nueva (placeholder) a la vista — aparece al FINAL de
+    // 'Sin placa (aún)' y sin scroll pareciera que no se creo nada.
+    setTimeout(scrollSelIntoView, 0);
     toast('Placa nueva para ' + e.name + '. Edítala y pulsa «Escribir»: se creará sprites/spr_char_info_' + e.key + '/ y su línea en obj_lobby/Draw_0.gml.', 'ok');
   }
 
@@ -8436,6 +8475,7 @@ initKeys();
     buildPlaqueList();
     const ed = modelToEditable(A.models.get(i));
     fillEditor(i, ed);
+    setTimeout(scrollSelIntoView, 0);   // v54.3: seleccion visible siempre
     // v6.3.1: en demo las propias usan el frame 0 como suplente — el nombre
     // decodificado diria 'tails': poner el del personaje
     const exDemo = extraPlaqueOf(i);

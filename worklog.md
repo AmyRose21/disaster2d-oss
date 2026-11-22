@@ -6088,3 +6088,21 @@ Stage Summary:
 - El crash no era del juego: era el writer del editor escribiendo una condicion en la escala equivocada (macro 1-based vs sprInd 0-based) Y sin registrar el sprite en el .yyp — dos bugs que juntos producen "Variable not set" exactamente al pasar de Rouge a Kris
 - La leccion de fondo: todo lo que el Suite ESCRIBE debe poder RE-LEERLO el Suite (roundtrip), y toda escritura de .yyp/.yy debe re-leerse y verificarse despues de escribir — un toast perdido dejo un proyecto roto en el repo de la duena
 - La reparacion se hace en 3 archivos (Draw_0 + .yyp + .resource_order): los sprites que ella dibujo ya eran validos, solo faltaban las condiciones correctas y el registro
+
+---
+Task ID: editor-v54-3-rouge-no-desaparecio
+Agent: main (Z.ai)
+Task: Denuncia de la duena con screenshot: "VOLVISTE A LA VERSION ANTERIOR DEL EDITOR! quitaste otra vez del editor a rouge... quieres avanzar o retroceder basura!" — verificar si Rouge fue quitada y arreglar el sistema entero.
+
+Work Log:
+- FETCH (regla de oro): commit nuevo de la duena 78e6d5fa — aplica MI v54.2 completa (Suite byte-identico, Draw_0 reparado, .yyp+2, resource_order+2, docs) + re-guarda el sprite de Rouge desde GameMaker (yy minificado, GUIDs nuevos 72756c26/f2a76dea, PNGs nuevos, viejos fuera) + retoca el arte de Kris (PNGs 3774->3705) + backups 17:37 de placa_106/107 (re-escribio ambas placas desde el Suite). Fast-forward limpio (mi arbol era subsumido por su push)
+- INVESTIGACION de la denuncia (capa por capa, con VLM sobre su screenshot + OCR + browser en vivo): (1) SU LISTA muestra las filas Amelia, Blaze, ..., Fleetway Amy seleccionada, cortada abajo CON SCROLLBAR; (2) el mapa REAL tiene 22 filas, orden correcto: ..., Metal Sonic, Amelia, Blaze, Fleetway Amy, ROUGE, KRIS, [header Killers], EXE Original, Chaos, Exetior, Exeller, Metal Amy, Jinna — Rouge y Kris estan justo bajo el fold de SU ventana; (3) pruebas duras: barra superior "22 personajes", NO existe seccion "Sin placa (aún)" (solo aparece si alguien falta), NO hay "+ crear", los "+ propio" estan solo en filas de tira (Amelia/Blaze) — consistente con mapa completo; (4) browser: click en fila Rouge -> selecciona, abre "Rouge (placa propia: spr_char_info_rouge)". CONCLUSION: Rouge JAMAS fue quitada — es la misma lista de la v54.2, solo estaba scrolleada
+- FIX REAL (no bastaba explicarlo — que no vuelva a pasar): v54.3 UX: (U1) scrollSelIntoView(): cada build de la lista/seleccion deja la fila elegida EN VISTA (scrollIntoView nearest, busca por selKey y cae a dataset.idx); se llama al final de buildPlaqueList, en selectPlaque y selectNewPlaque (la fila nueva vive al final de "Sin placa"); (U3) contador "22 filas · ▼" junto al header Personaje con tooltip que explica el orden y que hay que bajar — imposible volver a creer que alguien "no esta"
+- Verificacion: sintaxis 9/9; writer E2E 6/6 (sin regresiones); scroll smoke 3/3 (fila Rouge a la vista, Kris por idx, null-safe); browser en vivo: click Rouge y click Kris desde arriba de todo -> ambas filas AUTO-SCROLLEAN a la vista, seleccionadas, contador "22 filas" visible, 0 errores de pagina; integridad del sprite re-guardado por la duena: .yy parsea (frame 72756c26, layer f2a76dea), PNG frame + layer existen, registro .yyp/resource_order intactos
+- SIN TOCAR: el juego (Draw_0/.yyp/resource_order ya estaban perfectos de la v54.2 — ella misma los aplico y compilo), macros, server, red. Cero superficie nueva => anti-cheat sin cambios (regla 7)
+- Entregable: download/editor_v54_3_lista_rouge.zip — Suite_TD2D.html + CACHE.md + worklog.md + LEEME_EDITOR_V54_3.txt
+
+Stage Summary:
+- Rouge nunca salio del editor: la lista de su screenshot estaba scrolleada y Rouge/Kris viven justo debajo del fold (despues de Fleetway, antes de los killers)
+- El fix no fue "re-poner" nada: fue hacer imposible el susto — la fila seleccionada siempre auto-scrollea a la vista y el header cuenta "22 filas · ▼"
+- Su re-guardado de GameMaker del sprite de Rouge quedo perfecto (GUIDs nuevos consistentes .yy/PNG/layers); no hacia falta reparar nada del juego esta ronda

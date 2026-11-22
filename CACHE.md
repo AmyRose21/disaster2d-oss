@@ -1330,3 +1330,30 @@ y las pistas nuevas de 20-28s se cortaban).
   escritura de recurso (.yyp) debe re-leerse y verificarse, porque el
   paso anterior puede haber fallado en silencio (toast perdido) o
   GameMaker abierto puede pisarla al guardar.
+
+- 2026-11-21 (editor-v54.3): DENUNCIA de la duena: "quitaste otra vez del
+  editor a Rouge" (screenshot). INVESTIGACION COMPLETA: la fila de Rouge
+  NUNCA fue quitada — su Suite (78e6d5fa, con la v54.2 aplicada) lista
+  22/22 filas en el orden correcto (... Metal Sonic, Amelia, Blaze,
+  Fleetway Amy, ROUGE, KRIS, [Killers] EXE Original... Jinna). El
+  screenshot mostraba la lista SCROLLEADA: la ventana visible terminaba en
+  Fleetway Amy con scrollbar; Rouge y Kris estan UNA vuelta de rueda por
+  debajo. Pruebas: top bar "22 personajes", SIN seccion "Sin placa
+  (aún)" (solo aparece si alguien falta), SIN boton "+ crear", botones
+  "+ propio" solo en filas de tira (Amelia/Blaze) — todo consistente con
+  el mapa completo. Browser en vivo: click en fila Rouge/Kris funciona,
+  selecciona y abre su placa propia. FIX REAL (v54.3, UX): (U1)
+  scrollSelIntoView() — al construir la lista/seleccionar/click, la fila
+  elegida se lleva SIEMPRE a la vista (scrollIntoView block:'nearest');
+  sin esto una seleccion por codigo quedaba bajo el fold y PARECIA que el
+  personaje no existia; (U2) igual al abrir placeholder nuevo (fila al
+  final de "Sin placa"); (U3) contador "22 filas · ▼" junto al header
+  con tooltip "los killers van DESPUÉS de Kris, baja con la rueda". La
+  duena tambien re-guardo el sprite de Rouge desde GameMaker (GUIDs
+  nuevos 72756c26/f2a76dea; los viejos 7ed4d01e/46440f23 salieron
+  limpios) y retoco el arte de Kris — ambos estados verificados: .yy
+  parsea, PNG+layer existen, registro .yyp y resource_order intactos.
+  LECCION (8.18): antes de responder a una denuncia de "X desaparecio",
+  verificar si X esta bajo el fold de una lista scrolled — y arreglar el
+  UX (auto-scroll + contador) para que la sospecha no pueda volver a
+  nacer. Validador check_v54_3 additions en check_v54_2.py.
