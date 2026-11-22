@@ -769,6 +769,7 @@ body{display:flex !important;flex-direction:row !important;overflow:hidden !impo
     <button class="mnav" data-mod="keys"><span class="ic">🎮</span>Botones</button>
     <button class="mnav" data-mod="lms"><span class="ic">🎤</span>Show LMS</button>
     <button class="mnav" data-mod="muelles"><span class="ic">🪀</span>Muelles</button>
+    <button class="mnav" data-mod="boxes"><span class="ic">📦</span>Cajas</button>
    </nav>
   </div>
   <div class="cat"><div class="cat-title">Personajes</div>
@@ -1409,6 +1410,30 @@ body{display:flex !important;flex-direction:row !important;overflow:hidden !impo
     <section class="note"><b>Cómo funciona:</b> al rebotar en un muelle el personaje vuela en FALL: <b>subida</b> = mientras asciende (yspd &lt; 0), <b>bajada</b> = el resto. Cada fase usa una <b>pose fija</b> (bucle sin marcar) o un <b>bucle</b> de varios frames a la velocidad indicada. Es el comportamiento clásico: pose de rebote al subir, pose de caída al bajar.</section>
     <section class="note"><b>Robusto por diseño:</b> un personaje cuyo sprite <b>no esté en la lista</b> usa su caída de siempre — ni errores ni cambios. La Suite además escribe la llamada <code>scr_fall_anim();</code> en su <code>case FALL</code> (si el case es simple; si toca otras cosas, te da el snippet para pegarlo a mano).</section>
     <section class="note">Nada se toca hasta que pulsas <b>Escribir</b>: antes verás el antes/después exacto, y siempre queda copia en <code>_backups_animeditor/</code> con botón de deshacer. Tras escribir, recompila (F5).</section>
+  </aside>
+</div>
+<div id="mod-boxes" class="mod hidden">
+  <aside class="side">
+    <div class="side-head">📦 Cajas de items</div>
+    <section class="note" style="border:none;padding:4px">Las cajas de recompensa aleatorias de todos los mapas (v62+). Aquí configuras <b>cuánto dura</b> cada recompensa al romper la caja. El resto (frecuencia, cantidad de cajas, posición) lo maneja el server y no se toca.</section>
+    <div id="boxes-side-info" style="flex:1;overflow-y:auto;padding:6px"></div>
+  </aside>
+  <main class="mid" style="overflow-y:auto">
+    <div id="boxes-head" class="muted">abre tu proyecto para configurar las duraciones</div>
+    <div id="boxes-rows"></div>
+  </main>
+  <aside class="rightpane">
+    <section>
+      <h3>Cambios a escribir</h3>
+      <div id="boxes-edits"><div class="muted">nada todavía</div></div>
+      <div id="boxes-actions" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <button id="boxes-write" class="btn primary" style="flex:1;min-width:130px">Escribir en los archivos</button>
+        <button id="boxes-undo">Deshacer último</button>
+      </div>
+    </section>
+    <section class="note"><b>Qué toca:</b> solo las 4 macros <code>ITEMBOX_*_TIME</code> de <code>scripts/net_state_game/net_state_game.gml</code> (el formato <code>(60 * N)</code> = N segundos). Es <b>solo cliente</b>: recompila el juego (F5) y listo — sin recompilar el server, sin tocar paquetes.</section>
+    <section class="note"><b>Invencibilidad:</b> usa el mismo timer de los i-frames del golpe (<code>hurttime</code>): esta macro solo cambia el valor que da <b>la caja</b>, el golpe normal conserva su propio 1 s. <b>Botas:</b> Power Sneakers con control total (tope +3, aceleración ×1.5) — no la carrera forzada del monitor de Kind &amp; Fair. <b>Escudo:</b> el de Sally (5 s) absorbe un golpe. <b>Eléctrico:</b> el de Eggman +1 s (2.5 s) y electrocuta a quien te golpee.</section>
+    <section class="note">Nada se toca hasta que pulsas <b>Escribir</b>: antes verás el antes/después exacto, y siempre queda copia en <code>_backups_animeditor/</code> con botón de deshacer.</section>
   </aside>
 </div>
 <div id="mod-pj" class="mod hidden">
@@ -3790,6 +3815,7 @@ function switchModule(mod) {
   $('#mod-keys').classList.toggle('hidden', mod !== 'keys');
   $('#mod-lms').classList.toggle('hidden', mod !== 'lms');
   $('#mod-muelles').classList.toggle('hidden', mod !== 'muelles');
+  $('#mod-boxes').classList.toggle('hidden', mod !== 'boxes');
   $('#mod-pj').classList.toggle('hidden', mod !== 'pj');
   $('#subnav-cd').classList.toggle('hidden', mod !== 'cd');
   $('#subnav-arte').classList.toggle('hidden', mod !== 'arte');
@@ -3802,6 +3828,7 @@ function switchModule(mod) {
   else if (mod === 'keys' && T.enterKeys) T.enterKeys();
   else if (mod === 'lms' && window.enterLms) window.enterLms();
   else if (mod === 'muelles' && window.enterMuelles) window.enterMuelles();
+  else if (mod === 'boxes' && window.enterBoxes) window.enterBoxes();
   else if (mod === 'pj' && window.enterPj) window.enterPj();
   else if (mod === 'arte') { if (arteImg) enterImg(); else if (window.enterArte) window.enterArte(); }
   else enterImg();
@@ -14965,6 +14992,209 @@ window.pjMod = { PJ, pjScan, pjClassifyFiles, pjPlanAdd, pjBuildSpriteYy, pjSetA
 window.__pjHelpers = { pjUuid: pjUuid, pjLenientParse: pjLenientParse, pjLenientErr: pjLenientErr, pjReEsc: pjReEsc, pjYypName: pjYypName };
 })();
 /* ===== Suite TD2D — módulo 👤 PERSONAJES — FIN ===== */
+</script>
+<script>
+/* ===== Suite TD2D — módulo 📦 CAJAS (v70): duraciones de recompensas =====
+   Edita las macros ITEMBOX_*_TIME de scripts/net_state_game/net_state_game.gml
+   con el MISMO motor de macros del módulo Recargas (C.parseMacros/C.setMacro),
+   y escribe con T.writeEdits (backup _backups_animeditor + deshacer). */
+(() => {
+'use strict';
+const C = window.AnimCore;
+const T = window.__animtool;
+const S = T.S;
+const $ = (s) => document.querySelector(s);
+const esc = T.esc, toast = T.toast;
+
+const BOX_REL = 'scripts/net_state_game/net_state_game.gml';
+
+// Definición de las 4 recompensas (orden = orden del switch(_type)).
+const BOX_ITEMS = [
+  { name: 'ITEMBOX_SHIELD_TIME',  label: '🛡 Escudo (Sally)',       icon: '🛡',
+    desc: 'absorbe UN golpe (el de Sally): mientras esté activo no te daña nada. Al romperse te deja 1 s extra de invulnerabilidad.',
+    mins: 0.5, max: 30, def: 5 },
+  { name: 'ITEMBOX_INVULN_TIME',  label: '✨ Invulnerabilidad',      icon: '✨',
+    desc: 'chispa de invencibilidad clásica: NO te pueden dañar (el EXE te atraviesa sin tocarte). Usa el timer de i-frames del golpe, pero SOLO cambia el valor de la caja: el golpe normal conserva su 1 s.',
+    mins: 0.5, max: 30, def: 3 },
+  { name: 'ITEMBOX_ELECTRIC_TIME', label: '⚡ Escudo eléctrico',    icon: '⚡',
+    desc: 'escudo de Eggman +1 s: absorbe un golpe Y electrocuta al atacante (queda aturdido un segundo).',
+    mins: 0.5, max: 30, def: 2.5 },
+  { name: 'ITEMBOX_BOOTS_TIME',   label: '👟 Botas de velocidad',  icon: '👟',
+    desc: 'Power Sneakers clásico: tope de carrera +3 y aceleración ×1.5 con CONTROL TOTAL (tú frenas cuando quieres). Con la música propia (snd_speedboost) mientras dura.',
+    mins: 1, max: 60, def: 8 }
+];
+
+const Bx = { ready: false, orig: null, work: null };
+
+async function ensureBoxesData() {
+  if (Bx.ready) return;
+  const txt = await T.readText(BOX_REL);
+  Bx.orig = txt; Bx.work = txt;
+  Bx.ready = txt != null;
+}
+
+function boxesMacro(name) {
+  if (Bx.work == null) return null;
+  const all = C.parseMacros(Bx.work);
+  return all.find(m => m.name === name) || null;
+}
+
+async function setBoxesMacro(name, secs) {
+  const r = C.setMacro(Bx.work, name, { seconds: Math.max(0.1, secs) });
+  if (!r.changed) { toast('No pude cambiar ' + name + ' (' + (r.error || '?') + ')', 'err'); return; }
+  Bx.work = r.gml;
+  syncBoxes();
+  renderBoxesRows();
+}
+
+/* ---------- cambios unificados (mismo contrato que el resto) ---------- */
+
+function syncBoxes() {
+  const ch = [];
+  if (Bx.orig != null && Bx.work !== Bx.orig) {
+    ch.push({ rel: BOX_REL, name: 'Cajas', dynamic: false,
+             before: Bx.orig, after: Bx.work, lines: changedDiff(Bx.orig, Bx.work) });
+  }
+  S.edits = ch;
+  S.pendingFiles = {};
+  if (ch.length) S.pendingFiles[BOX_REL] = Bx.work;
+  renderBoxesEdits();
+}
+
+function changedDiff(a, b) {
+  const out = [], la = String(a).split(/\r?\n/), lb = String(b).split(/\r?\n/);
+  const n = Math.max(la.length, lb.length);
+  for (let i = 0; i < n; i++) if (la[i] !== lb[i]) {
+    if (la[i] != null) out.push({ t: '-', s: la[i] });
+    if (lb[i] != null) out.push({ t: '+', s: lb[i] });
+  }
+  return out;
+}
+
+function renderBoxesEdits() {
+  const host = $('#boxes-edits');
+  $('#boxes-write').disabled = S.mode !== 'fs';
+  $('#boxes-undo').disabled = !S.undo.length;
+  if (!S.edits.length) { host.innerHTML = '<div class="okline">Nada que escribir.</div>'; return; }
+  let html = '';
+  for (const ch of S.edits) {
+    let d = '';
+    for (const l of ch.lines) {
+      const cls = l.t === '-' ? 'del' : 'add';
+      d += '<span class="' + cls + '">' + esc(l.s || ' ') + '</span>\n';
+    }
+    html += '<div class="editcard" data-rel="' + esc(ch.rel) + '">' +
+      '<div class="edhead"><b>' + esc(ch.rel.split('/').pop()) + '</b><span class="edpath">' + esc(ch.rel) + '</span></div>' +
+      '<pre class="diff">' + d + '</pre>' +
+      '<div class="edbtns"><button class="copyfile">Copiar archivo entero</button></div>' +
+      '</div>';
+  }
+  host.innerHTML = html;
+}
+
+/* ---------- filas ---------- */
+
+function renderBoxesRows() {
+  const host = $('#boxes-rows');
+  const side = $('#boxes-side-info');
+  if (!S.mode) {
+    $('#boxes-head').textContent = 'abre tu proyecto (botón «Abrir carpeta del proyecto» arriba) o entra en Demo para ver el módulo.';
+    host.innerHTML = ''; side.innerHTML = '<div class="muted">—</div>';
+    return;
+  }
+  if (Bx.work == null) {
+    $('#boxes-head').innerHTML = 'no encontré <code>' + esc(BOX_REL) + '</code> en la carpeta abierta. ¿Es el proyecto del juego (raíz con <code>scripts/</code>)?';
+    host.innerHTML = ''; side.innerHTML = '<div class="muted">—</div>';
+    return;
+  }
+  const missing = BOX_ITEMS.filter(it => !boxesMacro(it.name));
+  $('#boxes-head').innerHTML = 'duración de cada recompensa al romper una caja · <span style="font-family:var(--mono);font-size:11px">' + esc(BOX_REL) + '</span>';
+  let html = '';
+  for (const it of BOX_ITEMS) {
+    const m = boxesMacro(it.name);
+    if (!m) {
+      html += '<div class="cdrow"><div class="cdtop"><b>' + it.icon + ' ' + esc(it.label) + '</b><span class="pair">⚠ sin macro ' + esc(it.name) + ' (¿versión del juego sin v70?)</span></div><div class="hint">' + esc(it.desc) + '</div></div>';
+      continue;
+    }
+    const abs = Math.abs(m.seconds || 0);
+    const om = C.parseMacros(Bx.orig || '').find(x => x.name === it.name);
+    const origAbs = om ? Math.abs(om.seconds) : abs;
+    const cur = '<span class="cur">' + abs + ' s</span>';
+    const chip = abs !== origAbs ? '<span class="newchip">→ ' + abs + ' s</span>' : '';
+    html += '<div class="cdrow cdrow-cli" data-name="' + esc(it.name) + '">' +
+      '<div class="cdtop"><b>' + it.icon + ' ' + esc(it.label) + '</b>' + cur + chip + '</div>' +
+      '<div class="hint" style="color:var(--mut);font-size:11.5px;margin-top:2px">' + esc(it.desc) + '</div>' +
+      '<div class="cdctl">' +
+      '<input type="range" min="' + it.mins + '" max="' + it.max + '" step="0.25" value="' + Math.min(it.max, Math.max(it.mins, abs)) + '">' +
+      '<input type="number" min="' + it.mins + '" max="600" step="0.25" value="' + abs + '">' +
+      '<span class="muted" style="font-size:11px">de fábrica: ' + origAbs + ' s</span>' +
+      '</div>' +
+      '<div class="mcode">#macro ' + esc(it.name) + ' ' + esc(m.raw) + (m.comment ? '  // ' + esc(m.comment) : '') + '</div>' +
+      '</div>';
+  }
+  host.innerHTML = html;
+  side.innerHTML = '<div class="cdsum"><b>' + (BOX_ITEMS.length - missing.length) + '</b> de <b>' + BOX_ITEMS.length + '</b> macros encontradas' + (missing.length ? ' · <span class="mut">faltan ' + missing.length + ' (juego &lt; v70)</span>' : '') + '</div>' +
+    '<div class="muted" style="padding:4px">Recuerda: solo la DURACIÓN vive aquí. La frecuencia de spawn, el máximo de cajas y los puntos donde aparecen los fija el server (v68) y no se tocan desde el Suite.</div>';
+}
+
+/* ---------- entrar / escribir / deshacer ---------- */
+
+async function enterBoxes() {
+  if (!S.mode) { renderBoxesRows(); return; }
+  await ensureBoxesData();
+  renderBoxesRows();
+  syncBoxes();
+}
+
+async function boxesAfterWrite() {
+  Bx.ready = false;
+  await enterBoxes();
+}
+
+function boxesInit() {
+  const rows = $('#boxes-rows');
+  if (!rows) return;
+  rows.addEventListener('input', (e) => {
+    const row = e.target.closest('.cdrow');
+    if (!row || !e.target.matches('input[type=range]')) return;
+    setBoxesMacro(row.dataset.name, parseFloat(e.target.value) || 1);
+  });
+  rows.addEventListener('change', (e) => {
+    const row = e.target.closest('.cdrow');
+    if (!row || !e.target.matches('input[type=number]')) return;
+    setBoxesMacro(row.dataset.name, Math.max(0.25, parseFloat(e.target.value) || 1));
+  });
+  $('#boxes-write').addEventListener('click', () => T.writeEdits());
+  $('#boxes-undo').addEventListener('click', () => T.undoLast());
+  $('#boxes-edits').addEventListener('click', (e) => {
+    const b = e.target.closest('.copyfile'); if (!b) return;
+    const rel = b.closest('.editcard').querySelector('.edpath').textContent;
+    const txt = (S.pendingFiles || {})[rel];
+    if (txt != null) T.toast('Copiado al portapapeles: pegar manual pendiente — usa el botón Copiar del diff en modo solo lectura');
+    // copia real:
+    if (txt != null && navigator.clipboard) navigator.clipboard.writeText(txt).then(
+      () => toast('Copiado: ' + rel.split('/').pop() + ' entero'),
+      () => toast('No pude copiar automáticamente.', 'err'));
+  });
+}
+
+window.enterBoxes = enterBoxes;
+
+const prevAW2 = S.onAfterWrite;
+S.onAfterWrite = async function () {
+  if (S.module === 'boxes') { await boxesAfterWrite(); return; }
+  if (prevAW2) await prevAW2();
+};
+
+const prevDiscard2 = T.discardModulePending;
+T.discardModulePending = function () {
+  Bx.ready = false;   // al descartar cambios, la próxima entrada relee del disco
+  if (prevDiscard2) prevDiscard2();
+};
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boxesInit);
+else boxesInit();
+})();
 </script>
 </body>
 </html>

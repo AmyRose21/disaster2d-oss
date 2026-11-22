@@ -1,0 +1,86 @@
+=====================================================================
+ LEEME — v70: SUITE: MÓDULO «📦 CAJAS» (tiempos de las recompensas)
+ Fecha: 2026-11-22
+=====================================================================
+
+QUÉ PIDE LA REGLA
+-----------------
+Añadir al Suite la opción de configurar el tiempo de las cajas
+(speed y invulnerabilidad).
+
+QUÉ SE HIZO
+-----------
+1. El juego: los 4 tiempos de recompensa de las cajas ahora son macros
+   al inicio de scripts/net_state_game/net_state_game.gml:
+
+     #macro ITEMBOX_SHIELD_TIME    (60 * 5)    <- escudo de Sally: 5 s
+     #macro ITEMBOX_INVULN_TIME    (60 * 3)    <- invulnerabilidad: 3 s
+     #macro ITEMBOX_ELECTRIC_TIME  (60 * 2.5)  <- escudo eléctrico: 2.5 s
+     #macro ITEMBOX_BOOTS_TIME     (60 * 8)    <- botas de velocidad: 8 s
+
+   Los valores por defecto son EXACTAMENTE los de siempre (5/3/2.5/8 s):
+   el juego se comporta idéntico hasta que cambies algo en el Suite.
+   Convención de la casa respetada: las 745 macros del repo viven todas
+   a nivel de archivo (ninguna dentro de una función).
+
+2. El Suite (Suite_TD2D.html): módulo nuevo «📦 Cajas» en la categoría
+   Sistema, al lado de Muelles:
+   - 4 filas (botas e invulnerabilidad pedidos + escudo y escudo
+     eléctrico de regalo) con slider Y número en segundos, chip "de
+     fábrica" para ver el original, y la línea de macro real abajo.
+   - Se edita con el MISMO motor de macros del módulo Recargas
+     (conserva el formato (60 * N)).
+   - Escribe con el botón de siempre: antes/después exacto, copia en
+     _backups_animeditor/ y botón de deshacer.
+   - En modo "solo mirar" usa «Copiar archivo entero».
+   - Notas al lado explicando cada recompensa (la invulnerabilidad
+     comparte el timer de i-frames del golpe, pero ESTA macro solo
+     cambia el valor que da LA CAJA — el golpe normal conserva su 1 s).
+
+CÓMO SE USA
+-----------
+1. Abre Suite_TD2D.html en Chrome/Edge y pulsa «📂 Abrir carpeta del
+   proyecto» (la raíz del juego, la que tiene scripts/).
+2. En el menú de la izquierda, Sistema → «📦 Cajas».
+3. Mueve los sliders o escribe los segundos que quieras para cada
+   recompensa.
+4. Pulsa «Escribir en los archivos».
+5. Recompila el juego (F5). SOLO cliente: no hay que recompilar el
+   server ni tocar nada de red.
+
+VERIFICACIÓN (regla 6)
+----------------------
+- check_v70.js: 37/37 OK — corre el motor REAL del Suite (AnimCore
+  extraído del HTML) contra el GML REAL: las 4 macros leen 5/3/2.5/8 s,
+  el setMacro cambia 8→12 s conservando (60 * N), idempotente,
+  exactamente 1 línea de diff por edición, los 10 bloques JS del Suite
+  compilan, tags de script balanceados (10/10), y ni net_packets/ ni
+  betterserver-oss/ cambiaron (regla 7: cero superficie de red).
+- E2E en navegador REAL: Suite cargado con 0 errores JS; el módulo se
+  abre con el nav; con el proyecto montado muestra las 4 filas con los
+  valores reales (5 s | 3 s | 2.5 s | 8 s); editar botas a 12 s por el
+  input produce #macro ITEMBOX_BOOTS_TIME (60 * 12) y el diff de 1
+  línea; reconfigurar las 4 (7/4.5/3.25/20 s) y slider con decimales
+  (6.25) OK; «Escribir» escribe el archivo COMPLETO con backup del
+  original y el botón de deshacer restaura (60 * 8).
+
+CONTENIDO DEL ZIP (solo modificados vs origin/main 6977f00a)
+-------------------------------------------------------------
+- Suite_TD2D.html                    (módulo 📦 Cajas)
+- scripts/net_state_game/net_state_game.gml  (4 macros ITEMBOX_*_TIME)
+- CACHE.md, LEARNING.md, worklog.md  (los archivos de conocimiento)
+- LEEME_ITEMBOX_V70.txt, check_v70.py (este archivo y el checker)
+
+INSTALAR
+--------
+Extraer el zip sobre la raíz del proyecto (como siempre), abrir el
+proyecto en GameMaker, recompilar (F5). El server no se toca.
+
+NOTA IMPORTANTE
+---------------
+Este zip NO incluye la v69 (botas con snd_speedboost): el repo de
+GitHub sigue en 6977f00a SIN la v69. Si aplicas este zip sobre el
+repositorio tal cual, la línea de botas seguirá usando snd_spring
+hasta que subas la v69. Los dos cambios son independientes y no
+chocan (v70 toca las macros de duración; v69 el audio), pero lo ideal
+es aplicar v69 primero y v70 después. Ambos zips están en download/.
