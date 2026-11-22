@@ -6184,3 +6184,77 @@ Stage Summary:
 - Los 3 puntos del feedback entregados en una v73: WSS con el doble de gain (el salto ahora satura el tope de estiron), Exe que rompe cajas para negarlas pero jamas cobra (server pid 0 + guardas cliente), e inmunidad que siempre reinicia al maximo
 - El veto del Exe aprovecha DOS convenciones existentes: pid 0 = nadie cobra (proyectiles de Tails) y game.exe == v->id (Lib.c) — cero protocolo nuevo, cero superficie anti-cheat nueva
 - check_v73.py sustituye a check_v72.py (borrar el viejo si quedo de la entrega anterior)
+
+---
+Task ID: v74-kaf-original-rebase
+Agent: main (Z.ai)
+Task: Correccion de alcance de la duena sobre la v73: "espera los de KAF
+      no los cambies esos que trae eso no los cambies en si seguiran
+      funcionando me referia a las cajas nuevas" — los monitores Kaf de
+      KindAndFair quedan con comportamiento ORIGINAL; el exe-denial, el
+      fix de inmunidad y el WSS retune aplican SOLO a las cajas nuevas.
+
+Work Log:
+- FETCH (regla 1): git fetch origin — commit NUEVO de la duena: ef3c5d87
+  ("ewe", 2026-11-22 18:22). Contenido: la v72 aplicada BYTE-EXACT (los
+  21 draws + puppet + hook + .yyp + .resource_order + scr_wss/* verificados
+  identicos contra nuestro arbol) + SU propia restauracion de la musica de
+  botas v69 (LEEME_ITEMBOX_V72_MUSICA.txt): 3 hunks nuevos DENTRO de
+  net_state_game.gml (case 4: loop snd_speedboost + scr_music_duck; cortes
+  audio_stop_sound(snd_speedboost)+scr_music_unduck antes del show LMS y
+  antes de resultados). La v73 NUNCA se aplico (cero trazas: ItemBoxMap.c /
+  KindAndFair.c intactos, case 2 con el guard viejo, sin guardas Exe).
+- DECISION DE REBASE: arbol local reseteado a ef3c5d87 (backup previo en
+  backups_v73/ con los 5 archivos clave + docs v73) y los parches
+  re-aplicados ENCIMA del estado de la duena — el net_state_game.gml
+  entregado lleva SU musica + nuestros fixes MERGEADOS (extraer el zip
+  sobre su repo al dia es todo lo que hace falta).
+- IMPLEMENTACION v74 (= v73 menos el KAF):
+  (1) scr_wss.gml: mismo retune de 7 macros (STRETCH_MAX 0.45, SQUASH_MAX
+      0.42, TAKEOFF 0.085, AIRFLOW 0.055, IMPACT 0.050, STATE 0.24,
+      SMOOTH_DECAY 0.10) + comentarios, etiqueta v74.
+  (2) net_state_game.gml: fix inmunidad (case 2 incondicional a
+      ITEMBOX_INVULN_TIME + snd_heal) y 1 guarda Exe SOLO en
+      SERVER_BOX_STATE state 2 (tras nid != _pid, antes del banner
+      REWARDS). SECCION KAFMONITOR SIN GUARDA. Musica de botas intacta.
+  (3) ItemBoxMap.c: veto server-side uint16_t reward = (game.exe ==
+      v->id) ? 0 : v->id (tabs preservados via script Python byte-exacto,
+      leccion v73; diff crudo == diff ignore-space verificado).
+  (4) KindAndFair.c: CERO cambios (la orden). Verificado identico a HEAD.
+- VERIFICACION (regla 6): check_v74.py (SUSTITUYE a check_v73.py) = 60
+  checks TODOS OK tras los docs: balance lexer 28 GML; parches v72
+  intactos; macros v74 exactos; fix inmunidad (guard viejo fuera,
+  asignacion+sonido 1x, guards 1/3/4 conservados); denial SOLO cajas
+  (marca 1x ItemBoxMap.c, KindAndFair.c PRISTINO con 3 checks incluido
+  git diff --quiet vs HEAD, 1 guarda — no 2, seccion KAFMONITOR sin veto
+  y flujo original nid->isBoosting->boost, scr_collision_objects intacto);
+  musica de botas de la duena 1/1/2/2 como invariante NUEVO; gcc
+  -fsyntax-only 2 .c con stub enet; .yyp 2542/.resource_order/.yy OK;
+  superficie = nucleo v74 (KindAndFair.c PROHIBIDO en superficie);
+  simulaciones completas (retune + inmunidad siempre 375 + reward_pid
+  exe->0/survivor->id + KAF sin veto) y restos limpios.
+- ANTI-CHEAT (regla 7): identico a v73 pero SIN KAF — el veto vive en el
+  server (ItemBoxMap.c decide el pid; cliente modificado no puede
+  autofacturarse), la guarda cliente cubre binarios mezclados. Cero
+  paquetes nuevos; net_packets/Packet.h/netclient intactos (verificado).
+- ZIP (regla 2): v74_kaf_original_cajas_exe.zip = 3 codigo (scr_wss.gml,
+  net_state_game.gml, ItemBoxMap.c) + check_v74.py + LEEME_V74.txt +
+  CACHE.md + LEARNING.md + worklog.md. KindAndFair.c PROPOSITIVAMENTE
+  ausente. LEEME_V74 instruye: si aplicaste v73 antes, git checkout --
+  KindAndFair.c. Roundtrip verificado: clon fresco origin/main + unzip +
+  diff -rq == 0 + check_v74.py desde el arbol extraido == TODOS OK.
+- OJO DUENA: RECOMPILAR el server (compilar_server.bat opcion 2) —
+  ItemBoxMap.c cambio. Sin recompilar, la guarda del cliente igual niega
+  el buff de cajas nuevas en la pantalla del Exe (los Kaf funcionan
+  como siempre en cualquier caso).
+
+Stage Summary:
+- La correccion de alcance entregada como v74: KAF original (KindAndFair.c
+  intacto byte-a-byte), veto de Exes SOLO en las cajas nuevas, fix de
+  inmunidad y WSS retune conservados — todo re-aplicado ENCIMA del commit
+  propio de la duena (su musica de botas sobrevive, protegida por el
+  validador)
+- Leccion que queda en LEARNING.md: cuando una regla toca N sistemas
+  similares, LISTAR los N en la nota de entrega para que la duena pueda
+  vetar en una linea — v73 lo pago con un zip completo superseded
+- check_v74.py sustituye a check_v73.py (borrar el viejo si quedo)

@@ -173,7 +173,7 @@ bool itemboxmap_tcpmsg(PeerData* v, Packet* packet)
 				}
 			if (target)
 			{
-				/* v73 EXE DENIAL (regla de la duena): el Exe PUEDE
+				/* v74 EXE DENIAL (regla de la duena): el Exe PUEDE
 				   romper la caja — le niega el buff a cualquier
 				   superviviente que pase por ahi — pero JAMAS cobra
 				   el reward. Difundimos pid 0 ("nadie", el mismo
@@ -182,7 +182,9 @@ bool itemboxmap_tcpmsg(PeerData* v, Packet* packet)
 				   (regla 7): un cliente modificado no puede
 				   autofacturarse rewards de exe. (game.exe es el
 				   peer id del Exe de la ronda — patron exacto de
-				   Lib.c disaster_server_peer.) */
+				   Lib.c disaster_server_peer.) SOLO las cajas nuevas:
+				   los monitores Kaf (KindAndFair.c) NO llevan este
+				   veto — orden explicita de la duena en v74. */
 				uint16_t reward = (v->server->game.exe == v->id) ? 0 : v->id;
 				RAssert(itembox_activate(v->server, target, reward, proj));
 			}

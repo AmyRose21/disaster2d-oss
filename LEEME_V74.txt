@@ -1,0 +1,138 @@
+============================================================================
+ v74 — KAF SIN CAMBIOS (TU ORDEN) + EXES/CAJAS NUEVAS + FIX INMUNIDAD
+                                                       2026-11-23
+============================================================================
+
+TU MENSAJO
+----------
+"espera los de KAF no los cambies esos que trae eso no los cambies en si
+seguiran funcionando me referia a las cajas nuevas"
+
+Entendido y corregido: los monitores KAF que trae el mapa KindAndFair
+quedan con su comportamiento ORIGINAL — quien los rompe cobra el boost,
+Exe incluido, igual que siempre. El veto de los Exes aplica SOLO a las
+cajas nuevas (las de recompensa aleatoria de la v54+). Todo lo demas de
+la v73 se conserva tal cual.
+
+OJO — SI YA APLICASTE LA v73 ANTES DE ESTE MENSAJE:
+  La v73 ponia el veto tambien en los monitores Kaf (mal entendido mio).
+  Para volver al original: extrae ESTE zip encima (el net_state_game.gml
+  de aqui ya viene corregido: la guarda del Kaf fue quitada) y restaura
+  el archivo del server con:
+     git checkout -- betterserver-oss/disasterserver/maps/KindAndFair.c
+  (o re-descarga ese unico archivo del repo). Si NUNCA aplicaste la v73,
+  solo extrae este zip y listo — KindAndFair.c ni se toca.
+
+REQUISITO: tu repo al dia (tu commit "ewe" con la musica de botas v69
+restaurada) — el net_state_game.gml de este zip YA trae tu musica puesta
+(verificado: el loop de botas, el duck y los 2 cortes de seguridad estan
+intactos).
+
+============================================================================
+ 1) EXES vs CAJAS NUEVAS: ROMPEN PERO NO COBRAN (solo cajas nuevas)
+============================================================================
+  REGLA (tu feedback anterior): el Exe PUEDE romper una caja de buff
+  (atacando, como siempre — el Exe invisible sigue SIN poder, anti-grief
+  que ya existia), y asi le NIEGA el buff al superviviente que pasaba
+  por ahi; pero el Exe JAMAS cobra el buff.
+
+  Como esta hecho (2 capas, regla de oro 7 — cero paquetes nuevos):
+  - SERVER (la que manda): ItemBoxMap.c — si quien rompe la caja es el
+    Exe de la ronda (game.exe == su peer id, el mismo chequeo que usa
+    Lib.c), el paquete de "caja rota" sale con pid 0 = nadie cobra (el
+    convenio que ya existia para proyectiles de Tails). Un cliente
+    modificado NO puede autofacturarse el buff: lo decide el server.
+  - CLIENTE (defensa extra): net_state_game.gml — 1 guarda nueva: si tu
+    personaje es el Exe (global.character == CHARACTER_EXE, vale para
+    las 6 variantes: Original, Chaos, Exetior, Exeller, Metal Amy y
+    Jinna), los rewards de caja no se aplican NI EN TU PANTALLA. Esto te
+    blinda aunque compiles el cliente nuevo y el server viejo.
+
+============================================================================
+ 2) MONITORES KAF: CERO CAMBIOS (lo que pediste ahora)
+============================================================================
+  KindAndFair.c queda byte a byte igual que en tu repo (verificado contra
+  tu commit). El flujo es el de siempre: quien rompe el monitor cobra el
+  boost (isBoosting), Exe incluido. Ninguna guarda nueva en la seccion
+  SERVER_KAFMONITOR_STATE del cliente tampoco. Si en el futuro quieres
+  meterlos en la regla, es un cambio de 2 lineas — pero por orden tuya
+  quedan fuera.
+
+============================================================================
+ 3) FIX INMUNIDAD (cajas invulnerable: siempre reinicia al maximo)
+============================================================================
+  El bug (tu reporte): si ya tenias una inmunidad y cogias OTRA caja
+  invulnerable, la caja se gastaba en vacio — la duracion NO se
+  reiniciaba. Causa: el case 2 tenia un guard "solo si NO estas activo"
+  (copiado del patron del boost Kaf). Fix: la asignacion ahora es
+  incondicional — cada caja invulnerable SIEMPRE deja hurttime en el
+  maximo (ITEMBOX_INVULN_TIME = 6.25 s) y el sonido suena de nuevo.
+  Los otros 3 rewards (escudo / escudo electrico / botas) CONSERVAN su
+  guard original (no apilan — semantica intencional de la casa; solo la
+  invencibilidad resetea, que es lo que pediste).
+
+============================================================================
+ 4) WSS RETUNE (tu feedback: "la caida se nota un poco pero el salto
+    y lo demas no se nota mucho")
+============================================================================
+  scripts/scr_wss/scr_wss.gml, SOLO macros (cero logica nueva):
+
+  WSS_STRETCH_MAX    0.35 -> 0.45    tope del estiron (+29%)
+  WSS_TAKEOFF_GAIN   0.045 -> 0.085  cuanto estira el salto (x1.9)
+  WSS_AIRFLOW_GAIN   0.030 -> 0.055  estilo Airflow, a la par
+  WSS_SQUASH_MAX     0.30 -> 0.42    tope del aplaste (+40%)
+  WSS_IMPACT_GAIN    0.030 -> 0.050  cuanto aplasta el aterrizaje
+  WSS_STATE_SQUASH   0.18 -> 0.24    estilo State, a la par
+  WSS_SMOOTH_DECAY   0.12 -> 0.10    la vuelta dura un poco mas
+
+  Numeros (simulados a 60 fps, salto normal jumpForce 7):
+  - Estiron al saltar:   0.315 -> 0.450 (satura el tope)
+  - Aplaste al aterrizar de un salto normal: 0.21 -> 0.35
+  - Aplaste en caida fuerte: 0.30 -> 0.42 (satura)
+  - Smooth: 28 -> 37 frames; Jelly: mismo caracter (3 rebotes)
+  - Fisica, hitboxes, colisiones y red: CERO cambios (100% visual;
+    el pie sigue plantado en el suelo, verificado por simulacion).
+  Si te pasara de fuerte: baja WSS_TAKEOFF_GAIN (p.ej. 0.065) o los
+  topes. Todo son macros al inicio de scr_wss.gml.
+
+============================================================================
+ ARCHIVOS DE ESTE ZIP
+============================================================================
+  scripts/scr_wss/scr_wss.gml ................ retune (macros + comentarios)
+  scripts/net_state_game/net_state_game.gml . fix inmunidad + guarda Exe
+                                              (cajas nuevas) + tu musica de
+                                              botas INTACTA
+  betterserver-oss/disasterserver/entities/ItemBoxMap.c ... veto server-side
+  check_v74.py .............................. validador (python check_v74.py)
+  CACHE.md / LEARNING.md / worklog.md ...... documentacion (reglas de oro)
+  [KindAndFair.c NO viene a proposito: no se toca]
+
+============================================================================
+ PROBARLO (100% — regla de oro 6)
+============================================================================
+  1. Abre el .yyp en GameMaker: SIN errores. Compila y corre (F5).
+  2. Recompila el SERVER: compilar_server.bat opcion 2 — el veto de las
+     cajas nuevas lo lleva el binario. (Sin recompilar, la guarda del
+     cliente igual niega el buff en la pantalla del Exe.)
+  3. Test con 2 ventanas (extension MultiClient / server local):
+     a) KAF (TU ORDEN DE AHORA): mapa KindAndFair — rompe un monitor con
+        CUALQUIER personaje, INCLUIDO el Exe: el boost se aplica igual
+        que siempre. Comportamiento original intacto.
+     b) Cajas nuevas + Exe: rompe una atacando -> todos la ven romperse,
+        NADIE cobra el buff (negado al que pasaba por ahi).
+     c) Cajas nuevas + superviviente: cobra normal (los 5 tipos).
+     d) Inmunidad: coge una caja invulnerable, espera ~2 s, coge OTRA ->
+        la duracion vuelve a 6.25 s completos (antes no refrescaba).
+     e) Botas: el loop de musica suena al cogerlas y se corta al
+        expirar / en el show / en resultados (tu v69 — intacta).
+     f) WSS: salta -> estiron bien visible (45% de altura extra);
+        aterriza -> aplaste claro; caida fuerte -> aplaste maximo.
+  4. python check_v74.py  ->  "RESULTADO: TODOS LOS CHECKS OK"
+
+============================================================================
+ ROLLBACK
+============================================================================
+  git checkout -- de los 3 archivos de codigo (scr_wss.gml,
+  net_state_game.gml, ItemBoxMap.c). No hay cambios de protocolo ni de
+  .yyp/.yy (la v72 ya la tienes commiteada): el server viejo funciona
+  con el cliente nuevo (la guarda lo cubre) y viceversa.

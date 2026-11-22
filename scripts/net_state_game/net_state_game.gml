@@ -2307,14 +2307,6 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 if(obj_netclient.nid != _pid)
                                         break;
                                 
-                                // v73: el Exe JAMAS cobra el boost Kaf (regla de
-                                // la duena: los Exes no obtienen buffs). El server
-                                // ya difunde pid 0 cuando el Exe rompe el monitor;
-                                // esta guarda blinda tambien contra un server sin
-                                // recompilar (defensa en profundidad, regla 7).
-                                if(global.character == CHARACTER_EXE)
-                                        break;
-                                
                                 if(global.player.isBoosting)
                                         break;
                                 
@@ -2501,12 +2493,14 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 if(obj_netclient.nid != _pid)
                                         break;
                                 
-                                // v73: el Exe JAMAS cobra rewards de caja (regla de
+                                // v74: el Exe JAMAS cobra rewards de caja (regla de
                                 // la duena: puede romperla para negarle el buff a
                                 // quien pase por ahi, pero el no cobra nada). El
                                 // server ya difunde pid 0 cuando el Exe la rompe;
                                 // esta guarda blinda contra un server sin
                                 // recompilar (defensa en profundidad, regla 7).
+                                // SOLO las cajas nuevas: los monitores Kaf de
+                                // KindAndFair conservan su comportamiento original.
                                 if(global.character == CHARACTER_EXE)
                                         break;
                                 
@@ -2545,7 +2539,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 break;
                                         
                                         case 2: // invencibilidad
-                                                // v73 FIX (bug de la duena): si el jugador
+                                                // v74 FIX (bug de la duena): si el jugador
                                                 // ya tenia una inmunidad (de otra caja
                                                 // invulnerable o de los i-frames del golpe)
                                                 // la caja nueva NO refrescaba la duracion
@@ -2567,7 +2561,18 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 if(!variable_instance_exists(global.player, "bootsTimer") || global.player.bootsTimer <= 0)
                                                 {
                                                         global.player.bootsTimer = ITEMBOX_BOOTS_TIME;
-                                                        audio_play_sound(snd_spring, 0, false);
+                                                        
+                                                        // v69 (BOTAS CON MUSICA) — RESTAURADO EN v72: loop
+                                                        // snd_speedboost durante el efecto y la musica del
+                                                        // nivel se calla (metodo anti-camping: duck). Este
+                                                        // bloque se perdio al integrar v69 a mano: los
+                                                        // end-paths de scr_move_basic/scr_player_hurt si
+                                                        // entraron, la activacion no — quedaba el snd_spring
+                                                        // viejo y el duck jamas se llamaba (la musica de las
+                                                        // botas nunca sonaba). El audio dura 32.8 s y sobra
+                                                        // para ITEMBOX_BOOTS_TIME: se apaga al expirar.
+                                                        audio_play_sound(snd_speedboost, 0, true);
+                                                        scr_music_duck();
                                                 }
                                                 break;
                                 }
@@ -3841,6 +3846,15 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // (dos canciones a la vez). Vale igual para el
                         // broadcast y para el re-envio al que se reconecta.
                         scr_stop_map_music();
+
+                        // v69 (BOTAS) — RESTAURADO EN v72: corte de seguridad —
+                        // si llegan botas activas al show, apagar el loop
+                        // snd_speedboost y devolverle el volumen a la musica
+                        // ANTES de la cancion del show (mismo espiritu que el
+                        // scr_stop_map_music de arriba). El efecto (velocidad)
+                        // sigue corriendo: solo se corta el audio.
+                        audio_stop_sound(snd_speedboost);
+                        scr_music_unduck();
 
                         scr_lms_play_song(_lmsChar, _lmsSong);
                         instance_create_depth(0, 0, 0, obj_lms_banner);
@@ -5310,6 +5324,13 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // se muere solo con el cambio de room — sin esto se
                         // colaba ENCIMA de la musica del ending.
                         scr_stop_map_music();
+                        
+                        // v69 (BOTAS) — RESTAURADO EN v72: mismo corte antes de
+                        // ir a la room de resultados (que pone su musica de
+                        // ending): apagar el loop de botas y devolver el
+                        // volumen de la musica.
+                        audio_stop_sound(snd_speedboost);
+                        scr_music_unduck();
                         
                         gameEnds = true;
                         isReady = true;

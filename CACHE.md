@@ -529,14 +529,16 @@
       nunca coincide con un cliente real). El Exe rompe atacando
       (scr_collision_objects SIN cambios: EXE en la lista de ataque,
       invisible sigue sin poder — anti-grief) y todos ven la caja
-      romperse; nadie aplica el buff. MISMO veto en KindAndFair.c
-      CLIENT_KAFMONITOR_ACTIVATE para los monitores Kaf (el boost Kaf
-      es un buff: pid 0). Cliente (defensa en profundidad contra
-      binarios mezclados viejo/nuevo): net_state_game.gml tiene 2
-      guardas nuevas if(global.character == CHARACTER_EXE) break;
-      justo tras el check obj_netclient.nid != _pid — una en el case
-      SERVER_BOX_STATE state 2 (rewards de caja) y otra en
-      SERVER_KAFMONITOR_STATE state 2 (boost Kaf). CHARACTER_EXE lo
+      romperse; nadie aplica el buff. v74: los monitores Kaf de
+      KindAndFair.c QUEDAN FUERA del veto (orden de la duena) —
+      KindAndFair.c byte-a-byte intacto; quien rompe un monitor Kaf
+      cobra el boost, Exe incluido, como siempre. Cliente (defensa en
+      profundidad contra binarios mezclados viejo/nuevo):
+      net_state_game.gml tiene 1 guarda nueva if(global.character ==
+      CHARACTER_EXE) break; justo tras el check obj_netclient.nid !=
+      _pid, SOLO en el case SERVER_BOX_STATE state 2 (rewards de
+      caja); la seccion SERVER_KAFMONITOR_STATE queda SIN guarda
+      (KAF original). CHARACTER_EXE lo
       comparten las 6 variantes de killer (Original/Chaos/Exetior/
       Exeller/MetalAmy/Jinna: global.exeCharacter lleva la variante).
       Cero paquetes nuevos / protocolo intacto.
@@ -566,7 +568,7 @@
                           libdisnet.so + fuente Android).
 - disasterserver/, data/ . (auxiliares del proyecto).
 
-### 3.7 SQUASH & STRETCH — WSS v72 (port del mod Lua de SRB2, 2026-11-23; RETUNED v73)
+### 3.7 SQUASH & STRETCH — WSS v72 (port del mod Lua de SRB2, 2026-11-23; RETUNED v73, ENTREGADO EN v74)
 - scripts/scr_wss/scr_wss.gml = TODO el sistema (4 funciones + 16 macros
   WSS_*): scr_wss_update (jugador local, la engancha el FINAL de
   scr_collision_basic — los 22 personajes la llaman desde su Step_0
@@ -586,8 +588,8 @@
   K=0.035 D=0.88, overshoot -0.138 (~31% de la amplitud, misma
   proporcion que v72), 3 cruces, 60 frames — calibrado por
   simulacion).
-- v73 RETUNE (feedback: "la caida se nota un poco pero el salto y lo
-  demas no se nota mucho"): WSS_STRETCH_MAX 0.35->0.45,
+- v73/v74 RETUNE (feedback: "la caida se nota un poco pero el salto y
+  lo demas no se nota mucho"; la v73 nunca se aplico — v74 la entrega): WSS_STRETCH_MAX 0.35->0.45,
   WSS_TAKEOFF_GAIN 0.045->0.085, WSS_AIRFLOW_GAIN 0.030->0.055,
   WSS_SQUASH_MAX 0.30->0.42, WSS_IMPACT_GAIN 0.030->0.050,
   WSS_STATE_SQUASH 0.18->0.24, WSS_SMOOTH_DECAY 0.12->0.10.
@@ -622,12 +624,13 @@
   cortocircuitar en el codigo original y no existen en todos).
 - Macros tuneables desde el Suite (motor #macro de AnimCore, patron
   ITEMBOX_*_TIME v70). WSS_ENABLED 0 = sistema apagado, draws
-  identicos. Validador: check_v73.py (SUSTITUYE a check_v72.py:Lexer
-  balance 28 GML, parches v72 intactos + valores v73 exactos, fix
-  inmunidad y exe-denial verificados, gcc -fsyntax-only de los 2 .c
-  del server con stub enet auto-generado, .yyp 2542 recursos sin
-  dupes, superficie git nucleo v73 (+v72 si sigue sin commitear),
-  cero protocolo/netclient, simulacion numerica completa con los
+  identicos. Validador: check_v74.py (SUSTITUYE a check_v73.py: lexer
+  balance 28 GML, parches v72 intactos + valores v74 exactos, fix
+  inmunidad y exe-denial SOLO-cajas-nuevas verificados, KindAndFair.c
+  PRISTINO exigido, musica de botas de la duena protegida como
+  invariante, gcc -fsyntax-only de los .c del server con stub enet
+  auto-generado, .yyp 2542 recursos sin dupes, superficie git nucleo
+  v74, cero protocolo/netclient, simulacion numerica completa con los
   macros nuevos).
 
 ## 4. PERSONAJES
@@ -758,10 +761,11 @@
   validacion en el sandbox — NO commitear.
 - REGLA: cambios de stats/habilidades/validacion tocan cliente Y server
   (recompilar); cambios solo visuales (draw/indicadores) no tocan server.
-- v73 (2026-11-23): PRIMER cambio server-side desde v68 —
-  entities/ItemBoxMap.c y maps/KindAndFair.c ganan el veto de Exe en
-  los handlers CLIENT_BOX_ACTIVATE / CLIENT_KAFMONITOR_ACTIVATE
-  (reward pid 0 si game.exe == v->id; ver 3.4.2 v73-A). gcc
+- v73/v74 (2026-11-23): PRIMER cambio server-side desde v68 —
+  entities/ItemBoxMap.c gana el veto de Exe en el handler
+  CLIENT_BOX_ACTIVATE (reward pid 0 si game.exe == v->id; ver 3.4.2
+  v73-A). v74: maps/KindAndFair.c QUEDA INTACTO por orden de la
+  duena (monitores Kaf con comportamiento original). gcc
   -fsyntax-only con stub enet (punteros opacos: ENetPeer/ENetHost/
   ENetPacket + ENetPeer.roundTripTime) verifica ambos .c sin traer
   el submodule. La expresion game.exe == v->id es la MISMA que Lib.c
@@ -2019,3 +2023,26 @@ y las pistas nuevas de 20-28s se cortaban).
   completa + logica de las 2 reglas portada. Entregable:
   download/v73_exe_denial_invuln_fix_wss.zip. El usuario debe
   RECOMPILAR el server. El push a GitHub lo hace la duena.
+
+- 2026-11-23 (v74 CORRECCION DE ALCANCE + rebase sobre el commit de la
+  duena): su mensaje fue "espera los de KAF no los cambies esos que
+  trae eso no los cambies en si seguiran funcionando me referia a las
+  cajas nuevas" => (A) KindAndFair.c y la seccion SERVER_KAFMONITOR
+  STATE quedan con comportamiento ORIGINAL (quien rompe cobra, Exe
+  incluido) — el exe-denial aplica SOLO a las cajas nuevas
+  (ItemBoxMap.c + guarda cliente en SERVER_BOX_STATE state 2). (B) El
+  fetch (regla 1) revelo SU commit ef3c5d87 ("ewe"): v72 aplicada
+  byte-exact + SU restauracion de la musica de botas v69 (loop
+  snd_speedboost + scr_music_duck en el case 4 y cortes
+  audio_stop_sound/scr_music_unduck antes del show LMS y de resultados,
+  TODO dentro de net_state_game.gml) — la v73 nunca se aplico. Rebase:
+  arbol reseteado a ef3c5d87 y los 3 parches re-aplicados ENCIMA de su
+  musica (verificado como invariante nuevo en el validador). El zip
+  trae el net_state_game.gml MERGEADO (su musica + fix inmunidad +
+  guarda Exe) — extraerlo sobre su repo al dia es todo lo que hace
+  falta. Validador check_v74.py (SUSTITUYE a check_v73.py) TODOS OK:
+  KindAndFair.c identico a HEAD exigido, 1 guarda (no 2), seccion KAF
+  sin veto y flujo original intacto, musica de botas 1/1/2/2, resto
+  superset del v73. Entregable: download/v74_kaf_original_cajas_exe.zip.
+  OJO si aplico la v73 antes: git checkout -- KindAndFair.c (instruido
+  en LEEME_V74.txt). Server: RECOMPILAR igual (ItemBoxMap.c cambio).

@@ -42,7 +42,7 @@
 //                    2 = Jelly: muelle amortiguado con rebote (overshoot
 //                       ~-0.14 y 3 cruces, calibrado por simulacion a 60fps).
 //
-// v73 RETUNING (feedback de la duena: "la caida se nota un poco pero el
+// v74 RETUNING (feedback de la duena: "la caida se nota un poco pero el
 // salto y lo demas no se nota mucho"): gains al doble, topes +29%/+40% y
 // Smooth un pelin mas lento — estiron del salto 0.315 -> 0.450, aplaste
 // de aterrizaje normal 0.21 -> 0.35. Misma proporcion de rebote Jelly.

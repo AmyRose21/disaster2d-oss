@@ -346,6 +346,15 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   v->id` is the production "is this peer the round's exe" expression
   (Lib.c `disaster_server_peer`) — mirror it verbatim instead of
   inventing a new check.
+- **SCOPE (the v74 lesson): one rule can map to SEVERAL similar
+  systems — confirm the target list with the owner BEFORE patching
+  all of them.** v73 applied "exes get no buffs" to BOTH the new item
+  boxes AND the KAF monitors; the owner corrected: "los de KAF no los
+  cambies ... me referia a las cajas nuevas". v74 reverted the KAF
+  half (KindAndFair.c pristine, no client guard on
+  SERVER_KAFMONITOR_STATE). Cheap prevention: when the delivery names
+  a rule that will touch N systems, LIST the N systems in the delivery
+  note so the owner can veto in one line.
 - **Server-side denial beats client-side for rule 7**: the reward pid
   is decided by the SERVER (itemboxmap_tcpmsg knows PeerData* v), so
   a modded exe client cannot self-award. Client guards
@@ -395,3 +404,33 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   byte-identical (scripts/reapply_v73_c.py is the template). From
   now on: server .c (TAB) patches go through byte-exact Python,
   never the interactive editor.
+
+## v74 — KAF scope correction + rebase onto the owner's own commit — lessons
+
+- **THE OWNER COMMITS THEIR OWN WORK IN PARALLEL — inside the very
+  files we patch.** Fetch found ef3c5d87: v72 applied byte-exact PLUS
+  the owner's own restoration of their lost v69 boots music, with 3
+  new hunks inside net_state_game.gml (the same file the v73 patches
+  targeted). Never assume our previous working tree is the base:
+  FETCH (rule 1), diff remote vs local tree first, then RESET to
+  their commit and re-apply patches on top. The delivered file must
+  carry their work + ours MERGED, or extracting the zip would silently
+  delete their music.
+- **Encode the owner's changes as validator invariants.** check_v74.py
+  gained a section asserting the boots-music lines survive (play+duck
+  1x each, stop+unduck 2x each) — any future rebase/extraction that
+  clobbers their work now fails loudly. When rebasing onto an owner
+  commit that touches a file you patch, protect their hunks too.
+- **Superseding a delivery has a mechanical rule: the new zip carries
+  FULL final versions of every file it touches** (so extracting over
+  any prior state converges to the correct end state) — and for files
+  the OLD delivery touched but the new one must NOT (KindAndFair.c),
+  the LEEME must carry the explicit restore command
+  (`git checkout -- <file>`). A correction without a restore
+  instruction leaves the owner's tree in a half-old state forever.
+- **Divergence analysis before reset:** local tree had v72+v73
+  uncommitted; remote had v72+their music. Comparing
+  `git diff origin/main --stat` per path group proved the 21 draws /
+  puppet / hook / .yyp / scr_wss.yy were byte-identical, so only 3
+  files needed real re-merging — 10 minutes of diffing saved a blind
+  full rebase and documented exactly what the owner applied.
