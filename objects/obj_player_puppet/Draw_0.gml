@@ -125,14 +125,18 @@ if(_parryAuraVisible && scr_parry_char_has(character) && character != CHARACTER_
 // SALLY CANON fase 2: squash & stretch remoto (estira al despegar del
 // salto de pt3, se aplasta al aterrizar en pt4), anclado al suelo igual
 // que en el jugador local. El valor lo deriva el Step de este puppet.
-var _f2xs = image_xscale;
-var _f2ys = image_yscale;
-var _f2yoff = 0;
+// v72 WSS: la escala generica (scr_wss) se compone con la del fase 2
+// de Sally Canon cuando aplica. Anclaje al suelo calculado sobre la
+// escala TOTAL: los pies quedan plantados en cualquier combinacion.
+var _wss = scr_wss_draw();
+var _f2xs = image_xscale * _wss[0];
+var _f2ys = image_yscale * _wss[1];
+var _f2yoff = (sprite_height - sprite_yoffset) * (1 - _f2ys);
 
 if(character == CHARACTER_SALLY_CANON && f2Sq != 0)
 {
-        _f2ys = image_yscale * (1 + f2Sq);
-        _f2xs = image_xscale * (1 - f2Sq * 0.6);
+        _f2ys = image_yscale * _wss[1] * (1 + f2Sq);
+        _f2xs = image_xscale * _wss[0] * (1 - f2Sq * 0.6);
         _f2yoff = (sprite_height - sprite_yoffset) * (1 - _f2ys);
 }
 

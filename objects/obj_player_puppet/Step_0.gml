@@ -30,6 +30,11 @@ if(room == room_act9)
 if(character == -1)
         return;
 
+// v72 WSS: squash & stretch generico del puppet — derivado del yspd
+// y del estado (JUMP/FALL) que YA viajan en CLIENT_PLAYER_DATA: cero
+// bytes nuevos por red (ver scr_wss). Corre para TODOS los remotos.
+scr_wss_puppet_update();
+
 // SALLY CANON fase 2: el squash & stretch del salto (pt3) y del
 // aterrizaje (pt4) se deriva SOLO del estado sincronizado: al ver la
 // transicion pt2->pt3 se estira, pt3->pt4 se aplasta, y decae solo

@@ -251,3 +251,77 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   generalizing the Sally block's condition preserved Rouge exactly and
   allowed deleting the twin. When merging, diff the two blocks FIRST
   and keep every character-specific line nested inside the generic one.
+
+## v72 — WSS port (squash & stretch from SRB2 Lua) — lessons
+
+- **The port target already existed**: Sally Canon's fase 2 (f2Sq /
+  fase2Sq, macros SALLY_CANON_SQ_* at scr_sally_canon_fase2 L61-63) is
+  a one-shot squash&stretch with the ground-anchoring formula
+  `yoff = (sprite_height - sprite_yoffset) * (1 - ys)` — the exact
+  technique WSS needed. When porting a mechanic, grep for a partial
+  implementation first: it sets the house formula AND the feel values.
+- **NEVER touch image_xscale/image_yscale on TD2DR characters**:
+  image_xscale IS the facing direction (scr_move_basic sets ±1 at
+  L706/724/809/814, and the spindash uses `gspd = 12 * image_xscale`
+  — L351 — as a SIGNED speed), and the collision mask scales with
+  both. Cosmetic scale must enter ONLY as multiplicative factors in
+  the body draw_sprite_ext call: `image_xscale * fx, image_yscale * fy`
+  plus a y offset. Physics and hitboxes stay byte-identical.
+- **The body draw line is unique per character file** — all 22 Draw_0
+  share the prefix `draw_sprite_ext(sprite_index, image_index,
+  floor(x), floor(y), image_xscale, image_yscale,` and then diverge
+  (tails: attackCharge in rotation; chaos: _angle var; amy_canon:
+  isLightDashing; killers: shockedTimer in alpha). Patch the shared
+  prefix, keep each file's own tail. Verify count==1 per file first.
+- **scr_collision_basic is the perfect once-per-frame hook**: all 22
+  character Step_0 files call it directly AFTER scr_move_basic (which
+  only calls it itself in early-return paths and Amy Canon's light
+  dash). It resolves isGrounded inside (L376-462 check functions), so
+  its END sees the frame's final grounding. Double calls on rare
+  frames (light dash, not-ready) are harmless if the update is
+  designed re-runnable: edge triggers consume state, decays are
+  per-call — design for idempotence anyway.
+- **Puppets already receive yspd/xspd/state in CLIENT_PLAYER_DATA**
+  (net_udpprocess L97-104) and JUMP=3/FALL=4 are SHARED state macros
+  (scr_survivors L4-5) used generically across characters — so remote
+  squash&stretch costs ZERO new network bytes. But only DISCRETE
+  events work there: continuous styles would read slope-running
+  (WALK state with yspd≈2-4) as "airborne". Known gap: spin-jumps
+  travel as state SPIN (`if(isSpinning) { state = SPIN; return; }`
+  in Step_2 state machines) so they don't stretch on remote screens.
+- **Read-after-exists for lazily declared vars**: justJumped /
+  isSpinCharging / gspd are NOT declared in every character's Create
+  (the original code only reads them behind && short-circuits or in
+  character-specific branches). Every new read of a non-universal var
+  goes behind variable_instance_exists — the v71 crash class.
+- **Tuning by simulation instead of guessing**: the jelly spring
+  constants (K=0.035, DAMP=0.88) were picked by porting the exact
+  per-frame math to Python and sweeping (K, DAMP) until overshoot
+  ~-0.108 with 3 crossings settling in 51 frames. check_v72.py re-runs
+  that simulation against the MACRO VALUES PARSED FROM THE GML, so
+  retuning via Suite macros that breaks the feel budget fails the
+  validator.
+- **Validator gotchas this round**: (a) git porcelain quotes paths
+  with spaces ("Sonicexe The Disaster 2D Remake.yyp") — strip quotes
+  before comparing; (b) untracked NEW directories appear as the dir
+  (?? scripts/scr_wss/), not per-file; (c) decorative comment banners
+  (`// ====...`) trip naive `===` regexes — strip comments (with a
+  string-aware lexer) before syntax pattern checks; (d) macro-usage
+  checks must ignore comments (the Lua function names in prose match
+  WSS_\\w+); (e) NEVER `.strip()` the whole `git status --porcelain`
+  output — the first line " M path" loses its leading space and
+  `l[3:]` then eats the first letter of the filename (CACHE.md ->
+  ACHE.md). Parse per-line only.
+- **Zip manifest from `git status` must expand untracked dirs**: the
+  porcelain line for a brand-new directory is the DIRECTORY itself;
+  feeding that list to `zip -@` ships an empty dir entry and NO files
+  (caught in verification: fresh clone + unzip + diff showed
+  "Only in repo: scr_wss.gml" — the whole feature would have been
+  missing). Always `find <dir> -type f` each directory entry before
+  zipping, then verify the roundtrip: fresh clone -> unzip -> diff -rq
+  -> run the validator FROM THE EXTRACTED TREE (that is the exact
+  state the owner's repo will be in).
+- **Decay on the trigger frame is Lua parity**: SRB2's PreThinkFrame
+  runs Stretch→Squash→ReturnScale in sequence, so the return animation
+  eats into the trigger's first frame (0.35 → 0.277 visible). Keep it
+  when porting, and encode it in the simulation assertions.

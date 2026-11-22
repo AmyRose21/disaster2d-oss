@@ -17,7 +17,11 @@ if(effectTime > 0)
 //Actual draw
 
 	scr_palette_swap(global.palleteFrom, global.palleteTo);
-	draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
+	// v72 WSS: escala squash & stretch del cuerpo (scr_wss),
+	// anclada al suelo — solo visual: la fisica y la mascara
+	// de colision no cambian. [fx, fy, yoff].
+	var _wss = scr_wss_draw();
+	draw_sprite_ext(sprite_index, image_index, floor(x), floor(y + _wss[2]), image_xscale * _wss[0], image_yscale * _wss[1], isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
 	shader_reset();
 
 if(shieldTimer > 0)

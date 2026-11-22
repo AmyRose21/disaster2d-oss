@@ -18,16 +18,13 @@ if(effectTime > 0)
 // (despegue del salto), fase2Sq < 0 = aplastada (aterrizaje). Rebota
 // sola a 0 (scr_sally_canon_fase2). La escala se ancla al SUELO: los
 // pies quedan plantados y el cuerpo se estira/aplasta hacia arriba.
-var _f2xs = image_xscale;
-var _f2ys = image_yscale;
-var _f2yoff = 0;
-
-if(fase2Sq != 0)
-{
-        _f2ys = image_yscale * (1 + fase2Sq);
-        _f2xs = image_xscale * (1 - fase2Sq * 0.6);
-        _f2yoff = (sprite_height - sprite_yoffset) * (1 - _f2ys);
-}
+// v72 WSS: la escala del fase 2 se compone con la del WSS generico
+// (scr_wss). El anclaje al suelo se calcula sobre la escala TOTAL;
+// con los dos sistemas en reposo el draw queda igual que siempre.
+var _wss = scr_wss_draw();
+var _f2xs = image_xscale * _wss[0] * (1 - fase2Sq * 0.6);
+var _f2ys = image_yscale * _wss[1] * (1 + fase2Sq);
+var _f2yoff = (sprite_height - sprite_yoffset) * (1 - _f2ys);
 
 //Actual draw
 

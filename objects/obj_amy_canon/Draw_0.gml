@@ -87,7 +87,11 @@ if(parryState == 2)
         // light dash el rayo volaba DE LADO hacia los anillos de ARRIBA sin girar
         // (el puppet remoto si giraba: el local era el unico ciego). Ahora el
         // dash manda sobre la bola: si esta volando como rayo, SIEMPRE rota.
-        draw_sprite_ext(sprite_index, image_index, floor(x), floor(y), image_xscale, image_yscale, (isSpinning && !isLightDashing) ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
+        // v72 WSS: escala squash & stretch del cuerpo (scr_wss),
+        // anclada al suelo — solo visual: la fisica y la mascara
+        // de colision no cambian. [fx, fy, yoff].
+        var _wss = scr_wss_draw();
+        draw_sprite_ext(sprite_index, image_index, floor(x), floor(y + _wss[2]), image_xscale * _wss[0], image_yscale * _wss[1], (isSpinning && !isLightDashing) ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
         shader_reset();
 
 // ESTADO BURBUJA: dibuja la burbuja de secuestro ENCIMA de Amy.

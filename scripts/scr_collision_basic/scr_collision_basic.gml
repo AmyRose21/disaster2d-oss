@@ -666,4 +666,10 @@ function scr_collision_basic()
 	scr_collision_check_bottom(_near);
 	
 	scr_collision_objects_after();
+	
+	// v72 WSS: squash & stretch del jugador local (port del mod Lua
+	// de SRB2, ver scr_wss.gml). Enganchado AQUI porque los 22
+	// personajes llaman scr_collision_basic desde su Step_0 despues
+	// de resolver el suelo: isGrounded/yspd ya son los del frame.
+	scr_wss_update();
 }

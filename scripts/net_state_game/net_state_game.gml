@@ -2547,7 +2547,18 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 if(!variable_instance_exists(global.player, "bootsTimer") || global.player.bootsTimer <= 0)
                                                 {
                                                         global.player.bootsTimer = ITEMBOX_BOOTS_TIME;
-                                                        audio_play_sound(snd_spring, 0, false);
+                                                        
+                                                        // v69 (BOTAS CON MUSICA) — RESTAURADO EN v72: loop
+                                                        // snd_speedboost durante el efecto y la musica del
+                                                        // nivel se calla (metodo anti-camping: duck). Este
+                                                        // bloque se perdio al integrar v69 a mano: los
+                                                        // end-paths de scr_move_basic/scr_player_hurt si
+                                                        // entraron, la activacion no — quedaba el snd_spring
+                                                        // viejo y el duck jamas se llamaba (la musica de las
+                                                        // botas nunca sonaba). El audio dura 32.8 s y sobra
+                                                        // para ITEMBOX_BOOTS_TIME: se apaga al expirar.
+                                                        audio_play_sound(snd_speedboost, 0, true);
+                                                        scr_music_duck();
                                                 }
                                                 break;
                                 }
@@ -3821,6 +3832,15 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // (dos canciones a la vez). Vale igual para el
                         // broadcast y para el re-envio al que se reconecta.
                         scr_stop_map_music();
+
+                        // v69 (BOTAS) — RESTAURADO EN v72: corte de seguridad —
+                        // si llegan botas activas al show, apagar el loop
+                        // snd_speedboost y devolverle el volumen a la musica
+                        // ANTES de la cancion del show (mismo espiritu que el
+                        // scr_stop_map_music de arriba). El efecto (velocidad)
+                        // sigue corriendo: solo se corta el audio.
+                        audio_stop_sound(snd_speedboost);
+                        scr_music_unduck();
 
                         scr_lms_play_song(_lmsChar, _lmsSong);
                         instance_create_depth(0, 0, 0, obj_lms_banner);
@@ -5290,6 +5310,13 @@ function net_state_game(rbuff, nps, isPasstrough)
                         // se muere solo con el cambio de room — sin esto se
                         // colaba ENCIMA de la musica del ending.
                         scr_stop_map_music();
+                        
+                        // v69 (BOTAS) — RESTAURADO EN v72: mismo corte antes de
+                        // ir a la room de resultados (que pone su musica de
+                        // ending): apagar el loop de botas y devolver el
+                        // volumen de la musica.
+                        audio_stop_sound(snd_speedboost);
+                        scr_music_unduck();
                         
                         gameEnds = true;
                         isReady = true;

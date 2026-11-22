@@ -529,6 +529,55 @@
                           libdisnet.so + fuente Android).
 - disasterserver/, data/ . (auxiliares del proyecto).
 
+### 3.7 SQUASH & STRETCH — WSS v72 (port del mod Lua de SRB2, 2026-11-23)
+- scripts/scr_wss/scr_wss.gml = TODO el sistema (4 funciones + 16 macros
+  WSS_*): scr_wss_update (jugador local, la engancha el FINAL de
+  scr_collision_basic — los 22 personajes la llaman desde su Step_0
+  despues de resolver el suelo), scr_wss_puppet_update (puppets,
+  enganchada en obj_player_puppet/Step_0 antes del bloque f2 de Sally
+  Canon), scr_wss_return (vuelta al reposo, compartida) y scr_wss_draw
+  (devuelve [fx, fy, yoff]; identidad [1,1,0] si wssSq==0/apagado/sin
+  datos => el draw queda bit-a-bit igual).
+- QUE HACE: el cuerpo se estira al despegar (salto/pendiente) y se
+  aplasta al aterrizar (impacto = ultimo yspd en el aire), con vuelta
+  sharp/smooth/jelly. Estilos por macro (como el Lua): STRETCH Classic
+  (flanco de despegue + justJumped para el coyote) / Airflow (continuo
+  por |yspd|); SQUASH Landing (impacto) / State (cambio de sprite en
+  suelo, salta bola/carga/aterrizaje) / Speed (postura por |gspd|,
+  saturando en WSS_SPEED_FULL=12, asignacion absoluta como el Lua);
+  RETURN Sharp/Smooth (decay 0.12 = feel del fase 2)/Jelly (muelle
+  K=0.035 D=0.88, overshoot ~10%, 3 cruces, 51 frames — calibrado por
+  simulacion).
+- ANCLAJE AL SUELO (mismo metodo que _f2yoff): yoff = (sprite_height -
+  sprite_yoffset) * (1 - escalaY_total) => el pie queda plantado.
+- DONDE SE APLICA: los 22 Draw_0 de personajes (linea base
+  draw_sprite_ext del cuerpo + helper scr_wss_draw; la rotacion/alpha
+  propios de cada uno quedan intactos), obj_sally_canon Draw (compone
+  con su fase2Sq: multiplicativo, yoff sobre la escala TOTAL) y
+  obj_player_puppet Draw (compone con f2Sq igual). NO aplica a: estelas
+  ghost (copian image_xscale crudo), powerboost aura, escudos/burbujas
+  (draw aparte), Draw_64/72/76 (GUI/animacion, no dibujan cuerpo).
+- PUPPETS: SOLO eventos discretos (despegue/aterrizaje) derivados del
+  yspd + state JUMP/FALL que YA viajan en CLIENT_PLAYER_DATA — cero
+  bytes nuevos de red. LIMITACION CONOCIDA: el salto en bola viaja
+  como state SPIN => en pantallas ajenas ese salto no estira (en la
+  del dueno si). Correr pendiente (WALK + yspd!=0) NO dispara squash
+  falso (verificado por simulacion en check_v72).
+- image_xscale/image_yscale JAMAS se tocan (image_xscale es la
+  DIRECCION: gspd = 12 * image_xscale en el spindash; y la mascara de
+  colision escala con ellos) — la escala WSS solo entra multiplicada
+  en los argumentos del draw_sprite_ext.
+- Guards (leccion v71): scr_wss_update exige isGrounded+yspd
+  declarados; scr_wss_puppet_update exige yspd (pre-primer-paquete);
+  scr_wss_draw exige wssSq. Lecturas de justJumped/isSpinning/
+  isSpinCharging/gspd siempre tras variable_instance_exists (&& puede
+  cortocircuitar en el codigo original y no existen en todos).
+- Macros tuneables desde el Suite (motor #macro de AnimCore, patron
+  ITEMBOX_*_TIME v70). WSS_ENABLED 0 = sistema apagado, draws
+  identicos. Validador: check_v72.py (balance lexer GML, parches
+  exactos, .yyp 2542 recursos sin dupes, superficie git == 30 archivos,
+  cero red/server, simulacion numerica de triggers/returns/anclaje).
+
 ## 4. PERSONAJES
 ### Survivors (macros en scripts/scr_survivors/scr_survivors.gml, base TAILS=1)
 - CHARACTER_TAILS(1) ..... obj_tails (vuela; tails_projectile).
@@ -1872,3 +1921,18 @@ y las pistas nuevas de 20-28s se cortaban).
   project files touched, net surface clean, logic simulation: AmyCanon
   set -> tick 300 frames -> expire -> re-set, hit absorption hurttime=60
   shieldTimer=0, Sally single decrement per frame via skip-list).
+
+- 2026-11-23 (WSS v72): port del mod Lua de SRB2
+  "L_WackyStretchyandSquashy" (squash & stretch del cuerpo) — seccion
+  3.7 nueva. 30 archivos: scr_wss.gml+scr_wss.yy NUEVOS (carpeta
+  Scripts/Players), hook al final de scr_collision_basic, 21 Draw_0 de
+  personajes (linea base del cuerpo + scr_wss_draw), obj_sally_canon
+  Draw (compone con fase2Sq), puppet Create/Step/Draw (vars + update +
+  composicion), .yyp 2541->2542 y .resource_order +1. Cero red/cero
+  server/cero fisica (solo args del draw_sprite_ext del cuerpo;
+  image_xscale direccion intacto). Validador check_v72.py TODO OK
+  (lexer balance 27 GML, parches 1-vez, JSON de proyecto, superficie
+  git exacta, simulacion: takeoff 0.315, impacto satura, sharp 12f /
+  smooth 28f / jelly 51f 3 cruces overshoot -0.108, anclaje al suelo
+  exacto, puppet sin squash falso en pendientes). Entregable:
+  download/v72_wss_squash_stretch.zip.

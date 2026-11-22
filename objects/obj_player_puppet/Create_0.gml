@@ -93,6 +93,14 @@ potatoTimer = 0;
 f2Sq = 0;
 f2LastState = 0;
 
+// v72 WSS: squash & stretch generico del puppet (derivado del yspd
+// y del estado que YA viajan; ver scr_wss). Mismas variables que el
+// jugador local para que scr_wss_return / scr_wss_draw sirvan igual.
+wssSq = 0;
+wssVel = 0;
+wssWasAir = false;
+wssAirYspd = 0;
+
 // SALLY CANON fase DUELISTA (v5.4): la marca llega con el bitflag
 // PLAYER_POWERBOOST (sticky: una vez vista, se queda hasta el fin de
 // la ronda) y las dos patadas de la patada en tierra (estado 22) se

@@ -69,6 +69,7 @@
     {"name":"scr_parry","order":7,"path":"scripts/scr_parry/scr_parry.yy",},
     {"name":"scr_powerboost_fx","order":5,"path":"scripts/scr_powerboost_fx/scr_powerboost_fx.yy",},
     {"name":"scr_sally_canon_fase2","order":6,"path":"scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.yy",},
+    {"name":"scr_wss","order":1,"path":"scripts/scr_wss/scr_wss.yy",},
     {"name":"shd_amy_cyber","order":1,"path":"shaders/shd_amy_cyber/shd_amy_cyber.yy",},
     {"name":"hitspark_snd_awehit10","order":1,"path":"sounds/hitspark_snd_awehit10/hitspark_snd_awehit10.yy",},
     {"name":"hitspark_snd_awehit11","order":2,"path":"sounds/hitspark_snd_awehit11/hitspark_snd_awehit11.yy",},
