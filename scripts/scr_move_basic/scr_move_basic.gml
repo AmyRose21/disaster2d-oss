@@ -264,6 +264,26 @@ function scr_move_basic()
                 return;
         }
         
+        // v62 ITEM BOX v2 — ticks de las dos rewards con duracion. Van ANTES
+        // del isBoosting (independientes: las botas NO son el boost Kaf).
+        // electricShieldTimer: el escudo electrico de la caja (2.5 s, 1 s
+        // mas que el 60*1.5 de Eggman — pedido de la duena). Se apaga solo:
+        // sin break visual. bootsTimer: Power Sneakers clasico de Sonic:
+        // TOPE de carrera +3 y aceleracion x1.5 con CONTROL TOTAL (el
+        // jugador frena cuando quiere — NO la carrera forzada del Kaf).
+        // La estela de fantasmas reusa el effectTime existente (el mismo
+        // mecanismo de ghosts que ya usan los 22 personajes en sus Draw).
+        if(variable_instance_exists(id, "electricShieldTimer") && electricShieldTimer > 0)
+                electricShieldTimer--;
+        
+        if(variable_instance_exists(id, "bootsTimer") && bootsTimer > 0)
+        {
+                bootsTimer--;
+                
+                if(effectTime <= 0)
+                        effectTime = 16;
+        }
+        
         if(isBoosting)
         {
                 if(effectTime <= 0)
@@ -644,6 +664,18 @@ function scr_move_basic()
                 {
                         if(!isLookingDown && !isLookingUp)
                         {
+                                // v62 ITEM BOX v2 (botas): tope y aceleracion efectivos.
+                                // Solo mientras bootsTimer > 0: maxHSpeed+3 (de 11 a 14) y
+                                // acc x1.5 — Power Sneakers clasico, control total. El cap se
+                                // calcula una vez por frame ANTES de leer la input.
+                                var _capH = maxHSpeed;
+                                var _acc = acc;
+                                if(variable_instance_exists(id, "bootsTimer") && bootsTimer > 0)
+                                {
+                                        _capH = maxHSpeed + 3;
+                                        _acc = acc * 1.5;
+                                }
+                                
                                 if(global.playerControls && keyboard_check(global.KeyLeft))
                                 {
                                         if(gspd < 0)
@@ -655,11 +687,11 @@ function scr_move_basic()
                                         if (gspd <= 0)
                                             gspd = -0.5;
                                     }
-                                    else if (gspd > -maxHSpeed)
+                                    else if (gspd > -_capH)
                                     {
-                                        gspd -= acc;
-                                        if (gspd <= -maxHSpeed)
-                                            gspd = -maxHSpeed;
+                                        gspd -= _acc;
+                                        if (gspd <= -_capH)
+                                            gspd = -_capH;
                                     }
                                 }
                                 else if (global.playerControls && keyboard_check(global.KeyRight))
@@ -673,11 +705,11 @@ function scr_move_basic()
                                         if (gspd >= 0)
                                             gspd = 0.5;
                                     }
-                                    else if (gspd < maxHSpeed)
+                                    else if (gspd < _capH)
                                     {
-                                        gspd += acc;
-                                        if (gspd >= maxHSpeed)
-                                            gspd = maxHSpeed;
+                                        gspd += _acc;
+                                        if (gspd >= _capH)
+                                            gspd = _capH;
                                     }
                                 }
                                 else

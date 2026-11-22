@@ -35,7 +35,7 @@ Map g_mapList[MAP_COUNT] =
         { CLRCODE_ORG "You Can't Run",          { ycr_init, map_tick, map_tcpmsg, map_left }, 1, 27 }, //4
         { CLRCODE_RED "Limp City",                      { lc_init,      map_tick, lc_tcpmsg,  map_left }, 1, 23 }, //5
         { CLRCODE_RED "Not Perfect",            { np_init,  map_tick, map_tcpmsg, map_left }, 1, 59 }, //6
-        { CLRCODE_ORG "Kind and Fair",          { kaf_init, map_tick, kaf_tcpmsg, map_left }, 1, 31 }, //7
+        { CLRCODE_ORG "Kind and Fair",          { kaf_init, kaf_tick, kaf_tcpmsg, map_left }, 1, 31 }, //7
         { CLRCODE_PUR "Act 9",                          { act9_init,map_tick, map_tcpmsg, map_left }, 1, 38 }, //8
         { CLRCODE_RED "Nasty Paradise",         { nap_init, map_tick, nap_tcpmsg, map_left }, 1, 26 }, //9
         { CLRCODE_PUR "Priceless Freedom",      { pf_init,      map_tick, pf_tcpmsg,  map_left }, 1, 38 }, //10

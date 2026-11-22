@@ -171,3 +171,10 @@ if(lightDashAimLife > 0)
                                   global.KeyA, c_white, 0.7 + 0.3 * _pulse, 0);
         }
 }
+
+// v62 ITEM BOX v2 — escudo electrico de la caja (electricShieldTimer, 2.5 s).
+// Mismo dibujo que el escudo de Eggman (patron obj_egg/Draw_0 L22): sprite
+// compartido spr_electroshield, anim por current_time. Lazy var (coyoteTimer
+// pattern): los personajes sin la variable no la tocan.
+if(variable_instance_exists(id, "electricShieldTimer") && electricShieldTimer > 0)
+        draw_sprite(spr_electroshield, (current_time / 30) % 41, floor(x), floor(y));

@@ -654,6 +654,54 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                                 return;
                         }
                         
+                        // v62 ITEM BOX v2 — ESCUDO ELECTRICO (electricShieldTimer,
+                        // 2.5 s): repele el golpe como el de Sally (bloquea el dano,
+                        // 60f de gracia) PERO ademas ATURDE AL ATACANTE. Canal de la
+                        // casa para "victima -> stun del atacante": el SENALADO
+                        // (net_sound_emit_at, shouldPlay=true) llega al CLIENTE DEL
+                        // ATACANTE y ahi se aplica el stun — exactamente el patron
+                        // scr_parry_stun_signal (snd_exe_stun) del parry de Sonic y
+                        // el CLIENT_SOUND_EMIT de siempre. El nid del atacante es el
+                        // del puppet en rango de golpe que esta atacando.
+                        if(variable_instance_exists(global.player, "electricShieldTimer") && global.player.electricShieldTimer > 0)
+                        {
+                                global.player.hurttime = 60;
+                                global.player.electricShieldTimer = 0;
+                                
+                                // chispa del choque sobre el portador (difundida a todos)
+                                net_quick_effect(global.player.x, global.player.y, spr_shockparticle, false, 1, 0, 0, 0.75);
+                                
+                                // stun al atacante: el puppet atacante mas cercano en rango
+                                // de golpe aporta su nid; la senal targeted (shouldPlay=true)
+                                // aturde al atacante en SU propio cliente.
+                                var _zapNid = -1;
+                                if(instance_exists(obj_player_puppet))
+                                {
+                                        var _zapper = noone;
+                                        var _zd = 64;
+                                        var _pcount = instance_number(obj_player_puppet);
+                                        for(var _pi = 0; _pi < _pcount; _pi++)
+                                        {
+                                                var _pp = instance_find(obj_player_puppet, _pi);
+                                                if(_pp.isDead || _pp.isHiding || !_pp.isAttacking)
+                                                        continue;
+                                                var _d = point_distance(_pp.x, _pp.y, global.player.x, global.player.y);
+                                                if(_d < _zd)
+                                                {
+                                                        _zd = _d;
+                                                        _zapper = _pp;
+                                                }
+                                        }
+                                        if(_zapper != noone)
+                                                _zapNid = _zapper.master_id;
+                                }
+                                
+                                if(_zapNid >= 0)
+                                        net_sound_emit_at(snd_metal_stun, _zapNid);
+                                
+                                return;
+                        }
+                        
                         if((global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON) && global.player.shieldTimer > 0)
                         {
                                 if(global.character == CHARACTER_SALLY && global.player.revivalTimes < 2 && global.player.hp <= 20)

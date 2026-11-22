@@ -51,6 +51,10 @@ deadColor = c_white;
 
 tailsCharge = 0;
 sallyShield = false;
+// v62 ITEM BOX v2 — escudo electrico de la caja de reward (bit 7 compartido con
+// PLAYER_SLIME en el byte de CLIENT_PLAYER_DATA; los demas clientes dibujan
+// spr_electroshield encima del puppet del portador).
+electroShield = false;
 slimeMode = false;
 isDJ = false; // v2.15 «La Torre»: FW Amy volando con el DJ (bitflag PLAYER_DJ)
 

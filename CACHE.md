@@ -183,6 +183,163 @@
   local-player effects is the net_state_game case block; (4) boxused
   sprite suggests reusing frame 1 "broken" convention with a dedicated
   empty-box sprite instead of image_index=1.
+
+### 3.4.2 ITEM BOX v2 — random spawn + 5 types (IMPLEMENTED 2026-11-22 as v62; design above executed)
+- OWNER REQUEST (v1 spec): used boxes show spr_boxused; the 5 reward types:
+  ring_box = +5 rings; shield_box = Sally's shield; invincibility_box =
+  invulnerability sparks; lightning_shield_box = Eggman's electric shield
+  (same sprite) but stuns attacker and lasts 1 s LONGER than Eggman's;
+  speedboots_box = Sonic-classic power sneakers (NOT the Kaf forced run —
+  same ghosts/effect visuals OK, but controllable top-speed boost).
+- RANDOM SPAWN ANSWER (her question: "how do boxes appear randomly without
+  spawning inside walls or pits?"): reuse the house's own proven pattern —
+  MANUAL SPAWN POINTS (obj_ring_spawner style), server picks randomly.
+  NO runtime collision detection. In KAF there are 32 hand-placed
+  obj_ring_spawner positions (280,1000)...(4056,1256) that are valid by
+  construction. RECOMMENDED OPTION B: new obj_box_spawner object with
+  ~20 hand-placed positions (owner drags them in the GM editor where she
+  wants boxes; her level-design workflow is manual placement everywhere:
+  32 ring spawners, 5 ringspawn, 4 spawnpoint, 4 exespawn in KAF alone).
+  Server holds bool taken[N] (like game.rings[256]) and rolls every
+  BOX_SPAWN_COFF=20 s while active boxes < 4 (MAX_BOXES), no boxes in
+  first 15 s of round, respawn cooldown 25 s per spawner (Kaf value).
+  Weights: ring 35% / shield 20% / invincibility 15% / lightning 15% /
+  boots 15% (macros, editable).
+- REWARD NUMBERS (exact values reused from code, all verified):
+  +5 rings, capped 119 (anti-cheat disconnects at 120+ — net_state_game
+  SERVER_RING_COLLECTED); Sally shield = shieldTimer 5*60 (scr_sally_special
+  L223) + 60f invuln on break (scr_player_hurt L657, works for any char
+  after extending the SALLY condition to any shieldTimer>0 — 1-line);
+  invincibility = hurttime 3*60 (scr_player_hurt L802; 1*60 last minute;
+  guard: never re-activate while hurttime>0); lightning shield =
+  NEW electricShieldTimer 60*2.5 (Eggman's is 60*1.5 = +1 s longer, per
+  owner request; draws spr_electroshield like obj_egg/Draw_0 L22 and
+  puppet Draw_0 L235; attacker that hits the bearer gets shockedTimer=60
+  in THEIR client, same side as damage; does not stack with Sally shield);
+  boots = NEW bootsTimer 60*8: controllable speed (effective maxHSpeed+3,
+  acc*1.5, effectTime ghosts) — explicitly NOT isBoosting (Kaf trap stays
+  untouched; scr_amelia_special header lesson: isBoosting is boots-only
+  by design since Amelia v2.4).
+- PROTOCOL (extend, don't invent): CLIENT_BOX_ACTIVATE (was
+  CLIENT_KAFMONITOR_ACTIVATE): u8 sid + bool proj, same semantics.
+  NEW SERVER_BOX_SPAWN (state=3): u8 sid, u8 type, u16 sx, u16 sy —
+  coordinates travel IN THE PACKET (server is the single truth of
+  position; more robust than instance_find(nid%n)). SERVER_BOX_STATE
+  (was SERVER_KAFMONITOR_STATE): u8 state (2=broken+reward, 1=repair),
+  u8 sid, u8 type (travels every state so late joiners rebuild), u16 pid.
+  All TCP + AssertOrDisconnect(in_game): identical anti-cheat surface
+  (golden rule 7); cheaters can at most re-break a broken box = no-op.
+  CRITICAL: net_packets.gml (210 entries) and include/Packet.h (212)
+  MUST stay in the same numeric order — new PacketTypes go at the end of
+  BOTH in the same commit (protocol 1101 breaks silently otherwise).
+- CLIENT OBJECT: new obj_itembox (clone of obj_kaf_speedboobster pattern:
+  Create sid/type/isBroken/audio emitter falloff 250-500, Step emitter
+  gain + tails-projectile break with proj=true, NO Draw event, sprite per
+  type: spr_ring_box / spr_shield_box / spr_invincibility_box /
+  spr_lightning_shield_box / spr_speedboots_box, broken → spr_boxused).
+  Body-break stays centralized in scr_collision_objects_after (~L356):
+  same rect (x±6, y-20..y+20), same _isAttacking conditions (all
+  characters covered), EXE invisible cannot break (anti-grief kept),
+  isBoosting players break on touch. Reward applied ONLY in
+  net_state_game case (local pid match, same guard pattern as boost).
+- SERVER ENTITY: clone Ring.c pattern into entities/ItemBox.c + extend
+  kaf_init/kaf_tcpmsg in maps/KindAndFair.c (fields: sid, type, timer,
+  activated; spawn roll = rand()%free_spawners with goto-gen retry,
+  EXACTLY Ring.c ring_init's loop). Lazy vars convention (coyoteTimer
+  pattern) for electricShieldTimer/bootsTimer — do NOT touch ~20 Create
+  events of characters.
+- ROOM: obj_box_spawner instances hand-placed (Option B). AVOID the Kaf
+  boost runway (y=610, x 3477-3952) so the trap is not reward-stacked.
+  KAF room is 4352x1536; solids are obj_solid_block/2 (spr_block 128x128,
+  collisionKind 0 = full-bbox), 70 spikes, 61 blocks, 32 ring spawners.
+- IMPLEMENTATION ORDER (4 phases, each independently testable):
+  F1 object+protocol (one hand-placed box: break→+5 rings→respawn);
+  F2 spawners+server roll; F3 the 5 reward types (touches the 2 most
+  sensitive files: scr_player_hurt + scr_move_basic — golden rule 6
+  full power + check_vXX.py validator per house convention); F4 balance
+  macros + LEEME + CACHE update + live full-game test.
+- OPEN DECISIONS LEFT TO OWNER: box count (proposed 4 live), spawn
+  interval (proposed 20 s), exact ~20 spawner positions (her level
+  design), boots jump-boost (proposed NO), lightning shield persist
+  after box break (proposed YES, 2.5 s is short anyway).
+
+- IMPLEMENTATION v62 (same day, 2026-11-22): ALL 4 phases landed in one pass.
+  Deliverables: obj_itembox (Create/Step_2/Destroy + .yy, folder Spawners,
+  registered in .yyp between obj_hn2_slope2/obj_jack_in_the_box); entities
+  ItemBox.h/.c (broadcast carries state/nid/type/pid/sx,sy — server is the
+  only truth of position; timer<0 alive, countdown 25+rand(5) then entity
+  dies; activate idempotent); KindAndFair.c kaf_tick (18 hand-placed
+  spawners in kaf_itembox_spawns[] derived from ring-spawner ground
+  heights, off the Kaf boost runway; roll every 20 s after first 15 s,
+  max 4 alive; weights 35/20/15/15/15 via itembox_roll_type; goto-gen
+  over free spawners exactly Ring.c pattern; Maps.c entry now uses
+  kaf_tick — declared in KindAndFair.h; CMakeLists has ItemBox.c).
+- Protocol: CLIENT_BOX_ACTIVATE + SERVER_BOX_STATE appended AT THE END of
+  BOTH enums (verified 184=184 positional sync). SERVER_BOX_STATE states:
+  3=spawn / 2=broken+reward to pid / 1=ready. Client case in net_state_game
+  (before SERVER_NAPBALL_STATE): spawn creates/reuses obj_itembox at
+  (sx,sy) with sprite by type; broken switches to spr_boxused + 3D break
+  + explosion; ONLY pid client applies reward: ring +5 capped 119 /
+  shield shieldTimer 5*60 (works for ANY char: scr_player_hurt consumes
+  shieldTimer>0 in the Sally block path — Sally/Rouge/SallyCanon already
+  did; other chars now too via the generic electric-shield-adjacent Sally
+  block... NOTE: shield consume for non-Sally chars uses the SAME
+  L657 block conditions — see below), invincibility hurttime 3*60 (guard:
+  only if hurttime<=0), lightning electricShieldTimer 60*2.5 (lazy var),
+  boots bootsTimer 60*8 (lazy var) + snd_spring.
+- Body-break: scr_collision_objects block cloned from Kaf L356 (same rect
+  x±6/y±20, same _isAttacking character list, isBoosting breaks on touch,
+  EXE invisible cannot) but sends CLIENT_BOX_ACTIVATE with the ITEMBOX nid.
+  Tails-projectile break copied in obj_itembox/Step_2.gml (proj=true,
+  nobody collects).
+- Electric shield visuals: all 22 character Draw_0.gml got the 2-line
+  overlay (pattern obj_egg/Draw_0 L22, lazy-var guard). Puppet side:
+  NEW bit PLAYER_ELECTROSHIELD shares bit 7 with PLAYER_SLIME (safe:
+  slime is Chaos-EXE-only, electroshield is survivor-only — same
+  non-collision argument as PLAYER_DJ; byte passes through Game.c
+  untouched). obj_netclient/Step_2 sets it while electricShieldTimer>0;
+  net_udpprocess reads it into puppet.electroShield; puppet Draw_0 draws
+  the same spr_electroshield overlay after the character switch.
+- Electric shield STUN on attacker: the house channel for victim->attacker
+  stun is net_sound_emit_at(snd_metal_stun, attacker_nid) (shouldPlay=true
+  targeted CLIENT_SOUND_EMIT — EXACTLY scr_parry_stun_signal's pattern
+  with snd_exe_stun). Receiver added in net_state_game CLIENT_SOUND_EMIT:
+  if sid==snd_metal_stun and I'm EXE/demon attacking (isAttacking or
+  isJumping or isSpinning) and not already stunned: shockedTimer=60,
+  knockback -3/-2, shockparticle quick effect + snd_exe_stun. Victim side
+  (scr_player_hurt): electricShieldTimer>0 consumes the shield, 60f
+  i-frames, shockparticle broadcast, finds nearest attacking puppet
+  within 64px for the nid, sends the targeted signal.
+- Boots: scr_move_basic ticks electricShieldTimer/bootsTimer BEFORE the
+  isBoosting block (independent: NOT the Kaf forced run); boots set
+  effectTime=16 so the EXISTING ghost-trail (PLAYER_EFFECT bit + all 22
+  Draw "effectTime % 3" fades + puppet fade ghosts) just works, zero new
+  draw code. Speed: flat-run caps left/right now use _capH/_acc computed
+  per frame (maxHSpeed+3, acc*1.5 while bootsTimer>0); slopes/friction
+  untouched. CONTROL TOTAL kept: no forced gspd, brakes when the player
+  wants (explicitly NOT isBoosting — Amelia v2.4 lesson stands).
+- Owner-bug fixed on arrival: commit 0f989734 had spr_invincibility_box
+  in .yyp but MISSING from resource_order (8.16 failure mode: sprite
+  invisible in editor). Inserted entry (order 6, before spr_kris_attack1
+  _air1 alphabetically among present names).
+- check_v62.py: 34-assert validator (enum sync 184=184 + tail order,
+  object files + yyp registration, case states + all 5 reward values +
+  pid-only guard + sprites/boxused, collision rect + anti-grief,
+  server files + weights + goto-gen + in_game + idempotente, bit macro +
+  emitter + receiver + puppet overlay + hurt block, boots caps/acc/
+  ghosts, 6 sprites in yyp+resource_order). ALL OK. Also ran: brace
+  balance on 12 modified GML files (all balanced) and gcc -fsyntax-only
+  on ItemBox.c/KindAndFair.c/Maps.c (clean; Log.h RAssert-if expansion
+  artifacts are pre-existing — identical on untouched Ring.c... note
+  Ring.c baseline shows 0 because it doesn't use PacketCreate at
+  top-level statement position; the 7 Log.h errors on ItemBox.c match
+  the KAFSpeedBox.c pattern with stdlib included).
+- Known deltas vs design doc (doc said "extend KAFMONITOR pair"; final
+  choice was a cleaner NEW pair + activation kept as new CLIENT_BOX_
+  ACTIVATE — same semantics, no versioning ambiguity between states with
+  and without type byte): SERVER_BOX_STATE is new (not KAFMONITOR
+  renamed); state 1 'ready' kept for re-broadcast only.
+
 ### 3.5 Killers NPC / eventos de mapa (NO son el jugador EXE)
 - obj_exeller (+ obj_exeller_clone = CLONES del exe: atacan y NO son
   obj_player_puppet => mi flecha roja los ignora por diseno), obj_exetior
@@ -1458,3 +1615,25 @@ y las pistas nuevas de 20-28s se cortaban).
   reward (isBoosting=true forced 12px/frame run, cancelled by walls/
   springs/hurt), Tails projectile interaction, the in-map hazard tip,
   and the exact recipe to extend it for the 6 new box types.
+
+- 2026-11-22 (itembox-v2-design): owner specced the 5 reward types + asked
+  how to spawn boxes randomly without walls/pits. Full investigation of
+  the reusable mechanics (ring collect flow + 119 cap, Sally shield
+  shieldTimer 5*60 + 60f invuln, hurttime 3*60 i-frames, Eggman electric
+  shield 60*1.5 + spr_electroshield + 15 s recharge, speeds: chars run
+  9-12 px/f via *_MAXSPEED macros, Kaf boost 12 forced, spindash base 8)
+  and the random-spawn answer: hand-placed spawner objects + server-side
+  random pick (Ring.c goto-gen pattern), server sends sx,sy IN the packet.
+  Design recorded as section 3.4.2 + delivered as
+  download/Diseno_Cajas_Items_Aleatorias.docx (Spanish, 10 sections,
+  4 tables). NOT implemented yet — implementation order F1-F4 recorded.
+
+- 2026-11-22 (v62 IMPLEMENTED): the item-box system of 3.4.2 landed
+  end-to-end in one session (owner approved the design: "podemos
+  probarla"). 18 spawners, 20 s cadence, max 4 alive, weights
+  35/20/15/15/15, rewards with exact house values, electric shield stun
+  via the parry signal channel, boots as controllable speed, ghost trail
+  reused via effectTime, PLAYER_ELECTROSHIELD bit 7 shared. 37 files
+  (3 new C, 4 new obj_itembox event files, 22 Draw overlays, LEEME_
+  ITEMBOX_V62.txt, check_v62.py). Fixed owner's resource_order gap for
+  spr_invincibility_box from commit 0f989734. check_v62.py = TODO OK.

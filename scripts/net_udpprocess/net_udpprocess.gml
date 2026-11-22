@@ -167,6 +167,11 @@ function net_udpprocess(rbuff)
                                                 if(character == CHARACTER_SALLY || character == CHARACTER_SALLY_CANON)
                                                         sallyShield = bitflags & PLAYER_SALLYSHIELD;
 
+                                                // v62 ITEM BOX v2 — escudo electrico de la caja en el
+                                                // puppet del portador (bit 7 compartido con SLIME: solo
+                                                // Chaos EXE lo usa del otro lado — jamas colisiona).
+                                                electroShield = bitflags & PLAYER_ELECTROSHIELD;
+
                                                 // v32 (HABILIDAD V de Rouge): el ESCUDO DE
                                                 // SALLY del modo SUPPORT viaja con el MISMO bit
                                                 // PLAYER_SALLYSHIELD (la burbuja de su puppet la

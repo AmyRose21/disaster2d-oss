@@ -1,0 +1,113 @@
+=========================================
+ v62 — ITEM BOX v2: CAJAS DE RECOMPENSA
+         ALEATORIAS (Kind and Fair)
+=========================================
+
+QUE ES
+------
+El sistema de cajas de recompensa que pediste, con aparicion
+ALEATORIA por el mapa. Hay 5 tipos de caja (tus 6 sprites de la
+carpeta Itembox), el servidor las sortea entre 18 posiciones
+validas del mapa y nunca aparecen dentro de paredes ni en
+precipicios (las posiciones son fijas y editadas a mano, como los
+spawners de anillos: el servidor solo SORTEA entre ellas).
+
+LOS 5 TIPOS (con tus sprites)
+-----------------------------
+spr_ring_box             -> +5 anillos (tope 119 como siempre)
+spr_shield_box           -> el escudo de Sally (5 s: bloquea un
+                            golpe + invulnerabilidad al romperse)
+spr_invincibility_box    -> invencibilidad (3 s de i-frames, las
+                            chispitas del sprite son el feedback)
+spr_lightning_shield_box -> escudo electrico (el MISMO sprite del
+                            escudo del doctor Eggman, 2.5 s: 1 s
+                            mas que el suyo) — repele el golpe Y
+                            ATURDE AL ATACANTE (1 s de choque)
+spr_speedboots_box       -> botas de velocidad estilo SONIC
+                            clasico (Power Sneakers): 8 s con tope
+                            de carrera +3 y aceleracion x1.5, CON
+                            CONTROL TOTAL — NO es la carrera
+                            forzada del boost de Kaf (esa queda
+                            intacta como trampa del mapa, con las
+                            mismas fantasmillas de estela)
+
+Caja rota -> spr_boxused (tu sprite de caja usada), y a los 25-30 s
+el servidor vuelve a sortear ese punto.
+
+COMO APARECEN
+-------------
+* Maximo 4 cajas vivas a la vez.
+* Una nueva cada 20 segundos (nada los primeros 15 s de ronda).
+* Pesos del sorteo: anillos 35% / escudo 20% / invencibilidad 15% /
+  electrico 15% / botas 15%.
+* Las 18 posiciones estan en el archivo del servidor
+  (KindAndFair.c, tabla kaf_itembox_spawns) — derivadas de las
+  alturas de tus 32 spawners de anillos, desplazadas para no
+  pisarlos y FUERA de la pista de boost (y=610). Si quieres mover
+  alguna, se edita ahi (o me dices y las muevo yo).
+
+QUIEN PUEDE ROMPERLAS
+---------------------
+El mismo convenio del boost de Kaf: cualquier personaje con ataque
+activo (spin, salto de ataque, patada, taladro...), quien va con el
+isBoosting de pasa, y el proyectil de Tails las revienta. El EXE
+INVISIBLE no puede romperlas (anti-grief conservado) — el EXE
+visible si, y si la rompe el reward se lo lleva igual.
+
+ANTICHEAT
+---------
+Todo TCP ordenado + validacion in_game en el server + la
+recompensa la difunde el SERVIDOR al pid del que rompio (el
+cliente nunca la pide). Re-romper una caja rota = no-op. Los
+anillos siguen con el tope 119 (el server desconecta con 120+).
+
+PARA PROBARLO (tu build normal)
+-------------------------------
+1. Compila el servidor (betterserver-oss): ItemBox.c ya esta en el
+   CMakeLists, no toca nada mas de tu flujo.
+2. Abre el proyecto GM como siempre — obj_itembox ya esta
+   registrado (carpeta Spawners) y los 6 sprites ya estaban.
+3. Entra a Kind and Fair con 2+ jugadores, espera ~15 s y rompe
+   cajas. check_v62.py (python3 check_v62.py) valida todo el
+   sistema si algo no cuadra.
+
+NOTAS DE RED (para futuras sesiones)
+------------------------------------
+* 2 packets nuevos AL FINAL de los DOS enums en el mismo commit:
+  CLIENT_BOX_ACTIVATE y SERVER_BOX_STATE (net_packets.gml +
+  Packet.h, 184=184 verificado).
+* Bit 7 compartido PLAYER_ELECTROSHIELD con PLAYER_SLIME (seguro:
+  slime es solo Chaos EXE, el escudo es solo de supervivientes —
+  jamas colisionan; mismo argumento que PLAYER_DJ).
+* El stun del escudo electrico usa el canal del parry de Sonic:
+  net_sound_emit_at(snd_metal_stun, nid_del_atacante) y el
+  receptor en CLIENT_SOUND_EMIT se aturde a si mismo.
+* spr_invincibility_box estaba en el .yyp pero FALTABA en tu
+  resource_order (bug de tu commit 0f989734 — sprite invisible en
+  el editor): ya lo agregue yo ahi.
+
+ARCHIVOS NUEVOS
+---------------
+objects/obj_itembox/ (Create, Step_2, Destroy, .yy)
+betterserver-oss/include/entities/ItemBox.h
+betterserver-oss/disasterserver/entities/ItemBox.c
+check_v62.py
+este LEEME
+
+ARCHIVOS MODIFICADOS
+--------------------
+Sonicexe The Disaster 2D Remake.yyp (registro obj_itembox)
+Sonicexe The Disaster 2D Remake.resource_order (fix spr_invincibility_box)
+scripts/net_packets/net_packets.gml (+2 packets, +1 macro bit)
+scripts/net_state_game/net_state_game.gml (case SERVER_BOX_STATE + receptor metal stun)
+scripts/net_udpprocess/net_udpprocess.gml (bit del escudo)
+scripts/scr_collision_objects/scr_collision_objects.gml (rotura por cuerpo)
+scripts/scr_move_basic/scr_move_basic.gml (ticks + botas)
+scripts/scr_player_hurt/scr_player_hurt.gml (escudo electrico repele + aturde)
+objects/obj_netclient/Step_2.gml (bit del escudo)
+objects/obj_player_puppet/Create_0.gml + Draw_0.gml (escudo en puppets)
+Draw_0.gml de los 22 personajes (overlay spr_electroshield)
+betterserver-oss/disasterserver/maps/KindAndFair.c (spawners + roll + tick)
+betterserver-oss/disasterserver/Maps.c (kaf_tick)
+betterserver-oss/include/maps/KindAndFair.h (decl kaf_tick)
+betterserver-oss/disasterserver/CMakeLists.txt (ItemBox.c en SOURCES)

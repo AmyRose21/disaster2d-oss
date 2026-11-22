@@ -365,7 +365,20 @@ typedef enum
            del cliente (net_packets.gml); añadido AL FINAL en los DOS
            lados. */
         CLIENT_JINNA_NEGATOUCH,
-        SERVER_JINNA_NEGATOUCH_STATE
+        SERVER_JINNA_NEGATOUCH_STATE,
+
+        /* v62 ITEM BOX v2 (cajas de recompensa aleatorias). Mismo
+           protocolo que KAFMONITOR extendido con byte de TIPO y
+           posiciones explicitas: el server sortea el spawner y difunde
+           sx,sy EN el paquete (unica verdad de posicion: ningun cliente
+           adivina con instance_find). SERVER_BOX_STATE (state u8):
+           3=spawn (nid,type,pid_dummy,sx,sy) / 2=rota+reward a pid /
+           1=ready. CLIENT_BOX_ACTIVATE (nid, proj): romper la caja nid —
+           recompensa difundida por el server al pid validado, nunca
+           pedida por el cliente. Mismo orden que el enum del cliente
+           (net_packets.gml); anadido AL FINAL en los DOS lados. */
+        CLIENT_BOX_ACTIVATE,
+        SERVER_BOX_STATE
 } PacketType;
 
 typedef struct

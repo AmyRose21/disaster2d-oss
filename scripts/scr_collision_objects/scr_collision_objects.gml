@@ -388,6 +388,47 @@ function scr_collision_objects_after()
                 }
         }
         
+        // v62 ITEM BOX v2 — rotura por cuerpo. MISMO rectangulo y MISMAS
+        // condiciones de ataque que el Kaf de arriba (la lista cubre a
+        // todos los personajes con ataque; isBoosting la rompe de pasadita;
+        // EXE invisible no puede — anti-grief conservado). La diferencia:
+        // el paquete lleva el nid de ITEM BOX (CLIENT_BOX_ACTIVATE) y el
+        // server difunde el reward al pid de ESTE cliente.
+        var _boxInst = collision_rectangle(x - 6, y - 20, x + 6, y + 20, obj_itembox, false, true);
+        if(_boxInst != noone && !_boxInst.isBroken)
+        {
+                var _boxAttacking = false;
+                var ch2 = global.character;
+        
+                if(global.player.isAttacking && (ch2 == CHARACTER_EXE || (ch2 == CHARACTER_AMY || ch2 == CHARACTER_AMY_CANON) || ch2 == CHARACTER_KNUX || ch2 == CHARACTER_EGGMAN || ch2 == CHARACTER_SALLY || ch2 == CHARACTER_SALLY_CANON || ch2 == CHARACTER_SONIC))
+                        _boxAttacking = true;
+                                
+                if((ch2 == CHARACTER_AMY || ch2 == CHARACTER_AMY_CANON) && global.player.state == AMY_HJUMP)
+                        _boxAttacking = true;
+                
+                if(global.player.isJumping || global.player.state == FALL && (ch2 == CHARACTER_AMY || ch2 == CHARACTER_AMY_CANON))
+                         _boxAttacking = true;
+                
+                if(global.player.isSpinning)
+                         _boxAttacking = true;
+                        
+                if(global.player.state == SALLY_SLIDE && ch2 == CHARACTER_SALLY)
+                         _boxAttacking = true;
+                         
+                if(ch2 == CHARACTER_EXE && global.player.invisTimer > 0)
+                        _boxAttacking = false;
+                
+                if(_boxAttacking || isBoosting)
+                {
+                        _boxInst.isBroken = true;
+                        
+                        var pack = cpacket_tcp(PacketType.CLIENT_BOX_ACTIVATE);
+                        buffer_write(pack, buffer_u8, _boxInst.nid);
+                        buffer_write(pack, buffer_bool, false);
+                        send_server_tcp(pack);
+                }
+        }
+        
         if(instance_exists(obj_movingspike))
         {
                 if(obj_movingspike.image_index > 0 && obj_movingspike.image_index < 5 && collision_rectangle(x - 6, y + 19, x + 6, y + 20, obj_movingspike, false, true))

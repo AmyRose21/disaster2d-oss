@@ -116,6 +116,15 @@ with(global.player)
                         
                         if(global.character == CHARACTER_BLAZE && burning > 0)
                                 bitflags |= PLAYER_POWERBOOST;
+                        
+                        // v62 ITEM BOX v2 — escudo electrico de la caja (electricShieldTimer,
+                        // 2.5 s): mismo bit 7 que PLAYER_SLIME (jamas colisionan: slime es
+                        // de Chaos EXE, esto es de supervivientes) para que los demas
+                        // clientes dibujen spr_electroshield en el puppet del portador.
+                        if(global.character != CHARACTER_EXE
+                        && variable_instance_exists(global.player, "electricShieldTimer")
+                        && global.player.electricShieldTimer > 0)
+                                bitflags |= PLAYER_ELECTROSHIELD;
                         if(global.character == CHARACTER_SALLY || global.character == CHARACTER_SALLY_CANON)
                         {
                                 if(shieldTimer > 0)

@@ -369,7 +369,20 @@ enum PacketType
            tope de mitad del lobby). Anadido AL FINAL en los DOS lados
            (mismo orden que include/Packet.h). */
         CLIENT_JINNA_NEGATOUCH,
-        SERVER_JINNA_NEGATOUCH_STATE
+        SERVER_JINNA_NEGATOUCH_STATE,
+
+        /* v62 ITEM BOX v2 (cajas de recompensa aleatorias). Mismo
+           protocolo que KAFMONITOR extendido con byte de TIPO y
+           posiciones explicitas: el server sortea el spawner y difunde
+           sx,sy EN el paquete (unica verdad de posicion: ningun cliente
+           adivina con instance_find). SERVER_BOX_STATE (state u8):
+           3=spawn (nid,type,pid_dummy,sx,sy) / 2=rota+reward a pid /
+           1=ready. CLIENT_BOX_ACTIVATE (nid, proj): romper la caja nid —
+           recompensa difundida por el server al pid validado, nunca
+           pedida por el cliente. Mismo orden que include/Packet.h;
+           anadido AL FINAL en los DOS lados. */
+        CLIENT_BOX_ACTIVATE,
+        SERVER_BOX_STATE
 }
 
 #macro STATE_PENDING -1
@@ -396,3 +409,9 @@ enum PacketType
 #macro PLAYER_DJ 1 << 7        // v2.15/v4.10 «La Torre»: FW Amy volando con el DJ (stun 3,2 s al exe)
 // SONIC: powerboost de Nervios de Acero (estela de fantasmas en el puppet)
 #macro PLAYER_POWERBOOST 1 << 0
+// v62 ITEM BOX v2 — escudo electrico de la caja de reward. COMPARTIR el bit 7
+// con PLAYER_SLIME es seguro por el mismo argumento de PLAYER_DJ: SLIME solo
+// lo usa Chaos (un EXE) y el electroshield solo lo llevan supervivientes con
+// la recompensa activa — jamas colisionan. El byte viaja tal cual (el server
+// solo interpreta PLAYER_ATTACKING).
+#macro PLAYER_ELECTROSHIELD 1 << 7

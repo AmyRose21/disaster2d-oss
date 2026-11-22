@@ -3,6 +3,7 @@
 #include "../Maps.h"
 
 bool kaf_init		(Server* server);
+bool kaf_tick		(Server* server);
 bool kaf_tcpmsg	(PeerData* v, Packet* packet);
 
 #endif

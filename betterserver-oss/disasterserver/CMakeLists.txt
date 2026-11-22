@@ -80,6 +80,7 @@ set(SOURCES
         "entities/YouCantRun.c"
         "entities/TCAcid.c"
         "entities/KAFSpeedBox.c"
+        "entities/ItemBox.c"
         "entities/TailsDoll.c"
         "entities/DTBall.c"
         "entities/DTStalactits.c"

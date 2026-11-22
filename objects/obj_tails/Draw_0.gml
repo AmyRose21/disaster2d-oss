@@ -20,3 +20,10 @@ if(effectTime > 0)
 
 if(attackCharge > 0)
 	draw_sprite_ext(spr_tailscharge, floor((((attackCharge / 60)) / 3.5) * 100), x + image_xscale * 24, y, image_xscale, 1, 0, c_white, 1);
+
+// v62 ITEM BOX v2 — escudo electrico de la caja (electricShieldTimer, 2.5 s).
+// Mismo dibujo que el escudo de Eggman (patron obj_egg/Draw_0 L22): sprite
+// compartido spr_electroshield, anim por current_time. Lazy var (coyoteTimer
+// pattern): los personajes sin la variable no la tocan.
+if(variable_instance_exists(id, "electricShieldTimer") && electricShieldTimer > 0)
+        draw_sprite(spr_electroshield, (current_time / 30) % 41, floor(x), floor(y));

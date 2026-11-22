@@ -2303,6 +2303,166 @@ function net_state_game(rbuff, nps, isPasstrough)
                         break;
                 }
                 
+                // v62 ITEM BOX v2 (cajas de recompensa aleatorias). Clon del
+                // convenio KAFMONITOR con tres extensiones: byte de TIPO,
+                // posiciones explicitas (el server es la unica verdad de
+                // posicion: el paquete trae sx,sy — nada de instance_find,
+                // mas robusto ante ordenes de instancia distintos) y los 5
+                // rewards aplicados SOLO por el cliente del pid premiado
+                // (patron boost Kaf: guard !ya-activo).
+                // Estados: 3=spawn / 2=rota+reward / 1=ready (re-difusion).
+                case PacketType.SERVER_BOX_STATE:
+                {
+                        if(isPasstrough)
+                                break;
+                        
+                        var _state = buffer_read_s(rbuff, buffer_u8);
+                        var _nid   = buffer_read_s(rbuff, buffer_u8);
+                        var _type  = buffer_read_s(rbuff, buffer_u8);
+                        var _pid   = buffer_read_s(rbuff, buffer_u16);
+                        var _sx    = buffer_read_s(rbuff, buffer_u16);
+                        var _sy    = buffer_read_s(rbuff, buffer_u16);
+                        
+                        if(_state == 3)
+                        {
+                                // SPAWN: crear la caja en la posicion exacta del
+                                // servidor. Si ya existe una viva con este nid
+                                // (re-difusion / reconexion) se REUSA: resetea
+                                // tipo y posicion (roundtrip: el estado trae
+                                // TODO el contexto).
+                                var _inst = noone;
+                                var _num = instance_number(obj_itembox);
+                                for(var _i = 0; _i < _num; _i++)
+                                {
+                                        var _e = instance_find(obj_itembox, _i);
+                                        if(_e.nid == _nid)
+                                        {
+                                                _inst = _e;
+                                                break;
+                                        }
+                                }
+                                
+                                if(_inst == noone)
+                                        _inst = instance_create_depth(_sx, _sy, 0, obj_itembox);
+                                
+                                _inst.nid = _nid;
+                                _inst.type = _type;
+                                _inst.x = _sx;
+                                _inst.y = _sy;
+                                _inst.isBroken = false;
+                                
+                                switch(_type)
+                                {
+                                        case 0: _inst.sprite_index = spr_ring_box; break;
+                                        case 1: _inst.sprite_index = spr_shield_box; break;
+                                        case 2: _inst.sprite_index = spr_invincibility_box; break;
+                                        case 3: _inst.sprite_index = spr_lightning_shield_box; break;
+                                        case 4: _inst.sprite_index = spr_speedboots_box; break;
+                                }
+                        }
+                        else if(_state == 1)
+                        {
+                                // READY (re-difusion): reposicion por si acaso — el
+                                // respawn real crea estado 3 de nuevo. Cero cambios
+                                // visuales (la caja rota sigue en boxused).
+                                var _num = instance_number(obj_itembox);
+                                for(var _i = 0; _i < _num; _i++)
+                                {
+                                        var _e = instance_find(obj_itembox, _i);
+                                        if(_e.nid == _nid)
+                                        {
+                                                _e.x = _sx;
+                                                _e.y = _sy;
+                                                break;
+                                        }
+                                }
+                        }
+                        else if(_state == 2)
+                        {
+                                // ROTA: todos ven la explosion y la caja usada; SOLO el
+                                // cliente del pid cobra (patron boost Kaf).
+                                var _num = instance_number(obj_itembox);
+                                var _inst = noone;
+                                for(var _i = 0; _i < _num; _i++)
+                                {
+                                        var _e = instance_find(obj_itembox, _i);
+                                        if(_e.nid == _nid)
+                                        {
+                                                _inst = _e;
+                                                break;
+                                        }
+                                }
+                                
+                                if(_inst == noone)
+                                        break;
+                                
+                                _inst.isBroken = true;
+                                _inst.sprite_index = spr_boxused;
+                                
+                                scr_audio_play_3d(_inst.emitter, snd_break, false, 0);
+                                net_quick_effect(_inst.x + 15, _inst.y + 15, spr_explosion);
+                                
+                                if(!instance_exists(global.player))
+                                        break;
+                                
+                                if(obj_netclient.nid != _pid)
+                                        break;
+                                
+                                // ===== REWARDS (aplicados al jugador local) =====
+                                // Duraciones exactas de la casa: anillos +5 con
+                                // techo 119 (anti-cheat server desconecta 120+);
+                                // escudo = shieldTimer 5*60 (el de Sally, scr_sally_special
+                                // L223 — funciona en cualquier personaje: scr_player_hurt
+                                // consume shieldTimer > 0); invencibilidad = hurttime 3*60
+                                // (los i-frames estandar del golpe, L802); escudo electrico
+                                // = electricShieldTimer 60*2.5 (Eggman 60*1.5 + 1 s pedido
+                                // de la duena); botas = bootsTimer 60*8 (Power Sneakers
+                                // clasico: TOPE de carrera +3 y acc x1.5, control total —
+                                // NO la carrera forzada del Kaf).
+                                switch(_type)
+                                {
+                                        case 0: // anillos
+                                                global.player.rings = min(global.player.rings + 5, 119);
+                                                audio_play_sound(snd_ring, 0, false);
+                                                break;
+                                        
+                                        case 1: // escudo (Sally)
+                                                if(global.player.shieldTimer <= 0)
+                                                {
+                                                        global.player.shieldTimer = 5 * 60;
+                                                        audio_play_sound(snd_sally_shield, 0, false);
+                                                }
+                                                break;
+                                        
+                                        case 2: // invencibilidad
+                                                if(global.player.hurttime <= 0)
+                                                {
+                                                        global.player.hurttime = 3 * 60;
+                                                        audio_play_sound(snd_heal, 0, false);
+                                                }
+                                                break;
+                                        
+                                        case 3: // escudo electrico (Eggman +1 s)
+                                                if(!variable_instance_exists(global.player, "electricShieldTimer") || global.player.electricShieldTimer <= 0)
+                                                {
+                                                        global.player.electricShieldTimer = 60 * 2.5;
+                                                        audio_play_sound(snd_egg_shield, 0, false);
+                                                }
+                                                break;
+                                        
+                                        case 4: // botas de velocidad (Sonic clasico)
+                                                if(!variable_instance_exists(global.player, "bootsTimer") || global.player.bootsTimer <= 0)
+                                                {
+                                                        global.player.bootsTimer = 60 * 8;
+                                                        audio_play_sound(snd_spring, 0, false);
+                                                }
+                                                break;
+                                }
+                        }
+                        
+                        break;
+                }
+                
                 case PacketType.SERVER_NAPBALL_STATE:
                 {                       
                         if(isPasstrough)
@@ -2750,6 +2910,35 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 // el audio a 200ms) y ademas dispara la animacion de exito.
                                 if(global.net_snds[sid] == snd_parry)
                                         scr_parry_ting_play();
+                                else if(global.net_snds[sid] == snd_metal_stun)
+                                {
+                                        // v62 ITEM BOX v2 — ESCUDO ELECTRICO de la caja:
+                                        // esta senal (shouldPlay=true a MI nid) la emite la
+                                        // VICTIMA cuando mi ataque acaba de golpear su
+                                        // escudo electrico (scr_player_hurt). El contacto
+                                        // exacto golpe-a-escudo solo existe en el cliente
+                                        // de la victima; aqui me aplico el choque yo mismo
+                                        // (la autoridad de siempre): stun de 1 s con el
+                                        // visual de chispa encima. Mismo patron que el
+                                        // snd_exe_stun del parry de Sonic.
+                                        if(instance_exists(global.player)
+                                        && (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2)
+                                        && !global.player.isDead
+                                        && (global.player.isAttacking || global.player.isJumping || global.player.isSpinning)
+                                        && global.player.shockedTimer <= 0)
+                                        {
+                                                global.player.isAttacking = false;
+                                                global.player.isSpinCharging = false;
+                                                global.player.spinCharge = 0;
+                                                global.player.shockedTimer = 60;
+                                                global.player.xspd = -global.player.image_xscale * 3;
+                                                global.player.yspd = -2;
+                                                global.player.isGrounded = false;
+                                                
+                                                net_quick_effect(global.player.x, global.player.y, spr_shockparticle, false, 1, 0, 0, 0.75);
+                                                audio_play_sound(snd_exe_stun, 0, false);
+                                        }
+                                }
                                 else if(global.net_snds[sid] == snd_exe_stun)
                                 {
                                         // PARRY DE SONIC (v3.5): snd_exe_stun posicionado EN

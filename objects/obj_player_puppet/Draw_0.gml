@@ -348,3 +348,10 @@ switch(character)
                         draw_sprite(spr_electroshield, (current_time / 30) % 41, floor(x), floor(y));
                 break;
 }
+
+// v62 ITEM BOX v2 — escudo electrico de la caja de reward (cualquier
+// superviviente): mismo sprite y mismo frame-anim que el de Eggman
+// (patron de los cases de arriba), dibujado ENCIMA del cuerpo en
+// cualquier estado. Bit 7 del PLAYER_DATA (PLAYER_ELECTROSHIELD).
+if(electroShield)
+        draw_sprite(spr_electroshield, (current_time / 30) % 41, floor(x), floor(y));
