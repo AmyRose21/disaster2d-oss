@@ -17,6 +17,31 @@ function scr_stop_music()
         global.music = -1;
 }
 
+// v69 (BOTAS snd_speedboost): silenciar la musica del nivel mientras
+// dura el efecto de las botas — MISMO metodo que el anti-camping
+// (obj_player_warning): audio_sound_gain(global.music, 0, 2000).
+// Guard de global.music == -1 (sin musica sonando) porque pasarlo a
+// audio_sound_gain es comportamiento no definido (id de sonido invalido).
+function scr_music_duck()
+{
+        if(global.music == -1)
+                return;
+        
+        audio_sound_gain(global.music, 0, 2000);
+}
+
+// v69 (BOTAS snd_speedboost): restaurar la musica duckeada cuando el
+// efecto expira — MISMO metodo que el CleanUp del anti-camping:
+// audio_sound_gain(global.music, musicVolume * 0.1, 500).
+// v1 OPTIONS MORE: obj_config.musicVolume es el slider de Options > More.
+function scr_music_unduck()
+{
+        if(global.music == -1)
+                return;
+        
+        audio_sound_gain(global.music, obj_config.musicVolume * 0.1, 500);
+}
+
 function scr_stop_map_music()
 {
         // FIX LMS musica de mapa (v1): "...", Wood Zone (su rework) y Act9

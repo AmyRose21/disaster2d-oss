@@ -1,0 +1,112 @@
+=====================================================================
+ LEEME — v69: BOTAS CON MUSICA (snd_speedboost + silencio anti-camping)
+ Fecha: 2026-11-22
+=====================================================================
+
+QUE PIDE LA REGLA
+-----------------
+Mientras dure el efecto de las botas suena snd_speedboost y la musica
+del nivel se silencia, usando el MISMO metodo que usa el anti-camping
+para silenciar la musica.
+
+QUE HACE EL ANTI-CAMPING (el metodo clonado)
+--------------------------------------------
+obj_player_warning (el aviso de "te estas quedando quieto"):
+  - Create:   audio_sound_gain(global.music, 0, 2000)
+              -> baja la musica del nivel a 0 en 2 segundos
+  - CleanUp:  audio_sound_gain(global.music,
+              obj_config.musicVolume * 0.1, 500)
+              -> la restaura en medio segundo, respetando el slider
+                 de Options > More
+
+v69 usa EXACTAMENTE eso, encapsulado en dos helpers nuevos.
+
+CONTENIDO DEL ZIP (SOLO archivos modificados vs origin/main 6977f00a)
+---------------------------------------------------------------------
+1. scripts/scr_music/scr_music.gml
+   NUEVOS helpers (el metodo del anti-camping, reusable):
+     scr_music_duck()   -> silencia la musica del nivel (gain 0, 2 s)
+     scr_music_unduck() -> la restaura (musicVolume*0.1, 0.5 s)
+   Ambos con guard: si no hay musica sonando (global.music == -1) no
+   hacen nada (pasarle -1 al audio_sound_gain es indefinido).
+   Las funciones que ya existian (scr_play_music/scr_stop_music/
+   scr_stop_map_music) quedaron intactas.
+
+2. scripts/net_state_game/net_state_game.gml
+   - case 4 (botas) de SERVER_BOX_STATE: al activarse ahora suena
+     audio_play_sound(snd_speedboost, 0, true)  [LOOP, reemplaza el
+     snd_spring viejo] y llama scr_music_duck().
+     El audio dura 32.8 s y el efecto 8 s: sobra, se apaga al expirar.
+   - SERVER_GAME_LMS (el show): si llegan botas activas, apaga el loop
+     y des-silencia antes de la cancion del show (corte de seguridad,
+     mismo espiritu que scr_stop_map_music).
+   - SERVER_RESULTS (fin de ronda): mismo corte antes de ir a la room
+     de resultados (que pone musica nueva).
+   El resto del archivo intacto (cero cambios de red).
+
+3. scripts/scr_move_basic/scr_move_basic.gml
+   En el tick del bootsTimer: SOLO en el frame exacto en que llega a 0
+   (expiracion natural de los 8 segundos) apaga el loop snd_speedboost
+   y restaura la musica con scr_music_unduck(). El cap +3 / aceleracion
+   x1.5 y la estela de fantasmas quedaron intactos.
+
+4. scripts/scr_player_hurt/scr_player_hurt.gml
+   scr_player_instakill: si te matan con botas puestas, el timer se
+   resetea a 0, el loop se apaga y la musica vuelve (el jugador muerto
+   ya no corre scr_move_basic: sin esto el efecto seguia "vivo" en el
+   vacio).
+
+5. scripts/scr_menu_more/scr_menu_more.gml
+   snd_speedboost agregado AL FINAL de global.sfxList (convencion de la
+   casa): el slider SOUND VOLUME de Options > More ahora lo alcanza
+   en vivo mientras suena.
+
++ CACHE.md, LEARNING.md, worklog.md, check_v69.py (los archivos de
+  conocimiento, siempre dentro del zip — regla 5).
+
+LOS 4 CAMINOS DE FIN DEL EFECTO (todos restauran la musica)
+-------------------------------------------------------------
+  a) Expiracion natural (8 s)  -> scr_move_basic (frame exacto)
+  b) Muerte con botas          -> scr_player_instakill
+  c) Show del LMS              -> SERVER_GAME_LMS (antes de la cancion)
+  d) Fin de ronda              -> SERVER_RESULTS (antes del room_goto)
+Sin ninguno de estos faltantes: la musica nunca queda silenciada para
+siempre y el loop de 32 s nunca suena encima de otra cancion.
+
+VERIFICACION (check_v69.py — 44/44 OK)
+--------------------------------------
+- Helpers presentes con el metodo EXACTO del anti-camping y guard -1.
+- case 4: loop + duck, guard anti-doble intacto, snd_spring fuera.
+- Cortes LMS/RESULTS en el orden correcto (stop ANTES de la musica nueva).
+- Unduck SOLO en el frame de expiracion (ni antes ni despues).
+- Muerte: guard + reset + stop + unduck.
+- snd_speedboost en sfxList (slider en vivo).
+- Llaves balanceadas en los 5 archivos (mini-parser de sintaxis).
+- .yyp / .yy INTACTOS (v69 no toco ningun recurso del editor).
+- Simulacion del ciclo de vida completo: activar -> 480 frames ->
+  expira y restaura; muerte a mitad del efecto; LMS con botas activas;
+  sin musica de fondo (guard -1, sin crash); segunda caja de botas
+  mientras el efecto esta activo (no se re-anida: guard de la casa).
+
+ANTI-CHEAT (regla 7)
+--------------------
+Cero cambios de red y cero cambios de server: el sonido de las botas
+es LOCAL del cliente que las coge (igual que el snd_spring que habia
+antes — nunca viajo por net_sound_emit). La superficie del anti-cheat
+queda identica a v68.
+
+INSTALAR
+--------
+Extraer el zip sobre la raiz del proyecto (mismo metodo de siempre),
+recompilar el server NO es necesario (no cambio nada del server),
+abrir el proyecto en GameMaker y compilar el cliente.
+
+PRUEBA RAPIDA EN JUEGO
+---------------------
+1. Entrar a cualquier mapa, romper una caja de botas (spr_speedboots_box).
+2. El snd_speedboost suena y la musica del nivel se apaga en 2 s.
+3. A los 8 segundos: el loop se corta y la musica vuelve.
+4. Repetir rompiendo la caja y muriendo a mitad del efecto: la musica
+   vuelve al instante de la muerte.
+5. Options > More -> mover SOUND VOLUME mientras suenan las botas: el
+   volumen de las botas responde en vivo.

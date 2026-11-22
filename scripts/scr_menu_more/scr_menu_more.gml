@@ -104,7 +104,11 @@ global.sfxList = [
 
         // v1 (D.I.B.): voces de Jinna
         snd_jina_go, snd_jina_kill1, snd_jina_laugh, snd_jina_ready,
-        snd_jina_taunt1, snd_jina_taunt2, snd_jina_taunt3
+        snd_jina_taunt1, snd_jina_taunt2, snd_jina_taunt3,
+
+        // v69 (BOTAS): musica de las botas — el slider SOUND VOLUME
+        // la alcanza mientras suena (audio_sound_gain por asset).
+        snd_speedboost
 ];
 
 // ============================================================================

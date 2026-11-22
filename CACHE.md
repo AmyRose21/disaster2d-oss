@@ -479,6 +479,38 @@
   ACTIVATE — same semantics, no versioning ambiguity between states with
   and without type byte): SERVER_BOX_STATE is new (not KAFMONITOR
   renamed); state 1 'ready' kept for re-broadcast only.
+- v69 (BOT AUDIO, entregada como zip v69 — el repo de GitHub aún NO la
+  tiene): snd_speedboost.ogg (owner upload 6977f00a, 32.8 s) suena en
+  LOOP durante las botas y la música del nivel se silencia con el
+  método del anti-camping (obj_player_warning: duck
+  audio_sound_gain(global.music, 0, 2000) / restore
+  audio_sound_gain(global.music, obj_config.musicVolume * 0.1, 500)),
+  vía helpers scr_music_duck/scr_music_unduck en scripts/scr_music/
+  scr_music.gml (guard global.music == -1). Fin del efecto en 4
+  caminos (todos restauran): expiración natural (scr_move_basic, frame
+  exacto), muerte (scr_player_instakill resetea bootsTimer + stop +
+  unduck), LMS (SERVER_GAME_LMS antes de la canción del show), fin de
+  ronda (SERVER_RESULTS antes de room_goto). snd_speedboost en
+  global.sfxList (slider SOUND VOLUME en vivo). Archivos: scr_music,
+  net_state_game, scr_move_basic, scr_player_hurt, scr_menu_more.
+  NET: cero paquetes nuevos (regla 7 limpia).
+- v70 SUITE CAJAS (owner: "añade al suite la opcion para configurar el
+  tiempo de las cajas (speed y invulnerabilidad)"): the four reward
+  durations are now MACROS at the top of scripts/net_state_game/
+  net_state_game.gml (GM convention: ALL ~745 repo macros live at file
+  level, never inside a function): ITEMBOX_SHIELD_TIME (60*5),
+  ITEMBOX_INVULN_TIME (60*3), ITEMBOX_ELECTRIC_TIME (60*2.5),
+  ITEMBOX_BOOTS_TIME (60*8). The four case literals in switch(_type)
+  now assign the macros. SUITE_TD2D.html gains a NEW module "📦 Cajas"
+  (Sistema category, data-mod="boxes"): reads net_state_game.gml,
+  renders 4 .cdrow rows (slider+number in SECONDS, house CSS), edits
+  via AnimCore.setMacro (preserves (60 * N) format), syncs to
+  S.pendingFiles/S.edits, writes via T.writeEdits (backup
+  _backups_animeditor + undo), re-enters via S.onAfterWrite chain,
+  discards via T.discardModulePending (Bx.ready=false re-reads disk).
+  NOTE hurttime: the box grants the SAME i-frame timer the standard
+  hit uses, but this macro only feeds the BOX value (the hit's own 60
+  in scr_player_hurt is untouched).
 
 ### 3.5 Killers NPC / eventos de mapa (NO son el jugador EXE)
 - obj_exeller (+ obj_exeller_clone = CLONES del exe: atacan y NO son
@@ -1743,6 +1775,30 @@ y las pistas nuevas de 20-28s se cortaban).
   UX (auto-scroll + contador) para que la sospecha no pueda volver a
   nacer. Validador check_v54_3 additions en check_v54_2.py.
 
+- 2026-11-22 (v70 SUITE CAJAS): duraciones de las cajas configurables
+  desde el Suite. GML: 4 macros ITEMBOX_*_TIME al top de net_state_game.gml
+  (SHIELD 5 s / INVULN 3 s / ELECTRIC 2.5 s / BOOTS 8 s, defaults de la
+  casa v62) reemplazan los literales del switch(_type) — convención del
+  repo verificada: las 745 macros existentes viven TODAS a nivel de
+  archivo, ninguna dentro de función. SUITE_TD2D.html: módulo nuevo
+  «📦 Cajas» (categoría Sistema): 4 filas con slider/número de segundos,
+  edición por el motor real de macros (AnimCore.setMacro), escritura con
+  T.writeEdits (backup + deshacer), panel de notas explicando cada
+  recompensa y que la invulnerabilidad comparte timer con el golpe pero
+  solo cambia el valor de la caja. VERIFICACIÓN (regla 6): check_v70.js
+  37/37 (ejecuta el motor REAL del Suite extraído del HTML contra el GML
+  real: parse de las 4 macros, setMacro 8→12 s, idempotencia, formato
+  (60*N), 1 línea de diff, sintaxis de los 10 bloques JS, tags balance,
+  superficie de red intacta) + E2E en navegador real (agent-browser +
+  driver iframe + http.server): módulo clicable, 4 filas con valores
+  reales (5/3/2.5/8 s), edición por input 12 s, reconfiguración de las 4
+  (7/4.5/3.25/20 s), slider con decimales (6.25), writeEdits escribe el
+  archivo COMPLETO con (60*12), backup con el original (60*8), undoLast
+  restaura, 0 errores JS. Cero cambios de red/server (regla 7).
+  NOTA v69: la v69 (botas snd_speedboost + duck anti-camping) fue
+  entregada como zip v69 en download/ pero GitHub sigue SIN ella: este
+  v70 se construyó sobre origin/main (6977f00a). Aplicar v69 y v70 es
+  independiente y no chocan (v69 = audio, v70 = macros de duración).
 - 2026-11-22 (itembox-investigation): FETCH found new owner commit
   9dff8484 ("up"): applies our v54.3 editor fix + ADDS 6 new item box
   sprites (ring/shield/invincibility/lightning-shield/speedboots/

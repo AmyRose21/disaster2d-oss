@@ -143,3 +143,54 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
 - New maps inherit all of this automatically (central handler, v68).
 - If a new CLIENT_* packet gets added to the enum: net_packets.gml and
   Packet.h MUST be updated in lockstep (enum sync check in check_v6X.py).
+
+## v70 — Suite "Cajas" module (item box durations) — lessons
+
+- Owner asked to "add to the suite the option to configure the time of
+  the boxes (speed and invulnerability)". Best lever: convert the four
+  duration literals in net_state_game.gml's reward switch into
+  #macro ITEMBOX_*_TIME entries — the Suite already has a battle-tested
+  macro editing engine (AnimCore.parseMacros/setMacro + T.writeEdits
+  with backups/undo), so the new module is ~200 lines of UI on top of
+  existing machinery instead of a new patcher.
+- GM macro placement convention (verified across the whole repo): ALL
+  745 #macro lines live at FILE level (column 0), NONE inside a
+  function. First attempt put them indented inside net_state_game's
+  reward switch (they compile fine — macros are compile-time
+  substitution), but house convention wins: moved to the top of the
+  file, right before the first function. Check conventions with a
+  repo-wide grep BEFORE placing new macros.
+- Suite module anatomy (the pattern every module follows):
+  1. nav button `data-mod="key"` in a category group (Sistema);
+  2. `<div id="mod-key" class="mod hidden">` panel — side/mid/right
+     three-column layout already styled;
+  3. switchModule(): `$('#mod-key').classList.toggle('hidden', mod !==
+     'key')` + dispatch `else if (mod === 'key' && window.enterKey)
+     window.enterKey()`;
+  4. module JS in its own <script> IIFE: state object (Bx = { ready,
+     orig, work }), ensureData (read once), renderRows (reuse .cdrow
+     CSS!), setMacroVal-style edit, sync to S.edits/S.pendingFiles,
+     write via T.writeEdits, undo via T.undoLast, refresh by chaining
+     S.onAfterWrite (call prev chain!), discard via
+     T.discardModulePending (set ready=false to force disk re-read).
+- E2E-testing a browser-only tool without a display: serve the repo
+  over `python3 -m http.server` (file:// frames are cross-origin and
+  block contentWindow access), load a driver page that embeds the real
+  Suite in an iframe, and drive it with agent-browser eval. Fake the
+  File System Access API by stubbing S.rootHandle with a plain object
+  tree ({ files:{}, dirs:{}, getDirectoryHandle, getFileHandle,
+  createWritable }) — writeEdits is closured over the REAL ensureDir/
+  fsWalkFile so T.fsWalkFile stubs DON'T work; only S.rootHandle does.
+- DOM-edit test gotcha: after each edit the module re-renders rows, so
+  cached row elements go STALE. Query the DOM fresh after every change
+  (users do this naturally by looking; tests must too).
+- The Suite's own <script> count regex can lie: an HTML Parser
+  (html.parser) is the truth. The original file "had 10 <script> vs 9
+  </script>" — actually a <script> MENTIONED inside a JS comment
+  ("orden de <script>") fooled the regex. Line-anchored tags
+  (^<script> / ^</script>) match the real structure.
+- AnimCore is UMD (module.exports in Node / window.AnimCore in
+  browser): to test its parseMacros/setMacro in Node, isolate the
+  factory function and `new Function('return (' + factorySrc + ')')()`
+  — the factory ends before the final '});' (that closes factory+UMD
+  wrapper together; slice needs + '}' to close the function body).

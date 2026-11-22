@@ -282,6 +282,17 @@ function scr_move_basic()
                 
                 if(effectTime <= 0)
                         effectTime = 16;
+                
+                // v69 (BOTAS): fin del Power Sneakers — apagar el loop
+                // snd_speedboost y devolverle el volumen a la musica del
+                // nivel (metodo anti-camping: CleanUp gain restore). Corre
+                // SOLO en el frame exacto de la expiracion (bootsTimer
+                // acaba de llegar a 0): ni antes ni despues.
+                if(bootsTimer <= 0)
+                {
+                        audio_stop_sound(snd_speedboost);
+                        scr_music_unduck();
+                }
         }
         
         if(isBoosting)

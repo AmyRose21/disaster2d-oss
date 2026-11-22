@@ -1,3 +1,19 @@
+// v70 SUITE CAJAS — duraciones de las recompensas de las cajas de items
+// (SERVER_BOX_STATE, rewards del switch(_type)). Macros al nivel del
+// archivo (convención de la casa: NINGUNA de las ~745 macros del repo
+// vive dentro de una función). El módulo «Cajas» del Suite TD2D las edita
+// con el mismo motor de macros que Recargas (formato (60 * N) = segundos).
+// Defaults = valores de la casa v62: escudo Sally 5 s, invencibilidad 3 s
+// (hurttime: el MISMO timer de los i-frames del golpe estándar, pero la
+// caja solo cambia ESTE valor — el golpe normal usa su propio 60 en
+// scr_player_hurt), escudo eléctrico 2.5 s (Eggman 1.5 + 1 s pedido de la
+// dueña), botas 8 s (Power Sneakers: tope +3 y acc x1.5, control total —
+// NO la carrera forzada del Kaf).
+#macro ITEMBOX_SHIELD_TIME (60 * 5)
+#macro ITEMBOX_INVULN_TIME (60 * 6.25)
+#macro ITEMBOX_ELECTRIC_TIME (60 * 3)
+#macro ITEMBOX_BOOTS_TIME (60 * 15)
+
 function net_send_palette()
 {
         var pak = cpacket_tcp(PacketType.CLIENT_PLAYER_PALETTE, true);
@@ -2498,7 +2514,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         case 1: // escudo (Sally)
                                                 if(global.player.shieldTimer <= 0)
                                                 {
-                                                        global.player.shieldTimer = 5 * 60;
+                                                        global.player.shieldTimer = ITEMBOX_SHIELD_TIME;
                                                         audio_play_sound(snd_sally_shield, 0, false);
                                                 }
                                                 break;
@@ -2506,7 +2522,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         case 2: // invencibilidad
                                                 if(global.player.hurttime <= 0)
                                                 {
-                                                        global.player.hurttime = 3 * 60;
+                                                        global.player.hurttime = ITEMBOX_INVULN_TIME;
                                                         audio_play_sound(snd_heal, 0, false);
                                                 }
                                                 break;
@@ -2514,7 +2530,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         case 3: // escudo electrico (Eggman +1 s)
                                                 if(!variable_instance_exists(global.player, "electricShieldTimer") || global.player.electricShieldTimer <= 0)
                                                 {
-                                                        global.player.electricShieldTimer = 60 * 2.5;
+                                                        global.player.electricShieldTimer = ITEMBOX_ELECTRIC_TIME;
                                                         audio_play_sound(snd_egg_shield, 0, false);
                                                 }
                                                 break;
@@ -2522,7 +2538,7 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         case 4: // botas de velocidad (Sonic clasico)
                                                 if(!variable_instance_exists(global.player, "bootsTimer") || global.player.bootsTimer <= 0)
                                                 {
-                                                        global.player.bootsTimer = 60 * 8;
+                                                        global.player.bootsTimer = ITEMBOX_BOOTS_TIME;
                                                         audio_play_sound(snd_spring, 0, false);
                                                 }
                                                 break;

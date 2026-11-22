@@ -299,6 +299,19 @@ function scr_player_instakill()
         global.player.isLookingDown = false;
         global.player.isLookingUp = false;
         global.player.isDead = true;
+        
+        // v69 (BOTAS): muerte con botas activas — apagar el loop
+        // snd_speedboost y restaurar la musica del nivel (duck del
+        // anti-camping). El timer se resetea AQUI porque el muerto ya
+        // no corre scr_move_basic (isDead): sin esto el efecto seguia
+        // "vivo" hasta agotarse en el vacio.
+        if(variable_instance_exists(global.player, "bootsTimer") && global.player.bootsTimer > 0)
+        {
+                global.player.bootsTimer = 0;
+                audio_stop_sound(snd_speedboost);
+                scr_music_unduck();
+        }
+        
         global.player.shards = 0;
         global.player.chunkX = -1000;
         global.player.chunkY = -1000;
