@@ -468,3 +468,70 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   0 from the server and NOTHING reaches the client guard (pid 0 != nid
   → break). Reverting a server-side rule REQUIRES a server recompile to
   take effect — say so loudly in the LEEME.
+
+## v76 — hazard relocate + spawn variety — lessons
+
+- **Lava in this engine is NOT floor**: obj_vv_lavacolumn and
+  obj_marijuna_lavaplatform hurt players via place_meeting/manual-rect
+  but are not obj_floor_parent children — a falling item box passes
+  THROUGH them and would rest at the pit bottom, under the lava,
+  forever (unreachable, visually wrong). Hazard relocation must run as
+  a RUNTIME overlap check, not rely on the spawn-table generator
+  (derive_spawns_all_v68.py only guarantees "no hazard within 48px AT
+  SPAWN TIME" — hazards MOVE/APPEAR later: the VV lava column's y is
+  server-synced per eruption cycle, the Marijua lava platform rises).
+- **obj_abyss teleports PLAYERS only**: its Step moves global.player
+  and calls scr_player_hurt — any other entity (box, shard has its own
+  special case) falls through untouched. "Falling into the void" for a
+  non-player needs its own check (or the out-of-room-bounds fallback).
+- **Mirror each hazard's OWN player check, don't invent one**: VV
+  column and abyss use place_meeting (their masks are the trigger);
+  Marijua lava uses a manual rect (x+48..x+113 / y+48..y+672) because
+  its 160x672 sprite mask does NOT represent the lethal zone. The box
+  check must use the same geometry, cross-checked in the validator
+  (check_v76.py parses the player line and compares constants).
+- **Thin triggers cannot be tunnel-skipped at max fall speed**: box
+  bbox is 30px, max fall 12px/frame, smallest hazard trigger 32px →
+  overlap window 62px > 12px steps → at least one frame always
+  overlaps. Verified arithmetic, not luck.
+- **DELIBERATE hazard exclusions (reachable = valid spawn)**:
+  obj_ghz_water is swimmable (box reachable), obj_ycr_smokearea only
+  drains 1 ring/sec (reachable, risk-reward), and periodic SWEEP
+  hazards (obj_movingspike, obj_limpcity_echain1, darktower balls,
+  marijuna judgerpor) pass by — the box stays breakable between
+  sweeps. Relocating on sweep overlap would make boxes hop forever.
+  Document exclusions in the code comment so future sessions don't
+  "fix" them into false positives.
+- **Red ring vs normal ring: same entity, same spawn table BY DESIGN**:
+  Ring.c rolls `red` (10%) at spawn; the client picks obj_redring vs
+  obj_ring from the flag at the same obj_ring_spawner slot. The owner
+  guessed this ("comparten spawns" — they do). Variety therefore
+  applies to the shared slot table (ring_recent memory), not to
+  per-type tables.
+- **Anti-repeat memory pattern (server, generalize from
+  itembox_last_spawner)**: (1) count `fresh` = free slots NOT in
+  recent memory; (2) goto-gen veto `fresh > 0 && recent_has(rnd)`; (3)
+  FIFO push; (4) reset per round. For RING memory we put it in the
+  Game struct (ring_recent[4]) so the compound literal at game_start
+  zero-inits it — NO manual reset hook needed (pattern bring_loc);
+  ItemBoxMap keeps statics + its existing itemboxmap_init reset.
+  Simulations: window-hit rate 6.4%→0% (rings, 22 slots) and 14%→0%
+  (boxes, 8 zones); no deadlock at 12 slots (fallback = any free).
+- **A relocated box NEVER respawns at its own zone**: used[] is
+  computed from game_find BEFORE the relocated entity dies this tick,
+  so the just-freed zone is still "occupied" for the replacement roll
+  (100% in simulation) — no extra code needed.
+- **gcc ≥14 makes implicit-function-declaration an ERROR**: original
+  Ring.c called rand() with only <CMath.h> (= math.h) included. Their
+  build tolerated it; our -fsyntax-only did not. Fix = explicit
+  <stdlib.h> (ItemBoxMap.c already did). When porting verification to
+  a NEW .c file, expect pre-existing implicit decls — fix them, don't
+  disable the check.
+- **var locals ARE writable inside with() blocks** (GML): `_hz = true`
+  inside with(obj_marijuna_lavaplatform) writes the enclosing event's
+  local — used for the manual-rect hazard scan; `break` exits the with
+  loop. Standard GML, but worth recording because it looks risky.
+- **Tooling regression guard**: check_v76.py enforces CJK-clean
+  deliverables — a draft of the v76 comment accidentally contained
+  Chinese characters (model glitch); the checker now catches that
+  class of bug forever.

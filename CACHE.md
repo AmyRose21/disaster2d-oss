@@ -101,7 +101,10 @@
   room_darktower (darktower_* + tailsdoll), room_shadertest.
 - obj_bigring (anillo de escape) + obj_bigring_teleport, obj_blackring.
 - Rings/curacion: obj_ring, obj_ring_spawner, obj_ringspawn, obj_redring,
-  scr_survivor_heal/revive.
+  scr_survivor_heal/revive. V76: red ring y anillo normal son LA MISMA
+  entidad server-side (Ring.c: flag `red` al 10% al azar) — comparten
+  tabla de spawns (obj_ring_spawner por rid) POR DISENO. Variedad de
+  spawns = memoria ult-4 en Ring.c (ver 3.4.2 v76).
 - Minijuego: obj_minigame + obj_minisnoc_*.
 
 ### 3.4.1 ITEM BOX (MONITOR) SYSTEM — "Kafmonitors" (investigated 2026-11-22)
@@ -632,6 +635,44 @@
   auto-generado, .yyp 2542 recursos sin dupes, superficie git nucleo
   v74, cero protocolo/netclient, simulacion numerica completa con los
   macros nuevos).
+
+### 3.4.3 v76 — HAZARD RELOCATE + SPAWN VARIETY (2026-11-23, commit base 61a5e248)
+- PEDIDO: (a) cajas que caen en lava/precipicio se reubican solas en otro
+  spawn ring; (b) spawns SIEMPRE variados (rings y cajas), nunca el mismo
+  sitio una y otra vez.
+- CLIENTE obj_itembox/Step_2.gml: bloque v76 NUEVO (tras la fisica v63,
+  corre en CUALQUIER estado cayendo o apoyada, guard !reported):
+  place_meeting contra obj_abyss (precipicio: teleporta players, las
+  cajas lo atraviesan), obj_vv_lavacolumn (lava VV: su y la sincroniza
+  el server — puede ERUPCIONAR sobre una caja apoyada) y obj_spike
+  (estaticos); rect MANUAL para obj_marijuna_lavaplatform (x+48..x+113 /
+  y+48..y+672 — EXACTO al rect que lastima al player, su mascara no
+  representa la zona letal). Reporta por el canal v63 existente
+  CLIENT_BOX_RELOCATE (one-shot `reported` cliente + `relocated` server).
+  EXCLUIDOS A PROPOSITO (spawn valido: la caja es alcanzable):
+  obj_ghz_water (nadable), obj_ycr_smokearea (roba 1 ring/s), barridos
+  periodicos (movingspike, limpcity_echain1, darktower_ball/sisi,
+  marijuna_judgerpor).
+- SERVER Ring.c: memoria FIFO ult-4 slots (ring_recent[4] en Game struct
+  — SE AUTO-RESET por ronda via el literal compuesto, patron bring_loc;
+  nada de reset manual). Veto: si hay slots libres NO-recientes, los
+  recientes quedan vetados (goto gen). Simulacion: caidas en ventana
+  ult-4 6.4% -> 0%. ANTES solo se vetaban los OCUPADOS (un anillo
+  recogido en X podia renacer en X). Roll rojo/paquetes INTACTOS.
+- SERVER ItemBoxMap.c: itembox_last_spawner (ult-1) -> FIFO ult-3
+  (itembox_recent[]). Simulacion: caidas en ventana ult-3 14% -> 0%.
+  El veto v74 exe-denial y el flujo relocate quedan INTACTOS. Una caja
+  reubicada NUNCA renace en su misma zona (used[] se computa antes de
+  la muerte del tick; 100% en simulacion).
+- SERVER Server.h: +ring_recent[4]/ring_recent_len en Game (struct
+  interno, CERO protocolo: Packet.h y net_packets.gml sin cambios).
+- Ring.c ahora incluye <stdlib.h> explicito (rand() iba implicito;
+  ItemBoxMap.c ya lo hacia asi — gcc moderno lo exige).
+- Validador: check_v76.py (SUSTITUYE a check_v75.py): lexer GML, nucleo
+  v63 intacto, bloque v76 completo, rect Marijuna cross-checkeado contra
+  el Step del player, gcc -fsyntax-only Ring.c+ItemBoxMap.c con stub
+  enet, superficie v74 preservada, .yyp 2542, CJK-clean. Simulador:
+  sim_v76.py (metrica de ventana + deadlock + relocate != misma zona).
 
 ## 4. PERSONAJES
 ### Survivors (macros en scripts/scr_survivors/scr_survivors.gml, base TAILS=1)
@@ -1295,6 +1336,10 @@ y las pistas nuevas de 20-28s se cortaban).
   acometida/tarot de Amy a 14). Guion de 8 pasos en LEEME_CARRY_V1.txt.
 - (Los 2 bugs originales del tarot y los sensores ya estan cerrados por
   bugfix-tarot-v1. Worklog y CACHE sincronizados con el repo 26/10.)
+- v76: pendiente PROBAR en partida real (recompilar server OBLIGATORIO):
+  (1) caja en Volcano Valley cuando erupciona la columna -> se reubica
+  sola; (2) anillos/cajas apareciendo en sitios variados (no repiten
+  zona reciente); (3) romper cajas normal (regresion del nucleo v63).
 
 ## 10. HERRAMIENTAS PROPIAS (scripts/)
 - IMPORTANTE (26/10): la carpeta scripts/ del workspace NO existe en este
@@ -2076,3 +2121,26 @@ y las pistas nuevas de 20-28s se cortaban).
   coincide con ningun nid). Validador check_v75.py (SUSTITUYE a
   check_v73.py y check_v74.py). Entregable:
   download/v75_kaf_exe_boost_boots_music.zip.
+
+- 2026-11-23 (v76 — HAZARD RELOCATE + SPAWN VARIETY): pedido de la duena
+  sobre las cajas: "si caen en lava, precipicios y eso, que la caja se
+  reubique automaticamente en otro spawn ring" + "que los spawns sean
+  SIEMPRE variados, no siempre en el mismo lugar" (confirmo: red ring y
+  anillo normal COMPARTEN tabla de spawns — misma entidad Ring.c con
+  flag red al 10%, por diseno). Entregado sobre el commit 61a5e248:
+  (1) cliente obj_itembox/Step_2.gml — bloque v76 que reubica la caja
+  (CLIENT_BOX_RELOCATE de siempre, one-shot) si toca obj_abyss /
+  obj_vv_lavacolumn / obj_spike (place_meeting) o la lava de Marijua
+  (rect manual identico al del player), en CUALQUIER estado (cayendo o
+  apoyada: las columnas de VV erupcionan DESPUES sobre cajas apoyadas);
+  (2) server Ring.c — memoria FIFO ult-4 slots de anillo (ring_recent[]
+  en Game struct, auto-reset por ronda): con alternativa fresca los
+  recientes quedan vetados (6.4% -> 0% de caidas en la ventana); (3)
+  server ItemBoxMap.c — veto ult-1 -> FIFO ult-3 zonas (14% -> 0%);
+  (4) Server.h — campos nuevos (struct interno, CERO protocolo);
+  (5) Ring.c +<stdlib.h> explicito (rand implicito no compila en gcc
+  moderno). Veto v74 exe-denial + flujo relocate + nucleo v63 INTACTOS
+  (verificado por contenido). Validador check_v76.py (SUSTITUYE a
+  check_v75.py) + simulador sim_v76.py. Entregable:
+  download/v76_hazard_relocate_spawn_variety.zip. RECOMPILAR el server
+  (Ring.c/ItemBoxMap.c/Server.h cambiaron).

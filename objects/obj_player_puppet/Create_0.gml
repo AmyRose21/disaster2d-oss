@@ -16,6 +16,13 @@ shards = 0;
 isDemonized = false;
 isAttacking = false;
 isHurt = false;
+// v76 — isDead NO viaja por red: el isDead REAL es el del jugador LOCAL
+// (cada cliente es la autoridad de su propia muerte). Default defensivo
+// para que leerlo en un puppet no reviente: lo hace el zap del escudo
+// electrico de la caja (scr_player_hurt, "puppet atacante mas cercano")
+// y cualquier sistema futuro que lo consulte. Mismo patron del
+// isGrounded de abajo (fix v2.1.1).
+isDead = false;
 reviveObj = noone;
 revivalTimes = 0;
 // v6 (minions de Jinna): true mientras este jugador es un MINION activo

@@ -6337,3 +6337,97 @@ Stage Summary:
   para los 5 tipos, fix de inmunidad y retune WSS
 - RECOMPILAR el server es OBLIGATORIO para que el boost Kaf vuelva a
   afectar al Exe (el pid-0 vive en el binario v73)
+
+===================================================================
+
+Task ID: v76-hazard-relocate-spawn-variety
+Fecha: 2026-11-23
+Base: fetch fresco de origin/main @ 61a5e248 ("ewe") — post v75.
+
+PEDIDO (dueña, texto original): "las cajas. puedes hacer que si caen en
+ejemplo laba presipisios y eso la caja automaticamente sea reubicada en
+otro lugar en otro spawn ring? xq supongo que el red y el ring normal
+spamean en el mismo lugar no? osea comparten spawns. Y asegurar que los
+spawn siempre sean variados (en spawn rings) y no que sean siempre en
+el mismo lugar. siempre entiendes?"
+
+INVESTIGACION (fetch + lectura completa):
+- Cajas v63: obj_itembox ya reportaba CLIENT_BOX_RELOCATE solo por
+  RESORTE (obj_spring_parent) o fuera de room (x<0/y<0/x>rw/y>rh).
+  El server (ItemBoxMap.c) retira la caja y sortea otra zona libre
+  en el MISMO tick; la zona reubicada queda ocupada ese tick (used[]
+  pre-muerte) => nunca renace en su misma zona.
+- FALTABA: lava (vv_lavacolumn/marijuna_lavaplatform NO son suelo: la
+  caja las atraviesa y quedaria clavada bajo la lava), abismo
+  (obj_abyss teleporta PLAYERS nada mas) y spikes estaticos. Ademas el
+  chequeo v63 solo corria CAYENDO: una caja APOYADA puede quedar dentro
+  de un hazard que aparece despues (columna VV erupciona con y
+  sincronizada por server en net_udpprocess; plataforma Marijua sube).
+- Rings: ring_init (Ring.c) sorteaba slot libre al azar SOLO vetando
+  ocupados => un anillo recogido en X podia renacer en X. Red ring y
+  normal = MISMA entidad (flag red 10%): comparten spawners POR DISENO
+  (confirmado a la dueña). ring_count por mapa: 12..59 (Maps.c).
+- Cajas v68: itembox_last_spawner vetaba SOLO el ultimo spawner.
+
+IMPLEMENTACION:
+1. Cliente objects/obj_itembox/Step_2.gml — bloque v76 (guard
+   !reported, corre cayendo Y apoyada): place_meeting(obj_abyss /
+   obj_vv_lavacolumn / obj_spike) + rect manual Marijuna (x+48..x+113 /
+   y+48..y+672 == rect exacto del player, con with()/other.bbox_*).
+   Canal de siempre CLIENT_BOX_RELOCATE (one-shot reported/relocated).
+   EXCLUIDOS a proposito (caja alcanzable = spawn valido): ghz_water
+   (nadable), ycr_smokearea (1 ring/s), barridos periodicos (movingspike,
+   echain1, darktower_ball/sisi, judgerpor). Aritmetica anti-tunnel:
+   caja 30px + trigger 32px minimo vs 12px/frame => siempre hay frame
+   de solape.
+2. Server Ring.c — FIFO ring_recent[4] (NUEVO en Game struct, Server.h:
+   se auto-resetea por ronda via literal compuesto, patron bring_loc).
+   Veto: fresh>0 && recent_has(rnd) => goto gen. Push FIFO. Roll rojo,
+   paquetes y uninit INTACTOS. +<stdlib.h> explicito (rand implicito =
+   error en gcc moderno; ItemBoxMap.c ya lo incluia).
+3. Server ItemBoxMap.c — itembox_last_spawner -> itembox_recent[3]
+   (mismo patron: fresh_count>0 veto + push FIFO + reset en
+   itemboxmap_init). Veto v74 exe-denial y handlers ACTIVATE/RELOCATE
+   INTACTOS (verificado por contenido contra HEAD).
+4. Docs: CACHE.md (3 rings, 3.4.3 nueva, 9 pendientes, 11 changelog),
+   LEARNING.md (v76 lessons), LEEME_V76.txt (nuevo).
+
+VERIFICACION (regla 6): check_v76.py = 60+ checks TODOS OK: lexer GML
+balanceado; nucleo v63 INTACTO (gravedad 0.2, cap 12, while snap,
+polvita, resorte, fuera-de-room, rompe-apoyada, paquete activate,
+emitter); bloque v76 completo (3 place_meeting + rect Marijuna
+cross-checkeado contra el Step del player + guard + relocate);
+Ring.c (memoria 4, veto, push, paquetes intactos, orden rid,id,red);
+ItemBoxMap.c (ult-3, veto con frescas, v74 preservado, relocate
+one-shot, sin itembox_last_spawner en codigo); Server.h (campos dentro
+de Game); anti-cheat (Packet.h/net_packets.gml/net_state_game.gml/
+Create_0.gml/obj_itembox.yy SIN cambios vs HEAD); gcc -fsyntax-only
+Ring.c + ItemBoxMap.c OK (stub enet); .yyp 2542 recursos sin dupes;
+CJK-clean. sim_v76.py: rings ventana-4 6.4%->0% (300 sims x 40 spawns,
+22 slots), cajas ventana-3 14%->0% (300 x 20, 8 zonas), sin deadlock
+con 12 slots, caja reubicada renace en otra zona 1000/1000.
+
+ANTI-CHEAT (regla 7): CERO protocolo nuevo (Packet.h intacto). El
+reporte sigue siendo one-shot por entidad (relocated) + AssertOrDisconnect
+(in_game): un cliente modificado solo puede pedir reubicar cajas
+(existente desde v63), sin cobrar rewards (ACTIVATE es aparte e
+idempotente). No hizo falta tocar excepciones.
+
+ZIP (regla 2): v76_hazard_relocate_spawn_variety.zip = Step_2.gml +
+Ring.c + ItemBoxMap.c + Server.h + CACHE.md + LEARNING.md + worklog.md
++ check_v76.py + sim_v76.py + LEEME_V76.txt. Roundtrip verificado:
+clon fresco 61a5e248 + unzip + diff -rq == 0 + check_v76.py TODOS OK.
+
+OJO DUEÑA: RECOMPILAR EL SERVER (compilar_server.bat) — Ring.c,
+ItemBoxMap.c y Server.h cambiaron. Sin recompilar: la reubicacion por
+lava/abismo FUNCIONA igual (logica cliente + flujo v63 ya compilado)
+pero la variedad de spawns de rings/cajas NO (memoria nueva = server).
+
+Stage Summary:
+- Cajas ya no quedan atrapadas en lava/abismo/spikes: se reubican solas
+  por el canal v63 en otro spawn ring libre (y si el hazard ERUPCIONA
+  encima despues, tambien)
+- Spawns SIEMPRE variados: rings vetan los ultimos 4 slots, cajas las
+  ultimas 3 zonas (con alternativa libre; simulado 6.4%/14% -> 0%)
+- Red ring y normal comparten spawns POR DISENO (misma entidad) — la
+  variedad aplica a la tabla compartida

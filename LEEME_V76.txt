@@ -1,0 +1,101 @@
+=======================================================================
+ LEEME V76 — CAJAS: REUBICACION POR LAVA/PRECIPICIO + SPAWNS VARIADOS
+=======================================================================
+Base: tu repo tal cual esta (commit 61a5e248, despues de la v75).
+IMPORTANTISIMO: RECOMPILA EL SERVER (compilar_server.bat) — 3 archivos
+del server cambiaron. Sin recompilar, la reubicacion por lava funciona
+(usa el canal v63 que ya tienes compilado) PERO la variedad de spawns
+de anillos y cajas NO funciona (la memoria nueva vive en el server).
+
+-----------------------------------------------------------------------
+QUE PEDISTE Y QUE SE HIZO
+-----------------------------------------------------------------------
+1) "Si caen en lava, precipicios y eso, que la caja se reubique
+   automaticamente en otro spawn ring"
+
+   HECHO. La caja ahora se da cuenta sola si acaba DENTRO de:
+   - Lava de Volcano Valley (las columnas que erupcionan)
+   - Lava de Marijua (la plataforma que sube)
+   - Precipicios/abismos (obj_abyss — ojo: el abismo solo teletransporta
+     PLAYERS, las cajas se caian por ahi hasta el fondo y quedaban
+     atrapadas)
+   - Spikes estaticos
+
+   Y algo que probablemente no habias visto: el chequeo corre TAMBIEN
+   con la caja ya apoyada. ¿Por que? Porque la columna de lava de
+   Volcano Valley ERUPCIONA despues — puede aparecer ENCIMA de una caja
+   que ya estaba bien apoyada. Eso tambien la reubica.
+
+   La reubicacion usa el mismo canal de siempre (CLIENT_BOX_RELOCATE):
+   la caja desaparece y el server la hace renacer en OTRO spawn ring
+   libre EN EL MISMO INSTANTE. Y esta verificado que NUNCA renace en la
+   misma zona que acaba de dejar (1000/1000 simulaciones).
+
+   NO reubica (a proposito, porque la caja sigue siendo alcanzable):
+   el agua de Green Hill (se puede nadar), el humo de You Can't Run
+   (solo roba 1 anillo por segundo), y los peligros que pasan
+   rato por rato (spikes moviles, cadenas, bolas de Dark Tower): entre
+   pasada y pasada la caja se puede romper tranquilamente.
+
+2) "El red y el ring normal comparten spawns, no?"
+
+   SI, tienes razon — y es a proposito. Son LA MISMA entidad para el
+   server: al crear un anillo hay un 10% de que salga rojo. Salen en
+   los mismos "spawn rings" (los obj_ring_spawner del mapa). Eso queda
+   igual — lo que cambia es la VARIEDAD (siguiente punto).
+
+3) "Asegurar que los spawns siempre sean variados y no siempre en el
+   mismo lugar, siempre"
+
+   HECHO, en los dos sistemas:
+   - ANILLOS (rojos y normales): antes el server solo evitaba los
+     puntos ya ocupados — un anillo recogido en el punto X podia volver
+     a salir en X una y otra vez. Ahora el server recuerda los ULTIMOS
+     4 puntos usados y no vuelve a ninguno de ellos mientras quede
+     algun otro libre. Simulado: de un 6.4% de "cayo en un punto
+     reciente" a 0%.
+   - CAJAS: antes solo evitaba repetir la ultima zona usada. Ahora
+     recuerda las ULTIMAS 3 zonas. Simulado: de 14% a 0%.
+   - La memoria se borra sola al empezar cada ronda (empieza fresca).
+
+-----------------------------------------------------------------------
+ARCHIVOS (SOLO los tocados — copiar tal cual sobre el repo)
+-----------------------------------------------------------------------
+CLIENTE (GameMaker):
+  objects/obj_itembox/Step_2.gml    <- bloque nuevo de hazards (v76)
+
+SERVER (C — RECOMPILAR SIEMPRE):
+  betterserver-oss/include/Server.h <- 2 campos nuevos en Game
+  betterserver-oss/disasterserver/entities/Ring.c      <- variedad rings
+  betterserver-oss/disasterserver/entities/ItemBoxMap.c <- variedad cajas
+
+DOCS / HERRAMIENTAS:
+  CACHE.md, LEARNING.md, worklog.md  (registro al dia)
+  check_v76.py   <- validador (sustituye al v75): TODOS OK
+  sim_v76.py     <- simulador de variedad (numeros del LEEME)
+
+-----------------------------------------------------------------------
+COMO PROBARLO RAPIDO (regla de siempre)
+-----------------------------------------------------------------------
+1. Recompila el server (compilar_server.bat) y abre el juego.
+2. ROMPER CAJAS NORMAL: que nada se haya roto del flujo viejo (caen,
+   se apoyan, se rompen con salto/proyectil, dan su reward).
+3. LAVA: en Volcano Valley, espera a que una caja caiga cerca de una
+   columna y que esta erupcione encima -> la caja debe desaparecer y
+   renacer al instante en otra zona.
+4. ABISMO: en Ravine Mist (o el mapa con abismos que tengas a mano),
+   si una caja cae a un precipicio -> renace en otro lado al momento.
+5. VARIEDAD: en una ronda larga, fijate que los anillos NO salgan
+   siempre en los mismos 2-3 puntos de siempre — ahora rotan.
+6. Si algo raro: pantallazo + en que mapa paso.
+
+-----------------------------------------------------------------------
+SEGURIDAD / ANTI-CHEAT (sin cambios de protocolo)
+-----------------------------------------------------------------------
+- CERO paquetes nuevos: se reusa CLIENT_BOX_RELOCATE de la v63 (con su
+  proteccion de "una sola vez por caja" en el server).
+- El veto de la v74 (el Exe rompe cajas pero NO cobra el reward)
+  queda INTACTO — verificado linea por linea.
+- Ningun archivo de red del cliente se toco (net_packets/net_state_game
+  exactamente igual que en tu repo).
+=======================================================================

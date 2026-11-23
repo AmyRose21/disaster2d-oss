@@ -279,6 +279,13 @@ typedef struct
         /* Rings */
         bool rings[256];
         uint8_t ring_coff;
+        /* v76 RING VARIETY: FIFO memory of the last RING_RECENT_MAX
+           spawner slots used (anti "same spot over and over"). Lives in
+           the Game struct ON PURPOSE: the compound literal at round
+           start zero-inits it, so the memory resets per round with NO
+           manual reset call (same pattern as bring_loc). */
+        uint8_t ring_recent[4];
+        uint8_t ring_recent_len;
 
         /* Lists */
         DyList left;
