@@ -535,3 +535,62 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   deliverables — a draft of the v76 comment accidentally contained
   Chinese characters (model glitch); the checker now catches that
   class of bug forever.
+
+## v77 — Not Perfect zone-follow — lessons
+- **Read the user's words literally against the asset list**: "un fix
+  para not perfect" sounded like "it's not perfect"; NotPerfect.c (map
+  id 6) exists. ALWAYS grep the entity/object list for the phrase
+  before interpreting a complaint as generic.
+- **Zone maps need zone-aware item spawning**: Not Perfect rotates its
+  playable area between 4 room quadrants (offsets 2904 x / 1368 y,
+  SERVER_NPCONTROLLER_STATE every ~20 s, ~5 s in the last minute).
+  A static spawn table (all 29 v68 points in the bottom half) means
+  half the round has ZERO reachable boxes, and alive-but-unreachable
+  boxes eat the ITEMBOX_MAX=4 pool. Fix = (a) spawn points in all 4
+  quadrants, (b) server filters spawns to the current zone, (c) alive
+  boxes outside the zone relocate same-tick, (d) repopulate what was
+  removed so population follows the zone.
+- **The v68 spawn-table generator is REPRODUCIBLE from room data**:
+  every v68 point = obj_ring_spawner + 24 px x, floor top within a
+  40 px window below the ring, box at top-30, dedupe 96x64, no spring
+  at 48 px. Re-deriving the bottom half with those rules reproduces
+  the shipped table 29/29 EXACTLY. Ring spawner positions are the
+  author-validated "playable spot" seeds — better than raw collision
+  scanning. Keep gen_np_top_v77.py as the reference implementation.
+- **GMRInstance v4 property ORDER**: "resourceType":"GMRInstance"
+  comes BEFORE scaleX/scaleY/x/y in room .yy files; multi-line
+  instances (with overridden properties) break single-line regexes.
+  Robust pattern: match from {"$GMRInstance":"v4" through
+  "scaleX":N,"scaleY":N,"x":N,"y":N,} with re.S.
+- **Validate new spawn points against the CLIENT's final resting
+  position, not the spawn point**: Step_2's while-loop pushes a box UP
+  to the highest overlapping floor top (e.g. (864,2034) grazes a side
+  block 6 px and settles 24 px higher). Anti-cheat (player_check_zone,
+  Zone.c rects = solid bodies, BLOCK_SIZE=128) must be checked at that
+  final resting spot with a player standing there — checking the raw
+  spawn point produces false rejects.
+- **Tick order matters and is exploitable**: game_state_tick runs
+  entity tick -> map tick (npctrl advances stage + broadcasts) ->
+  itemboxmap_tick. Because the zone controller runs BEFORE the item
+  system in the same tick, zone-following relocation can happen in the
+  SAME tick as the player teleport with zero extra synchronization.
+- **RAssert expands to `if(!(x)) return false;`** — never call it
+  inside a void function (gcc -Wreturn-mismatch). House pattern: make
+  the helper `static bool` and `return true` on the no-op paths.
+- **FIND arrays bound FEATURES, not just memory**: the old
+  ItemBox* boxes[ITEMBOX_MAX*3] capped game_find at 12 entities; with
+  4 alive + 8 boxused residues (~27 s countdown each) a busy round
+  could saturate it, silently blocking relocation repopulation (and
+  even ACTIVATE visibility). Bumped to 24 (= ITEMBOX_MAX*6) in all 4
+  call sites. When a find-result array gates a gameplay decision,
+  size it for worst-case concurrent entities, not "expected" counts.
+- **Simulation models must match the intended invariant, not an
+  idealized one**: the first sim expected population to jump to 4
+  after every zone change, but the map fills 1 box per 20 s roll
+  (v68 cadence) — zone changes must PRESERVE population, not maximize
+  it. 500 rounds x ~16 changes: 0 out-of-zone boxes, 0 same-point
+  respawns, population preserved.
+- **The editor (Edit tool) re-indents whole files tabs->spaces** when
+  large blocks are replaced (ItemBoxSpawnTables.c: 619-line diff that
+  is 95% whitespace). Harmless for C, but diff-stat discipline checks
+  must normalize whitespace before comparing (check_v77.py does).

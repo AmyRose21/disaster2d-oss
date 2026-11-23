@@ -1,0 +1,103 @@
+=======================================================================
+ LEEME V77 — NOT PERFECT: LAS CAJAS AHORA SIGUEN A LA ZONA
+=======================================================================
+Base: tu repo tal cual esta (commit 847cf443, el que subiste con la
+v76 dentro).
+IMPORTANTISIMO: RECOMPILA EL SERVER (compilar_server.bat) — los 2
+archivos que cambian son del server. El CLIENTE no se toca para nada:
+con el server recompilado, la v77 entra sola.
+
+-----------------------------------------------------------------------
+QUE PEDISTE Y QUE SE HIZO
+-----------------------------------------------------------------------
+"Un fix para Not Perfect... la zona cambia cada cuanto... en las
+diferentes fases las cajas solo se quedan en un solo lugar"
+
+1) PRIMERO, LA RESPUESTA A TU PREGUNTA: cada cuanto cambia la zona
+
+   En Not Perfect la zona (el cuadrante del room donde estan todos)
+   cambia CADA ~20 SEGUNDOS (15 s de espera + 5 s de aviso), y cuando
+   queda el ultimo minuto de ronda pasa a CADA ~5 SEGUNDOS (2 s + 3 s).
+   En una ronda completa (2:35) la zona rota unas 16 veces: arriba-
+   izquierda -> arriba-derecha -> abajo-izquierda -> abajo-derecha ->
+   y vuelta a empezar.
+
+2) POR QUE LAS CAJAS SE QUEDABAN EN UN SOLO LUGAR (el bug de verdad)
+
+   - La tabla de spawns de las cajas (la v68) tenia sus 29 puntos
+     TODOS en la mitad de ABAJO del room (los 2 cuadrantes de abajo).
+     ¿Por que? Porque se genero sembrando desde los ring spawners de
+     abajo. Arriba no habia NI UN punto.
+   - Resultado: cuando la zona activa era la de arriba (la mitad de
+     la ronda), las cajas "existian" pero en los cuadrantes de abajo,
+     lejanisimas e inalcanzables... y ocupando el limite de 4 cajas
+     vivas. O sea: cero cajas alcanzables la mitad de la ronda, y
+     cuando bajabas a la zona de abajo, siempre las mismas 29 posiciones.
+
+3) LO QUE SE HIZO (todo server-side, 2 archivos)
+
+   a) 27 PUNTOS NUEVOS EN LA MITAD DE ARRIBA (13 arriba-izquierda +
+      14 arriba-derecha). Generados con el MISMO metodo de la v68
+      (semilla = tus ring spawners de arriba, que ya son posiciones
+      validadas por ti al colocarlas) y validados uno por uno contra
+      el room: suelo real debajo, la caja nunca queda dentro de una
+      zona prohibida del anti-cheat (ni un player parado al lado),
+      sin resortes a 48 px. Verificacion extra: con ese metodo
+      regenere la tabla vieja de abajo y dio 29/29 EXACTO igual a la
+      que tienes — o sea que el metodo es el mismo, no invente nada.
+      La tabla pasa de 29 a 56 zonas (las 29 viejas ni se tocan: la
+      primera caja sigue teniendo el mismo nid de siempre).
+
+   b) LAS CAJAS SIGUEN A LA ZONA (ItemBoxMap.c):
+      - Las cajas nuevas solo spawnean DENTRO de la zona activa.
+      - Cuando la zona cambia, todas las cajas vivas que quedaron en
+        la zona vieja se reubican SOLAS a la zona nueva EN EL MISMO
+        TICK en que ustedes son teletransportados (el controlador de
+        la zona corre antes que el sistema de cajas en el mismo tick
+        del server — cero desfase visible).
+      - La poblacion se conserva: si habia 3 cajas, sigues viendo 3
+        cajas en la zona nueva (nunca un mapa vacio tras el cambio).
+      - La variedad v76 sigue intacta: no repiten las ultimas 3
+        posiciones usadas (y ahora en la zona que toque).
+
+   c) BONUS (aplica a TODOS los mapas):
+      - Las cajas reubicadas por lava/precipicio (v76) ya no esperan
+        hasta 20 s para renacer: renacen en el MISMO tick.
+      - El buscador interno de cajas estaba limitado a 12 entidades
+        (4 vivas + 8 residuos de cajas rotas): en una ronda movida se
+        saturaba y podia bloquear la repoblacion. Ahora 24. Tambien
+        arregla un caso raro de la v68: una caja rota "numero 13" no
+        podia romperse por el cliente hasta que expiraba otra.
+
+-----------------------------------------------------------------------
+QUE PROBAR EN PARTIDA (con el server recompilado)
+-----------------------------------------------------------------------
+1. Entra a Not Perfect: la primera caja (a los ~15 s) debe aparecer en
+   la zona donde ESTAS (arriba-izquierda al inicio).
+2. Cuando la zona cambie (cada ~20 s): las cajas deben desaparecer de
+   la zona vieja y aparecer en la nueva AL INSTANTE (mismo momento del
+   teleport). Cuenta: si habia 3, deben ser 3 en la nueva.
+3. Ultimo minuto (cambios cada ~5 s): el server no debe caerse y las
+   cajas deben seguir la rotacion igual (aqui se ven ~12 cambios).
+4. En las zonas de abajo: las posiciones viejas siguen funcionando
+   igual que siempre (nid 0..28 intactos).
+5. Rompe cajas normalmente (una viva y una rota) — el flujo v63/v74 no
+   se toco.
+6. En OTROS mapas (Volcano Valley, etc.): todo igual que la v76 — la
+   unica diferencia visible es que una caja que cae en lava renace ya
+   (antes tardaba hasta 20 s).
+
+-----------------------------------------------------------------------
+ARCHIVOS DEL ZIP (solo lo modificado/creado)
+-----------------------------------------------------------------------
+betterserver-oss/disasterserver/entities/ItemBoxMap.c        (server)
+betterserver-oss/disasterserver/entities/ItemBoxSpawnTables.c (server)
+CACHE.md / LEARNING.md / worklog.md                            (docs)
+check_v77.py / sim_v77.py                                    (tools)
+LEEME_V77.txt                                               (este)
+
+Anti-cheat: CERO cambios de protocolo. La reubicacion por zona la
+decide el SERVER solo (no hay paquete nuevo que falsificar). Los
+handlers de romper/reubicar siguen con sus protecciones de siempre.
+
+Detalle tecnico completo: CACHE.md seccion 3.4.4 + LEARNING.md v77.

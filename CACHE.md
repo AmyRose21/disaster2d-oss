@@ -674,6 +674,77 @@
   enet, superficie v74 preservada, .yyp 2542, CJK-clean. Simulador:
   sim_v76.py (metrica de ventana + deadlock + relocate != misma zona).
 
+### 3.4.4 v77 — NOT PERFECT: CAJAS QUE SIGUEN A LA ZONA (2026-11-23, commit base 847cf443)
+- PEDIDO: "fix para Not Perfect — la zona cambia cada cuanto? en las
+  distintas fases las cajas solo se quedan en un solo lugar".
+- DIAGNOSTICO (evidencia de codigo): Not Perfect (map id 6) rota su area
+  jugable entre 4 CUADRANTES del room 5520x2736 (state 0=TL,1=TR,2=BL,
+  3=BR; teleport ±2904 x / ±1368 y en net_state_game.gml al recibir
+  SERVER_NPCONTROLLER_STATE del NPController "npctrl"). La zona cambia
+  cada ~20 s (15 s NPC_NONE + 5 s NPC_PREPARE) y cada ~5 s (2 s + 3 s)
+  en el ultimo minuto (~16 cambios por ronda de 155 s). La tabla v68
+  (itembox_spawns_6) tenia sus 29 puntos SOLO en la mitad inferior
+  (19 BL + 10 BR, y 1650..2346): en las zonas 0/1 (mitad superior) NO
+  EXISTIA ninguna caja alcanzable y las vivas de 2/3 quedaban lejos,
+  ocupando la pool de ITEMBOX_MAX=4 => "las cajas se quedan en un solo
+  lugar".
+- METODO v68 RECUPERADO (reversado de la tabla existente, verificado
+  29/29 EXACTO): cada punto v68 = obj_ring_spawner + 24 px en x, con el
+  suelo en ventana de 40 px bajo el ring (los rings flotan ~24 px sobre
+  su plataforma), caja apoyada y=top_suelo-30, dedupe 96x64, sin
+  resorte a 48 px. La mitad superior tiene 30 ring spawners propios
+  (posiciones validadas por la autora del mapa).
+- SERVER ItemBoxSpawnTables.c: itembox_spawns_6 29 -> 56 zonas (APPEND
+  puro: nid 0..28 IDENTICOS — ningun indice existente cambia). 27
+  nuevos: 13 TL (zona 0) + 14 TR (zona 1), generados con el metodo
+  v68 y validados: suelo real (obj_solid_block 128x128*scale /
+  obj_platform_jumptrough 64x32*scale, parser robusto de instancias
+  multi-linea del .yy), posicion FINAL de reposo del cliente (el while
+  de Step_2 empuja la caja al top mas alto) fuera de TODOS los rects
+  prohibidos del anti-cheat (Zone.c room_notperfect, BLOCK_SIZE=128:
+  los rects son los cuerpos solidos; + margen de player de pie), sin
+  resorte a 48 px. Nota: el editor reindento tabs->espacios todo el
+  archivo (mismo patron v76 en Ring.c/ItemBoxMap.c; solo estetica).
+- SERVER ItemBoxMap.c:
+  (a) np_current_zone(): game_find tag "npctrl" -> stage%4 (-1 si no
+  hay controller o mapa != 6: fallback al comportamiento v76, NUNCA
+  bloquea el spawn). np_zone_of(px,py) = (x>=2904) + 2*(y>=1368).
+  (b) itembox_spawn_one(): roll refactorizado a candidatos pre-filtrados
+  por zona actual (en NP solo spawnea DENTRO de la zona); FIFO ult-3
+  v76 INTACTO sobre los candidatos; goto gen termina siempre (los
+  candidatos libres existen por construccion).
+  (c) itemboxmap_tick(): el procesado de relocate/zona corre CADA TICK
+  (antes solo en el tick del roll de 20 s): npctrl_tick corre ANTES en
+  el mismo tick (game_state_tick: entity tick -> map tick -> itemboxmap)
+  => la reubicacion sale en el MISMO tick que el teleport de players.
+  Las VIVAS fuera de la zona actual -> relocated=true + timer=0 (mismo
+  canal v63: despawn state 4 + respawn en OTRO punto, su spawner queda
+  ocupado ese tick => nunca renace en su punto).
+  (d) Repoblacion inmediata: want = max(1 si roll, min(removed,
+  MAX-alive_after)) — las cajas SIGUEN a la zona (poblacion preservada
+  en cada cambio, verificado 8000 cambios simulados) y las reubicadas
+  por lava v63/v76 TAMBIEN renacen ya (antes hasta 20 s de espera).
+  (e) ITEMBOX_FIND_MAX = ITEMBOX_MAX*6 = 24 (era *3=12: con 4 vivas + 8
+  residuos boxused concurrentes el find se saturaba y podia bloquear
+  la repoblacion; aplicado en tick + spawn_one + ACTIVATE + RELOCATE).
+- CLIENTE: CERO cambios (todo server-driven por SERVER_BOX_STATE; el
+  teleport de players ya existia; los puntos TL/TR no tienen hazards —
+  el room solo tiene bspring_up como peligro de caja, excluido a 48 px).
+- ANTI-CHEAT (regla 7): CERO protocolo nuevo (Packet.h/net_packets.gml
+  intactos). El nuevo relocate es SERVER-INITIATED (sin input cliente).
+  Los 27 puntos validados contra player_check_zone (ningun player de
+  pie junto a una caja cae en rect prohibido; el mapa 6 ya tenia la
+  excepcion suave +30 errores por tick por sus areas grandes).
+- Validador: check_v77.py (SUSTITUYE a check_v76.py): tabla 56 + append
+  puro + 27 puntos fisicamente validados contra el room + FASE 1 29/29
+  + 28 checks de logica + gcc -fsyntax-only -Wall -Wextra + superficies
+  intactas + .yyp 2542 + CJK-clean. Simulador: sim_v77.py (500 rondas
+  x ~16 cambios: 0 cajas fuera de zona, 0 renacimientos en el mismo
+  punto, poblacion preservada; mapa normal 0% ventana-3; fallback 20/20).
+- GENERADORES (workspace): scripts/gen_np_top_v77.py (FASE 1 reverso +
+  FASE 2 TL/TR), scripts/analyze_np_v77.py + analyze_np2_v77.py
+  (geometria del room: 4 cuadrantes NO copias, blocks/rects/springs).
+
 ## 4. PERSONAJES
 ### Survivors (macros en scripts/scr_survivors/scr_survivors.gml, base TAILS=1)
 - CHARACTER_TAILS(1) ..... obj_tails (vuela; tails_projectile).
@@ -1340,6 +1411,12 @@ y las pistas nuevas de 20-28s se cortaban).
   (1) caja en Volcano Valley cuando erupciona la columna -> se reubica
   sola; (2) anillos/cajas apareciendo en sitios variados (no repiten
   zona reciente); (3) romper cajas normal (regresion del nucleo v63).
+- v77: pendiente PROBAR en partida real (recompilar server OBLIGATORIO):
+  en Not Perfect las cajas deben aparecer DENTRO de la zona actual y
+  mudarse con cada cambio (cada ~20 s, ~5 s al final); antes de que
+  cambie la zona, romper una caja (regresion v63/v74); verificar que en
+  el ultimo minuto (cambios cada 5 s) el server no se cae y las cajas
+  siguen la rotacion; en OTROS mapas todo igual que v76.
 
 ## 10. HERRAMIENTAS PROPIAS (scripts/)
 - IMPORTANTE (26/10): la carpeta scripts/ del workspace NO existe en este
@@ -1367,6 +1444,15 @@ y las pistas nuevas de 20-28s se cortaban).
 - Misc (historico): check_arrow_colors.py (colores de sprites de flecha).
 
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-23 (v77 — NOT PERFECT ZONE FOLLOW): pedido de la duena para
+  Not Perfect ("la zona cambia, las cajas se quedan en un solo lugar").
+  Diagnosticado: tabla v68 mitad-inferior-only + zonas rotantes 4
+  cuadrantes. Entrega: (1) ItemBoxSpawnTables.c 29->56 zonas (27 nuevas
+  TL/TR, metodo v68 reversado y verificado 29/29); (2) ItemBoxMap.c
+  zona-aware (spawn dentro de la zona actual + relocate por cambio de
+  zona cada tick + repoblacion inmediata + FIND_MAX 24). Cero cambios
+  de cliente/protocolo. Validadores check_v77.py + sim_v77.py.
+  Seccion nueva 3.4.4. ZIP: v77_notperfect_zone_follow.zip.
 - 2026-10-30 (vanilla-v2-fix1/rev2): el usuario compilo la v2 y GM
   fallo: (1) net_sounds.gml 'snd_parry' sin coma (los 6 sonidos de
   Chocola se insertaron tras el ULTIMO elemento del array), error

@@ -1,5 +1,6 @@
 #include <entities/ItemBoxMap.h>
 #include <entities/ItemBox.h>
+#include <entities/NotPerfect.h>
 #include <Server.h>
 #include <CMath.h>
 #include <stdlib.h>
@@ -31,6 +32,12 @@ static int itembox_alive = -1;   /* -1: ronda sin roll agendado */
    se generaliza a un FIFO de ITEMBOX_RECENT_MAX spawners — regla de la
    duena: spawns SIEMPRE variados, no el mismo sitio una y otra vez. */
 #define ITEMBOX_RECENT_MAX 3
+/* v77: techo de busqueda (vivas + residuos boxused en countdown ~27 s).
+   Era ITEMBOX_MAX*3=12: con 4 vivas + 8 residuos concurrentes (ronda
+   movida) el find se saturaba y la repoblacion por zona quedaba bloqueada
+   — ahora 24, holgado (las reubicadas mueren instantaneo, no dejan
+   residuo: solo lo roto por PLAYER cuenta aca). */
+#define ITEMBOX_FIND_MAX (ITEMBOX_MAX * 6)
 static uint8_t itembox_recent[ITEMBOX_RECENT_MAX];
 static int itembox_recent_len = 0;
 
@@ -57,6 +64,38 @@ static void itembox_recent_push(int zone)
         }
 }
 
+/* ===== v77 NOT PERFECT: ZONA ACTUAL =====
+   Not Perfect rota su area jugable entre 4 cuadrantes del room
+   (SERVER_NPCONTROLLER_STATE: state 0=TL, 1=TR, 2=BL, 3=BR; offsets
+   +2904 x / +1368 y — ver net_state_game.gml). La zona cambia cada
+   ~20 s (15 s NONE + 5 s PREPARE) y cada ~5 s en el ultimo minuto
+   (2 s + 3 s), ~16 veces por ronda de 155 s. Regla de la duena: las
+   cajas deben SEGUIR a la zona (antes quedaban clavadas en el mismo
+   cuadrante — la tabla v68 solo cubria la mitad inferior — y en las
+   zonas 0/1 no habia NINGUNA caja alcanzable). */
+#define NP_MAP_ID   6
+#define NP_ZONE_W   2904.0
+#define NP_ZONE_H   1368.0
+
+static int np_zone_of(uint16_t px, uint16_t py)
+{
+        return (px >= NP_ZONE_W ? 1 : 0) + (py >= NP_ZONE_H ? 2 : 0);
+}
+
+/* zona actual segun el NPController (-1: mapa sin rotacion o sin
+   controller — comportamiento v76 normal, nunca bloquea el spawn) */
+static int np_current_zone(Server* server)
+{
+        if (server->game.map != NP_MAP_ID)
+                return -1;
+
+        Entity* ctrl[1];
+        if (game_find(server, ctrl, "npctrl", 1) <= 0)
+                return -1;
+
+        return (int)(((NPController*)ctrl[0])->stage % 4);
+}
+
 /* Sorteo con pesos desiguales (tabla identica a la del cliente:
    macros BOX_*_WEIGHT de net_state_game.gml). */
 static uint8_t itembox_roll_type(void)
@@ -72,6 +111,56 @@ static uint8_t itembox_roll_type(void)
         if (r < 85)
                 return ITEMTYPE_LIGHTNING;
         return ITEMTYPE_BOOTS;
+}
+
+/* un solo intento de spawn (lo llama el roll de COFF y la repoblacion
+   por reubicacion). zone < 0: cualquier spawner libre (resto de mapas);
+   zone 0..3: solo spawners DENTRO de esa zona de Not Perfect. */
+static bool itembox_spawn_one(Server* server, const ItemBoxSpawnTable* tab, int zone)
+{
+        ItemBox* boxes[ITEMBOX_FIND_MAX];
+        int found = game_find(server, (Entity**)boxes, "itembox", ITEMBOX_FIND_MAX);
+        if (found >= ITEMBOX_FIND_MAX)
+                return true;
+
+        /* un spawner queda ocupado por TODA entidad existente (viva o
+           ROTA en countdown — y tambien las recien marcadas timer=0 en
+           este mismo tick: una caja reubicada NUNCA renace en su punto). */
+        uint8_t used[256];
+        memset(used, 0, sizeof(used));
+        for (int i = 0; i < found; i++)
+                if (boxes[i]->nid < tab->zones)
+                        used[boxes[i]->nid] = 1;
+
+        /* v77: candidatos libres (filtrados por zona en Not Perfect) */
+        int cand[128];
+        int cand_count = 0;
+        for (int i = 0; i < tab->zones; i++)
+                if (!used[i] && (zone < 0 || np_zone_of(tab->points[i][0], tab->points[i][1]) == zone))
+                        cand[cand_count++] = i;
+        if (cand_count <= 0)
+                return true; /* zona sin puntos libres: sin spawn esta vez */
+
+        /* v76 nunca-repetir: con alternativas frescas, vetar los
+           ultimos ITEMBOX_RECENT_MAX spawners usados. Si no quedan
+           frescas, se acepta cualquiera (no bloquear el spawn). */
+        int fresh = 0;
+        for (int c = 0; c < cand_count; c++)
+                if (!itembox_recent_has(cand[c]))
+                        fresh++;
+
+        int rnd;
+gen:
+        rnd = cand[rand() % cand_count];
+        if (fresh > 0 && itembox_recent_has(rnd))
+                goto gen;
+
+        itembox_recent_push(rnd);
+        ItemBox box = MakeItemBox((uint8_t)rnd, itembox_roll_type());
+        box.pos.x = (double)tab->points[rnd][0];
+        box.pos.y = (double)tab->points[rnd][1];
+        RAssert(game_spawn(server, (Entity*)&box, sizeof(ItemBox), NULL));
+        return true;
 }
 
 bool itemboxmap_init(Server* server)
@@ -105,81 +194,73 @@ bool itemboxmap_tick(Server* server)
                 itembox_next_roll = server->game.elapsed + ITEMBOX_FIRST_DELAY;
         }
 
-        if (server->game.elapsed < itembox_next_roll)
-                return true;
+        /* v77 NOT PERFECT: zona actual. El npctrl_tick corre ANTES en el
+           mismo tick (game_state_tick: entity tick -> map tick -> este),
+           asi que el cambio de zona ya esta visible aqui — la reubicacion
+           de cajas sale en el MISMO paquete-tick que el teleport de los
+           players. */
+        int zone = np_current_zone(server);
 
-        itembox_next_roll = server->game.elapsed + ITEMBOX_SPAWN_COFF;
+        bool roll_now = server->game.elapsed >= itembox_next_roll;
+        if (roll_now)
+                itembox_next_roll = server->game.elapsed + ITEMBOX_SPAWN_COFF;
 
-        /* contar vivas (timer < 0) — las rotas en countdown todavia ocupan
-           visualmente boxused, pero la pool de spawn son las VIVAS
-           unicamente (max 4 cajas rompibles a la vez).
-           v67: patron por-puntero (ItemBox* box[] + ->). */
-        ItemBox* boxes[ITEMBOX_MAX * 3];
-        int found = game_find(server, (Entity**)boxes, "itembox", ITEMBOX_MAX * 3);
+        /* v77: el procesado de reubicaciones corre CADA tick (antes solo
+           en el tick del roll): la zona de Not Perfect rota cada ~20 s
+           (5 s en el ultimo minuto) y las cajas marcadas por lava/abismo
+           (v63/v76) tampoco deben esperar hasta 20 s para renacer. El
+           game_find de ~12 entidades por tick es trivial. */
+        ItemBox* boxes[ITEMBOX_FIND_MAX];
+        int found = game_find(server, (Entity**)boxes, "itembox", ITEMBOX_FIND_MAX);
         int alive = 0;
         for (int i = 0; i < found; i++)
                 if (boxes[i]->timer < 0)
                         alive++;
 
-        /* RELOCATE: las cajas marcadas por CLIENT_BOX_RELOCATE se retiran
-           AQUI (despawn state 4 al cliente via uninit) y su spawner vuelve
-           a la pool del roll de abajo — la nueva nace en OTRO punto libre en
-           el MISMO tick (tp inmediato a otra zona, regla de la duena). */
+        /* RELOCATE (v63) + zona NP (v77): retirar las marcadas y las VIVAS
+           que quedaron fuera de la zona actual. timer=0 -> el itembox_tick
+           de la entidad difunde el despawn (state 4) y la retira; su
+           spawner sigue ocupado este tick (used[] pre-muerte) -> la nueva
+           nace SIEMPRE en otro punto. */
+        int removed = 0;
         for (int i = 0; i < found; i++)
         {
-                if (!boxes[i]->relocated)
-                        continue;
-                /* forzar su muerte en este tick: el game_entity_tick llama
-                   uninit (difunde state 4) y retira la entidad. */
-                boxes[i]->timer = 0;
-        }
-
-        if (alive < ITEMBOX_MAX && found < ITEMBOX_MAX * 3)
-        {
-                /* un spawner queda ocupado por TODA entidad existente (viva o
-                   ROTA en countdown — la rota todavia muestra su residuo
-                   boxused ~25-30 s). nid ES el spawner: caja y residuo viven
-                   y mueren en el mismo punto. */
-                uint8_t used[256];
-                memset(used, 0, sizeof(used));
-                for (int i = 0; i < found; i++)
-                        if (boxes[i]->nid < tab->zones)
-                                used[boxes[i]->nid] = 1;
-
-                int free_count = 0;
-                for (int i = 0; i < tab->zones; i++)
-                        if (!used[i])
-                                free_count++;
-
-                /* v76: cuantas libres NO estan en la memoria reciente —
-                   si hay al menos una, el sorteo veta TODOS los recientes. */
-                int fresh_count = 0;
-                for (int i = 0; i < tab->zones; i++)
-                        if (!used[i] && !itembox_recent_has(i))
-                                fresh_count++;
-
-                if (free_count > 0)
+                if (boxes[i]->relocated)
                 {
-                        int rnd;
-                gen:
-                        rnd = rand() % tab->zones;
-                        if (used[rnd])
-                                goto gen;
-                        /* nunca-repetir (v76): con alternativas frescas, se
-                           vetan los ultimos ITEMBOX_RECENT_MAX spawners
-                           usados (antes solo se vetaba el inmediato). Si
-                           no quedan frescas libres, se acepta cualquiera
-                           para no bloquear el spawn. */
-                        if (fresh_count > 0 && itembox_recent_has(rnd))
-                                goto gen;
-
-                        itembox_recent_push(rnd);
-                        ItemBox box = MakeItemBox((uint8_t)rnd, itembox_roll_type());
-                        box.pos.x = (double)tab->points[rnd][0];
-                        box.pos.y = (double)tab->points[rnd][1];
-                        RAssert(game_spawn(server, (Entity*)&box, sizeof(ItemBox), NULL));
+                        boxes[i]->timer = 0;
+                        removed++;
+                        continue;
+                }
+                if (zone >= 0 && boxes[i]->timer < 0
+                    && np_zone_of(tab->points[boxes[i]->nid][0], tab->points[boxes[i]->nid][1]) != zone)
+                {
+                        boxes[i]->relocated = true;
+                        boxes[i]->timer = 0;
+                        removed++;
                 }
         }
+
+        /* cuantas spawnear este tick:
+           - roll cada COFF s: 1 si hay hueco (cadencia de siempre)
+           - si hubo reubicacion (lava v63/v76 o cambio de zona v77):
+             repoblar LO RETIRADO en el mismo tick (bounded por MAX),
+             para que las cajas "siguen" a la zona y el player nunca
+             ve un mapa vacio tras un cambio */
+        int want = 0;
+        int alive_after = alive - removed;
+        if (roll_now && alive_after < ITEMBOX_MAX)
+                want = 1;
+        if (removed > 0 && alive_after < ITEMBOX_MAX)
+        {
+                int back = removed;
+                if (back > ITEMBOX_MAX - alive_after)
+                        back = ITEMBOX_MAX - alive_after;
+                if (back > want)
+                        want = back;
+        }
+
+        for (int s = 0; s < want; s++)
+                RAssert(itembox_spawn_one(server, tab, zone));
 
         return true;
 }
@@ -202,8 +283,8 @@ bool itemboxmap_tcpmsg(PeerData* v, Packet* packet)
                         PacketRead(nid, packet, packet_read8, uint8_t);
                         PacketRead(proj, packet, packet_read8, uint8_t);
 
-                        ItemBox* box[ITEMBOX_MAX * 3];
-                        int found = game_find(v->server, (Entity**)box, "itembox", ITEMBOX_MAX * 3);
+                        ItemBox* box[ITEMBOX_FIND_MAX];
+                        int found = game_find(v->server, (Entity**)box, "itembox", ITEMBOX_FIND_MAX);
                         if (found <= 0)
                                 break;
 
@@ -245,8 +326,8 @@ bool itemboxmap_tcpmsg(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, v->in_game);
                         PacketRead(nid, packet, packet_read8, uint8_t);
 
-                        ItemBox* box[ITEMBOX_MAX * 3];
-                        int found = game_find(v->server, (Entity**)box, "itembox", ITEMBOX_MAX * 3);
+                        ItemBox* box[ITEMBOX_FIND_MAX];
+                        int found = game_find(v->server, (Entity**)box, "itembox", ITEMBOX_FIND_MAX);
                         for (int i = 0; i < found; i++)
                         {
                                 if (box[i]->nid != nid || box[i]->relocated)
