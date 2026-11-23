@@ -594,3 +594,68 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   large blocks are replaced (ItemBoxSpawnTables.c: 619-line diff that
   is 95% whitespace). Harmless for C, but diff-stat discipline checks
   must normalize whitespace before comparing (check_v77.py does).
+
+## v78 (2026-11-23) — operator-only chars, per-box respawn cooldown, box-ring heal, shield-break invulns, mobile V button
+- **READ THE CLOCK BEFORE TRUSTING COMMENTS**: the v62 comment claimed
+  "server->game.elapsed acumula segundos" — FALSE. It accumulates TICKS
+  (delta=1 per tick at 60 Hz; states/Server.c loop TARGET_FPS 1000/60,
+  game_state_tick per tick). ITEMBOX_FIRST_DELAY(15)/ITEMBOX_SPAWN_COFF(20)
+  were used RAW against elapsed since v62: the real cadence was 0.25 s /
+  0.33 s — the "destroy 1 and another appears instantly" was a 16-version
+  old UNITS bug, not a logic bug. Proof pattern: entity timers that DO work
+  multiply by TICKSPERSEC ((25+rand%5)*TICKSPERSEC in itembox_activate);
+  game.time decrements by delta and time_sec-- every TICKSPERSEC ticks.
+  RULE: anything compared against game.elapsed must be in TICKS.
+- **Fix requests often name a symptom whose real spec is a redesign**: the
+  owner asked for "30 s cooldown per box"; the honest fix replaced the
+  roll-refill (which was refilling destroyed boxes in <1 s) with a pending
+  queue: destroy -> push 30 s -> spawn when it hits 0 (paused while
+  alive == MAX — her literal words), roll only refills when the queue is
+  empty. Relocations (lava/zone) are NOT destructions and stay instant —
+  keeping v63/v76/v77 semantics intact required one guard: a box already
+  BROKEN (activated) when relocated must NOT count as `removed` (its
+  cooldown is already queued; counting it double-fills).
+- **House API smell: spawn helpers that "always return true"** (RAssert
+  friendly). When a queue needs to know if a spawn actually happened, add
+  a static `last_spawn_ok` flag set at the real game_spawn site instead of
+  changing the return contract (RAssort(spawn_one) call sites would abort
+  the server on a benign "no free spawner"). Pop the queue entry ONLY on
+  real success; on failure keep it at 0 to retry next tick.
+- **TWO touch circles sharing ONE TouchId** (small emotion-V + new big
+  main-V, same KeyV): naive duplication flickers — button A's release
+  branch (`else if(VTouchId == i)`) fires every tick while the finger
+  holds button B. Correct pattern: one merged test
+  `inCircle1 || (jUse && inCircle2)` -> press on enter-any / release on
+  leave-both. A finger sliding between buttons never re-triggers.
+- **The Edit tool normalizes tabs->spaces on WHOLE FILES** (re-confirmed on
+  obj_menu/Create_0.gml, obj_config, obj_controls, init_touch: ~4,000
+  whitespace-only diff lines). Workflow that survived: git checkout the
+  file, redo with python byte-exact anchors (git show HEAD:file), assert
+  count==1 per anchor. Diff-stat BEFORE zipping is the tripwire.
+- **GM room instance = 3 mentions**: instanceCreationOrder (top of .yy) +
+  %Name + name inside the layer's instances array. Missing the order list
+  compiles but alters creation order; a name collision is undefined.
+- **GM .yy/.yyp are trailing-comma JSON**: json.loads fails on room_menu.yy
+  and the .yyp. Validate with re.sub(r',\s*([\]}])', r'\1', raw) first.
+- **Sprite frame registration** (spr_mobile_button 6->8 frames): add 2
+  GMSpriteFrame entries + 2 SpriteFrameKeyframe entries (Key 6.0/7.0 with
+  fresh uuids) + sequence.length bump; PNG must exist TWICE (top-level
+  <frameguid>.png AND layers/<frameguid>/<layerguid>.png, byte-identical).
+  Pixel surgery on house sprites: diff frames to isolate the glyph zone
+  (letters live in x16-31/y17-30), extract the EXACT tone palette from the
+  letter pixels, erase with the face color (black 0,0,0,255), stamp the
+  new glyph with the same tones — everything outside the zone stays
+  byte-identical to the donor frame (checked programmatically).
+- **Code-created fallback for room edits** (AboutAmyCanon precedent): when
+  the user's IDE may compile a STALE room (zip extracted with the room
+  open), ALSO create the instance from obj_menu/Create_0 guarded by
+  `layer_exists && !instance-with-bid` — both paths coexist without
+  duplicates. The settings-handle bid numbering must stay collision-free
+  (mobSelectedButton routes 1-3 to obj_menu_mobilebutton, 4-9 to
+  obj_menu_mobilebutton2; new bid 10 lives in the FIRST object and the
+  slider branch gained `|| mobSelectedButton == 10`).
+- **Invulnerability writes should never SHORTEN**: break-invulns now use
+  max(current, new) — a shield popping while the player holds a LONGER
+  invuln (box invulnerability 7 s) must not cut it to 2.5/4 s. The house
+  already had the accumulate pattern (Sally evade +=); max() is the
+  correct variant when the values are absolute durations.

@@ -13,6 +13,19 @@
 #macro ITEMBOX_INVULN_TIME (60 * 7)
 #macro ITEMBOX_ELECTRIC_TIME (60 * 7)
 #macro ITEMBOX_BOOTS_TIME (60 * 17)
+// v78 (duena): "el escudo electrico de la caja despues que explote dara
+// inmunidad de dano de 2.5 seg" — al ABSORBER un golpe el escudo electrico
+// revienta y su portador queda inmune al dano este tiempo (era 60f = 1 s de
+// gracia). Se aplica con max() para JAMAS acortar una inmunidad ya vigente
+// (caja invulnerable, i-frames de golpe, etc).
+#macro ITEMBOX_ELECTRIC_BREAK_INVULN (60 * 2.5)
+// v78 (duena): "aumenta la invulerabilidad del escudo de sally (caja) en 3
+// seg" — el escudo de burbuja (el de Sally, el que da la caja tipo 1) al
+// romperse absorbiendo un golpe dejaba 60f (1 s) de invulnerabilidad; ahora
+// 60f base + 3 s = 4 s (Sally Canon conserva su macro propia de fase 2,
+// SALLY_CANON_SHIELD_BREAK_INVULN). Tambien con max(): nunca acorta una
+// inmunidad vigente.
+#macro ITEMBOX_SHIELD_BREAK_INVULN (60 * 4)
 
 function net_send_palette()
 {
@@ -2520,7 +2533,45 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 {
                                         case 0: // anillos
                                                 global.player.rings = min(global.player.rings + 5, 119);
-                                                audio_play_sound(snd_ring, 0, false);
+                                                // v78 FIX (duena): "cuando llegas a los 10 rings con
+                                                // la caja no cuenta como 1 cura" — los anillos de la
+                                                // caja NO pasaban por la cura de 10 anillos (solo los
+                                                // recogidos del mapa la aplicaban, tres copias en los
+                                                // handlers SERVER_RING_COLLECTED / SERVER_RING_STATE).
+                                                // Misma cura exacta que al recoger: con 10+ anillos
+                                                // gastan 10 y curan +20 hp (techo por personaje),
+                                                // sonido difundido, reporte al server (el mismo
+                                                // CLIENT_STATS_REPORT tipo 0 que lleva la cuenta de
+                                                // hp_restored) y contador de logro de las 3 curas.
+                                                // _canHeal local: el server manda canHeal = rings>0
+                                                // en los rings del mapa; aqui los anillos recien
+                                                // sumados garantizan rings>0 — la expresion se
+                                                // mantiene por fidelidad al patron de la casa.
+                                                var _boxCanHeal = global.player.rings > 0;
+                                                if(global.player.rings >= 10 && global.player.hp < scr_player_maxhp(global.character) && _boxCanHeal)
+                                                {
+                                                        global.player.rings -= 10;
+                                                        global.player.hp = min(scr_player_maxhp(global.character), global.player.hp + 20);
+                                                        audio_play_sound(snd_heal, 0, false);
+                                                        net_sound_emit(snd_heal);
+                                                        
+                                                        var pak = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
+                                                        buffer_write(pak, buffer_u8, 0);
+                                                        send_server_tcp(pak);
+                                                        
+                                                        obj_achivements.healthRestore++;
+                                                        if(obj_achivements.healthRestore >= 3 && room != room_fartzone && !obj_achivements.achivements[16])
+                                                        {
+                                                                obj_achivements.mercoins += 100;
+                                                                obj_achivements.save();
+                                                                
+                                                                obj_achivements.achivements[16] = true;
+                                                                obj_achivements.save();
+                                                                obj_achivements.show();
+                                                        }
+                                                }
+                                                else
+                                                        audio_play_sound(snd_ring, 0, false);
                                                 break;
                                         
                                         case 1: // escudo (burbuja de Sally — TODOS los personajes)

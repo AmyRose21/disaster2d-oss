@@ -102,6 +102,17 @@ _buffer = {
 		opacity: 0.6
 	},
 	
+	// v78: 4o BOTON PRINCIPAL — la V del cluster A/B/C (frames 6/7 de
+	// spr_mobile_button). Por defecto completa el rombo: V arriba (sobre A),
+	// B arriba-derecha, A/C abajo. Guardados viejos no traen la entrada: el
+	// load() de abajo la crea con estos defaults (mismo patron wTouch/vTouch).
+	vMainTouch: {
+		xx: 378,
+		yy: 121,
+		scale: 1,
+		opacity: 0.6
+	},
+	
 	// [v1.4 IN-GAME CHAT] boton tactil de chat (centro xx/yy, como el
 	// resto). Se arrastra en partida (obj_game_chat/Step) y la posicion
 	// se persiste aqui igual que los demas botones.
@@ -203,6 +214,13 @@ bVX = _buffer.vTouch.xx;
 bVY = _buffer.vTouch.yy;
 bVScale = _buffer.vTouch.scale;
 bVOpacity = _buffer.vTouch.opacity;
+
+// v78: boton principal V (cluster A/B/C) — la carga desde guardado viejo
+// vive en load() con try/catch; aqui el _buffer es el literal de arriba.
+bV2X = _buffer.vMainTouch.xx;
+bV2Y = _buffer.vMainTouch.yy;
+bV2Scale = _buffer.vMainTouch.scale;
+bV2Opacity = _buffer.vMainTouch.opacity;
 
 // [v1.4 IN-GAME CHAT] centro del boton de chat (por defecto: hueco entre
 // F y V en la columna derecha - ver obj_game_chat/Create)
@@ -363,6 +381,30 @@ load = function(filename)
 		bVOpacity = _buffer.vTouch.opacity;
 	}
 
+	// v78: boton principal V (cluster A/B/C) — guardados pre-v78 no traen
+	// vMainTouch: cae al rombo por defecto (V sobre A).
+	try
+	{
+		bV2X = _buffer.vMainTouch.xx;
+		bV2Y = _buffer.vMainTouch.yy;
+		bV2Scale = _buffer.vMainTouch.scale;
+		bV2Opacity = _buffer.vMainTouch.opacity;
+	}
+	catch(ex) 
+	{
+		_buffer.vMainTouch = {
+			xx: 378,
+			yy: 121,
+			scale: 1,
+			opacity: 0.6
+		};
+		
+		bV2X = _buffer.vMainTouch.xx;
+		bV2Y = _buffer.vMainTouch.yy;
+		bV2Scale = _buffer.vMainTouch.scale;
+		bV2Opacity = _buffer.vMainTouch.opacity;
+	}
+
 	// [v1.4 IN-GAME CHAT] guardados viejos (pre-chat) no traen la
 	// entrada: cae al hueco por defecto entre F y V
 	try
@@ -470,6 +512,12 @@ save = function()
 	_buffer.vTouch.yy = bVY;
 	_buffer.vTouch.scale = bVScale;
 	_buffer.vTouch.opacity = bVOpacity;
+	
+	// v78: boton principal V (cluster A/B/C)
+	_buffer.vMainTouch.xx = bV2X;
+	_buffer.vMainTouch.yy = bV2Y;
+	_buffer.vMainTouch.scale = bV2Scale;
+	_buffer.vMainTouch.opacity = bV2Opacity;
 	
 	// [v1.4 IN-GAME CHAT]
 	_buffer.chatTouch.xx = bChatX;

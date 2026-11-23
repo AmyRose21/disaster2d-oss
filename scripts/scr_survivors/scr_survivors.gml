@@ -1631,13 +1631,17 @@ function player_get(ind)
 
 // Personajes RESERVADOS (sistema de seguridad alternativo al token
 // de Amy Canon). Devuelve true si ESTE cliente no puede usar al
-// personaje ch (enum 1-based: CHARACTER_TAILS..CHARACTER_SALLY_CANON):
+// personaje ch (enum 1-based: CHARACTER_TAILS..CHARACTER_KRIS):
 //   * Amy Canon: solo con el token local (amy_canon.token)
 //   * Sally Canon: solo siendo operador del server
 //     (global.isOperator, seteado por SERVER_OPERATOR_STATE)
 //   * Rouge y Vanilla: solo el token de Amy (v39 la duena relega a
 //     Rouge al cajon del token, igual que Vanilla)
-//   * Sonic: libre para todos
+//   * v78 (duena): SONIC y KRIS pasan a ser SOLO DE OPERADOR —
+//     "Sonic y kris pasaran solamente para uso de operador, no se
+//     puede usar de manera normal" (mismo candado que Sally Canon:
+//     el server los rechaza ademas en states/CharSelect.c — doble
+//     seguro contra clientes editados)
 // Quien no cumple NO ve el personaje al ciclar en la seleccion ni
 // puede pedirlo (obj_lobby_icon / obj_lobby); y si igual lo pide con
 // un cliente editado, el server se lo rechaza como si estuviera
@@ -1650,6 +1654,16 @@ function scr_char_locked(ch)
 
         // Sally Canon: solo operador
         if(ch == CHARACTER_SALLY_CANON && !global.isOperator)
+                return true;
+
+        // v78: SONIC — solo operador (orden de la duena; el server
+        // tambien lo rechaza por si solo en CharSelect.c)
+        if(ch == CHARACTER_SONIC && !global.isOperator)
+                return true;
+
+        // v78: KRIS — solo operador (orden de la duena; el server
+        // tambien lo rechaza por si solo en CharSelect.c)
+        if(ch == CHARACTER_KRIS && !global.isOperator)
                 return true;
 
         // Vanilla: SOLO el token de Amy (amy_canon.token), igual

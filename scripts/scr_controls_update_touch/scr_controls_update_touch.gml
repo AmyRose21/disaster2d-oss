@@ -212,8 +212,18 @@ function scr_controls_update_touch()
 			WTouchId = -1;
 		}
 
-		// V (v4.0: parry de Amy Canon; misma mecanica pulsar/soltar)
-		if(_state && point_in_circle(_x, _y, obj_config.bVX, obj_config.bVY, 22 * obj_config.bVScale))
+		// V (v4.0: parry de Amy Canon, boton pequeno de la columna de emotes
+		// + v78: BOTON PRINCIPAL del cluster A/B/C, frames 6/7). Ambos tocan
+		// la MISMA global.KeyV con un solo VTouchId: prende dentro de
+		// CUALQUIERA de los dos circulos y suelta fuera de los DOS (un dedo
+		// que deslice entre ellos mantiene la tecla, sin re-disparar ni
+		// soltar a mitad). El principal solo responde en partida (jUse: en
+		// lobby/menu no se dibuja y no se toca — ahi la V no hace nada,
+		// igual que antes).
+		var _inV = point_in_circle(_x, _y, obj_config.bVX, obj_config.bVY, 22 * obj_config.bVScale)
+			|| (jUse && point_in_circle(_x, _y, obj_config.bV2X, obj_config.bV2Y, 40 * obj_config.bV2Scale));
+
+		if(_state && _inV)
 		{
 			if(VTouchId == -1)
 			{
@@ -226,7 +236,7 @@ function scr_controls_update_touch()
 			VPressed(false);
 			VTouchId = -1;
 		}
-		
+
 		if(!_state && VTouchId == i)
 		{
 			VPressed(false);

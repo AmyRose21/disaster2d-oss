@@ -678,7 +678,12 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                         // del puppet en rango de golpe que esta atacando.
                         if(variable_instance_exists(global.player, "electricShieldTimer") && global.player.electricShieldTimer > 0)
                         {
-                                global.player.hurttime = 60;
+                                // v78 (duena): "el escudo electrico de la caja despues que
+                                // explote dara inmunidad de dano de 2.5 seg" — la gracia de
+                                // 60f (1 s) pasa a 2.5 s (ITEMBOX_ELECTRIC_BREAK_INVULN).
+                                // max(): si el portador traia una inmunidad MAS LARGA (caja
+                                // invulnerable, i-frames de golpe) no se acorta — solo sube.
+                                global.player.hurttime = max(global.player.hurttime, ITEMBOX_ELECTRIC_BREAK_INVULN);
                                 global.player.electricShieldTimer = 0;
                                 
                                 // chispa del choque sobre el portador (difundida a todos)
@@ -738,7 +743,13 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                                                 obj_achivements.save();
                                         }
                                 }
-                                global.player.hurttime = global.character == CHARACTER_SALLY_CANON ? SALLY_CANON_SHIELD_BREAK_INVULN : 60; // Canon: 1 seg base + 2 extra
+                                // v78 (duena): "aumenta la invulerabilidad del escudo de
+                                // sally (caja) en 3 seg" — la invulnerabilidad tras romper
+                                // el escudo de burbuja pasa de 60f (1 s) a 4 s (1 s base + 3 s
+                                // = ITEMBOX_SHIELD_BREAK_INVULN), con max() para no acortar
+                                // una inmunidad vigente. Sally Canon conserva su macro propia
+                                // de fase 2 (SALLY_CANON_SHIELD_BREAK_INVULN).
+                                global.player.hurttime = max(global.player.hurttime, global.character == CHARACTER_SALLY_CANON ? SALLY_CANON_SHIELD_BREAK_INVULN : ITEMBOX_SHIELD_BREAK_INVULN);
                                 global.player.shieldTimer = 0;
 
                                 audio_play_sound(snd_sally_shieldbreak, 0, false);

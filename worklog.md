@@ -6525,3 +6525,154 @@ Stage Summary:
 - Bonus: las reubicadas por lava (v63/v76) renacen en el mismo tick en
   TODOS los mapas (antes hasta 20 s de espera) y el find saturado
   (12 entidades) nunca mas bloquea la repoblacion
+
+
+=======================================================================
+v78 — 5 PEDIDOS: SONIC/KRIS SOLO-OP + ENFRIAMIENTO 30 s POR CAJA +
+FIX CURA DE RINGS DE CAJA + INMUNIDADES DE ESCUDO + BOTON V MOVIL
+(2026-11-23, base 9a9f909a = repo de la duena con v77 aplicada y sus
+propios retunes de macros: SHIELD 7.5 / INVULN 7 / ELECTRIC 7 / BOOTS 17)
+=======================================================================
+
+PEDIDOS (literales de la duena):
+1. "Sonic y kris pasaran solamente para uso de operador. no se puede
+   usar de manera normal."
+2. "las cajas ahora tiene un enfriamiento de 30 seg por caja [...] Este
+   contador no empezara a ir hacia atras si el max de cajas esta
+   cubierta. y no hara que apareceran de forma que ejemplo desturyo 1
+   y enseguida aparece otro de la nada."
+3. "Fix a las cajas de rings cuando llegas a los 10 rings con la caja
+   no cuenta como 1 cura."
+4. "el escudo electrico de la caja despues que explote dara imunidad
+   de dano de 2.5 seg y aumenta la invulerabilidad del escudo de sally
+   (caja) en 3 seg."
+5. "spr_mobile_button puedes anadir el boton V? que tenga el mismo
+   estilo y demas? es el 4 boton para el android (celular)."
+
+ENTORNO (regla 1): clon fresco 9a9f909a; diff vs 847cf443 (base v77)
+= v77 aplicada por la duena (ItemBoxMap.c/ItemBoxSpawnTables.c
+IDENTICOS a mi zip) + limpieza de LEEMEs/checks viejos + SUS macros
+retuneados en net_state_game.gml + scr_wss re-registrado en .yyp
+(sigue presente) + carpetas de backup del editor subidas (ignoradas).
+
+INVESTIGACION (regla 8):
+- Patente de personajes reservados ya existia: Sally Canon = solo-op
+  (CharSelect.c !v->op + scr_char_locked !global.isOperator). Sonic y
+  Kris replican ese doble-seguro exacto. El comentario "Sonic quedo
+  libre para todos" estaba en 2 sitios (server + cliente) y se retira.
+- BUG RAIZ pedido 2: FIRST_DELAY(15)/SPAWN_COFF(20) se usaban CRUDO
+  contra game.elapsed — que cuenta TICKS a 60/s (delta=1/tick de
+  1000/60 ms; el comentario v62 "acumula segundos" MENTIA). Desde v62
+  el roll corria cada 0.33 s: destruir una caja la reponia casi al
+  instante = el reporte "aparece otro de la nada". Los timers de
+  entidad que funcionan usan *TICKSPERSEC (itembox_activate 25-29 s).
+- Cura de 10 rings: 3 copias (SERVER_RING_COLLECTED + 2x SERVER_RING_
+  STATE) aplican rings>=10 -> -10 rings +20 hp + snd_heal + STATS_REPORT
+  0 + logro 3 curas; el case 0 de la caja NO hacia ninguna (solo +5).
+  canHeal del server = data->plr.rings > 0 (mirror local trivial).
+- electricShieldTimer SOLO lo otorga la caja (case 3): el bloque de
+  consume en scr_player_hurt L679 es exclusivo del electrico de caja
+  (el de Eggman es otro mecanismo) -> cambiar su gracia no toca a
+  Eggman. El break del escudo de burbuja daba 60f (Sally Canon tiene
+  macro propia).
+- Boton V: ya existia el VPressed (v4.0 parry de Amy Canon) + boton
+  PEQUENO en la columna de emotes (frames 10/11 de spr_mobile_
+  emotionbutton, jUse). El cluster A/B/C (spr_mobile_button 6 frames,
+  bUse) no tenia V. GUI 480x270; posiciones A(378,221) B(416,177)
+  C(452,221); V nueva en (378,121) = rombo, 100 px del dpad (68,187
+  r160), 104 de la columna de emotes (466,x), solapa con B igual que
+  B-C entre si (tolerancia de la casa).
+
+IMPLEMENTACION (15 archivos: 3 server + 12 cliente):
+1) SERVER betterserver-oss/disasterserver/states/CharSelect.c: 2
+   bloques nuevos (CH_SONIC/CH_KRIS && !v->op -> result=0 + Info) antes
+   de tocar avail[]; comentario de Sally actualizado. 2) SERVER
+   include/entities/ItemBox.h: ITEMBOX_RESPAWN_COOLDOWN 30 + doc de
+   FIRST_DELAY/SPAWN_COFF en segundos. 3) SERVER entities/ItemBoxMap.c:
+   cola itembox_respawn_left[8] (push en ACTIVATE solo was_alive, reset
+   por ronda), decremento solo con hueco (pausa con el max cubierto),
+   pop solo con spawn real (itembox_last_spawn_ok), roll de relleno
+   solo con cola vacia, *TICKSPERSEC en 3 usos, relocated-activated no
+   cuenta como removed.
+4) CLIENTE scripts/net_state_game/net_state_game.gml: macros
+   ITEMBOX_ELECTRIC_BREAK_INVULN (60*2.5) + ITEMBOX_SHIELD_BREAK_INVULN
+   (60*4) al lado de los de la duena (intactos); case 0 con la cura de
+   10 anillos IDENTICA a los rings del mapa (_boxCanHeal local).
+5) CLIENTE scripts/scr_player_hurt.gml: electrico explota ->
+   max(hurttime, 2.5 s); burbuja rota -> max(hurttime, SallyCanon?
+   macro_propia : 4 s). Stun al atacante y efectos intactos.
+6) CLIENTE scr_survivors.gml scr_char_locked: 2 ifs (SONIC/KRIS +
+   !global.isOperator) y doc actualizada.
+7) CLIENTE boton V: sprites/spr_mobile_button.yy 6->8 frames (2
+   GMSpriteFrame + 2 keyframes Key 6/7 + length 8) + 2 PNG top-level +
+   2 layers/<guid>/<layerguid>.png (paleta EXACTA k/L/m/d extraida de
+   los frames A/B/C: erase del glifo en x16-31/y17-30 + V de 4 px de
+   trazo con misma tonalidad; fuera de la zona byte-identico al frame
+   0/1, verificado); Draw_64 (frames 6/7, if(jUse) solo partida);
+   obj_controls/Create case 10 x2; update_touch: bloque V de 2
+   circulos (r22 pequeno + r40 principal) con UN VTouchId
+   (prende-en-cualquiera / suelta-fuera-de-ambos; principal solo con
+   jUse); init_touch defaults bV2 (378,121); obj_config vMainTouch
+   (defaults + primera carga + load() try/catch + save());
+   obj_menu_mobilebutton/Draw_0 case 10; obj_menu sliderChanged
+   (<=3 || ==10) + FALLBACK POR CODIGO del handle (patron
+   AboutAmyCanon, anti room-vieja-del-IDE);
+   rooms/room_menu/room_menu.yy: instancia inst_7B84C2DA (bid 10,
+   imageIndex 6, x 378 y 121) en OptionsControlsMobile +
+   instanceCreationOrder (4 lineas).
+
+VERIFICACION (regla 6): check_v78.py = 86 OK / 0 BAD: contenido exacto
+de los 5 pedidos (bloques op-only antes de avail, candados previos
+intactos, cola/pausa/roll-uno, cura completa del case 0, macros
+max(), sprite 8 frames + keyframes + PNGs 48x48 + paleta exacta +
+zona-fuera-identica, touch de 2 circulos, config 4 bloques, slider,
+fallback, room 3 menciones + datos correctos, separaciones sin
+conflicto) + gcc -fsyntax-only -Wall los 3 .c (limpios; CharSelect
+solo enum-compare preexistente) + anti-cheat (regla 7): Packet.h y
+net_packets.gml SIN cambios, handlers solo leen, cero paquetes del
+tick, .yyp 2542 intacto (scr_wss presente) + CJK-clean 15 archivos.
+sim_v78.py = 20 OK: S1 15 s/20 s REALES (era 0.25/0.33), S2 destruyo
+1 -> 0 prematuras y vuelve a los 30 s exactos, S3 2 destruidas ->
+2 a los 30 s, S4 cada una a SU 30 s, S5 pausa literal con el max
+cubierto + reanudar al abrirse hueco, S6 reubicadas mismo tick + rota
+reubicada sin doble pendiente, S7 re-romper rota = no-op, S8 reset por
+ronda, S9 FIFO ventana-3 = 0 repeticiones (180 pares x 20 seeds), S10
+Exe rompe = mismos 30 s. Lint llaves/parens de los 10 GML: 0
+desbalance. DIFF HIGIENE: el Edit-tool reindento tabs->espacios 5
+archivos (obj_menu 4300, obj_config 957, obj_controls 231, Draw_64 46,
+init_touch 645 lineas) — revertidos con git checkout + reescritos con
+python byte-exacto: diff final = solo contenido (436 insert / 39
+delete en 14 archivos).
+
+ANTI-CHEAT (regla 7): CERO protocolo nuevo. Op-only usa
+SERVER_LOBBY_CHARACTER_RESPONSE/SERVER_OPERATOR_STATE existentes; el
+cooldown vive 100% en el server (ningun paquete nuevo que falsificar);
+los handlers conservan AssertOrDisconnect + idempotencia + one-shot;
+los rewards de caja siguen client-side con el mismo CLIENT_STATS_
+REPORT que la cura de siempre (el server ya contaba hp_restored asi).
+
+ZIP (regla 2): v78_operator_only_box_cooldown.zip = 3 C + 10 GML +
+sprite (yy + 4 PNG nuevos) + room_menu.yy + CACHE.md + LEARNING.md +
+worklog.md + check_v78.py + sim_v78.py + LEEME_V78.txt. Roundtrip:
+clon fresco 9a9f909a + unzip = diff -rq 0 vs working tree + checks
+re-ejecutados OK.
+
+OJO DUEÑA: RECOMPILAR EL SERVER (compilar_server.bat) — CharSelect.c,
+ItemBoxMap.c y ItemBox.h cambiaron. El cliente se recompila normal en
+GM (sprites/room/gml). Los macros de la duena (SHIELD 7.5 / INVULN 7 /
+ELECTRIC 7 / BOOTS 17) quedaron INTACTOS.
+
+Stage Summary:
+- Sonic y Kris: solo operadores (doble seguro server+cliente; los
+  demas ni los ven al ciclar)
+- Cajas: cada caja destruida renace a SUS 30 s (pausada con el max
+  cubierto); relleno inicial 15 s + 1 cada 20 s reales; reubicaciones
+  por lava/zona siguen instantaneas; FIX del bug de unidades v62-77
+  que hacia aparecer cajas casi al instante
+- Rings de caja: llegan a 10 = cura de 1 (igual que los del suelo)
+- Escudo electrico: al explotar da 2.5 s de inmunidad; escudo de
+  burbuja roto da 4 s (1+3 pedidos); nunca acortan inmunidades mas
+  largas; Sally Canon conserva su valor propio
+- Android: 4o boton principal V (mismo estilo, rombo sobre A,
+  configurable y arrastrable en Options > Controls con fallback a
+  prueba de IDE)

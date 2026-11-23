@@ -24,6 +24,13 @@ switch(bid)
 		scale = obj_config.bCScale;
 		image_alpha = obj_config.bCOpacity;
 		break;
+	
+	case 10: // v78: boton principal V (cluster A/B/C, frame 6)
+		x = obj_config.bV2X;
+		y = obj_config.bV2Y;
+		scale = obj_config.bV2Scale;
+		image_alpha = obj_config.bV2Opacity;
+		break;
 }
 
 if(mouse_check_button_released(mb_any) && position_meeting(mouse_x, mouse_y, self))

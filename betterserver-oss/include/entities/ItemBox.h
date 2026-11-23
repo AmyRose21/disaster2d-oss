@@ -11,8 +11,22 @@
    boost Kaf). */
 
 #define ITEMBOX_MAX 4            /* cajas vivas simultaneas */
-#define ITEMBOX_SPAWN_COFF 20    /* s entre intentos de spawn */
+/* v78 OJO: estos dos macros estan en SEGUNDOS; los usos en ItemBoxMap.c
+   multiplican por TICKSPERSEC (elapsed/delta del server cuentan TICKS a
+   60/s — el bug v62-v77 era usarlos en crudo: el roll corria cada 20
+   TICKS = 0.33 s y una caja destruida se repone casi al instante, el
+   "aparece otro de la nada" de la duena). */
+#define ITEMBOX_SPAWN_COFF 20    /* s entre intentos de spawn (relleno inicial) */
 #define ITEMBOX_FIRST_DELAY 15  /* s sin cajas al inicio de ronda */
+/* v78 (duena): "las cajas ahora tienen un enfriamiento de 30 seg por
+   caja" — cada caja DESTRUIDA (CLIENT_BOX_ACTIVATE, la rompa quien la
+   rompa) agenda su reposicion 30 s despues. El contador NO corre con el
+   maximo de cajas vivas cubierto (se pausa hasta que haya hueco) y el
+   roll de relleno JAMAS repone una destruida mientras haya enfriamientos
+   pendientes (nada de "destruyo 1 y enseguida aparece otro de la nada").
+   Las REUBICADAS (lava/abismo/zona v63/v76/v77) siguen renaciendo en el
+   mismo tick: eso no es destruccion. */
+#define ITEMBOX_RESPAWN_COOLDOWN 30 /* s por caja destruida (v78) */
 #define ITEMBOX_RESPAWN (25 + rand() % 5) /* s de cooldown por spawner (valor Kaf) */
 
 /* Tipos de caja (viajan en u8; mismo orden que las macros BOX_* del cliente) */
@@ -28,13 +42,13 @@ bool itembox_uninit(Server* server, Entity* entity);
 
 typedef struct
 {
-	ENTITY_BODY
+        ENTITY_BODY
 
-	uint8_t	 nid;
-	uint8_t	 type;
-	double	 timer;      /* <0: viva; >=0: countdown a respawn-ready */
-	bool	 activated;  /* rota (boxused) */
-	bool	 relocated;  /* v63: el cliente reporto trampolin/abismo -> el tick la re-spawnea en otro punto */
+        uint8_t  nid;
+        uint8_t  type;
+        double   timer;      /* <0: viva; >=0: countdown a respawn-ready */
+        bool     activated;  /* rota (boxused) */
+        bool     relocated;  /* v63: el cliente reporto trampolin/abismo -> el tick la re-spawnea en otro punto */
 } ItemBox;
 #define MakeItemBox(nid, type) ((ItemBox) { MakeEntity("itembox", 0, 0) itembox_init, itembox_tick, itembox_uninit, nid, type, -1, 0, 0, })
 

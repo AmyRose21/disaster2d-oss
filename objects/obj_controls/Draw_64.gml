@@ -19,5 +19,12 @@ if(global.showHud && isMobile)
 		draw_sprite_ext(spr_mobile_button, ATouchId == -1 ? 0 : 1, obj_config.bAX, obj_config.bAY, obj_config.bAScale, obj_config.bAScale, 0, c_white, ATouchId == -1 ? obj_config.bAOpacity : obj_config.bAOpacity + 0.15);
 		draw_sprite_ext(spr_mobile_button, BTouchId == -1 ? 2 : 3, obj_config.bBX, obj_config.bBY, obj_config.bBScale, obj_config.bBScale, 0, c_white, BTouchId == -1 ? obj_config.bBOpacity : obj_config.bBOpacity + 0.15);
 		draw_sprite_ext(spr_mobile_button, CTouchId == -1 ? 4 : 5, obj_config.bCX, obj_config.bCY, obj_config.bCScale, obj_config.bCScale, 0, c_white, CTouchId == -1 ? obj_config.bCOpacity : obj_config.bCOpacity + 0.15);
+		// v78 (duena): 4o boton principal — la V del cluster A/B/C (frames
+		// 6/7 de spr_mobile_button, mismo estilo). Pulsa la MISMA global.KeyV
+		// del boton pequeno de la columna derecha (comparten VTouchId/
+		// VPressed via scr_controls_update_touch: el dedo que pase de uno a
+		// otro no re-dispara). Solo se dibuja en partida (jUse).
+		if(jUse)
+			draw_sprite_ext(spr_mobile_button, VTouchId == -1 ? 6 : 7, obj_config.bV2X, obj_config.bV2Y, obj_config.bV2Scale, obj_config.bV2Scale, 0, c_white, VTouchId == -1 ? obj_config.bV2Opacity : obj_config.bV2Opacity + 0.15);
 	}
 }

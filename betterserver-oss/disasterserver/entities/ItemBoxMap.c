@@ -23,6 +23,26 @@
    v67 (no repetir): patron por-puntero ItemBox* box[] + -> en TODOS los
    game_find (el UB de structs in-place mataba el roll al re-entrar). */
 
+/* v78 COOLDOWN 30 s POR CAJA (regla de la duena: "despues de tirar una
+   caja, cuando sea destruida se generara 30 seg por caja; el contador
+   no empezara a ir hacia atras si el max de cajas esta cubierta, y no
+   hara que aparezca otra de la nada"). Cola de reposiciones pendientes:
+   cada entrada es el TIEMPO RESTANTE (en ticks) de la reposicion de UNA
+   caja destruida. Decrementa SOLO mientras haya hueco (alive < MAX:
+   cubierto el maximo, el contador queda en pausa — regla literal), y al
+   llegar a 0 spawnea su caja (si sigue habiendo hueco; si no, espera a
+   que lo haya en el siguiente tick). El roll de relleno NO corre con
+   pendientes > 0: destruir una caja JAMAS se repone antes de sus 30 s. */
+#define ITEMBOX_RESPAWN_QUEUE_MAX 8
+static double itembox_respawn_left[ITEMBOX_RESPAWN_QUEUE_MAX];
+static int itembox_respawn_n = 0;
+
+static void itembox_respawn_push(double ticks)
+{
+        if (itembox_respawn_n < ITEMBOX_RESPAWN_QUEUE_MAX)
+                itembox_respawn_left[itembox_respawn_n++] = ticks;
+}
+
 /* cadena de estado por ronda (reset en itemboxmap_init: los static de
    v62-v67 usaban la heuristica elapsed<1.0; ahora el reset es explicito
    en el checkstart de cada ronda — cero dependencia del valor de elapsed). */
@@ -113,11 +133,19 @@ static uint8_t itembox_roll_type(void)
         return ITEMTYPE_BOOTS;
 }
 
+/* v78: flag de exito del ultimo itembox_spawn_one (spawn_one devuelve
+   true SIEMPRE — semantica RAssert de la casa — asi que la cola de
+   enfriamientos mira este flag para saber si spawneo de verdad y solo
+   entonces consumir la pendiente; si no habia punto libre en la zona,
+   la pendiente queda en 0 y reintenta el tick siguiente). */
+static bool itembox_last_spawn_ok = false;
+
 /* un solo intento de spawn (lo llama el roll de COFF y la repoblacion
    por reubicacion). zone < 0: cualquier spawner libre (resto de mapas);
    zone 0..3: solo spawners DENTRO de esa zona de Not Perfect. */
 static bool itembox_spawn_one(Server* server, const ItemBoxSpawnTable* tab, int zone)
 {
+        itembox_last_spawn_ok = false;
         ItemBox* boxes[ITEMBOX_FIND_MAX];
         int found = game_find(server, (Entity**)boxes, "itembox", ITEMBOX_FIND_MAX);
         if (found >= ITEMBOX_FIND_MAX)
@@ -160,6 +188,7 @@ gen:
         box.pos.x = (double)tab->points[rnd][0];
         box.pos.y = (double)tab->points[rnd][1];
         RAssert(game_spawn(server, (Entity*)&box, sizeof(ItemBox), NULL));
+        itembox_last_spawn_ok = true;
         return true;
 }
 
@@ -167,9 +196,19 @@ bool itemboxmap_init(Server* server)
 {
         /* reset por ronda: agenda el primer roll tras FIRST_DELAY.
            Si el mapa no tiene tabla (0 zonas), el sistema queda inactivo
-           en toda la ronda (tick no hace nada). */
-        itembox_next_roll = server->game.elapsed + ITEMBOX_FIRST_DELAY;
+           en toda la ronda (tick no hace nada).
+           v78: FIRST_DELAY/SPAWN_COFF son SEGUNDOS — game.elapsed cuenta
+           TICKS a 60/s (server->delta = 1 por tick de 1000/60 ms), asi
+           que SIEMPRE multiplicar por TICKSPERSEC. El bug v62-v77 era
+           usarlos en crudo: primer roll a 15 TICKS (0.25 s) y roll cada
+           20 TICKS (0.33 s) — una caja destruida se reponia casi al
+           instante ("aparece otro de la nada", reporte de la duena). */
+        itembox_next_roll = server->game.elapsed + ITEMBOX_FIRST_DELAY * TICKSPERSEC;
         itembox_alive = 0;
+        /* v78: la cola de enfriamientos tambien se resetea por ronda
+           (las cajas destruidas de la ronda anterior no arrastran
+           reposiciones a la ronda nueva). */
+        itembox_respawn_n = 0;
         /* v76: la memoria reciente de spawners tambien se resetea por
            ronda (los static de v62-v67 usaban heuristica; aqui el reset
            es explicito, igual que itembox_alive). */
@@ -189,9 +228,11 @@ bool itemboxmap_tick(Server* server)
         if (itembox_alive < 0)
         {
                 /* ronda que empezo sin init (server viejo reconectado):
-                   agenda igual — no debe pasar nunca con el hook puesto. */
+                   agenda igual — no debe pasar nunca con el hook puesto.
+                   v78: FIRST_DELAY en segundos -> ticks (ver init). */
                 itembox_alive = 0;
-                itembox_next_roll = server->game.elapsed + ITEMBOX_FIRST_DELAY;
+                itembox_respawn_n = 0;
+                itembox_next_roll = server->game.elapsed + ITEMBOX_FIRST_DELAY * TICKSPERSEC;
         }
 
         /* v77 NOT PERFECT: zona actual. El npctrl_tick corre ANTES en el
@@ -203,7 +244,7 @@ bool itemboxmap_tick(Server* server)
 
         bool roll_now = server->game.elapsed >= itembox_next_roll;
         if (roll_now)
-                itembox_next_roll = server->game.elapsed + ITEMBOX_SPAWN_COFF;
+                itembox_next_roll = server->game.elapsed + ITEMBOX_SPAWN_COFF * TICKSPERSEC; /* v78: s -> ticks */
 
         /* v77: el procesado de reubicaciones corre CADA tick (antes solo
            en el tick del roll): la zona de Not Perfect rota cada ~20 s
@@ -221,14 +262,19 @@ bool itemboxmap_tick(Server* server)
            que quedaron fuera de la zona actual. timer=0 -> el itembox_tick
            de la entidad difunde el despawn (state 4) y la retira; su
            spawner sigue ocupado este tick (used[] pre-muerte) -> la nueva
-           nace SIEMPRE en otro punto. */
+           nace SIEMPRE en otro punto.
+           v78: una caja que ya estaba ROTA (activated) cuando le toco
+           reubicarse NO cuenta como removed — su reposicion ya tiene su
+           enfriamiento de 30 s agendado desde el activate; contarla aqui
+           la repoblaria dos veces. */
         int removed = 0;
         for (int i = 0; i < found; i++)
         {
                 if (boxes[i]->relocated)
                 {
                         boxes[i]->timer = 0;
-                        removed++;
+                        if (!boxes[i]->activated)
+                                removed++;
                         continue;
                 }
                 if (zone >= 0 && boxes[i]->timer < 0
@@ -241,15 +287,25 @@ bool itemboxmap_tick(Server* server)
         }
 
         /* cuantas spawnear este tick:
-           - roll cada COFF s: 1 si hay hueco (cadencia de siempre)
-           - si hubo reubicacion (lava v63/v76 o cambio de zona v77):
-             repoblar LO RETIRADO en el mismo tick (bounded por MAX),
-             para que las cajas "siguen" a la zona y el player nunca
-             ve un mapa vacio tras un cambio */
+           - v78 COOLDOWN: cada caja DESTRUIDA spawnea su reposicion cuando
+             su contador de 30 s llega a cero (y hay hueco: el contador NO
+             corre con el maximo cubierto — se decrementa solo si
+             alive_after < MAX, regla literal de la duena). Solo una
+             reposicion por pendiente: destruyo 1 -> vuelve 1 a los 30 s,
+             destruyo 2 -> vuelven 2, cada una a su 30 s.
+           - reubicacion (lava v63/v76 o cambio de zona v77): repoblar LO
+             RETIRADO en el mismo tick (bounded por MAX), para que las
+             cajas "siguen" a la zona y el player nunca ve un mapa vacio
+             tras un cambio. Esto NO es destruccion: sin enfriamiento.
+           - roll de RELLENO cada COFF s (20 s reales ahora): solo si NO
+             hay enfriamientos pendientes (el roll JAMAS regala una caja
+             antes de los 30 s de una destruida) y hay hueco. En la
+             practica solo llena el arranque de ronda (15 s + 1/20 s) —
+             el resto de la ronda la poblacion la lleva la cola v78. */
         int want = 0;
         int alive_after = alive - removed;
-        if (roll_now && alive_after < ITEMBOX_MAX)
-                want = 1;
+
+        /* reubicadas: mismo tick (v63/v76/v77 sin cambios) */
         if (removed > 0 && alive_after < ITEMBOX_MAX)
         {
                 int back = removed;
@@ -259,7 +315,44 @@ bool itemboxmap_tick(Server* server)
                         want = back;
         }
 
+        /* v78: primero se reubican las retiradas (nacen ya), DESPUES se
+           procesa la cola para que los huecos que dejen se respeten. */
         for (int s = 0; s < want; s++)
+                RAssert(itembox_spawn_one(server, tab, zone));
+        alive_after += want;
+
+        /* v78: cola de enfriamientos — decrementa SOLO con hueco libre
+           ("el contador no empezara a ir hacia atras si el max de cajas
+           esta cubierta"). Cada entrada que llega a 0 spawnea SU caja
+           y sale de la cola SOLO si el sorteo encontro punto (si la zona
+           no tenia ninguno libre, queda en 0 y reintenta el tick que
+           viene — nunca se pierde la reposicion). */
+        for (int i = 0; i < itembox_respawn_n; i++)
+        {
+                if (alive_after >= ITEMBOX_MAX)
+                        break; /* max cubierto: todos los contadores en pausa */
+
+                if (itembox_respawn_left[i] > 0)
+                        itembox_respawn_left[i] -= server->delta;
+
+                if (itembox_respawn_left[i] <= 0)
+                {
+                        RAssert(itembox_spawn_one(server, tab, zone));
+                        if (itembox_last_spawn_ok)
+                        {
+                                alive_after++;
+                                /* pop de la entrada consumida (compacta) */
+                                for (int j = i + 1; j < itembox_respawn_n; j++)
+                                        itembox_respawn_left[j - 1] = itembox_respawn_left[j];
+                                itembox_respawn_n--;
+                                i--; /* reexaminar el indice ahora ocupado por la siguiente */
+                        }
+                }
+        }
+
+        /* v78: roll de relleno SOLO sin pendientes (con pendientes el
+           relleno anticipado seria "aparecer de la nada" a < 30 s). */
+        if (roll_now && itembox_respawn_n == 0 && alive_after < ITEMBOX_MAX)
                 RAssert(itembox_spawn_one(server, tab, zone));
 
         return true;
@@ -308,9 +401,18 @@ bool itemboxmap_tcpmsg(PeerData* v, Packet* packet)
                                    peer id del Exe de la ronda — patron exacto de
                                    Lib.c disaster_server_peer.) SOLO las cajas nuevas:
                                    los monitores Kaf (KindAndFair.c) NO llevan este
-                                   veto — orden explicita de la duena en v74. */
+                                   veto — orden explicita de la duena en v74.
+                                   v78: una caja VIVA que se rompe agenda su
+                                   enfriamiento de 30 s (la rota re-rompida es no-op
+                                   idempotente: ni reward ni enfriamiento nuevo).
+                                   La rompa quien la rompa (Exe negando el buff o
+                                   survivor cobrandolo) la reposicion es la misma:
+                                   30 s por caja. */
+                                bool was_alive = !target->activated;
                                 uint16_t reward = (v->server->game.exe == v->id) ? 0 : v->id;
                                 RAssert(itembox_activate(v->server, target, reward, proj));
+                                if (was_alive)
+                                        itembox_respawn_push(ITEMBOX_RESPAWN_COOLDOWN * TICKSPERSEC);
                         }
                         break;
                 }

@@ -2224,7 +2224,7 @@ sliderChanged = function(_value)
 	{
 		obj_controls.buttonSetProp(0, obj_menu_mobiledpad.scale, _value);
 	}
-	else if (mobSelectedButton <= 3)
+	else if (mobSelectedButton <= 3 || mobSelectedButton == 10) // v78: bid 10 = boton principal V (vive en obj_menu_mobilebutton)
 	{
 		with(obj_menu_mobilebutton)
 		{
@@ -2289,6 +2289,29 @@ if (!layer_exists("AboutAmyCanon"))
 	// Descripcion (identica a la pagina definida en la room)
 	var _t = instance_create_layer(23, 60, _l, obj_menu_abouttext);
 	_t.text = "amy canon's specials give     \nher great defence and         \nmobility,and even uncharged   \nshe stays dangerous.her       \nattacks can't be parried,and \nshe's pretty fast by herself, \nbut she also has the /hammer  \njump~ which lets her access   \nshortcuts and hit enemies on \njump's start,plus a /hammer  \nrush~ that charges through exe\nfaster than her own run,     \nstunning everything it       \ntouches.she's been walking   \nout of prisons since the     \nstarfall islands. it's not   \nfanon, it's №canon~";
+}
+
+// ============================================================================
+// v78 — HANDLE DEL 4o BOTON MOVIL (la V del cluster A/B/C). Mismo caso que
+// AboutAmyCanon arriba: si GameMaker compilo un room_menu viejo (pasa cuando
+// el IDE tenia la room abierta al extraer el zip), la instancia
+// obj_menu_mobilebutton bid=10 no existe y el boton no se puede mover ni
+// escalar en Options > Controls. Si el room cargo bien, la instancia ya
+// existe y este bloque NO crea duplicados.
+// ============================================================================
+if (room == room_menu && layer_exists("OptionsControlsMobile"))
+{
+	var _v78_has = false;
+	with (obj_menu_mobilebutton)
+		if (bid == 10)
+			_v78_has = true;
+
+	if (!_v78_has)
+	{
+		var _v78_h = instance_create_layer(378, 121, "OptionsControlsMobile", obj_menu_mobilebutton);
+		_v78_h.bid = 10;
+		_v78_h.image_index = 6; // frame 6 de spr_mobile_button (V normal)
+	}
 }
 
 // ============================================================================

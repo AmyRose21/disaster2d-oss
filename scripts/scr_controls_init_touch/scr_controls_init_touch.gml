@@ -51,6 +51,17 @@ function scr_controls_init_touch()
 	bVScale = 1;
 	bVOpacity = 0.5;
 	
+	// v78 (duena): 4o BOTON PRINCIPAL — la V del cluster A/B/C (frames 6/7
+	// de spr_mobile_button). Por defecto completa el rombo: V arriba (sobre
+	// A), B arriba-derecha, A/C abajo. Posicion/scale/opacity de verdad
+	// viven en obj_config.vMainTouch (bV2X/bV2Y/bV2Scale/bV2Opacity); el
+	// handle de Options > Controls se arrastra con obj_menu_mobilebutton
+	// bid 10. Misma KeyV (VPressed) que el boton pequeno de la columna.
+	bV2X = 378;
+	bV2Y = 121;
+	bV2Scale = 1;
+	bV2Opacity = 0.5;
+	
 	jTouchId = -1;
 	jDir = 0;
 	jScale = 1;

@@ -53,6 +53,20 @@
       "name": "439dbdd5-a39f-47a8-b68b-f24a5af400dc",
       "resourceType": "GMSpriteFrame",
       "resourceVersion": "2.0"
+    },
+    {
+      "$GMSpriteFrame": "v1",
+      "%Name": "3c42015f-c56e-4fa9-918a-b270db059228",
+      "name": "3c42015f-c56e-4fa9-918a-b270db059228",
+      "resourceType": "GMSpriteFrame",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMSpriteFrame": "v1",
+      "%Name": "d47559c1-d21f-44d1-adf6-26eb83925a84",
+      "name": "d47559c1-d21f-44d1-adf6-26eb83925a84",
+      "resourceType": "GMSpriteFrame",
+      "resourceVersion": "2.0"
     }
   ],
   "gridX": 0,
@@ -101,7 +115,7 @@
     },
     "eventStubScript": null,
     "eventToFunction": {},
-    "length": 6.0,
+    "length": 8.0,
     "lockOrigin": false,
     "moments": {
       "$KeyframeStore<MomentsEventKeyframe>": "",
@@ -256,6 +270,50 @@
               "id": "222ca272-a97b-4843-b397-e03ce8acc38f",
               "IsCreationKey": false,
               "Key": 5.0,
+              "Length": 1.0,
+              "resourceType": "Keyframe<SpriteFrameKeyframe>",
+              "resourceVersion": "2.0",
+              "Stretch": false
+            },
+            {
+              "$Keyframe<SpriteFrameKeyframe>": "",
+              "Channels": {
+                "0": {
+                  "$SpriteFrameKeyframe": "",
+                  "Id": {
+                    "name": "3c42015f-c56e-4fa9-918a-b270db059228",
+                    "path": "sprites/spr_mobile_button/spr_mobile_button.yy"
+                  },
+                  "resourceType": "SpriteFrameKeyframe",
+                  "resourceVersion": "2.0"
+                }
+              },
+              "Disabled": false,
+              "id": "39e280cb-bc8d-4e6e-931a-919752402fb0",
+              "IsCreationKey": false,
+              "Key": 6.0,
+              "Length": 1.0,
+              "resourceType": "Keyframe<SpriteFrameKeyframe>",
+              "resourceVersion": "2.0",
+              "Stretch": false
+            },
+            {
+              "$Keyframe<SpriteFrameKeyframe>": "",
+              "Channels": {
+                "0": {
+                  "$SpriteFrameKeyframe": "",
+                  "Id": {
+                    "name": "d47559c1-d21f-44d1-adf6-26eb83925a84",
+                    "path": "sprites/spr_mobile_button/spr_mobile_button.yy"
+                  },
+                  "resourceType": "SpriteFrameKeyframe",
+                  "resourceVersion": "2.0"
+                }
+              },
+              "Disabled": false,
+              "id": "069f056e-a1e6-43ff-ad5a-c87c411eb7c3",
+              "IsCreationKey": false,
+              "Key": 7.0,
               "Length": 1.0,
               "resourceType": "Keyframe<SpriteFrameKeyframe>",
               "resourceVersion": "2.0",

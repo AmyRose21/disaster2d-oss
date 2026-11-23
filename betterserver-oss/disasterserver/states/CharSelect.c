@@ -188,14 +188,46 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
                         return true;
                 }
 
+                /* v78 (duena): SONIC pasa a ser SOLO DE OPERADORES (mismo
+                   patron que Sally Canon). Antes quedaba libre para todos;
+                   la orden es "Sonic y Kris pasaran solamente para uso de
+                   operador". A los demas se les responde igual que si
+                   estuviera ocupada (result=0: el cliente la tacha y suena
+                   nono); el cliente ademas ni se la muestra al ciclar
+                   (scr_char_locked) — este bloque es el doble seguro del
+                   server contra clientes editados. */
+                if (id == CH_SONIC && !v->op)
+                {
+                        PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+                        PacketWrite(&pack, packet_write8, id + 1);
+                        PacketWrite(&pack, packet_write8, 0);
+                        RAssert(packet_send(v->peer, &pack, true));
+
+                        Info("%s (id %d) tried to pick [Sonic] without unlock!", v->nickname.value, v->id);
+                        return true;
+                }
+
+                /* v78 (duena): KRIS tambien pasa a ser SOLO DE OPERADORES
+                   (misma orden: "Sonic y Kris... de operador"). Mismo
+                   tratamiento que Sonic/Sally Canon arriba. */
+                if (id == CH_KRIS && !v->op)
+                {
+                        PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
+                        PacketWrite(&pack, packet_write8, id + 1);
+                        PacketWrite(&pack, packet_write8, 0);
+                        RAssert(packet_send(v->peer, &pack, true));
+
+                        Info("%s (id %d) tried to pick [Kris] without unlock!", v->nickname.value, v->id);
+                        return true;
+                }
+
                 /* Sally Canon: personaje RESERVADO. Solo pueden usarla los
-                   OPERADORES del server (Operators.json / .op). Sonic quedo
-                   libre para todos y Amy Canon sigue siendo solo del token
-                   (bloque de arriba). A los demas se les responde igual que
-                   si estuviera ocupada: el cliente ademas ni se la muestra
-                   al ciclar (ver scr_char_locked), pero si alguien edita su
-                   cliente para pedirla, el server la rechaza igual.
-                   Doble seguro. */
+                   OPERADORES del server (Operators.json / .op). Amy Canon
+                   sigue siendo solo del token (bloque de arriba). A los
+                   demas se les responde igual que si estuviera ocupada: el
+                   cliente ademas ni se la muestra al ciclar (ver
+                   scr_char_locked), pero si alguien edita su cliente para
+                   pedirla, el server la rechaza igual. Doble seguro. */
                 if (id == CH_SALLY_CANON && !v->op)
                 {
                         PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);

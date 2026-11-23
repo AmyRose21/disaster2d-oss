@@ -1,0 +1,159 @@
+=======================================================================
+ LEEME V78 — SONIC/KRIS SOLO-OP + ENFRIAMIENTO POR CAJA + FIX CURA DE
+ RINGS + INMUNIDADES DE ESCUDO + BOTON V MOVIL
+=======================================================================
+Base: tu repo tal cual esta (commit 9a9f909a, con la v77 aplicada y
+tus propios tiempos de caja editados por ti — esos QUEDARON intactos).
+
+IMPORTANTISIMO: RECOMPILA EL SERVER (compilar_server.bat) — 3 archivos
+de server cambiaron (CharSelect.c, ItemBoxMap.c, ItemBox.h). El
+cliente se recompila normal en GameMaker al abrir el proyecto.
+
+-----------------------------------------------------------------------
+1) SONIC y KRIS — SOLO DE OPERADOR
+-----------------------------------------------------------------------
+"Sonic y kris pasaran solamente para uso de operador. no se puede
+usar de manera normal."
+
+Ahora funcionan IGUAL que Sally Canon:
+- Un jugador NORMAL ni los ve al ciclar en la seleccion (el carrusel
+  los salta solos).
+- Si alguien con un cliente editado los pide igual, el server se los
+  rechaza como si estuvieran ocupados (suena nono) y queda registrado
+  en la consola del server.
+- Los OPERADORES (Operators.json / .op) los usan normal. Tu, como
+  host local (127.0.0.1), eres operadora de entrada: tu los sigues
+  viendo igual que siempre.
+- Amy Canon, Vanilla y Rouge siguen siendo solo del token de Amy, y
+  Sally Canon sigue siendo solo-op. Todo lo demas queda publico.
+
+-----------------------------------------------------------------------
+2) CAJAS — ENFRIAMIENTO DE 30 SEG POR CAJA (+ el fix del "de la nada")
+-----------------------------------------------------------------------
+"despues de tirar una caja cuando sea destruida se generara 30 seg
+por caja. Este contador no empezara a ir hacia atras si el max de
+cajas esta cubierta. y no hara que aparecieran de forma que ejemplo
+destruyo 1 y enseguida aparece otro de la nada."
+
+Regla nueva (la decide el SERVER, nadie la puede falsear):
+- Rompes/destruyes UNA caja -> ESA caja renace 30 segundos despues.
+  Rompes 2 -> cada una renace a sus 30 s. Nada aparece antes.
+- Si ya hay 4 cajas vivas (el maximo), los contadores que esperan
+  quedan PAUSADOS hasta que haya hueco — tal cual pediste ("no
+  empezara a ir hacia atras si el max esta cubierta").
+- Arranque de ronda: la primera caja a los 15 s, luego 1 cada 20 s
+  hasta llenar las 4.
+- Las cajas que caen en lava/precipicio o las que siguen a la zona de
+  Not Perfect NO esperan 30 s: esas no se destruyen, se REUBICAN al
+  instante (todo lo de la v76/v77 sigue igual).
+- El EXE tambien puede romper cajas para negar el buff: la caja
+  igual renace a los 30 s.
+- Y el FIX GORDO: descubri que desde la v62 el "relleno" corria cada
+  0.33 segundos (un bug de unidades: los tiempos estaban escritos en
+  ticks sin convertir). Por eso destruias una y "aparecia otra de la
+  nada" casi al instante. Eso ya no existe.
+
+-----------------------------------------------------------------------
+3) RINGS DE LA CAJA — CUENTAN PARA LA CURA
+-----------------------------------------------------------------------
+"cuando llegas a los 10 rings con la caja no cuenta como 1 cura."
+
+Corregido: los +5 anillos de la caja ahora pasan por la MISMA cura de
+siempre — al llegar a 10 anillos (con la caja o con los del suelo)
+gastan 10 y curan +20 de vida, con el sonido de curacion, el conteo
+del logro de 3 curas y el reporte al server. Si no llega a 10, suena
+el ring normal como siempre.
+
+-----------------------------------------------------------------------
+4) ESCUDOS — INMUNIDAD AL EXPLOTAR
+-----------------------------------------------------------------------
+"el escudo electrico de la caja despues que explote dara imunidad de
+dano de 2.5 seg y aumenta la invulerabilidad del escudo de sally
+(caja) en 3 seg."
+
+- ESCUDO ELECTRICO: cuando explota absorbiendo un golpe, el portador
+  queda INMUNE al dano 2.5 segundos (antes daba solo 1 s de gracia).
+  El aturdidor al atacante sigue igual.
+- ESCUDO DE SALLY (el de burbuja de la caja): al romperse absorbiendo
+  un golpe, la invulnerabilidad pasa de 1 s a 4 s (1 base + los 3 que
+  pediste). Sally Canon (el personaje) conserva su valor propio de
+  fase 2.
+- Extra de seguridad: si ya tenias una inmunidad MAS larga (por
+  ejemplo 7 s de una caja invulnerable) y explota el escudo, no se te
+  acorta — siempre se queda con la mas larga.
+- Los tiempos que editaste tu (escudo 7.5 s / invencibilidad 7 s /
+  electrico 7 s / botas 17 s) quedaron INTACTOS, y los 2 numeros nuevos
+  tambien son macros editables al lado de los tuyos en
+  scripts/net_state_game/net_state_game.gml:
+  ITEMBOX_ELECTRIC_BREAK_INVULN (60 * 2.5)
+  ITEMBOX_SHIELD_BREAK_INVULN   (60 * 4)
+
+-----------------------------------------------------------------------
+5) ANDROID — 4o BOTON PRINCIPAL: LA V
+-----------------------------------------------------------------------
+"puedes anadir el boton V? que tenga el mismo estilo y demas? es el
+4 boton para el android."
+
+- La V ahora es el 4o boton GRANDE del cluster A/B/C (mismo tamano,
+  mismo estilo, dibujada con los mismos tonos exactos de los botones
+  A/B/C). Queda en rombo: V arriba, B arriba a la derecha, A y C abajo.
+- Pulsa la misma tecla V de siempre (la del parry de Amy Canon), asi
+  que funciona con TODO lo que use la V. El boton pequeno de la
+  columna de la derecha sigue ahi tambien — los dos dan la misma V y
+  hasta puedes deslizar el dedo entre ellos sin que se corte.
+- Solo aparece EN PARTIDA (en el lobby no hacia nada, ahi no se dibuja).
+- Se mueve, escala y ajusta la opacidad desde Options > Controls como
+  los otros (toca 2 veces para cambiar tamano, arrastra para mover, el
+  slider la opacidad). La posicion se guarda.
+- Si tu GameMaker compile una room vieja (pasa si tenias el proyecto
+  abierto al extraer), el boton de opciones se auto-crea por codigo —
+  no se puede quedar sin editar.
+
+-----------------------------------------------------------------------
+QUE PROBAR EN PARTIDA (server recompilado)
+-----------------------------------------------------------------------
+1. Con un NO-operador: al ciclar en la seleccion NO deben aparecer
+   Sonic ni Kris. Contigo (host): aparecen y se eligen normal.
+2. Cajas: rompe 1 y cuenta 30 s exactos para su reemplazo (nada
+   instantaneo). Rompe 2 y las 2 vuelven a los 30 s. Al inicio: 1a
+   caja a los 15 s, luego 1 cada 20 s hasta 4.
+3. Caja de rings con menos de 10 anillos: al llegar a 10 con la caja,
+   debe curarte +20 y gastarse los 10.
+4. Escudo electrico: que te peguen — explota y quedas inmune 2.5 s
+   (prueba que el exe no te puede rematar en ese rato). Escudo de
+   burbuja: explota y quedas inmune 4 s.
+5. Android: en partida debe verse el boton V grande arriba de A,
+   apretarlo debe hacer la V (parry de Amy Canon, escudo de Kris, lo
+   que uses). En Options > Controls se puede mover como los demas.
+
+-----------------------------------------------------------------------
+ARCHIVOS DEL ZIP (solo lo modificado/creado)
+-----------------------------------------------------------------------
+SERVER (recompilar si o si):
+  betterserver-oss/disasterserver/states/CharSelect.c
+  betterserver-oss/disasterserver/entities/ItemBoxMap.c
+  betterserver-oss/include/entities/ItemBox.h
+CLIENTE (GM recompila al abrir):
+  scripts/net_state_game/net_state_game.gml
+  scripts/scr_player_hurt/scr_player_hurt.gml
+  scripts/scr_survivors/scr_survivors.gml
+  scripts/scr_controls_init_touch/scr_controls_init_touch.gml
+  scripts/scr_controls_update_touch/scr_controls_update_touch.gml
+  objects/obj_config/Create_0.gml
+  objects/obj_controls/Create_0.gml
+  objects/obj_controls/Draw_64.gml
+  objects/obj_menu/Create_0.gml
+  objects/obj_menu_mobilebutton/Draw_0.gml
+  sprites/spr_mobile_button/spr_mobile_button.yy      (6 -> 8 frames)
+  sprites/spr_mobile_button/<2 PNG nuevos + 2 en layers/> (boton V)
+  rooms/room_menu/room_menu.yy                          (handle del editor)
+DOCS/TOOLS:
+  CACHE.md / LEARNING.md / worklog.md / check_v78.py / sim_v78.py
+  LEEME_V78.txt (este)
+
+Anti-cheat: CERO cambios de protocolo. El veto de Sonic/Kris y el
+enfriamiento de cajas los decide el SERVER solo. Los handlers de
+romper/reubicar siguen con sus protecciones de siempre (re-romper una
+caja rota no hace nada, reubicar es one-shot).
+
+Detalle tecnico completo: CACHE.md seccion 3.4.5 + LEARNING.md v78.
