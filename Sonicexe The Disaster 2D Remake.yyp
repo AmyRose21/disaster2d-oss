@@ -12,7 +12,7 @@
   "Folders":[
     {"$GMFolder":"","%Name":"Animation Curves","folderPath":"folders/Animation Curves.yy","name":"Animation Curves","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Extensions","folderPath":"folders/Extensions.yy","name":"Extensions","resourceType":"GMFolder","resourceVersion":"2.0",},
-    {"$GMFolder":"","%Name":"MultiClient","folderPath":"folders/Extensions/MultiClient.yy","name":"MultiClient","resourceType":"GMFolder","resourceVersion":"2.0",},
+    {"$GMFolder":"","%Name":"MultiClient","folderPath":"folders/MultiClient.yy","name":"MultiClient","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Fonts","folderPath":"folders/Fonts.yy","name":"Fonts","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Objects","folderPath":"folders/Objects.yy","name":"Objects","resourceType":"GMFolder","resourceVersion":"2.0",},
     {"$GMFolder":"","%Name":"Effects","folderPath":"folders/Objects/Effects.yy","name":"Effects","resourceType":"GMFolder","resourceVersion":"2.0",},
@@ -238,7 +238,6 @@
   },
   "name":"Sonicexe The Disaster 2D Remake",
   "resources":[
-    {"id":{"name":"scr_wss","path":"scripts/scr_wss/scr_wss.yy",},},
     {"id":{"name":"data","path":"extensions/data/data.yy",},},
     {"id":{"name":"disasterserver","path":"extensions/disasterserver/disasterserver.yy",},},
     {"id":{"name":"disnet","path":"extensions/disnet/disnet.yy",},},
@@ -718,6 +717,7 @@
     {"id":{"name":"scr_survivors","path":"scripts/scr_survivors/scr_survivors.yy",},},
     {"id":{"name":"scr_tails_special","path":"scripts/scr_tails_special/scr_tails_special.yy",},},
     {"id":{"name":"scr_text_spr","path":"scripts/scr_text_spr/scr_text_spr.yy",},},
+    {"id":{"name":"scr_wss","path":"scripts/scr_wss/scr_wss.yy",},},
     {"id":{"name":"shd_amy_cyber","path":"shaders/shd_amy_cyber/shd_amy_cyber.yy",},},
     {"id":{"name":"shd_blackwhite","path":"shaders/shd_blackwhite/shd_blackwhite.yy",},},
     {"id":{"name":"shd_colour","path":"shaders/shd_colour/shd_colour.yy",},},

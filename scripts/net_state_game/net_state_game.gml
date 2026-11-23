@@ -9,10 +9,10 @@
 // scr_player_hurt), escudo eléctrico 2.5 s (Eggman 1.5 + 1 s pedido de la
 // dueña), botas 8 s (Power Sneakers: tope +3 y acc x1.5, control total —
 // NO la carrera forzada del Kaf).
-#macro ITEMBOX_SHIELD_TIME (60 * 5)
-#macro ITEMBOX_INVULN_TIME (60 * 6.25)
-#macro ITEMBOX_ELECTRIC_TIME (60 * 3)
-#macro ITEMBOX_BOOTS_TIME (60 * 15)
+#macro ITEMBOX_SHIELD_TIME (60 * 7)
+#macro ITEMBOX_INVULN_TIME (60 * 7)
+#macro ITEMBOX_ELECTRIC_TIME (60 * 7)
+#macro ITEMBOX_BOOTS_TIME (60 * 17)
 
 function net_send_palette()
 {
