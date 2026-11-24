@@ -359,6 +359,7 @@ copy /y "%EXEDIR%\Config.json" "%BACKUP%\" >nul
 copy /y "%EXEDIR%\Operators.json" "%BACKUP%\" >nul 2>&1
 copy /y "%EXEDIR%\Bans.json" "%BACKUP%\" >nul 2>&1
 copy /y "%EXEDIR%\Timeouts.json" "%BACKUP%\" >nul 2>&1
+copy /y "%EXEDIR%\Devices.txt" "%BACKUP%\" >nul 2>&1
 echo [i] Config del server respaldada en la carpeta %BACKUP%
 goto :eof
 
@@ -366,6 +367,7 @@ goto :eof
 if not exist "%BACKUP%\Config.json" goto :eof
 if exist "%EXEDIR%\Config.json" goto :eof
 copy /y "%BACKUP%\*.json" "%EXEDIR%\" >nul
+copy /y "%BACKUP%\Devices.txt" "%EXEDIR%\" >nul 2>&1
 echo [i] Config del server restaurada (anticheat, ops, bans...)
 goto :eof
 

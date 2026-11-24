@@ -1673,14 +1673,13 @@ function scr_char_locked(ch)
         if(ch == CHARACTER_VANILLA && global.amyCanonToken == "")
                 return true;
 
-        // v39 (duena): ROUGE RELEGADA — solo con el token de Amy
-        // (amy_canon.token), igual que Amy Canon y Vanilla: ni publica
-        // ni operadores, exclusiva de la duena del token. La v6.3 la
-        // habia re-activado para todos; vuelve al cajon del token.
-        // OJO: el server (betterserver-oss, states/CharSelect.c) hoy
-        // la sigue aceptando de todos — si se quiere el doble seguro
-        // del server (como Vanilla), hay que tocarlo alla tambien.
-        if(ch == CHARACTER_ROUGE && global.amyCanonToken == "")
+        // v80c (duena): ROUGE POR DISPOSITIVO — la ven y eligen el
+        // token de Amy, los operadores y el dispositivo que la reclamo
+        // con .rouge (global.rougeClaimed, seteado por el server via
+        // SERVER_ROUGE_STATE; sobrevive reinstalar en Android). El
+        // server la rechaza igual para los demas (states/CharSelect.c):
+        // doble seguro.
+        if(ch == CHARACTER_ROUGE && global.amyCanonToken == "" && !global.isOperator && !global.rougeClaimed)
                 return true;
 
         // v3 (D.I.B.): Fleetway Amy PASA A SER PUBLICA (pedido de la

@@ -1,4 +1,5 @@
 #include <Config.h>
+#include <Devices.h>
 #include <Log.h>
 #include <cJSON.h>
 #include <stdio.h>
@@ -294,6 +295,10 @@ init_balls:
         RAssert(collection_init(&g_timeouts,    TIMEOUTS_FILE,  "{}"));
         RAssert(collection_init(&g_bans,                BANS_FILE,              "{}"));
         RAssert(collection_init(&g_ops,         OPERATORS_FILE, "{ \"127.0.0.1\": \"Host (127.0.0.1)\" }"));
+
+        /* v80c: claims de personajes por dispositivo (Rouge con .rouge).
+           Crea Devices.txt al lado del exe si no existe. */
+        RAssert(devices_init());
 
         if (!g_config.anticheat)
         {

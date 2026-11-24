@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_device_id",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_device_id",
+  "parent":{
+    "name":"General",
+    "path":"folders/Scripts/Networking/General.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

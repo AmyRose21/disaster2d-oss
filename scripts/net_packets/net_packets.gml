@@ -386,7 +386,15 @@ enum PacketType
            DOS lados. */
         CLIENT_BOX_ACTIVATE,
         SERVER_BOX_STATE,
-        CLIENT_BOX_RELOCATE
+        CLIENT_BOX_RELOCATE,
+
+        /* v80c (Rouge por dispositivo): SERVER_ROUGE_STATE (u8 state) —
+           1 = este dispositivo puede ver y elegir a Rouge (operador,
+           token de Amy o claim de .rouge en el server). Setea
+           global.rougeClaimed; llega tras conectar, tras .rouge
+           exitoso, tras .op y tras el token de Amy. Mismo orden que
+           include/Packet.h; anadido AL FINAL en los DOS lados. */
+        SERVER_ROUGE_STATE
 }
 
 #macro STATE_PENDING -1

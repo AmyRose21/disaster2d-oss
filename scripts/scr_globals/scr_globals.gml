@@ -165,6 +165,15 @@ global.levelDescriptions =
 // libre; ver scr_char_locked).
 global.isOperator = false;
 
+// v80c (Rouge por dispositivo): 1/0 que manda el server (SERVER_ROUGE_STATE)
+// con el estado del claim de Rouge para ESTE dispositivo. Se resetea a false
+// en cada conexion y lo vuelve a setear el server (operador, token de Amy o
+// claim de .rouge en Devices.txt). deviceIdCache guarda el identificador
+// del dispositivo (ANDROID_ID en Android, udid en PC) para no pedirlo dos
+// veces (ver scr_device_id).
+global.rougeClaimed = false;
+global.deviceIdCache = "";
+
 // Amy Canon: token local del PERSONAJE RESERVADO.
 // Si existe el archivo amy_canon.token (junto al juego o en tu carpeta
 // de usuario), su contenido (una frase secreta de 1 linea) se envia al

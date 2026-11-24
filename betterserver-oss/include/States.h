@@ -43,6 +43,12 @@ typedef struct Entity
    CMD_* (server_cmd_parse: Java hash 31*h+c de la primera palabra) */
 #define CMD_EXE 1471268
 
+/* v80c: ".rouge" — reclama Rouge para ESTE dispositivo (primer
+   dispositivo gana; ver Devices.txt). Hash Java 31*h+c de ".rouge",
+   punto incluido; verificado sin colision contra los 18 CMD_*
+   existentes. */
+#define CMD_ROUGE 1425644872
+
 bool lobby_init				(Server* server);
 bool lobby_state_join		(PeerData* v);
 bool lobby_state_left		(PeerData* v);

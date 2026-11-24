@@ -8,6 +8,7 @@
 #include <States.h>
 #include <Packet.h>
 #include <Relay.h>
+#include <Devices.h>
 #include <ctype.h>
 #include <io/Threads.h>
 #include <io/Time.h>
@@ -97,6 +98,15 @@ bool peer_identity_process(PeerData *v, const char *addr, bool is_banned, uint64
         PacketWrite(&pack, packet_write8, v->op);
         RAssert(packet_send(v->peer, &pack, true));
 
+        // v80c (Rouge por dispositivo): mismo patron que arriba, estado
+        // SIEMPRE explicito en cada conexion. El cliente lo guarda en
+        // global.rougeClaimed y con eso muestra u oculta a Rouge en el
+        // carrusel (scr_char_locked). 1 = operador, token de Amy o
+        // claim de este dispositivo en Devices.txt.
+        PacketCreate(&pack, SERVER_ROUGE_STATE);
+        PacketWrite(&pack, packet_write8, v->op || v->amy_authed || v->rouge_claimed);
+        RAssert(packet_send(v->peer, &pack, true));
+
         // If in queue, do following
         if (!v->in_game)
         {
@@ -182,6 +192,15 @@ bool peer_identity(PeerData *v, Packet *packet)
         PacketRead(lobby_icon, packet, packet_read8, uint8_t);
         PacketRead(pet, packet, packet_read8, int8_t);
 
+        /* v80c: identificador del dispositivo para los claims de
+           personajes (.rouge). Va AL FINAL del identity visible, entre
+           pet y los dos u64 del anticheat (orden espejo exacto con
+           net_indentity.gml). Tope de 200 chars por si un cliente
+           editado manda basura; vacio = no puede reclamar (los
+           clientes 1101 viejos simplemente no lo envian y el campo
+           queda en "", fail closed). */
+        PacketRead(device_id, packet, packet_readstr, String);
+
         RAssert(ban_check(udid.value, v->ip.value, &is_banned));
         RAssert(timeout_check(udid.value, v->ip.value, &timeout));
         RAssert(op_check(v->ip.value, &v->op));
@@ -195,6 +214,14 @@ bool peer_identity(PeerData *v, Packet *packet)
         v->udid = udid;
         v->lobby_icon = lobby_icon;
         v->pet = pet;
+        v->device_id = device_id;
+
+        /* v80c: este dispositivo ya tiene el claim de Rouge? (se rele
+           Devices.txt en cada check, asi que borrar la linea aplica
+           sin reiniciar). Tope defensivo contra nicks gigantes. */
+        if (v->device_id.len > 200)
+                v->device_id.len = 200, v->device_id.value[200] = '\0';
+        v->rouge_claimed = v->device_id.len > 0 && devices_check("rouge", v->device_id.value);
 
         if (g_config.anticheat)
         {
@@ -458,6 +485,15 @@ bool server_worker(Server *server)
                                                 strcmp(token.value, g_config.amy_canon_token) == 0;
 
                                         Info("%s (id %d) amy canon unlock: %s", v->nickname.value, v->id, BoolStringify(v->amy_authed));
+
+                                        /* v80c: el token de Amy tambien desbloquea a Rouge:
+                                           re-enviar el estado (llega justo despues del identity,
+                                           por eso el caso ROUGE_STATE del identity va con
+                                           amy_authed aun en false y se corrige aqui). */
+                                        Packet rougepack;
+                                        PacketCreate(&rougepack, SERVER_ROUGE_STATE);
+                                        PacketWrite(&rougepack, packet_write8, v->op || v->amy_authed || v->rouge_claimed);
+                                        RAssert(packet_send(v->peer, &rougepack, true));
                                         break;
                                 }
 
@@ -931,6 +967,74 @@ bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *
                 break;
         }
 
+        /* v80c (diseno de la duena): .rouge — cualquiera puede
+           escribirlo en el chat; el PRIMER dispositivo que lo hace
+           registra el claim de Rouge para si (Devices.txt, sobrevive
+           reinstalar en Android). Operadores y token de Amy ya la ven
+           siempre. Quitar el claim = SOLO borrando la linea en
+           Devices.txt (no hay comando, decision de la duena); el
+           server relee el archivo antes de cada uso, sin reiniciar.
+           Sirve en cualquier estado con chat (lobby/charselect/
+           mapvote/game/results: todos enrutan por server_cmd_handle). */
+        case CMD_ROUGE:
+        {
+                /* operadores y token de Amy no necesitan claim */
+                if (v->op || v->amy_authed)
+                {
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA "you can already pick Rouge~"));
+                        break;
+                }
+
+                /* ya la tiene este dispositivo (idempotente: reconectar
+                   o repetir el comando no la pierde) */
+                if (v->rouge_claimed)
+                {
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA "this device already has Rouge~"));
+                        break;
+                }
+
+                /* cliente sin identificador de dispositivo (version
+                   vieja o plataforma sin soporte): no puede reclamar */
+                if (v->device_id.len <= 0)
+                {
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "this device can't claim Rouge (update the game)"));
+                        break;
+                }
+
+                switch (devices_claim("rouge", v->device_id.value, v->nickname.value))
+                {
+                case DEVCLAIM_OK:
+                        v->rouge_claimed = true;
+
+                        /* avisarle YA, sin reconectar: el carrusel la
+                           muestra al instante */
+                        Packet rougepack;
+                        PacketCreate(&rougepack, SERVER_ROUGE_STATE);
+                        PacketWrite(&rougepack, packet_write8, 1);
+                        RAssert(packet_send(v->peer, &rougepack, true));
+
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRN "Rouge unlocked on this device!"));
+                        Info("%s (id %d) claimed [Rouge] for this device", v->nickname.value, v->id);
+                        break;
+
+                case DEVCLAIM_ALREADY:
+                        v->rouge_claimed = true;
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA "this device already has Rouge~"));
+                        break;
+
+                case DEVCLAIM_TAKEN:
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "Rouge is already claimed by another device"));
+                        Info("%s (id %d) tried to claim [Rouge]: taken", v->nickname.value, v->id);
+                        break;
+
+                case DEVCLAIM_ERROR:
+                default:
+                        RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "couldn't save the claim (Devices.txt not writable?)"));
+                        break;
+                }
+                break;
+        }
+
         /* Help message  */
         case CMD_HELP:
         {
@@ -941,6 +1045,7 @@ bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *
                 RAssert(server_send_msg(v->server, v->peer, lobby_msg));
                 RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".vk" CLRCODE_RST " vote kick"));
                 RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".vp" CLRCODE_RST " vote practice mode"));
+                RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".rouge" CLRCODE_RST " claim Rouge for this device"));
 
                 if (v->op)
                 {
@@ -1086,6 +1191,13 @@ bool server_msg_handle(Server *server, PacketType type, PeerData *v, Packet *pac
                                 PacketCreate(&oppack, SERVER_OPERATOR_STATE);
                                 PacketWrite(&oppack, packet_write8, 1);
                                 RAssert(packet_send(peer->peer, &oppack, true));
+
+                                // v80c: los operadores tambien ven a Rouge,
+                                // avisarle igual (sin reconectar)
+                                Packet rougepack;
+                                PacketCreate(&rougepack, SERVER_ROUGE_STATE);
+                                PacketWrite(&rougepack, packet_write8, 1);
+                                RAssert(packet_send(peer->peer, &rougepack, true));
                                 break;
                         }
                 }

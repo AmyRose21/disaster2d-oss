@@ -384,7 +384,16 @@ typedef enum
            en los DOS lados. */
         CLIENT_BOX_ACTIVATE,
         SERVER_BOX_STATE,
-        CLIENT_BOX_RELOCATE
+        CLIENT_BOX_RELOCATE,
+
+        /* v80c (Rouge por dispositivo): SERVER_ROUGE_STATE (u8 state)
+           se envia SOLO al peer interesado, como SERVER_OPERATOR_STATE,
+           para informarle si este dispositivo puede ver y elegir a
+           Rouge (1 = si). Llega tras el identity, tras un .rouge
+           exitoso, tras .op y tras CLIENT_AMY_AUTH (siempre explicito:
+           op || amy_authed || rouge_claimed). Anadido AL FINAL en los
+           DOS lados (espejo con net_packets.gml). */
+        SERVER_ROUGE_STATE
 } PacketType;
 
 typedef struct

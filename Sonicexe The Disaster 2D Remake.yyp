@@ -634,6 +634,7 @@
     {"id":{"name":"net_indentity","path":"scripts/net_indentity/net_indentity.yy",},},
     {"id":{"name":"net_metalamy_bullet","path":"scripts/net_metalamy_bullet/net_metalamy_bullet.yy",},},
     {"id":{"name":"net_packets","path":"scripts/net_packets/net_packets.yy",},},
+    {"id":{"name":"scr_device_id","path":"scripts/scr_device_id/scr_device_id.yy",},},
     {"id":{"name":"net_projectile","path":"scripts/net_projectile/net_projectile.yy",},},
     {"id":{"name":"net_reset","path":"scripts/net_reset/net_reset.yy",},},
     {"id":{"name":"net_sounds","path":"scripts/net_sounds/net_sounds.yy",},},

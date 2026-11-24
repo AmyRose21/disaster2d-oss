@@ -1,0 +1,169 @@
+=======================================================================
+v80c — ROUGE POR DISPOSITIVO (comando .rouge) — ZIP DE ARCHIVOS
+COMPLETOS PARA COPIAR (Windows, sin parches)
+(2026-11-24, reconstruccion verificada de la v80c. Base 2ee0afae)
+=======================================================================
+
+QUE ES ESTE ZIP
+---------------
+Lo mismo que la v80c pero en el formato que pediste: ARCHIVOS
+COMPLETOS listos para COPIAR encima de tu proyecto. No hay .patch
+que aplicar, no hace falta git: es reemplazar/copiar carpetas.
+
+EL SISTEMA (tu diseno, tal cual)
+--------------------------------
+- Rouge la ven y eligen SIEMPRE los operadores y las que tienen el
+  token de Amy (tu caso), y ADEMAS cualquier jugadora puede escribir
+  ".rouge" en el chat (lobby, seleccion de personaje, donde sea).
+- El PRIMER dispositivo que escribe .rouge lo REGISTRA: le aparece
+  Rouge en su seleccion desde esa conexion y en todas las futuras
+  desde ese mismo telefono/PC (reinstalar el juego NO la pierde en
+  Android: el identificador sobrevive reinstalar).
+- Otro dispositivo que escriba .rouge despues recibe "Rouge is
+  already claimed by another device" y Rouge le queda bloqueada.
+- QUITAR un claim: SOLO borrando la linea en el archivo Devices.txt
+  del server (tu decision: no hay comando del op para quitarlo). Ni
+  siquiera hace falta reiniciar el server: se aplica en el siguiente
+  .rouge que alguien escriba.
+
+COMO INSTALARLO (5 minutos, sin git ni parches)
+-----------------------------------------------
+1. CIERRA GameMaker (y el server si lo tenias abierto).
+2. Abre el zip. Adentro hay DOS carpetas:
+     betterserver-oss/  -> el server en C (el que compila el .bat)
+     (raiz del zip)     -> el proyecto GameMaker (scripts, objects,
+                           extensions, y el .yyp)
+3. Copia la carpeta "betterserver-oss" del zip DENTRO de tu carpeta
+   del proyecto (donde ya tienes la tuya) y REEMPLAZA cuando Windows
+   pregunte. Son los mismos archivos que ya tenias + los nuevos
+   (Devices.c, Devices.h, SHA256.h) + los editados.
+4. Copia el CONTENIDO de la raiz del zip (carpetas scripts/, objects/,
+   extensions/ y el archivo .yyp) sobre tu carpeta del proyecto,
+   reemplazando cuando pregunte.
+   -> Windows solo reemplaza los archivos que coinciden; los demas
+      (sprites, rooms, sonidos...) ni se tocan.
+5. Abre el proyecto en GameMaker: debe aparecer el script nuevo
+   "scr_device_id" en Scripts > Networking > General. Si NO aparece,
+   algo no se copio (revisa el paso 4).
+
+COMO PROBARLO (10 minutos)
+--------------------------
+1. Server: abre el compilar_server.bat (opcion 1). Devices.txt se
+   crea solo al arrancar (al lado del exe, junto a Bans.json).
+2. APK nuevo (la version 1102 es OBLIGATORIA, ver abajo): entra al
+   server desde un telefono SIN token y sin op.
+3. Escribe ".rouge" en el chat del lobby: debe decir "Rouge unlocked
+   on this device!" y Rouge debe aparecer en tu carrusel ya mismo
+   (sin reconectar).
+4. Desde OTRO telefono (u otra PC) escribe ".rouge": debe decir
+   "Rouge is already claimed by another device" y Rouge NO aparece.
+5. Reconecta con el telefono del paso 3: Rouge sigue ahi.
+6. PRUEBA DEL TXT: abre Devices.txt con el Bloc de notas, borra la
+   linea rouge|..., guarda, y desde el OTRO telefono escribe .rouge:
+   ahora SI puede reclamarla (sin reiniciar el server).
+7. Tu (con token amy_canon.token o .op): Rouge te aparece como
+   siempre, sin reclamar nada.
+8. Cliente editado que la pida sin permiso: el server la rechaza
+   como si estuviera ocupada (igual que Vanilla/Amy Canon) y lo
+   anota en el log del server.
+
+ARCHIVOS COMPLETOS QUE TRAE ESTE ZIP
+------------------------------------
+SERVER (betterserver-oss/):
+  include/Devices.h        NUEVO — API de claims (init/check/claim/hash)
+  include/SHA256.h         NUEVO — SHA-256 (FIPS 180-4), sin dependencias
+  disasterserver/Devices.c NUEVO — claims en .txt + reload antes de cada
+                           uso (para que editar el archivo aplique ya)
+  include/Config.h         +DEVICES_FILE (win y android)
+  disasterserver/Config.c  +devices_init() al arranque
+  disasterserver/CMakeLists.txt  +Devices.c en SOURCES
+  include/Server.h         +BUILD_VERSION 1102, +device_id y
+                           rouge_claimed en PeerData
+  include/Packet.h         +SERVER_ROUGE_STATE al final del enum
+  include/States.h         +CMD_ROUGE 1425644872 (verificado sin
+                           colisiones contra los 18 CMD_* existentes)
+  states/Server.c          +lee device_id en el identity (entre pet y
+                           los u64 del anticheat), +claims al conectar,
+                           +case CMD_ROUGE (4 caminos), +reenvio del
+                           estado tras .op y tras token Amy, +.help
+  states/CharSelect.c      guarda Rouge = !amy_authed && !op &&
+                           !rouge_claimed (doble seguro del server)
+  compilar_server.bat      respalda/restaura Devices.txt
+CLIENTE (raiz del zip):
+  scripts/scr_device_id/   NUEVO — identificador del dispositivo
+                           (ANDROID_ID en Android, udid en PC), cacheado
+  scripts/net_indentity/   +escribe device_id en el paquete IDENTITY
+  scripts/net_packets/     +SERVER_ROUGE_STATE al final del enum
+  scripts/net_tcpprocess/  +case SERVER_ROUGE_STATE (switch principal)
+  scripts/scr_globals/     +global.rougeClaimed, +global.deviceIdCache
+  objects/obj_netclient/   BUILD_VER 1102, +reset de rougeClaimed por
+                           conexion
+  scripts/scr_survivors/   scr_char_locked: Rouge visible con token ||
+                           operador || claim
+  Sonicexe...Remake.yyp    registrado scr_device_id
+  extensions/disasterserver/AndroidSource/Java/DisasterServer.java
+                           +AndroidGetDeviceId() (ANDROID_ID, con
+                           try/catch que devuelve "" si falla)
+  extensions/disasterserver/disasterserver.yy
+                           +funcion registrada (kind 4, returnType 1
+                           = string)
+
+OJO — CAMBIO DE VERSION (importante)
+------------------------------------
+BUILD_VERSION subio de 1101 a 1102 en el server Y en el cliente,
+porque el paquete de identidad gano un campo. Eso significa:
+  - APK viejo (1101) + server nuevo (1102) = "version mismatch" al
+    conectar. ES LO ESPERADO: todos tienen que actualizar la app
+    para jugar en el server nuevo.
+  - APK nuevo (1102) + server viejo (1101) = igual, disconnect.
+    Actualiza el server primero, luego reparte el APK.
+Como siempre que se movio el protocolo en este proyecto, no hay
+migracion: la version nueva habla con la version nueva.
+
+VERIFICACION HECHA (regla de la casa: sin "deberia funcionar")
+--------------------------------------------------------------
+- Los 6 .c del server pasan gcc -fsyntax-only (con stub de enet,
+  que no esta en el sandbox; el enlace real es tu Visual Studio).
+- Devices.c EJECUTADO en tests reales: 23/23 OK, incluyendo SHA-256
+  contra los vectores oficiales NIST (incluido el de un millon de
+  'a'), el flujo completo del claim (primero gana, mismo
+  dispositivo = "already", otro = "taken"), el borrado manual de la
+  linea liberando el claim SIN reiniciar, y lineas corruptas
+  (garbage, hash no-hex, vacias) que no rompen el archivo.
+- Chequeo integral de espejo: 35/35 OK (enum igual en ambos lados,
+  orden de campos del IDENTITY identico al escribir y al leer,
+  BUILD_VERSION 1102 en ambos, hash del comando re-verificado).
+- Nota de esta reconstruccion: al rehacer SHA256.h desde cero se
+  introdujo un bug en la escritura del digest final (cada palabra
+  se escribia duplicada); los vectores NIST lo cazaron y se corrigio
+  antes de empaquetar. Es exactamente el tipo de cosa que la
+  verificacion existe para atrapar.
+
+LIMITES CONOCIDOS (los mismos del plan, nada nuevo)
+--------------------------------------------------
+- Dos telefonos CLONADOS (mismo ANDROID_ID) comparten claim: limite
+  fisico sin Play Integrity; no aplica a tu amenaza real (amigas
+  compartiendo el juego, no clonacion).
+- Factory reset del telefono de la claimer => nuevo ANDROID_ID =>
+  pierde el claim => borras la linea y ella reclama de nuevo.
+- El hash lleva una salt fija compilada dentro del server: no es
+  secreto criptografico, solo evita que un Devices.txt filtrado
+  sirva para identificar telefonos por tablas conocidas.
+
+ROLLBACK (si algo sale raro)
+----------------------------
+Copia de vuelta tu carpeta del proyecto desde tu copia de seguridad
+(los archivos que este zip reemplaza son los listados arriba, todos
+recuperables de a uno). Devices.txt sobra (se ignora/borra). No hay
+cambios irreversibles: el protocolo nuevo solo se activa con server
+Y cliente 1102 juntos. Si usas git, el equivalente es
+git checkout 2ee0afae -- . y recompilar.
+
+SIGUIENTE PERSONAJE (cuando quieras)
+------------------------------------
+Todo el sistema es una tabla personaje->hash: anadir ".sonic" o
+".vanilla" claimables es copiar el bloque CMD_ROUGE con otro CMD_*
+(hash nuevo), cambiar "rouge" por el nombre interno y anadir la
+guarda en CharSelect.c. Devices.txt ya admite cualquier nombre de
+personaje sin tocar codigo.
+=======================================================================

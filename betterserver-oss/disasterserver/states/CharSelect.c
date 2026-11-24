@@ -255,18 +255,14 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
                         return true;
                 }
 
-                /* v40 (duena): ROUGE RELEGADA AL TOKEN — misma regla que
-                   Amy Canon y Vanilla: solo el jugador con el token de Amy
-                   (amy_authed, el mismo CLIENT_AMY_AUTH) puede elegir a
-                   Rouge; ni operadores ni publica. A los demas se les
-                   responde igual que si estuviera ocupada (result=0: el
-                   cliente suena nono y la tacha) y no se registra ni
-                   difunde nada. El cliente (v39, scr_char_locked) ya la
-                   oculta del carrusel sin el token: este bloque es el
-                   DOBLE SEGURO del server contra clientes editados. La
-                   v6.3 la habia re-activado para todos; vuelve al cajon
-                   del token. */
-                if (id == CH_ROUGE && !v->amy_authed)
+                /* v80c (duena): ROUGE POR DISPOSITIVO — la eligen el
+                   token de Amy, los operadores y el dispositivo con el
+                   claim de .rouge (Devices.txt). A los demas se les
+                   responde igual que si estuviera ocupada (result=0)
+                   y no se registra ni difunde nada: este bloque es el
+                   DOBLE SEGURO del server contra clientes editados
+                   (scr_char_locked la oculta del carrusel igual). */
+                if (id == CH_ROUGE && !v->amy_authed && !v->op && !v->rouge_claimed)
                 {
                         PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
                         PacketWrite(&pack, packet_write8, id + 1);

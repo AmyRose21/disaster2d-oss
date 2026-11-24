@@ -13,12 +13,14 @@
         #define BANS_FILE "Bans.json"
         #define OPERATORS_FILE "Operators.json"
         #define TIMEOUTS_FILE "Timeouts.json"
+        #define DEVICES_FILE "Devices.txt"
 #else
         #define ANDROID_DIR "/data/data/com.teamexeempire.disaster2d/files/"
         #define CONFIG_FILE ANDROID_DIR "Config.json"
         #define BANS_FILE ANDROID_DIR "Bans.json"
         #define OPERATORS_FILE ANDROID_DIR "Operators.json"
         #define TIMEOUTS_FILE ANDROID_DIR "Timeouts.json"
+        #define DEVICES_FILE ANDROID_DIR "Devices.txt"
 #endif
 
 /* Relay: publicar el servidor en el directorio central (relaysc.dr2.site)

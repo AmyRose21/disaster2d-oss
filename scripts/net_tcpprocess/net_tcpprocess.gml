@@ -195,6 +195,19 @@ function net_tcpprocess(rbuff)
                                 global.isOperator = buffer_read_s(rbuff, buffer_u8) != 0;
                                 break;
                         }
+
+                        case PacketType.SERVER_ROUGE_STATE:
+                        {
+                                // v80c: estado del claim de Rouge para ESTE dispositivo
+                                // (server -> cliente): 1 = puede verla y elegiria en la
+                                // seleccion (operador, token de Amy o claim de .rouge en
+                                // Devices.txt). Llega tras conectarte, tras escribir
+                                // .rouge, tras un .op y tras el token de Amy — en
+                                // cualquier estado, por eso vive en el switch principal
+                                // igual que SERVER_OPERATOR_STATE.
+                                global.rougeClaimed = buffer_read_s(rbuff, buffer_u8) != 0;
+                                break;
+                        }
                         
                         default:
                                 if(state == STATE_LOBBY)

@@ -32,6 +32,12 @@ function net_identity()
 	
 	buffer_write(pak, buffer_s8, obj_unlockables.lobbyIcon);
 	buffer_write(pak, buffer_s8, obj_unlockables.pet);
+
+	// v80c: identificador del dispositivo para los claims (.rouge).
+	// Va ENTRE pet y los u64 del anticheat — orden espejo exacto con
+	// peer_identity del server (que leera: pet, device_id, u64, u64).
+	buffer_write(pak, buffer_string, scr_device_id());
+	
 	buffer_write(pak, buffer_u64, 0);
 	buffer_write(pak, buffer_u64, 0);
 	

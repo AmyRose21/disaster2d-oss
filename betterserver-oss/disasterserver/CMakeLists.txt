@@ -30,6 +30,7 @@ endif()
 set(SOURCES
         "Auth.c"
         "Config.c"
+        "Devices.c"
         "cJSON.c"
         "UTF8.c"
         "CMath.c"

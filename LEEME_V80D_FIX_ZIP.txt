@@ -1,0 +1,103 @@
+=======================================================================
+v80d — CORRECCION DEL ZIP v80c (Rouge con .rouge) — 2026-11-24
+=======================================================================
+
+QUE PASO (bug del zip anterior, no de tu instalacion)
+-----------------------------------------------------
+El zip v80c tenia 5 scripts de cliente MAL UBICADOS:
+
+    scripts/net_indentity.gml        (SUELTO, carpeta equivocada)
+    scripts/net_packets.gml          (SUELTO)
+    scripts/net_tcpprocess.gml       (SUELTO)
+    scripts/scr_globals.gml          (SUELTO)
+    scripts/scr_survivors.gml        (SUELTO)
+
+GameMaker guarda cada script en SU PROPIA carpeta
+(scripts/net_packets/net_packets.gml, asi lo referencia el .yyp).
+Un .gml suelto en scripts/ NO lo carga nadie: al copiar el zip
+sobre el proyecto, esos 5 archivos quedaban huerfanos y el cliente
+SEGUIA CON LOS SCRIPTS VIEJOS. Por eso conectabas normal (el
+BUILD_VER si se actualizo, vive en obj_netclient que si se copio
+bien) pero el juego nunca mandaba el device_id: escribir .rouge
+no hacia NADA (o el server contestaba "this device can't claim
+Rouge (update the game)").
+
+El unico script NUEVO (scr_device_id) si estaba bien ubicado en
+su carpeta scripts/scr_device_id/ — por eso el proyecto compilaba
+sin errores y el bug era invisible.
+
+ESTE ZIP LO ARREGLA
+-------------------
+Mismos archivos, misma logica, rutas CORRECTAS:
+
+    scripts/net_indentity/net_indentity.gml
+    scripts/net_packets/net_packets.gml
+    scripts/net_tcpprocess/net_tcpprocess.gml
+    scripts/scr_globals/scr_globals.gml
+    scripts/scr_survivors/scr_survivors.gml
+    scripts/scr_device_id/scr_device_id.gml   (+ su .yy)
+    objects/obj_netclient/Create_0.gml
+    extensions/disasterserver/...              (Java + .yy)
+    Sonicexe The Disaster 2D Remake.yyp
+    betterserver-oss/...                       (server completo v80c)
+
+LOS 5 .gml EXISTENTES NO LLEVAN .yy EN ESTE ZIP a proposito: tu
+proyecto ya los tiene registrados con su carpeta real; solo se
+sobreescribe el contenido del .gml dentro de la carpeta que ya
+existe en tu proyecto.
+
+COMO INSTALAR LA CORRECCION (5 minutos)
+---------------------------------------
+1. CIERRA GameMaker (si esta abierto).
+2. DESCOMPRIME este zip y copia las carpetas scripts/, objects/,
+   extensions/ y el .yyp SOBRE tu proyecto (igual que antes).
+3. BORRA los 5 sueltos que quedaron del zip anterior, si aun
+   estan (no estorran pero mejor limpio):
+       scripts\net_indentity.gml
+       scripts\net_packets.gml
+       scripts\net_tcpprocess.gml
+       scripts\scr_globals.gml
+       scripts\scr_survivors.gml
+4. Abre el proyecto en GameMaker y comprueba en la lista de
+   scripts que net_packets ABRA y contenga SERVER_ROUGE_STATE
+   (Ctrl+Shift+F, buscar "SERVER_ROUGE_STATE": deben salir
+   net_packets, net_tcpprocess y scr_survivors).
+5. Recompila el APK (1102) y repartelo. El server NO cambia
+   respecto al v80c que ya compilaste: si tu server ya arranco
+   con Devices.txt al lado del exe, NO toques nada del server.
+6. La jugadora: entra y escribe .rouge en el chat. Debe ver
+   "Rouge unlocked on this device!" al instante.
+
+SI SIGUE SIN FUNCIONAR — CHECKLIST DE 3 PASOS
+---------------------------------------------
+A. En el CHAT del juego, la jugadora escribe ".info": debe decir
+   "better/server~ v1102". Si dice v1101, esta con el APK viejo.
+B. En tu PC, al lado del DisasterServer.exe debe existir
+   Devices.txt (se crea solo al arrancar el server 1102). Si no
+   existe, tu server sigue siendo el viejo: recompila con
+   compilar_server.bat opcion 1.
+C. Escribe .rouge en el LOBBY (no en plena partida). Cualquier
+   estado con chat sirve, pero para la primera prueba usa el
+   lobby que es lo mas simple.
+
+RESPUESTAS POSIBLES DEL .rouge (todas son "funciona")
+-----------------------------------------------------
+- "Rouge unlocked on this device!"       -> registrada, lista.
+- "this device already has Rouge~"       -> ya la tenia, normal.
+- "Rouge is already claimed by another device" -> otra la tomo
+  primero; liberar = borrar la linea rouge|... en Devices.txt.
+- "you can already pick Rouge~"          -> eres op o tienes el
+  token de Amy: no necesitas claim.
+- "this device can't claim Rouge (update the game)" -> ESTA es
+  la señal del bug del zip anterior (cliente sin device_id);
+  con este zip v80d ya no deberia salir NUNCA en Android/PC.
+
+RESTO DE LA DOCUMENTACION
+-------------------------
+Todo lo demas (formato de Devices.txt, como liberar un claim,
+limites conocidos, rollback) esta igual que en el
+LEEME_V80C_ZIP_COMPLETO.txt del zip anterior. Version del
+protocolo SIN CAMBIOS: server 1102 de v80c + APK 1102 de v80d
+son compatibles entre si (no hay que recompilar el server si ya
+lo hiciste con el zip v80c).
+=======================================================================

@@ -1,4 +1,4 @@
-#macro BUILD_VER 1101
+#macro BUILD_VER 1102
 
 // Client stuff
 isConnected = false;
@@ -11,6 +11,11 @@ nid = -1;
 // Se resetea por conexion para no arrastrar el estado de otro
 // server. Desbloquea a Sally Canon (ver scr_char_locked).
 global.isOperator = false;
+
+// v80c: idem para el claim de Rouge (SERVER_ROUGE_STATE). Se resetea
+// por conexion; el server lo re-envia siempre tras el identity, tras
+// .rouge, tras .op y tras el token de Amy.
+global.rougeClaimed = false;
 frame = 0;
 gameEnds = false;
 reconnAttempts = 0;

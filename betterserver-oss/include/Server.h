@@ -16,7 +16,11 @@
 #include <stdint.h>
 
 #define TICKSPERSEC 60
-#define BUILD_VERSION 1101
+/* v80c: 1101 -> 1102. El paquete IDENTITY gano el campo device_id
+   (entre pet y los u64 del anticheat): cliente y server se actualizan
+   JUNTOS o no conectan (version mismatch intencional, como siempre
+   que se movio el protocolo). */
+#define BUILD_VERSION 1102
 
 #define BRACKET "-----------------------"
 
@@ -90,6 +94,15 @@ typedef struct PeerData
         bool voted;
         bool disconnecting;
         bool amy_authed; /* Amy Canon: envio el token correcto (CLIENT_AMY_AUTH) */
+
+        /* v80c: Rouge por dispositivo. device_id = identificador real
+           del telefono/PC (ANDROID_ID en Android, udid en PC; vacio en
+           clientes sin soporte = no pueden reclamar). rouge_claimed =
+           este dispositivo tiene el claim de Rouge en Devices.txt
+           (recalculado en cada conexion; los operadores y el token de
+           Amy no lo necesitan). */
+        String device_id;
+        bool rouge_claimed;
 
         auth_peer_data auth;
 
