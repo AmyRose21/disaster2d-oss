@@ -2354,3 +2354,65 @@ y las pistas nuevas de 20-28s se cortaban).
   check_v75.py) + simulador sim_v76.py. Entregable:
   download/v76_hazard_relocate_spawn_variety.zip. RECOMPILAR el server
   (Ring.c/ItemBoxMap.c/Server.h cambiaron).
+
+## v80h2 — 2026-11-24 — CRASH "point_in_circle argument 1 undefined" (REAL CAUSE, verified against this repo)
+
+ERROR (Android, on startup, no input needed):
+  point_in_circle: argument 1 incorrect type (undefined) expecting a Number
+  at gml_script_scr_controls_update_touch (line 223)
+  called from gml_object_obj_controls_step_1 (line 5)
+
+ROOT CAUSE (3 evidences, all verifiable):
+  1. GameMaker runner error docs: "argument (index)... where an index of 1
+     is the FIRST argument" => argument 1 = _x (the touch coordinate), NOT
+     an obj_config variable.
+  2. device_mouse_x_to_gui docs: on mobile "this will only be updated while
+     the screen is being touched" => an untouched touch slot can return
+     undefined for _x/_y.
+  3. House pattern in this repo: all 10 other point_in_circle calls in the
+     touch loop sit behind "_state &&" (short-circuit when no finger), and
+     obj_game_chat/Step_0 only reads device_mouse_*_to_gui after
+     device_mouse_check_button. The v78 V-block was the ONLY unguarded
+     call: it ran 24x per frame for all slots with no finger down =>
+     _x undefined => instant crash on startup.
+
+  (The earlier v80h guess — "obj_config.bV2X undefined" — was WRONG:
+  obj_config Create/load define bVX and bV2X with try/catch + defaults.
+  A corrupt 1.bson could still leave them undefined because json_parse
+  does NOT throw on missing fields; the V-GUARD is_undefined checks also
+  cover that case.)
+
+FIX (v80h2 "V-GUARD") in scripts/scr_controls_update_touch:
+  Replaced the 2-line `var _inV = point_in_circle(...) || (jUse && ...);`
+  with the same expression guarded by _state FIRST (house pattern) plus
+  is_undefined armor on bVX/bVY/bVScale and bV2X/bV2Y/bV2Scale.
+  Behavior with a finger down is IDENTICAL to v78 (verified by simulation:
+  finger on small V, finger on main V diamond in-match, lobby, finger
+  elsewhere); without a finger it now returns false instead of crashing.
+
+FILES CHANGED BY v80h2: only scripts/scr_controls_update_touch/
+scr_controls_update_touch.gml (nothing else). Reparador .bat PASO 5b was
+also rewritten to apply this same patch (3 paths: literal, whitespace-
+tolerant regex, upgrade from old v80h V-DEFENSE; idempotent; .bak stamp).
+
+MAP (quick cache for future sessions):
+  scripts/scr_controls_update_touch.gml — per-slot touch loop (24 slots):
+    lines ~26-213: dpad joystick claim + A/B/C (40px) + D/E/F/G/W (22px)
+      buttons, ALL guarded by "_state &&".
+    line ~215-243: V block (v78): small V (emote column, 22px, bV*) +
+      main V diamond (A/B/C cluster, 40px, bV2*, in-match only via jUse),
+      one shared VTouchId so sliding between both keeps the key held.
+      v80h2: _inV now guarded by _state + is_undefined (see above).
+    line ~245-301: joystick direction -> keyboard_key_press/release.
+  objects/obj_config/Create_0.gml — defaults + load()/save() of 1.bson;
+    bV* = vTouch entry, bV2* = vMainTouch entry, both try/catch armored
+    (but json_parse missing-field => undefined is silent; that's why the
+    is_undefined armor exists in the V-GUARD).
+  objects/obj_controls/Create_0.gml — isMobile (os_android) +
+    scr_controls_init_touch() call; Step_1 calls scr_controls_update_touch
+    every step when isMobile.
+  objects/obj_controls/Draw_64.gml — draws V small (frame 10/11 of
+    spr_mobile_emotionbutton) and main V diamond (frame 6/7 of
+    spr_mobile_button) reading the same bV*/bV2* vars.
+  objects/obj_game_chat/Step_0.gml — the house reference pattern for
+    safe touch reads (only read coordinates after check_button).

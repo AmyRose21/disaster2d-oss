@@ -659,3 +659,32 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   invuln (box invulnerability 7 s) must not cut it to 2.5/4 s. The house
   already had the accumulate pattern (Sally evade +=); max() is the
   correct variant when the values are absolute durations.
+
+## v80h2 — 2026-11-24 — Lessons from the "argument 1 undefined" crash
+1. ARGUMENT INDEX BASE: GameMaker runner errors use 1-BASED indexes ("an
+   index of 1 is the first argument"). Earlier I assumed 0-based and blamed
+   the wrong variable. ALWAYS check the index base before diagnosing.
+2. MOBILE TOUCH READS: device_mouse_x_to_gui/y_to_gui only update WHILE
+   the screen is being touched. Any point_in_circle/rectangle built on
+   them must sit behind _state/device_mouse_check_button. That was already
+   the house pattern everywhere else in this codebase.
+3. DIAGNOSING WITHOUT THE REAL FILE IS GAMBLING: v80h diagnosed bV2X
+   undefined from memory of a reconstruction; the real repo (this one)
+   defines everything correctly and the true cause was the unguarded _x.
+   Clone/read the real file BEFORE closing a runtime-error diagnosis.
+4. json_parse AND MISSING FIELDS: reading struct.field when field is
+   absent returns undefined WITHOUT throwing. The try/catch blocks in
+   obj_config load() do NOT protect against a half-written 1.bson. Armor
+   critical reads with is_undefined (variables on instances:
+   variable_instance_exists).
+5. VERIFICATION CHAIN THAT CAUGHT THIS: snippet lint -> patch the REAL
+   file with the exact PowerShell logic -> semantic simulation of runtime
+   cases (including the crash case) -> idempotency -> 3 application paths
+   -> re-extract from the generated .bat and re-verify. Keep doing this
+   for every fix.
+6. USER GOLDEN RULES (re-confirmed): fetch the repo every session; zip
+   contains ONLY modified/new files; re-analyze only recently edited
+   files; keep CACHE/LEARNING in English and inside the zip; verify 100%
+   (including .yy/.yyp sanity); watch the anti-cheat for new attack
+   patterns to whitelist; research everything for the editor; write what
+   was learned in LEARNING.md.

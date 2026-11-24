@@ -220,8 +220,19 @@ function scr_controls_update_touch()
 		// soltar a mitad). El principal solo responde en partida (jUse: en
 		// lobby/menu no se dibuja y no se toca — ahi la V no hace nada,
 		// igual que antes).
-		var _inV = point_in_circle(_x, _y, obj_config.bVX, obj_config.bVY, 22 * obj_config.bVScale)
-			|| (jUse && point_in_circle(_x, _y, obj_config.bV2X, obj_config.bV2Y, 40 * obj_config.bV2Scale));
+		// v80h2 V-GUARD: _state PRIMERO (patron casa, como los otros 10
+		// botones). En movil device_mouse_*_to_gui solo se actualiza MIENTRAS
+		// se toca: leer un slot sin dedo podia devolver undefined y el bloque
+		// v78 era el unico de los 11 point_in_circle del loop SIN esta guarda
+		// => crash 'argument 1 incorrect type (undefined)' al arrancar en
+		// Android sin tocar nada. El is_undefined blinda bVX/bV2* por si un
+		// 1.bson corrupto trajera el campo a medias (json_parse NO lanza
+		// excepcion al faltar un campo, el try/catch del load() no lo cubre).
+		var _inV = _state
+			&& !is_undefined(obj_config.bVX) && !is_undefined(obj_config.bVY) && !is_undefined(obj_config.bVScale)
+			&& point_in_circle(_x, _y, obj_config.bVX, obj_config.bVY, 22 * obj_config.bVScale)
+			|| (_state && jUse && !is_undefined(obj_config.bV2X) && !is_undefined(obj_config.bV2Y) && !is_undefined(obj_config.bV2Scale)
+			&& point_in_circle(_x, _y, obj_config.bV2X, obj_config.bV2Y, 40 * obj_config.bV2Scale));
 
 		if(_state && _inV)
 		{
