@@ -22,6 +22,13 @@ function scr_controls_update_touch()
 		var _x = device_mouse_x_to_gui(i);
 		var _y = device_mouse_y_to_gui(i);
 		var _state = device_mouse_check_button(i, mb_left); 
+		// v80i SLOT-SANITIZE: un slot con _state true pero coordenadas todavia
+		// undefined (frame en que se presiono, o mouse fisico sin datos de
+		// touch) se trata como no-tocado: sin coords no hay hit-test posible
+		// y _state sola no alcanza (era el unico caso que el V-GUARD v80h2
+		// no cubria: crasheaba el dpad, linea 26). Cubre dpad + A..W + V.
+		if(_state && (is_undefined(_x) || is_undefined(_y)))
+			_state = false;
 		
 		if(_state && point_in_circle(_x, _y, obj_config.dpadX, obj_config.dpadY, 160) && jTouchId == -1)
 			jTouchId = i;
@@ -266,6 +273,13 @@ function scr_controls_update_touch()
 		{
 			var _x = device_mouse_x_to_gui(jTouchId);
 			var _y = device_mouse_y_to_gui(jTouchId);
+			// v80i: coords del dedo del joystick undefined => tratarlas como
+			// el centro del pad (dirX/dirY = 0: suelta las 4 direcciones, sin
+			// tocar jTouchId ni re-disparar nada)
+			if(is_undefined(_x))
+				_x = obj_config.dpadX;
+			if(is_undefined(_y))
+				_y = obj_config.dpadY;
 			var dirX = _x - obj_config.dpadX;
 			var dirY = _y - obj_config.dpadY;
 			

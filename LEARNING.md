@@ -688,3 +688,37 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
    (including .yy/.yyp sanity); watch the anti-cheat for new attack
    patterns to whitelist; research everything for the editor; write what
    was learned in LEARNING.md.
+
+## v80i — 2026-11-24 — Lessons
+1. FORENSICS FIRST: "same error after the fix" has 3 classic causes —
+   (a) the fix never reached the built artifact (cache, BOM, wrong file),
+   (b) the line number in the error no longer maps to the same code
+   (check what is ACTUALLY on that line in the current file), (c) a
+   second unguarded code path. Establish which one before writing code.
+   Here: line 223 is a comment in the patched file => the running APK
+   was built from the old script.
+2. BUILD TAGS: when "is the new build even running?" is a plausible
+   failure mode, ship a visible version marker (draw_text in a corner).
+   It converts a 30-minute guess into a 5-second glance.
+3. PATCH-CHAIN BUGS: a repair .bat that "removes the old patch, then
+   applies the new one" can delete live code if the old patch marker
+   spans the code being replaced. Verify every upgrade path (old->new)
+   with the actual inputs it can find, not just the clean install.
+4. REGEX $0 TRAP: in PowerShell [regex]::Replace($t, $pat, '$0'+$new),
+   if $pat does not consume the trailing newline, $new's first line
+   merges into the matched line. Always end patterns used with '$0'+
+   insert with \r?\n if the insertion is full lines.
+5. BOM BLIND SPOT: PowerShell 5.1 Set-Content -Encoding UTF8 writes a
+   BOM. If a downstream compiler is BOM-sensitive, use
+   [IO.File]::WriteAllText (no BOM). Keep generated .gml insertions
+   ASCII-only so encoding round-trips cannot corrupt them.
+6. SIMULATE THE RUNTIME: a 150-line interpreter that models undefined,
+   short-circuit evaluation and the exact runner error (1-based args,
+   fatal = game over) over the REAL script file reproduced the user's
+   exact crash (line 223) and proved each fix closes it — including the
+   outputs of the repair .bat itself. Cheaper than a phone round-trip.
+7. USER GOLDEN RULES (re-confirmed): fetch repo every session (HEAD had
+   moved 3d04c1bf -> 79f4035b and already contained v80h2!); zip = only
+   modified/new files; CACHE/LEARNING in English inside the zip; verify
+   100% before shipping; research anything unsure; write what was
+   learned.

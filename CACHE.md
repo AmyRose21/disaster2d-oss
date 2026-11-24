@@ -2416,3 +2416,75 @@ MAP (quick cache for future sessions):
     spr_mobile_button) reading the same bV*/bV2* vars.
   objects/obj_game_chat/Step_0.gml — the house reference pattern for
     safe touch reads (only read coordinates after check_button).
+
+## v80i — 2026-11-24 — PERSISTENT "line 223" crash: forensics + SLOT-SANITIZE
+
+CONTEXT: user reported the SAME crash still happening after v80h2 was
+already committed to the repo (commit "ewe", HEAD 79f4035b). The error
+still said "line 223" — but in the CURRENT file line 223 is a COMMENT
+(the v80h2 V-GUARD header). A comment cannot crash. Forensic conclusion:
+the phone is running an APK built from the OLD script, OR the user's PC
+copy was patched by the old v80h .bat (V-DEFENSE), which this session
+found to DELETE the whole `var _inV` when "upgrading" (bug: the v80h
+block contained the var; removing the block removed the var; the .bat
+then failed to find anything to patch and left a script with NO _inV
+definition at all). Possible failure chain now closed.
+
+ROOT-CAUSE MODEL (validated by sim_v80i.py, 8 scenarios x 3 versions):
+  - v78 script: crashes at line 223 in ALL scenarios (no _state guard on
+    the V block; device_mouse_*_to_gui returns undefined for untouched
+    slots on mobile — GM docs: "only updated while the screen is being
+    touched").
+  - v80h2 script: only crashes if _state is true while coords are still
+    undefined (S7 edge: press frame / physical mouse without touch data
+    => dpad line 26). Rare but real.
+  - v80i script: no crash in any scenario (S7 closed by SLOT-SANITIZE).
+
+FIX v80i (3 changes, all in this zip):
+  1) SLOT-SANITIZE right after `var _state = ...` in the slot loop:
+     `if(_state && (is_undefined(_x) || is_undefined(_y))) _state = false;`
+     Covers dpad + all buttons A..W + V in one place.
+  2) Joystick fallback: if the drag finger coords are undefined, treat
+     them as the pad center (releases all 4 directions, keeps jTouchId).
+  3) BUILD TAG in objects/obj_controls/Draw_64.gml: draws "v80i" in the
+     bottom-left corner (Android only, alpha 0.55, outside the HUD if so
+     it shows even with HUD hidden). PURPOSE: the user can SEE which
+     build the phone is running. No tag = old APK => uninstall first.
+
+BAT: reparar_disaster2d.bat upgraded v80g -> v80i (PASO 5b/5c/6b):
+  - PASO 5b applies the full v80i to whatever it finds (v78 / v80h
+    V-DEFENSE / v80h2 / already-v80i); all 4 paths converge to a file
+    byte-identical to the one in this zip (verified).
+  - Writes with [IO.File]::WriteAllText = UTF-8 WITHOUT BOM (the old
+    Set-Content -Encoding UTF8 in PS 5.1 writes a BOM; if GM's compiler
+    choked on it, that alone could explain the fix never reaching the
+    APK).
+  - PASO 5c adds the BUILD TAG to Draw_64.gml.
+  - PASO 6b prints the anti-old-APK checklist (uninstall before install).
+
+VERIFICATION (all re-runnable):
+  - sim_v80i.py: GM-runtime simulator over the REAL .gml of each version
+    (undefined propagation, short-circuit && / ||, point_in_circle arg
+    check 1-based, fatal error = game over). 8 scenarios x 3 versions:
+    v78 = crash everywhere (line 223 = the user's exact error), v80h2 =
+    ok except S7 edge, v80i = no crash 8/8. Also runs the 4 .bat OUTPUT
+    files: all identical, all no-crash (roundtrip TODO OK).
+  - verify_bat_v80i.py: applies the .bat's own regex/blocks (extracted
+    from the .bat text) to the 4 input versions; checks CRLF/ASCII/
+    here-strings/no-BOM/idempotency; found and fixed 3 real .bat bugs
+    (jx pattern missing trailing \r?\n glued a comment onto a code
+    line; V-DEFENSE removal deleted var _inV; BUILD TAG ate the closing
+    brace).
+  - lint: braces/parens balanced, 11 point_in_circle, tabs preserved,
+    LF endings, ASCII-only insertions (immune to PS5 BOM issues).
+
+DECISION RULE for future crash reports (scr_controls_update_touch):
+  - "line 223" + no "v80i" tag on screen => OLD APK (uninstall, rebuild).
+  - "line 26/27" (dpad) => coords undefined while _state true: already
+    closed by SLOT-SANITIZE in v80i; if it still happens, the APK is not
+    v80i (check the tag).
+  - Any OTHER line => send me the ~10 log lines around it.
+
+FILES CHANGED BY v80i: scripts/scr_controls_update_touch/
+scr_controls_update_touch.gml, objects/obj_controls/Draw_64.gml,
+reparar_disaster2d.bat (v80g -> v80i). Nothing else.

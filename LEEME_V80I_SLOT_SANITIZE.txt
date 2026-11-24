@@ -1,0 +1,82 @@
+=======================================================================
+v80i — EL CRASH "line 223" SIGUE? AQUI ESTA LA CAUSA Y LA PRUEBA
+(2026-11-24)
+=======================================================================
+
+QUE INVESTIGUE (contra tu repo real, commit "ewe")
+--------------------------------------------------
+Tu repo YA tiene el fix v80h2 aplicado (lo subiste). Y en ese archivo
+la linea 223 es un COMENTARIO — ningun comentario puede crashear.
+Conclusion forense: si el telefono sigue diciendo "line 223", el APK
+que esta corriendo fue compilado con el script VIEJO. Dos formas de
+que eso pase:
+
+  1. El APK anterior no se borro al instalar el nuevo (Android a
+     veces conserva datos/caché del viejo).
+  2. Tu PC tenia el script v80h viejo (V-DEFENSE del .bat anterior) y
+     el propio .bat, al "actualizarlo", tenia un BUG que borraba la
+     linea 'var _inV' entera (encontrado y corregido HOY en este .bat).
+  3. El .bat viejo escribia el .gml con BOM UTF-8 (PowerShell 5.1);
+     si el compilador de GameMaker no lo toleraba, el fix podia no
+     llegar al APK. El .bat nuevo escribe SIN BOM.
+
+ADEMAS: encontre un caso raro que el v80h2 NO cubria — un dedo con
+_state en true pero coordenadas aun undefined (frame del press): ahi
+crasheaba el D-PAD (linea 26). v80i lo cierra.
+
+QUE CAMBIA EN ESTE ZIP (v80i)
+------------------------------
+1. scripts\scr_controls_update_touch\scr_controls_update_touch.gml
+   - SLOT-SANITIZE: si un slot tiene _state true pero coords
+     undefined, se trata como no-tocado. Cubre dpad + A..W + V.
+   - Joystick: coords del dedo undefined => centro del pad (suelta
+     las 4 direcciones sin re-disparar nada).
+   - El V-GUARD v80h2 que ya tenias se conserva intacto.
+2. objects\obj_controls\Draw_64.gml
+   - BUILD TAG: dibuja "v80i" en la esquina INFERIOR-IZQUIERDA
+     (solo Android, semitransparente). ESTA ES TU PRUEBA: si no
+     dice "v80i", el telefono corre un APK viejo.
+3. reparar_disaster2d.bat (v80i)
+   - PASO 5b aplica v80i venga de v78, v80h o v80h2 (verificado:
+     las 4 rutas producen el mismo archivo byte a byte).
+   - Escribe SIN BOM. PASO 5c instala el BUILD TAG. PASO 6b te
+     recuerda desinstalar el APK viejo antes de probar.
+4. sim_v80i.py — el simulador (ver abajo). CACHE.md y LEARNING.md
+   (memoria, en ingles).
+
+VERIFICACION (no "deberia funcionar": simulado)
+-----------------------------------------------
+Corri un simulador del runtime de GameMaker sobre los .gml REALES:
+  - script v78 (viejo): CRASH en linea 223 en TODOS los escenarios
+    (exactamente tu error).
+  - script v80h2 (tu repo): sin crash, salvo el caso raro del dedo
+    sin coords (linea 26).
+  - script v80i (este zip): SIN CRASH en los 8 escenarios.
+  - Los 4 resultados del .bat nuevo: todos identicos, todos sin
+    crash (prueba de ida y vuelta completa).
+
+COMO INSTALAR (3 minutos)
+-------------------------
+1. Cierra GameMaker.
+2. Copia del zip los 2 .gml a tu proyecto (reemplaza):
+       scripts\scr_controls_update_touch\scr_controls_update_touch.gml
+       objects\obj_controls\Draw_64.gml
+   (o corre reparar_disaster2d.bat, que hace esto y mas)
+3. DESINSTALA el juego del telefono (icono -> mantener -> Desinstalar).
+4. Recompila desde GameMaker e instala el APK nuevo.
+
+QUE DEBERIAS VER
+----------------
+- El juego arranca SIN tocar nada y NO crashea.
+- Esquina INFERIOR-IZQUIERDA de la pantalla: dice "v80i" en gris
+  claro y pequeno. ESE texto confirma que corres el APK nuevo.
+- La V responde igual que siempre (columna de emotes y rombo del
+  cluster en partida).
+
+SI (Y SOLO SI) SIGUE CRASHANDO, MIRA LA LINEA DEL ERROR
+--------------------------------------------------------
+- Dice "line 223" y NO ves "v80i" en la esquina => APK VIEJO:
+  desinstala del telefono y reinstala (paso 3).
+- Dice otra linea => mandame las ~10 lineas del log alrededor del
+  error: con el numero de linea identifico el punto exacto.
+=======================================================================
