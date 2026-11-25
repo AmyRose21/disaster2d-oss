@@ -188,15 +188,16 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
                         return true;
                 }
 
-                /* v78 (duena): SONIC pasa a ser SOLO DE OPERADORES (mismo
-                   patron que Sally Canon). Antes quedaba libre para todos;
-                   la orden es "Sonic y Kris pasaran solamente para uso de
-                   operador". A los demas se les responde igual que si
-                   estuviera ocupada (result=0: el cliente la tacha y suena
-                   nono); el cliente ademas ni se la muestra al ciclar
-                   (scr_char_locked) — este bloque es el doble seguro del
-                   server contra clientes editados. */
-                if (id == CH_SONIC && !v->op)
+                /* v78->v81 (duena): SONIC deja de ser SOLO DE OPERADORES y
+                   pasa al sistema de claims por dispositivo (igual que
+                   Rouge): lo eligen el token de Amy, los operadores y el
+                   dispositivo con el claim de .sonic (Devices.txt). A los
+                   demas se les responde igual que si estuviera ocupada
+                   (result=0: el cliente la tacha y suena nono); el cliente
+                   ademas ni se lo muestra al ciclar (scr_char_locked) —
+                   este bloque es el doble seguro del server contra
+                   clientes editados. */
+                if (id == CH_SONIC && !v->amy_authed && !v->op && !v->sonic_claimed)
                 {
                         PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
                         PacketWrite(&pack, packet_write8, id + 1);
@@ -207,10 +208,10 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
                         return true;
                 }
 
-                /* v78 (duena): KRIS tambien pasa a ser SOLO DE OPERADORES
-                   (misma orden: "Sonic y Kris... de operador"). Mismo
-                   tratamiento que Sonic/Sally Canon arriba. */
-                if (id == CH_KRIS && !v->op)
+                /* v78->v81 (duena): KRIS idem Sonic — claim por
+                   dispositivo (.kris) en vez de solo-operador. Mismo
+                   tratamiento que Sonic arriba. */
+                if (id == CH_KRIS && !v->amy_authed && !v->op && !v->kris_claimed)
                 {
                         PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
                         PacketWrite(&pack, packet_write8, id + 1);
@@ -221,14 +222,17 @@ bool charselect_state_handle(PeerData *v, Packet *packet)
                         return true;
                 }
 
-                /* Sally Canon: personaje RESERVADO. Solo pueden usarla los
-                   OPERADORES del server (Operators.json / .op). Amy Canon
+                /* v81 (duena): SALLY CANON deja de ser solo-operadores y
+                   pasa al claim por dispositivo (.sally), igual que
+                   Sonic/Kris/Rouge: la eligen el token de Amy, los
+                   operadores y el dispositivo con el claim. Amy Canon
                    sigue siendo solo del token (bloque de arriba). A los
-                   demas se les responde igual que si estuviera ocupada: el
-                   cliente ademas ni se la muestra al ciclar (ver
-                   scr_char_locked), pero si alguien edita su cliente para
-                   pedirla, el server la rechaza igual. Doble seguro. */
-                if (id == CH_SALLY_CANON && !v->op)
+                   demas se les responde igual que si estuviera ocupada:
+                   el cliente ademas ni se la muestra al ciclar (ver
+                   scr_char_locked), pero si alguien edita su cliente
+                   para pedirla, el server la rechaza igual. Doble
+                   seguro. */
+                if (id == CH_SALLY_CANON && !v->amy_authed && !v->op && !v->sally_claimed)
                 {
                         PacketCreate(&pack, SERVER_LOBBY_CHARACTER_RESPONSE);
                         PacketWrite(&pack, packet_write8, id + 1);

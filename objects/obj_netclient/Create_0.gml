@@ -1,4 +1,7 @@
-#macro BUILD_VER 1102
+// v81: 1102 -> 1103, junto con BUILD_VERSION del server (SERVER_CLAIM_STATE
+// al final del enum de paquetes; version mismatch intencional con APKs
+// viejos, como siempre que se movio el protocolo).
+#macro BUILD_VER 1103
 
 // Client stuff
 isConnected = false;
@@ -16,6 +19,14 @@ global.isOperator = false;
 // por conexion; el server lo re-envia siempre tras el identity, tras
 // .rouge, tras .op y tras el token de Amy.
 global.rougeClaimed = false;
+
+// v81: idem para los claims de Sonic, Kris y Sally Canon
+// (SERVER_CLAIM_STATE, los tres en un paquete). Se resetean por
+// conexion; el server los re-envia siempre tras el identity, tras
+// .sonic/.kris/.sally, tras .op y tras el token de Amy.
+global.sonicClaimed = false;
+global.krisClaimed = false;
+global.sallyCanonClaimed = false;
 frame = 0;
 gameEnds = false;
 reconnAttempts = 0;

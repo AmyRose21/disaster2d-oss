@@ -393,7 +393,17 @@ typedef enum
            exitoso, tras .op y tras CLIENT_AMY_AUTH (siempre explicito:
            op || amy_authed || rouge_claimed). Anadido AL FINAL en los
            DOS lados (espejo con net_packets.gml). */
-        SERVER_ROUGE_STATE
+        SERVER_ROUGE_STATE,
+
+        /* v81 (Sonic/Kris/Sally Canon por dispositivo): SERVER_CLAIM_STATE
+           (u8 sonic, u8 kris, u8 sally) — tres estados en UN paquete, uno
+           por cada personaje reclamable con .sonic/.kris/.sally (mismo
+           sistema que .rouge: op, token de Amy o claim del dispositivo).
+           Se envia SOLO al peer interesado, como SERVER_ROUGE_STATE,
+           siempre explicito: tras el identity, tras cada claim exitoso,
+           tras .op y tras CLIENT_AMY_AUTH. Anadido AL FINAL en los DOS
+           lados (espejo con net_packets.gml). */
+        SERVER_CLAIM_STATE
 } PacketType;
 
 typedef struct

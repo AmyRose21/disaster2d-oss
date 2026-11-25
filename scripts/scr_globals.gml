@@ -174,6 +174,15 @@ global.isOperator = false;
 global.rougeClaimed = false;
 global.deviceIdCache = "";
 
+// v81 (Sonic/Kris/Sally Canon por dispositivo): 1/0 por personaje que manda
+// el server (SERVER_CLAIM_STATE) con el estado del claim para ESTE
+// dispositivo. Se resetean a false en cada conexion y las vuelve a setear
+// el server (operador, token de Amy o claim de .sonic/.kris/.sally en
+// Devices.txt; ver scr_char_locked).
+global.sonicClaimed = false;
+global.krisClaimed = false;
+global.sallyCanonClaimed = false;
+
 // Amy Canon: token local del PERSONAJE RESERVADO.
 // Si existe el archivo amy_canon.token (junto al juego o en tu carpeta
 // de usuario), su contenido (una frase secreta de 1 linea) se envia al

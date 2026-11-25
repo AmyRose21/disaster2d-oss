@@ -19,8 +19,11 @@
 /* v80c: 1101 -> 1102. El paquete IDENTITY gano el campo device_id
    (entre pet y los u64 del anticheat): cliente y server se actualizan
    JUNTOS o no conectan (version mismatch intencional, como siempre
-   que se movio el protocolo). */
-#define BUILD_VERSION 1102
+   que se movio el protocolo).
+   v81: 1102 -> 1103. El enum de paquetes gano SERVER_CLAIM_STATE al
+   final (estados de los claims .sonic/.kris/.sally): misma regla,
+   cliente y server se actualizan JUNTOS. */
+#define BUILD_VERSION 1103
 
 #define BRACKET "-----------------------"
 
@@ -103,6 +106,14 @@ typedef struct PeerData
            Amy no lo necesitan). */
         String device_id;
         bool rouge_claimed;
+
+        /* v81: Sonic/Kris/Sally Canon por dispositivo (misma mecanica
+           que rouge_claimed, un flag por personaje; se recalculan en
+           cada conexion desde Devices.txt y los avisa SERVER_CLAIM_STATE
+           en un solo paquete). */
+        bool sonic_claimed;
+        bool kris_claimed;
+        bool sally_claimed;
 
         auth_peer_data auth;
 

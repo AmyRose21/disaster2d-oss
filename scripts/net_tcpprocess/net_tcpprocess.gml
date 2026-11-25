@@ -208,6 +208,24 @@ function net_tcpprocess(rbuff)
                                 global.rougeClaimed = buffer_read_s(rbuff, buffer_u8) != 0;
                                 break;
                         }
+
+                        case PacketType.SERVER_CLAIM_STATE:
+                        {
+                                // v81: estado de los claims de Sonic, Kris y Sally
+                                // Canon para ESTE dispositivo (server -> cliente):
+                                // 1 cada uno = puede verlo y elegirlo en la seleccion
+                                // (operador, token de Amy o claim de .sonic/.kris/
+                                // .sally en Devices.txt). Tres u8 en un mismo paquete
+                                // (orden espejo con el PacketWrite del server). Llega
+                                // tras conectarte, tras escribir .sonic/.kris/.sally,
+                                // tras un .op y tras el token de Amy — en cualquier
+                                // estado, por eso vive en el switch principal igual
+                                // que SERVER_OPERATOR_STATE / SERVER_ROUGE_STATE.
+                                global.sonicClaimed = buffer_read_s(rbuff, buffer_u8) != 0;
+                                global.krisClaimed = buffer_read_s(rbuff, buffer_u8) != 0;
+                                global.sallyCanonClaimed = buffer_read_s(rbuff, buffer_u8) != 0;
+                                break;
+                        }
                         
                         default:
                                 if(state == STATE_LOBBY)

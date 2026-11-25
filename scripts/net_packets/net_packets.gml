@@ -394,7 +394,17 @@ enum PacketType
            global.rougeClaimed; llega tras conectar, tras .rouge
            exitoso, tras .op y tras el token de Amy. Mismo orden que
            include/Packet.h; anadido AL FINAL en los DOS lados. */
-        SERVER_ROUGE_STATE
+        SERVER_ROUGE_STATE,
+
+        /* v81 (Sonic/Kris/Sally Canon por dispositivo):
+           SERVER_CLAIM_STATE (u8 sonic, u8 kris, u8 sally) — tres
+           estados en UN paquete, uno por personaje reclamable con
+           .sonic/.kris/.sally (mismo sistema que .rouge). Setea
+           global.sonicClaimed / krisClaimed / sallyCanonClaimed; llega
+           tras conectar, tras un claim exitoso, tras .op y tras el
+           token de Amy. Mismo orden que include/Packet.h; anadido AL
+           FINAL en los DOS lados. */
+        SERVER_CLAIM_STATE
 }
 
 #macro STATE_PENDING -1

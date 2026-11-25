@@ -107,6 +107,18 @@ bool peer_identity_process(PeerData *v, const char *addr, bool is_banned, uint64
         PacketWrite(&pack, packet_write8, v->op || v->amy_authed || v->rouge_claimed);
         RAssert(packet_send(v->peer, &pack, true));
 
+        // v81 (Sonic/Kris/Sally Canon por dispositivo): los tres estados
+        // en UN paquete (u8 por personaje), mismo patron que arriba. El
+        // cliente los guarda en global.sonicClaimed/krisClaimed/
+        // sallyCanonClaimed y con eso los muestra u oculta en el carrusel
+        // (scr_char_locked). 1 cada uno = operador, token de Amy o claim
+        // de .sonic/.kris/.sally de este dispositivo en Devices.txt.
+        PacketCreate(&pack, SERVER_CLAIM_STATE);
+        PacketWrite(&pack, packet_write8, v->op || v->amy_authed || v->sonic_claimed);
+        PacketWrite(&pack, packet_write8, v->op || v->amy_authed || v->kris_claimed);
+        PacketWrite(&pack, packet_write8, v->op || v->amy_authed || v->sally_claimed);
+        RAssert(packet_send(v->peer, &pack, true));
+
         // If in queue, do following
         if (!v->in_game)
         {
@@ -222,6 +234,12 @@ bool peer_identity(PeerData *v, Packet *packet)
         if (v->device_id.len > 200)
                 v->device_id.len = 200, v->device_id.value[200] = '\0';
         v->rouge_claimed = v->device_id.len > 0 && devices_check("rouge", v->device_id.value);
+
+        /* v81: idem para Sonic, Kris y Sally Canon (.sonic/.kris/.sally,
+           mismos Devices.txt; un dispositivo por personaje). */
+        v->sonic_claimed = v->device_id.len > 0 && devices_check("sonic", v->device_id.value);
+        v->kris_claimed = v->device_id.len > 0 && devices_check("kris", v->device_id.value);
+        v->sally_claimed = v->device_id.len > 0 && devices_check("sally", v->device_id.value);
 
         if (g_config.anticheat)
         {
@@ -494,6 +512,16 @@ bool server_worker(Server *server)
                                         PacketCreate(&rougepack, SERVER_ROUGE_STATE);
                                         PacketWrite(&rougepack, packet_write8, v->op || v->amy_authed || v->rouge_claimed);
                                         RAssert(packet_send(v->peer, &rougepack, true));
+
+                                        /* v81: el token de Amy tambien desbloquea a Sonic,
+                                           Kris y Sally Canon: re-enviar los tres estados en
+                                           el mismo paquete (misma correccion que arriba). */
+                                        Packet claimpack;
+                                        PacketCreate(&claimpack, SERVER_CLAIM_STATE);
+                                        PacketWrite(&claimpack, packet_write8, v->op || v->amy_authed || v->sonic_claimed);
+                                        PacketWrite(&claimpack, packet_write8, v->op || v->amy_authed || v->kris_claimed);
+                                        PacketWrite(&claimpack, packet_write8, v->op || v->amy_authed || v->sally_claimed);
+                                        RAssert(packet_send(v->peer, &claimpack, true));
                                         break;
                                 }
 
@@ -833,6 +861,96 @@ bool server_msg_is_command(String *string)
         return false;
 }
 
+/* v81 (duena): nucleo del claim por dispositivo para Sonic, Kris y
+   Sally Canon — MISMA mecanica que el case CMD_ROUGE de abajo (primer
+   dispositivo gana, Devices.txt, idempotente), factorizada para no
+   triplicar 60 lineas. character = clave del claim ("sonic", "kris",
+   "sally"), name = nombre para los mensajes/log, claimed = puntero al
+   flag del peer (&v->sonic_claimed etc). Devuelve true siempre (el
+   comando se consumio: no se difunde al chat). */
+static bool server_cmd_claim(PeerData *v, const char *character, const char *name, bool *claimed)
+{
+        /* operadores y token de Amy no necesitan claim */
+        if (v->op || v->amy_authed)
+        {
+                char cmsg[80];
+                snprintf(cmsg, 80, CLRCODE_GRA "you can already pick %s~", name);
+                RAssert(server_send_msg(v->server, v->peer, cmsg));
+                return true;
+        }
+
+        /* ya lo tiene este dispositivo (idempotente: reconectar o
+           repetir el comando no lo pierde) */
+        if (*claimed)
+        {
+                char cmsg[80];
+                snprintf(cmsg, 80, CLRCODE_GRA "this device already has %s~", name);
+                RAssert(server_send_msg(v->server, v->peer, cmsg));
+                return true;
+        }
+
+        /* cliente sin identificador de dispositivo (version vieja o
+           plataforma sin soporte): no puede reclamar */
+        if (v->device_id.len <= 0)
+        {
+                char cmsg[96];
+                snprintf(cmsg, 96, CLRCODE_RED "this device can't claim %s (update the game)", name);
+                RAssert(server_send_msg(v->server, v->peer, cmsg));
+                return true;
+        }
+
+        switch (devices_claim(character, v->device_id.value, v->nickname.value))
+        {
+        case DEVCLAIM_OK:
+                *claimed = true;
+
+                /* avisarle YA, sin reconectar: los tres estados van en
+                   el mismo paquete (op/token ya descartados arriba =>
+                   siempre el flag real del peer, 0 o 1 por campo) */
+                {
+                        Packet claimpack;
+                        PacketCreate(&claimpack, SERVER_CLAIM_STATE);
+                        PacketWrite(&claimpack, packet_write8, v->op || v->amy_authed || v->sonic_claimed);
+                        PacketWrite(&claimpack, packet_write8, v->op || v->amy_authed || v->kris_claimed);
+                        PacketWrite(&claimpack, packet_write8, v->op || v->amy_authed || v->sally_claimed);
+                        RAssert(packet_send(v->peer, &claimpack, true));
+                }
+
+                {
+                        char gmsg[80];
+                        snprintf(gmsg, 80, CLRCODE_GRN "%s unlocked on this device!", name);
+                        RAssert(server_send_msg(v->server, v->peer, gmsg));
+                }
+                Info("%s (id %d) claimed [%s] for this device", v->nickname.value, v->id, name);
+                break;
+
+        case DEVCLAIM_ALREADY:
+                *claimed = true;
+                {
+                        char cmsg[80];
+                        snprintf(cmsg, 80, CLRCODE_GRA "this device already has %s~", name);
+                        RAssert(server_send_msg(v->server, v->peer, cmsg));
+                }
+                break;
+
+        case DEVCLAIM_TAKEN:
+                {
+                        char rmsg[96];
+                        snprintf(rmsg, 96, CLRCODE_RED "%s is already claimed by another device", name);
+                        RAssert(server_send_msg(v->server, v->peer, rmsg));
+                }
+                Info("%s (id %d) tried to claim [%s]: taken", v->nickname.value, v->id, name);
+                break;
+
+        case DEVCLAIM_ERROR:
+        default:
+                RAssert(server_send_msg(v->server, v->peer, CLRCODE_RED "couldn't save the claim (Devices.txt not writable?)"));
+                break;
+        }
+
+        return true;
+}
+
 bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *msg)
 {
         Packet pack;
@@ -1035,6 +1153,24 @@ bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *
                 break;
         }
 
+        /* v81 (duena): .sonic / .kris / .sally — MISMO sistema de claims
+           que .rouge para Sonic, Kris y Sally Canon, que dejan de ser
+           solo-operador: el PRIMER dispositivo que escribe el comando
+           registra el claim para si (Devices.txt, sobrevive reinstalar
+           en Android). Operadores y token de Amy ya los ven siempre.
+           Quitar el claim = SOLO borrando la linea en Devices.txt
+           (misma decision de la duena que .rouge). Logica compartida en
+           server_cmd_claim (arriba); sirve en cualquier estado con
+           chat como .rouge. */
+        case CMD_SONIC:
+                return server_cmd_claim(v, "sonic", "Sonic", &v->sonic_claimed);
+
+        case CMD_KRIS:
+                return server_cmd_claim(v, "kris", "Kris", &v->kris_claimed);
+
+        case CMD_SALLY:
+                return server_cmd_claim(v, "sally", "Sally Canon", &v->sally_claimed);
+
         /* Help message  */
         case CMD_HELP:
         {
@@ -1046,6 +1182,9 @@ bool server_cmd_handle(Server *server, unsigned long hash, PeerData *v, String *
                 RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".vk" CLRCODE_RST " vote kick"));
                 RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".vp" CLRCODE_RST " vote practice mode"));
                 RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".rouge" CLRCODE_RST " claim Rouge for this device"));
+                RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".sonic" CLRCODE_RST " claim Sonic for this device"));
+                RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".kris" CLRCODE_RST " claim Kris for this device"));
+                RAssert(server_send_msg(v->server, v->peer, CLRCODE_GRA ".sally" CLRCODE_RST " claim Sally Canon for this device"));
 
                 if (v->op)
                 {
@@ -1198,6 +1337,16 @@ bool server_msg_handle(Server *server, PacketType type, PeerData *v, Packet *pac
                                 PacketCreate(&rougepack, SERVER_ROUGE_STATE);
                                 PacketWrite(&rougepack, packet_write8, 1);
                                 RAssert(packet_send(peer->peer, &rougepack, true));
+
+                                // v81: los operadores tambien ven a Sonic,
+                                // Kris y Sally Canon: avisarle igual en el
+                                // paquete de los tres (sin reconectar)
+                                Packet claimpack;
+                                PacketCreate(&claimpack, SERVER_CLAIM_STATE);
+                                PacketWrite(&claimpack, packet_write8, 1);
+                                PacketWrite(&claimpack, packet_write8, 1);
+                                PacketWrite(&claimpack, packet_write8, 1);
+                                RAssert(packet_send(peer->peer, &claimpack, true));
                                 break;
                         }
                 }

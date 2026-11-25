@@ -1527,6 +1527,12 @@ y las pistas nuevas de 20-28s se cortaban).
   cambie la zona, romper una caja (regresion v63/v74); verificar que en
   el ultimo minuto (cambios cada 5 s) el server no se cae y las cajas
   siguen la rotacion; en OTROS mapas todo igual que v76.
+- v79 (ANDROID): pendiente CONFIRMAR que tras borrar el runtime viejo
+  (2026.0.0.23) + clean cache y recompilar, la app YA NO se cierra sola
+  y el log de Igor muestra TODAS las lineas "Copying" desde
+  runtime-2026.1.0.28 (ver LEEME_V79.txt). Si se confirma, cerrar este
+  punto; si no, seguir el plan B del LEEME (Runtime Feeds / borrar
+  GMS2CACHE del proyecto / reinstalar IDE).
 
 ## 10. HERRAMIENTAS PROPIAS (scripts/)
 - IMPORTANTE (26/10): la carpeta scripts/ del workspace NO existe en este
@@ -1554,6 +1560,20 @@ y las pistas nuevas de 20-28s se cortaban).
 - Misc (historico): check_arrow_colors.py (colores de sprites de flecha).
 
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-23 (v79 — ANDROID CRASH AL ARRANCAR, TOOLCHAIN): la duena
+  reporto "en el android cuando se instala se abre pero se vuelve a
+  cerrar". Analizado el log Igor+logcat completo: BUILD SUCCESSFUL,
+  instala OK, y SIGSEGV nativo en CObjectGM::LoadFromChunk 3/3
+  intentos ANTES de ejecutar GML. Causa raiz verificada (script
+  check_v79_android.py, 34 OK/0 BAD): el APK mezcla el asset
+  compiler de runtime-2026.1.0.28 con el runner Android (libyoyo.so
+  arm64+armv7 + 54 archivos) de runtime-2026.0.0.23. NO es culpa del
+  proyecto (v78 re-verificado integro). Fix entregado en
+  LEEME_V79.txt: borrar la carpeta del runtime viejo
+  (C:\ProgramData\GameMakerStudio2-LTS2026\Cache\runtimes\
+  runtime-2026.0.0.23), broom/clean cache, recompilar; plan B =
+  Runtime Feeds alineado + borrar GMS2CACHE del proyecto. Cero
+  cambios de codigo en el repo. Precedente YoYo: issue #15043.
 - 2026-11-23 (v78 — OPERATOR-ONLY + ENFRIAMIENTO POR CAJA + FIX CURA RINGS + INMUNIDADES DE ESCUDO + BOTON V MOVIL): 5 pedidos de la
   dueña en una tanda. (1) Sonic/Kris solo-operador (doble seguro
   CharSelect.c + scr_char_locked, sección 3.4.5). (2) Enfriamiento 30 s
@@ -2355,197 +2375,397 @@ y las pistas nuevas de 20-28s se cortaban).
   download/v76_hazard_relocate_spawn_variety.zip. RECOMPILAR el server
   (Ring.c/ItemBoxMap.c/Server.h cambiaron).
 
-## v80h2 — 2026-11-24 — CRASH "point_in_circle argument 1 undefined" (REAL CAUSE, verified against this repo)
+### 9.x PLAN device-binding v80-next (SOLO PLAN, 2026-11-23, no implementado)
+- PREGUNTA de la duena: personajes exclusivos ligados al DISPOSITIVO
+  (no IP). Opinion entregada en PLAN_DEVICE_BINDING_V80.txt (espanol).
+- VERIFICADO en codigo: token CLIENT_AMY_AUTH (net_packets.gml:165 =
+  Packet.h:171) => Server.c:447-460 strcmp amy_canon_token
+  ("SweetPassion", Config.json); amy_authed=false en cada conexion
+  (Server.c:192). Solo-token: AMY_CANON/VANILLA/ROUGE/JINNA
+  (CharSelect.c:180/247/269/125). Solo-op: SallyCanon/SONIC/KRIS.
+- HALLAZGO tecnico clave: el "udid" que manda net_indentity.gml en
+  Android es concat de 7 campos PUBLICOS de os_get_info() (MODEL etc)
+  => fingerprint de MODELO (igual en 2 moviles iguales), NO identifica
+  dispositivo individual. En PC si existe udid real (manual GM LTS:
+  clave udid solo Windows/macOS/Ubuntu; Android NO la tiene).
+- ANDROID_ID (docs oficiales + busquedas verificadas): 64 bits,
+  per-app desde Android 8, sobrevive uninstall/reinstall, se regenera
+  con factory reset o rotacion de firma; spoofable con root (Magisk).
+  No es infalible; es "muy incomodo de cambiar" para el usuario medio.
+- RECOMENDACION: 2 factores = dispositivo (ANDROID_ID via mini
+  extension Java ~20 lineas; en PC udid existente) + frase secreta
+  SOLO para vincular dispositivos nuevos. Server guarda SHA-256
+  (android_id+MODEL+salt) en Config/Devices.json (nunca el ID crudo);
+  tope de 3 dispositivos por frase; comandos op .grant/.devices/
+  .revoke en server_cmd_handle (Server.c:711, junto a .kick/.ban).
+  FAIL-CLOSED: cliente nunca decide; device falso => sin desbloqueo.
+  Anticheat NO se toca (regla 7 OK). Alternativas descartadas y por
+  que: solo-frase (se comparte), solo-IP (dinamica en movil), Play
+  Integrity (Play Console+backend, overkill), cuentas user/pass
+  (demasiada UI para 5-6 personajes).
+- DECISIONES PENDIENTES de la duena: (1) vinculacion automatica con
+  frase vs solo .grant manual; (2) tope de dispositivos (rec. 3);
+  (3) hash android_id+MODEL vs android_id solo; (4) .grant por pid
+  en partida vs tambien por hash crudo pre-conexion.
+- MIENTRAS TANTO: cambiar "SweetPassion" por frase larga aleatoria
+  (reduccion inmediata de guess rate), Operators.json solo para IPs
+  fijas.
 
-ERROR (Android, on startup, no input needed):
-  point_in_circle: argument 1 incorrect type (undefined) expecting a Number
-  at gml_script_scr_controls_update_touch (line 223)
-  called from gml_object_obj_controls_step_1 (line 5)
+### 9.y PLAN device-binding REV2 v80b (diseno de la duena, 2026-11-23, NO implementado)
+- DISENO DUELA: Rouge reservada; la ven/eligen op + token-Amy SIEMPRE;
+  cualquier otra escribe ".rouge" en el chat del lobby/seleccion y el
+  PRIMER dispositivo que lo usa REGISTRA el claim (Rouge le aparece
+  desde entonces, sobrevive reinstalar); los demas reciben "already
+  claimed" y Rouge les queda bloqueada. UN dispositivo por personaje.
+- VALIDADO con scripts/check_v80b_rouge_design.py: 10/10 touch points
+  en el repo (case CMD_EXE Server.c:901 = plantilla del handler;
+  States.h:44 enum CMD_*; CharSelect.c:269 guarda Rouge actual
+  "id == CH_ROUGE && !v->amy_authed"; net_tcpprocess.gml:188 case
+  SERVER_OPERATOR_STATE = plantilla del SERVER_ROUGE_STATE;
+  scr_char_locked scr_survivors.gml:1683; chat lobby KeyPress_13.gml;
+  cmd_handle llega desde Lobby.c:447 Y CharSelect.c:342 => .rouge
+  sirve en ambos estados).
+- CMD_ROUGE = 1425644872 (Java hash 31*h+c de ".rouge", punto incluido;
+  algoritmo verificado reproduciendo CMD_EXE ".exe" = 1471268; sin
+  colision con los 18 CMD_* existentes).
+- ARQUITECTURA REV2: device_id real al FINAL del paquete IDENTITY
+  (Android: ANDROID_ID via mini extension Java ~20 lineas; PC: udid
+  existente); server guarda SHA-256(device_id+MODEL+salt) hex64 en
+  Config/Devices.json estilo Bans ({"rouge":{"device":hash,"claimed_by":
+  nick,"claimed":fecha}}); case CMD_ROUGE: op/token ya-la-tienen,
+  idempotente si ya claim, "already claimed" si es de otro, REGISTRA
+  si libre + SERVER_ROUGE_STATE(1) solo a ese peer + re-envio tras
+  cada reconexion (patron OPERATOR_STATE); guarda CharSelect pasa a
+  !amy_authed && !op && !rouge_claimed; cliente scr_char_locked
+  Rouge = token=="" && !isOperator && !rougeClaimed (nueva global,
+  false en scr_globals + obj_netclient Create, seteada en el switch
+  principal de net_tcpprocess).
+- MUERE del v80 anterior: frase para jugadoras, tope 3 dispositivos,
+  .grant/.revoke/.devices. SE MANTIENE: extension Java, SHA-256+salt,
+  bytes al final del paquete, fail-closed, anticheat INTACTO (regla 7).
+- Limites conocidos (aceptados): movil clonado = mismo hash (limite
+  fisico sin Play Integrity, fuera de la amenaza real); factory reset
+  regenera android_id => claim perdida => borrado manual de la entrada
+  (o futuro .rouge_reset op, pendiente de decision).
+- DECISIONES PENDIENTES: (1) confirmar claim sin aprobacion op (asi
+  recomendado); (2) .rouge_reset/.rouge_who op o edicion manual;
+  (3) confirmar op+token ambos ven Rouge (asi leido del texto).
+- FUTURO gratis: tabla personaje->hash => ".vanilla"/".sonic" publicos
+  = copiar bloque C/D con otro CMD_* y otra entrada JSON.
 
-ROOT CAUSE (3 evidences, all verifiable):
-  1. GameMaker runner error docs: "argument (index)... where an index of 1
-     is the FIRST argument" => argument 1 = _x (the touch coordinate), NOT
-     an obj_config variable.
-  2. device_mouse_x_to_gui docs: on mobile "this will only be updated while
-     the screen is being touched" => an untouched touch slot can return
-     undefined for _x/_y.
-  3. House pattern in this repo: all 10 other point_in_circle calls in the
-     touch loop sit behind "_state &&" (short-circuit when no finger), and
-     obj_game_chat/Step_0 only reads device_mouse_*_to_gui after
-     device_mouse_check_button. The v78 V-block was the ONLY unguarded
-     call: it ran 24x per frame for all slots with no finger down =>
-     _x undefined => instant crash on startup.
+### 9.z IMPLEMENTADO v80c — Rouge por dispositivo con .rouge (2026-11-23, SI esta en el repo)
+- ESTADO: IMPLEMENTADO y verificado (NO solo plan). Diseño final de la
+  dueña: Rouge la ven op + token-Amy SIEMPRE; cualquier otra escribe
+  ".rouge" y el PRIMER dispositivo registra el claim; los demás "already
+  claimed"; SOLO se quita borrando la línea del Devices.txt del server
+  (decisión explícita de la dueña: sin comandos de op, formato .txt no
+  JSON, editable en Bloc de notas; el server RELEE el archivo antes de
+  cada check/claim => borrar línea aplica SIN reiniciar).
+- ARCHIVOS NUEVOS server: include/Devices.h (API init/check/claim/hash,
+  DeviceClaimResult), include/SHA256.h (FIPS 180-4 header-only, +fix
+  #include <string.h> que faltaba — lo cazó el unit test), disasterserver/
+  Devices.c (claims en .txt "personaje|hash64|nick|fecha", # comentarios,
+  tolerante a líneas corruptas, g_claims[16] en RAM, devices_reload()
+  dentro de check/claim con Mutex). Cliente: scripts/scr_device_id/
+  (ANDROID_ID via AndroidGetDeviceId en Android, os_get_info udid en PC,
+  "" en otras plataformas, cacheado en global.deviceIdCache, trim manual
+  estilo token amy porque LTS sin string_trim).
+- EDITS server: Config.h +DEVICES_FILE (win "Devices.txt" y ANDROID_DIR),
+  Config.c +devices_init() tras collection_init de bans/ops, CMakeLists
+  +Devices.c en SOURCES, Server.h BUILD_VERSION 1101→1102 + String
+  device_id + bool rouge_claimed en PeerData, Packet.h +SERVER_ROUGE_STATE
+  AL FINAL del enum (typedef enum { ... } PacketType;), States.h
+  +CMD_ROUGE 1425644872, states/Server.c: lee device_id en peer_identity
+  ENTRE pet y los 2 u64 del anticheat (orden espejo exacto con
+  net_indentity.gml), tope 200 chars, rouge_claimed via devices_check al
+  conectar, SERVER_ROUGE_STATE enviado en 4 puntos (identity_process,
+  case CMD_ROUGE exitoso, tras .op, tras CLIENT_AMY_AUTH — siempre
+  explicito op||amy||claim), case CMD_ROUGE (op/token="you can already",
+  device_id vacio="update it", 4 caminos DEVCLAIM_*), .help +".rouge
+  claim Rouge for this device"; CharSelect.c guarda Rouge =
+  !amy_authed && !op && !rouge_claimed; compilar_server.bat
+  backup_configs/restore_configs +Devices.txt (2 lineas).
+- EDITS cliente: net_indentity.gml +buffer_write scr_device_id() entre
+  pet y u64s; net_packets.gml +SERVER_ROUGE_STATE al final (enum
+  "enum PacketType {"); net_tcpprocess.gml case SERVER_ROUGE_STATE en el
+  switch principal setea global.rougeClaimed; scr_globals.gml
+  +global.rougeClaimed=false +global.deviceIdCache=""; obj_netclient
+  Create_0 BUILD_VER 1102 + reset rougeClaimed por conexión;
+  scr_survivors.gml scr_char_locked Rouge = amyCanonToken=="" &&
+  !isOperator && !rougeClaimed; yyp +scr_device_id registrado tras
+  net_packets.
+- EXTENSION JAVA: DisasterServer.java +public String AndroidGetDeviceId()
+  (Settings.Secure.ANDROID_ID via RunnerJNILib.ms_activity, try/catch →
+  ""), disasterserver.yy +GMExtensionFunction kind 4 (java), returnType 1
+  (string; 2=double — verificado contra las 8 funciones returnType:2 del
+  proyecto), args [].
+- VERIFICACIÓN: scripts/verify_v80c_server.sh → gcc -fsyntax-only 6/6
+  (stub enet propio en /tmp, con ENetPeer.address, ENET_PACKET_FLAG_*)
+  + unit test REAL de Devices.c 23/23 (SHA-256 vectores NIST incluido
+  1M×'a', claim/taken/already, borrado de línea libera SIN reiniciar,
+  corruptos tolerados, hash determinista). scripts/check_v80c_all.py →
+  35/35 espejo integral (enum igual ambos lados, orden IDENTITY idéntico,
+  BUILD 1102 ambos, 4 puntos SERVER_ROUGE_STATE, hash comando).
+- IMPORTANTE para próximas versiones: BUILD_VERSION cambió => APK 1101 no
+  conecta a server 1102 (version mismatch intencional). devices_claim
+  con device_id vacío: hash de "" — el CMD_ROUGE ya filtra len<=0 antes.
+  OJO bugs de regex en checks: el enum C abre "typedef enum {" y el GML
+  "enum PacketType {" — rstrip().endswith sobre el archivo entero da
+  falsos negativos (macros después del enum).
 
-  (The earlier v80h guess — "obj_config.bV2X undefined" — was WRONG:
-  obj_config Create/load define bVX and bV2X with try/catch + defaults.
-  A corrupt 1.bson could still leave them undefined because json_parse
-  does NOT throw on missing fields; the V-GUARD is_undefined checks also
-  cover that case.)
+### 9.z+1 v80d (2026-11-24) — LECCION CRITICA DE EMPAQUETADO
+- BUG REAL DEL ZIP v80c: scripts de cliente SUELTOS en scripts/ no
+  los carga GameMaker (viven en scripts/<nombre>/<nombre>.gml). El
+  cliente quedo en scripts viejos sin device_id => .rouge muerto,
+  PERO compilaba y conectaba (BUILD_VER vive en obj_netclient que
+  si se copio bien) => bug invisible. Fix: v80d_fix_ruta_scripts.zip
+  (rutas correctas, verificado 41/41 con scripts/check_v80d_zip.py).
+- REGLA PARA SIEMPRE: en cualquier zip de entrega de scripts GML,
+  cada script en scripts/<nombre>/<nombre>.gml. El .yy solo si el
+  script es NUEVO (y su parent debe existir en el .yyp). Los 5
+  editados aqui (net_indentity, net_packets, net_tcpprocess,
+  scr_globals, scr_survivors) van SIN .yy: sobrescriben el .gml
+  dentro de la carpeta ya registrada en el proyecto de la duena.
+- Estado del protocolo: SIN CAMBIOS vs v80c (BUILD 1102 ambos
+  lados). Server v80c compilado + APK v80d = compatibles.
+- Diagnostico rapido para la duena si algo no responde: (1) .info
+  en el chat => debe decir v1102; (2) Devices.txt al lado del exe
+  existe solo con server 1102; (3) probar .rouge en el LOBBY.
+  Respuesta "this device can't claim Rouge (update the game)" =
+  cliente sin device_id (exactamente el bug del zip v80c).
 
-FIX (v80h2 "V-GUARD") in scripts/scr_controls_update_touch:
-  Replaced the 2-line `var _inV = point_in_circle(...) || (jUse && ...);`
-  with the same expression guarded by _state FIRST (house pattern) plus
-  is_undefined armor on bVX/bVY/bVScale and bV2X/bV2Y/bV2Scale.
-  Behavior with a finger down is IDENTICAL to v78 (verified by simulation:
-  finger on small V, finger on main V diamond in-match, lobby, finger
-  elsewhere); without a finger it now returns false instead of crashing.
+### 9.z+2 v80e (2026-11-24) — FIX JAVA ms_activity
+- ERROR REAL del usuario (log Igor completo): "cannot find symbol
+  variable ms_activity" en DisasterServer.java:29 al compilar el
+  APK con runtime-2026.1.0.28. Causa: RunnerJNILib.ms_activity NO
+  existe en ese runtime; la via correcta y documentada (foros GM
+  2014-2023, todas las extensiones) es RunnerActivity.
+  CurrentActivity (campo publico estatico de
+  com.yoyogames.runner.RunnerActivity).
+- FIX: import RunnerActivity + Activity act =
+  RunnerActivity.CurrentActivity + catch(Throwable) (fail closed).
+  Verificado compilando con ECJ 3.31 (archive.eclipse.org,
+  /tmp/ecj3.jar) contra stubs fieles del runtime: nuevo OK, viejo
+  reproduce el error exacto (scripts/verify_v80e_java.sh).
+- ENTREGABLE: download/v80e_fix_java_runner.zip (45/45 checks,
+  scripts/check_v80e_zip.py). Instalacion = reemplazar SOLO
+  DisasterServer.java + recompilar APK. Server y GML intactos vs
+  v80d. Estado del protocolo: SIN CAMBIOS (BUILD 1102).
+- LECCIONES: Java del runner solo contra API citada de fuente
+  verificable; catch Throwable siempre en extensiones; ECJ sirve
+  como javac del sandbox (JRE + jar, fuente 11).
 
-FILES CHANGED BY v80h2: only scripts/scr_controls_update_touch/
-scr_controls_update_touch.gml (nothing else). Reparador .bat PASO 5b was
-also rewritten to apply this same patch (3 paths: literal, whitespace-
-tolerant regex, upgrade from old v80h V-DEFENSE; idempotent; .bak stamp).
+### 9.z2 v80g — FIX DEFINITIVO Java: reflection pura (2026-11-24, SI en el repo)
+- ESTADO: DisasterServer.java v80g verificado contra los DOS runtimes del
+  usuario. El reparador download/reparar_disaster2d.bat ahora es v80g.
+- BUG v80e (MIO, causa del compileReleaseJavaWithJavac FAILED de las 22:40
+  y del paste de hoy): import com.yoyogames.runner.RunnerActivity NO existe
+  en runtime-2026.1.0.28. Log Igor del usuario (paste 2, linea 4319):
+  RunnerActivity.java se copia de
+  .../runtime-2026.1.0.28/android/runner/ProjectFiles/src/main/java/
+  YYAndroidPackageDomain/YYAndroidPackageCompany/YYAndroidPackageProduct/
+  RunnerActivity.java  -> a  .../src/main/java/com/teamexeempire/disaster2dm/
+  RunnerActivity.java  (PAQUETE DEL JUEGO). En com/yoyogames/runner/ solo va
+  RunnerJNILib.java (linea 4310). En runtime-2026.0.0.23 (paste 1) RunnerActivity
+  SI iba a com.yoyogames.runner => los dos layouts existen y el usuario tiene
+  los DOS runtimes instalados (log 1 usa .23, logs 2-3 usan .28).
+- FIX v80g: DisasterServer.AndroidGetDeviceId SIN imports del runner:
+    Class.forName("${YYAndroidPackageName}.RunnerActivity")  (primero, .28+)
+    catch ClassNotFoundException -> Class.forName("com.yoyogames.runner.RunnerActivity")
+    (fallback, runtimes viejos); getField("CurrentActivity").get(null);
+    getContentResolver() por reflection; Settings.Secure.ANDROID_ID igual;
+    catch (Throwable) -> "". Compila en cualquier runtime (no linka nada del
+    runner en compile-time).
+- VERIFICACION v80g (scripts/verify_v80g_java.sh + verify_v80g_run.sh, ECJ
+  3.31 source 11): A) compila contra layout .23; B) compila contra layout
+  .28; C) v80c/d (ms_activity) y v80e (import RunnerActivity) FALLAN contra
+  .28 (reproduce el error real); D) PRUEBA FUNCIONAL EJECUTADA en JVM:
+  D1 layout .28 devuelve id + fail-closed con CurrentActivity null; D2 layout
+  .23 resuelve por el fallback; D3 ambas rutas rotas => '' sin crash.
+- REPARADOR v80g (gen_reparador_v80f.py regenerado; bat 22090 bytes, 462
+  lineas, more +13): ademas de lo de v80f, el modo A ahora captura la salida
+  de Igor con Tee-Object a %TEMP%/d2d_build_<stamp>.txt, extrae lineas
+  'error:', autodiagnostica (ms_activity => aplica v80g y reintento UNA vez;
+  import RunnerActivity => igual; gradlew/Win32Exception => antivirus PASO 3)
+  y reintento unico con limpiado de cache. Diagnostico verificado contra los
+  3 logs reales del usuario (scripts/verify_v80g_bat.sh paso 4): log 22:40
+  => ms_activity, log 00:21 => gradlew borrado, log 09:58 (crash del .23,
+  distinto: libyoyo.so Startup, no es Java) => NO RECONOCIDO (correcto).
+- OJO log 09:58: crash NATIVO (libyoyo.so RunnerJNILib_Startup) con runtime
+  .23 + MultiClientExtensionTest compilado => si el usuario vuelve al .23
+  puede seguir crasheando por el bug nativo del multi-client, NO por Java.
+  Recomendar quedarse en .28.
 
-MAP (quick cache for future sessions):
-  scripts/scr_controls_update_touch.gml — per-slot touch loop (24 slots):
-    lines ~26-213: dpad joystick claim + A/B/C (40px) + D/E/F/G/W (22px)
-      buttons, ALL guarded by "_state &&".
-    line ~215-243: V block (v78): small V (emote column, 22px, bV*) +
-      main V diamond (A/B/C cluster, 40px, bV2*, in-match only via jUse),
-      one shared VTouchId so sliding between both keeps the key held.
-      v80h2: _inV now guarded by _state + is_undefined (see above).
-    line ~245-301: joystick direction -> keyboard_key_press/release.
-  objects/obj_config/Create_0.gml — defaults + load()/save() of 1.bson;
-    bV* = vTouch entry, bV2* = vMainTouch entry, both try/catch armored
-    (but json_parse missing-field => undefined is silent; that's why the
-    is_undefined armor exists in the V-GUARD).
-  objects/obj_controls/Create_0.gml — isMobile (os_android) +
-    scr_controls_init_touch() call; Step_1 calls scr_controls_update_touch
-    every step when isMobile.
-  objects/obj_controls/Draw_64.gml — draws V small (frame 10/11 of
-    spr_mobile_emotionbutton) and main V diamond (frame 6/7 of
-    spr_mobile_button) reading the same bV*/bV2* vars.
-  objects/obj_game_chat/Step_0.gml — the house reference pattern for
-    safe touch reads (only read coordinates after check_button).
+### 9.z3 v80h (+v80h2 CORRECCION) — FIX GML: crash "point_in_circle argument 1 undefined" boton V (2026-11-24)
+- CONTEXTO: tras v80g el BUILD ANDROID YA PASA (Java compila, APK instala y
+  arranca). El error nuevo es GML RUNTIME:
+    "point_in_circle argument 1 incorrect type undefined
+     gml_script-scr_controls_update_touch (line 223)
+     gml_object_obj_controls_step_1 (line 5)"
+  Step_1.gml lin 5 = scr_controls_update_touch() (verificado contra repo).
+- CAUSA (verificado contra repo teamexeempire/disaster2d-oss v110, commit
+  unico 5155497b23 2024-08-06 "Upload (v110)"): el proyecto del usuario es
+  repo v110 + parches propios (V v4.0: global.KeyV en scr_globals lin 72;
+  V v78: bloque V de DOS circulos con UN VTouchId en update_touch + bV2*
+  en obj_config vMainTouch). El point_in_circle de la zona 223 es del
+  bloque V v78 y lee obj_config.bV2X/bV2Y/bV2Scale: si el Create de
+  obj_config no tiene vMainTouch (parche aplicado a medias), esas vars NO
+  existen -> undefined -> crash. Los 9 botones originales (dpad,A..G,W)
+  usan vars que existen siempre (repo) => el juego llega al V y muere ahi.
+- FIX v80h = V-DEFENSE: bloque al PRINCIPIO del cuerpo de
+  scr_controls_update_touch() que garantiza las vars del V:
+    if (!variable_instance_exists(obj_config.id, "bV2X") || ...bV2Y...
+     || ...bV2Scale || ...bV2Opacity) { defaults v78: 378,121,1,0.6 }
+    if (!variable_instance_exists(id, "VTouchId")) VTouchId = -1;
+    if (!variable_instance_exists(id, "VPressed")) VPressed = funcion
+      (keyboard_key_press(global.KeyV) / release);
+  Corre CADA STEP antes del loop de touches; idempotente (no pisa valores
+  existentes: simulado caso config completo bV2X=390 queda intacto).
+- REPARADOR v80h (download/reparar_disaster2d.bat, 24381 bytes, more +13,
+  sha256 08f8bf111ca30b73): PASO 5b nuevo — parchea
+  scripts/scr_controls_update_touch/scr_controls_update_touch.gml del
+  proyecto con [regex]::Replace sobre 'function scr_controls_update_touch
+  \(\)\s*\{' insertando el V-DEFENSE tras la cabecera; backup .bak_stamp;
+  idempotente (detecta 'v80h V-DEFENSE'); Set-Content -Encoding UTF8.
+  Junto al PASO 5 (Java v80g) y el modo A con captura de log/autodiagnostico.
+- VERIFICACION v80h: scripts/verify_v80h_snippet.py (lint GML + simulacion
+  3 casos: crea defaults / no pisa / mixto + insercion en repo v110 lintada)
+  y scripts/verify_v80h_bat.sh (extraccion more+13; GML del here-string ==
+  snippet; parche del script USUARIO RECONSTRUIDO (repo+bloque V v78) con
+  la MISMA regex del PS: llaves/parens OK, defense en lin 3 ANTES del
+  point_in_circle del V en lin 239; defaults correctos; idempotencia).
+- BUGS de generacion encontrados y corregidos en el camino: (1) el GML
+  embebido llevaba \r\n antes del replace global PS->CRLF => \r\r\n
+  (detectado por verify, corregido: el defense va en \n); (2) el chequeo
+  de llaves contaba la \{ escapada del regex PS como llave PS; (3) el
+  orden de here-strings es JAVA, GML(5b), JAVA2(reintento) — identificar
+  por contenido, no por indice.
+- NOTA: la linea exacta 223 del script del usuario no es verificable sin
+  su archivo (mi reconstruccion la pone ~227-239 segun variantes); el fix
+  es INDEPENDIENTE de la linea exacta porque protege las 3 unicas vars del
+  V que pueden ser undefined (bV2* via obj_config, VTouchId/VPressed via
+  self). _x/_y siempre son real (device_mouse_x_to_gui).
 
-## v80i — 2026-11-24 — PERSISTENT "line 223" crash: forensics + SLOT-SANITIZE
+### 9.z4 v80h2 — DIAGNOSTICO DEFINITIVO contra el REPO REAL del usuario (2026-11-24)
+- REPO REAL DEL USUARIO: github.com/AmyRose21/disaster2d-oss (el usuario lo
+  paso en el chat). Clone completo (1.2GB, 40268 archivos): commit
+  3d04c1bf "ewe" 2026-11-24 11:35 -0400. El zip v80e del proyecto y este
+  repo coinciden en lo esencial; ANTES trabajaba sobre teamexeempire/
+  disaster2d-oss (v110 upstream) + reconstrucciones — desde ahora usar
+  SIEMPRE el repo de AmyRose21 como fuente de verdad (regla 1: fetch cada
+  consulta).
+- LINEA 223 REAL (verificada en el archivo, no reconstruida):
+    var _inV = point_in_circle(_x, _y, obj_config.bVX, obj_config.bVY, 22 * obj_config.bVScale)
+        || (jUse && point_in_circle(_x, _y, obj_config.bV2X, obj_config.bV2Y, 40 * obj_config.bV2Scale));
+  Es el bloque V v78 (parry Amy Canon). El v80h ANTERIOR diagnostico
+  "obj_config.bV2X undefined" — INCORRECTO (a medias): el obj_config real
+  del repo SI define bVX/bV2X con try/catch + defaults; el problema es otro.
+- CAUSA REAL (3 evidencias, todas citadas):
+  1. Doc oficial Runner_Errors: "argument (index)... where an index of 1 is
+     the FIRST argument" => argument 1 = _x (la coordenada del touch), NO
+     obj_config.bVX. El v80h miro el argumento equivocado.
+  2. Doc oficial device_mouse_x_to_gui: en movil "this will only be updated
+     WHILE THE SCREEN IS BEING TOUCHED" => slots de touch sin dedo pueden
+     devolver undefined para _x/_y.
+  3. Patron de la casa en el propio repo: los 10 point_in_circle originales
+     del loop van TODOS detras de "_state &&" (short-circuit sin dedo), y
+     obj_game_chat/Step_0 solo lee device_mouse_*_to_gui tras
+     check_button/_pressed. El bloque V v78 fue el UNICO que llamo
+     point_in_circle SIN guarda _state => corre 24 veces/frame con slots
+     sin tocar => _x undefined => crash al ARRANCAR en Android (ni hace
+     falta tocar la pantalla).
+- FIX v80h2 = V-GUARD: sustituir las 2 lineas del _inV por:
+    var _inV = _state
+        && !is_undefined(bVX) && !is_undefined(bVY) && !is_undefined(bVScale)
+        && point_in_circle(...)
+        || (_state && jUse && !is_undefined(bV2X/bV2Y/bV2Scale) && point_in_circle(...));
+  _state primero (patron casa) + blindaje is_undefined por si el 1.bson
+  viniera corrupto (json_parse NO lanza al faltar un campo: el try/catch
+  del load() no cubre ese caso — por eso el blindaje extra).
+- VERIFICACION: verify_v80h2_guard.py (contra archivo REAL: lint, bloque
+  original localizado, 11 point_in_circle intactos, simulacion 6 casos:
+  arranque-sin-tocar original=CRASH/fixed=False; dedo sobre V pequena y V
+  principal identico al original; lobby identico; bVX undefined+dedo
+  original=CRASH/fixed=False; dedo lejos=False en ambos) y
+  verify_v80h2_bat.sh (bat completo: extraer PS1, GML del here-string ==
+  snippet, 3 vias de parche sobre el archivo real — literal, regex
+  tolerante a whitespace, upgrade desde v80h vieja — + idempotencia +
+  lint de los 3 resultados).
+- BAT v80h2: download/reparar_disaster2d.bat 25988 bytes, more +13, sha256
+  aee4a0e7ac8d405b, 516 lineas. PASO 5b ahora SUSTITUYE el bloque _inV
+  (antes insertaba el V-DEFENSE al inicio, que protegia las variables
+  equivocadas); 3 vias + deteccion de v80h vieja (la quita por marcadores
+  y aplica la v80h2) + backup .bak_stamp + idempotente.
+- LECCION (a LEARNING.md): (a) NUNCA diagnosticar un "argument N" sin
+  verificar la base del indice (doc oficial: base 1); (b) en moviles,
+  device_mouse_*_to_gui solo es fiable CON dedo — todo punto/rectangulo
+  tactil debe ir detras de _state/check_button; (c) pedir SIEMPRE el repo/
+  archivo real antes de diagnosticar (el v80h fue un diagnostico a ciegas
+  que resulto incorrecto en la causa, aunque el fix defensivo no haria
+  dano); (d) json_parse no lanza excepcion por campos faltantes: struct
+  .campo faltante = undefined silencioso, los try/catch NO protegen eso,
+  usar is_undefined o variable_instance_exists.
 
-CONTEXT: user reported the SAME crash still happening after v80h2 was
-already committed to the repo (commit "ewe", HEAD 79f4035b). The error
-still said "line 223" — but in the CURRENT file line 223 is a COMMENT
-(the v80h2 V-GUARD header). A comment cannot crash. Forensic conclusion:
-the phone is running an APK built from the OLD script, OR the user's PC
-copy was patched by the old v80h .bat (V-DEFENSE), which this session
-found to DELETE the whole `var _inV` when "upgrading" (bug: the v80h
-block contained the var; removing the block removed the var; the .bat
-then failed to find anything to patch and left a script with NO _inV
-definition at all). Possible failure chain now closed.
-
-ROOT-CAUSE MODEL (validated by sim_v80i.py, 8 scenarios x 3 versions):
-  - v78 script: crashes at line 223 in ALL scenarios (no _state guard on
-    the V block; device_mouse_*_to_gui returns undefined for untouched
-    slots on mobile — GM docs: "only updated while the screen is being
-    touched").
-  - v80h2 script: only crashes if _state is true while coords are still
-    undefined (S7 edge: press frame / physical mouse without touch data
-    => dpad line 26). Rare but real.
-  - v80i script: no crash in any scenario (S7 closed by SLOT-SANITIZE).
-
-FIX v80i (3 changes, all in this zip):
-  1) SLOT-SANITIZE right after `var _state = ...` in the slot loop:
-     `if(_state && (is_undefined(_x) || is_undefined(_y))) _state = false;`
-     Covers dpad + all buttons A..W + V in one place.
-  2) Joystick fallback: if the drag finger coords are undefined, treat
-     them as the pad center (releases all 4 directions, keeps jTouchId).
-  3) BUILD TAG in objects/obj_controls/Draw_64.gml: draws "v80i" in the
-     bottom-left corner (Android only, alpha 0.55, outside the HUD if so
-     it shows even with HUD hidden). PURPOSE: the user can SEE which
-     build the phone is running. No tag = old APK => uninstall first.
-
-BAT: reparar_disaster2d.bat upgraded v80g -> v80i (PASO 5b/5c/6b):
-  - PASO 5b applies the full v80i to whatever it finds (v78 / v80h
-    V-DEFENSE / v80h2 / already-v80i); all 4 paths converge to a file
-    byte-identical to the one in this zip (verified).
-  - Writes with [IO.File]::WriteAllText = UTF-8 WITHOUT BOM (the old
-    Set-Content -Encoding UTF8 in PS 5.1 writes a BOM; if GM's compiler
-    choked on it, that alone could explain the fix never reaching the
-    APK).
-  - PASO 5c adds the BUILD TAG to Draw_64.gml.
-  - PASO 6b prints the anti-old-APK checklist (uninstall before install).
-
-VERIFICATION (all re-runnable):
-  - sim_v80i.py: GM-runtime simulator over the REAL .gml of each version
-    (undefined propagation, short-circuit && / ||, point_in_circle arg
-    check 1-based, fatal error = game over). 8 scenarios x 3 versions:
-    v78 = crash everywhere (line 223 = the user's exact error), v80h2 =
-    ok except S7 edge, v80i = no crash 8/8. Also runs the 4 .bat OUTPUT
-    files: all identical, all no-crash (roundtrip TODO OK).
-  - verify_bat_v80i.py: applies the .bat's own regex/blocks (extracted
-    from the .bat text) to the 4 input versions; checks CRLF/ASCII/
-    here-strings/no-BOM/idempotency; found and fixed 3 real .bat bugs
-    (jx pattern missing trailing \r?\n glued a comment onto a code
-    line; V-DEFENSE removal deleted var _inV; BUILD TAG ate the closing
-    brace).
-  - lint: braces/parens balanced, 11 point_in_circle, tabs preserved,
-    LF endings, ASCII-only insertions (immune to PS5 BOM issues).
-
-DECISION RULE for future crash reports (scr_controls_update_touch):
-  - "line 223" + no "v80i" tag on screen => OLD APK (uninstall, rebuild).
-  - "line 26/27" (dpad) => coords undefined while _state true: already
-    closed by SLOT-SANITIZE in v80i; if it still happens, the APK is not
-    v80i (check the tag).
-  - Any OTHER line => send me the ~10 log lines around it.
-
-FILES CHANGED BY v80i: scripts/scr_controls_update_touch/
-scr_controls_update_touch.gml, objects/obj_controls/Draw_64.gml,
-reparar_disaster2d.bat (v80g -> v80i). Nothing else.
-
-## v80j — 2026-11-24 — marker OUT, V-below cluster layout + layoutVer migration
-
-CONTEXT: user confirmed v80i works (crash gone, marker visible). Two new
-requests: (1) remove the on-screen "v80i" marker, (2) move the main V
-button BELOW the A/B/C cluster and raise the cluster a bit ("subir un
-poco el tema de los botones para que no esten tan abajo").
-
-LAYOUT (validated geometrically against GUI 480x270, sprites 48px main,
-touch radii 40 main / 22 emoticons; layout_v80j.py):
-  OLD: A(378,221) B(416,177) C(452,221) V(378,121)  [V on top]
-  NEW: A(336,177) B(374,127) C(412,177) V(374,227)  [B top, V bottom]
-  - cluster moved LEFT ~40px and UP 44-50px (old C at 452 overlapped the
-    right column's small-V touch circle by 15px; left+up clears it).
-  - right column (D/E/F/W/Vsmall/chat) and dpad: UNTOUCHED.
-  - old V spot (378,121) now lands on B: correct, V moved on purpose.
-
-FILES:
-  - objects/obj_controls/Draw_64.gml: BUILD TAG removed (file back to
-    pre-v80i shape; that's the whole change).
-  - objects/obj_config/Create_0.gml: defaults zTouch/xTouch/cTouch/
-    vMainTouch updated; catch-of-load default updated; NEW layoutVer
-    migration at the end of load() — if the saved 1.bson still has the
-    cluster in the OLD default positions AND the user never dragged the
-    buttons, reposition all 4 to the new layout; if the user moved them,
-    respect their arrangement; save() persists layoutVer=2 so it never
-    re-checks. V condition accepts old (378,121) OR new (374,227) V
-    default because pre-v78 saves fall to the catch (which now returns
-    the NEW position) — without that OR the V would sit on top of old A.
-  - scripts/scr_controls_init_touch.gml: mirror values + comments
-    (mirrors are documentation only; obj_config is the source of truth).
-  - rooms/room_menu/room_menu.yy: the 4 drag handles (bid 1/2/3/10 of
-    obj_menu_mobilebutton) moved to the new positions.
-  - reparar_disaster2d.bat: v80i -> v80j. PASO 5d (layout: obj_config +
-    init_touch + room handles), PASO 5e (remove marker). PASO 5b/5c
-    (crash fix + marker install) kept intact for anyone still on old
-    scripts. PASO 6b now says "if you still SEE the v80i marker, the APK
-    is old".
-
-VERIFICATION:
-  - verify_bat_v80j.py: replicates the .bat's 5d/5e regex/slicing on the
-    3 possible PC states (v80i LF / v80i CRLF / already-v80j). obj_config
-    + init_touch: CODE identical to the zip files (comment-only lines
-    differ where the zip rewrites docs and the .bat doesn't). room_menu:
-    byte-identical. Idempotent. Draw_64 tag removal exact.
-  - ROOM HANDLES BY INDEX, NOT REGEX: the first lazy-dot regex
-    ((?s)"value":"1",}.*?"x":...) hung for minutes on the 260KB .yy (and
-    would hang PowerShell the same way) AND matched a wrong instance
-    (first "value":"1" in the file belongs to another object at x=414).
-    Fixed: find "obj_menu_mobilebutton" blocks via IndexOf, check bid
-    inside the block, patch x/y by slicing. Instant.
-  - Re-simulated the GM runtime (sim_v80i.py harness) with the NEW
-    layout: each cluster button fires in its new position, old V spot
-    now fires B (correct), 8 crash scenarios still clean, 4-finger
-    cluster simultaneous press works.
-  - Lint: braces/parens balanced on all 3 .gml; room_menu.yy still valid
-    JSON (after trailing-comma strip).
-
-LESSON (see LEARNING): touching positions of persisted-layout buttons
-requires a versioned migration with a "user actually moved it?" guard,
-otherwise the fix only reaches fresh installs.
+### 9.z5 v81 — SONIC/KRIS/SALLY CANON por dispositivo (.sonic/.kris/.sally) (2026-11-25)
+- PEDIDO de la duena: "ok puedes añadir el mismo sistema como rouge con
+  sonic kris sally canon" — los 3 personajes que v78 hizo solo-operador
+  pasan AL SISTEMA DE CLAIMS POR DISPOSITIVO de v80c (Rouge): los ve y
+  elige el token de Amy, los operadores y el PRIMER dispositivo que
+  escriba el comando en el chat; los demas "already claimed"; se
+  quita SOLO borrando la linea del Devices.txt (sin reiniciar).
+- COMANDOS: .sonic (hash Java 1426561726), .kris (45782527), .sally
+  (1426142845) — verificados SIN colision contra los 19 CMD_* previos
+  y entre si (scripts/v81/calc_hashes.py; ".sallycanon"/".sallyc"
+  quedaron descartados por largos, ".sc" por cercano a .sp/.stink).
+- PAQUETE: SERVER_CLAIM_STATE (u8 sonic, u8 kris, u8 sally) — los TRES
+  estados en UN paquete, al FINAL del enum en ambos lados (regla de
+  oro). Alternativa descartada: 3 paquetes separados = 3 enums nuevos
+  para lo mismo. El cliente los lee en el MISMO orden en el switch
+  principal de net_tcpprocess (case nuevo junto a SERVER_ROUGE_STATE).
+- SERVER (estados/Server.c): server_cmd_claim() — helper estatico que
+  factoriza el flujo completo del CMD_ROUGE (op/token="you can already
+  pick X~", idempotente, device_id vacio="update the game",
+  DEVCLAIM_OK/ALREADY/TAKEN/ERROR) para no triplicar 60 lineas; los 3
+  cases son UNA linea: return server_cmd_claim(v,"sonic","Sonic",
+  &v->sonic_claimed). En DEVCLAIM_OK re-envia SERVER_CLAIM_STATE con
+  el estado real de los 3 flags (op/token ya descartados arriba).
+- SERVER puntos de envio (4): identity_process (tras SERVER_ROUGE_STATE,
+  siempre explicito op||amy||claim por campo), CMD_SONIC/KRIS/SALLY
+  exitoso, tras .op (1,1,1), tras CLIENT_AMY_AUTH. Al conectar:
+  v->sonic/kris/sally_claimed = devices_check("sonic"/"kris"/"sally",
+  device_id) (Devices.c SIN CAMBIOS: la clave es el string del
+  personaje, DEVICES_MAX 16 sobra para 4 claimables).
+- SERVER guards: CharSelect.c CH_SONIC/CH_KRIS/CH_SALLY_CANON pasan de
+  "&& !v->op" a "&& !v->amy_authed && !v->op && !v->*_claimed" (mismo
+  doble seguro que CH_ROUGE; respuesta identica a "ocupada" = result 0,
+  nada se registra ni difunde).
+- SERVER .help: +3 lineas (.sonic/.kris/.sally claim X for this device)
+  junto a la de .rouge.
+- CLIENTE: net_packets.gml +SERVER_CLAIM_STATE al final (detras de
+  SERVER_ROUGE_STATE con coma); net_tcpprocess.gml case nuevo lee 3 u8
+  en orden -> global.sonicClaimed/krisClaimed/sallyCanonClaimed;
+  scr_globals.gml declara las 3 globals (false) junto a rougeClaimed;
+  obj_netclient/Create_0.gml reset de las 3 por conexion + BUILD_VER
+  1102->1103; scr_survivors.gml scr_char_locked: las 3 reglas pasan de
+  "!global.isOperator" a 'global.amyCanonToken == "" &&
+  !global.isOperator && !global.<x>Claimed' (header del script
+  actualizado: v78 -> v81).
+- ESPEJO RAIZ: el repo de la duena mantiene AMBAS copias de
+  net_packets/net_tcpprocess/scr_globals/scr_survivors (scripts/X.gml
+  SUELTO + scripts/X/X.gml); en HEAD eran identicas => el zip incluye
+  las 8 (4 carpetas + 4 raiz) para que ninguna quede vieja. GameMaker
+  solo carga las de carpeta, pero git queda consistente (v80d al reves).
+- BUILD: BUILD_VERSION 1102->1103 (server) y BUILD_VER 1102->1103
+  (cliente): protocolo movido = version mismatch intencional con APKs
+  1102. .ver del server muestra v1103 solo (STRINGIFY).
+- VERIFICACION: scripts/v81/check_v81.py 67/67 OK (hashes, enum espejo
+  IGUAL en ambos lados, orden sonic<kris<sally en writes y reads, 4
+  puntos de envio, guards viejos FUERA, rouge intacto, gcc
+  -fsyntax-only Server.c+CharSelect.c+Devices.c con enet real cloneado,
+  lint llaves/parens de los 5 .gml, espejo raiz identico, BUILD 1103
+  ambos) + scripts/v81/sim_claims.sh 14/14 OK (first-wins, idempotente,
+  taken, borrado manual libera SIN reiniciar, corruptos tolerados,
+  rouge convive) + Devices.c intacto vs git.
+- ENTREGABLE: download/v81_claims_sonic_kris_sally.zip (14 archivos +
+  LEEME + CACHE + LEARNING). RECOMPILAR SERVER OBLIGATORIO (5 archivos
+  C/H cambiaron) + recompilar el APK (BUILD_VER).

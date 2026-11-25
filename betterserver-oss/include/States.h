@@ -49,6 +49,17 @@ typedef struct Entity
    existentes. */
 #define CMD_ROUGE 1425644872
 
+/* v81 (duena): ".sonic", ".kris" y ".sally" — mismo sistema de claims
+   por dispositivo que .rouge (primer dispositivo gana; Devices.txt).
+   Sonic, Kris y Sally Canon dejan de ser SOLO operador: los ve y
+   elige el token de Amy, los operadores y el dispositivo con el
+   claim. Hashes Java 31*h+c con punto incluido, verificados SIN
+   colision contra los 19 CMD_* existentes (incluido CMD_ROUGE) y
+   entre si (scripts/v81/calc_hashes.py). */
+#define CMD_SONIC 1426561726
+#define CMD_KRIS 45782527
+#define CMD_SALLY 1426142845
+
 bool lobby_init				(Server* server);
 bool lobby_state_join		(PeerData* v);
 bool lobby_state_left		(PeerData* v);

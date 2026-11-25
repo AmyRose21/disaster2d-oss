@@ -660,95 +660,270 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
   already had the accumulate pattern (Sally evade +=); max() is the
   correct variant when the values are absolute durations.
 
-## v80h2 — 2026-11-24 — Lessons from the "argument 1 undefined" crash
-1. ARGUMENT INDEX BASE: GameMaker runner errors use 1-BASED indexes ("an
-   index of 1 is the first argument"). Earlier I assumed 0-based and blamed
-   the wrong variable. ALWAYS check the index base before diagnosing.
-2. MOBILE TOUCH READS: device_mouse_x_to_gui/y_to_gui only update WHILE
-   the screen is being touched. Any point_in_circle/rectangle built on
-   them must sit behind _state/device_mouse_check_button. That was already
-   the house pattern everywhere else in this codebase.
-3. DIAGNOSING WITHOUT THE REAL FILE IS GAMBLING: v80h diagnosed bV2X
-   undefined from memory of a reconstruction; the real repo (this one)
-   defines everything correctly and the true cause was the unguarded _x.
-   Clone/read the real file BEFORE closing a runtime-error diagnosis.
-4. json_parse AND MISSING FIELDS: reading struct.field when field is
-   absent returns undefined WITHOUT throwing. The try/catch blocks in
-   obj_config load() do NOT protect against a half-written 1.bson. Armor
-   critical reads with is_undefined (variables on instances:
-   variable_instance_exists).
-5. VERIFICATION CHAIN THAT CAUGHT THIS: snippet lint -> patch the REAL
-   file with the exact PowerShell logic -> semantic simulation of runtime
-   cases (including the crash case) -> idempotency -> 3 application paths
-   -> re-extract from the generated .bat and re-verify. Keep doing this
-   for every fix.
-6. USER GOLDEN RULES (re-confirmed): fetch the repo every session; zip
-   contains ONLY modified/new files; re-analyze only recently edited
-   files; keep CACHE/LEARNING in English and inside the zip; verify 100%
-   (including .yy/.yyp sanity); watch the anti-cheat for new attack
-   patterns to whitelist; research everything for the editor; write what
-   was learned in LEARNING.md.
+## v79 (2026-11-23) — Android startup crash: GameMaker runtime mismatch (TOOLCHAIN bug, not project)
 
-## v80i — 2026-11-24 — Lessons
-1. FORENSICS FIRST: "same error after the fix" has 3 classic causes —
-   (a) the fix never reached the built artifact (cache, BOM, wrong file),
-   (b) the line number in the error no longer maps to the same code
-   (check what is ACTUALLY on that line in the current file), (c) a
-   second unguarded code path. Establish which one before writing code.
-   Here: line 223 is a comment in the patched file => the running APK
-   was built from the old script.
-2. BUILD TAGS: when "is the new build even running?" is a plausible
-   failure mode, ship a visible version marker (draw_text in a corner).
-   It converts a 30-minute guess into a 5-second glance.
-3. PATCH-CHAIN BUGS: a repair .bat that "removes the old patch, then
-   applies the new one" can delete live code if the old patch marker
-   spans the code being replaced. Verify every upgrade path (old->new)
-   with the actual inputs it can find, not just the clean install.
-4. REGEX $0 TRAP: in PowerShell [regex]::Replace($t, $pat, '$0'+$new),
-   if $pat does not consume the trailing newline, $new's first line
-   merges into the matched line. Always end patterns used with '$0'+
-   insert with \r?\n if the insertion is full lines.
-5. BOM BLIND SPOT: PowerShell 5.1 Set-Content -Encoding UTF8 writes a
-   BOM. If a downstream compiler is BOM-sensitive, use
-   [IO.File]::WriteAllText (no BOM). Keep generated .gml insertions
-   ASCII-only so encoding round-trips cannot corrupt them.
-6. SIMULATE THE RUNTIME: a 150-line interpreter that models undefined,
-   short-circuit evaluation and the exact runner error (1-based args,
-   fatal = game over) over the REAL script file reproduced the user's
-   exact crash (line 223) and proved each fix closes it — including the
-   outputs of the repair .bat itself. Cheaper than a phone round-trip.
-7. USER GOLDEN RULES (re-confirmed): fetch repo every session (HEAD had
-   moved 3d04c1bf -> 79f4035b and already contained v80h2!); zip = only
-   modified/new files; CACHE/LEARNING in English inside the zip; verify
-   100% before shipping; research anything unsure; write what was
-   learned.
+**Symptom**: owner built "Android Run" from GM LTS2026 IDE; APK installs,
+app opens (splash) and closes itself after ~2-3 s, every launch. Windows
+target of the same project runs fine.
 
-## v80j — 2026-11-24 — Lessons
-1. PERSISTED LAYOUT vs NEW DEFAULTS: changing default button positions
-   only reaches fresh installs; existing saves win over defaults. Ship a
-   layoutVer (version bump in the save blob) + migration in load() that
-   (a) checks if positions are still the OLD DEFAULTS (user never
-   dragged) and only then repositions, (b) respects custom arrangements,
-   (c) persists the version so it runs once.
-2. MIGRATION COVERS ALL ENTRY PATHS: pre-v78 saves fall to the try/catch
-   (which returns the NEW default) while A/B/C load normally (old
-   defaults) — the migration's "was it untouched?" check must accept the
-   migrated value in EVERY possible V position, or you get a half-migrated
-   cluster (new V on top of old A).
-3. LAZY REGEX ON BIG FILES HANGS: (?s)prefix.*?target over a 260KB .yy
-   with 540 instances = minutes of backtracking in .NET and Python alike,
-   and it can still match the WRONG instance (bare "value":"1" appears in
-   other objects). IndexOf + block slicing is instant and unambiguous.
-4. VALIDATE LAYOUT GEOMETRICALLY: before moving buttons, script the GUI
-   size, sprite sizes and TOUCH radii (not visual radii — touch circles
-   are bigger) and check every pair. The old layout already overlapped
-   C with the right-column small-V by 15px; "copy the old spacing" would
-   have preserved a bug.
-5. MARKERS: a visible build tag did its job (proved which APK ran) and
-   should then be REMOVED in the next build once the uncertainty is
-   gone — but keep it in the repair .bat's checklist ("if you still see
-   v80i, the APK is old") as a cheap staleness test.
-6. CODE-EQUIVALENCE CHECKING: when two generators (zip files vs repair
-   .bat) must produce "the same" file, compare CODE (comments stripped,
-   blank lines stripped) — comment placement differences are cosmetic;
-   demanding byte-identity from two different patchers wastes time.
+**Root cause (verified 34/34 checks, script scripts/.../check_v79_android.py)**:
+Igor mixed TWO runtime versions inside one APK:
+- Asset compiler (writes game.droid): ran from `runtime-2026.1.0.28`.
+- Android runner files (build.gradle, Java, res, and libyoyo.so for
+  arm64+armv7): ALL 54+3 copied from `runtime-2026.0.0.23`. ZERO runner
+  files from 2026.1.0.28.
+Result: old native runner cannot parse the new compiler's object chunk
+format -> `SIGSEGV (SEGV_ACCERR)` in `CObjectGM::LoadFromChunk+764` <-
+`Object_Load` <- `LoadGameData` <- `DoTheWork` <- `BeginToEnd` <-
+`Java_com_yoyogames_runner_RunnerJNILib_Startup`. Crashes 3/3 launches at
+the same offset, BEFORE any GML executes — nothing in the repo can cause
+or fix this; it is a build-toolchain state on the owner's PC.
+Precedent class: YoYoYoGames bug #15043 (LTS 2026.0 IDE pulled runtimes
+from the wrong feed; official fix = align runtime, DELETE stale runtime
+folders, reinstall IDE if needed).
+
+**Fix given to the owner (LEEME_V79.txt)**: close GM, delete
+`C:\ProgramData\GameMakerStudio2-LTS2026\Cache\runtimes\runtime-2026.0.0.23\`,
+run IDE broom (clean asset cache), rebuild Android; uninstall old APK on
+device (or adb install -r). Confirmation tripwire: next Igor log must show
+ALL "Copying ..." lines from runtime-2026.1.0.28 (esp. jniLibs libyoyo.so)
+and none from 2026.0.0.23. Plan B: Check Android Setup + Runtime Feeds
+(single 2026.1.0.28), nuke GMS2CACHE project cache
+(`...\Cache\GMS2CACHE\Sonicexe_T_EAB73F4B`), full IDE reinstall last.
+
+**Lessons for future sessions**:
+1. "App opens then closes on Android" with a *successful* build+install =
+   read the logcat FIRST. `F DEBUG : signal 11` + a `LoadFromChunk` frame
+   in libyoyo.so = data/runner format mismatch, NOT game code. If the
+   crash is before "Game Start" (no GML ran), stop auditing GML entirely.
+2. Check Igor's "Copying ..." lines against the asset compiler's runtime
+   path — they MUST be the same runtime folder. One compiler + another
+   runner = guaranteed native crash at load.
+3. The device-side runner prints its true version: `GameMaker v1.0.0.32908`
+   (matches the OLD 2026.0.0.23 runner, not 2026.1.0.28). Cross-check it
+   when unsure which libyoyo.so got packaged.
+4. v78 integrity re-verified end-to-end during this diagnosis (rule 6):
+   .yyp 2542 resources no dupes, spr_mobile_button 8 frames + keyframes
+   0..7 + both PNGs 48x48 valid, room_menu instance V (378,121) present
+   + in instanceCreationOrder, 10 touched GML files brace/paren balanced.
+   The repo was NEVER the problem; do not "fix" it for this symptom.
+5. Room layer gotcha (burned 15 min here): room_menu nests
+   `OptionsControlsMobile` (GMRInstanceLayer) INSIDE the `Options`
+   (GMRLayer) folder — a flat scan of root layers finds 0 mobile buttons.
+   Always walk `layers` recursively (`yield from` helper).
+
+### v79 addendum — owner's question: "must I clean the cache every VM↔YYC switch (Android only? PC never needs it)"
+
+Short answer given: NO, not every time — switching VM↔YYC is supported
+without cleaning. But Android is genuinely more fragile than Windows
+here, and the v79 crash was NOT a VM↔YYC issue (that log was a pure VM
+build: output folder suffix `_VM`, assetcompiler flag `/cvm`).
+
+Why Android is the fragile one (mechanism):
+- Windows builds have ONE pipeline: assetcompiler writes game.win /
+  links the exe, runner loaded straight from the runtime folder every
+  build. No second build system, no "is this file still valid?" logic.
+- Android has THREE layers: (1) GMS2CACHE project cache holds the
+  generated gradle project with the COPIED runner files (libyoyo.so);
+  (2) gradle's own incremental build with UP-TO-DATE task skipping
+  (v79 log: 38 of 41 tasks UP-TO-DATE, only 3 executed — gradle will
+  happily skip re-copying a stale libyoyo.so it thinks is unchanged);
+  (3) temp output folders are per-build-type (`..._E732935_VM` vs
+  `..._YYC` suffix), so VM and YYC outputs don't collide — but the
+  gradle project cache layer is SHARED between them.
+- YYC on Android = no game.droid bytecode; GML is emitted as C++ and
+  compiled by the NDK into the app. Switching modes regenerates that
+  gradle project; any stale bit at that layer = startup crash or link
+  errors that "shouldn't" be there.
+
+Practical rule taught to the owner:
+- Normal GML edits, same build type, same runtime → NEVER clean
+  (incremental cache is what makes rebuilds fast).
+- After a RUNTIME UPDATE (the v79 case) → clean is mandatory + delete
+  the stale runtime folder (ProgramData runtimes are NOT touched by
+  the broom — two different caches!).
+- VM↔YYC switch on Android, arch toggles (armv7/arm64), SDK/NDK/JDK
+  or extension changes → not required, but "if the next build errors
+  or the app crash-starts with no code reason, broom + rebuild once
+  BEFORE suspecting your code" (cheap insurance, ~1 min).
+- Windows: same relaxed rule; almost never needs it for mode switches.
+
+
+### v80-next research — device identification for exclusive characters (PLAN ONLY)
+
+Owner asked: bind exclusive characters to the DEVICE because "it's the
+only thing that can't be manipulated". Verified facts before answering:
+
+1. GameMaker os_get_info() on Android has NO "udid" key (manual LTS:
+   udid exists only on Windows/macOS/Ubuntu). Our net_indentity.gml
+   Android "udid" is a concat of 7 PUBLIC Build fields (MODEL, DEVICE,
+   MANUFACTURER, BOOTLOADER...) => MODEL fingerprint, identical on two
+   same-model phones. It is NOT a per-device identifier. PC builds DO
+   send a real machine udid. Lesson: always check what an identifier
+   actually contains per-platform before trusting it for auth.
+
+2. ANDROID_ID (SSAID) facts (Android official docs): 64-bit, per-app
+   (scoped by app signature) since Android 8; survives uninstall/
+   reinstall; regenerates only on factory reset or signature rotation;
+   spoofable on rooted devices (Magisk modules). Conclusion taught to
+   owner: "device ID" is NOT unspoofable — it raises the bar a lot vs
+   a shared secret phrase, but a determined rooted user can rotate it.
+   For this game's threat model (friends sharing a phrase), device
+   binding + phrase-as-voucher is the right cost/benefit.
+
+3. Architecture recommended (NOT implemented): two-factor binding —
+   device (ANDROID_ID via ~20-line Java extension; PC udid already
+   exists) + secret phrase used ONLY to link a NEW device. Server
+   stores SHA-256(android_id + MODEL + salt), never the raw ID.
+   Fail-closed by design: unknown device => no unlock, no advantage.
+   Anti-cheat untouched (rule 7). Reuse existing patterns: amy_authed
+   bool in PeerData, server_cmd_handle for .grant/.devices/.revoke,
+   Bans.json-style Config/Devices.json, opcode appended at END of both
+   enums (v73/v74 golden rule).
+
+4. Golden rules reinforced: research the platform reality before
+   promising security properties ("no se puede manipular" was half
+   true); every security recommendation must name the threat model it
+   defends against; prefer fail-closed designs where a forged client
+   gains nothing.
+
+
+### v80b rev2 — owner's own design: character claim by device via chat command
+
+The owner came back with HER design (better fitted than my v80 draft):
+exclusive chars visible to ops + Amy-token holders ALWAYS, and anyone
+else can type ".rouge" in chat — the FIRST device to run it registers
+a claim on that character forever (survives reinstall); every other
+device gets "already claimed". One device per character.
+
+Lessons recorded:
+1. Validate the owner's design against real code before approving it.
+   Script check_v80b_rouge_design.py verified 10/10 integration points
+   in the repo (command handler template CMD_EXE, char guards, client
+   visibility function, chat flow reaching server_cmd_handle from BOTH
+   Lobby and CharSelect states). The design slots into existing
+   patterns with ~120 server lines + ~25 client lines.
+2. Command hash: server_cmd_parse uses Java hash 31*h+c over the first
+   word INCLUDING the leading dot. Verified by reproducing
+   CMD_EXE ".exe" = 1471268 exactly, then computed CMD_ROUGE
+   (".rouge") = 1425644872 and checked no collision with the other 18
+   CMD_* defines. Always recompute and check collisions when adding a
+   chat command — a collision would silently run the wrong handler.
+3. State-push pattern for client visibility: SERVER_OPERATOR_STATE is
+   sent on connect (and on .op) and processed in the MAIN switch of
+   net_tcpprocess regardless of connection state — copy this for
+   SERVER_ROUGE_STATE so the claim survives reconnects. Visibility
+   function scr_char_locked() is the single client-side gate; server
+   CharSelect.c keeps the authoritative mirror (double lock).
+4. Owner's design kills my v80 extras (link phrase, 3-device cap,
+   .grant) — simpler UX wins when the threat model is friends sharing
+   a game, not APTs. Keep: Java extension for ANDROID_ID, SHA-256+
+   salt storage, append-only packet bytes, fail-closed, anti-cheat
+   untouched (rule 7).
+
+
+### v80c — implementing the owner's device-claim design end to end
+
+Implemented .rouge (character claimed per device via chat command).
+The owner's final decision simplified my v80b plan further: claims are
+removed ONLY by deleting a line in the server's Devices.txt — no op
+commands, and the file must be .txt (not JSON) so she can edit it in
+Notepad.
+
+Lessons recorded:
+1. Verification-first workflow paid off again: the unit test caught a
+   REAL bug — include/SHA256.h used memcpy/memset with only stdint/
+   stddef included. On the Windows build another header would have
+   masked it; the sandbox gcc caught it. Always run new headers through
+   a real compiler, not just eyeball them.
+2. Writing a stub enet.h for -fsyntax-only: the struct definitions
+   matter (ENetPeer needs `void *data` AND `ENetAddress address`,
+   declare ENetAddress FIRST), and you need the enum flags
+   (ENET_PACKET_FLAG_RELIABLE) plus enet_peer_disconnect{,_now,_later}.
+   Getting the stub right turned "maybe compiles" into a conclusive
+   6/6 check.
+3. GameMaker .yy extension format: functions in AndroidSource Java are
+   kind 4; returnType 1 = string, 2 = double (verified against the 8
+   existing returnType:2 functions that all return double). A Java
+   method returning String must be returnType 1 or GML gets garbage.
+4. The Java wrapper class (${YYAndroidPackageName} template package)
+   can call Settings.Secure via RunnerJNILib.ms_activity directly — no
+   extra gradle permission needed for ANDROID_ID, and wrap it in
+   try/catch returning "" so a weird device fails closed instead of
+   crashing the runner.
+5. Protocol append discipline held: new string field in IDENTITY goes
+   BETWEEN pet and the anticheat u64s on BOTH sides in the same order,
+   new packet opcode at the END of both enums, BUILD_VERSION bumped on
+   both sides so mismatched pairs fail cleanly. This is the third time
+   this recipe works without migration code.
+6. Devices.txt reload-on-every-use (inside check/claim, under mutex)
+   is what makes "delete the line in Notepad" work without restarting
+   the server — that was an explicit owner requirement, and it costs
+   nothing at this file size. First-line-wins on duplicate character
+   entries keeps hand-edits safe.
+7. Scripted mirror checks must parse the enum BLOCK, not the file tail:
+   both Packet.h (typedef enum { ... } PacketType;) and net_packets.gml
+   (enum PacketType { ... }) have macros/definitions after the enum, so
+   endswith() on the whole file gives false negatives.
+
+## v80h2 (2026-11-24) — Lecciones del crash "argument 1 undefined"
+1. INDICE DE ARGUMENTOS: la doc oficial de errores del runner dice
+   "argument (index)... where an index of 1 is the first argument".
+   "argument 1" = PRIMER argumento (base 1). Antes asumi base 0 y diagnostique
+   la variable equivocada (obj_config.bVX en vez de _x). VERIFICAR la base
+   del indice ANTES de diagnosticar.
+2. TOUCH EN ANDROID: device_mouse_x_to_gui/y_to_gui "will only be updated
+   while the screen is being touched" (doc oficial). Un slot sin dedo puede
+   devolver undefined. TODO uso de esas funciones debe ir detras de
+   device_mouse_check_button/_pressed (el patron de los 10 botones
+   originales y de obj_game_chat del propio juego).
+3. DIAGNOSTICO SIN FUENTE = APUESTA: el v80h diagnostico bV2X undefined sin
+   tener el script real; con el repo real (AmyRose21) resulto que obj_config
+   define todo bien y la causa era otra. Regla: pedir/clonar el archivo real
+   ANTES de cerrar un diagnostico de runtime.
+4. json_parse Y CAMPOS FALTANTES: leer struct.campo cuando campo no existe
+   devuelve undefined SIN lanzar excepcion. Los try/catch del load() del
+   juego NO protegen contra 1.bson con campos faltantes. Blindar con
+   is_undefined (o variable_instance_exists para instancias).
+5. REPO REAL DEL USUARIO: github.com/AmyRose21/disaster2d-oss (fork con
+   todos nuestros parches). upstream: teamexeempire/disaster2d-oss (v110,
+   1 commit). Usar el de AmyRose como fuente de verdad y hacer fetch en
+   CADA consulta (regla 1 del usuario).
+6. VERIFICACION EN CADENA: cada fix se verifica (a) lint del snippet,
+   (b) parche sobre el archivo REAL con la MISMA logica del PowerShell,
+   (c) simulacion semantica de los casos de runtime (incluido el del bug),
+   (d) idempotencia, (e) las 3 vias de aplicacion. Solo entonces se
+   regenera el bat y se re-verifica el bat extraido.
+
+## v81 (2026-11-25) — Sonic/Kris/Sally Canon device claims — lessons
+1. EXTEND, DON'T INVENT: when the owner says "add the same system as X
+   for characters A/B/C", the correct move is to REUSE the existing
+   machinery (Devices.c unchanged — its key IS the character string)
+   and only add: one command hash per character, one peer flag per
+   character, guards, and ONE packet carrying all the new states.
+   Zero changes to the claim registry = zero new failure modes.
+2. ONE PACKET, MANY STATES: three booleans went into a single
+   SERVER_CLAIM_STATE (u8 x3) instead of three packet types. The
+   enum is a shared contract — every new member costs a BUILD_VERSION
+   bump and an "old APK can't connect" wave, so batch related states.
+3. FACTOR THE HANDLER: the 3 command cases delegate to one static
+   server_cmd_claim(v, key, name, &flag). The Rouge case kept its
+   original inline shape (untouched = unregressed); the new code is
+   one auditable function. When "same as X" is the requirement,
+   copying X three times guarantees drift; referencing X once doesn't.
+4. CHECK BOTH GATES: a character unlock lives in TWO places that must
+   stay mirrored — scr_char_locked (client carousel) AND the CharSelect
+   guard (server, anti-edited-client). This round changed both; the
+   checker asserts old operator-only guards are GONE (not just new
+   ones present), because a leftover old guard would silently win.
+5. THE REPO KEEPS DUPLICATE COPIES: the owner's repo tracks BOTH
+   scripts/foo.gml and scripts/foo/foo.gml (root + folder), identical
+   in HEAD. GameMaker only loads the folder one, but a zip that updates
+   only one side leaves the repo inconsistent — ship both, byte-equal.
+   (v80d taught the folder rule; v81 adds: check `git ls-files` for
+   mirrors before deciding the zip's file list.)
+6. VERSION BUMP IS PART OF THE PROTOCOL CHANGE: adding an enum member
+   (SERVER_CLAIM_STATE) requires BUILD_VERSION/BUILD_VER 1102->1103 on
+   BOTH sides; old APKs get "version mismatch" — intentional, same
+   policy as v80c. The server's .ver command shows it automatically
+   (STRINGIFY), no extra edit needed.
