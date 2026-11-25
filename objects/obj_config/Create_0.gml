@@ -47,22 +47,22 @@ _buffer = {
 	},
 	
 	zTouch: {
-		xx: 378,
-		yy: 221,
+		xx: 336,
+		yy: 177,
 		scale: 1,
 		opacity: 0.6
 	},
 	
 	xTouch: {
-		xx: 416,
-		yy: 187-10,
+		xx: 374,
+		yy: 127,
 		scale: 1,
 		opacity: 0.6
 	},
 	
 	cTouch: {
-		xx: 452,
-		yy: 221,
+		xx: 412,
+		yy: 177,
 		scale: 1,
 		opacity: 0.6
 	},		
@@ -102,13 +102,15 @@ _buffer = {
 		opacity: 0.6
 	},
 	
-	// v78: 4o BOTON PRINCIPAL — la V del cluster A/B/C (frames 6/7 de
-	// spr_mobile_button). Por defecto completa el rombo: V arriba (sobre A),
-	// B arriba-derecha, A/C abajo. Guardados viejos no traen la entrada: el
-	// load() de abajo la crea con estos defaults (mismo patron wTouch/vTouch).
+	// v78: 4o BOTON PRINCIPAL - la V del cluster A/B/C (frames 6/7 de
+	// spr_mobile_button). v80j (duena): V ABAJO del cluster (antes arriba):
+	// B arriba, A/C al medio, V abajo, y el cluster entero subio ~44px para
+	// no pegarse al borde. Guardados viejos no traen la entrada: el load()
+	// de abajo la crea con estos defaults (mismo patron wTouch/vTouch); los
+	// de v78-v80i se migran con layoutVer si el cluster sigue virgen.
 	vMainTouch: {
-		xx: 378,
-		yy: 121,
+		xx: 374,
+		yy: 227,
 		scale: 1,
 		opacity: 0.6
 	},
@@ -393,8 +395,8 @@ load = function(filename)
 	catch(ex) 
 	{
 		_buffer.vMainTouch = {
-			xx: 378,
-			yy: 121,
+			xx: 374,
+			yy: 227,
 			scale: 1,
 			opacity: 0.6
 		};
@@ -421,6 +423,33 @@ load = function(filename)
 		
 		bChatX = _buffer.chatTouch.xx;
 		bChatY = _buffer.chatTouch.yy;
+	}
+
+	// v80j LAYOUT MIGRATION: los guardados v78-v80i traen el rombo viejo
+	// (V arriba en 378,121 y A/B/C abajo). Si la duena no arrastro el
+	// cluster a mano (posiciones == viejas por defecto), se reposiciona al
+	// layout nuevo (B arriba, V abajo, subido 44px). Si lo movio, se
+	// respeta su arrangement y solo se marca layoutVer para no volver a
+	// mirar. Cualquier otro boton (W, V pequena, chat, dpad) ni se toca.
+	var _layoutVer = 1;
+	try { _layoutVer = _buffer.layoutVer; } catch(ex2) { }
+	if(_layoutVer < 2)
+	{
+		var _oldCluster = (bAX == 378 && bAY == 221 && bBX == 416 && bBY == 177
+			&& bCX == 452 && bCY == 221
+			// V en su default VIEJO (guardado v78-v80i) o en el NUEVO (catch
+			// de guardados pre-v78, que ya da 374/227): en ambos casos A/B/C
+			// siguen viejos y hay que migrar los 4 juntos (si no, la V nueva
+			// caeria encima de la A vieja)
+			&& ((bV2X == 378 && bV2Y == 121) || (bV2X == 374 && bV2Y == 227)));
+		if(_oldCluster)
+		{
+			bAX = 336; bAY = 177;
+			bBX = 374; bBY = 127;
+			bCX = 412; bCY = 177;
+			bV2X = 374; bV2Y = 227;
+		}
+		try { _buffer.layoutVer = 2; } catch(ex3) { }
 	}
 
 	global.nickname = scr_nickname_validate(nickname);
@@ -522,6 +551,9 @@ save = function()
 	// [v1.4 IN-GAME CHAT]
 	_buffer.chatTouch.xx = bChatX;
 	_buffer.chatTouch.yy = bChatY;
+	
+	// v80j: layout del cluster aplicado (para no re-migrar)
+	_buffer.layoutVer = 2;
 	
 	try
 	{

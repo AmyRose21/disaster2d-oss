@@ -28,16 +28,3 @@ if(global.showHud && isMobile)
 			draw_sprite_ext(spr_mobile_button, VTouchId == -1 ? 6 : 7, obj_config.bV2X, obj_config.bV2Y, obj_config.bV2Scale, obj_config.bV2Scale, 0, c_white, VTouchId == -1 ? obj_config.bV2Opacity : obj_config.bV2Opacity + 0.15);
 	}
 }
-
-// v80i BUILD TAG: verificacion visual de que el APK lleva ESTE archivo.
-// Si la esquina inferior-izquierda NO dice "v80i", el telefono esta
-// corriendo un APK viejo (desinstalalo antes de instalar el nuevo).
-// Semitransparente, pequeno, solo Android, siempre visible (fuera del
-// if del HUD para que se vea aunque el HUD este escondido).
-if(isMobile)
-{
-	draw_set_alpha(0.55);
-	draw_set_halign(fa_left);
-	draw_text(4, room_height - 14, "v80i");
-	draw_set_alpha(1);
-}

@@ -2488,3 +2488,64 @@ DECISION RULE for future crash reports (scr_controls_update_touch):
 FILES CHANGED BY v80i: scripts/scr_controls_update_touch/
 scr_controls_update_touch.gml, objects/obj_controls/Draw_64.gml,
 reparar_disaster2d.bat (v80g -> v80i). Nothing else.
+
+## v80j — 2026-11-24 — marker OUT, V-below cluster layout + layoutVer migration
+
+CONTEXT: user confirmed v80i works (crash gone, marker visible). Two new
+requests: (1) remove the on-screen "v80i" marker, (2) move the main V
+button BELOW the A/B/C cluster and raise the cluster a bit ("subir un
+poco el tema de los botones para que no esten tan abajo").
+
+LAYOUT (validated geometrically against GUI 480x270, sprites 48px main,
+touch radii 40 main / 22 emoticons; layout_v80j.py):
+  OLD: A(378,221) B(416,177) C(452,221) V(378,121)  [V on top]
+  NEW: A(336,177) B(374,127) C(412,177) V(374,227)  [B top, V bottom]
+  - cluster moved LEFT ~40px and UP 44-50px (old C at 452 overlapped the
+    right column's small-V touch circle by 15px; left+up clears it).
+  - right column (D/E/F/W/Vsmall/chat) and dpad: UNTOUCHED.
+  - old V spot (378,121) now lands on B: correct, V moved on purpose.
+
+FILES:
+  - objects/obj_controls/Draw_64.gml: BUILD TAG removed (file back to
+    pre-v80i shape; that's the whole change).
+  - objects/obj_config/Create_0.gml: defaults zTouch/xTouch/cTouch/
+    vMainTouch updated; catch-of-load default updated; NEW layoutVer
+    migration at the end of load() — if the saved 1.bson still has the
+    cluster in the OLD default positions AND the user never dragged the
+    buttons, reposition all 4 to the new layout; if the user moved them,
+    respect their arrangement; save() persists layoutVer=2 so it never
+    re-checks. V condition accepts old (378,121) OR new (374,227) V
+    default because pre-v78 saves fall to the catch (which now returns
+    the NEW position) — without that OR the V would sit on top of old A.
+  - scripts/scr_controls_init_touch.gml: mirror values + comments
+    (mirrors are documentation only; obj_config is the source of truth).
+  - rooms/room_menu/room_menu.yy: the 4 drag handles (bid 1/2/3/10 of
+    obj_menu_mobilebutton) moved to the new positions.
+  - reparar_disaster2d.bat: v80i -> v80j. PASO 5d (layout: obj_config +
+    init_touch + room handles), PASO 5e (remove marker). PASO 5b/5c
+    (crash fix + marker install) kept intact for anyone still on old
+    scripts. PASO 6b now says "if you still SEE the v80i marker, the APK
+    is old".
+
+VERIFICATION:
+  - verify_bat_v80j.py: replicates the .bat's 5d/5e regex/slicing on the
+    3 possible PC states (v80i LF / v80i CRLF / already-v80j). obj_config
+    + init_touch: CODE identical to the zip files (comment-only lines
+    differ where the zip rewrites docs and the .bat doesn't). room_menu:
+    byte-identical. Idempotent. Draw_64 tag removal exact.
+  - ROOM HANDLES BY INDEX, NOT REGEX: the first lazy-dot regex
+    ((?s)"value":"1",}.*?"x":...) hung for minutes on the 260KB .yy (and
+    would hang PowerShell the same way) AND matched a wrong instance
+    (first "value":"1" in the file belongs to another object at x=414).
+    Fixed: find "obj_menu_mobilebutton" blocks via IndexOf, check bid
+    inside the block, patch x/y by slicing. Instant.
+  - Re-simulated the GM runtime (sim_v80i.py harness) with the NEW
+    layout: each cluster button fires in its new position, old V spot
+    now fires B (correct), 8 crash scenarios still clean, 4-finger
+    cluster simultaneous press works.
+  - Lint: braces/parens balanced on all 3 .gml; room_menu.yy still valid
+    JSON (after trailing-comma strip).
+
+LESSON (see LEARNING): touching positions of persisted-layout buttons
+requires a versioned migration with a "user actually moved it?" guard,
+otherwise the fix only reaches fresh installs.

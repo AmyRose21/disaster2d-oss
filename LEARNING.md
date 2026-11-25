@@ -722,3 +722,33 @@ can pick up where we left off. Written in English on purpose (owner's rule #5).
    modified/new files; CACHE/LEARNING in English inside the zip; verify
    100% before shipping; research anything unsure; write what was
    learned.
+
+## v80j — 2026-11-24 — Lessons
+1. PERSISTED LAYOUT vs NEW DEFAULTS: changing default button positions
+   only reaches fresh installs; existing saves win over defaults. Ship a
+   layoutVer (version bump in the save blob) + migration in load() that
+   (a) checks if positions are still the OLD DEFAULTS (user never
+   dragged) and only then repositions, (b) respects custom arrangements,
+   (c) persists the version so it runs once.
+2. MIGRATION COVERS ALL ENTRY PATHS: pre-v78 saves fall to the try/catch
+   (which returns the NEW default) while A/B/C load normally (old
+   defaults) — the migration's "was it untouched?" check must accept the
+   migrated value in EVERY possible V position, or you get a half-migrated
+   cluster (new V on top of old A).
+3. LAZY REGEX ON BIG FILES HANGS: (?s)prefix.*?target over a 260KB .yy
+   with 540 instances = minutes of backtracking in .NET and Python alike,
+   and it can still match the WRONG instance (bare "value":"1" appears in
+   other objects). IndexOf + block slicing is instant and unambiguous.
+4. VALIDATE LAYOUT GEOMETRICALLY: before moving buttons, script the GUI
+   size, sprite sizes and TOUCH radii (not visual radii — touch circles
+   are bigger) and check every pair. The old layout already overlapped
+   C with the right-column small-V by 15px; "copy the old spacing" would
+   have preserved a bug.
+5. MARKERS: a visible build tag did its job (proved which APK ran) and
+   should then be REMOVED in the next build once the uncertainty is
+   gone — but keep it in the repair .bat's checklist ("if you still see
+   v80i, the APK is old") as a cheap staleness test.
+6. CODE-EQUIVALENCE CHECKING: when two generators (zip files vs repair
+   .bat) must produce "the same" file, compare CODE (comments stripped,
+   blank lines stripped) — comment placement differences are cosmetic;
+   demanding byte-identity from two different patchers wastes time.

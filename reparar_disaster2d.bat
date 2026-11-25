@@ -1,5 +1,5 @@
 @echo off
-title Reparador automatico disaster2d v80i
+title Reparador automatico disaster2d v80j
 set "PSF=%TEMP%\d2d_repair.ps1"
 more +13 "%~f0" > "%PSF%"
 if errorlevel 1 goto :err
@@ -12,10 +12,10 @@ echo ERROR: no se pudo extraer el reparador. Copiame a una ruta normal y ejecuta
 pause
 exit /b 1
 # ============================================================
-#  REPARADOR AUTOMATICO disaster2d + GameMaker (v80i)
+#  REPARADOR AUTOMATICO disaster2d + GameMaker (v80j)
 #  2026-11-24. Repara: cache Gradle rota, exclusiones antivirus,
-#  DisasterServer.java v80g (reflection) + fix v80i del crash del boton V
-#  (SLOT-SANITIZE + V-GUARD + BUILD TAG en pantalla),
+#  DisasterServer.java v80g (reflection) + fix v80i del crash (intacto)
+#  + layout v80j: V abajo del cluster A/B/C, cluster subido, marcador fuera,
 #  compila capturando el error REAL de javac y autodiagnostica.
 # ============================================================
 $ErrorActionPreference = 'Continue'
@@ -29,7 +29,7 @@ function Warn($m) { Write-Host ('  [AVISO] ' + $m) -ForegroundColor Yellow }
 function Info($m) { Write-Host ('          ' + $m) }
 
 Write-Host '========================================================='
-Write-Host '   REPARADOR AUTOMATICO  disaster2d  (v80i)'
+Write-Host '   REPARADOR AUTOMATICO  disaster2d  (v80j)'
 Write-Host '========================================================='
 Write-Host ''
 
@@ -410,6 +410,191 @@ if(isMobile)
 }
 Write-Host ''
 
+# ---------- PASO 5d: layout v80j del cluster (V abajo, cluster subido) ----------
+Write-Host '--- PASO 5d: layout v80j (V abajo del cluster, subido ~44px) ---'
+$cfgPath = Join-Path $projRoot 'objects\obj_config\Create_0.gml'
+if (-not (Test-Path -LiteralPath $cfgPath)) { Warn 'No encuentro objects\obj_config\Create_0.gml. Layout no aplicado.' }
+elseif (([IO.File]::ReadAllText($cfgPath)) -match 'v80j LAYOUT MIGRATION') { Ok 'obj_config ya tiene el layout v80j.' }
+else {
+    $c = [IO.File]::ReadAllText($cfgPath)
+    $bak = $cfgPath + '.bak_' + $stamp
+    Copy-Item -LiteralPath $cfgPath -Destination $bak -Force
+    $okLayout = $true
+
+    # defaults zTouch(A)/xTouch(B)/cTouch(C): xx y yy nuevos (escala/opacity intactos)
+    foreach ($kv in @(
+        @{ key='zTouch'; ox=378; nx=336; ny=177 },
+        @{ key='xTouch'; ox=416; nx=374; ny=127 },
+        @{ key='cTouch'; ox=452; nx=412; ny=177 }
+    )) {
+        $pat = '(?m)^\t' + $kv.key + ': \{\r?\n\t\txx: ' + $kv.ox + ',\r?\n\t\tyy: [0-9+\-*/ ]+,(\r?\n\t\tscale: 1,\r?\n\t\topacity: 0\.6\r?\n\t\},)'
+        $rep = "`t" + $kv.key + ": {`r`n`t`txx: " + $kv.nx + ",`r`n`t`tyy: " + $kv.ny + ",`$1"
+        $c2 = [regex]::Replace($c, $pat, $rep, 1)
+        if ($c2 -eq $c) { $okLayout = $false; Bad ('default ' + $kv.key + ' (xx ' + $kv.ox + ') no encontrado.') }
+        $c = $c2
+    }
+
+    # default vMainTouch (V): 378/121 -> 374/227
+    $patV = '(?m)^\tvMainTouch: \{\r?\n\t\txx: 378,\r?\n\t\tyy: 121,'
+    $c2 = [regex]::Replace($c, $patV, "`tvMainTouch: {`r`n`t`txx: 374,`r`n`t`tyy: 227,", 1)
+    if ($c2 -eq $c) { $okLayout = $false; Bad 'default vMainTouch (378/121) no encontrado.' }
+    $c = $c2
+
+    # catch del load (guardados pre-v78): mismo default nuevo
+    $patC = '(?m)^\t\t_buffer\.vMainTouch = \{\r?\n\t\t\txx: 378,\r?\n\t\t\tyy: 121,'
+    $c2 = [regex]::Replace($c, $patC, "`t`t_buffer.vMainTouch = {`r`n`t`t`txx: 374,`r`n`t`t`tyy: 227,", 1)
+    if ($c2 -eq $c) { $okLayout = $false; Bad 'catch vMainTouch no encontrado.' }
+    $c = $c2
+
+    # migracion layoutVer: insertar justo antes del final del load()
+    $mig = @'
+	// v80j LAYOUT MIGRATION: los guardados v78-v80i traen el rombo viejo
+	// (V arriba en 378,121 y A/B/C abajo). Si la duena no arrastro el
+	// cluster a mano (posiciones == viejas por defecto), se reposiciona al
+	// layout nuevo (B arriba, V abajo, subido 44px). Si lo movio, se
+	// respeta su arrangement y solo se marca layoutVer para no volver a
+	// mirar. Cualquier otro boton (W, V pequena, chat, dpad) ni se toca.
+	var _layoutVer = 1;
+	try { _layoutVer = _buffer.layoutVer; } catch(ex2) { }
+	if(_layoutVer < 2)
+	{
+		var _oldCluster = (bAX == 378 && bAY == 221 && bBX == 416 && bBY == 177
+			&& bCX == 452 && bCY == 221
+			// V en su default VIEJO (guardado v78-v80i) o en el NUEVO (catch
+			// de guardados pre-v78, que ya da 374/227): en ambos casos A/B/C
+			// siguen viejos y hay que migrar los 4 juntos (si no, la V nueva
+			// caeria encima de la A vieja)
+			&& ((bV2X == 378 && bV2Y == 121) || (bV2X == 374 && bV2Y == 227)));
+		if(_oldCluster)
+		{
+			bAX = 336; bAY = 177;
+			bBX = 374; bBY = 127;
+			bCX = 412; bCY = 177;
+			bV2X = 374; bV2Y = 227;
+		}
+		try { _buffer.layoutVer = 2; } catch(ex3) { }
+	}
+
+'@
+    # el final del load: nickname validate + cierre + save (con \r?\n)
+    $tailPat = '(?m)(^\tglobal\.nickname = scr_nickname_validate\(nickname\);\r?\n^\}\r?\n\r?\n^save = function\(\))'
+    $m = [regex]::Match($c, $tailPat)
+    if (-not $m.Success) { $okLayout = $false; Bad 'No encontre el final del load() en obj_config.' }
+    else { $c = $c.Substring(0, $m.Index) + $mig + $c.Substring($m.Index) }
+
+    # save(): persistir layoutVer tras chatTouch
+    $savePat = '(?m)^\t_buffer\.chatTouch\.xx = bChatX;\r?\n^\t_buffer\.chatTouch\.yy = bChatY;\r?\n'
+    $m2 = [regex]::Match($c, $savePat)
+    if (-not $m2.Success) { $okLayout = $false; Bad 'No encontre el save() de chatTouch.' }
+    else {
+        $saveAdd = "`t// v80j: layout del cluster aplicado (para no re-migrar)`r`n`t_buffer.layoutVer = 2;`r`n"
+        $c = $c.Substring(0, $m2.Index + $m2.Length) + $saveAdd + $c.Substring($m2.Index + $m2.Length)
+    }
+
+    if ($okLayout) {
+        [IO.File]::WriteAllText($cfgPath, $c)
+        if (([IO.File]::ReadAllText($cfgPath)) -match 'v80j LAYOUT MIGRATION') {
+            Ok ('layout v80j en obj_config (copia vieja en ' + (Split-Path $bak -Leaf) + ').')
+        } else { Bad ('El layout no quedo escrito; restaura ' + $bak) }
+    } else { Bad ('obj_config no tocado (restaura ' + $bak + ' si hace falta).') }
+}
+
+# init_touch: espejos documentales (lo real vive en obj_config)
+$initPath = Join-Path $projRoot 'scripts\scr_controls_init_touch\scr_controls_init_touch.gml'
+if (-not (Test-Path -LiteralPath $initPath)) { Warn 'No encuentro scr_controls_init_touch.gml. Espejos no actualizados.' }
+elseif (([IO.File]::ReadAllText($initPath)) -match 'v80j') { Ok 'init_touch ya tiene los espejos v80j.' }
+else {
+    $s = [IO.File]::ReadAllText($initPath)
+    $ibak = $initPath + '.bak_' + $stamp
+    Copy-Item -LiteralPath $initPath -Destination $ibak -Force
+    $okInit = $true
+    foreach ($p in @(
+        @('bAX = 378;(\r?\n\t)bAY = 196\+25;', 'bAX = 336; // v80j: espejo documental (lo real vive en obj_config)$1bAY = 177;'),
+        @('bBX = 416;(\r?\n\t)bBY = 146\+25;', 'bBX = 374; // v80j$1bBY = 127;'),
+        @('bCX = 452;(\r?\n\t)bCY = 196\+25;', 'bCX = 412; // v80j$1bCY = 177;'),
+        @('bV2X = 378;(\r?\n\t)bV2Y = 121;', 'bV2X = 374; // v80j: V abajo del cluster$1bV2Y = 227;')
+    )) {
+        $s2 = [regex]::Replace($s, $p[0], $p[1], 1)
+        if ($s2 -eq $s) { $okInit = $false; Bad ('init_touch: no encontre ' + $p[0].Split("`r")[0]) }
+        $s = $s2
+    }
+    if ($okInit) {
+        [IO.File]::WriteAllText($initPath, $s)
+        Ok ('init_touch espejos v80j (copia vieja en ' + (Split-Path $ibak -Leaf) + ').')
+    } else { Bad ('init_touch no tocado; restaura ' + $ibak) }
+}
+
+# room_menu: mover los 4 handles (bid 1/2/3/10) - por INDICES (el regex
+# perezoso sobre 260KB se cuelga; mismo problema tendria en PowerShell)
+$roomPath = Join-Path $projRoot 'rooms\room_menu\room_menu.yy'
+if (-not (Test-Path -LiteralPath $roomPath)) { Warn 'No encuentro rooms\room_menu\room_menu.yy. Handles no movidos.' }
+else {
+    $r = [IO.File]::ReadAllText($roomPath)
+    if ($r -match '"x":336\.0,"y":177\.0') { Ok 'room_menu ya tiene los handles v80j.' }
+    else {
+        $rbak = $roomPath + '.bak_' + $stamp
+        Copy-Item -LiteralPath $roomPath -Destination $rbak -Force
+        $okRoom = $true
+        foreach ($mv in @(
+            @('1',  '378.0', '221.0', '336.0', '177.0'),
+            @('2',  '416.0', '171.0', '374.0', '127.0'),
+            @('3',  '452.0', '221.0', '412.0', '177.0'),
+            @('10', '378.0', '121.0', '374.0', '227.0')
+        )) {
+            # localizar el bloque del handle: objectId obj_menu_mobilebutton
+            # (no mobilebutton2) cuyo property value sea este bid; el x/y
+            # esta tras resourceType GMRInstance del mismo bloque
+            $oi = $r.IndexOf('"name":"obj_menu_mobilebutton"')
+            $found = $false
+            while ($oi -ge 0) {
+                $blkEnd = $r.IndexOf('"x":', $oi)
+                $blk = $r.Substring($oi, $blkEnd - $oi)
+                if ($blk -match ('"value":"' + $mv[0] + '",}') -and $blk -notmatch 'mobilebutton2') {
+                    # x/y justo tras este punto
+                    $m2 = [regex]::Match($r.Substring($blkEnd, 60), ('"x":' + [regex]::Escape($mv[1]) + ',"y":' + [regex]::Escape($mv[2]) + ',\}'))
+                    if ($m2.Success) {
+                        $at = $blkEnd + $m2.Index
+                        $len = $m2.Length
+                        $r = $r.Substring(0, $at) + ('"x":' + $mv[3] + ',"y":' + $mv[4] + ',}') + $r.Substring($at + $len)
+                        $found = $true
+                        break
+                    }
+                }
+                $oi = $r.IndexOf('"name":"obj_menu_mobilebutton"', $oi + 1)
+            }
+            if (-not $found) { $okRoom = $false; Bad ('room_menu: no encontre handle bid ' + $mv[0]) }
+        }
+        if ($okRoom) {
+            [IO.File]::WriteAllText($roomPath, $r)
+            Ok ('handles del cluster movidos (copia vieja en ' + (Split-Path $rbak -Leaf) + ').')
+        } else { Bad ('room_menu no tocado; restaura ' + $rbak) }
+    }
+}
+Write-Host ''
+
+# ---------- PASO 5e: quitar el BUILD TAG v80i ----------
+Write-Host '--- PASO 5e: quitar el marcador v80i de pantalla ---'
+$drawPath = Join-Path $projRoot 'objects\obj_controls\Draw_64.gml'
+if (-not (Test-Path -LiteralPath $drawPath)) { Warn 'No encuentro objects\obj_controls\Draw_64.gml.' }
+else {
+    $d = [IO.File]::ReadAllText($drawPath)
+    $i = $d.IndexOf("`n`n// v80i BUILD TAG:")
+    if ($i -lt 0) { Ok 'Draw_64 no tiene marcador (ya limpio).' }
+    else {
+        $dbak = $drawPath + '.bak_' + $stamp
+        Copy-Item -LiteralPath $drawPath -Destination $dbak -Force
+        $d2 = $d.Substring(0, $i + 1)
+        if ($d2.EndsWith("}")) {
+            [IO.File]::WriteAllText($drawPath, $d2)
+            if (([IO.File]::ReadAllText($drawPath)) -notmatch 'BUILD TAG') {
+                Ok ('Marcador v80i quitado (copia vieja en ' + (Split-Path $dbak -Leaf) + ').')
+            } else { Bad ('No se quito del todo; restaura ' + $dbak) }
+        }
+        else { Bad 'Estructura inesperada al final de Draw_64; no lo toco. Avisa.' }
+    }
+}
+Write-Host ''
+
 # ---------- PASO 6: espacio en disco ----------
 Write-Host '--- PASO 6: espacio en disco ---'
 $d = Get-PSDrive C
@@ -417,16 +602,14 @@ $freeGB = [math]::Round($d.Free / 1GB, 1)
 if ($freeGB -lt 5) { Warn ('Solo ' + [string]$freeGB + ' GB libres en C: (Gradle quiere 5 o mas).') } else { Ok ([string]$freeGB + ' GB libres en C:.') }
 Write-Host ''
 
-# ---------- PASO 6b: recordatorio anti-APK-viejo ----------
-Write-Host '--- PASO 6b: importantisimo antes de probar en el telefono ---'
-Warn 'Si NO desinstalas el APK viejo antes de instalar el nuevo, Android'
-Warn 'puede conservar datos del anterior y levantar el juego VIEJO: el crash'
-Warn 'seguiria pareciendo "sin arreglar". Pasos:'
-Info '  1. Desinstala el juego del telefono (manten el icono -> Desinstalar).'
-Info '  2. Recompila desde GameMaker (el .gml ya tiene el fix v80i).'
-Info '  3. Instala el APK NUEVO y mira la esquina INFERIOR-IZQUIERDA:'
-Info '       - dice "v80i"  -> el APK nuevo esta corriendo (y ya sin crash).'
-Info '       - NO dice nada -> APK VIEJO: la instalacion conservo el anterior.'
+# ---------- PASO 6b: recordatorio antes de probar ----------
+Write-Host '--- PASO 6b: antes de probar en el telefono ---'
+Info '  1. Recompila desde GameMaker con estos archivos.'
+Info '  2. El marcador v80i YA NO aparece (se quito en v80j): si lo ves,'
+Info '     el APK es el v80i viejo -> recompila de nuevo.'
+Info '  3. Layout nuevo: B arriba, A y C al medio, V ABAJO, cluster ~44px'
+Info '     mas arriba. Tu guardado se migra solo si NO moviste los botones'
+Info '     a mano (si los moviste, se respetan como los dejaste).'
 Write-Host ''
 
 # ---------- FINAL ----------

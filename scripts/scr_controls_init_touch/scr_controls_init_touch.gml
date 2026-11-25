@@ -4,18 +4,18 @@ function scr_controls_init_touch()
 	dpadX = 68;
 	dpadY = 162+25;
 	
-	bAX = 378;
-	bAY = 196+25;
+	bAX = 336; // v80j: espejo documental (lo real vive en obj_config)
+	bAY = 177;
 	bAScale = 1;
 	bAOpacity = 0.5;
 	
-	bBX = 416;
-	bBY = 146+25;
+	bBX = 374; // v80j
+	bBY = 127;
 	bBScale = 1;
 	bBOpacity = 0.5;
 	
-	bCX = 452;
-	bCY = 196+25;
+	bCX = 412; // v80j
+	bCY = 177;
 	bCScale = 1;
 	bCOpacity = 0.5;
 	
@@ -51,14 +51,15 @@ function scr_controls_init_touch()
 	bVScale = 1;
 	bVOpacity = 0.5;
 	
-	// v78 (duena): 4o BOTON PRINCIPAL — la V del cluster A/B/C (frames 6/7
-	// de spr_mobile_button). Por defecto completa el rombo: V arriba (sobre
-	// A), B arriba-derecha, A/C abajo. Posicion/scale/opacity de verdad
-	// viven en obj_config.vMainTouch (bV2X/bV2Y/bV2Scale/bV2Opacity); el
-	// handle de Options > Controls se arrastra con obj_menu_mobilebutton
-	// bid 10. Misma KeyV (VPressed) que el boton pequeno de la columna.
-	bV2X = 378;
-	bV2Y = 121;
+	// v78 (duena): 4o BOTON PRINCIPAL - la V del cluster A/B/C (frames 6/7
+	// de spr_mobile_button). v80j (duena): V ABAJO del cluster (antes
+	// arriba), cluster subido ~44px (B arriba, A/C al medio, V abajo).
+	// Posicion/scale/opacity de verdad viven en obj_config.vMainTouch
+	// (bV2X/bV2Y/bV2Scale/bV2Opacity); el handle de Options > Controls se
+	// arrastra con obj_menu_mobilebutton bid 10. Misma KeyV (VPressed) que
+	// el boton pequeno de la columna.
+	bV2X = 374; // v80j: V abajo del cluster
+	bV2Y = 227;
 	bV2Scale = 1;
 	bV2Opacity = 0.5;
 	
