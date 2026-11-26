@@ -870,20 +870,15 @@ break;
                         // (scr_sally_special), asi que usa sus mismos iconos del
                         // HUD: la PATADA (tecla X, ver scr_sally_special) y el
                         // ESCUDO (tecla C). El relleno de cada icono muestra el
-                        // CD que le falta; blanco = listo. La patada es AEREA en
-                        // fase 1 (roja en el suelo, como la de Sally); en fase
-                        // DUELISTA tambien vale en tierra (blanca en el suelo).
+                        // CD que le falta; blanco = listo. La patada vale en el
+                        // AIRE y EN TIERRA desde la fase 1 (v84: antes la de
+                        // tierra era solo de la fase duelista).
                         var val = scr_esbirro_hud(global.player) ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
                         var prog = 1.0 - (max(global.player.attackTimer, 0) / val);
 
                         var b = c_red;
                         if(prog == 1.0)
                                 b = c_white;
-
-                        // v5.4: en fase duelista la patada en tierra existe:
-                        // el icono va listo aun parado
-                        if(global.player.isGrounded && !global.player.duelista)
-                                b = c_red;
 
                         drawKeyIcon(spr_gui_sallyattack, scr_esbirro_hud(global.player), 17, global.KeyB, prog * 10, 240 - _ico, b, prog, 0);
 

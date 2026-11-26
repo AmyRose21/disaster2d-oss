@@ -3197,17 +3197,22 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         // SU simulacion local de Chocola (misma tecnica que las
                                         // senales del parry/carry). El de SUPPORT se deriva del
                                         // snd_creamring que Vanilla ya emite al invocar anillos.
-                                        if(global.net_snds[sid] == snd_mermer)
+                                        // v84: cada senal lleva ahora el gate del personaje del puppet EMISOR
+                                        // (mermer/ready/npteleport = Vanilla; achivement = Cream; dive = Vanilla
+                                        // o Cream): un sonido igual emitido por otro personaje ya no dispara
+                                        // eventos de Chocola en las pantallas ajenas (el sonido en si sigue
+                                        // sonando igual).
+                                        if(global.net_snds[sid] == snd_mermer && character == CHARACTER_VANILLA)
                                                 scr_chocola_net_event(CHOCOLA_NET_HUNT, master_id);
-                                        else if(global.net_snds[sid] == snd_ready)
+                                        else if(global.net_snds[sid] == snd_ready && character == CHARACTER_VANILLA)
                                                 scr_chocola_net_event(CHOCOLA_NET_GO_CREAM, master_id);
-                                        else if(global.net_snds[sid] == snd_npteleport)
+                                        else if(global.net_snds[sid] == snd_npteleport && character == CHARACTER_VANILLA)
                                                 scr_chocola_net_event(CHOCOLA_NET_RECALL, master_id);
-                                        else if(global.net_snds[sid] == snd_achivement)
+                                        else if(global.net_snds[sid] == snd_achivement && character == CHARACTER_CREAM)
                                                 scr_chocola_net_event(CHOCOLA_NET_DUTY_DONE, master_id);
                                         else if(global.net_snds[sid] == snd_creamring && character == CHARACTER_VANILLA)
                                                 scr_chocola_net_event(CHOCOLA_NET_SUPPORT, master_id);
-                                        else if(global.net_snds[sid] == snd_chocola_dive)
+                                        else if(global.net_snds[sid] == snd_chocola_dive && (character == CHARACTER_VANILLA || character == CHARACTER_CREAM))
                                                 scr_chocola_net_event(CHOCOLA_NET_HUNT_SMALL, master_id);
                                         // v46 (LOVE de Kris): la SENAL SILENCIOSA de subida de
                                         // LV. La emite el cliente del propio Kris con

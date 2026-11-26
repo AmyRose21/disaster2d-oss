@@ -1,0 +1,162 @@
+LEEME v84 - Vanilla ya posee a Chocola desde el principio + Amelia (auras) + respaldo
+================================================================================
+Repositorio: https://github.com/AmyRose21/disaster2d-oss
+Base: commit b3ab984d de la rama main (tu version v83, ya aplicada). Fecha: 2026-11-26.
+Idioma de CACHE.md y LEARNING.md: ingles (como pediste).
+El icono animado de Chocola del HUD (lo que te gusto de la v83) NO se toco: sigue igual.
+
+QUE HAY EN LA ENTREGA
+---------------------
+1. disaster2d-oss_v84.zip
+   SOLO archivos modificados o creados (regla 2), con su ruta completa dentro del repo:
+     scripts/scr_chocola/scr_chocola.gml                    (modificado)
+     objects/obj_vanilla/Create_0.gml                       (modificado)
+     objects/obj_chocola/Create_0.gml                       (modificado)
+     scripts/net_udpprocess/net_udpprocess.gml              (modificado)
+     scripts/net_state_game/net_state_game.gml              (modificado)
+     scripts/scr_amelia_special/scr_amelia_special.gml      (modificado)
+     objects/obj_amelia/Create_0.gml                         (modificado)
+     objects/obj_amelia_auras/Create_0.gml                   (reescrito)
+     objects/obj_amelia_auras/Step_0.gml                    (reescrito)
+     objects/obj_amelia_auras/Draw_64.gml                   (reescrito)
+     objects/obj_amelia_indicators/Draw_64.gml              (modificado)
+     betterserver-oss/include/Server.h                      (modificado, servidor)
+     betterserver-oss/disasterserver/states/Game.c          (modificado, servidor)
+     CACHE.md, LEARNING.md, worklog.md                      (reglas 4, 5 y 9)
+     LEEME_V84_VANILLA_CHOCOLA_AMELIA.txt                   (este archivo)
+     check_v84.py                                           (validador: python check_v84.py .)
+   NO se toco ningun .yy ni .yyp, no se agrego ningun asset ni script ni paquete,
+   y BUILD_VERSION sigue en 1102: un cliente v84 y uno v83 pueden jugar juntos.
+2. respaldo_v84_originales_b3ab984d.zip
+   Las versiones ORIGINALES de los 13 archivos de codigo, sacadas del commit b3ab984d.
+   Para deshacer la v84: copia esos archivos sobre el repo.
+3. INFORME_CHECK_V84.txt: salida completa del validador (ALL PASS, 141 comprobaciones).
+
+COMO INSTALAR
+-------------
+1. Descomprime disaster2d-oss_v84.zip sobre la raiz del proyecto (la carpeta donde
+   esta el .yyp). Las rutas ya vienen completas.
+2. Si montas tu propio servidor: RECOMPILA betterserver-oss (cambios en
+   include/Server.h y states/Game.c). El cambio de Server.h solo agranda un array
+   INTERNO del server (plr_cooldowns): no cambia nada del protocolo de red, pero el
+   binario viejo no tiene las 2 reglas nuevas.
+3. El push a GitHub lo haces tu.
+
+ORDEN 1 - VANILLA YA POSEE A CHOCOLA DESDE EL PRINCIPIO
+-------------------------------------------------------
+V1  Chocola nace con Vanilla. En TU pantalla la crea el Create de Vanilla; en las
+    demas pantallas la crea el receptor de datos del puppet de Vanilla, en su
+    posicion real, con su PRIMER paquete de la ronda. Antes Chocola solo existia
+    despues de la primera paciencia: el bloqueo del 65% y el ataque cercano del 33%
+    estaban muertos durante TODO el inicio de partida. Ahora son tuyos desde el
+    frame 0.
+V2  Auto-curacion de la pasiva. Si la Vanilla de una pantalla se queda sin datos
+    mas de 1 s (lag feo o desconexion), Chocola se autodestruye como siempre; pero
+    en cuanto los datos vuelven, se vuelve a crear SOLA. Antes habia que esperar a
+    una senal de red que ya nunca llegaba.
+V3  La paciencia sigue existiendo (tecla/primera caida, 1 vez por ronda) pero ahora
+    es SOLO EL GESTO, tal como pediste: quieta, enojada e inmune sus 5 s seguidos
+    (sin reloj congelado y sin lanzar a Chocola a stunar al exe), despues la fase
+    agotada de 1 s y se levanta con su cura como siempre.
+V4  La tecla V no cambia (ir a proteger a Cream / llamarla de vuelta) y el icono
+    animado del HUD tampoco: empieza blanco (Chocola en casa) desde el principio.
+    Comentarios viejos corregidos (el del stun de la mini-embestida decia 1.5 s y
+    en realidad son 2.5 s al exe / 3.5 s a un esbirro).
+
+ORDEN 2 - AMELIA: QoL + MEJORA GENERAL + BLINDAJE ANTI-CRASHEOS
+---------------------------------------------------------------
+A1  MARCADORES DE BORDE. Hasta ahora un aura que quedaba fuera de tu pantalla
+    simplemente NO se veia (con radio de vision de 350 px y una vista de 480x270,
+    la mayoria de las detecciones estan fuera!). Ahora cada firma fuera de la
+    pantalla tiene una flechita fina clavada en el borde, del color que toca,
+    apuntando hacia ella desde tu posicion.
+A2  DESTELLO DE ENTRADA. Cuando aparece una firma nueva (el exe entra a tu radio,
+    un esbirro se levanta), su aura brilla un instante mas: ya no se te escapa.
+A3  FIRMA FRIA. Un exe ATURDIDO en el suelo o VENCIDO, o un esbirro caido, se ve
+    AZUL y sin latido: "amenaza neutralizada" de un vistazo, sin leer nada.
+A4  DESVANECIDO SUAVE. El aura ya no aparece/desaparece de golpe al cruzar el
+    borde del alcance: entra y sale fundiendose (el ultimo tramo del radio).
+A5  EL EXE NUNCA SE CAE DE LA LISTA. El sensor ahora escanea en dos pasadas
+    (primero el EXE REAL, despues el resto): aunque haya 16+ esbirros en tu radio,
+    el tope de 16 auras jamas desaloja al exe. Antes el orden era el de creacion
+    de los puppets, sin garantia.
+A6  BLINDAJE (lo que pediste para evitar crasheos): guard de camara en los dos
+    Draw GUI (auras y flecha de salida); lectura protegida con
+    variable_instance_exists para TODO lo que se lee de otros objetos (puppets,
+    clones, el propio jugador); el objeto de auras se apaga solo si tu Amelia
+    desaparece (anti-objeto-huerfano); limites de pantalla tomados del tamano GUI
+    REAL (vale en cualquier resolucion); limpieza de slots muertos cada frame.
+A7  MEJORA GENERAL (fuera de Amelia): la ESTELA REMOTA de Metal (overdrive) y
+    Blaze (burning) nunca se dibujaba en las pantallas ajenas (el bit de power
+    boost viajaba pero nadie lo aplicaba: el mismo hoyo que tenia Vanilla antes
+    de la v83). Ahora se aplica.
+
+RED - PUERTAS DE EMISOR (orden 2, parte de red)
+-----------------------------------------------
+Los eventos de Chocola viajan como sonidos de red. Ahora cada rama comprueba el
+PERSONAJE del puppet que emitio el sonido: mermer/ready/npteleport solo cuentan
+si los emitio Vanilla; achivement si los emitio Cream; chocola_dive si Vanilla o
+Cream. Un cliente hackeado (u otro personaje emitiendo un sonido igual por la
+razon que sea) ya no hace que Chocola se lance o se revoque en las pantallas
+ajenas. El sonido en si sigue oyendose igual.
+
+SERVIDOR - ANTI-CHEAT (regla 7)
+-------------------------------
+- Las dos senales de stun DIRIGIDAS de Chocola ahora validan al EMISOR:
+  la caza grande (snd_nono, 109) solo puede salir de una VANILLA; la
+  mini-embestida (snd_vasebreak, 110) de una VANILLA o una CREAM.
+- TOPE DE RITMO para Vanilla: la mini-embestida a lo sumo cada 2 s y la caza
+  grande cada 10 s. Un cliente sano NO lo nota NUNCA: su propio enfriamiento
+  (chocolaCd de 2.5 s compartido entre bloqueo y ataque, mas el vuelo y la pose
+  de golpe) ya obliga a mas de 2 s entre senales (simulado y verificado). Un
+  Vanilla hackeado que las spamee cada 0.5 s pasa 1 de cada 4.
+- Cream no lleva enfriamiento de cliente en su custodia: sin tope para ella
+  (cualquier tope fijo cortaria bloqueos legitimos). Documentado en el codigo.
+- Las reglas de Amy Canon y del parry quedan como en la v83 (sin tope: el server
+  no ve la lanzada del martillo ni la cadena del LSA).
+- Un paquete raro se descarta en silencio, sin kick, como siempre.
+
+LO QUE QUEDA PENDIENTE (detectado, NO tocado)
+---------------------------------------------
+- La custodia de Cream sigue sin enfriamiento propio de cliente (diseno).
+- Las senales de Amy Canon siguen sin tope de ritmo en el server (diseno v83).
+- Cosmetico preexistente: BUILD_VERSION dice 1102 y su comentario dice 1103 NO
+  LO ARREGLES (el server rechaza a los clientes con build distinto); los
+  comentarios "// N" de net_sounds.gml van desfasados en uno (indices reales en
+  CACHE.md).
+- El icono V del HUD usa chocolaCd como recarga: sigue correcto (el ataque
+  cercano sigue con su enfriamiento de 2.5 s).
+
+QUE NO SE PUDO VERIFICAR (solo esto)
+------------------------------------
+Aqui no hay GameMaker ni runtime del servidor. Verificado: lexer de GML de los
+13 archivos (llaves/parentesis balanceados, solo LF, sin ternarios encadenados
+nuevos, macros unicas en todo el proyecto), existencia de cada variable, macro,
+funcion y sprite/objeto que usa el codigo nuevo, simulacion numerica de TODA la
+logica nueva (reloj de paciencia, nacimiento y auto-curacion de Chocola, tope de
+auras con doble pasada, desvanecido, marcadores, tabla de reglas y topes del
+server), gcc -std=gnu11 -Wall -fsyntax-only del Game.c del server contra el
+original (0 errores; las 45 advertencias viejas identicas, cero nuevas), y
+roundtrip: clon limpio del commit base + el zip = byte a byte el arbol parcheado,
+con el validador en verde dentro del clon.
+NO verificado: partida real, partida en red, el aspecto final de los marcadores
+y colores nuevos, y el server recompilado corriendo. Prueba en juego lo de abajo.
+
+PRUEBAS SUGERIDAS EN JUEGO (5 minutos)
+--------------------------------------
+1. Ronda nueva como Vanilla: Chocola debe estar a tu lado DESDE EL PRINCIPIO
+   (icono V blanco desde el frame 0) y el ataque del 33% / bloqueo del 65% deben
+   poder pasar ya en el minuto 0.
+2. Con un segundo cliente (o un amigo) mirando la misma ronda: la pantalla ajena
+   tambien ve a Chocola junto a tu Vanilla desde el arranque, en tu posicion real.
+3. Deja caer a Vanilla (primera caida): la paciencia hace SOLO el gesto (quieta,
+   enojada, inmune 5 s, luego agotada 1 s): Chocola NO sale volando y el exe NO
+   recibe stun de 5 s.
+4. Tecla V: Chocola va con Cream y vuelve al pulsarla otra vez (como siempre).
+5. Como Amelia: acercate al exe hasta el borde del alcance (el aura entra
+   fundendose, sin aparicion de golpe); aléjate de una firma ya detectada hasta
+   que salga de tu vista: la flechita del borde debe quedar clavada apuntando
+   hacia ella; stunea al exe (parry de otro o trampa tuya): su aura se vuelve
+   azul sin latido mientras esta aturdido.
+6. Si juegas Metal o Blaze con el overdrive/burning encendido: tu estela de
+   fantasmas ahora debe verse desde la pantalla del otro jugador.

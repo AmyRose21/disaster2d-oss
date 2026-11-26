@@ -112,6 +112,28 @@
 #macro AMELIA_AURA_EXE_CORE make_color_rgb(255, 200, 90)
 #macro AMELIA_AURA_MINION_COLOR make_color_rgb(255, 130, 30)
 
+// v84 (QoL + blindaje de la Auravision, pedido de la duena): valores
+// nuevos de la pasiva (los usa obj_amelia_auras):
+//  * MAX        = tope de firmas simultaneas (antes un 16 suelto).
+//  * FLASH      = frames del DESTELLO DE ENTRADA al detectar una firma
+//                 nueva (Draw_64 la enciende un instante).
+//  * EDGE / EDGE_FADE = margen del borde de la pantalla para el MARCADOR
+//                 DE BORDE (firmas fuera de la vista: flecha fina clavada
+//                 en el borde apuntando hacia ellas) y tramo de
+//                 desvanecido suave al cruzar el borde del ALCANCE (antes
+//                 el aura aparecia y desaparecia de golpe).
+//  * COLD_COLOR / COLD_CORE = la firma FRIA (aturdido o caido: el exe en
+//                 EXE_SHOCKED/EXE_LOST, un esbirro en DEAD): azul, sin
+//                 latido — amenaza neutralizada, lectura de un vistazo.
+#macro AMELIA_AURA_MAX 16
+#macro AMELIA_AURA_FLASH (60 * 0.45)
+#macro AMELIA_AURA_EDGE 16
+#macro AMELIA_AURA_EDGE_FADE 0.12
+#macro AMELIA_AURA_POINTER 11
+#macro AMELIA_AURA_POINTER_W 3.5
+#macro AMELIA_AURA_COLD_COLOR make_color_rgb(110, 185, 255)
+#macro AMELIA_AURA_COLD_CORE make_color_rgb(225, 245, 255)
+
 // v2.13 (PASIVA «SOL Y LUNA», la carta que Amelia encarna): valores
 // ajustables de la LUNA y del ECLIPSE (el SOL vive en obj_amy_canon):
 //  * LUNA_VEIL_TIME = segundos de VELO DE GRACIA tras ocultarse:

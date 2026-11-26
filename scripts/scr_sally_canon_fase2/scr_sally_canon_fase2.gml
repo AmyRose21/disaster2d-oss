@@ -89,6 +89,9 @@
 //     juego que puede golpear al bando EXE 2 veces. Ignora TODOS los
 //     i-frames: si la 1a patada conecta, el exe se teletransporta al
 //     frente de Sally (al alcance de la 2a) y recibe la 2a patada.
+//     v85 (pedido de la duena): ya NO espera a la fase duelista — se
+//     usa desde la FASE 1. v86: la hitbox AUMENTADA tambien en fase
+//     1 (la aerea pasa de +25% a +50% en cualquier fase).
 //   * SPINDASH (abajo + Z, igual que Amelia/Sonic) + RODADURA:
 //     canSpin = true (la rodadura con ABAJO corriendo, la de Tails y
 //     los demas) y su salto pasa a spr_sally_fase2_jump_canon (bola).
@@ -114,11 +117,13 @@
 #macro SALLY_CANON_F2_KICK2_START 7             // 1er frame de la 2a patada
 
 // Hitbox ampliada de la patada (patron _sonicPad/_amyFuerzaPad: pad
-// por distancia = % del ANCHO del bbox de Sally). Fase 1: la patada
-// aerea +25%. Fase duelista: la de tierra +30% y la aerea +50%.
-#macro SALLY_CANON_KICK_PCT_F1 0.25             // patada aerea, fase 1 (+25%)
-#macro SALLY_CANON_KICK_PCT_F2_GROUND 0.30      // patada en tierra, duelista (+30%)
-#macro SALLY_CANON_KICK_PCT_F2_AIR 0.50         // patada aerea, duelista (+50%)
+// por distancia = % del ANCHO del bbox de Sally). v86 (pedido de la
+// duena): la hitbox AUMENTADA vale para CUALQUIER fase — la de
+// tierra +30% y la aerea +50% (antes la aerea era +25% en fase 1;
+// la de tierra solo existia en la duelista hasta la v85). El
+// multiplicador de las formas cyber (v82) se aplica encima igual.
+#macro SALLY_CANON_KICK_PCT_GROUND 0.30         // patada en tierra (+30%, cualquier fase)
+#macro SALLY_CANON_KICK_PCT_AIR 0.50            // patada aerea (+50%, cualquier fase; v86)
 
 // TP tras la 1a patada: el exe queda a esa fraccion del pad de la 2a
 // patada, justo delante de Sally (0.5 = mitad del alcance: ni pegado
@@ -367,10 +372,11 @@ function scr_sally_canon_fase2()
                         isGrounded = true;
 
                         // FASE DUELISTA: al levantarse de su 1ra caida cambia
-                        // para siempre (hasta el fin de la ronda). Desbloquea la
-                        // patada en tierra, el spindash, la rodadura con ABAJO
-                        // corriendo (canSpin: la de Tails y los demas), el escudo
-                        // grupal y la pasiva de evasion. El flag viaja por red
+                        // para siempre (hasta el fin de la ronda). Desbloquea el
+                        // spindash, la rodadura con ABAJO corriendo (canSpin: la
+                        // de Tails y los demas), el escudo grupal y la pasiva de
+                        // evasion. (v85: la patada en tierra ya NO es parte del
+                        // desbloqueo — se usa desde la fase 1.) El flag viaja por red
                         // con PLAYER_POWERBOOST (lo manda obj_netclient/Step_2
                         // y lo guardan los puppets como "duelista").
                         duelista = true;

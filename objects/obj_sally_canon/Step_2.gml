@@ -77,10 +77,10 @@ if(isSliding)
 
 if(isAttacking)
 {
-        // DUELISTA: la patada en TIERRA viaja en su propio estado (22,
-        // spr_sally_fase2_attack_canon) para que el cliente de la
-        // victima sepa que son 2 hitboxes que ignoran i-frames; la
-        // aerea sigue en el 14 de siempre.
+        // La patada en TIERRA (v85: en cualquier fase) viaja en su
+        // propio estado (22, spr_sally_fase2_attack_canon) para que el
+        // cliente de la victima sepa que son 2 hitboxes que ignoran
+        // i-frames; la aerea sigue en el 14 de siempre.
         state = groundKick ? SALLY_CANON_F2_ATTACK : SALLY_ATTACK;
         return;
 }

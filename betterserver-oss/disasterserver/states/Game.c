@@ -686,9 +686,10 @@ static bool game_is_stun_signal(uint8_t sndidx)
 /* Un cliente sano cumple todo SIEMPRE (el receptor ya exige lo mismo:             */
 /* scr_lsa_stun_signal, scr_amy_super_hammer_signal, scr_parry_stun_signal,        */
 /* scr_chocola_stun_signal y la rama del escudo electrico de net_state_game).      */
-/* NO hay limite de ritmo: el server no ve la lanzada (el martillo vive hasta 4 s  */
-/* y la cadena del LSA da hasta 6 golpes en un vuelo), asi que cualquier tope      */
-/* fijo cortaria juego legitimo.                                                   */
+/* NO hay limite de ritmo para Amy Canon ni el parry: el server no ve la   */
+/* lanzada (martillo hasta 4 s, cadena del LSA hasta 6 golpes en un       */
+/* vuelo): cualquier tope fijo cortaria juego legitimo. v84 SI topa las    */
+/* senales de Chocola (109/110): ver el bloque de CLIENT_SOUND_EMIT.       */
 static bool game_stun_signal_ok(PeerData* v, uint16_t nid, uint8_t sndidx)
 {
         PeerData* t = server_find_peer(v->server, nid);
@@ -703,6 +704,15 @@ static bool game_stun_signal_ok(PeerData* v, uint16_t nid, uint8_t sndidx)
                 return false;
 
         if ((sndidx == 0 || sndidx == 1) && v->surv_char != CH_AMY_CANON)
+                return false;
+
+        /* v84: las senales de Chocola solo salen de su duena — la caza
+         * grande (109) solo de Vanilla; la mini-embestida (110) de
+         * Vanilla (ataque cercano) o de Cream (custodia cumplida). */
+        if (sndidx == 109 && v->surv_char != CH_VANILLA)
+                return false;
+
+        if (sndidx == 110 && v->surv_char != CH_VANILLA && v->surv_char != CH_CREAM)
                 return false;
 
         return true;
@@ -762,6 +772,25 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                          * Un paquete raro se DESCARTA en silencio: sin kick. */
                         if (nid != v->id && game_is_stun_signal(sndidx) && !game_stun_signal_ok(v, nid, sndidx))
                                 break;
+
+                        /* v84: tope de ritmo de las senales de Chocola DIRIGIDAS (el
+                         * personaje ya lo valido game_stun_signal_ok). El cliente sano
+                         * de v84 comparte chocolaCd = 2.5 s entre bloqueo y ataque: el
+                         * tope de 2 s de la mini-embestida (110) jamas lo corta. La caza
+                         * grande (109) ya no existe en v84 (la paciencia es solo gesto):
+                         * su tope holgado de 10 s solo frenan los clientes v83 viejos (1
+                         * por ronda) o un hack. Cream no lleva cooldown de cliente: sin
+                         * tope para ella. */
+                        if (nid != v->id && v->surv_char == CH_VANILLA && (sndidx == 109 || sndidx == 110))
+                        {
+                                int slot = (sndidx == 109) ? CHOCOLA_HUNT_STUN : CHOCOLA_DIVE_STUN;
+                                double gap = (sndidx == 109) ? 10 : 2;
+
+                                if (v->plr_cooldowns[slot] > 0)
+                                        break;
+
+                                v->plr_cooldowns[slot] = gap * TICKSPERSEC;
+                        }
                         server_broadcast_ex(v->server, packet, true,  v->id);
                         break;
                 }

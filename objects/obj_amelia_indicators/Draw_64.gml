@@ -7,6 +7,11 @@ if(!instance_exists(global.player))
 if(!ringVisible)
         return;
 
+// v84 (blindaje): sin camara no hay coordenadas de pantalla validas
+// (mismo guard que obj_amelia_auras, su hermana de sistema).
+if(!instance_exists(obj_camera))
+        return;
+
 var _x = global.player.x;
 var _y = global.player.y;
 

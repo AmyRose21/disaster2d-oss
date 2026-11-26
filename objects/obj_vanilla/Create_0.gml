@@ -311,3 +311,12 @@ instance_create_depth(x, y, 0, obj_player_sensorAR);
 // V2: sensores pasivos (solo SU cliente): flecha verde hacia la salida
 // + flecha roja hacia el EXE real (los mismos de Amy Canon).
 instance_create_depth(x, y, 0, obj_vanilla_indicators);
+
+// v84 (pedido de la duena): CHOCOLA DESDE EL PRINCIPIO. Vanilla ya
+// posee a Chocola al nacer en la ronda — en las demas pantallas la
+// crea net_udpprocess con el primer paquete de datos de su puppet.
+// Guard idempotente por si este Create volviera a correr con Chocola
+// viva; si Vanilla desaparece, Chocola se autodestruye (su Step) y el
+// guard de red la re-crea al volver los datos: pasiva auto-curada.
+if(!instance_exists(obj_chocola))
+    instance_create_depth(x, y - 10, 0, obj_chocola);

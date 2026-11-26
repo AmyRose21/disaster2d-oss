@@ -1077,3 +1077,182 @@ Lessons recorded:
   patched file, comparing the normalized diagnostics.
 - NOT verified: in-game behaviour, a real match against a v83 server, the look of the new HUD icon
   (designed by numeric pixel measurement: 13x21 px of content at half scale next to the real V key).
+
+
+## v84 (2026-11-26) - Chocola from frame 0 + Amelia auras QoL/shields + anti-cheat (base commit b3ab984d)
+
+### Hits (found by reading the code, then implemented)
+
+1. **Chocola only existed after Vanilla's first knockdown.** The 65% block and the 33% close
+   attack (both require Chocola at home) were dead for the whole early game. v84: she is born
+   in `obj_vanilla/Create_0` (local) and in `net_udpprocess` `CLIENT_PLAYER_DATA` (remote, at
+   the puppet's live position). The net guard doubles as a SELF-HEAL: Chocola self-destructs
+   when her home has no data for 1 s, and the guard re-creates her the moment data returns.
+2. **The paciencia hunt is now dead code by design** (owner's order: with Chocola out the
+   paciencia is the gesture only). `snd_mermer` is no longer emitted by `scr_vanilla_v2_step`;
+   `CHOCOLA_NET_HUNT` handling and `scr_vanilla_paciencia_chocola_hit/_fail` stay for old
+   v83 clients. Server keeps 109 legal from Vanilla (capped at 10 s) so v83 clients still work.
+3. **Aura cap could evict the real EXE.** The sensor loop stopped at 16 entities in
+   instance-creation order; with 16+ demonized puppets the exe (usually the OLDEST puppet,
+   created first) was the one dropped... in fact creation order makes the exe FIRST, so the
+   real risk was the opposite: any future re-ordering. The two-pass scan (exe first) makes
+   the invariant explicit and permanent.
+4. **Off-screen auras were invisible** (350 px radius vs a 480x270 view: most detections are
+   off-screen!). v84 draws a small triangle marker clamped to the screen edge pointing at the
+   aura; alpha of the marker is NOT scaled by the reach-edge fade (a distant-but-detected
+   entity is exactly the thing to show).
+5. **Auras popped in/out at the reach edge** (`_k` floored at 0.3 inside, 0 outside): now a
+   smoothstep over the last 12% of the radius.
+6. **Cold reading** (QoL): a stunned/downed exe (`EXE_SHOCKED`/`EXE_LOST`) or a downed minion
+   (`DEAD`) draws blue with no pulse - "neutralized" at a glance.
+7. **METAL/BLAZE remote ghost trail was dead code** (the powerBoost bit was never applied to
+   their puppets) - v83 had reported it; v84 applies it (4 characters total now).
+8. **Server: 109/110 had no emitter-character rule and no rate limit.** With Chocola alive
+   from frame 0, a hacked Vanilla could spam 2.5 s self-stuns on the exe nonstop. Rules added:
+   109 = Vanilla only, 110 = Vanilla or Cream, Vanilla's 110 capped at 2 s (< the legit 2.5 s
+   shared chocolaCd + travel time, so a healthy client is NEVER clipped), 109 capped at 10 s.
+
+### Errors made in this session (do not repeat)
+
+- The sandbox was RECYCLED mid-task: `/home/z/my-project/work/disaster2d-oss` came back EMPTY
+  (other dirs survived). Re-cloned and re-fetched; HEAD/origin were still b3ab984d. Lesson:
+  re-check the workspace tree at the start of every continuation, not only the summary.
+- First patcher run aborted: `obj_vanilla/Create_0.gml` has NO final newline (net_udpprocess
+  and net_state_game too). Keep each file's own final-newline convention; do not "normalize".
+- check_v84.py had 4 self-inflicted FAILs: a wrong `pacienciaTimer--` count (2, not 3), a
+  wrong gate count (4 including the pre-existing creamring gate, not 3), a hard "ends with
+  newline" rule (must compare against the HEAD convention instead), and a broken simulation
+  clause (`inactive_at not in packets` contradicted the model). Fix the CHECK, not the patch,
+  when the diff is provably right.
+- gcc without `-Wall` printed 0 warnings and made the "45 pre-existing warnings" baseline
+  unreproducible: always use the same flags as the saved baseline (`-std=gnu11 -Wall
+  -fsyntax-only` + the enet include order).
+- A `grep -cF` loop with `||` inside the pattern needs no escaping for -F but the shell needs
+  the pattern quoted; one anchor printed 0 for a quoting artifact, not because the line was
+  missing. Always re-verify a 0-count by reading the file region.
+
+### Facts learned (verified in code)
+
+- exe state macros live in `objects/obj_exe/Step_2.gml`: `EXE_SHOCKED = BALANCING+3` (16),
+  `EXE_LOST = BALANCING+5` (18), `BALANCING = 13` (scr_survivors). A stunned exe ON THE
+  GROUND is `EXE_SHOCKED`; in the AIR it is `HURT`; defeated is `EXE_LOST`.
+- `global.player.id` is the id of the FIRST instance of the player object (dot-read on an
+  object index resolves instance variables): the correct argument for
+  `variable_instance_exists` (pattern used at scr_amy_cyber L450).
+- The mini-embestida stun signal is TARGETED `snd_vasebreak` (110) — 2.5 s exe / 3.5 s minion
+  (the RECEIVER decides); the big paciencia hunt was TARGETED `snd_nono` (109), 5 s.
+  `scr_chocola_stun_signal` also broadcasts `snd_exe_stun` (12) so everyone hears the hit.
+- Chocola's V key only needs `instance_exists(obj_chocola)` + mode FOLLOW/GO_CREAM/GUARD, so
+  it works unchanged with Chocola born at frame 0. The v83 HUD icon colours too.
+- Legit interval between two 110 signals from Vanilla >= chocolaCd (150 f) + flight +
+  ATTACK_PAUSE (26 f) + RETURN flight ~ 190 frames > the 120-frame server cap. Verified by
+  simulation in check_v84.py.
+
+### How this was verified (and what could NOT be verified)
+
+- No GameMaker IDE / runtime in the sandbox. GML: string-aware lexer (bracket balance, LF
+  only, final-newline convention kept, no new chained ternary vs HEAD, macro uniqueness
+  project-wide, symbol/asset existence), byte-exact atomic patching, numeric simulations
+  (paciencia clock, Chocola birth/self-heal, two-pass cap, smoothstep fade, marker triangle,
+  server rule table + rate limits). Server C: `gcc -std=gnu11 -Wall -fsyntax-only` with the
+  real upstream enet headers: HEAD = 0 errors / 45 pre-existing warnings; patched = 0 errors /
+  the same 45 warnings, zero new diagnostics. Roundtrip: fresh clone of HEAD + the v84 zip is
+  byte-identical to the patched tree and the validator passes inside it.
+- NOT verified: in-game behaviour, a real match (local or networked), the look of the new aura
+  markers/fade/flash, and the recompiled server actually running. No GameMaker exists here.
+
+
+## v85 (2026-11-26) - Sally Canon ground kick from phase 1 (base commit b3ab984d)
+
+### Hits
+
+1. **The whole "phase 2 only" rule was one token.** `scr_sally_special`'s ground-kick branch
+   read `else if(global.character == CHARACTER_SALLY_CANON && duelista && ...)`: removing
+   `&& duelista` is the entire functional change. Everything else (victim-side effect,
+   anim tables for state 22 in BOTH player and puppet tables, Draw_76 case, shared 15 s
+   recharge, HUD icon) was already phase-blind. Verified BEFORE designing: reading the
+   consumer code first turned a "maybe need state plumbing" fear into a one-line patch.
+2. **Trust model confirmed again:** the ground kick's damage/stun/TP runs on the VICTIM's
+   client keyed on `state == 22` + synced `image_index` windows; the launcher only
+   broadcasts `snd_dash` (not even a stun signal index). So no server-side rule applies and
+   none was needed (the duelista bit was never server-validated anyway).
+3. **v84-not-pushed packaging strategy:** when origin still sits on the previous version,
+   re-apply the prior patch locally (patchers are deterministic), build the new version on
+   top, and zip ONLY the new version's files. House docs (CACHE/LEARNING/worklog) then
+   carry both versions and must be applied in order; code files that don't overlap apply in
+   either order (verified with a second roundtrip without the old zip).
+4. The sandbox can be recycled BETWEEN user messages too (not just mid-session): this time
+   the whole clone directory was gone. Re-clone, fetch, and re-check HEAD before anything.
+
+### Errors made (do not repeat)
+
+- check_v85 first run had 2 self-inflicted FAILs: (a) `groundKick = false;` counted once —
+  it appears TWICE in scr_sally_special (auto-off at the top + the air-kick branch); (b) a
+  naive "no duelista in the kick window" string search matched the word inside a COMMENT
+  ("la patada duelista..."). Rule: for content assertions about CODE, strip comments first
+  (reuse `strip_gml`), and always re-count identifiers across the whole file before
+  asserting an exact occurrence count.
+
+### Facts learned (verified in code)
+
+- Sally Canon states: 18-21 = fase2 pt1..pt4, 22 = ground kick, 23 = spindash charge
+  (`BALANCING+9/+10`); anim tables have 24+ entries per character; state 22 exists in the
+  player AND puppet tables.
+- Sally Canon NEVER demonizes (server patch, like Amy Canon): 2nd knockdown kills her
+  outright, so the ground kick can never be used by an esbirro Canon (vanilla Sally
+  esbirros exist, but the kick gate requires CHARACTER_SALLY_CANON).
+- The kick's window constants live in scr_sally_canon_fase2 (`KICK1_END 6`,
+  `KICK2_START 7`); the victim-side block also guards the invisible-exe case (return above
+  it) and only runs for `!isDemonized && globalExe` puppets.
+- Legit interval between kicks = `attackTimer` 15 s (900 frames), shared by air and ground
+  kick; esbirro 4 s (`SALLY_EATTACK_RECHARGE`).
+
+
+## v86 (2026-11-26) - Sally Canon unified pads + exit radar (base commit b3ab984d)
+
+### Hits
+
+1. **Reuse the owner's own precedent instead of inventing.** Rouge's v25 "RADAR DE LA SALIDA" is a
+   character-local, zero-network, inline-in-Draw-GUI green arrow — exactly what "la flecha que tiene amy
+   canon para saber donde esta la salida" means for Sally Canon. Copying THAT (same sprite, guard, anchor,
+   rotation) beat spawning `obj_amycanon_indicators` (would need a .yy or a Create_0 hook) and beat writing
+   a new indicators object. The red exe arrow stays exclusive, exactly as Rouge's request established.
+2. **Unifying the pads was deleting a ternary.** The victim-side pad line was the ONLY phase-dependent
+   piece (`duelista ? F2_AIR : F1`); renaming the macros (`_F2_GROUND`->`_GROUND`, `_F2_AIR`->`_AIR`,
+   delete `_F1`) keeps comments truthful and grep-able. `grep -rn` for the old names must return nothing
+   — that is the whole migration.
+3. **Per-file idempotent patchers pay off.** Making each file's edit skip itself when its v86 marker is
+   present allowed a surgical repair: `git checkout -- <file>` + re-run patched ONLY the broken file.
+4. Patchers should skip re-creating an existing backup zip (the first run's backup is the correct
+   pre-patch state; a re-run's would be post-patch and useless for rollback).
+
+### Errors made (do not repeat)
+
+1. **THE BIG ONE — a real brace-cut bug in the patcher.** Appending a block to a file whose tail ends in
+   `}`, I "reconstructed" it as `t[:-len(tail)] + tail[:-1] + "\n" + BLOCK` — `tail[:-1]` silently DROPPED
+   the cyber block's closing `}` and left a `{` unclosed: GML would not compile. The v86 validator's
+   bracket check caught it (4 `{` vs 3 `}`) BEFORE any delivery. Rules: (a) when appending after an exact
+   tail, just `t + BLOCK` — never slice the tail by hand; (b) run the lexer check IMMEDIATELY after the
+   first patch application, not only at the end; (c) count braces in the post-conditions of the PATCHER
+   itself, not only in the validator.
+2. **Assumed `.gml` files end with a newline — `obj_player_puppet/Step_0.gml` does NOT** (nor does
+   `obj_sally_canon/Draw_64.gml`). Post-conditions must compare the convention with `git show HEAD:`
+   (v85 already did this in the validator; the v86 patcher initially demanded `endswith("\n")` and
+   false-alarmed).
+3. **False assertion: "no instance_create_depth in Create_0".** Her Create legitimately spawns sensors and
+   the revive puppet. Assert only the SPECIFIC danger (`obj_amycanon_indicators` not spawned), never a
+   generic API name that the file already used before the patch.
+4. Minor: `grep "A\|B"` inside a Python string -> SyntaxWarning; use `["-e", "A", "-e", "B"]`.
+
+### Facts learned (verified in code)
+
+- Rouge's radar (v25) and the amycanon indicators use `spr_sindicator2` (green, 32x16-ish game sprite);
+  the red exe arrow is `spr_indicator`; both anchored at the player body, drawn in Draw GUI with
+  `ceil(x - obj_camera.x)` coordinates (this project draws GUI-space HUD with manual camera subtraction).
+- `obj_bigring` = the escape ring; the vanilla game's own `obj_surv_ringindicator` only exists in ravinemist
+  and needs 6 shards — that is why Amy Canon (and now Rouge/vanilla/Sally Canon) get a personal sensor.
+- Draw_64 (Draw GUI) events run even when the instance is invisible — that is why the radar works while
+  hidden (Rouge's comment says the same).
+- The esbirro (demonized) players keep `revivalTimes >= 2` and the game gives them the standard
+  `obj_demon_indicator`; every personal-sensor object turns itself off at `revivalTimes >= 2` to not
+  duplicate it.

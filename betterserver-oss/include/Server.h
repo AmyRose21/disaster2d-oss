@@ -40,7 +40,11 @@ struct auth_peer_data;
    2.o en usarla dentro de la ventana fallaba y el server lo desconectaba
    (y su cliente crasheaba leyendo `type` sin definir en net_tcpprocess:
    fix cliente v2.1.3). */
-#define PLAYER_COOLCOUNT 15
+/* v84: 15 -> 17: dos cooldowns nuevos para las senales de Chocola (ver
+   CHOCOLA_* abajo y el bloque de CLIENT_SOUND_EMIT en states/Game.c).
+   Solo cambia el LAYOUT EN MEMORIA del server (plr_cooldowns), no el
+   protocolo de red: recompilar el server al desplegar. */
+#define PLAYER_COOLCOUNT 17
 // Cooldown indices (dentro de PeerData.plr_cooldowns)
 #define TAILS_RECHARGE 0
 #define CREAM_RING_SPAWN 1
@@ -73,6 +77,17 @@ struct auth_peer_data;
 #define JINNA_NEGATOUCH 14
 /* v7: JINNA_NEGATOUCH comparte indice con JINNA_MINION a proposito:
    ambas son conversiones de bando y no deben pisarse entre si. */
+
+/* v84 (Chocola, pedido de la duena): tope de ritmo SERVER-SIDE para sus
+   senales de stun DIRIGIDAS en CLIENT_SOUND_EMIT. El cliente sano de v84
+   comparte chocolaCd = 2.5 s entre bloqueo y ataque (+26 frames de pose
+   de golpe), asi que CHOCOLA_DIVE_STUN (snd_vasebreak, indice REAL 110
+   en global.net_snds) con 2 s JAMAS corta juego legitimo; la caza grande
+   (snd_nono, 109) ya no existe en v84 (la paciencia es solo gesto), tope
+   holgado de 10 s. Cream (custodia de Chocola) no lleva enfriamiento de
+   cliente: sin tope para ella. */
+#define CHOCOLA_HUNT_STUN 15
+#define CHOCOLA_DIVE_STUN 16
 
 typedef struct PeerData
 {

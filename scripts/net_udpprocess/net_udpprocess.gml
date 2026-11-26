@@ -111,6 +111,16 @@ function net_udpprocess(rbuff)
                                                 image_xscale = 1;
                                         else if(image_xscale < -1)
                                                 image_xscale = -1;
+
+                                        // v84 (pedido de la duena): CHOCOLA DESDE EL PRINCIPIO en las
+                                        // demas pantallas. Vanilla ya la posee al empezar la ronda: aqui
+                                        // nace con el PRIMER paquete de datos de su puppet (posicion ya
+                                        // aplicada arriba e isInactive ya en false). El guard la hace
+                                        // idempotente y ademas RE-CREA a Chocola si ella se autodestruyo
+                                        // (home sin datos > 1 s) y su Vanilla vuelve a mandar datos:
+                                        // la pasiva se auto-cura. Ver scr_chocola y obj_vanilla/Create_0.
+                                        if(character == CHARACTER_VANILLA && !instance_exists(obj_chocola))
+                                                instance_create_depth(x, y - 10, 0, obj_chocola);
                                         
                                         if(character == CHARACTER_EXE)
                                         {
@@ -202,7 +212,12 @@ function net_udpprocess(rbuff)
                                                 // v83: VANILLA V2 FLOAT RUN tambien viaja con este bit (el emisor ya lo
                                                 // mandaba en obj_netclient/Step_2): antes solo Sonic lo aplicaba aqui y la
                                                 // estela remota de Vanilla era codigo muerto. Mismo fantasma (5 / 0.07).
-                                                if(character == CHARACTER_SONIC || character == CHARACTER_VANILLA)
+                                                // v84: METAL (overdrive) y BLAZE (burning) mandan el mismo bit
+                                                // desde siempre pero nunca se aplicaba aqui: su estela remota
+                                                // era codigo muerto, igual que la de Vanilla antes de v83 (gap
+                                                // que v83 dejo reportado en CACHE). El dibujado del fantasma
+                                                // es generico (if(powerBoost) en el puppet, vale para todos).
+                                                if(character == CHARACTER_SONIC || character == CHARACTER_VANILLA || character == CHARACTER_METAL || character == CHARACTER_BLAZE)
                                                         powerBoost = bitflags & PLAYER_POWERBOOST;
 
                                                 // SALLY CANON fase DUELISTA (v5.4): viaja

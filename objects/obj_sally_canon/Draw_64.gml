@@ -52,3 +52,23 @@ if(cyberForm > 0 && revivalTimes < 2 && hp > 0)
 	draw_set_valign(fa_middle);
 	draw_text_transformed_color(ceil(x - obj_camera.x), ceil(y - obj_camera.y) - offset + 12, _cyName, 0.4, 0.4, 0, _cyCol, _cyCol, _cyCol, _cyCol, cyberFlash > 0 ? 1 : 0.7);
 }
+// ============================================================================
+// v86 (duena): RADAR DE LA SALIDA (flecha verde, patron AMY CANON, igual
+// que el de Rouge v25): mientras exista el ANILLO DE ESCAPE (obj_bigring),
+// Sally Canon lleva pegada una flecha verde (spr_sindicator2, la del
+// indicador del juego) que apunta al anillo MAS CERCANO — mismo anclaje y
+// sprite que la de Amy Canon (obj_amycanon_indicators). Informacion PURA
+// del cliente local (solo SU pantalla: cero paquetes, cero servidor, nadie
+// mas la ve; su cuerpo escondido no la apaga, es Draw GUI). La flecha ROJA
+// del exe NO va: esa sigue siendo exclusiva de Amy Canon/vanilla — aqui
+// solo el radar de la salida, que funciona en CUALQUIER fase. Guardas:
+// muerta o tirada con la vida en 0 (fase 2 pt1-3) no apunta; revivalTimes
+// < 2 es red de seguridad (Sally Canon jamas se demoniza).
+// ============================================================================
+if(hp > 0 && revivalTimes < 2 && instance_exists(obj_bigring))
+{
+	var _ring = instance_nearest(x, y, obj_bigring);
+
+	if(_ring != noone)
+		draw_sprite_ext(spr_sindicator2, 0, ceil(x - obj_camera.x), ceil(y - obj_camera.y), 1, 1, point_direction(x, y, _ring.x, _ring.y), c_white, 1);
+}

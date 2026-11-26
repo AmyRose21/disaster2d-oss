@@ -146,9 +146,9 @@ switch(state)
                 }
                 break;
 
-        // DUELISTA: patada en tierra (2 patadas). Misma salida que la
-        // aerea: al terminar la animacion se apaga sola. El estado 22
-        // solo existe en fase duelista, asi que este case es todo suyo.
+        // Patada en tierra (2 patadas; v85: en CUALQUIER fase). Misma
+        // salida que la aerea: al terminar la animacion se apaga sola.
+        // Solo Sally Canon puede lanzarla, asi que este case es suyo.
         case SALLY_CANON_F2_ATTACK:
                 image_speed = 1;
                 if(image_index >= image_number - 1)

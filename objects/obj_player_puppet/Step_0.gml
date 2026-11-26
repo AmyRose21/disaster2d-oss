@@ -302,19 +302,20 @@ var _amyFuerzaPad = 0;
 if(character == CHARACTER_AMY && isAttacking && scr_amy_soul_otras())
         _amyFuerzaPad = ceil((bbox_right - bbox_left) * AMY_FUERZA_HITBOX * (1.0 + scr_amy_soul_bonus()));
 
-// SALLY CANON (v5.4): hitbox de la patada ampliada segun la fase. La
-// patada de tierra (estado 22, duelista) +30% y la aerea +25% en fase
-// 1 / +50% en duelista. Mismo mecanismo de pad por distancia que el
-// golpe de Sonic y el martillo de Amy: % del ANCHO del bbox de Sally.
-// El pad solo AMPLIA el alcance del stuneo; el dano/no-amistoso y el
-// resto de reglas siguen igual que siempre.
+// SALLY CANON (v5.4): hitbox de la patada ampliada. v86 (pedido de
+// la duena): la hitbox AUMENTADA vale para CUALQUIER fase — la de
+// tierra (estado 22) +30% y la aerea +50% (antes: +25% en fase 1 /
+// +50% en duelista). Mismo mecanismo de pad por distancia que el
+// golpe de Sonic y el martillo de Amy: % del ANCHO del bbox de
+// Sally. El pad solo AMPLIA el alcance del stuneo; el dano/no-
+// amistoso y el resto de reglas siguen igual que siempre.
 var _scKickPad = 0;
 if(character == CHARACTER_SALLY_CANON && isAttacking)
 {
         if(state == SALLY_CANON_F2_ATTACK)
-                _scKickPad = ceil((bbox_right - bbox_left) * SALLY_CANON_KICK_PCT_F2_GROUND);
+                _scKickPad = ceil((bbox_right - bbox_left) * SALLY_CANON_KICK_PCT_GROUND);
         else if(state == SALLY_ATTACK)
-                _scKickPad = ceil((bbox_right - bbox_left) * (duelista ? SALLY_CANON_KICK_PCT_F2_AIR : SALLY_CANON_KICK_PCT_F1));
+                _scKickPad = ceil((bbox_right - bbox_left) * SALLY_CANON_KICK_PCT_AIR);
 
         // v82 (duena): FORMAS CYBER de Sally Canon - la patada llega mas
         // lejos: x1.45 en SEMI CYBER, x1.70 en CYBER COMPLETA (la forma
@@ -684,7 +685,7 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                         }
                         
                         // =================================================
-                        //  PATADA EN TIERRA (Sally Canon duelista, v5.4):
+                        //  PATADA EN TIERRA (Sally Canon, v5.4; v85: cualquier fase):
                         //  la UNICA habilidad del juego que golpea al bando
                         //  EXE 2 veces. Ventanas por el frame SINCRONIZADO
                         //  de la animacion (estado 22): 1a patada frames
@@ -708,7 +709,7 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 
                                 if(_win1 || _win2)
                                 {
-                                        var _f2pad = ceil((bbox_right - bbox_left) * SALLY_CANON_KICK_PCT_F2_GROUND * scr_sally_cyber_hitbox_mul(cyberForm, revivalTimes >= 2)); // v82: media hitbox de la 2a patada, con la forma cyber
+                                        var _f2pad = ceil((bbox_right - bbox_left) * SALLY_CANON_KICK_PCT_GROUND * scr_sally_cyber_hitbox_mul(cyberForm, revivalTimes >= 2)); // v82: media hitbox de la 2a patada, con la forma cyber
                                         var _edge = image_xscale > 0 ? bbox_right : bbox_left;
                                         
                                         if(_win1)

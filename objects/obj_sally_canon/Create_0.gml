@@ -71,8 +71,9 @@ fase2Sq = 0;                     // squash & stretch de pt3/pt4 (0 = normal)
 // --- Variables de la FASE DUELISTA (tras la 1ra caida) ---
 // Ver scr_sally_canon_fase2.gml (bloque FASE DUELISTA). La marca se
 // activa al final de pt4 y viaja por red con PLAYER_POWERBOOST.
-duelista = false;   // true = fase duelista activa (patada en tierra,
-                    // spindash, rodadura, escudo grupal, pasiva evasion)
+duelista = false;   // true = fase duelista activa (spindash, rodadura,
+                    // escudo grupal, pasiva evasion; v84: la patada en
+                    // tierra ya NO depende de esta marca)
 groundKick = false; // true = la patada en curso es la de TIERRA (estado 22)
 
 // POSES DEL ESCUDO (v5.8): animacion de ACTIVACION del escudo, de

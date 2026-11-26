@@ -52,8 +52,9 @@ function scr_sally_special()
         }
 
         // PATADA (tecla X): en el AIRE para las dos Sally (como siempre)
-        // y EN TIERRA solo para Sally Canon en fase duelista (la nueva
-        // de 2 patadas; la vanilla y la canon fase 1 siguen solo aerea).
+        // y EN TIERRA para Sally Canon en CUALQUIER fase (v85, pedido de
+        // la duena: la de 2 patadas ya no espera a la fase duelista; la
+        // Sally vanilla sigue solo con la aerea).
         if(global.playerControls && keyboard_check_pressed(global.KeyB) && attackTimer <= 0)
         {
                 if(!isGrounded)
@@ -77,18 +78,20 @@ function scr_sally_special()
 
                         attackTimer = revivalTimes >= 2 ? SALLY_EATTACK_RECHARGE : SALLY_ATTACK_RECHARGE;
                 }
-                else if(global.character == CHARACTER_SALLY_CANON && duelista
+                else if(global.character == CHARACTER_SALLY_CANON
                 && !isSliding && !isSpinCharging && !isHiding && !isHurt && !isDead
                 && shockedTimer <= 0 && !isZipline && redRingTimer <= 0)
                 {
-                        // PATADA EN TIERRA (fase duelista): 2 patadas en 1
+                        // PATADA EN TIERRA (v85: desde la FASE 1, pedido de la
+                        // duena; antes solo en fase duelista): 2 patadas en 1
                         // animacion (spr_sally_fase2_attack_canon, estado 22).
                         // La 1a ocupa los frames 0-6 y la 2a entra del 7 en
                         // adelante; cada una puede golpear al bando EXE 1 vez
                         // (la unica habilidad del juego con doble golpe) e
                         // ignora TODOS los i-frames: si la 1a conecta, el exe
                         // se TP al frente de Sally y come la 2a. Todo eso lo
-                        // aplica el cliente de la victima (obj_player_puppet).
+                        // aplica el cliente de la victima (obj_player_puppet),
+                        // IGUAL en cualquier fase: el efecto solo mira el estado.
                         audio_play_sound(snd_dash, 0, false);
                         net_sound_emit(snd_dash);
 

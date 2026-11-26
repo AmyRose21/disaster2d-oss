@@ -1,0 +1,114 @@
+LEEME v84 - Sally Canon: la patada en tierra ahora tambien en fase normal
+=========================================================================
+Repositorio: https://github.com/AmyRose21/disaster2d-oss
+Base: commit b3ab984d de la rama main (tu version v83, "Arreglo a mi y
+vanilla").  Fecha: 2026-11-26.
+Idioma de CACHE.md y LEARNING.md: ingles (como pediste).
+
+EL PEDIDO
+---------
+"Mejora para Sally C la patada que se activaba en 2 fase donde es su fase
+duelista ahora podra usarse en la fase normal."
+
+QUE CAMBIO
+----------
+La PATADA EN TIERRA de Sally Canon (tecla X parada en el suelo: la de 2
+patadas, estado 22, spr_sally_fase2_attack_canon, la unica habilidad del
+juego que golpea 2 veces al bando EXE rompiendo TODOS los i-frames) antes
+solo se podia usar tras activarse su FASE DUELISTA (lo que se vuelve al
+terminar la animacion de su 1ra caida).  Desde v84 la puede usar desde el
+PRINCIPIO de la ronda, en su fase normal (antes de caerse ni una vez).
+
+- Como funciona ahora: X en el suelo = patada de tierra (2 golpes); X en el
+  aire = patada aerea de siempre (estado 14).  El cooldown es el mismo de
+  la patada de siempre (SALLY_ATTACK_RECHARGE, o el de esbirro si cayo 2+).
+- Icono del HUD: antes en fase 1 el icono de la patada se ponia ROJO al
+  pisar suelo (porque en tierra no valia); ahora va BLANCO en tierra y aire
+  desde la fase 1, igual que para la duelista.
+- La hitbox es la misma en todas las fases: +30% del ancho de su bbox (macro
+  SALLY_CANON_KICK_PCT_F2_GROUND).  Las formas CYBER de la v82 siguen
+  multiplicando el alcance (x1.45 / x1.70) igual que antes.
+- TODO LO DEMAS de la fase duelista SIGUE igual (solo para duelista):
+  * SPINDASH (abajo + Z) y la rodadura con ABAJO corriendo.
+  * El salto en bola (spr_sally_fase2_jump_canon).
+  * El ESCUDO GRUPAL (tecla C) y sus poses de activacion.
+  * La pasiva INSTINTO DE LA PRINCESA DUELISTA (20% de evadir todo el dano).
+  * El pad +50% de la patada AEREA (la aerea en fase 1 queda en +25%).
+- La Sally VANILLA no cambia en nada: su patada sigue siendo solo aerea.
+
+POR QUE ES SEGURO (regla 7 - anti cheat)
+----------------------------------------
+Cero cambios de red y cero cambios de servidor:
+- El estado 22 YA viajaba en el byte de "state" del paquete de siempre
+  (CLIENT_PLAYER_DATA): un byte u8 que cualquier personaje puede mandar en
+  cualquier version.  Lo nuevo no abre ninguna puerta nueva: un cliente
+  editado ya podia mandar el byte 22 antes de esta version (el server no
+  valida estados; es el mismo nivel de confianza documentado en v82).
+- El stun lo aplica el cliente de la victima con los paquetes
+  CLIENT_PLAYER_HURT y CLIENT_STATS_REPORT QUE YA EXISTIAN, igual que antes.
+- No se agrego ningun paquete, ningun buffer_write nuevo, ningun .yy/.yyp,
+  ningun asset nuevo.  BUILD_VER sigue 1103: cliente v84 y cliente v83
+  pueden jugar juntos.  El servidor NO se toca: no hay que recompilarlo.
+
+ARCHIVOS MODIFICADOS (10 de codigo, todos comentarios menos 2)
+---------------------------------------------------------------
+FUNCIONAL (2):
+  scripts/scr_sally_special/scr_sally_special.gml  - el gate: se quito
+      "&& duelista" de la rama de la patada en tierra (ese es EL cambio).
+  objects/obj_playerui/Draw_64.gml                  - HUD: se borro el
+      bloque que ponia el icono rojo en tierra en fase 1 (4 lineas).
+
+SOLO COMENTARIOS/DOC (8, para que el codigo no mienta):
+  scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.gml - la patada sale
+      de la lista de desbloqueos de la fase duelista; macros intactos.
+  scripts/scr_survivors/scr_survivors.gml y scripts/scr_survivors.gml
+      - comentario del indice 22 en las 2 tablas (ambas copias identicas).
+  objects/obj_sally_canon/Create_0.gml   - comentario de la variable duelista.
+  objects/obj_sally_canon/Step_2.gml     - comentario de la maquina de estados.
+  objects/obj_sally_canon/Draw_76.gml    - comentario del case 22.
+  objects/obj_netclient/Step_2.gml        - comentario del bitflag POWERBOOST.
+  objects/obj_player_puppet/Step_0.gml    - comentarios del lado victima.
+
+DOCS (reglas 4, 5 y 9): CACHE.md, LEARNING.md, worklog.md, este LEEME y
+check_v84.py (el validador).
+
+COMO INSTALAR
+-------------
+1. Descomprime v84_sally_canon_kick_normal_phase.zip sobre la raiz del
+   proyecto (la carpeta donde esta el .yyp).  Las rutas ya vienen completas.
+2. Recompila el APK/exe en GameMaker (solo cambios de cliente GML).
+   El servidor NO se toca (nada que recompilar).
+3. El push a GitHub lo haces tu.
+
+VERIFICACION (regla 6)
+----------------------
+check_v84.py = 59 OK / 0 BAD contra el arbol de trabajo:
+- Lexer de los 10 GML: llaves/parentesis/corchetes balanceados, sin CRLF,
+  sin BOM, sin caracteres CJK.
+- El gate nuevo byte-exacto y el viejo ausente; las 12 condiciones que
+  bloquean la patada intactas (slide, spindash cargando, escondida, herida,
+  muerta, aturdida, tirolina, anillo rojo, cooldown, vanilla, aire).
+- Todo lo que sigue siendo solo-duelista verificado presente: spindash,
+  escudo grupal/poses, pasiva evasion, pad aereo +50%, salto en bola.
+- Macros con sus valores intactos (0.25 / 0.30 / 0.50 / ventanas 6-7 /
+  TP 0.5).
+- Simulacion: matriz de 12 escenarios v83-vs-v84 del gate (SOLO "fase 1 en
+  tierra limpia" cambia de NO a SI), matriz de 5 escenarios del color del
+  icono (solo tierra+listo+fase1 cambia rojo->blanco), flujo completo
+  fase-1 X en tierra -> estado 22 -> ventanas de golpe -> reset al salir,
+  y pads calculados con los macros reales (25% = 8 px, 50% = 15 px,
+  30% = 9 px sobre bbox de 30 px).
+- Anti-cheat: 0 archivos .yy/.yyp, 0 archivos del server, 0 archivos de
+  protocolo, 0 buffer_write/cpacket/PacketType nuevos en el diff.
+- Roundtrip: clon fresco en b3ab984d + unzip del zip = byte a byte igual al
+  arbol de trabajo, y check_v84.py re-ejecutado DESDE el arbol extraido:
+  59 OK / 0 BAD otra vez.
+
+NO VERIFICADO (igual que siempre): compilacion en GameMaker y partida real
+(este entorno no tiene GameMaker ni el server corriendo).  El validador y
+el analisis de codigo cubren todo lo demas.
+
+DESINSTALAR
+----------
+git checkout b3ab984d -- <archivos> con la lista de arriba, o descomprime
+respaldo_v84_originales_b3ab984d.zip (viene en download/) sobre el repo.

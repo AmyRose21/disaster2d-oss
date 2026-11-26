@@ -1,15 +1,16 @@
 // =====================================================================
 //  VANILLA V2 — CHOCOLA Y LAS PASIVAS DE VANILLA (scr_chocola)
 //  Toda la logica nueva de Vanilla the Rabbit en un solo script:
-//   - CHOCOLA: su chao. Aparece en la PACIENCIA (1ra caida) stuneando
-//     al exe 5 s y desde ahi se queda a su lado en la posicion de las
-//     mascotas de la tienda; la defiende (65% bloqueo con i-frames +
+//   - CHOCOLA: su chao. v84 (pedido de la duena): acompana a Vanilla
+//     DESDE EL PRINCIPIO de la ronda en todas las pantallas (nace en el
+//     Create de la Vanilla local y en el primer paquete de datos de su
+//     puppet en las demas); la defiende (65% bloqueo con i-frames +
 //     33% ataque cercano) y con la tecla V puede ir a ayudar a CREAM.
 //   - FLOAT RUN: 3ra fase de corrida (el tope sube de 11 a 14) con
 //     pose propia (spr_vanilla_float_run) e imagenes residuales.
-//   - PACIENCIA (1ra caida): 5 s inmune; a los 2 s sale Chocola desde
-//     el lado contrario de la pantalla, stunea al exe y vuelve. El
-//     tiempo restante se CONGELA hasta que Chocola logra golpearlo.
+//   - PACIENCIA (1ra caida): 5 s inmune. v84: con Chocola ya suelta
+//     desde el inicio la paciencia es SOLO EL GESTO (quieta, enojada
+//     e inmune; ya no lanza a Chocola a cazar ni congela el reloj).
 //   - MORIBUNDA (2da caida en adelante): nunca muere ni se demoniza.
 //   - DES-DEMONIZACION: con 15 anillos le quita la demonizacion a un
 //     esbirro ATURDIDO que este al alcance (vuelve a 1 caida de
@@ -331,57 +332,20 @@ function scr_vanilla_v2_step()
             return;
         }
 
-        // pacienciaState == 1: el reloj se CONGELA mientras Chocola no
-        // haya golpeado al exe (pacienciaWaitChocola)
-        if(!pacienciaWaitChocola)
+        // v84 (pedido de la duena): Chocola ya acompana a Vanilla desde el
+        // principio de la ronda (nace en su Create y, en las demas pantallas,
+        // con el primer paquete de su puppet), asi que la paciencia ya NO la
+        // lanza a cazar: con Chocola suelta la paciencia es SOLO EL GESTO.
+        // Vanilla se queda quieta, enojada e inmune sus 5 s seguidos — sin
+        // reloj congelado ni stun al exe — y despues pasa a la fase agotada
+        // y se recupera exactamente como siempre. (La caza grande queda como
+        // camino muerto: solo un cliente v83 viejo puede pedirla por red.)
+        pacienciaTimer--;
+
+        if(pacienciaTimer <= 0)
         {
-            pacienciaTimer--;
-
-            // a los 2 s: CHOCOLA sale desde el lado contrario de la
-            // pantalla a stunar al exe
-            if(!pacienciaChocolaOut && pacienciaTimer <= VANILLA_PACIENCIA_CHOCOLA_AT)
-            {
-                pacienciaChocolaOut = true;
-                pacienciaWaitChocola = true; // congela el resto del tiempo
-
-                var _exe = scr_chocola_find_exe();
-                var _choc = scr_chocola_get();
-
-                if(_choc == noone)
-                    _choc = instance_create_depth(x, y - 140, 0, obj_chocola);
-
-                _choc.mode = CHOCOLA_HUNT;
-                _choc.huntSmall = false;
-                _choc.fromGuard = false;
-                _choc.authority = true;
-                _choc.huntTimer = 0;
-                _choc.targetInst = _exe;
-
-                // lado contrario de la pantalla respecto al exe
-                var _side = 1;
-
-                if(_exe != noone && _exe.x > x)
-                        _side = -1;
-
-                _choc.x = x + _side * 520;
-                _choc.y = y - 140;
-
-                // broadcast: el resto de clientes crean/lanzan la suya
-                net_sound_emit(snd_mermer);
-
-                if(_exe == noone)
-                {
-                    // sin exe en juego: no hay caza posible
-                    pacienciaWaitChocola = false;
-                    _choc.mode = CHOCOLA_RETURN;
-                }
-            }
-
-            if(pacienciaTimer <= 0 && !pacienciaWaitChocola)
-            {
-                pacienciaState = 2;
-                pacienciaTimer = VANILLA_PACIENCIA_EXIT;
-            }
+            pacienciaState = 2;
+            pacienciaTimer = VANILLA_PACIENCIA_EXIT;
         }
 
         return;

@@ -2961,3 +2961,171 @@ and in the agent toolbox `patch_v83.py` (byte-exact patcher with anchor assertio
 - Cosmetic: stale `// N` comments in `net_sounds.gml`; Amy Canon comment/macro mismatches (bubble HP
   100 vs "40", dash recharge 10 s vs "15"); duplicate `deadTimer` in `obj_amy_canon/Create_0.gml`.
 - No server rate limit on Amy Canon's two stun signals (the server cannot see the throw).
+
+
+## v84 - Chocola from frame 0 (Vanilla) + Amelia auras QoL/shields + server anti-cheat (2026-11-26, base commit b3ab984d)
+
+Owner's request (verbatim intent): "me gusta como pusiste de icono animado a chocola...
+Quiero que hagas que ya vanilla posea a chocola desde el principio (aun podra usar su modo
+paciencia pero claro ya con chocola suelta solo hara lo del gesto de paciencia unicamente.
+Y Qol y mejoras al sistema de deteccion de auras de Amelia y mejora general Y blindaje de
+seguridad para evitar crasheos."  The v83 animated Chocola HUD icon is untouched and keeps working.
+Scope: 12 client GML files + 1 server header + 1 server state file. No `.yy` / `.yyp` touched,
+no new asset/script/packet; BUILD_VERSION unchanged (1102): a v84 client and a v83 client can
+play on the same server (the server must be RECOMPILED, see below — memory layout only).
+Tools: `patch_v84.py` (byte-exact atomic patcher), `check_v84.py` (repo root, re-runnable:
+`python check_v84.py .` — 141 checks + real gcc of Game.c vs the git HEAD baseline).
+
+### Scanner - every file touched in v84: what it does, what it connects to, what changed
+
+| File | What it does | Connects to | v84 change |
+|---|---|---|---|
+| `scripts/scr_chocola/scr_chocola.gml` | Vanilla's pet Chocola: macros, helpers, V2 step (V key, auto close attack), net events, stun signal | `objects/obj_chocola/*`, `scr_player_hurt` (block), `net_state_game` L3200+ | PACIENCIA IS NOW THE GESTURE ONLY: the `pacienciaState == 1` block no longer launches the big hunt (no `snd_mermer` emit, no clock freeze, no exe stun); it just ticks its 5 s and hands over to the exhausted phase as before. Headers updated. Macros `VANILLA_PACIENCIA_CHOCOLA_AT` etc. kept for docs/compat |
+| `objects/obj_vanilla/Create_0.gml` | Vanilla instance variables + sensors/indicators creation | `obj_spawnpoint/Create_0` (creates the player), `scr_chocola` | CHOCOLA IS BORN WITH VANILLA: `if(!instance_exists(obj_chocola)) instance_create_depth(x, y - 10, 0, obj_chocola);` at the end of Create (guarded/idempotent) |
+| `objects/obj_chocola/Create_0.gml` | Chocola instance variables | `obj_chocola/Step_0` | header comment rewritten (born from the start, self-heal contract); fixed the stale `huntSmall` comment (stun is 2.5 s exe / 3.5 s minion, not 1.5 s) |
+| `scripts/net_udpprocess/net_udpprocess.gml` | Applies every UDP `CLIENT_PLAYER_DATA` to the matching puppet | `obj_netclient` (sender), `obj_player_puppet` | (1) REMOTE BIRTH OF CHOCOLA: inside the puppet-data handler, after position is applied, `if(character == CHARACTER_VANILLA && !instance_exists(obj_chocola)) instance_create_depth(x, y - 10, 0, obj_chocola);` — first data packet of the Vanilla puppet creates her at the live position, and RE-creates her after a silence (self-heal). (2) powerBoost bit now applied for `CHARACTER_METAL` and `CHARACTER_BLAZE` too (their remote ghost trail was dead code — the gap v83 reported) |
+| `scripts/net_state_game/net_state_game.gml` | TCP game-state packets; the `CLIENT_SOUND_EMIT` receiver branch (sound + Chocola events) | `net_sounds`, `scr_chocola_net_event` | the 5 Chocola event branches now gate on the EMITTER puppet's `character`: mermer/ready/npteleport = Vanilla, achivement = Cream, dive = Vanilla or Cream (the creamring SUPPORT gate was already there). A same sound emitted by another character no longer fires Chocola events (the sound itself still plays) |
+| `scripts/scr_amelia_special/scr_amelia_special.gml` | Amelia's kit macros + `scr_amelia_special()` (banana/trampoline/trap/spindash) | `obj_amelia*` | 8 new aura macros: `AMELIA_AURA_MAX 16`, `AMELIA_AURA_FLASH (60*0.45)`, `AMELIA_AURA_EDGE 16`, `AMELIA_AURA_EDGE_FADE 0.12`, `AMELIA_AURA_POINTER 11`, `AMELIA_AURA_POINTER_W 3.5`, `AMELIA_AURA_COLD_COLOR`, `AMELIA_AURA_COLD_CORE` |
+| `objects/obj_amelia/Create_0.gml` | Amelia instance vars + sensor/indicator creation | `obj_amelia_auras`, `obj_amelia_indicators` | passes `auraOwner = id` to the auras object (lifecycle shield) |
+| `objects/obj_amelia_auras/Create_0.gml` | Aura state arrays (FULL REWRITE) | `obj_amelia/Create_0` | `auraOwner`, `auraCold`, `auraId`, `auraFlash`; all 9 arrays sized by `AMELIA_AURA_MAX` |
+| `objects/obj_amelia_auras/Step_0.gml` | Per-frame heat sensor: EXE-side entities inside 350 px (FULL REWRITE) | `obj_player_puppet`, `obj_exeller_clone`, `global.player` | owner lifecycle guard; guarded `revivalTimes` read; TWO PASSES over the puppets (the real EXE first, so the 16-slot cap can never evict it); `variable_instance_exists` guards on every puppet read; cold detection (`EXE_SHOCKED`/`EXE_LOST` for the exe, `DEAD` for demonized minions); entry-flash bookkeeping; stale-slot cleanup |
+| `objects/obj_amelia_auras/Draw_64.gml` | Draw GUI of the auras, additive blend (FULL REWRITE) | `obj_camera`, `global.player`, macros | camera guard; GUI bounds via `display_get_gui_width/height` (resolution-safe); smoothstep fade at the reach edge (no more pop in/out); cold auras (blue, no pulse); entry flash; OFF-SCREEN auras get a small triangle marker clamped to the screen edge pointing at them (they were simply invisible before); alpha/colour/blend always restored |
+| `objects/obj_amelia_indicators/Draw_64.gml` | Draw GUI of Amelia's exit arrow | `obj_camera` | camera guard (same shield as the auras) |
+| `betterserver-oss/include/Server.h` | Server types, peer cooldown slots | `states/Game.c` | `PLAYER_COOLCOUNT` 15 -> 17 (memory layout only, NO protocol change) + `CHOCOLA_HUNT_STUN 15` / `CHOCOLA_DIVE_STUN 16` |
+| `betterserver-oss/disasterserver/states/Game.c` | Server game state, every `CLIENT_*` handler | `include/Server.h`, client `net_sounds.gml` | `game_stun_signal_ok`: 109 (Chocola big hunt) only from `CH_VANILLA`; 110 (mini-embestida) only from `CH_VANILLA` or `CH_CREAM`. `CLIENT_SOUND_EMIT`: rate limit for Vanilla's 109/110 (10 s / 2 s via `plr_cooldowns`) — a healthy v84 client shares `chocolaCd = 2.5 s` so 2 s never clips it; Cream (guard duty) has no client cooldown so no cap for her. Comment updated (Amy Canon / parry keep NO rate limit) |
+
+### Quick index (verified in v84) - where things are
+
+- CHOCOLA BIRTH (the v84 map): local Vanilla -> end of `objects/obj_vanilla/Create_0.gml`;
+  remote Vanilla -> `net_udpprocess.gml` `CLIENT_PLAYER_DATA` (after position is applied);
+  legacy paths that can still create her: `scr_chocola_net_event` HUNT / HUNT_SMALL (v83 clients).
+  Death: `obj_chocola/Step_0` self-destructs when `scr_chocola_find_home()` is noone;
+  the net_udpprocess guard re-creates her when data returns -> the passive self-heals.
+- Paciencia (1st knockdown): 300 frames gesture (immune, still) -> 60 frames exhausted -> heal.
+  No hunt, no clock freeze. `pacienciaUsed` (once per round) and the hurt-entry in
+  `scr_player_hurt` are unchanged.
+- Auras (Amelia, `obj_amelia_auras`): sensor in Step (2 passes + clones), draw in Draw_64;
+  cold = exe `EXE_SHOCKED`(16)/`EXE_LOST`(18) or minion `DEAD`(6) — numerically EXE_LOST
+  equals VANILLA_PACIENCIA(18) but the branch is chosen by `auraExe`, never by the number.
+- Server cooldown slots 15/16: `CHOCOLA_HUNT_STUN` / `CHOCOLA_DIVE_STUN` in `include/Server.h`,
+  ticked by the generic loop in `game_player_tick`, zeroed by game_init's memset (all automatic).
+- Net sound indices (REAL, counted): mermer 108, nono 109, vasebreak 110, ready 111,
+  npteleport 112, achivement 113, chocola_dive 114. Emitters of the Chocola signals:
+  only `scr_chocola.gml` + `obj_chocola/Step_0.gml` (verified again in v84).
+
+### v83 gaps CLOSED by v84
+
+- `net_state_game.gml` Chocola event branches without an emitter-character check -> gated.
+- METAL / BLAZE dead `powerBoost` receiver path (remote ghost trail) -> applied.
+
+### Known gaps reported in v84 but NOT fixed (out of scope)
+
+- Cream's GUARD attack (chocola_dive + targeted vasebreak) still has no client-side cooldown;
+  the server has no cap for her either (documented in Game.c: any fixed cap could clip a
+  legit double-block window).
+- Amy Canon's two stun signals (0/1) keep no server rate limit (by design, see v83).
+- Pre-existing, untouched: `BUILD_VERSION` is 1102 while its own comment says "v81: 1102 -> 1103"
+  (do NOT "fix" it: the server rejects clients with a different build); the stale `// N`
+  comments in `net_sounds.gml`; `obj_netclient` still sends `PLAYER_POWERBOOST` for
+  Sally Canon's duelist phase (intentional, read as `duelista`).
+
+
+## v85 - Sally Canon ground kick available from PHASE 1 (2026-11-26, base commit b3ab984d)
+
+Owner's request (verbatim intent): "ahora la patada de sally ahora (la de la face 2) podra
+usarse en la 1 face usea la patada en el suelo."  The PHASE-2 (duelista) GROUND KICK — state
+22, `spr_sally_fase2_attack_canon`, 2 kicks -> 2 hitboxes with the exe TP — is now usable in
+PHASE 1 too (tecla X on the ground from the start of the round). Sally VANILLA keeps the
+air-only kick; the duelista phase still unlocks spindash / rolling / group shield / evade
+passive / bigger AIR kick pad (+50% vs +25%).
+Scope: 5 client GML files, ONE functional line (drop `duelista` from the launch gate) plus
+comment updates so this cache stays truthful. No `.yy` / `.yyp` touched, no new asset,
+script, packet, state, sound or macro; no server file touched (no recompile needed beyond
+whatever v84 required). BUILD_VERSION untouched (1102). A v85 client and older clients are
+protocol-identical: the only change is WHEN Sally may use an ability that already existed.
+Tools: `patch_v85.py` (byte-exact atomic patcher), `check_v85.py` (repo root, re-runnable:
+`python check_v85.py . [--allow-v84]` — 59 checks).
+
+### Scanner - every file touched in v85: what it does, what it connects to, what changed
+
+| File | What it does | Connects to | v85 change |
+|---|---|---|---|
+| `scripts/scr_sally_special/scr_sally_special.gml` | Sally kit input (both Sallys): X kick, C shield, slide, spindash (duelist), cyber forms | `obj_sally` / `obj_sally_canon` Step, `scr_player_hurt`, `obj_player_puppet` (victim side) | THE functional change: the ground-kick branch of the X key no longer requires `duelista` — only `CHARACTER_SALLY_CANON` + the usual safety conditions (not sliding / spin-charging / hiding / hurt / dead / shocked / zipline / red ring / `attackTimer <= 0`). Header + block comments updated |
+| `scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.gml` | Sally Canon 4-part knockdown mode + all its macros + the duelista unlock at pt4 | `scr_player_instakill` (entry), `obj_sally_canon/Step_0`, puppet state sync | comments only: the duelista unlock list no longer counts the ground kick; hitbox macro comment says the +30% ground pad applies in ANY phase since v85; `duelista = true / canSpin / canSpinDash` at pt4 end untouched |
+| `objects/obj_player_puppet/Step_0.gml` | Per-frame puppet logic incl. the VICTIM side of the ground kick (trust model: the exe's client applies the 2 hits, the TP and the 3 s stun to itself when it sees Sally's puppet in state 22) | `net_udpprocess` (state byte + image_index), `CLIENT_PLAYER_HURT` / `CLIENT_STATS_REPORT` | comments only: the kick effect block was ALREADY phase-blind (keyed on `state == SALLY_CANON_F2_ATTACK` alone) — comments now say so explicitly |
+| `objects/obj_sally_canon/Draw_76.gml` | State -> sprite / image_speed selection for Sally Canon | `scr_survivors` anim tables | comment only: the state-22 case clears `groundKick` at anim end (unchanged) and is no longer described as duelista-only |
+| `objects/obj_sally_canon/Step_2.gml` | State machine priorities (fase 2 > dead > hurt > spindash charge > slide > ATTACK...) | `obj_sally_canon/Step_0`, Draw_76 | comment only: `state = groundKick ? 22 : 14` is chosen by the `groundKick` flag, which phase 1 can now set |
+
+### Quick index (verified in v85) - the ground kick, end to end
+
+- LAUNCH (only gate that existed): `scr_sally_special` X-key `else if` branch — was
+  `CHARACTER_SALLY_CANON && duelista && [safety]`, now `CHARACTER_SALLY_CANON && [safety]`.
+  Sets `isAttacking = true; groundKick = true; attackTimer = 15 s (4 s esbirro)` and
+  broadcasts `snd_dash` (same as the air kick, same as always).
+- LOCAL state: `obj_sally_canon/Step_2` `state = groundKick ? SALLY_CANON_F2_ATTACK(22) :
+  SALLY_ATTACK(14)`; anim `spr_sally_fase2_attack_canon` (11 frames) in BOTH anim tables
+  (`scr_survivors` L292 player + L812 puppet). Draw_76 ends it at the last frame.
+- REMOTE/victim: state 22 + image_index travel in `CLIENT_PLAYER_DATA`; the exe's client
+  runs the 2 windows (`f2atkHit1` frames 0-6, `f2atkHit2` frames 7+), the TP of the exe to
+  the front of Sally, the 3 s self-stun, `CLIENT_PLAYER_HURT` + `CLIENT_STATS_REPORT`,
+  mercoin bonus + `scr_exe_stunsound` — ALL of it keyed on the state only, so phase 1
+  worked on the victim side without a single change there.
+- HUD: `obj_playerui/Draw_64` X icon = `attackTimer` recharge (`spr_gui_sallyattack`,
+  15 s / 7.5 s debilitada) — phase-agnostic, nothing to change.
+- Anti-cheat (rule 7): NO new packets, states, sounds or server rules. The `duelista` flag
+  was always client-claimed (the PLAYER_POWERBOOST bit), so a hacked Sally could already
+  send state 22 whenever it wanted — the gate was progression, not protection. Nothing to
+  add as an exception; the v84 server rules are unaffected.
+
+### Packaging note (important for future versions)
+
+origin/main was still b3ab984d when v85 was built (the v84 zip had not been pushed yet),
+so v85 was built ON TOP of the locally re-applied v84: the zip carries only the 5 v85 code
+files (zero overlap with v84's 13), but CACHE.md / LEARNING.md / worklog.md carry BOTH the
+v84 and v85 entries. Apply order: v84 first, then v85 (see LEEME). The code files apply in
+either order (verified by roundtrip B: clean b3ab984d + v85 zip only).
+
+
+## v86 - Sally Canon: unified kick hitbox (any phase) + the EXIT arrow (2026-11-26, base commit b3ab984d)
+
+Owner's request (verbatim intent): "la hitbox aumentada tambien aplica para la fase 1. ella poseera la flecha
+que tiene amy canon para saber donde esta la salida."  Two changes:
+1. The ENLARGED kick hitbox now applies in PHASE 1 as well: the AIR kick pad goes from +25% (phase 1) /
+   +50% (duelista) to +50% in ANY phase; the GROUND kick keeps its +30% in any phase (that part was
+   phase-blind since v85). Macros renamed to not lie: `SALLY_CANON_KICK_PCT_GROUND` (0.30) and
+   `SALLY_CANON_KICK_PCT_AIR` (0.50); `SALLY_CANON_KICK_PCT_F1` deleted (zero references left). The v82
+   cyber-form multiplier still applies on top (and the esbirro still gets no cyber bonus).
+2. EXIT RADAR for Sally Canon: the GREEN arrow Amy Canon has (`spr_sindicator2` pointing to the nearest
+   `obj_bigring`), implemented INLINE in her Draw GUI event exactly like Rouge's v25 "RADAR DE LA SALIDA"
+   — no new object, no .yy, no packets, no server: pure local client info, only her screen. The RED exe
+   arrow is NOT included (stays Amy Canon / vanilla exclusive, like Rouge's request back then).
+Scope: 3 client GML files. No `.yy`/`.yyp`, no new asset/script/packet/state/sound; no server file; no
+recompile. Protocol-identical for old clients. Tools: `patch_v86.py` (byte-exact, atomic, per-file
+idempotent), `check_v86.py` (repo root, re-runnable: `python check_v86.py . [--allow-prev]` — 45 checks).
+APPLY ORDER: v84 -> v85 -> v86 (two of the three v86 files already carry v85 edits; they are NOT
+independent this time).
+
+### Scanner - every file touched in v86: what it does, what it connects to, what changed
+
+| File | What it does | Connects to | v86 change |
+|---|---|---|---|
+| `objects/obj_sally_canon/Draw_64.gml` | Her Draw GUI event: HP bar + (v82) cyber-form name | `obj_camera`, HP/rings HUD | APPENDED the v86 exit radar: guard `hp > 0 && revivalTimes < 2 && instance_exists(obj_bigring)`, `instance_nearest` ring, `spr_sindicator2` drawn at her body rotated with `point_direction` — 1:1 with Rouge's radar block (tabs, banner comment, same anchor formula). File ends `}` without trailing newline (owner's convention kept) |
+| `scripts/scr_sally_canon_fase2/scr_sally_canon_fase2.gml` | Sally Canon knockdown mode + ALL her macros (states 18-23, kick windows, pads) | `obj_sally_canon`, `obj_player_puppet` | macros renamed + `SALLY_CANON_KICK_PCT_F1` deleted; comments now say both pads apply in ANY phase since v86; everything else (windows 0-6/7+, TP factor, duelista unlock) untouched |
+| `objects/obj_player_puppet/Step_0.gml` | Victim-side trust model: applies the kick pads/effects, squash, shield poses | `net_udpprocess` (state byte), `scr_sally_cyber_hitbox_mul` | the `_scKickPad` computation lost its `duelista ? :` ternary: state 22 -> GROUND 0.30, state 14 -> AIR 0.50, any phase; the `_f2pad` (TP) line uses the renamed GROUND macro; comments updated |
+
+### Quick index (verified in v86)
+
+- Pads: `% of bbox width` pattern (like `_sonicPad`/`_amyFuerzaPad`); ground 0.30 / air 0.50 in both
+  phases (44-px bbox -> 14 px / 22 px); cyber semi x1.45 / full x1.70 on top; esbirro: plain pad.
+- Radar: same sprite + anchoring + rotation as Rouge's v25 radar (verified line-by-line parity);
+  green only; hidden while hp <= 0 (fase 2 pt1-3 with 0 hp) or dead; `revivalTimes < 2` is red-of-network
+  safety (Sally Canon never demonizes — server patch like Amy Canon's).
+- Anti-cheat (rule 7): zero network surface (no new packets/states/sounds; the radar is Draw-GUI-only
+  local info, the pads run on the victim's client keyed on state). Nothing to add server-side.
+- PRECEDENTS untouched: `obj_amycanon_indicators`, Rouge's radar, `obj_vanilla_indicators` (all read-only
+  in the validator).
+
+### Pending
+
+None for v86. Possible future asks seen in the code: the RED exe arrow for Sally Canon (trivial: copy the
+`exeVisible` half of `obj_amycanon_indicators` into the same Draw_64 block), group-shield HUD icons, etc.

@@ -105,7 +105,10 @@ instance_create_depth(x, y, 0, obj_player_sensorAR);
 // Ve el aura de las entidades del bando EXE en un radio de 350 px a
 // traves de las paredes; la del EXE REAL arde mas fuerte. Ver
 // obj_amelia_auras y las macros AMELIA_AURA_* en scr_amelia_special.
-instance_create_depth(x, y, 0, obj_amelia_auras);
+// v84: le paso mi id (auraOwner) para que sus auras se apagen solas si
+// esta instancia desaparece (blindaje anti-objeto-huerfano).
+var _auras = instance_create_depth(x, y, 0, obj_amelia_auras);
+_auras.auraOwner = id;
 
 // MARCA DE LA SALIDA (v4.5): version LIMITADA de los sensores de Amy
 // Canon — flecha verde hacia el anillo de escape solo si esta a <= 680

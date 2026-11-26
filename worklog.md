@@ -6714,3 +6714,72 @@ Base: owner's commit 2db92702 (v82). Fetched before working. Protocol / BUILD_VE
 7. Verification: `check_v83.py` (lexer, symbols, simulations) + `gcc -fsyntax-only` baseline vs patched.
 8. Files: 10 code files + CACHE.md + LEARNING.md + this worklog + LEEME_V83_VANILLA_AMY_CANON.txt
    + check_v83.py, zipped as `disaster2d-oss_v83.zip` (only modified/created files).
+
+
+## v84 - 2026-11-26 - Chocola desde el principio + Amelia auras QoL/blindaje + anti-cheat + respaldo
+
+Base: owner's commit b3ab984d (v83). Fetched before working (twice: the sandbox was recycled
+mid-task and the clone had to be re-made; origin/main was still b3ab984d). Protocol /
+BUILD_VERSION untouched (1102). No .yy / .yyp touched, no new assets, no new scripts.
+
+1. Audit: full read of the paciencia/Chocola flow, the auras of Amelia (3 files + indicators),
+   the puppet data path, the Chocola net-signal emitters/receivers, and the server
+   CLIENT_SOUND_EMIT validation.
+2. Backup of the ORIGINAL version of the 13 files before touching them
+   (`respaldo_v84_originales_b3ab984d.zip`, taken from git HEAD).
+3. VANILLA: Chocola born at frame 0 (obj_vanilla/Create_0 local + net_udpprocess remote,
+   self-healing); paciencia = gesture only; stale comments fixed.
+4. AMELIA: auras rewritten (owner lifecycle, guarded reads, two-pass exe-first cap, cold
+   state, entry flash, smooth edge fade, off-screen edge markers, camera + GUI bounds guards);
+   indicators camera guard; new AMELIA_AURA_* macros.
+5. GENERAL: METAL/BLAZE powerBoost dead path fixed (remote ghost trail).
+6. Client gates: Chocola net events check the emitter puppet's character (Vanilla / Cream).
+7. Server anti-cheat: 109/110 emitter character rules + Vanilla rate limit (10 s / 2 s,
+   PLAYER_COOLCOUNT 15 -> 17, slots CHOCOLA_HUNT_STUN / CHOCOLA_DIVE_STUN).
+8. Verification: check_v84.py (141 checks: lexer, symbols, macros, simulations) +
+   gcc -std=gnu11 -Wall -fsyntax-only (HEAD 0 errors/45 warnings; patched identical) +
+   roundtrip in a fresh clone.
+9. Files: 13 code files + CACHE.md + LEARNING.md + this worklog + LEEME_V84_VANILLA_CHOCOLA_AMELIA.txt
+   + check_v84.py, zipped as `disaster2d-oss_v84.zip` (only modified/created files).
+
+
+## v85 - 2026-11-26 - Patada en tierra de Sally Canon desde la fase 1 + respaldo
+
+Base: b3ab984d (origin/main unchanged; the v84 zip had not been pushed, so v84 was
+re-applied locally first — its 13 files do not overlap v85's 5). Protocol / BUILD_VERSION
+untouched. No .yy / .yyp, no new assets/scripts/packets/states/sounds, no server file.
+
+1. Audit: full read of the Sally Canon kick path (launch gate in scr_sally_special, state
+   selection, anim tables, Draw_76, the victim-side effect in obj_player_puppet, HUD icon,
+   recharge macros) + the esbirro/demonization edge cases.
+2. Backup of the ORIGINAL version of the 5 files (`respaldo_v85_originales_b3ab984d.zip`).
+3. ONE functional edit: drop `duelista` from the ground-kick launch gate (X on the ground
+   works from phase 1 for Sally Canon; Sally vanilla keeps air-only; the duelista phase
+   keeps spindash/rolling/group shield/evade/+50% air pad). Comments updated in 5 files.
+4. Verification: check_v85.py (59 checks: lexer, content — with comment-stripping for code
+   assertions —, macro uniqueness, launch-gate matrix of 13 cases, kick-window simulations,
+   anim tables x2) + roundtrip A (clean clone + v84 zip + v85 zip, byte-identical, ALL
+   PASS) + roundtrip B (clean clone + v85 zip only — both-orders safety, ALL PASS).
+5. Files: 5 code files + CACHE.md + LEARNING.md + this worklog + LEEME_V85_SALLY_PATADA_FASE1.txt
+   + check_v85.py, zipped as `disaster2d-oss_v85.zip` (only modified/created files).
+
+
+## v86 - 2026-11-26 - Hitbox unificada de la patada + radar de la salida para Sally Canon
+
+Base: b3ab984d (origin/main sin cambios; v84+v85 re-aplicadas localmente antes de parchear). Protocolo /
+BUILD_VERSION intactos. Sin .yy/.yyp, sin assets/paquetes/estados/sonidos nuevos, sin server.
+
+1. Auditoria: pads de la patada (puppet, lado victima), radar de Rouge (v25) y sensores de Amy Canon,
+   flechas de vanilla; convencion de saltos finales de los archivos tocados.
+2. Respaldo PRE-v86 (= estado v85) de los 3 archivos (respaldo_v86_prev85_b3ab984d.zip).
+3. Parche: (a) macros GROUND 0.30 / AIR 0.50 renombradas, F1 borrada, pad del puppet sin ternario de fase;
+   (b) radar de la salida inline en Draw_64 de Sally Canon, copia 1:1 del patron de Rouge.
+4. Bug del parcheador corregido ANTES de entregar: la construccion del append corto una llave `}` del
+   bloque cyber (tail[:-1]); lo pesco el chequeo de llaves del validador. Parcheador rehecho idempotente
+   por archivo y reparado con git checkout + re-run. Regla aprendida asentada en LEARNING.
+5. Verificacion: check_v86.py (45 chequeos: lexer, contenido, macros viejas extintas, paridad 1:1 con el
+   radar de Rouge, matriz del radar, simulaciones de pads en ambas fases con y sin cyber) + roundtrip:
+   clon limpio + v84 + v85 + v86 byte a byte identico al arbol parcheado, validador en verde.
+   ORDEN OBLIGATORIO: v84 -> v85 -> v86 (2 archivos se solapan con la v85).
+6. Archivos: 3 de codigo + CACHE.md + LEARNING.md + worklog.md + LEEME_V86_SALLY_HITBOX_FLECHA.txt +
+   check_v86.py en disaster2d-oss_v86.zip (solo archivos modificados/creados).

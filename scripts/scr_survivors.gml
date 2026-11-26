@@ -289,7 +289,7 @@ global.player_anims[? CHARACTER_SALLY_CANON] =
         spr_sally_fase2_canon_pt2, //19 = FASE 2 pt2: tirada en el suelo
         spr_sally_fase2_canon_pt3, //20 = FASE 2 pt3: salto (loop)
         spr_sally_fase2_canon_pt4, //21 = FASE 2 pt4: recuperacion
-        spr_sally_fase2_attack_canon, //22 = DUELISTA: patada en tierra (2 patadas)
+        spr_sally_fase2_attack_canon, //22 = patada en tierra (2 patadas; v84: TODAS las fases)
         spr_sally_spin_charger_canon //23 = DUELISTA: carga del spindash
 ];
 
@@ -809,7 +809,7 @@ global.player_eanims[? CHARACTER_SALLY_CANON] =
         spr_sally_fase2_canon_pt2, //19
         spr_sally_fase2_canon_pt3, //20
         spr_sally_fase2_canon_pt4, //21
-        spr_sally_fase2_attack_canon, //22 = DUELISTA: patada en tierra
+        spr_sally_fase2_attack_canon, //22 = patada en tierra (v84: TODAS las fases)
         spr_sally_spin_charger_canon //23 = DUELISTA: carga del spindash
 ];
 
