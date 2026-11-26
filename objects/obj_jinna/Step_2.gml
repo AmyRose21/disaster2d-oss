@@ -80,6 +80,33 @@ if(isAttacking)
         return;
 }
 
+// v89 (bug de la liana, reporte de la duena: «cuando se agarra de las
+// lianas se queda en la pose de agarre y no puede usar otra vez ese
+// agarre»): a Jinna le faltaba el bloque de tirolina que TODOS los
+// demas personajes tienen en su Step_2 (Sonic, Tails, Metalamy — su
+// propia plantilla — y el resto). Sin este bloque, el isZipline que
+// pone obj_aiz_zipline (_holdPlayer) NUNCA se apaga cuando el viaje
+// termina solo (el soltar con salto si lo apaga; llegar al final de
+// la liana no): al aterrizar, cada vez que Jinna quedaba quieta en el
+// suelo la maquina la dejaba en JINNA_ZIPLINE (spr_jinna_zipline = la
+// «pose de agarre»), y de regalo el guard de obj_aiz_zipline
+// («if(global.player.isZipline) return;», el que impide que una
+// liana agarre a quien ya viaja en otra) le negaba TODAS las lianas
+// para siempre. Mismo bloque estandar de la plantilla: en el aire =
+// pose de liana (slot 19, que Draw_76 ya sabia dibujar; de paso el
+// CARRY la ve colgada igual que todos), y al pisar suelo el flag se
+// apaga y la maquina sigue su curso normal.
+if(isZipline)
+{
+        if(isGrounded)
+                isZipline = false;
+        else
+        {
+                state = JINNA_ZIPLINE;
+                return;
+        }
+}
+
 if(!isGrounded)
 {
         if(yspd < 0)
@@ -100,8 +127,12 @@ else if(isLookingDown)
         state = LOOKDOWN;
 else if(isOnEdge)
         state = BALANCING;
-else if(isZipline)
-        state = JINNA_ZIPLINE;
 
+// (v89) justo aqui, despues de BALANCING, vivia «else if(isZipline)
+// state = JINNA_ZIPLINE;»: solo se alcanzaba PARADA EN EL SUELO, que
+// es justo el sintoma del bug (la pose de agarre para siempre). Con
+// el bloque de arriba apagando el flag al aterrizar, este else-if
+// quedaba en codigo muerto y se retira: la pose de liana solo existe
+// en el aire, como en todos los demas personajes.
 if(isSpinning)
         state = SPIN;

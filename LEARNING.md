@@ -1390,3 +1390,70 @@ runtime state can ever feed a non-real to an arithmetic op. 745-check verifier.
 - The user's workflow: they commit our delivered zips to origin/main themselves
   (v87 arrived as commit "ewe"); after `git reset origin/main` the local working
   tree diff shows exactly the new hotfix — do that before scoping any patch.
+
+## v89 — Jinna + the Angel Island vines: stuck in the grab pose, lianas forever unusable (2026-11-27, base 273d5d01)
+
+Request: user reported that in HideAndSeek (room_angelisland — the AIZ vines map), when
+Jinna grabs the lianas (the ziplines that carry you side to side) she stays in the grab
+pose and can never use that grab again.
+Outcome: 1-file fix in `objects/obj_jinna/Step_2.gml` — the standard family zipline block
+that all 22 other characters have. 391-check verifier + fuzz + template-parity run.
+
+### Root cause (the lesson, keep forever)
+
+1. **The "lianas" are `obj_aiz_zipline`** (the Angel Island ziplines, sprite
+   `spr_aiz_liana`; `HideAndSeek` in `scr_globals.gml` maps to `room_angelisland` — that
+   is why the bug "lives" in Hide&Seek: it is the vines map, not a mode-specific code
+   path).
+2. **Cross-object flag lifecycle:** `_holdPlayer()` (defined in the zipline's Create_0,
+   called from its Step_2 AND Step_0 AND Draw_72 AND Draw_76) sets
+   `global.player.isZipline = true` while the player rides. The zipline clears that flag
+   ITSELF only on jump-release or death — **when the ride ends naturally
+   (`progress -> 1`), the flag stays ON**. Every character therefore self-clears it in
+   its own Step_2 on landing:
+   `if(isZipline){ if(isGrounded) isZipline = false; else { state = XXX_ZIPLINE; return; } }`.
+3. **Family invariant violated by one member:** an automated sweep of all 23
+   `objects/obj_*/Step_2.gml` proved Jinna was the ONLY character without that block;
+   her only handling was a dead tail `else if(isZipline) state = JINNA_ZIPLINE;`
+   reachable ONLY while standing still ON THE GROUND. Two symptoms from one missing
+   block: (a) idle-on-ground fell into JINNA_ZIPLINE (slot 19, `spr_jinna_zipline` =
+   the vine-grab pose the user saw); (b) the zipline re-grab guard
+   `if(global.player.isZipline) return;` (added with CARRY v2) refused her forever —
+   "no puede usar otra vez ese agarre".
+4. **Half-implemented feature smell:** slot 19 already existed in `scr_exe.gml`, and
+   `Draw_76` already had `case JINNA_ZIPLINE:` (image_speed=0). When a sprite slot +
+   draw case exist but no Step_2 block, suspect a forgotten template block.
+
+### What worked (keep doing)
+
+1. **Character-family invariant sweeps.** A one-line shell loop over every
+   `objects/obj_*/Step_2.gml` checking for the reset pattern instantly identified both
+   the bug and its uniqueness (22 OK / 1 missing). Do this BEFORE designing a fix.
+2. **Executing the real GML with a mini-interpreter** (check_v89.py parses and runs the
+   ACTUAL Step_2 file — and, via `git show origin/main:...`, the OLD file too). The old
+   file reproduces both reported symptoms; the new file produces the exact expected
+   frame sequences. This is far stronger than eyeballing a diff.
+3. **Template parity runs:** executing the REAL `obj_metalamy/Step_2.gml` (Jinna's
+   stated template) through the same interpreter and comparing state sequences
+   end-to-end ([19,19,19,(idle,flag 0),idle] in both).
+4. **Testing the never-broken path too** (jump-release): asserts the fix adds no
+   regression where the old code was already correct.
+
+### Facts learned (verified in docs/code)
+
+- NEW RULE WHEN ADDING A CHARACTER: copy ALL standard template blocks into the new
+  Step_2 (zipline included — it is the one everyone forgets). `check_v89.py`'s family
+  sweep can be re-run after any future character addition.
+- `global.character` does NOT distinguish EXE variants: playing Jinna means
+  `global.character == CHARACTER_EXE` (0) + `global.exeCharacter == EXE_JINNA`
+  (`player_getexe(5)` spawns `obj_jinna`). The zipline's `switch(global.character)`
+  therefore needs NO Jinna case (`case CHARACTER_EXE`, y+22, already covers her).
+- `state` travels as `buffer_u8`, so any state up to 255 is network-safe; Jinna's
+  JINNA_ZIPLINE (19) is the same slot value Metalamy has always sent — zero anti-cheat
+  surface (verified: Step_2 touches no packets/buffers).
+- scr_carry also sets `isZipline = true` for a passenger hanging from a flying
+  Tails/Cream, but `scr_carry_end` clears it explicitly — carry was never affected;
+  with v89, Jinna also renders the hang pose while carried (consistent with everyone).
+- `obj_aiz_zipline` calls `_holdPlayer()` from Step_0 AND Draw_72 AND Draw_76 while
+  holding (three times per frame) — any future change to that function must stay
+  idempotent per frame.

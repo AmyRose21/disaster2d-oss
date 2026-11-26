@@ -6865,3 +6865,74 @@ sin server. ALCANCE TOTAL DEL CODIGO: 1 archivo (Draw_64).
 6. Archivos: 1 de codigo (Draw_64.gml) + CACHE.md + LEARNING.md + worklog.md +
    LEEME_V88_AMELIA_AURAS_HOTFIX.txt + check_v88.py en disaster2d-oss_v88.zip
    (solo modificados/creados).
+
+
+## v89 - 2026-11-27 - FIX Jinna + lianas de AIZ: pose de agarre para siempre y re-agarre bloqueado
+
+Base: origin/main 273d5d01 (= la v88 que la duena importo y commiteo como "ewe").
+Protocolo / BUILD_VERSION intactos. Sin .yyp/.yy, sin assets, sin server, sin paquetes.
+ALCANCE TOTAL DEL CODIGO: 1 archivo (Step_2 de obj_jinna).
+
+1. Reporte de la duena: «cuando se agarra de las lianas esas que te ayudan a pasar
+   de lado a lado ella se queda en la pose de agarre y no puede usar otra vez ese
+   agarre otra vez» (con Jina, modo HideAndSeek = room_angelisland, el mapa de las
+   lianas/tirolinas AIZ).
+2. Diagnostico (regla 8, investigado a fondo): las "lianas" son las tirolinas de
+   Angel Island (obj_aiz_zipline, sprite spr_aiz_liana). El flujo: _holdPlayer()
+   enciende global.player.isZipline MIENTRAS viaja y la tirolina SOLO lo apaga si
+   el jugador se suelta con SALTO (o muere); cuando el viaje termina SOLO
+   (progress -> 1), el flag queda ENCENDIDO. TODOS los personajes lo apagan ellos
+   mismos en su Step_2 al pisar suelo («if(isZipline) { if(isGrounded)
+   isZipline = false; ...}») — barrido automatico de los 23 Step_2 del repo: 22
+   personajes lo tienen, JINNA es la UNICA que no: su unico manejo era un
+   «else if(isZipline) state = JINNA_ZIPLINE;» al FINAL de la cadena, que solo se
+   alcanza PARADA Y QUIETA EN EL SUELO. De ahi los DOS sintomas: (1) al aterrizar,
+   cada vez que Jinna quedaba quieta su maquina la dejaba en JINNA_ZIPLINE
+   (spr_jinna_zipline = la "pose de agarre"); (2) el guard de re-agarre de la
+   tirolina («if(global.player.isZipline) return;», anadido con el CARRY v2 para
+   no agarrar a quien ya viaja) le negaba TODAS las lianas PARA SIEMPRE.
+   Confirmado tambien: slot 19 (JINNA_ZIPLINE = BALANCING+6) ya existia en scr_exe
+   (spr_jinna_zipline) y Draw_76 ya tenia el case (con image_speed=0): faltaba
+   SOLO el bloque de Step_2 (implementacion a medias).
+3. FIX (estandar de la familia, forma exacta de Sonic con el else de Metalamy):
+   bloque de tirolina insertado tras isAttacking (antes de !isGrounded, mismo
+   lugar que la plantilla obj_metalamy): en el aire = JINNA_ZIPLINE (19) + return;
+   al pisar suelo = isZipline = false y la maquina sigue su curso. El viejo
+   «else if(isZipline)» del final quedaba en codigo muerto y se retira (nota en
+   su sitio). Con esto: durante el viaje muestra la pose de liana (antes mostraba
+   FALL — bug visual hermano que salio gratis), el CARRY la ve colgada de su
+   portador como a todos, y al aterrizar todo vuelve a la normalidad y las lianas
+   vuelven a agarrarla (timeout de 3 s de la liana aparte, como siempre).
+4. Verificacion (regla 6): check_v89.py — 391 checks, 5 suites: S1 estructura del
+   Step_2 parcheado (balance llaves/parentesis, bloque v89 en su sitio, forma
+   exacta del bloque, sin TABs, indentacion x8, cierre «;\n» identico al original,
+   else-if muerto retirado); S2 EJECUCION del archivo REAL con un mini-interprete
+   del subconjunto GML de Step_2 (if/else, ternario, ! && ||, abs(), macros): el
+   viaje que termina solo queda [19,19,19,(IDLE,flag 0),IDLE...], el guard deja
+   re-agarrar (segunda liana completa), el soltar con SALTO no cambia (camino
+   nunca roto, sin regresion), el CARRY muestra 19 y scr_carry_end sigue
+   cerrando, y las 15 prioridades de la plantilla (hurt/shock/tele/trampa/
+   minions/grabVisual/ataque/won/lost/spin/looks/edge/movimiento) pisan a la
+   liana como en Metalamy — incluido spin: en el AIRE gana 19 (igual que Sonic,
+   su bloque hace return antes del spin) y en suelo rueda normal; S3 REGRESION:
+   el archivo VIEJO (git show origin/main) ejecutado por el mismo interprete
+   REPRODUCE exactamente el reporte (en plena liana mostraba FALL=4, y al
+   aterrizar quieta: state 19 PARA SIEMPRE con flag ON = guard la bloquea);
+   S4 cableado: guard y release de la liana, _holdPlayer, case JINNA_ZIPLINE en
+   Draw_76 con image_speed=0, slot 19 = spr_jinna_zipline en scr_exe (19 < 22
+   slots: bounds del puppet OK), case CHARACTER_EXE en el switch de alturas de la
+   liana (Jinna viaja con character==0), ciclo del flag en scr_carry, macros
+   JINNA_* unicos, state viaja como u8; S5 alcance por git: SOLO Step_2.gml de
+   codigo (+docs de la casa), NINGUN .yy/.yyp. Ademas: fuzz de 2000x30 frames
+   aleatorios = 0 caminos de crash, invariante flag+suelo 500/500, y paridad de
+   secuencia con el Step_2 REAL de Metalamy ejecutado por el mismo interprete.
+   Anti-cheat (regla 7): cero superficie nueva (sin paquetes, sin velocidades,
+   sin teleports; el state 19 es el mismo slot que Metalamy usa desde siempre).
+5. Leccion para LEARNING: el patron «cada personaje apaga SOLO el flag que otro
+   objeto enciende» es una INVARIANTE de familia: al anadir un personaje hay que
+   copiar TODOS los bloques estandar de la plantilla (zipline incluido); el bug
+   no aparecia con salto ni con CARRY porque esos caminos apagan el flag ellos
+   mismos — solo el final natural del viaje lo deja encendido.
+6. Archivos: 1 de codigo (objects/obj_jinna/Step_2.gml) + CACHE.md + LEARNING.md
+   + worklog.md + LEEME_V89_JINNA_LIANA_FIX.txt + check_v89.py en
+   disaster2d-oss_v89.zip (solo modificados/creados).

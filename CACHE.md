@@ -1570,6 +1570,21 @@ y las pistas nuevas de 20-28s se cortaban).
   Delivered first as "v81" by this session and relabelled: the v81 label
   belongs to the claims delivery.
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-27 (v89 — FIX JINNA + LIANAS DE AIZ / HideAndSeek): reporte de la duena:
+  al agarrarse de las lianas (tirolinas de Angel Island, obj_aiz_zipline) Jinna
+  quedaba en la pose de agarre para siempre y no podia volver a usarlas. RAIZ:
+  a Jinna le faltaba el bloque «if(isZipline) { if(isGrounded) isZipline = false;
+  ... }» de su Step_2 que los 22 demas personajes tienen (la liana solo apaga el
+  flag al soltar con SALTO; el fin natural del viaje lo deja ON, y el guard de
+  re-agarre «if(global.player.isZipline) return;» la bloqueaba para siempre).
+  Fix: bloque estandar de la familia (forma de Sonic, sitio de obj_metalamy) +
+  retiro del else-if muerto del final. Bonus: durante el viaje ahora muestra la
+  pose de liana (antes FALL) y el CARRY la ve colgada como todos. 1 archivo de
+  codigo, sin .yy/.yyp, cero server, cero superficie anti-cheat. Verificacion:
+  check_v89.py (391 checks: ejecucion del archivo real con mini-interprete,
+  regresion del archivo viejo que reproduce el bug, cableado cruzado, alcance
+  git) + fuzz 2000x30 frames (0 crashes) + paridad con el Step_2 real de
+  Metalamy. Detalle: seccion v89 (final).
 - 2026-11-25 (v82 - SALLY CANON CYBER FORMAS + SHADER CYBER V3): pedido de la duena: mejorar el
   shader cyber (amy_cyber), llevarselo a Sally Canon y darle 3 formas
   (normal / semi cyber / cyber completa) con la tecla V, solo si hay una
@@ -3291,3 +3306,94 @@ None for v88. If the owner ever reports all signatures pulsing in unison (fallba
 active on their runtime), the leading-digits tier is not extracting digits from
 `string(id)` — ask for the exact text of `show_debug_message(string(auraId[0]))` and adjust
 the digit filter.
+
+## v89 — FIX: Jinna + las lianas de Angel Island (HideAndSeek) — pose de agarre eterna y re-agarre bloqueado (2026-11-27)
+
+### What happened (user report, verbatim)
+
+«cuando se agarra de las lianas esas que te ayudan a pasar de lado a lado ella se queda en la
+pose de agarre y no puede usar otra vez ese agarre otra vez» — con Jina, modo HideAndSeek
+(`group: "HideAndSeek"` en scr_globals = `room_angelisland`, el mapa de las lianas AIZ).
+
+### Root cause (verified against all 23 characters' Step_2)
+
+- The "lianas" ARE the Angel Island ziplines: `obj_aiz_zipline` (draws `spr_aiz_liana`),
+  with `zstart`/`zend` (`obj_aiz_zipline_start/end`) and `gid` pairing.
+- Flag lifecycle: `_holdPlayer()` (Create_0.gml of the zipline, called from its Step_2,
+  Step_0, Draw_72 AND Draw_76 while `hasPlayer`) sets `global.player.isZipline = true`.
+  The zipline ONLY clears it itself when the player releases with JUMP (KeyA) or dies.
+  When the ride ends NATURALLY (`progress -> 1`), the flag stays ON.
+- Every character self-clears it on landing in their own Step_2:
+  `if(isZipline) { if(isGrounded) isZipline = false; ... state = XXX_ZIPLINE; return; }`
+  — automated sweep of the 23 `objects/obj_*/Step_2.gml`: 22 characters have it, Jinna was
+  the ONLY one missing it. Her only handling was `else if(isZipline) state = JINNA_ZIPLINE;`
+  at the very END of the else-if chain — reachable ONLY standing still ON THE GROUND.
+- Symptom 1 («se queda en la pose de agarre»): after landing, whenever idle her machine
+  fell into JINNA_ZIPLINE (slot 19 = `spr_jinna_zipline` — the vine-grab pose).
+- Symptom 2 («no puede usar otra vez ese agarre»): the zipline re-grab guard
+  `if(global.player.isZipline) return;` (added with CARRY v2 so a liana doesn't grab
+  someone already traveling) refused her FOREVER.
+- Half-implemented feature proof: slot 19 existed in `scr_exe.gml` (`spr_jinna_zipline`)
+  AND `Draw_76` already had `case JINNA_ZIPLINE:` (image_speed=0, frame 0) — only the
+  Step_2 block was missing.
+
+### The v89 fix (1 file: `objects/obj_jinna/Step_2.gml`)
+
+Standard family block inserted after `isAttacking` (same spot as template obj_metalamy),
+Sonic's exact shape (`else return` — cleaner landing than metalamy's unconditional state):
+
+```
+if(isZipline)
+{
+        if(isGrounded)
+                isZipline = false;
+        else
+        {
+                state = JINNA_ZIPLINE;
+                return;
+        }
+}
+```
+
+The old dead `else if(isZipline)` at the tail was REMOVED (unreachable after the fix;
+a note marks its old spot). Bonus fixes that come free: while RIDING she now shows the
+vine pose (before: FALL sprite), and the CARRY sees her hanging from the carrier like
+every other character (`scr_carry` sets isZipline=true too — its `scr_carry_end` already
+cleared it, so carry was never affected by the bug).
+
+### Connections (who sets / who clears `isZipline` — the full map)
+
+| File | Role | isZipline |
+|---|---|---|
+| `objects/obj_aiz_zipline/Create_0.gml` (`_holdPlayer`) | liana engine | SETS true while holding (from Step_2, Step_0, Draw_72, Draw_76) |
+| `objects/obj_aiz_zipline/Step_2.gml` | liana logic | re-grab guard reads it; release-by-jump CLEARS it; natural end does NOT |
+| `objects/obj_jinna/Step_2.gml` | Jinna's End Step state machine | v89: CLEARS on landing, sets JINNA_ZIPLINE in the air |
+| other 22 `objects/obj_*/Step_2.gml` | each character | already clear it on landing (family invariant) |
+| `scripts/scr_carry/scr_carry.gml` | hanging from flying Tails/Cream | SETS true on grab, CLEARS in scr_carry_end |
+| `objects/obj_jinna/Draw_76.gml` | sprite resolution (`player_exesanims[? EXE_JINNA][state]`) | case JINNA_ZIPLINE: image_speed=0 |
+| `objects/obj_player_puppet/Draw_72.gml` | other clients render her | `arr[? exeCharacter][state]` — slot 19 = spr_jinna_zipline, in bounds (22 slots) |
+
+Jinna's zipline switch case: none needed — `global.character == CHARACTER_EXE` (0) when
+playing her, and the liana's switch already has `case CHARACTER_EXE` (y+22). State travels
+as `buffer_u8` (19 fits). Anti-cheat: zero new surface (no packets/speed/teleport changes;
+state 19 is the same slot Metalamy has always used).
+
+Tools: `check_v89.py` (repo root, re-runnable: `python check_v89.py .`) — 391 checks in
+5 suites: S1 structure of the patched Step_2 (balance, block present/ordered/exact-shape,
+no TABs, x8 indent, `;\n` ending, dead else-if gone); S2 EXECUTION of the real file with
+a mini-GML interpreter of Step_2's exact subset (natural-end ride -> [19,19,19,(IDLE,flag
+off),IDLE], guard allows re-grab, second liana completes; jump-release unchanged (no
+regression); carry shows 19; all 15 template priorities override the liana like in
+obj_metalamy — spin in the AIR loses to 19 exactly like Sonic); S3 regression: the OLD
+file (git show origin/main) reproduces BOTH reported symptoms under the same interpreter;
+S4 cross-file wiring (guard/release/hold, Draw_76 case, slot 19 sprite, bounds, CHARACTER_EXE
+case, carry lifecycle, macros unique, u8); S5 git scope (only Step_2.gml of code + house
+docs, ZERO .yy/.yyp). Extra: 2000x30-frame random fuzz = 0 crash paths; flag+grounded
+invariant 500/500; state-sequence parity vs the REAL obj_metalamy Step_2.
+
+### Pending
+
+None for v89. If the owner ever adds a new playable character: copy the zipline block
+(and the whole template's standard blocks) into its Step_2 — the sweep showed it is the
+one block everyone forgets (Jinna proof). `check_v89.py`'s family sweep can be re-run
+after any character addition.
