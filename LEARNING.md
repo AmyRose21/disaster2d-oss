@@ -1307,3 +1307,86 @@ byte-identical; Create_0 comments-only; +19 AMELIA_AURA_* visual macros.
   counters inside the same event is fine (v87 does; the lexer still balances).
 - The v84 auras object draws GUI-space with `ceil(x - obj_camera.x)` and silhouettes at
   `floor()` puppet coords; the -6 px vertical offset (body center vs feet) is canon.
+
+
+## v88 — HOTFIX: «DoMod :2: Malformed variable» in the auras Draw (2026-11-27, base 057d0d92)
+
+Request: user ran the v87 zip in their game and hit the exact report:
+`DoMod :2: Malformed variable at gml_Object_obj_amelia_auras_Draw_64 (line 84) -
+var _seed = (_eid mod AMELIA_AURA_SEED) / AMELIA_AURA_SEED;` (crash on the first
+aura signature drawn).
+Outcome: 1-file hotfix in Draw_64 — the per-signature phase is now computed in
+tiers (real / int64 / leading digits of string(handle) / slot fallback) so NO
+runtime state can ever feed a non-real to an arithmetic op. 745-check verifier.
+
+### Root cause (this is the lesson, keep it forever)
+
+1. Runtime 2023.8.0 ("Assets And Data Structures Now Use Typed References"):
+   INSTANCES (and objects/sprites/ds/*) use TYPE-SPECIFIC HANDLES, not integer
+   indices. `is_handle()` was added then; `..._exists()` functions accept any
+   reference. This project's `.yyp` MetaData says `IDEVersion 2026.1.0.27`, so
+   the user's runtime is deep in the handle era: `inst.id` is NOT a VM real.
+2. The VM's arithmetic ops (DoAdd/DoMul/DoMod/...) only accept reals (strings
+   only for concat); anything else falls into the default branch that throws
+   «DoX :N: Malformed variable». Comparisons and dot-access stay permissive.
+3. v87 introduced the FIRST instance-id arithmetic in the whole project
+   (`id mod 59`) — that is why v84/v2.12 never crashed on their sensors and why
+   exactly one line of v87 did. `AMELIA_AURA_SEED` being a macro literal, the
+   malformed operand could only be `_eid` (a stored `inst.id`/`cl.id`).
+4. My sandbox verification could not catch it: there is no GameMaker here, and
+   static analysis assumes `id` is a real (true for runtimes < 2023.8 only).
+
+### Evidence chain that nailed it (reuse this method)
+
+- The crash fires at line 84, NOT at line 81 (`_eid < 0` on the same handle) and
+  not at line 62 (`ceil(auraX[i] - _cx)`): so comparisons on handles pass, the
+  macro resolved (else the v4.7-style "not set before reading it" error would
+  appear instead — precedent inside LEARNING), and the other 8 arrays are fine.
+  Only the one value the sensor stores raw (`inst.id`) can be the bad operand.
+- `git diff origin/main` proved the user runs exactly the shipped v87 (they
+  committed the zip as "ewe"), and the zip is byte-identical to the repo tree.
+- The repo has zero other `.id`-in-arithmetic usages; the house always passes
+  ids to `instance_exists` / `variable_instance_exists` / dot-access — all safe
+  under typed handles.
+
+### What worked (keep doing)
+
+1. **Treating the crash line as a truth table.** Every line BEFORE the crash
+   empirically works on the user's runtime; that eliminated whole bug families
+   (stale caches, missing macros, unknown variables) in seconds.
+2. **Tiered normalization instead of a single "int64 cast".** The fix handles
+   real, int64, handle (digits of its string, cut at the first non-digit so a
+   variable dump can never leak changing values), and everything else via a
+   slot-based fallback — crash-free on every GM runtime, and the v87 promise
+   (two signatures never pulse in unison) survives in all tiers.
+3. **Re-running the full verifier after every edit** caught my own Python
+   transcription bug (I broke on the '9' digit: GML's `_d > 57` does NOT break
+   on 57 — the model now mirrors the GML condition 1:1).
+
+### Errors made (do not repeat)
+
+1. **v87 assumed "noone == -4, so auraId (a real instance id > 0) is always
+   safe to feed mod" (previous LEARNING entry). WRONG on runtimes 2023.8+**:
+   ids are typed handles there. Corrected in the v88 rule below; treat that
+   v87 "fact" as superseded.
+2. My first Python model of the digit fold used `not (d < 57)` where the GML
+   says `d > 57` — it broke on the digit '9' (= 57). When transcribing GML
+   conditions 1:1, do not "simplify" them.
+
+### Facts learned (verified in docs/code)
+
+- NEW CODEBASE RULE: never use an instance id / object index / asset reference
+  in arithmetic (`+ - * / mod`). Safe with handles: comparisons, dot access,
+  passing to `instance_exists`/`variable_instance_exists`/`instance_find`,
+  storing in vars/arrays, `with`. For a numeric seed from an id: fold the
+  LEADING DIGITS of `string(id)` (see the v88 `_seed` block in
+  `obj_amelia_auras/Draw_64.gml`).
+- `is_handle()` exists since runtime 2023.8; `is_int64()` since 2022.3; the
+  project's IDEVersion (2026.1) guarantees both compile. Check the `.yyp`
+  MetaData IDEVersion before using runtime-era functions.
+- The runner's Do* error suffix «:N:» does NOT reliably map to source operand
+  order — do not use it to pick the culprit operand; eliminate by type instead
+  (a macro literal cannot be malformed, a stored id can).
+- The user's workflow: they commit our delivered zips to origin/main themselves
+  (v87 arrived as commit "ewe"); after `git reset origin/main` the local working
+  tree diff shows exactly the new hotfix — do that before scoping any patch.

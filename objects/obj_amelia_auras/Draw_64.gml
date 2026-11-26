@@ -30,6 +30,14 @@
 //                      grande se lee desde el otro lado de la
 //                      pantalla) + PUNTOS DE CERCANÍA (1-3: más
 //                      puntos = firma más cerca de Amelia).
+//
+// v88 (HOTFIX, solo este evento): el «id mod SEED» de v87 reventaba
+// en runtimes 2023.8+ («DoMod :2: Malformed variable»: el id de
+// instancia ya no es un real del VM, es un handle tipado — «typed
+// references»). La fase por firma se calcula ahora por capas, sin
+// aritmética sobre el id crudo (ver el bloque _seed). Cero cambios
+// de sensado (Step_0 y Create_0 intactos), mismo look, mismas
+// macros; solo este Draw cambia.
 if(!visible)
         return;
 
@@ -77,11 +85,65 @@ for(var i = 0; i < _n; i++)
         // AMELIA_AURA_SEED): las ondas sonar de varias firmas
         // cercanas NO viajan sincronizadas, y la desincronía no
         // cambia entre frames (el id no cambia).
+        // v88 (fix del crash v87: «DoMod :2: Malformed variable»):
+        // desde el runtime 2023.8 las instancias usan HANDLES tipados
+        // («typed references»), no enteros, y el `mod` del VM solo
+        // traga reales — reventaba justo al dibujar la primera firma.
+        // La fase se calcula SIN aritmética sobre el id crudo, por
+        // capas (runtimes viejos incluidos):
+        //   * real puro  -> mod directo, igual que v87;
+        //   * int64      -> real() antes del mod;
+        //   * handle     -> los DÍGITOS de su texto (el runner imprime
+        //                   el número del id; se corta en el primer
+        //                   carácter no dígito, así nunca se tragan
+        //                   valores que cambian entre frames);
+        //   * otra cosa  -> fase por SLOT: distinta entre firmas (dos
+        //                   juntas nunca laten al unísono, la promesa
+        //                   de v87) y sin crash NUNCA.
         var _eid = auraId[i];
-        if(_eid == noone || _eid < 0)
+        if(is_undefined(_eid) || is_string(_eid) || _eid == noone || _eid < 0)
                 _eid = 0;
 
-        var _seed = (_eid mod AMELIA_AURA_SEED) / AMELIA_AURA_SEED;
+        var _seed = 0;
+        var _seedOk = false;
+
+        if(is_real(_eid))
+        {
+                _seed = (_eid mod AMELIA_AURA_SEED) / AMELIA_AURA_SEED;
+                _seedOk = true;
+        }
+        else if(is_int64(_eid))
+        {
+                _seed = (real(_eid) mod AMELIA_AURA_SEED) / AMELIA_AURA_SEED;
+                _seedOk = true;
+        }
+        else if(is_handle(_eid))
+        {
+                // solo los primeros dígitos del texto: el número del
+                // id, jamás un dump de variables (x/y se mueven)
+                var _h = 0;
+                var _s = string(_eid);
+                var _sl = string_length(_s);
+
+                for(var c = 1; c <= _sl; c++)
+                {
+                        var _d = ord(string_char_at(_s, c));
+
+                        if(_d < 48 || _d > 57)
+                                break;
+
+                        _h = (_h * 10 + _d - 48) mod AMELIA_AURA_SEED;
+                }
+
+                if(_h > 0)
+                {
+                        _seed = _h / AMELIA_AURA_SEED;
+                        _seedOk = true;
+                }
+        }
+
+        if(!_seedOk)
+                _seed = ((i * 37) mod AMELIA_AURA_SEED) / AMELIA_AURA_SEED;
 
         // destello de entrada (contacto nuevo: alimenta el ping)
         var _fl = 0;

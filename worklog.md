@@ -6813,3 +6813,55 @@ nuevos, sin server, sin recompilar: la pasiva siempre fue 100% local (cero paque
 7. Archivos: 3 de codigo + CACHE.md + LEARNING.md + worklog.md + LEEME_V87_AMELIA_AURAS_REWORK.txt
    + check_v87.py + sim_v87_mock.py + PREVIEW_V87_AURAS_MOCK.png en disaster2d-oss_v87.zip
    (solo modificados/creados).
+
+
+## v88 - 2026-11-27 - HOTFIX auras de Amelia: crash «DoMod :2: Malformed variable»
+
+Base: origin/main 057d0d92 ("ewe" = la v87 que la duena importo y commiteo ella mismo).
+Protocolo / BUILD_VERSION intactos. Sin .yy/.yyp, sin assets/paquetes/estados/sonidos,
+sin server. ALCANCE TOTAL DEL CODIGO: 1 archivo (Draw_64).
+
+1. Reporte del usuario: crash exacto en Draw_64 de obj_amelia_auras linea 84, la de
+   v87 `_seed = (_eid mod AMELIA_AURA_SEED) / AMELIA_AURA_SEED`, al dibujar la primera
+   firma («DoMod :2: Malformed variable»).
+2. Diagnostico por eliminacion usando el PROPIO crash como tabla de verdad: la linea
+   81 (`_eid < 0` con el mismo handle) paso, la 62 (`ceil(auraX[i]-_cx)`) paso y el Step
+   completo (que guarda ids y llama variable_instance_exists(inst.id,...)) corrio ese
+   frame -> el operando malformado solo podia ser _eid = auraId[i] = un inst.id/cl.id
+   crudo. RAIZ documentada: runtime 2023.8 «Assets And Data Structures Now Use Typed
+   References» (instancias = handles tipados; is_handle(); los Do* solo tragan reales).
+   El .yyp dice IDEVersion 2026.1.0.27 -> runtime de la era handles. v87 introdujo la
+   PRIMERA aritmetica sobre un id de instancia de todo el proyecto -> la unica linea
+   que revento. Diff contra origin/main y contra el zip entregado: el usuario corre
+   exactamente la v87 enviada (zip == repo, byte a byte).
+3. FIX por capas en el bloque _seed del Draw_64 (mismo dominio [0,1) que v87):
+   real -> mod directo (runtimes viejos, identico a v87); int64 -> real() y mod;
+   handle -> digitos INICIALES de string(_eid) plegados mod 59 (corte en el primer
+   no-digito: un dump { x: ... } jamas filtra valores que cambian); cualquier otra
+   cosa -> fase por SLOT (i*37 mod 59: distinta en los 16 slots -> la promesa v87
+   «dos firmas juntas nunca al unisono» se cumple SIEMPRE y sin camino de crash).
+   Guardas is_undefined/is_string antes de las comparaciones. Nota v88 en la cabecera.
+   CERO cambios de sensado: Step_0 y Create_0 byte-identicos a origin/main (verificado
+   por el propio check via git diff). Anti-cheat (regla 7): cero superficie de red, no
+   necesita excepciones (Draw-GUI-only, igual que v84/v87).
+4. Verificacion: check_v88.py - 745 checks, 5 suites: S1 estructura del archivo
+   parcheado (balance, UTF-8 de la casa, bloque v88, sin TABs, indentacion x8);
+   S2 MODELO del VM donde TODA aritmetica revienta con operandos no-reales (igual que
+   DoMod) ejecutado contra 13 clases de valor (reales, id≡0 mod 59, int64, 5 modelos
+   de string de handle, undefined, cadena, noone, negativos) + estabilidad frame a
+   frame + desincronia entre firmas; S3 equivalencia con la fase querida por v87
+   ((id mod 59)/59) para reales/int64/handles-numericos y 16 fases por slot distintas;
+   S4 estatica (cero aritmetica sin guarda sobre _eid, todos los macros usados
+   definidos y unicos, IDEVersion >= 2023 en el .yyp); S5 alcance por git (solo
+   Draw_64.gml, ningun .yy/.yyp, diff del Step vs origin/main vacio). El verificador
+   cazo 2 bugs MIOS (transcripcion Python del corte de digitos rompia en el '9';
+   expectativa equivocada del fallback para undefined) y se corrigieron: el GML siempre
+   estuvo bien.
+5. Regla de la casa NUEVA (asentada en CACHE + LEARNING): jamas aritmetica con un id
+   de instancia / indice de objeto / referencia de asset (+ - * / mod) — con handles
+   son «DoX :N: Malformed variable»; seguro: comparaciones, acceso por punto, paso
+   como argumento a los *_exists/instance_find, guardado en variables, with. Semilla
+   numerica desde un id: plegar los digitos iniciales de string(id), nunca el crudo.
+6. Archivos: 1 de codigo (Draw_64.gml) + CACHE.md + LEARNING.md + worklog.md +
+   LEEME_V88_AMELIA_AURAS_HOTFIX.txt + check_v88.py en disaster2d-oss_v88.zip
+   (solo modificados/creados).

@@ -1,0 +1,87 @@
+=====================================================================
+ V88 - HOTFIX AURAS DE AMELIA: CRASH «DoMod :2: Malformed variable»
+ Base: origin/main 057d0d92 (= tu commit "ewe", la v87 ya importada)
+=====================================================================
+
+QUE PASO
+--------
+Al probar la v87, el juego revento apenas toco dibujar la primera
+firma de calor:
+
+  ERROR in action number 1
+  of Draw Event for object obj_amelia_auras:
+  DoMod :2: Malformed variable
+   at gml_Object_obj_amelia_auras_Draw_64 (line 84) -
+          var _seed = (_eid mod AMELIA_AURA_SEED) / AMELIA_AURA_SEED;
+
+CAUSA RAIZ (documentada por YoYo Games)
+---------------------------------------
+Desde el RUNTIME 2023.8.0 («Assets And Data Structures Now Use Typed
+References»), las instancias usan HANDLES TIPODOS en vez de enteros.
+Tu proyecto se guarda con IDE 2026.1.0.27 -> runtime de la era de
+handles: `inst.id` ya NO es un real «puro» del VM.
+
+Los operadores aritmeticos del VM (DoAdd/DoMul/DoMod...) solo aceptan
+reales; cualquier otra cosa cae al error «DoX :N: Malformed variable».
+
+La v87 introdujo la PRIMERA aritmetica sobre un id de instancia en
+todo el proyecto (el `id mod 59` para desincronizar las ondas sonar)
+-> esa unica linea revento. Todo lo demas del sistema (el sensado del
+Step, las comparaciones, los guards) funciona con handles y por eso
+no rompio nada mas: el propio crash lo demuestra (la linea 81 con el
+mismo id paso bien; solo el `mod` revienta).
+
+EL FIX (SOLO 1 ARCHIVO DE CODIGO: Draw_64.gml)
+----------------------------------------------
+La fase por firma se calcula ahora POR CAPAS, sin aritmetica sobre el
+id crudo, y cubre todos los runtimes:
+
+  1. id como real (runtimes viejos)  -> mod directo, identico a v87.
+  2. id como int64                   -> real() antes del mod.
+  3. id como handle (tu runtime)      -> se pliegan los DIGITOS
+     iniciales de su texto (el numero que el runner imprime, ej.
+     "101172"), con corte en el primer caracter no digito: un dump
+     de variables jamas se cuela, y el resultado es EXACTAMENTE el
+     mismo `id mod 59` que la v87 queria.
+  4. cualquier otra cosa             -> fase por SLOT (i*37 mod 59:
+     distinta en los 16 slots -> dos firmas juntas NUNCA laten al
+     unisono, la promesa v87, se cumpla lo que se cumpla).
+
+CERO cambios de sensado: Step_0 y Create_0 quedaron byte a byte
+identicos a lo que ya tienes. Mismo look, mismas macros, mismos
+radios y colores. La unica diferencia visible posible: en el peor
+caso (fallback por slot) una firma "salta" de fase si muere alguien
+que iba antes en la lista — mucho mejor que un crash.
+
+ARCHIVOS DEL ZIP (solo modificados/creados)
+-------------------------------------------
+ objects/obj_amelia_auras/Draw_64.gml  <- EL HOTFIX (unico .gml que cambia)
+ CACHE.md / LEARNING.md / worklog.md   <- registro y aprendizaje (reglas 4-5-9)
+ check_v88.py                          <- verificador re-ejecutable (745 checks)
+ LEEME_V88_AMELIA_AURAS_HOTFIX.txt    <- este archivo
+
+APLICAR
+-------
+1. Extraer el zip sobre la raiz del proyecto (sobrescribir el
+   Draw_64.gml y los .md; check_v88.py es nuevo).
+2. Compilar y jugar. Ya esta: no hay nada que configurar.
+   NO hay orden de importacion ni dependencias — esta version parte
+   de TU origin/main actual (057d0d92), con la v87 ya dentro.
+
+COMO PROBARLO RAPIDO
+--------------------
+- Cualquier partida con Amelia: acercate a un esbirro/clon o al EXE
+  -> las auras deben dibujarse (domo + ondas sonar + reticula...) sin
+  ningun error.
+- Dos firmas a la vez cerca: sus ondas deben viajar DESINCRONIZADAS
+  (esa era la feature de la v87 y sigue igual).
+- Firma fuera de pantalla: chevron doble en el borde con sus puntos.
+- Firma fria (aturdida/caida): azul, sin ondas, reticula fija.
+
+SI VOLVIERA A PASAR ALGO RARO
+-----------------------------
+Si alguna vez ves TODAS las firmas latiendo al unisono (rarisimo:
+quiere decir que tu runtime imprime string(id) sin digitos al inicio),
+mandame el texto exacto de: show_debug_message(string(auraId[0]))
+y ajusto el filtro de digitos. Pero no deberia pasar: el runner
+imprime los ids como numeros (ej. "101172") en los mensajes de error.

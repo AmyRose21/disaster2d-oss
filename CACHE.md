@@ -3203,3 +3203,91 @@ None for v87. Tuning knobs if the owner wants a different feel are ALL macros: w
 and spread (RIPPLES_*, RIPPLE_SPREAD), rotation speed and direction (RETICLE_SPD_*),
 tick counts/length (TICKS_*, TICK_LEN*), ping size (PING_R), pips position (PIP_0/_STEP/_R)
 and the exe chevron size (POINTER_EXE).
+
+
+## v88 — HOTFIX: auras crash «DoMod :2: Malformed variable» (2026-11-27)
+
+### What happened (user report, exact)
+
+```
+ERROR in action number 1
+of Draw Event for object obj_amelia_auras:
+DoMod :2: Malformed variable
+ at gml_Object_obj_amelia_auras_Draw_64 (line 84) -         var _seed = (_eid mod AMELIA_AURA_SEED) / AMELIA_AURA_SEED;
+```
+
+The v87 line did the FIRST instance-id arithmetic of the whole project (`id mod 59`).
+`AMELIA_AURA_SEED` is a `#macro ... 59` literal (compile-time), so the malformed operand
+could only be `_eid` = `auraId[i]` = a stored `inst.id` / `cl.id`.
+
+### Root cause (documented + empirical)
+
+- Runtime 2023.8.0 release notes, "Assets And Data Structures Now Use Typed References":
+  instances (and objects/sprites/ds/etc.) use **type-specific handles instead of integer
+  indices**, `is_handle()` was added, and `..._exists()` functions tolerate any reference.
+- This project is saved with `IDEVersion 2026.1.0.27` (see `.yyp` MetaData) -> the user's
+  runtime is long past 2023.8, so `.id` is NOT a plain VM real.
+- The VM's arithmetic ops (`DoAdd/DoMul/DoMod/...`) accept reals (strings only for
+  concatenation); anything else falls to the default error branch -> «DoX :N: Malformed
+  variable». Comparisons and dot-access are permissive (proven: the user's crash fired at
+  line 84, meaning line 81's `_eid < 0` on a handle passed fine, and the whole Step_0
+  sensor — which stores ids and calls `variable_instance_exists(inst.id, ...)` — completed
+  that same frame).
+- Therefore v87 worked in the sandbox's static analysis but crashed on the first signature
+  drawn in the user's runtime. Nothing else in the system ever does arithmetic on an id,
+  which is why nothing else broke.
+
+### The v88 fix (1 file: `objects/obj_amelia_auras/Draw_64.gml`)
+
+The per-signature phase is now computed WITHOUT arithmetic on the raw id, in tiers
+(all produce a real in [0,1), same domain v87 used):
+
+1. real id (old runtimes)  -> `_eid mod AMELIA_AURA_SEED` directly (v87 behavior).
+2. int64 id                -> `real(_eid)` first, then mod.
+3. handle (2023.8+)       -> the LEADING DIGITS of `string(_eid)` folded digit-by-digit
+   mod 59 (same value as `id mod 59` for the runner's numeric printing; the loop BREAKS
+   at the first non-digit so a variable dump like `{ x: ... }` can never leak changing
+   values into the phase). If no leading digits -> tier 4.
+4. anything else (undefined/string/noone/negative guard to 0; exotic types) -> phase by
+   SLOT: `((i * 37) mod 59) / 59` — distinct for all 16 slots, so the v87 promise
+   ("two signatures together never pulse in unison") survives every runtime with zero
+   crash paths.
+
+Guards use `is_undefined/is_string/is_real/is_int64/is_handle` (all present in the user's
+runtime; `is_handle` needs 2023.8+, which the 2026.1 IDE guarantees). Look, macros, and
+sensing are untouched: Step_0 and Create_0 are byte-identical to origin/main.
+
+### NEW CODEBASE RULE (learned the hard way)
+
+**Never use an instance id / object index / asset reference in ARITHMETIC (`+ - * / mod`)**.
+They are typed handles since runtime 2023.8+ and the VM's Do* ops throw
+«DoX :N: Malformed variable». SAFE patterns (all already used and proven in this repo):
+comparisons (`==`, `!=`, `<`, `>`) against handles; dot access (`inst.x`);
+passing ids as function arguments (`instance_exists`, `variable_instance_exists`,
+`instance_find`); storing ids in variables/arrays; `with(...)`. If you need a numeric
+seed from an id, fold the leading digits of `string(id)` (see the v88 `_seed` block) —
+never the raw value.
+
+### Scanner - v88 touched exactly one code file
+
+| File | What it does | Connects to | v88 change |
+|---|---|---|---|
+| `objects/obj_amelia_auras/Draw_64.gml` | Draw GUI of the auras (v87 layered signature) | `obj_camera`, `global.player`, AMELIA_AURA_* macros | HOTFIX: the `_seed` block (old lines 76-84) is replaced by the tiered phase computation (real / int64 / handle-digits / slot fallback); header gets a v88 note. NOTHING else moved: all 7 layers, guards, restores and the rest of the event are byte-identical to v87. |
+
+Tools: `check_v88.py` (repo root, re-runnable: `python check_v88.py .`) — 745 checks:
+S1 structure of the patched Draw (balance, UTF-8 house chars, v88 block present, no TABs,
+indent multiples of 8 inside the new block), S2 a VM model where every arithmetic op throws
+on non-real operands (exactly like DoMod) run against 13 value classes (real ids, ids = 0
+mod 59, int64, 5 handle string models, undefined, string, noone, negatives) + stability +
+desync assertions, S3 equivalence with v87's intended `(id mod 59)/59` for reals/int64/
+numeric handles and 16 distinct slot-fallback phases, S4 static safety (no unguarded `_eid`
+arithmetic, every AMELIA_AURA_* macro used is defined and unique, IDEVersion >= 2023 in the
+.yyp so `is_handle` compiles), S5 patch scope via git (only Draw_64.gml modified, no
+.yyp/.yy, Step_0 diff vs origin/main empty).
+
+### Pending
+
+None for v88. If the owner ever reports all signatures pulsing in unison (fallback tier
+active on their runtime), the leading-digits tier is not extracting digits from
+`string(id)` — ask for the exact text of `show_debug_message(string(auraId[0]))` and adjust
+the digit filter.
