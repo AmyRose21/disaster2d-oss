@@ -9,6 +9,12 @@
 // instancia desaparece, me apago sola en el Step), lectura de frio
 // (aturdido/caido), destello de entrada y marcador de borde (Draw_64),
 // y arrays al tamano de AMELIA_AURA_MAX en vez de un 16 suelto.
+// v87 (rework VISUAL): TODO el dibujado por capas vive en el Draw_64
+// (domo termico + ondas sonar + reticula + silueta + ping de entrada
+// + chevron de borde con puntos de cercania; macros AMELIA_AURA_*).
+// Aqui NO hay estado nuevo: las 9 arrays + auraPulse siguen siendo
+// todo lo que el dibujado necesita (auraId ademas sirve de semilla
+// estable para desincronizar las ondas por firma).
 depth = -200;
 
 // La Amelia que me creo (id de instancia) o noone.

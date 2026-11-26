@@ -134,6 +134,52 @@
 #macro AMELIA_AURA_COLD_COLOR make_color_rgb(110, 185, 255)
 #macro AMELIA_AURA_COLD_CORE make_color_rgb(225, 245, 255)
 
+// v87 (REWORK VISUAL de la Auravision, SOLO dibujado — ver Draw_64 de
+// obj_amelia_auras; el sensado, los radios y los colores canon NO se
+// tocan). Valores de las capas nuevas:
+//  * SEED           = divisor de la fase por firma (id de instancia
+//                     mod SEED): desincroniza las ondas sonar entre
+//                     firmas (59 = primo: no engancha con nada).
+//  * RIPPLES_*      = anillos sonar por firma: 3 el EXE, 2 el esbirro
+//                     (la fría no lleva NINGUNO: congelada).
+//  * RIPPLE_SPREAD  = px que viaja la onda más allá del aro.
+//  * RIPPLE_A_*     = alpha de arranque de la onda.
+//  * TICKS_*        = marcas de la retícula: 8 el EXE (al derecho),
+//                     4 el esbirro (AL REVÉS), 6 la fría (FIJAS).
+//  * TICK_LEN(_EXE) = largo en px de cada marca.
+//  * RETICLE_SPD_*  = sentido/giro de la retícula, en GRADOS por
+//                     unidad de fase del latido (auraPulse avanza
+//                     AMELIA_AURA_PULSE_SPD por frame).
+//  * PING_R/_A      = radio final y alpha del PING de entrada (el
+//                     anillo expansivo del contacto nuevo).
+//  * PIP_0/_STEP/_R = puntos de cercanía del marcador de borde:
+//                     1-3 puntos hacia DENTRO de la pantalla, más
+//                     puntos = firma más cerca de Amelia. PIP_0 arranca
+//                     MÁS ALLÁ de la cola del chevron (1.1 * POINTER *
+//                     POINTER_EXE = ~17 px): pips y chevron nunca se
+//                     pisan entre sí.
+//  * POINTER_EXE    = escala del chevron del borde del EXE real (más
+//                     gordo: se lee desde el otro lado de pantalla).
+#macro AMELIA_AURA_SEED 59
+#macro AMELIA_AURA_RIPPLES_EXE 3
+#macro AMELIA_AURA_RIPPLES_MINION 2
+#macro AMELIA_AURA_RIPPLE_SPREAD 12
+#macro AMELIA_AURA_RIPPLE_A_EXE 0.5
+#macro AMELIA_AURA_RIPPLE_A_MINION 0.3
+#macro AMELIA_AURA_TICKS_EXE 8
+#macro AMELIA_AURA_TICKS_MINION 4
+#macro AMELIA_AURA_TICKS_COLD 6
+#macro AMELIA_AURA_TICK_LEN 4
+#macro AMELIA_AURA_TICK_LEN_EXE 6
+#macro AMELIA_AURA_RETICLE_SPD_EXE 5.5
+#macro AMELIA_AURA_RETICLE_SPD_MINION -3.5
+#macro AMELIA_AURA_PING_R 40
+#macro AMELIA_AURA_PING_A 0.6
+#macro AMELIA_AURA_PIP_0 22
+#macro AMELIA_AURA_PIP_STEP 5
+#macro AMELIA_AURA_PIP_R 1.5
+#macro AMELIA_AURA_POINTER_EXE 1.4
+
 // v2.13 (PASIVA «SOL Y LUNA», la carta que Amelia encarna): valores
 // ajustables de la LUNA y del ECLIPSE (el SOL vive en obj_amy_canon):
 //  * LUNA_VEIL_TIME = segundos de VELO DE GRACIA tras ocultarse:

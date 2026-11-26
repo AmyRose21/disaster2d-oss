@@ -3129,3 +3129,77 @@ independent this time).
 
 None for v86. Possible future asks seen in the code: the RED exe arrow for Sally Canon (trivial: copy the
 `exeVisible` half of `obj_amycanon_indicators` into the same Draw_64 block), group-shield HUD icons, etc.
+
+
+## v87 - Amelia auras VISUAL rework: the layered heat signature (2026-11-26, base commit 752f5bd2)
+
+Owner's request (verbatim intent): "QoL amelia rediseño de su sistema de auras.. (esto es solo
+visual) . es decir rework visual."  A pure VISUAL redesign of the Auravision passive: the
+sensing (Step_0) is BYTE-IDENTICAL, the arrays, the radius (350 px), the canon colours and
+every v84 shield are untouched; only HOW the already-detected signature is painted changed.
+New look, layer by layer (all names = macros AMELIA_AURA_* in scr_amelia_special):
+
+  A. HEAT DOME     - 2 concentric filled circles (outer 0.05k at r + inner at 0.62r,
+                     0.10k + 0.05*beat*k for the exe): a gradient without sprites/shaders.
+  B. SONAR WAVES   - expanding outline rings born at 0.55r that die at r+RIPPLE_SPREAD:
+                     3 for the real EXE (at 2x speed, like its heartbeat), 2 for minions and
+                     clones; every signature is DESYNCHRONIZED with a stable per-entity
+                     phase (auraId mod AMELIA_AURA_SEED 59) so nearby signatures never pulse
+                     in unison; the COLD signature draws none (frozen).
+  C. RETICLE       - main ring + tick marks via draw_line_width (1.5 px): 8 turning FORWARD
+                     for the real EXE, 4 turning BACKWARDS for minions (who is who readable
+                     at a glance, no counting), 6 FROZEN (static, base -45°) for the cold
+                     signature (the ice does not turn).
+  D. CORE          - only the real EXE keeps the hot center dot (8 px + beat, blue when cold).
+  E. SILHOUETTE    - the through-walls heat ghost: the EXE now draws in 2 layers (halo
+                     0.22k + hot core 0.38k), minions/clones keep the single faint layer.
+  F. ENTRY PING    - the v84 entry flash now also draws ONE expanding ring (4 -> 4+PING_R
+                     px) fading as it grows: a contact is born small and bright.
+  G. EDGE MARKER   - off-screen signatures: DOUBLE CHEVRON (back one dim in halo colour,
+                     front one solid in core colour) pointing outwards from Amelia's own
+                     screen position + the anchor ring + 1-3 PROXIMITY PIPS (22/27/32 px
+                     back towards Amelia: more pips = closer; PIP_0 starts BEYOND the
+                     chevron tail so pips and chevron never overlap); the EXE chevron is
+                     scaled POINTER_EXE 1.4x (the fat one reads from across the screen).
+
+Scope: 3 files. `Draw_64.gml` = full rewrite; `scr_amelia_special.gml` = +19 visual macros
+(block right after the v84 one); `obj_amelia_auras/Create_0.gml` = comments only (no new
+state: the 9 arrays + auraPulse still feed everything; auraId doubles as the wave seed).
+No `.yy` / `.yyp`, no new asset / script / packet / state / sound; no server file; no
+recompile. Protocol-identical (the passive was always client-local, zero packets).
+Tools: `check_v87.py` (repo root, re-runnable: `python check_v87.py . [--roundtrip <zip>]`
+— lexer + Step_0 byte-identical to HEAD + Create_0 code-identical (comments only) + a full
+symbol table of every Draw_64 identifier + every v84 guard + numeric simulations of every
+layer) and `sim_v87_mock.py` (renders `PREVIEW_V87_AURAS_MOCK.png`: a PIL mock that mirrors
+the Draw_64 formulas 1:1 — NOT a game capture; it caught the pips/chevron overlap before
+delivery, PIP_0 8 -> 22).
+
+### Scanner - every file touched in v87: what it does, what it connects to, what changed
+
+| File | What it does | Connects to | v87 change |
+|---|---|---|---|
+| `objects/obj_amelia_auras/Draw_64.gml` | Draw GUI of the auras, additive blend (bm_add), above the world = sees through walls | `obj_camera`, `global.player`, `obj_player_puppet` sprites, AMELIA_AURA_* macros | FULL VISUAL REWRITE: the 7 layers A-G above replace the v84 flat halo + ring + triangle marker. All v84 guards kept (camera, GUI bounds via display_get_gui_*, smoothstep reach fade, cold = blue/no pulse, entry flash, clamped alphas); deterministic (no random()); alpha/colour/blend always restored |
+| `scripts/scr_amelia_special/scr_amelia_special.gml` | Amelia's kit macros + `scr_amelia_special()` | `obj_amelia*` | +19 visual macros for the layers (SEED / RIPPLES_* / RIPPLE_SPREAD / RIPPLE_A_* / TICKS_* / TICK_LEN* / RETICLE_SPD_* / PING_* / PIP_* / POINTER_EXE) with their tuning doc; the v84 + v2.12 macro blocks untouched |
+| `objects/obj_amelia_auras/Create_0.gml` | Aura state arrays (9) + auraPulse + auraOwner | `obj_amelia/Create_0` (creator), Step_0 (writer), Draw_64 (reader) | comments only: v87 header notes that the layer drawing lives 100% in Draw_64 and auraId doubles as the stable wave seed; code byte-identical |
+
+### Quick index (verified in v87) - the new layers
+
+- Draw order per signature: dome (2 fills) -> sonar waves (2-3 rings) -> reticle ring ->
+  ticks (4/6/8 rotating or frozen) -> exe core -> silhouette (1-2 layers, floor coords) ->
+  entry ping. Off-screen: chevron back -> chevron front -> anchor ring -> pips.
+- Wave clock: `wspd = AMELIA_AURA_PULSE_SPD / (pi*2)` (exe *= 2); phase = frac(auraPulse*wspd
+  + w/_waves + (auraId mod 59)/59); radius = 0.55r + t*(r+12-0.55r); alpha = A*(1-t)^2.
+- Reticle clock: base angle = auraPulse * SPD (exe +5.5, minion -3.5, cold fixed -45); tick i
+  at base + 360/ticks*i, from r+2 to r+2+len along the radius (never inside the aro).
+- Anti-cheat (rule 7): ZERO network surface (Draw-GUI-only, no net_/buffer_/socket strings,
+  no new packets/states/sounds) — nothing to add as an exception; the v84 server rules are
+  unaffected. Old/new clients are protocol-identical.
+- PRECEDENTS untouched: Step_0 sensing (byte-identical), `obj_amelia_indicators` (exit
+  arrow), the v84 macro values, powerBoost aura, Rouge's radar.
+
+### Pending
+
+None for v87. Tuning knobs if the owner wants a different feel are ALL macros: wave count
+and spread (RIPPLES_*, RIPPLE_SPREAD), rotation speed and direction (RETICLE_SPD_*),
+tick counts/length (TICKS_*, TICK_LEN*), ping size (PING_R), pips position (PIP_0/_STEP/_R)
+and the exe chevron size (POINTER_EXE).

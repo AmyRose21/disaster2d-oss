@@ -6783,3 +6783,33 @@ BUILD_VERSION intactos. Sin .yy/.yyp, sin assets/paquetes/estados/sonidos nuevos
    ORDEN OBLIGATORIO: v84 -> v85 -> v86 (2 archivos se solapan con la v85).
 6. Archivos: 3 de codigo + CACHE.md + LEARNING.md + worklog.md + LEEME_V86_SALLY_HITBOX_FLECHA.txt +
    check_v86.py en disaster2d-oss_v86.zip (solo archivos modificados/creados).
+
+
+## v87 - 2026-11-26 - Rework VISUAL de las auras de Amelia (solo dibujado)
+
+Base: origin/main 752f5bd2 (YA incluye v84+v85+v86 — sin re-aplicaciones esta vez).
+Protocolo / BUILD_VERSION intactos. Sin .yy/.yyp, sin assets/paquetes/estados/sonidos
+nuevos, sin server, sin recompilar: la pasiva siempre fue 100% local (cero paquetes).
+
+1. Auditoria: re-lectura completa del sistema actual (Step_0 sensado, Draw_64 v84, Create_0,
+   macros AMELIA_AURA_* v2.12+v84, indicadores de la salida, scr_powerboost_fx como
+   precedente de draw_line_width, referencias cruzadas del objeto = auto-contenido).
+2. Respaldo PRE-parche de los 3 archivos (respaldo_v87_originales_752f5bd2.zip, local).
+3. REWORK VISUAL por capas (Draw_64 reescrito): A. domo termico (gradiente de 2 circulos);
+   B. ondas sonar (3 el exe al doble de velocidad, 2 el esbirro, desincronizadas por firma
+   con fase estable id mod 59; fria = ninguna); C. reticula (aro + marcas que giran: 8 al
+   derecho el exe, 4 AL REVES el esbirro, 6 FIJAS la fria); D. nucleo (solo el exe);
+   E. silueta a traves de paredes (exe en 2 capas); F. ping de entrada (anillo expansivo);
+   G. borde: chevron doble (exe 1.4x) + puntos de cercania 1-3. +19 macros visuales.
+4. Paso "solo visual" PROBADO: Step_0 byte-identico a HEAD; Create_0 solo comentarios
+   (codigo identico); tabla de simbolos del Draw_64 nueva (cero identificadores desconocidos).
+5. Bug cazado ANTES de entregar (por el mock + regla 6): los pips a 8/13/18 px caian ENCIMA
+   de la cola del chevron (que llega a ~17 px). PIP_0 8 -> 22 (empieza mas alla de la cola) +
+   invariante PIP_0 > 1.1*POINTER*POINTER_EXE en el validador.
+6. Verificacion: check_v87.py (lexer, macros unicas, simbolos, guards v84 completos,
+   simulaciones numericas de las 7 capas en 3 resoluciones) + sim_v87_mock.py ->
+   PREVIEW_V87_AURAS_MOCK.png (mock PIL 1:1 con las formulas, verificado numericamente:
+   exe ardiendo / esbirro tenue / fria azul / chevrons en los bordes con sus pips separados).
+7. Archivos: 3 de codigo + CACHE.md + LEARNING.md + worklog.md + LEEME_V87_AMELIA_AURAS_REWORK.txt
+   + check_v87.py + sim_v87_mock.py + PREVIEW_V87_AURAS_MOCK.png en disaster2d-oss_v87.zip
+   (solo modificados/creados).

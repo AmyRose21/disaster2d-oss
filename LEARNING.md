@@ -1256,3 +1256,54 @@ Lessons recorded:
 - The esbirro (demonized) players keep `revivalTimes >= 2` and the game gives them the standard
   `obj_demon_indicator`; every personal-sensor object turns itself off at `revivalTimes >= 2` to not
   duplicate it.
+
+
+## v87 — Amelia auras VISUAL rework (2026-11-26, base 752f5bd2 = origin/main WITH v84-v86)
+
+Request: "QoL amelia rediseño de su sistema de auras (esto es solo visual), rework visual."
+Outcome: draw-only layered signature (dome / sonar waves / reticle / core / 2-layer
+silhouette / entry ping / double chevron + proximity pips). Step_0 sensing is
+byte-identical; Create_0 comments-only; +19 AMELIA_AURA_* visual macros.
+
+### What worked (keep doing)
+
+1. **"Draw-only" is provable, not promised.** The validator asserts `git show HEAD:Step_0.gml`
+   == working file (byte-exact) and Create_0 code (comments stripped, blank lines dropped)
+   == HEAD. That turns the owner's "solo visual" requirement into two hard checks.
+2. **A full symbol table beats eyeballing GML.** Collecting every identifier of the new
+   Draw_64 (locals via `var`, instance fields from Create_0, every project #macro, a builtin
+   whitelist) and failing on ANY unknown caught typos the bracket check cannot.
+3. **A PIL mock that mirrors the formulas 1:1 is cheap visual QA** when no GameMaker exists:
+   render dome/waves/reticle/chevron/pips with the exact constants, then probe pixel regions
+   numerically (hot-pixel share per signature, chevron extent, pip column groups).
+4. **Per-entity stable randomness without state: `id mod PRIME`.** auraId is already written
+   by Step_0; `(auraId mod 59)/59` gives 59 distinct phases in [0,1) that survive every frame.
+   No new instance variables needed for desynchronised animation.
+
+### Errors made (do not repeat)
+
+1. **The mock caught a real overlap before delivery:** proximity pips at 8/13/18 px from the
+   anchor landed ON TOP of the chevron tail (which reaches 1.1*11*1.4 ≈ 17 px inward).
+   Fix: start the pips beyond the tail (PIP_0 22) + add the invariant `PIP_0 > 1.1*POINTER*
+   POINTER_EXE` to the validator. Pixel-probing the mock is what exposed it.
+2. **Python float traps in my OWN sims:** `0.10+0.05 > 0.15` (epsilon must go on ONE side of
+   a chained comparison, adding it to both sides cancels nothing) and `0.55*14 != 7.7`
+   (compare with tolerance, never ==). Also once wrote the assertion backwards
+   (`-1e-9 <= -0.25*fd` is always false — the back apex IS negative along the axis; the
+   correct property is `back < front`).
+3. **Simulated directions must be geometrically possible.** "All 24 dirs at every corner
+   anchor" includes dirs a real edge marker can never have (dir always points from the
+   on-screen Amelia outwards through the anchor). Use realistic dirs (center -> anchor
+   ±30 deg) for on-screen bounds, and invariants (tip offset 0.6*POINTER*POINTER_EXE =
+   9.24 < EDGE-2) for the impossible-to-violate cases.
+
+### Facts learned (verified in code)
+
+- `draw_line_width(x1,y1,x2,y2,w)` is already used by `scr_powerboost_fx` — safe vocabulary
+  for this project's GML style (no one had used it in an event before v87).
+- GameMaker constants: `noone` == -4, so `auraId` (a real instance id > 0) is always safe to
+  feed `mod`; still guard `== noone || < 0` in case a stale slot slips through.
+- The GML event locals are function-scope in practice, so reusing `var w` / `var t` loop
+  counters inside the same event is fine (v87 does; the lexer still balances).
+- The v84 auras object draws GUI-space with `ceil(x - obj_camera.x)` and silhouettes at
+  `floor()` puppet coords; the -6 px vertical offset (body center vs feet) is canon.
