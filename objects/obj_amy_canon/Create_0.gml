@@ -245,6 +245,7 @@ parrySuccess = false; // true si la ventana intercepto algo
 parryActive = false;  // true durante ventana+gracia (lo leen los checks de red)
 parryFlash = 0;       // frames restantes del anillo de activacion (lo dibuja Draw_0)
 parryLateSignal = 0;  // margen tras cerrar la ventana para la senal de exito que llega por red
+parryLandBuffer = 0;  // v90 (QoL): buffer de aterrizaje del tap de V (arranca el parry al pisar suelo)
 
 // Stubs para el scr_parry_step COMPARTIDO con Sonic (el mismo codigo
 // corre en los dos): Sonic si tiene Nervios de Acero (nerviosState/

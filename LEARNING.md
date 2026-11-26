@@ -1457,3 +1457,277 @@ that all 22 other characters have. 391-check verifier + fuzz + template-parity r
 - `obj_aiz_zipline` calls `_holdPlayer()` from Step_0 AND Draw_72 AND Draw_76 while
   holding (three times per frame) — any future change to that function must stay
   idempotent per frame.
+
+## 2026-11-27 — v90 QoL Sonic: parry fixes + stability + strength (owner request «QoL sonic Arreglos a su parry Y mejora de estabilidad y fortalezas»)
+
+### Bugs found (each one a lesson)
+
+1. **NEVER read instance data through an OBJECT INDEX inside a `with` loop over
+   that same object.** `scr_parry_detect`'s laser-vs-ally branch did
+   `scr_parry_bbox_overlap(self, obj_tails_projectile)` inside
+   `with(obj_tails_projectile){ with(obj_player_puppet){ ... } }`: GameMaker
+   resolves `obj.bbox_*` with ONE instance of the object (the first it finds),
+   not the one the outer `with` is iterating — with 2+ lasers in flight it
+   read the wrong laser, the deflect packet was never sent, and the laser kept
+   flying. Correct spelling inside a nested `with`: use **`other`** (= the
+   enclosing with's instance). This is the same object-index-semantics trap as
+   the v88 house rule; extend that rule: object indices are for `with`,
+   instance_find and filters — never for member reads in a loop that already
+   holds the instance.
+2. **`audio_play_sound(snd, priority, loop)`** — argument ORDER matters.
+   `audio_play_sound(Perfect_Parry, false, 0)` "worked" only because false→0
+   and 0→false. It survived months because both swapped values happened to be
+   the zero-value of the right type. Grep for the pattern
+   `audio_play_sound\([^,]+,\s*(false|true)\s*,` to find latent swaps.
+3. **Input gates for survivor abilities MUST gate `revivalTimes < 2`.**
+   Demonized esbirros (and nega subditos — the conversion sets
+   `revivalTimes = 2` too) KEEP player control. Sonic's parry gate didn't
+   check it, so an esbirro Sonic could open the parry window: state 61
+   traveled and every client drew the aura circle around the esbirro — a
+   FAKE aura that protects nobody (all protection checks filter
+   `isDemonized`) and baits allies into huddling next to an enemy. Same fix
+   shape as other survivor gates: block it at the input, cancel it on
+   conversion, and filter defensively at every draw site that renders from
+   the network state byte (obj_player_puppet/Draw_0). Do NOT filter the
+   pose block in Draw_72 the same way: falling through to the anim array
+   with a 60+ state would index out of bounds — the aura block is standalone
+   (safe to filter), the pose block is not.
+4. **A damage pipeline can kill a defense WITHOUT dealing damage.** The
+   survivors' ball-bounce (`scr_player_hurt(0, ..., snd_buble, ..., true,
+   true)`, damage 0) never touched the parry negation (it required
+   `damage > 0`) but the hurttime guard happily applied the ignore-knockback
+   (`isGrounded = false`), and the NEXT frame scr_parry_step canceled the
+   window with the full 14 s fail CD — an EXE-side contact that
+   scr_parry_detect already treats as an attack (JUMP/SPIN) was punishing the
+   parry instead of being parried. Lesson: when a defense claims to intercept
+   "attacks from side X", audit EVERY pipeline exit that mutates the
+   defender's state (knockback paths with damage==0 included), and make the
+   negation run BEFORE the guards that mutate state, not after them.
+   Moving the negation above the hurttime guard also made i-frame coverage
+   consistent (the attacker-side ting/stun paths from v3.4 already existed;
+   both sides deduplicate through `shockedTimer` + the 200 ms FX throttles).
+5. **Every survivor's ball-contact bounce call must carry `exeSource=true`.**
+   Amy Canon's tarot-float bounce was the only one without it — with a
+   Sonic's aura covering her, that contact was never negated. A grep over
+   `scr_player_hurt(` calls sorted by arg pattern found it. When adding a new
+   survivor contact branch, copy the full 7-arg pattern
+   `(..., snd_buble|snd_hurt, blood, ignore, true)`.
+
+### What worked (keep doing)
+
+1. **Differential fuzz with the OLD file as oracle:** check_v90.py runs 2000
+   random input sequences through BOTH the old and the new scr_parry_step
+   (old AST evaluated with the NEW macro values, so intended numeric buffs
+   don't count as regressions — only structural changes do). Benign
+   sequences (no demonize, no air taps) must produce byte-identical final
+   states. This caught nothing broken but PROVES the refactor changed only
+   what it claims to change.
+2. **Mini-interpreter of the real patched GML** (same technique as v89, now
+   with expression parser + macro evaluation): the landing buffer, demonized
+   gate, cancel-on-conversion, PB cooldowns and Amy's V+Up toggle guard are
+   all verified on the REAL file text, not on a re-implementation. Interpreter
+   gotchas that cost time this session: tokenize multi-char operators
+   INCLUDING `--`/`++` (or `x--` parses as two `-` and statements silently
+   become NOPs), never merge punctuation runs (`(!` / `)))`), and make
+   bare `return;` propagate out of nested blocks with a sentinel object
+   (returning None is ambiguous with "no return executed").
+3. **Testing the GM semantics of the bug itself:** the laser fix can't be
+   executed without GameMaker, so the checker MODELS the documented GM
+   behavior (object-index member read = first instance found) and proves
+   old=miss / new=hit with a 2-laser scenario. When the engine can't run,
+   simulate its documented semantics and test both files against it.
+4. **The CD-countdown-aware assertion:** cooldowns tick down the frame they
+   are applied, so exact-equality assertions on `parryCooldown` are brittle;
+   assert ranges (applied and not wiped) instead, and verify the exact macro
+   values separately.
+
+### Facts learned (verified in code)
+
+- Numbers after v90: window 50f, grace 6f (was 4), aura 64 px (was 58),
+  attacker stun 4 s (was 3.5; LMS 6 s), fail CD 12 s (was 14), success CD
+  7 s, PB 10/2 s, landing buffer 8f, windup 1f, success anim 22f.
+- The parry negation now lives in scr_player_hurt BEFORE the hurttime guard
+  and the block passives (FW tower / LMS block), with condition
+  `exeSource && (damage > 0 || sndid == snd_buble)`; the tombstone comment
+  marks its old spot. Immune-to-everything early returns (bubble, nervios,
+  slide, invis...) still return BEFORE the negation — unchanged.
+- `parryLandBuffer` lives in the 3 Create_0s (sonic/amy_canon/kris), is
+  consumed or expires in scr_parry_step, and is reset by Amy Canon's kidnap
+  bubble. Any future parry character needs the declaration.
+- `scr_parry_detect`'s attacker predicate (`isAttacking || state == JUMP ||
+  state == SPIN`) IS the definition of "EXE-side attack" for the parry; the
+  negation condition in scr_player_hurt now matches it for the damage-0
+  bounce case via the `snd_buble` marker.
+- `SONIC_PARRY_LASER_MAXDMG` (4) is consumed by net_state_game.gml (the
+  deflect receiver caps the reflected laser's damage) — near-miss during
+  editing: it was accidentally clobbered and immediately restored; the
+  checker now asserts it stays 4 (S2/S4.D).
+- Kris's directional front check `scr_kris_block_front(kris, kris)` on
+  self-object exeSource calls is degenerate (dx = 0) but PASSES because
+  KRIS_BLOCK_VISION = -8 (0 >= -8): the shield still blocks when the
+  attacker instance isn't reachable from the call site. Documented quirk,
+  not fixed (no user report; changing it would alter hit-vs-block feel).
+
+### Pass 2 (owner request «2 pasada para verificar errores») — independent re-verification from a fresh clone
+
+Fresh clone + re-extracted ZIP, zero knowledge reuse: every one of the 7 files
+re-diffed against upstream, plus a NEW checker (check_v90_pass2.py) and a NEW
+state-machine simulation (sim_v90_parry_machine.py + sim_v90_parry_buffer.py,
+9 scenarios). Result: PASS, zero code changes needed. Lessons from the pass:
+
+1. **Static-checker false alarms come in 3 flavors on this repo — triage before
+   believing a FAIL.** (a) `PacketType.CLIENT_XXX` looks like an undefined
+   CONST_NAME to a regex but is an ENUM MEMBER (net_packets.gml) — a checker
+   must harvest enum members, not just `#macro`s; (b) the fix comments NAME the
+   old broken pattern (`obj_tails_projectile.bbox_*` appears INSIDE the
+   comments that document the fix) — grep the comment-stripped code, not the
+   raw text; (c) GameMaker `.yyp` files legitimately contain trailing commas
+   (`"targets":-1,}`) — strict `json.load` rejects them but the IDE reads them
+   fine; validate with a JSON5-tolerant parse (strip `,\s*[}\]]`) or, better,
+   verify `git status --porcelain` is clean (the ZIP must never touch .yy).
+2. **Re-deriving the network architecture from scratch found nothing to fix
+   but is worth the time once per system.** Confirmed by reading code only:
+   each client simulates ONLY its own character object + everyone else as
+   obj_player_puppet; `global.player` = the local character (object index at
+   charselect, first-instance dot access after spawn — hence the v88 house
+   rule). The ball-bounce that killed the parry runs on the VICTIM's client
+   from the 10 survivor objects' own contact blocks
+   (`scr_player_hurt(0, ..., snd_buble, ..., true, true)` — exeSource=true),
+   while the EXE's own bounce (obj_exe/obj_exetior/obj_exeller/obj_metalamy/
+   obj_chaos/obj_jinna Step) calls with exeSource=false (default) — the parry
+   negation correctly ignores the exe's self-bounce. The tarot-float bounce
+   (obj_amy_canon) was the 11th survivor bounce and the only one missing
+   exeSource — that asymmetry is exactly how the grep for "full 7-arg pattern"
+   caught it in pass 1.
+3. **`other` inside nested `with`s: verified semantics one more time.** In
+   `with(laser){ with(puppet){ scr_parry_bbox_overlap(self, other) } }`:
+   `self` = puppet, `other` = the laser (the enclosing with's instance), and
+   AABB overlap is symmetric so argument order carries no risk. The function
+   ALSO pre-declares `var _me = self;` at the top — the v88 `_eid` lesson
+   (declare before use inside nested scopes) is baked in and survives review.
+4. **Frame-order audit of the landing buffer:** scr_parry_step decrements
+   `parryLandBuffer` in the timers block ABOVE the input block, so a tap
+   buffered on frame N is consumable on frames N+1..N+8 (8 real frames of
+   landing window), the input gate re-evaluates EVERYTHING at the landing
+   frame (cooldown, demonized, hurt, bounceTimer, Amy's V+Up guard), and the
+   buffer is zeroed on consume — no double starts (simulation: start_count==1).
+   Known and accepted edge (pre-v90 semantics, unchanged): landing WITH a
+   buffered start directly into an EXE ball still bounces (windup frame has no
+   protection yet) and cancels the just-started parry with the fail CD —
+   consistent with the grounded-tap behavior into the same contact.
+5. **Verification scripts ship with the ZIP** (house convention since v89):
+   check_v90.py (pass 1, 135 checks) + check_v90_pass2.py + the 2 sim files
+   (pass 2). All runnable offline against the repo root.
+6. **The second pass caught a real bug — in the pass-1 TOOL, not the game.**
+   check_v90.py's S5 parsed `git status --porcelain` with
+   `r.stdout.strip().split("\n")`: the global `.strip()` eats the leading
+   space of the FIRST line, so an UNSTAGED modified first file
+   (` M objects/obj_amy_canon/Create_0.gml`, alphabetically first) failed
+   the `^(..)\s` parse and silently vanished from the modified list → false
+   "falta por modificar". In pass 1 the 7 files were evidently STAGED
+   (`M  file`, no leading space), which masked it. Lesson: never
+   `.strip()` the WHOLE multi-line CLI output before line-parsing when
+   lines have significant leading whitespace (git porcelain XY codes);
+   strip per-line (`l.strip()` for emptiness, regex for content). Fixed in
+   the shipped check_v90.py; pass-1 checker re-run after the fix: 131
+   checks, ALL OK.
+7. **Location-dependent verification tools bite their own authors.**
+   check_v90.py anchors ROOT to ITS OWN directory
+   (`dirname(__file__)`): run from outside the repo (e.g.
+   `python3 ../v90check/check_v90.py .`), it inspects the wrong folder
+   and fails S3/S5/S6 in confusing ways. The pass-2 re-run initially
+   "failed" purely because of this. Fixed by documenting the contract in
+   the script header (copy it into the project root, run it from there)
+   and by making check_v90_pass2.py take the repo path as an ARGUMENT
+   (and work in both pre- and post-import modes). Rule of thumb: a
+   verification tool must never guess its target from its own location.
+
+## v91 — Rouge: mode-name visibility + the passive glide respects coyote time (2026-11-27, owner request «Rouge rework a su modo cambio de habilidades... y el glide ahora respetara al tiempo de coyote ya que cuando salta se activa el glide durante ese tiempo de gracia»)
+
+Base: origin/main 387cb916 (v89 in). The v90 (Sonic parry) was delivered as a
+ZIP ONLY and touches neither obj_rouge nor scr_rouge_special — this v91
+coexists with it (verified: both checkers green in the "owner project with
+v90 applied uncommitted + v91 on top" scenario). Code scope: exactly 2 files
+(+17 lines in scr_rouge_special.gml, one block replaced in Draw_64.gml).
+
+### What was requested and what it actually was
+
+1. «las palabras que salen seran mas visibles» = the v32 mode NAME under her
+   HP bar (Draw_64, `draw_text_transformed_color`, fnt_big at scale 0.4,
+   NO outline, resting alpha 0.55). Fixed: scale 0.6 (~11px), 8-pass 1px
+   black outline with the colored name drawn LAST (on top), resting alpha
+   0.9, and a smooth 0.7→0.6 scale pop during the 2s `modeFlash`
+   (`0.6 + 0.1 * min(modeFlash / 12, 1)` — a uniform 12-frame landing ramp
+   so the shrink has no jump cut).
+2. «el glide... respetara al tiempo de coyote... cuando salta se activa el
+   glide durante ese tiempo de gracia» = a REAL input-eating bug, root-caused
+   to a family-parity gap (below).
+
+### Root cause (the lesson, keep forever)
+
+1. **Family sweeps must include members added LATER with DIFFERENT input
+   semantics.** The v4.9 coyote guard (`&& !(variable_instance_exists(id,
+   "coyoteTimer") && coyoteTimer > 0 && yspd >= 0))`) was added to Knuckles'
+   PRESS-activated glide. Rouge's glide (v14) is HOLD-activated
+   (`keyboard_check`, Z held) and was created 5 versions later WITHOUT the
+   guard — she was the only glide in the family missing it, and the v4.9
+   family sweep had no way to catch a member that did not exist yet.
+2. **Why HOLD-based abilities break coyote specifically:** `specialFunc()`
+   runs at scr_move_basic L786, BEFORE the jump block (L835). A late Z press
+   during the 10-frame window: (1) the glide activation sees Z held +
+   yspd > 0 → glide ON in the SAME press; (2) the jump block still fires (it
+   never checks isGliding) → yspd = -6.5; (3) NEXT frame the glide-ACTIVE
+   block overwrites yspd with `ROUGE_GLIDE_FALL - yAccel` → the jump lasts
+   exactly ONE frame. Symptom: "cuando salta se activa el glide durante ese
+   tiempo de gracia". Any hold-based passive that overwrites yspd every
+   frame MUST carry the coyote guard, or it eats the grace jump.
+3. **The fix is a PARITY fix, not a redesign:** the exact v4.9 string now
+   appears 2× in scr_rouge_special (her fly + her glide) and 1× in
+   scr_knux_special — grep-able family invariant.
+4. **HUD text in this project:** the ONLY font is `fnt_big` (18px Andy
+   glyphs). Scale 0.4 ≈ 7px text = unreadable. The game has no outline
+   support (scr_text_spr letters are pre-outlined sprites but LOWERCASE
+   only — uppercase mode names can't use it). The 8-pass 1px offset outline
+   (4 cardinal + 4 diagonal, black) with the colored text drawn LAST
+   (GameMaker draws later = on top) is the house technique now.
+
+### Verification lessons (paid for, again)
+
+1. **A section-prefix `check()` refactor made 3-arg calls VACUOUS.**
+   pass-2's original `check(section, name, cond, detail)` was refactored to
+   `check(*args)`; 3-arg calls (`check("P1", "name", cond)`) then bound
+   cond=the NAME STRING — always truthy — so every such check passed with an
+   EMPTY name ("[OK]   P1"). Symptom to watch for: **check lines whose
+   printed name is just the section tag**. Fix: normalize EVERY call to
+   `check(name, cond, detail="")` and re-run — which immediately exposed 4
+   REAL hidden failures (guard count 1→2 because the fly guard is the SAME
+   line; `_modeAlpha);` vs `_modeAlpha)`; modeFlash tick has no braces;
+   "rougeMode =" matches "rougeMode =="). LESSON: after refactoring a
+   checker's own check function, a full re-run is MANDATORY — vacuous
+   checks hide real failures.
+2. **`next()` over a failure-detail generator without a default raises
+   StopIteration exactly when the check PASSES.** Compute lazily, but guard:
+   `first_diff = "NONE (identical)"; if lines != expected: for...: break`.
+3. **Raw-string regex over-escaping:** matching GML hex colors
+   (`_modeCol = $F2A0C8`) needs `r"\$[0-9A-F]{6}"` — writing
+   `r"\\\$..."` matches nothing. If a findall returns [] unexpectedly,
+   print what the regex actually is.
+4. **"TODO" is normal Spanish in this project** («durante TODO el
+   tornado», «en TODOS los clientes») — marker scans must require the
+   colon: `TODO:` / `FIXME:` / `XXX:` / `PLACEHOLDER:`.
+5. **`find()` vs `rfind()` when the SAME line legitimately appears
+   twice** (the family guard exists in her fly AND her glide): locating
+   "the glide one" needs `rfind` (the last one), and the count itself is
+   the better assertion (== 2).
+6. **Byte-a-byte reconstruction is the strongest scope proof:** applying
+   the expected hunks to `git show origin/main:file` and requiring the
+   result to EQUAL the shipped file line-by-line proves nothing else moved
+   (pass 2 rebuilt BOTH files this way). For insert-only diffs, anchor on a
+   unique pre-existing line (the v24 comment «caer ya NO lo gasta») instead
+   of climbing contiguous comment blocks — banners are never the top of a
+   comment run.
+7. **Exhaustive input sequences beat scenarios:** 256 scripted key
+   sequences (all 8-input combinations × follow-ups) comparing OLD vs NEW
+   traces proved EVERY behavioral difference lives in frames 0-9 (the
+   coyote window) and nowhere else — a stronger statement than any single
+   scenario pair.

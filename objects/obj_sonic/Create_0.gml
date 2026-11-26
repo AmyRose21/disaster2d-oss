@@ -205,8 +205,8 @@ atkNum = 1;      // numero de la variante elegida (1..N)
 
 // --- PARRY (tecla C, estilo Frontiers) ---
 // Logica completa en scripts/scr_parry/scr_parry.gml. Cooldowns:
-// fallo 14s / exito 7s en fase normal; fallo 10s / exito 2s tras haber
-// usado Nervios de Acero (fase powerboost, nerviosUsed).
+// fallo 12s / exito 7s en fase normal (v90: el fallo era 14s); fallo
+// 10s / exito 2s tras haber usado Nervios de Acero (powerboost, nerviosUsed).
 parryState = 0;      // 0=nada, 1=windup, 2=ventana activa, 4=exito
 parryTimer = 0;      // frames restantes de la fase actual
 parryCooldown = 0;   // frames restantes de recarga
@@ -215,6 +215,7 @@ parrySuccess = false;// true si la ventana intercepto algo
 parryActive = false; // true durante ventana+gracia (lo leen los checks de red)
 parryFlash = 0;      // frames restantes del anillo cian (lo dibuja Draw_0)
 parryLateSignal = 0; // v3.4: frames de margen tras cerrar la ventana para aceptar la senal de exito que llega por red
+parryLandBuffer = 0; // v90 (QoL): frames restantes del buffer de aterrizaje (tap de C en el aire: arranca al pisar suelo)
 
 // --- ABRAZO COMBINADO (interaccion especial con Amy Canon) ---
 // Cuando una Amy Canon cerca empieza a abrazarlo (tecla de su EMOTE 3),

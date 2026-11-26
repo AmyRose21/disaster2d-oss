@@ -1060,9 +1060,26 @@ function scr_rouge_special()
         // toma el relevo solo — la cadena natural del pedido.
         // v24: el vuelo activo se activa con Z + ARRIBA — una Z suelta al
         // caer ya NO lo gasta: cae derecha al planeo.
+        // v91 (duena) — EL PLANEO RESPETA EL TIEMPO DE COYOTE: mismo guard
+        // v4.9 que ya llevan su PROPIO vuelo activo (Z+ARRIBA) y el planeo
+        // de Knuckles. Si acaba de dejar el suelo DENTRO de la ventana de
+        // gracia del salto (coyoteTimer > 0, cayendo), la Z MANTENIDA aun
+        // NO arranca el planeo: durante esa gracia la Z se lee como
+        // intencion de SALTAR, y el salto coyote (que corre en
+        // scr_move_basic JUSTO DESPUES de este bloque) es quien se lleva
+        // la pulsacion. BUG que arregla: al saltar TARDE desde un borde,
+        // la Z encendia el planeo EN LA MISMA PULSACION; el salto si salia
+        // (corre despues), pero al frame siguiente el bloque del planeo le
+        // PISABA el yspd (ROUGE_GLIDE_FALL - yAccel) — salia un mini-salto
+        // de un frame y el planeo se tragaba el salto entero. Con el
+        // guard: salto limpio dentro de la ventana, y el planeo sale
+        // cuando esta se gasta (10 frames), o tras el apex de un salto
+        // real (el salto mismo pone coyoteTimer = 0: la cadena
+        // salto -> planeo de siempre queda INTACTA).
         if(global.playerControls && !isGrounded && !isGliding && !isFlying && !isAttacking
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isSliding
-        && !isStuck && yspd > 0 && keyboard_check(global.KeyA))
+        && !isStuck && yspd > 0 && keyboard_check(global.KeyA)
+        && !(variable_instance_exists(id, "coyoteTimer") && coyoteTimer > 0 && yspd >= 0))
         {
                 isGliding = true;
                 isJumping = false;

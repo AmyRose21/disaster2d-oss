@@ -103,11 +103,17 @@ if(_pb)
 // oculta es el radio exacto del aura. Misma convencion de bando que
 // scr_parry_protects_me (EXE o demonizado = lado EXE).
 // v5 (KRIS): su escudo es PERSONAL (no cubre aliados) — sin circulo.
+// v90 (QoL Sonic): TAMBIEN se filtra isDemonized del PUPPET. El gate de
+// input del parry (scr_parry_step) ya impide que un Sonic/Amy esbirro
+// abra la ventana, pero si por lo que sea llega un estado 61/64 viejo de
+// un demonizado (conversion a mitad de ventana, latencia), el circulo
+// NO debe dibujarse: enganaria a los aliados hacia un aura que no protege.
 var _parryAuraVisible = (global.character != CHARACTER_EXE);
 if(_parryAuraVisible && instance_exists(global.player) && global.player.revivalTimes >= 2)
         _parryAuraVisible = false; // esbirro: mismo bando que el EXE
 
-if(_parryAuraVisible && scr_parry_char_has(character) && character != CHARACTER_KRIS && scr_parry_state_active(state))
+if(_parryAuraVisible && !isDemonized
+&& scr_parry_char_has(character) && character != CHARACTER_KRIS && scr_parry_state_active(state))
 {
         gpu_set_blendmode(bm_add);
         draw_set_circle_precision(32);

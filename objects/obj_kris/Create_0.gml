@@ -109,6 +109,7 @@ parrySuccess = false;
 parryActive = false;
 parryFlash = 0;
 parryLateSignal = 0;
+parryLandBuffer = 0;  // v90 (QoL): buffer de aterrizaje del tap de C (arranca el escudo al pisar suelo)
 // variante de la animacion de exito (true = el ataque bloqueado venia
 // del AIRE -> spr_kris_block_success_air; false -> _ground)
 krisBlockAir = false;

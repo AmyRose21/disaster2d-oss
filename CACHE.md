@@ -3397,3 +3397,221 @@ None for v89. If the owner ever adds a new playable character: copy the zipline 
 (and the whole template's standard blocks) into its Step_2 — the sweep showed it is the
 one block everyone forgets (Jinna proof). `check_v89.py`'s family sweep can be re-run
 after any character addition.
+
+## v90 — QoL SONIC: parry fixes + stability + strength buffs (2026-11-27)
+
+Owner request: «QoL sonic Arreglos a su parry Y mejora de estabilidad y
+fortalezas». Full-system investigation: scr_parry.gml (1193 lines), the
+negation pipeline in scr_player_hurt.gml, the 3 parry characters'
+Step_0/Create_0/Draw_0, obj_player_puppet Step_0/Draw_0/Draw_72,
+obj_playerui HUD and the net_state_game receivers.
+
+### Real bugs found and fixed (all stability)
+
+1. **Laser-vs-ALLY detection read the laser by OBJECT INDEX**
+   (`scr_parry_bbox_overlap(self, obj_tails_projectile)` inside the nested
+   `with`): GameMaker resolves `obj.bbox_*` with ONE instance of the object
+   (the first it finds), not the laser the outer `with` is iterating. With
+   2+ lasers in flight it could read the one NOT touching the ally → the
+   deflect packet (CLIENT_TPROJECTILE_DEFLECT) was never sent and the laser
+   kept flying into the ally. Also violates the v88 house rule (never depend
+   on object-index semantics). FIX: `other` (the exact laser instance).
+2. **`audio_play_sound(Perfect_Parry, false, 0)`** in `scr_parry_ting_play`:
+   priority/loop arguments swapped (worked by accident: false→0, 0→false).
+   Now `(Perfect_Parry, 0, false)` like everywhere else.
+3. **Demonized gate missing**: the parry input gate never checked
+   `revivalTimes`, and esbirros/nega subditos DO keep player control → a
+   demonized Sonic/Amy Canon could open the "window": state 61 traveled and
+   every other client drew the aura circle around the esbirro (the protection
+   checks filter `isDemonized`, so it covered NOBODY) = a fake aura baiting
+   allies. FIX: `revivalTimes < 2` in the gate + `revivalTimes >= 2` in the
+   phase cancel (mid-window conversion now closes it instantly) + defensive
+   `!isDemonized` filter on the puppet aura draw in Draw_0 (stale-state
+   insurance; Draw_72's pose block intentionally NOT filtered: falling
+   through to the anim array with a 60+ state would index out of bounds).
+4. **Spin-bounce killed the parry**: the survivors' ball-contact block calls
+   `scr_player_hurt(0, ..., snd_buble, ..., ignore=true, exeSource=true)`
+   when a demonized ball lands on them. The parry negation required
+   `damage > 0` AND lived AFTER the hurttime guard (which DOES apply the
+   ignore-knockback: `isGrounded = false`), so with the window OPEN the
+   bounce still knocked Sonic airborne → next frame scr_parry_step canceled
+   the parry with the FULL fail cooldown (14 s), even though
+   scr_parry_detect already treats EXE-side JUMP/SPIN as attacks. FIX: the
+   negation block MOVED UP in scr_player_hurt (before the hurttime guard
+   and the block passives — an open window is hard protection and is
+   evaluated first) and its condition now covers the bounce:
+   `exeSource && (damage > 0 || sndid == snd_buble)`. Covered by the
+   window: no damage AND no knockback; the bouncing attacker gets the stun
+   signal the negation already emits (melee/spin search). i-frame coverage
+   is now consistent too (the ting/stun already existed via the attacker
+   side, v3.4; both sides deduplicate with `shockedTimer`/200 ms throttles).
+5. **Amy Canon's tarot-float bounce was missing `exeSource=true`** (the only
+   survivor bounce call without it): with a Sonic's aura covering her, that
+   contact was never negated. Fixed to `..., true, true)`.
+
+### QoL: landing input buffer
+
+`SONIC_PARRY_LAND_BUFFER 8`: tapping C (Sonic/Kris) or V (Amy Canon) in the
+air with everything else in order is remembered for 8 frames; on landing the
+parry starts with the FULL gate re-evaluated (including Amy Canon's V+Up
+super-toggle guard). Purely local input QoL: zero packets. `parryLandBuffer`
+declared in the 3 Create_0s; Amy Canon's kidnap bubble resets it.
+
+### Strength buffs (documented on each macro)
+
+| Macro | Old | New | Why |
+| --- | --- | --- | --- |
+| SONIC_PARRY_GRACE | 4 | 6 frames | more lag tolerance for ally ting + late-resolved hits |
+| SONIC_PARRY_AURA | 58 | 64 px | more ally coverage (HUD/puppet circles draw the same macro) |
+| SONIC_PARRY_STUN_TIME | 3.5 s | 4 s | successful parry punishes harder (LMS: 4+2 = 6 s) |
+| SONIC_PARRY_CD_FAIL | 14 s | 12 s | the fail punish still hurts but no longer despairs |
+
+### Scanner - v90 touched exactly 7 code files
+
+| File | What it does | Connects to | v90 change |
+| --- | --- | --- | --- |
+| `scripts/scr_parry/scr_parry.gml` | parry state machine, detection, negation, stun signals | `scr_player_hurt` (negation call), 3 characters' Step_0, net_state_game receivers, HUD | fixes 1-3, buffer, all 4 buff macros, LMS comment |
+| `scripts/scr_player_hurt/scr_player_hurt.gml` | damage pipeline of the local victim | all survivor objects, `scr_parry_negate_hit` | fix 4: negation block moved above the hurttime guard + snd_buble condition |
+| `objects/obj_amy_canon/Step_0.gml` | Amy Canon step | `scr_player_hurt` | fix 5: exeSource on the tarot-float bounce; bubble resets the buffer |
+| `objects/obj_sonic/Create_0.gml` | Sonic vars/macros | `scr_parry_step` | `parryLandBuffer = 0` + CD comment (14→12) |
+| `objects/obj_amy_canon/Create_0.gml` | Amy Canon vars | `scr_parry_step` | `parryLandBuffer = 0` |
+| `objects/obj_kris/Create_0.gml` | Kris vars | `scr_parry_step` | `parryLandBuffer = 0` |
+| `objects/obj_player_puppet/Draw_0.gml` | other clients' puppet draw | state byte, `SONIC_PARRY_AURA` | defensive `!isDemonized` filter on the aura circle |
+
+Anti-cheat: zero new surface — no new packets, no protocol change, no
+speed/teleport changes. The stun still travels via the same
+CLIENT_PLAYER_HURT/CLIENT_STATS_REPORT pattern and the deflect via the same
+CLIENT_TPROJECTILE_DEFLECT (server-validated). The bounce-negation only
+changes WHEN the existing signals fire (they already fired for dmg>0).
+
+Tools: `check_v90.py` (repo root, re-runnable: `python3 check_v90.py .`) —
+135 checks in 6 suites: S1 structure of the 7 patched files (balance,
+UTF-8, no TABs, negation exactly once and BEFORE the hurttime guard with
+the snd_buble condition, zero non-GML preprocessor leftovers, buffer
+declared everywhere, laser uses `other`, no swapped audio args); S2 EXECUTION
+of the real patched scr_parry_step with a mini-GML interpreter (air tap →
+buffer → landing → windup → window; 10-airborne-frames → buffer expires;
+demonized tap does nothing + mid-window conversion cancels; airborne cancel
+= fail CD 720; empty-window close ≈ 720 + late signal; success phase ends
+without touching the success CD; PB fail = 600; Amy Canon V+Up never starts
+parry even via buffer, V alone does; cooldown blocks the buffer);
+S3 regression with the OLD files from git: the old gate DID open the parry
+for a demonized Sonic (bug 3 reproduced), the old laser read misses when
+the touching laser is the 2nd one (bug 1 reproduced, GM semantics simulated),
+the old negation order lets the bounce through (bug 4 reproduced) and the
+new one denies it before anything touches the body, while WITHOUT a window
+the bounce still bounces (no regression) and normal damage still enters;
+S4 cross-wiring (aura drawn from the macro in all 3 Draw_0s, parry step
+called by the 3 characters, parryLandBuffer lives only where it should,
+every SONIC_PARRY_* macro defined exactly once in scr_parry.gml with the
+new values, LASER_MAXDMG intact at 4 for net_state_game, stun seconds fit
+u16, signals intact, HUD /0 guard); S5 git scope (only the 7 v90 code
+files + the already-delivered v89 obj_jinna + house docs, ZERO .yy/.yyp);
+S6 differential fuzz: 2000 random sequences up to 30 frames — 0 interpreter
+crashes, parryState always in {0,1,2,4}, a demonized player NEVER ends with
+the window open, the buffer never leaves [0,8], and on benign sequences
+(no demonize, no air taps) the old AST run with the NEW macros produces the
+IDENTICAL final state (zero regressions of existing behavior).
+
+### Pass 2 — independent re-verification (owner request «2 pasada para verificar errores»)
+
+Fresh clone + re-extracted ZIP, zero knowledge reuse. New tools shipped in
+the ZIP root: `check_v90_pass2.py` (6 phases: ZIP integrity incl. zero
+.yy/.yyp, comment/string-aware brace balance, macro+enum-member/function/
+asset/variable cross-refs, the 19 v90 semantic invariants, code-only leftover
+scan, git-pristine + JSON5-tolerant .yyp sanity) and
+`sim_v90_parry_machine.py` + `sim_v90_parry_buffer.py` (9-scenario state
+machine simulation of the new input block: ground tap, air tap + land at
+3f/8f/20f, cooldown block, single start, demonize-before-land, double-tap
+refresh, bounce-with-open-window no longer cancels). Result: **PASS, zero
+code changes**. First checker run had 5 FAILs — all false alarms, all triaged
+and hardened into the checker: `PacketType.CLIENT_*` are enum members not
+macros; `obj_tails_projectile.bbox_*` appears only inside fix comments;
+upstream `.yyp` legitimately has trailing commas (GameMaker format). Also
+re-derived the network architecture from scratch (victim-client bounce calls
+carry exeSource=true from the 11 survivor contact blocks; the EXE's own
+self-bounce calls don't, so the negation correctly ignores them) — the v90
+asymmetry fix (Amy Canon tarot) was the only missing 7-arg call and it is in.
+The pass DID catch one real bug — in the pass-1 TOOL, not the game:
+check_v90.py's S5 parsed `git status --porcelain` with a global
+`.strip().split("\n")` that ate the leading space of the first line, so an
+unstaged-modified first file (alphabetically obj_amy_canon/Create_0.gml)
+vanished from the parse → false "falta por modificar" (masked in pass 1
+because the files were staged). Fixed in the shipped check_v90.py; re-run:
+131 checks, all OK.
+
+### Pending
+
+None for v90. If the owner reports the parry feeling too strong/weak, the
+four buff macros are the tuning knobs (all commented). If a 5th parry
+character ever exists, remember: declare parryLandBuffer in its Create.
+
+## v91 — ROUGE: mode-name visibility rework + the passive glide now respects coyote time (2026-11-27)
+
+Owner request: «Rouge rework a su modo cambio de habilidades ahora las palabras
+que salen seran mas visibles para que sea mas facil de entender en que modalidad
+esta. y el glide ahora respetara al tiempo de coyote ya que cuando salta se
+activa el glide durante ese tiempo de gracia».
+
+### Files (code scope: exactly 2 — base: origin/main 387cb916, v90 zip coexists)
+
+| File | What it does | Connects to | v91 change |
+|---|---|---|---|
+| `objects/obj_rouge/Draw_64.gml` | Her local HUD: HP bar, ring count, exit radar (v25) and the v32 MODE NAME under the HP bar | `obj_camera`, `rougeMode`/`modeFlash` (declared in Create_0 L121-122), `fnt_big`, ROUGE_MODE_* macros | The v32 mode-name block (banner → EOF) fully replaced by the v91 block: scale 0.4 → 0.6, BLACK OUTLINE (8 passes, 1px: 4 cardinal + 4 diagonal, `c_black`×4) with the colored name drawn LAST on top, resting alpha 0.55 → 0.9, and during `modeFlash` a 0.6 + 0.1·min(modeFlash/12, 1) scale pop (0.7 → 0.6 smooth 12-frame ramp) at alpha 1. Lines 1-54 (HP bar + radar) byte-identical; same anchor (`- offset + 12`), same 4 names/colors, still 100% local (no packets) |
+| `scripts/scr_rouge_special/scr_rouge_special.gml` | All her abilities (V mode cycle, fly, glide, spindash, tornado/drill, kick, shields, rings, invis, genius) | `scr_move_basic` (calls it at L786, BEFORE the jump block at L835), `scr_collision_basic`, ROUGE_* macros in Create_0 | +17 lines ONLY (16-line v91 banner comment inserted after the v24 anchor `«// caer ya NO lo gasta…»` + 1 guard line). The passive-glide activation (v14, hold-Z + yspd > 0) gains the EXACT v4.9 family coyote guard: `&& !(variable_instance_exists(id, "coyoteTimer") && coyoteTimer > 0 && yspd >= 0))` — identical string to her own fly activation (L~468) and Knuckles' glide (scr_knux_special L38). Nothing else in the 1349-line script moves (glide ACTIVE block, wall-grab, state 23 unchanged) |
+
+### Root cause of the glide bug (why the guard was missing only here)
+
+Rouge's glide is the ONLY glide in the family activated by `keyboard_check`
+(Z HELD, v14 design) instead of `keyboard_check_pressed` (Knuckles v4.9) — so
+when v4.9 added the coyote guard to Knuckles, Rouge's glide never got it (it
+didn't exist yet as a press-activated path). Sequence of the bug: walk off a
+ledge → coyote window open (10f, yspd ≥ 0) → late Z press → (1) specialFunc
+(L786) sees Z held + yspd > 0 → glide ON in the same press; (2) the jump block
+(L835) still fires (it never checks isGliding) → yspd = -6.5; (3) NEXT frame the
+glide-ACTIVE block overwrites yspd with ROUGE_GLIDE_FALL - yAccel → the jump
+lasts exactly 1 frame ("mini-salto"). With the guard: during the window Z is
+read as JUMP intent (the coyote jump wins cleanly); the glide only starts when
+the window expires (hold-Z off a ledge → glide at frame 10), or after the apex
+of a real jump (the jump itself zeroes coyoteTimer, so the classic
+jump → apex → glide chain is IDENTICAL — verified by simulation).
+
+### Key invariants kept (verified by both passes)
+
+- `specialFunc()` runs BEFORE the jump block in scr_move_basic (critical order,
+  re-checked); the jump consumes the coyote window (`coyoteTimer = 0`).
+- The family guard string now appears exactly 2× in scr_rouge_special (her fly
+  + her glide) and 1× in scr_knux_special (untouched file, byte-identical).
+- rougeMode/modeFlash exist ONLY in obj_rouge (Create: declaration / Draw_64:
+  HUD) + scr_rouge_special (cycle + tick) + obj_playerui/Draw_64 (HUD icons,
+  READ-ONLY): the mode cycle remains 100% local — zero packets, zero server,
+  zero anti-cheat surface (rule 7).
+- Draw_64 uses TABS in the block (file convention), scr_rouge_special uses
+  8-space indent (its convention): both verified per-file. Zero .yyp/.yy/
+  .resource_order changes.
+
+### Tools (shipped in the zip)
+
+`check_v91.py` (PASS 1 — 64 checks: structure of both files, family parity,
+coyote engine intact, brace balance, UTF-8/LF, git scope with v90-uncommitted
+whitelist, zero net tokens in added lines, 12-assertion frame simulation OLD
+vs NEW incl. 3000-step fuzz) and `check_v91_pass2.py` (PASS 2 — 43 checks:
+BYTE-A-BYTE reconstruction from origin/main of BOTH files, independent GML
+tokenizer of the v91 block, flash math (0.7→0.6 ramp), manual reference traces,
+256 exhaustive input sequences proving every OLD-vs-NEW difference lives in
+frames 0-9 only, rougeMode/modeFlash leak sweep, optional zip-vs-project
+comparison as 2nd arg). Both take the project root as ARGUMENT (v90 lesson) and
+pass green in 3 scenarios: clean repo, owner project (v90 applied uncommitted
++ v91) and no-git. Both checkers had real bugs during development caught by
+re-running (vacuous 3-arg checks in pass 2 after a section-prefix refactor —
+fixed by normalizing every call to (name, cond, detail)).
+
+### Pending
+
+None for v91. Tuning knobs if the owner wants them later: outline thickness
+(1px × 8 passes — make it 2px by offsetting ±2), resting scale (0.6) and
+resting alpha (0.9) in `objects/obj_rouge/Draw_64.gml`; glide start delay is
+the coyote window itself (PLAYER_COYOTE_FRAMES 10 in scr_move_basic). Sally
+Canon's cyber-form label (obj_sally_canon/Draw_64, same style as the old v32
+text) was NOT touched — if the owner wants the same readability treatment
+there, it is a copy-paste of the v91 block.

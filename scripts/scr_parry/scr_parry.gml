@@ -1,5 +1,43 @@
 /// scr_parry — PARRY DE SONIC (tecla C) Y AMY CANON (tecla V)
 // =====================================================================
+//  v90 (QoL SONIC: «arreglos a su parry y mejora de estabilidad y
+//  fortalezas», pedido de la duena). ARREGLOS DE ESTABILIDAD:
+//   (1) DETECCION LASER-VS-ALIADO: leia el bbox por el INDICE del
+//       objeto (obj_tails_projectile.bbox_*) en vez de la instancia
+//       del laser concreto (other): con 2+ lasers en vuelo podia
+//       mirar el que NO estaba tocando al aliado -> no se pedia el
+//       desvio y el laser seguia volando. Regla de la casa v88: nada
+//       de depender de la semantica del indice de objeto.
+//   (2) ARGUMENTOS DE audio_play_sound invertidos en el "ting"
+//       (snd, false, 0 -> snd, 0, false; funcionaba de casualidad).
+//   (3) DEMONIZADOS: el gate de input no miraba revivalTimes — un
+//       Sonic esbirro (o nega) podia abrir la "ventana": su estado 61
+//       dibujaba en las demas maquinas el circulo del aura (que NO
+//       protege a nadie: los checks filtran isDemonized) = aura FALSA
+//       que enganaba a los aliados. Ahora los demonizados no abren el
+//       parry y la conversion lo cierra al instante (ademas el Draw_0
+//       del puppet filtra isDemonized por si llega un estado viejo).
+//   (4) REBOTE DE LA BOLA: un contacto spin del bando EXE con damage 0
+//       (el rebote snd_buble de los bloques de contacto de los
+//       supervivientes) aplicaba isGrounded=false AUN CON LA VENTANA
+//       ABIERTA, y al frame siguiente el parry se cerraba con el CD
+//       de FALLO entero — aunque scr_parry_detect ya considera ataque
+//       el JUMP/SPIN del bando EXE. La negacion (scr_player_hurt) sube
+//       de sitio: se evalua ANTES del guard de hurttime y cubre TAMBIEN
+//       el rebote (exeSource + snd_buble): con la ventana abierta ni
+//       dano ni empujon, y el atacante recibe el stun por la senal de
+//       siempre. De paso la cobertura con i-frames queda consistente
+//       (el ting/stun ya existian por la via del atacante, v3.4).
+//   (5) BUFFER DE ATERRIZAJE: el parry es SOLO en tierra y un tap de
+//       C/V un poco antes de tocar suelo se perdia entero (y el golpe
+//       llegaba justo al aterrizar). Ahora el tap en el aire se guarda
+//       SONIC_PARRY_LAND_BUFFER frames y el parry arranca al pisar
+//       suelo con el gate completo re-evaluado. Pura QoL local: cero
+//       paquetes.
+//  FORTALEZAS (los 4 numeros, ajustados con comentario en cada macro):
+//   gracia 4 -> 6 frames (mas tolerancia a la latencia), aura 58 ->
+//   64 px (mas cobertura de aliados), stun del atacante 3,5 -> 4 s
+//   (LMS: 6 s) y CD de fallo 14 -> 12 s.
 //  v4.2: SONIDO PERFECT_PARRY EN EL EXITO (pedido del usuario): el
 //        parry exitoso suena Perfect_Parry en la pantalla del que
 //        parrea, para TODO: melee, LASER devueltos y anillos negros
@@ -124,19 +162,28 @@
 // ===== TIMINGS (frames; 60 = 1 seg) =====
 #macro SONIC_PARRY_WINDUP 1       // preparacion (sin proteccion)
 #macro SONIC_PARRY_WINDOW 50      // ventana activa (v3.2: era 12)
-#macro SONIC_PARRY_GRACE 4        // gracia invisible (latencia de red)
+#macro SONIC_PARRY_GRACE 6        // gracia invisible (latencia de red). v90: 4 -> 6, mas margen
+                                   // para que la senal de exito del aliado (que viene por red) y el
+                                   // golpe resuelto con lag sigan contando como parreados
 #macro SONIC_PARRY_SIGNAL_GRACE 12 // v3.4: margen tras cerrar la ventana para la senal de exito por red
 #macro SONIC_PARRY_EXITO_TIME 22  // duracion de la animacion de exito (SONIC; Amy calcula la suya)
 #macro AMY_PARRY_EXITO_FRAMES_PER 4.5 // v4.2: frames de juego por cada frame del sprite de exito de Amy
                                        // (ajustable: 4.5 => sus 10 frames duran 45f = 0.75s)
 
 // ===== NUMEROS =====
-#macro SONIC_PARRY_AURA 58                    // radio del aura que cubre aliados (px)
-#macro SONIC_PARRY_STUN_TIME (60 * 3.5)         // stun del atacante parreado (3 seg)
-#macro SONIC_PARRY_CD_FAIL (60 * 14)          // fallo  - fase normal (14 seg)
+#macro SONIC_PARRY_AURA 64                    // radio del aura que cubre aliados (px). v90: 58 -> 64,
+                                   // un poco mas de cobertura de aliados (el circulo del HUD lo
+                                   // dibuja con el mismo macro: siempre coincide)
+// (v90: el stun de 3,5 -> 4 s: el castigo del parry exitoso pega un poco mas
+//  fuerte; con LMS (Sonic ultimo superviviente) son 4 + 2 = 6 s)
+#macro SONIC_PARRY_STUN_TIME (60 * 4)         // stun del atacante parreado (4 seg)
+#macro SONIC_PARRY_CD_FAIL (60 * 12)          // fallo  - fase normal. v90: 14 -> 12 seg: el castigo del
+                                               // parry fallido sigue doliendo pero ya no desespera
 #macro SONIC_PARRY_CD_OK (60 * 7)             // exito  - fase normal (7 seg)
 #macro SONIC_PARRY_CD_FAIL_PB (60 * 10)       // fallo  - fase powerboost (10 seg)
 #macro SONIC_PARRY_CD_OK_PB (60 * 2)          // exito  - fase powerboost (2 seg)
+#macro SONIC_PARRY_LAND_BUFFER 8             // v90 (QoL): frames que se guarda un tap de C/V dado en
+                                   // el aire para arrancar el parry al pisar suelo
 #macro SONIC_PARRY_LASER_MAXDMG 4             // stun maximo (seg) del laser desviado
 #macro SONIC_PARRY_FLASH_FRAMES 18            // anillo cian de activacion
 
@@ -582,10 +629,19 @@ function scr_parry_step()
         if(parryLateSignal > 0)
                 parryLateSignal--;
 
+        // v90 (QoL): reloj del BUFFER DE ATERRIZAJE (ver el bloque de INPUT
+        // de abajo): un tap de C/V en el aire vive estos frames para arrancar
+        // el parry justo al pisar suelo
+        if(parryLandBuffer > 0)
+                parryLandBuffer--;
+
         // cancelacion: si lo hieren/stunean matando el parry, cuenta como
         // fallo. v3: TAMBIEN si se va al aire (el parry es SOLO en tierra;
         // la parte de EXITO se deja terminar para no cortar la animacion).
-        if(parryState > 0 && (isDead || isHurt || shockedTimer > 0 || nerviosState > 0 || (!isGrounded && parryState != 4)))
+        // v90: TAMBIEN si se DEMONIZA (conversion a esbirro o subdito
+        // negativo a mitad de ventana): los demonizados no parrean y su
+        // estado 61 dejaria un circulo de aura falso en las otras maquinas.
+        if(parryState > 0 && (isDead || isHurt || shockedTimer > 0 || nerviosState > 0 || revivalTimes >= 2 || (!isGrounded && parryState != 4)))
         {
                 if(parryState != 4 && !parrySuccess && parryCooldown <= 0)
                         scr_parry_apply_cd(nerviosUsed ? SONIC_PARRY_CD_FAIL_PB : SONIC_PARRY_CD_FAIL);
@@ -647,20 +703,35 @@ function scr_parry_step()
         }
 
         // ===== INPUT: tap de C (Sonic) / V (Amy Canon). v3: SOLO EN TIERRA =====
-        if(global.playerControls && parryCooldown <= 0 && isGrounded
+        // v90: BUFFER DE ATERRIZAJE — un tap en el AIRE con todo lo demas en
+        // orden ya no se pierde: se guarda SONIC_PARRY_LAND_BUFFER frames y
+        // el parry arranca al pisar suelo (con el MISMO gate re-evaluado en
+        // el aterrizaje). v90: REVIVALTIMES < 2 — los demonizados (esbirros
+        // y subditos negativos, que SI conservan el control) no pueden
+        // abrir el parry: su estado 61 dibujaria el circulo del aura en las
+        // demas maquinas sin proteger a nadie.
+        if(global.playerControls && parryCooldown <= 0 && revivalTimes < 2
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
         && !isAttacking && !isSpinCharging && nerviosState == 0
         && bounceTimer <= 0
         // v51 — SUPER AMY: V + ARRIBA ya no dispara el parry de Amy
         // Canon (esa combinacion es el toggle de la super forma en
         // scr_amy_canon_special); V sola sigue pariando igual.
-        && !((global.character == CHARACTER_AMY_CANON) && keyboard_check(global.KeyUp))
-        && keyboard_check_pressed(scr_parry_key()))
+        && !((global.character == CHARACTER_AMY_CANON) && keyboard_check(global.KeyUp)))
         {
-                parryState = 1;
-                parryTimer = SONIC_PARRY_WINDUP;
-                parrySuccess = false;
-                parryActive = false;
+                // tap en el AIRE: se guarda para el aterrizaje
+                if(!isGrounded && keyboard_check_pressed(scr_parry_key()))
+                        parryLandBuffer = SONIC_PARRY_LAND_BUFFER;
+
+                // en TIERRA: tap fresco O el buffer del aterrizaje vivo
+                if(isGrounded && (keyboard_check_pressed(scr_parry_key()) || parryLandBuffer > 0))
+                {
+                        parryState = 1;
+                        parryTimer = SONIC_PARRY_WINDUP;
+                        parrySuccess = false;
+                        parryActive = false;
+                        parryLandBuffer = 0;
+                }
         }
 }
 
@@ -714,7 +785,9 @@ function scr_parry_ting_play()
         if(current_time - _tingLast >= 200)
         {
                 _tingLast = current_time;
-                audio_play_sound(Perfect_Parry, false, 0);
+                // v90: argumentos en su sitio (snd, prioridad, loop) — antes
+                // venian (false, 0) invertidos y funcionaba de casualidad
+                audio_play_sound(Perfect_Parry, 0, false);
         }
 
         scr_parry_ting_signal();
@@ -890,7 +963,12 @@ function scr_parry_detect()
                                         if(distance_to_object(_me) > SONIC_PARRY_AURA)
                                                 continue;
 
-                                        if(scr_parry_bbox_overlap(self, obj_tails_projectile))
+                                        // v90: el bbox del laser CONCRETO que estamos mirando
+                                        // (other = la instancia del with de afuera). Antes se leia
+                                        // por el INDICE del objeto (obj_tails_projectile.bbox_*),
+                                        // que con varios lasers en vuelo mira al PRIMERO y no al que
+                                        // esta tocando al aliado: el desvio nunca se pedia.
+                                        if(scr_parry_bbox_overlap(self, other))
                                         {
                                                 _hit = true;
                                                 break;
@@ -1049,7 +1127,7 @@ function scr_parry_apply_stun(_victimNid, _kx, _emitSound, _parryChar)
         global.player.spinCharge = 0;
         global.player.hurttime = 0;
         // v5.0 LMS: con Sonic como ultimo superviviente, el stun del parry
-        // dura +2 s (3,5 -> 5,5 s). Vale para el parry de SONIC: durante el
+        // dura +2 s (4 -> 6 s). Vale para el parry de SONIC: durante el
         // LMS el es el unico que puede tener la ventana activa (los
         // demonizados no parrean y Amy Canon ya cayo).
         // v47 (T3, duena): "el aumento de stun tanto del parry como el

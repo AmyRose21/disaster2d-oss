@@ -484,6 +484,26 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         if(global.character == CHARACTER_KRIS && global.player.moribundaState > 0)
                 return;
         
+        // =============================================================
+        //  PARRY DE SONIC (negacion, lado de la VICTIMA): el golpe viene
+        //  de un ataque del lado EXE (exeSource) y un Sonic/Amy Canon
+        //  con la ventana activa cubre al jugador local (el mismo o un
+        //  aliado dentro de su aura). v90 (QoL Sonic): el bloque SUBIO
+        //  DE SITIO — se evalua ANTES del guard de hurttime y su
+        //  condicion cubre TAMBIEN el REBOTE de la bola (exeSource con
+        //  damage 0 y snd_buble, el empujon de los bloques de contacto
+        //  spin de los supervivientes): ese rebote ponia isGrounded=false
+        //  AUN CON LA VENTANA ABIERTA y al frame siguiente el parry se
+        //  cerraba con el CD de fallo entero, aunque scr_parry_detect
+        //  ya considera ataque el JUMP/SPIN del bando EXE. Con la ventana
+        //  abierta: ni dano ni rebote; el atacante recibe el stun por la
+        //  senal que emite la propia negacion (la via de siempre).
+        //  Con i-frames la negacion tambien procede: el "ting"/stun ya
+        //  existian por la via del atacante (v3.4) y aqui se deduplican.
+        // =============================================================
+        if(exeSource && (damage > 0 || sndid == snd_buble) && scr_parry_negate_hit())
+                return;
+        
         if(global.player.hurttime > 0)
         {
                 if(ignore)
@@ -527,16 +547,12 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         }
         
         // =============================================================
-        //  PARRY DE SONIC (negacion, lado de la VICTIMA): el golpe viene
-        //  de un ataque del lado EXE (exeSource) y habria caido de
-        //  verdad (ya paso los i-frames). Si un Sonic con la ventana
-        //  activa cubre al jugador local — el mismo Sonic o un aliado
-        //  dentro de su aura de 56px — el dano se NIEGA por completo.
-        //  El stun del atacante lo aplica el cliente del propio atacante
-        //  (scr_parry_try_stun_attacker) con los mismos datos sincronizados.
+        //  (v90: el bloque del PARRY DE SONIC vivia AQUI. SUBIO ARRIBA,
+        //  antes del guard de hurttime y de las pasivas de bloqueo:
+        //  la ventana activa es proteccion dura y se evalua primero,
+        //  y ahora cubre tambien el rebote snd_buble de la bola — ver
+        //  su nueva ubicacion arriba.)
         // =============================================================
-        if(exeSource && damage > 0 && scr_parry_negate_hit())
-                return;
         
         // v5.0 LMS / v5.4 FIX — «EL SHOW FUERTE» (Sonic, ultimo
         // superviviente): 55% de BLOQUEAR TODO el daño del golpe. El

@@ -14,9 +14,13 @@ if(bubbleState == AMY_BUBBLE_ACTIVE)
         // El secuestro corta cualquier parry en curso (no cuenta como
         // fallo: la burbuja congela TODOS sus CDs, igual que hace con
         // la acometida, que solo recarga pisando suelo).
+        // v90: tambien el buffer de aterrizaje del parry (v90 QoL Sonic):
+        // dentro de la burbuja no hay input y al salir no debe arrancar
+        // un parry de un tap viejo.
         parryState = 0;
         parryActive = false;
         parryLateSignal = 0;
+        parryLandBuffer = 0;
 
         scr_amy_canon_bubble();
 }
@@ -211,7 +215,12 @@ for(var i = 0; i < ds_list_size(list); i++)
                 // solo del contacto en salto/rodadura (estados JUMP/SPIN).
                 if(isTarotFloat)
                 {
-                        scr_player_hurt(0, dirX, -sign(inst.y - y) * 4, snd_buble, spr_blood2, true);
+                        // v90: exeSource=true (faltaba): es un contacto de un
+                        // ataque del bando EXE (la bola de salto/rodadura) — el
+                        // parry de Sonic puede negarlo igual que el rebote de
+                        // todos los demas supervivientes (patron del bloque de
+                        // contacto spin de obj_sonic/obj_tails/etc).
+                        scr_player_hurt(0, dirX, -sign(inst.y - y) * 4, snd_buble, spr_blood2, true, true);
                         
                         if(bounceTimer <= -1)
                                 bounceTimer = 6;

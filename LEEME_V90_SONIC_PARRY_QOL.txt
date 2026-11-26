@@ -1,0 +1,113 @@
+LEEME v90 — QoL SONIC: ARREGLOS A SU PARRY + ESTABILIDAD Y FORTALEZAS
+=====================================================================
+
+Pedido: «QoL sonic Arreglos a su parry Y mejora de estabilidad y
+fortalezas».
+
+OJO ANTES DE IMPORTAR: si todavia no importaste la v89 (el fix de la
+liana de Jinna), importa PRIMERO «disaster2d-oss_v89.zip». Esta v90 no
+toca ese archivo.
+
+QUE SE ARREGLO (bugs reales encontrados investigando el sistema entero)
+-----------------------------------------------------------------------
+
+1) EL LASER QUE TOCA A UN ALIADO YA SE DESVIA DE VERDAD.
+   Cuando el laser del Tails esbirro iba a tocar a un aliado que estaba
+   dentro del aura de Sonic, la deteccion leia el rectangulo del laser
+   por el INDICE del objeto en vez de leer EL laser concreto que estaba
+   mirando: con dos o mas lasers volando a la vez podia mirar al que NO
+   estaba tocando a nadie -> el desvio nunca se pedia y el laser seguia
+   derecho hacia tu aliado aunque tu ventana estuviera abierta.
+
+2) EL REBOTE DE LA BOLA YA NO MATA EL PARRY (el arreglo gordo).
+   Antes: si el EXE (o un esbirro) en bola aterrizaba encima de Sonic
+   con la ventana ABIERTA, el contacto contaba como "rebote sin dano"
+   ... pero ese rebote SI empujaba (te ponia en el aire), y al frame
+   siguiente el parry se cerraba solo con el COOLDOWN DE FALLO ENTERO
+   (14 segundos) — el parry "parro" el contacto y aun asi te castigo
+   como si lo hubieras fallado. Ahora: con la ventana abierta el
+   rebote se NIEGA entero (ni dano ni empujon) y el atacante que rebota
+   recibe el stun por la senal de siempre. Tambien cubre el caso con
+   i-frames activos (antes el empujon entraba igual).
+
+3) LOS ESBIRROS YA NO PUEDEN HACER AURAS FALSAS.
+   Un Sonic demonizado (esbirro, o nega) podia abrir la "ventana" del
+   parry: en las pantallas de todos los demas se dibujaba el circulo
+   del aura alrededor del ESBIRRO... un circulo que no protegia a nadie
+   (los checks de proteccion filtran a los demonizados) y que enganaba
+   a los aliados a meterse ahi creyendose cubiertos. Ahora los
+   demonizados no pueden abrir el parry, la conversion a mitad de
+   ventana la cierra al instante, y el circulo nunca se dibuja alrededor
+   de un puppet demonizado.
+
+4) EL REBOTE DEL TAROT FLOAT DE AMY CANON entra en el sistema:
+   era el unico rebote de superviviente sin el flag de "dano del lado
+   EXE" — con el aura de un Sonic cubriendola nunca se negaba. Ya lo
+   lleva (igual que el de todos los demas).
+
+5) COSAS PEQUENAS: el "ting" del aliado tenia los argumentos del sonido
+   invertidos (sonaba de casualidad); arreglado.
+
+QoL NUEVO: BUFFER DE ATERRIZAJE
+-------------------------------
+El parry solo se puede usar en tierra, y un tap de C (o V con Amy) dado
+en el aire un momento antes de aterrizar se perdia ENTERO. Ahora ese
+tap se guarda 8 frames (~0,13 s) y el parry arranca solo al pisar
+suelo, re-comprobando todo (cooldown, stun, burbuja, y el V+ARRIBA del
+toggle de la super de Amy).
+
+FORTALEZAS (los 4 numeros, todos documentados en su macro)
+-----------------------------------------------------------
+ * Gracia tras la ventana:      4 -> 6 frames (mas tolerancia al lag)
+ * Radio del aura de aliados:  58 -> 64 px (el circulo que ves es el real)
+ * Stun del atacante parreado: 3,5 -> 4 s (en LMS: 6 s)
+ * Cooldown de FALLO:         14 -> 12 s (el exito sigue en 7 s)
+
+Nada de esto toca paquetes, protocolo ni server: todo viaja por lo que
+ya existia (el byte de estado y las senales de sonido de siempre), y el
+anti-cheat del server no cambia (regla 7 en orden).
+
+ARCHIVOS (solo los modificados/creados)
+---------------------------------------
+ CODIGO (7):
+  scripts/scr_parry/scr_parry.gml ............ el corazon: fixes 1-3,
+                                               buffer, numeros
+  scripts/scr_player_hurt/scr_player_hurt.gml  la negacion sube de sitio
+                                               y cubre el rebote
+  objects/obj_amy_canon/Step_0.gml ........... exeSource del tarot float
+                                               + reset del buffer en la
+                                               burbuja
+  objects/obj_sonic/Create_0.gml ............. parryLandBuffer + comentarios
+  objects/obj_amy_canon/Create_0.gml ......... parryLandBuffer
+  objects/obj_kris/Create_0.gml .............. parryLandBuffer
+  objects/obj_player_puppet/Draw_0.gml ....... filtro del aura falsa
+ DOCS DE LA CASA:
+  CACHE.md, LEARNING.md, worklog.md, este LEEME y check_v90.py
+
+COMO PROBARLO RAPIDO (2 minutos)
+--------------------------------
+ 1. Entrenamiento con un EXE (o un amigo de esbirro):
+    * Salta en bola sobre tu Sonic con la ventana ABIERTA: tu NO te
+      mueves, NO entra el rebote, el EXE sale stuneado 4 s y tu ves la
+      animacion de exito con el sonido perfecto. Antes: te empujaba y
+      el parry moria con 14 s de recarga.
+    * Con i-frames puestos (acaba de recibir un golpe) el rebote
+      tambien se lo come la ventana abierta.
+ 2. Dos lasers del Tails esbirro a la vez con un aliado dentro del
+    aura: el que toca al aliado se desvia (antes podia pasar de largo).
+ 3. Hazte esbirro con Sonic: pulsa C — no sale ni pose ni circulo.
+ 4. Salta y pulsa C justo antes de aterrizar: el parry arranca al
+    tocar suelo.
+ 5. El circulo del aura ahora es un pelin mas grande (64 px).
+
+VERIFICACION
+------------
+ check_v90.py — 135 checks, 6 suites: estructura de los 7 archivos;
+ EJECUCION del scr_parry_step real parcheado con un mini-interprete
+ (buffer, demonizados, conversion, cooldowns, V+ARRIBA de Amy);
+ REGRESION contra los archivos viejos de git (los 4 bugs se
+ reproducen en el viejo y ya no en el nuevo; sin ventana el rebote
+ sigue siendo un rebote); cableado cruzado (macros, aura, senales,
+ HUD); alcance por git (SOLO los 7 de codigo, cero .yy/.yyp); y un
+ FUZZ DIFERENCIAL de 2000 secuencias aleatorias contra el archivo
+ viejo (cero regresiones estructurales, cero crashes).

@@ -6936,3 +6936,258 @@ ALCANCE TOTAL DEL CODIGO: 1 archivo (Step_2 de obj_jinna).
 6. Archivos: 1 de codigo (objects/obj_jinna/Step_2.gml) + CACHE.md + LEARNING.md
    + worklog.md + LEEME_V89_JINNA_LIANA_FIX.txt + check_v89.py en
    disaster2d-oss_v89.zip (solo modificados/creados).
+
+## v90 - 2026-11-27 - QoL SONIC: arreglos al parry + estabilidad + fortalezas
+
+Base: origin/main 273d5d01 (= la v88 importada por la duena; la v89 de Jinna sigue
+pendiente de su importacion — zip ya entregado). Protocolo / BUILD_VERSION intactos.
+Sin .yyp/.yy, sin assets, sin server, sin paquetes nuevos. ALCANCE DEL CODIGO:
+7 archivos (ver abajo).
+
+1. Reporte/pedido de la duena: «QoL sonic Arreglos a su parry Y mejora de
+   estabilidad y fortalezas». Sin un repro puntual: investigacion COMPLETA del
+   sistema (scr_parry 1193 lineas + pipeline de scr_player_hurt + los 3 personajes
+   con parry + puppet + HUD + receptores de red) buscando bugs de estabilidad y
+   puntos de fuerza.
+2. BUGS ENCONTRADOS (todos reales, todos arreglados):
+   (1) DETECCION LASER-VS-ALIADO: scr_parry_bbox_overlap(self, obj_tails_projectile)
+       leia el bbox del laser por el INDICE del objeto dentro del with anidado:
+       GameMaker resuelve eso con "una" instancia (la primera), no con la que el with
+       esta recorriendo -> con 2+ lasers en vuelo miraba al equivocado y el desvio
+       (CLIENT_TPROJECTILE_DEFLECT) nunca se pedia. FIX: other (regla de la casa v88
+       extendida). 
+   (2) audio_play_sound(Perfect_Parry, false, 0): prioridad/loop INVERTIDOS en el
+       "ting" (funcionaba de casualidad). FIX: (0, false).
+   (3) GATE DE DEMONIZADOS: el input del parry no miraba revivalTimes y los esbirros
+       (y los NEGA: la conversion tambien pone revivalTimes=2) SI conservan el
+       control -> un Sonic esbirro abria la ventana: su estado 61 dibujaba en las
+       demas maquinas el circulo del aura (que no protege a nadie: los checks
+       filtran isDemonized) = aura FALSA que enganaba a los aliados. FIX: gate
+       revivalTimes < 2 + cancel por conversion (revivalTimes >= 2 en el cancel) +
+       filtro defensivo !isDemonized en el Draw_0 del puppet (el bloque de POSE del
+       Draw_72 NO se filtra a proposito: caeria al array de anims con estado 60+ y
+       reventaria fuera de rango).
+   (4) EL REBOTE DE LA BOLA MATABA EL PARRY: el bloque de contacto spin de los
+       supervivientes llama scr_player_hurt(0, ..., snd_buble, ..., ignore=true,
+       exeSource=true) cuando la bola del bando EXE aterriza encima. La negacion
+       exigia damage > 0 Y vivia DESPUES del guard de hurttime (que con ignore SI
+       aplica el empujon isGrounded=false): con la ventana ABIERTA el rebote
+       aterrizaba a Sonic igual y al frame siguiente el parry se cerraba con el CD
+       de FALLO entero (14 s) — aunque scr_parry_detect ya considera ataque el
+       JUMP/SPIN del bando EXE. FIX: la negacion SUBIO en scr_player_hurt (antes
+       del guard de hurttime y de las pasivas de bloqueo: la ventana abierta es
+       proteccion dura y se evalua primero) y su condicion cubre el rebote:
+       exeSource && (damage > 0 || sndid == snd_buble). Cubierto por la ventana:
+       ni dano ni empujon, y el atacante que rebota recibe el stun por la senal que
+       la propia negacion ya emite. La cobertura con i-frames queda consistente
+       (el ting/stun ya existian por la via del atacante v3.4; ambos lados
+       deduplican con shockedTimer + throttles de 200 ms).
+   (5) EL REBOTE DEL TAROT FLOAT DE AMY CANON no ponia exeSource=true (el unico
+       rebote de superviviente sin el flag): con el aura de un Sonic cubriendola,
+       ese contacto nunca se negaba. FIX: ..., true, true).
+3. QoL — BUFFER DE ATERRIZAJE (SONIC_PARRY_LAND_BUFFER 8): un tap de C/V en el aire
+   con todo lo demas en orden ya no se pierde: se guarda 8 frames y el parry arranca
+   al pisar suelo con el gate completo re-evaluado (incluido el guard V+ARRIBA de la
+   super de Amy Canon). Local puro: cero paquetes. parryLandBuffer declarado en los
+   3 Create (sonic/amy_canon/kris) y la burbuja de secuestro de Amy lo resetea.
+4. FORTALEZAS (los 4 numeros, documentados en su macro): gracia 4 -> 6 frames
+   (latencia), aura 58 -> 64 px (el circulo del HUD/puppet usa el mismo macro),
+   stun del atacante 3,5 -> 4 s (LMS: 6 s), CD de fallo 14 -> 12 s.
+5. Verificacion (regla 6): check_v90.py — 135 checks, 6 suites: S1 estructura de
+   los 7 archivos (balance, UTF-8, sin TABs, negacion EXACTAMENTE una vez y ANTES
+   del guard con la condicion del snd_buble, lapida en el sitio viejo, cero
+   #define/#undef/#ifdef/#error — un error de transcripcion intermedio borro el
+   macro SONIC_PARRY_LASER_MAXDMG y se restauro al instante, el checker lo vigila
+   ahora); S2 EJECUCION del scr_parry_step REAL parcheado con un mini-interprete
+   GML (tap en aire -> buffer -> aterrizaje -> windup -> ventana; buffer muerto tras
+   10 frames; demonizado no arranca NADA y la conversion cierra; cancel por aire =
+   CD 720; cierre en vacio ~720 + senal tardia; exito no toca el CD; PB 600/120;
+   V+ARRIBA nunca arranca ni por buffer, V sola si; cooldown bloquea el buffer);
+   S3 REGRESION con los archivos VIEJOS de git: el gate viejo SI abria el parry al
+   esbirro, el laser viejo falla con 2 lasers (semantica documentada del GM
+   simulada), el orden viejo de scr_player_hurt deja pasar el rebote (isGrounded=
+   false) y el nuevo lo niega ANTES de tocar el cuerpo, SIN ventana el rebote sigue
+   rebotando y el dano normal sigue entrando (sin regresion); S4 cableado cruzado
+   (aura con el macro en los 3 Draw_0, parry_step en los 3 personajes,
+   parryLandBuffer solo donde debe, macros unicos y con valores nuevos, stun u16,
+   senales intactas, HUD sin /0); S5 alcance por git: SOLO los 7 de codigo de la v90
+   (+obj_jinna de la v89 ya entregada) y NINGUN .yy/.yyp; S6 FUZZ DIFERENCIAL: 2000
+   secuencias aleatorias de hasta 30 frames — 0 crashes, parryState siempre en
+   {0,1,2,4}, un demonizado NUNCA queda con la ventana abierta, el buffer nunca sale
+   de [0,8], y en secuencias benignas el AST viejo corrido con los macros NUEVOS da
+   el estado final IDENTICO (cero regresiones estructurales).
+6. Anti-cheat (regla 7): cero superficie nueva — sin paquetes nuevos ni cambios de
+   protocolo; el stun sigue viajando por el CLIENT_PLAYER_HURT/CLIENT_STATS_REPORT
+   de siempre y el desvio por el CLIENT_TPROJECTILE_DEFLECT de siempre (validado en
+   el server); la negacion del rebote solo cambia CUANDO salen las senales que ya
+   existian.
+7. Archivos: 7 de codigo (scr_parry.gml, scr_player_hurt.gml, obj_amy_canon/Step_0,
+   obj_sonic/Create_0, obj_amy_canon/Create_0, obj_kris/Create_0,
+   obj_player_puppet/Draw_0) + CACHE.md + LEARNING.md + worklog.md +
+   LEEME_V90_SONIC_PARRY_QOL.txt + check_v90.py en disaster2d-oss_v90.zip
+   (solo modificados/creados). OJO: si todavia no importaste la v89 (fix de la
+   liana de Jinna), importa PRIMERO disaster2d-oss_v89.zip. Nota: el S5 de
+   check_v89.py es una foto del alcance EN SU MOMENTO (la v90 no existia):
+   hoy reporta los 7 archivos de la v90 como "inesperados" — sus S1-S4 (el
+   fix de Jinna) siguen en 405 OK. El S5 al dia es el de check_v90.py.
+
+## 2026-11-27 — v90 PASADA 2: verificacion de errores (pedido: «2 pasada para verificar errores»)
+
+Sandbox reciclado (se perdio el clon): clon fresco de origin/main (commit
+5ca9cbd9, que ya trae la v89 aplicada: LEEME_V89 presente, fix de Jinna en el
+repo) + re-extraccion del ZIP v90 entregado. Pasada INDEPENDIENTE (cero
+reuso de la primera): re-diff manual de los 7 archivos + verificador nuevo.
+
+1. Re-diff manual archivo por archivo (7/7 DIFFIEREN del upstream, como
+   debe ser): scr_parry.gml (macros 6/64/4s/12s + buffer 8f + revivalTimes
+   < 2 en el gate + cancel por demonizacion + audio args + other del laser
+   + comentario LMS), scr_player_hurt.gml (negacion SUBIADA antes del guard
+   de hurttime + condicion con snd_buble + tumba del bloque viejo),
+   obj_amy_canon/Step_0 (exeSource en el rebote tarot + reset del buffer en
+   la burbuja), los 3 Create_0 (parryLandBuffer = 0), obj_player_puppet/
+   Draw_0 (filtro !isDemonized del circulo del aura).
+2. Re-derivacion de la arquitectura de red desde cero (solo leyendo codigo):
+   cada cliente simula SOLO su propio personaje + el resto como puppets;
+   el rebote que mataba el parry corre en el cliente de la VICTIMA (bloques
+   de contacto de los 10 objetos supervivientes, exeSource=true) y el
+   rebote del propio EXE (obj_exe/obj_exetior/obj_exeller/obj_metalamy/
+   obj_chaos/obj_jinna) va con exeSource=false: la negacion lo ignora
+   correctamente. El rebote tarot de Amy Canon era el 11mo y el unico sin
+   exeSource (ya arreglado en la v90).
+3. Verificador nuevo check_v90_pass2.py (6 fases): F1 integridad del ZIP
+   (7 de juego, 0 .yy/.yyp); F2 balance estructural con conciencia de
+   strings/comentarios (7/7 balanceados, sin CRLF/BOM rotos); F3 cruzados
+   (195 macros/enum-members usados existen, 100% funciones scr_*/net_*
+   definidas, 5 assets existen, parryLandBuffer en los 3 Create); F4 los 19
+   invariantes semanticos de la v90 (args de audio, other del laser, orden
+   de la negacion, exeSource del tarot, filtro del Draw, gate y cancel por
+   demonizacion, 5 macros con valores nuevos, comentario LMS, 6 funciones
+   definidas, isDemonized del puppet); F5 restos (0 placeholders en codigo);
+   F6 clon PRISTINO por git + .yyp tolerante a comas finales.
+4. Primer run del verificador: 5 FAIL — TODOS falsos positivos triaged:
+   (a) PacketType.CLIENT_* son miembros de ENUM (net_packets.gml), no
+   macros; (b) el patron "obj_tails_projectile.bbox_*" aparece SOLO en los
+   comentarios que documentan el fix; (c) el .yyp upstream lleva comas
+   finales (formato normal de GameMaker). Verificador corregido (harvest
+   de enums, grep solo codigo, JSON tolerante + git status) — re-run: PASS.
+5. Simulacion de la maquina de estados del bloque de input NUEVO
+   (sim_v90_parry_machine.py + sim_v90_parry_buffer.py, 9 escenarios):
+   tap en tierra arranca; tap en aire + aterrizar a los 3f arranca AL PISAR;
+   aterrizar a los 8f (limite) ya NO; a los 20f NO; tap con CD activo no se
+   guarda; arranca exactamente una vez; demonizado antes de aterrizar NO
+   arranca; doble tap refresca el buffer; rebote de bola con ventana abierta
+   NO cancela el parry. Todo OK.
+6. Auditoria de orden de frames del buffer: el decremento vive en el bloque
+   de timers (ARRIBA del input) => ventana real de 8 frames; el gate se
+   re-evalua COMPLETO en el aterrizaje; consume => buffer=0 (sin dobles
+   arranques). Edge conocido y aceptado (semantica pre-v90, sin cambio):
+   aterrizar con buffer activo DIRECTO ENCIMA de una bola EXE sigue
+   rebotando (el windup de 1f no protege todavia) y cancela con CD de
+   fallo — igual que un tap en tierra con la misma bola encima.
+7. Anti-cheat (regla 7): re-chequeado — 0 paquetes nuevos, 0 cambios de
+   protocolo, 0 superficies nuevas (la negacion del rebote solo cambia
+   CUANDO salen las senales que ya existian).
+8. RESULTADO: PASS SIN CAMBIOS DE CODIGO. La v90 queda verificada por dos
+   pasadas independientes. El ZIP se regenera IGUAL en codigo y con los
+   docs actualizados (LEARNING.md + CACHE.md + worklog.md con la pasada 2)
+   + los scripts de la pasada 2 (check_v90_pass2.py, sim_v90_parry_machine.py,
+   sim_v90_parry_buffer.py) junto al check_v90.py de la pasada 1.
+
+ADDENDO PASADA 2 (mismo dia): BUG REAL ENCONTRADO — en la HERRAMIENTA de
+verificacion, no en el juego. check_v90.py (pasada 1, S5) parseaba
+`git status --porcelain` con `r.stdout.strip().split("\n")`: el .strip()
+global se come el espacio inicial de la PRIMERA linea, y con el primer
+archivo modificado SIN stage (" M objects/obj_amy_canon/Create_0.gml", el
+primero por orden alfabetico) el regex "^(..)\s" no matchea -> el archivo
+desaparecia del parseo -> "falta por modificar" FALSO. En la pasada 1 los
+archivos iban staged ("M  file", sin espacio inicial) y el bug quedo
+tapado. FIX: sin strip global (solo l.strip() por linea para vacios);
+re-run del check_v90.py corregido en el repo con la v90 aplicada:
+131 checks, TODO OK. El zip se regenera con el check_v90.py arreglado.
+
+ADDENDO 2 PASADA 2: gotcha final de check_v90.py — ancla su ROOT al
+directorio PROPIO del script (dirname(__file__)): corrido desde FUERA del
+repo mira la carpeta equivocada y falla S3/S5/S6 de forma confusa (le
+paso al re-run de la verificacion limpia). El encabezado del script ahora
+documenta el contrato (copiarlo a la raiz del proyecto y correrlo desde
+ahi) y check_v90_pass2.py ya toma el repo como ARGUMENTO (modos pre y
+post-importacion). Ultimo re-run limpio completo: PRE-mode PASS, aplicado
++ check_v90.py 131 checks TODO OK, sim 9/9, POST-mode PASS.
+
+## v91 - 2026-11-27 - ROUGE: nombre de modalidad mas visible + el planeo respeta el coyote
+
+Base: origin/main 387cb916 (v89 de Jinna ya commiteada por la duena como "ewe").
+La v90 (parry de Sonic) se entrego SOLO en zip y NO toca ni obj_rouge ni
+scr_rouge_special: esta v91 convive con ella sin conflicto (verificado en el
+escenario "proyecto con v90 aplicada + v91 encima": ambas pasadas en verde).
+Protocolo / BUILD_VERSION intactos. Sin .yyp/.yy, sin assets, sin server, sin
+paquetes nuevos. ALCANCE DEL CODIGO: 2 archivos.
+
+1. Pedido de la duena (verbatim): «Rouge rework a su modo cambio de habilidades
+   ahora las palabras que salen seran mas visibles para que sea mas facil de
+   entender en que modalidad esta. y el glide ahora respetara al tiempo de
+   coyote ya que cuando salta se activa el glide durante ese tiempo de gracia».
+   Dos frentes: (a) el NOMBRE del set bajo la barra de vida (el HUD del modo V)
+   mas visible; (b) el planeo pasivo no debe comerse la ventana coyote.
+2. INVESTIGACION: el ciclo V (v32) es 100% local (rougeMode/modeFlash viven SOLO
+   en obj_rouge + scr_rouge_special + playerui que solo LEE — barrido completo
+   del repo en la pasada 2, P5). El nombre lo dibuja Draw_64 con
+   draw_text_transformed_color a escala 0.4 (fnt_big = letra de 18 px -> ~7 px
+   de texto), SIN contorno y con alpha 0.55 en reposo: ilegible sobre fondos
+   claros y encima de su propio cuerpo. El planeo pasivo (v14) se activa con Z
+   MANTENIDA (keyboard_check, no pressed) + yspd > 0 — y NO llevaba el guard de
+   coyote v4.9 que SI llevaban su propio vuelo activo (Z+Arriba, linea ~468) y
+   el planeo de Knuckles (scr_knux_special L38): Rouge era el UNICO glide de la
+   familia sin el guard.
+3. EL BUG DEL COYOTE, mecanica exacta: specialFunc() corre en scr_move_basic
+   L786, ANTES del bloque de salto (L835). Al saltar TARDE desde un borde
+   (ventana coyote 10 frames, yspd >= 0): (1) la activacion del planeo ve Z
+   mantenida + yspd > 0 -> ENCIENDE el planeo EN LA MISMA PULSACION; (2) el
+   salto igual dispara (corre despues, no mira isGliding) -> yspd = -6.5;
+   (3) al frame siguiente el bloque del planeo activo PISA yspd con
+   ROUGE_GLIDE_FALL - yAccel: el salto dura 1 frame y "rebota" en el aire. Con
+   Z mantenida al salir del borde, el planeo se encendia al frame 1, DENTRO de
+   la ventana de gracia.
+4. FIX (scr_rouge_special, +17 lineas: 16 de banner + 1 de guard): la
+   activacion del planeo gana la linea EXACTA de la familia:
+   && !(variable_instance_exists(id, "coyoteTimer") && coyoteTimer > 0 && yspd >= 0))
+   Misma cadena que su vuelo y que Knux (paridad textual, grep-eable). NADA
+   mas del planeo se toca (ni el bloque activo, ni el agarre de pared, ni el
+   estado 23 de red).
+5. FIX (Draw_64, bloque v32 -> v91): escala 0.4 -> 0.6 (texto de ~7 px a ~11
+   px), CONTORNO NEGRO de 8 pasadas de 1 px (4 cardinales + 4 diagonales,
+   c_black) con el nombre de color ENCIMA (la ultima llamada), alpha de reposo
+   0.55 -> 0.9, y al ciclar (modeFlash > 0): escala 0.6 + 0.1 * min(modeFlash/12, 1)
+   (pop 0.7 -> 0.6 con rampa suave de 12 frames) y alpha 1. Mismo sitio (bajo
+   la barra, offset + 12), mismos 4 nombres/colores, misma guarda hp/isDead,
+   sigue siendo HUD 100% local (cero paquetes).
+6. VERIFICACION (pedido: «2 pasada para verificar errores»):
+   PASADA 1 — check_v91.py: 64 OK / 0 FALLO. Estructura de ambos archivos
+   (llamadas exactas, orden de dibujado, guardas, tabs/espacios por archivo),
+   lineas 1-54 de Draw_64 byte-identicas a origin/main, motor del coyote
+   intacto en scr_move_basic (+ orden critico specialFunc < salto), paridad de
+   familia (guard 2 veces en rouge_special, Knux intacto), balance de
+   llaves/parens, UTF-8/LF/sin BOM, marcadores solo "TODO:" (el "TODO" a
+   secas es espanol normal del proyecto — falso positivo documentado), alcance
+   git (2 .gml + whitelist de la v90 sin commitear, cero .yyp/.yy), cero
+   tokens de red en lineas nuevas, y SIMULACION de frames: OLD reproduce el
+   bug (glide_on + jump en el mismo frame; yspd -6.28 -> 0.79 en 1 frame) y
+   NEW lo arregla (pulsacion tardia = salto limpio; primer glide tras el apex,
+   frame ~31; hold-Z del borde = glide al frame 10 exacto; cadena salto
+   normal->glide IDENTICA; fin del vuelo -> glide igual; fuzz 3000 pasos sin
+   violaciones).
+   PASADA 2 — check_v91_pass2.py: 43 OK / 0 FALLO. RECONSTRUCCION BYTE A BYTE:
+   Draw_64 = base v89 + bloque v91 linea a linea; scr_rouge_special = origin +
+   banner de 16 lineas tras el ancla v24 + split de la linea Z (re-pegando el
+   ")" se recupera origin EXACTO). Tokenizador GML independiente del bloque
+   (9 llamadas, 8 offsets de 1px sin repetir, color el ultimo, balance propio,
+   4 nombres + 4 colores hex derivados). Matematica del destello: 0.7 ->
+   0.6 en rampa uniforme de 12 pasos, alpha 1/0.9, tick de modeFlash sin
+   llaves. 256 secuencias exhaustivas OLD vs NEW: TODA diferencia vive en los
+   frames 0-9 (la ventana coyote unica y exclusivamente). Barrido de fugas
+   rougeMode/modeFlash: solo los 3 sitios legitimos. Escenarios: repo limpio,
+   proyecto del dueno (v90 aplicada sin commitear + v91) y SIN GIT: todos en
+   verde.
+7. LEEME_V91_ROUGE_MODO_GLIDE.txt con guion de prueba de 2 minutos (4 puntos:
+   legibilidad al ciclar, salto tardio desde borde limpio, cadena salto->glide
+   intacta, hold-Z del borde respeta la gracia).
