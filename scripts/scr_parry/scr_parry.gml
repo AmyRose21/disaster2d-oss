@@ -491,7 +491,10 @@ function scr_parry_negate_hit()
         static _fxLast = -9999;
         if(current_time - _fxLast >= 200)
         {
-                net_sound_emit_at(Perfect_Parry, _nid);
+                // v83: la senal viaja como snd_parry (indice 107 de global.net_snds):
+                // Perfect_Parry NO esta en ese array, el indice -1 llegaba como 255 y el
+                // receptor lo descartaba (el ting del aliado cubierto nunca entraba)
+                net_sound_emit_at(snd_parry, _nid);
 
                 // v3.5 / v3.6: SENAL DE STUN AL ATACANTE, con el mismo
                 // paquete de sonido de siempre (shouldPlay=true): el cliente
@@ -993,7 +996,10 @@ function scr_parry_try_stun_attacker()
         // parry y Sonic tiene que ver su animacion. Cuando la victima si
         // nego, los dos "ting" llegan casi juntos y el receptor los
         // deduplica (200ms).
-        net_sound_emit_at(Perfect_Parry, _parrySonic.master_id);
+        // v83: la senal viaja como snd_parry (indice 107 de global.net_snds):
+        // Perfect_Parry NO esta en ese array, el indice -1 llegaba como 255 y el
+        // receptor lo descartaba (el ting del aliado cubierto nunca entraba)
+        net_sound_emit_at(snd_parry, _parrySonic.master_id);
 
         return true;
 }

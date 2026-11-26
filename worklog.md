@@ -6697,3 +6697,20 @@ Stage Summary:
 - Shader cyber mejorado para Amy Canon y Sally (contorno neon, glow, rejilla, datos, pies que se disuelven)
 - ZIP (regla 2): v82_sally_cyber_forms.zip = 15 GML/shader modificados + CACHE.md + LEARNING.md + worklog.md + LEEME_V82_SALLY_CYBER_FORMS.txt + PREVIEW_V82.png + check_v82.py + sim_v82.py + tools_v82/. Roundtrip: clon fresco e0cb2b8d + unzip = byte a byte + herramientas re-ejecutadas desde el arbol extraido.
 - OJO (para la duena): base = commit e0cb2b8d (la v81 de claims). Solo se recompila el APK; el server NO se toca en la v82.
+
+
+## v83 - 2026-11-26 - Vanilla robustness + Amy Canon skills/GUI + anti-cheat + backup
+
+Base: owner's commit 2db92702 (v82). Fetched before working. Protocol / BUILD_VER untouched (1103).
+
+1. Audit of Vanilla and Amy Canon (passives, abilities, HUD, network signals, server handlers).
+2. Backup of the ORIGINAL version of every file before touching it (`respaldo_v83_originales_2db92702.zip`).
+3. Vanilla: remote float-run trail (V1), Chocola lost target (V2), weak mark `chocolaCd` (V3),
+   HUD icon 4 for the V key (V4).
+4. Amy Canon: bubble vs inactive puppets (A1), Draw_76 bounds guard (A2), HUD icon 3 = hammer throw /
+   LSA in the air (A3), weak mark `hammerThrowTimer` (A4).
+5. Shared: parry ally "ting" now travels as `snd_parry` (2 sites).
+6. Server anti-cheat: targeted stun signals validated; ring type byte validated.
+7. Verification: `check_v83.py` (lexer, symbols, simulations) + `gcc -fsyntax-only` baseline vs patched.
+8. Files: 10 code files + CACHE.md + LEARNING.md + this worklog + LEEME_V83_VANILLA_AMY_CANON.txt
+   + check_v83.py, zipped as `disaster2d-oss_v83.zip` (only modified/created files).

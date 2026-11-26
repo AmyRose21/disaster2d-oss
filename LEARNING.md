@@ -993,3 +993,87 @@ Lessons recorded:
    Python expression (my own sed) swallowed the rest of the line ->
    py_compile every tool before running it; a replacement marker must be
    unique across ALL the literals of a file, not just present once.
+
+
+## v83 (2026-11-26) - Vanilla robustness + Amy Canon skill/GUI fixes + anti-cheat (base commit 2db92702)
+
+### Hits (found by reading the code, then fixed)
+
+1. **Remote trail of Vanilla's float run was dead code.** `objects/obj_netclient/Step_2.gml` sets the
+   `PLAYER_POWERBOOST` bit while `isFloatRunning`, but `scripts/net_udpprocess/net_udpprocess.gml`
+   applied the bit only when `character == CHARACTER_SONIC`. The ghost trail of
+   `obj_player_puppet/Step_0.gml` (`if(powerBoost)`) never ran for a remote Vanilla. Metal and Blaze
+   send the same bit and have the same dead path (not fixed here, reported).
+2. **`Perfect_Parry` is not in `global.net_snds`.** `scr_parry.gml` (2 sites) sent the ally-cover "ting"
+   with `net_sound_emit_at(Perfect_Parry, nid)`. The emitter writes `array_find_index(...)` as u8: not
+   found = -1 = 255, and the receiver drops any `sid >= array_length(global.net_snds)`. The network
+   path of the ally ting could never work. Fixed: send `snd_parry`, the sound the receiver compares against.
+3. **The `// NN` comments in `scripts/net_sounds/net_sounds.gml` are off by one.** The array starts with
+   `snd_none` (0) while the first comment says `snd_dash // 0`. REAL indices (counted, 126 entries):
+   snd_none 0, snd_dash 1, snd_dead 2, snd_ringlose 6, snd_hurt 9, snd_exe_stun 12, snd_snap 37,
+   snd_parry 107, snd_mermer 108, snd_nono 109, snd_vasebreak 110, snd_ready 111, snd_npteleport 112,
+   snd_achivement 113, snd_chocola_dive 114, snd_metal_stun 118, snd_jina_kill1 120. The two hard-coded
+   indices of the server (6 = ring lost, 9 = hurt) are correct.
+4. **Amy Canon HUD** (`obj_playerui/Draw_64.gml`): icon 3 (C) was drawn red in the air although C in
+   the air is the Light Speed Attack (same `dashTimer`), and the super hammer throw
+   (`hammerThrowTimer`) had no recharge display at all. The icon now shows whichever of the two the C
+   key will do; red only while cooling, or on the ground in super phase 1 where C does nothing.
+5. **Amy Canon bubble** (`scr_amy_canon_bubble.gml`): the liberator contact counted `isInactive`
+   puppets (puppets are never destroyed when their player leaves).
+6. **Chocola** (Vanilla): GO_CREAM / GUARD only checked that the target puppet existed, so an inactive
+   Cream puppet (disconnect / 1 s without data) kept Chocola hanging forever and Vanilla lost her
+   passive (the 65 % block and the 33 % attack need Chocola at home). New
+   `scr_chocola_target_lost()`: 60 consecutive frames of an inactive target = target lost.
+7. **Weak mark** (`scr_player_hurt.gml`, `scr_weak_mark_hit`): Amy Canon's `hammerThrowTimer` and
+   Vanilla's `chocolaCd` were not put on cooldown by the mark.
+8. **Vanilla had no icon for the V key** (Chocola command). Added icon 4 in the C row.
+9. **Server**: `CLIENT_SOUND_EMIT` relayed targeted stun signals with no validation (any client could
+   send the i-frame-ignoring hammer stun to any player); `CLIENT_CREAM_SPAWN_RINGS` accepted ring byte
+   2 (black rings) / 1 (red rings) from players that are neither nega nor demonized.
+
+### Errors made in this session (do not repeat)
+
+- `count_anims.py`: the regex used `\[\\?\s*` (optional BACKSLASH) instead of the real `?` accessor,
+  so every table printed "NOT FOUND". Correct: `\[\?\s*`.
+- Ran a `cmp` between `net_sounds.gml` and `net_packets/net_packets.gml` believing they were a
+  loose-dup pair. They are unrelated; the real pair is `scripts/net_packets.gml` <->
+  `scripts/net_packets/net_packets.gml`. Confirm a pair by NAME before comparing.
+- Assumed Vanilla's V key was "the Chocola attack". It is the Chocola -> Cream / recall command; the
+  close attack is automatic (33 %).
+- Nearly copied the stale `// N` comments into the server rule. Rule: every index hard-coded in C
+  comes from `net_snd_index.py`.
+- First draft of the patcher anchored a weak-mark edit on a bare statement line that a sibling `case`
+  could repeat; rewritten to locate the `case` label first and then the statement inside it. Lesson:
+  anchor on the enclosing block, never on a line a sibling block can repeat.
+- First draft of `check_v83.py` concatenated a generator with a list and had an unbalanced
+  comprehension; both would have crashed at runtime. Lesson: re-read generated helper code for
+  Python-level syntax before trusting a run.
+- A strict `if\(...\)` regex anchor matched 0 lines because it forgot the closing paren of the `if`
+  itself. For one-line conditions anchor on the END of the stripped line, or work line by line.
+
+### Facts learned (verified in code)
+
+- `scr_survivors.gml` tables: Amy Canon has 26 entries in `player_anims` / `player_eanims` /
+  `player_negaanims` (states 0..25); Vanilla has 20.
+- LSA gates: `!isGrounded`, C pressed, `dashTimer <= 0`, the common gates (alive, not hurt / shocked /
+  zipline / dashing / tarot / HJ / attacking, no bubble, hug, parry, red ring, hiding,
+  `revivalTimes < 2`) and a valid target inside `LSA_RANGE` (400) without i-frames. Up to
+  `LSA_MAX_TARGETS` (6) hits per flight, one targeted `snd_dash` each; the receiver dedups with
+  `shockedTimer > 0`.
+- Hammer throw: super phase 2 + C on the ground; the hammer lives 240 frames; its stun ignores
+  i-frames. The super form is client-local (not synced): only the hit travels (`snd_none`, targeted).
+- Server flags: `PLAYER_DEMONIZED` is set by `game_demonize`, `CLIENT_JINNA_NEGATOUCH` and
+  `CLIENT_JINNA_MINION` (the last two also set `PLAYER_NEGATIZED`), cleared by Vanilla's rescue and by
+  `CLIENT_JINNA_MINION_DOWN`. Amy Canon, Sally Canon, Sonic, Vanilla, Rouge and Kris die directly
+  (never demonized by dying), so their only "esbirro" state is the nega conversion.
+- A dot read of an instance variable that the instance does not declare is a fatal error in GameMaker:
+  guard with `variable_instance_exists(<id>, "name")` before reading puppet-only variables.
+
+### How this was verified (and what could NOT be verified)
+
+- No GameMaker IDE / runtime in the sandbox. GML: string-aware lexer (bracket balance, LF only, no
+  chained ternary, macro uniqueness project-wide, symbol and asset existence), byte-exact anchor
+  patching, numeric simulation of the new logic. Server C: `gcc -fsyntax-only` on the original vs the
+  patched file, comparing the normalized diagnostics.
+- NOT verified: in-game behaviour, a real match against a v83 server, the look of the new HUD icon
+  (designed by numeric pixel measurement: 13x21 px of content at half scale next to the real V key).

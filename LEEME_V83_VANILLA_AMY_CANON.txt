@@ -1,0 +1,111 @@
+LEEME v83 - Vanilla robusta + Amy Canon (habilidades y GUI) + respaldo
+=======================================================================
+Repositorio: https://github.com/AmyRose21/disaster2d-oss
+Base: commit 2db92702 de la rama main (tu version v82).  Fecha: 2026-11-26.
+Idioma de CACHE.md y LEARNING.md: ingles (como pediste).
+
+QUE HAY EN LA ENTREGA
+---------------------
+1. disaster2d-oss_v83.zip
+   SOLO archivos modificados o creados (regla 2), con su ruta completa dentro del repo:
+     scripts/net_udpprocess/net_udpprocess.gml            (modificado)
+     scripts/scr_chocola/scr_chocola.gml                  (modificado)
+     objects/obj_chocola/Create_0.gml                     (modificado)
+     objects/obj_chocola/Step_0.gml                       (modificado)
+     scripts/scr_player_hurt/scr_player_hurt.gml          (modificado)
+     scripts/scr_amy_canon_bubble/scr_amy_canon_bubble.gml (modificado)
+     objects/obj_amy_canon/Draw_76.gml                    (modificado)
+     objects/obj_playerui/Draw_64.gml                     (modificado)
+     scripts/scr_parry/scr_parry.gml                      (modificado)
+     betterserver-oss/disasterserver/states/Game.c        (modificado, servidor)
+     CACHE.md, LEARNING.md, worklog.md                    (reglas 4, 5 y 9)
+     LEEME_V83_VANILLA_AMY_CANON.txt                      (este archivo)
+     check_v83.py                                         (validador: python check_v83.py .)
+   NO se toco ningun .yy ni .yyp, no se agrego ningun asset ni script nuevo,
+   no se agrego ningun paquete y BUILD_VER sigue en 1103: un cliente v83 y uno
+   v82 pueden jugar juntos.
+2. respaldo_v83_originales_2db92702.zip
+   Las versiones ORIGINALES de cada uno de los 10 archivos de codigo tocados.
+   Para deshacer v83: copia esos archivos sobre el repo.
+3. INFORME_CHECK_V83.txt: salida completa del validador.
+
+COMO INSTALAR
+-------------
+1. Descomprime disaster2d-oss_v83.zip sobre la raiz del proyecto (la carpeta
+   donde esta el .yyp).  Las rutas ya vienen completas.
+2. Si montas tu propio servidor, recompila betterserver-oss (cambio en
+   disasterserver/states/Game.c).
+3. El push a GitHub lo haces tu.
+
+QUE SE ARREGLO - VANILLA
+------------------------
+V1  Estela del trote flotante en red. Tu cliente mandaba el bit de "power
+    boost" al correr flotando, pero el receptor solo lo aplicaba a Sonic:
+    los demas jamas veian la estela de Vanilla. Ahora se aplica.
+V2  Chocola atascada. Si Cream se desconectaba o se quedaba sin datos, los
+    puppets NO se destruyen, asi que Chocola se quedaba colgada de ese
+    fantasma para siempre y Vanilla perdia el bloqueo (65%) y el ataque (33%).
+    Ahora, 60 frames seguidos sin datos del objetivo = objetivo perdido y
+    Chocola vuelve a casa.
+V3  Marca debil (el anillo de Metal Amy): ahora tambien pone en recarga
+    chocolaCd, como el resto de habilidades.
+V4  GUI: la tecla V no tenia icono. Nuevo icono en la fila de la C:
+    blanco = Chocola en casa, amarillo = fuera, gris = en caza o de regreso,
+    rojo = sin Chocola. El relleno es la recarga de Chocola.
+
+QUE SE ARREGLO - AMY CANON
+--------------------------
+A1  Burbuja: un puppet INACTIVO (jugador desconectado) ya no libera al
+    capturado.
+A2  Draw_76: seguro de limites antes de leer la tabla de animacion (un
+    estado raro ya no tira el Draw).
+A3  GUI: el icono de la C ahora muestra la habilidad que toca. En el aire es
+    el LSA (blanco cuando esta listo, antes se veia rojo). En tierra con la
+    super fase 2 es la LANZADA DE MARTILLO, la unica habilidad con recarga
+    que no tenia icono. En tierra con la super fase 1 la C no hace nada y se
+    ve roja.
+A4  Marca debil: ahora tambien pone en recarga la lanzada de martillo.
+
+COMPARTIDO (Sonic / Amy Canon / Kris)
+-------------------------------------
+El "ting" del parry que cubre a un aliado nunca llegaba: se enviaba con el
+sonido Perfect_Parry, que NO esta en la lista de sonidos de red, y el indice
+invalido se descartaba al llegar. Ahora viaja como snd_parry (2 sitios).
+
+SERVIDOR - ANTI-CHEAT (regla 7)
+-------------------------------
+- CLIENT_SOUND_EMIT: las senales de aturdimiento DIRIGIDAS se validan antes
+  de reenviarse. El objetivo tiene que ser del bando EXE (exe o demonizado),
+  el emisor un superviviente, y las dos senales de Amy Canon (martillo de la
+  super y LSA) solo salen de una Amy Canon. Un paquete raro se descarta en
+  silencio, sin kick.
+- CLIENT_CREAM_SPAWN_RINGS: el byte de tipo de anillo solo puede decir lo
+  que el jugador ES. Anillos negros (2) = Vanilla NEGA; anillos rojos (1) =
+  esbirro demonizado. Si no, se ignora el paquete sin gastar la recarga.
+- Un cliente normal cumple todas las reglas siempre.
+
+LO QUE QUEDA PENDIENTE (detectado, NO tocado)
+---------------------------------------------
+- Metal y Blaze mandan el mismo bit de power boost y tienen la misma ruta
+  muerta que tenia Vanilla (su estela remota no se dibuja).
+- net_state_game.gml L3200-3211: las senales de Chocola no comprueban el
+  personaje del puppet que las emitio.
+- Cosmetico: los comentarios "// N" de net_sounds.gml van desfasados en uno
+  (los indices reales estan en CACHE.md); comentarios de Amy Canon que no
+  cuadran con sus macros (vida de la burbuja 100 vs "40", recarga del dash
+  10 s vs "15"); deadTimer duplicado en obj_amy_canon/Create_0.
+- El servidor no tiene tope de ritmo para las dos senales de Amy Canon (no
+  ve la lanzada; cualquier tope fijo cortaria juego legitimo).
+
+QUE NO SE PUDO VERIFICAR (solo esto)
+------------------------------------
+Aqui no hay GameMaker ni runtime del servidor, ni se puede ver una imagen.
+Verificado: lexer de GML (llaves, sin CRLF, sin ternarios encadenados,
+macros unicas en todo el proyecto), existencia de cada variable, funcion,
+macro y sprite usado por el codigo nuevo, simulacion numerica de la logica
+nueva, y gcc -fsyntax-only del Game.c original contra el parcheado.
+NO verificado: partida real, partida en red contra un servidor v83, y el
+aspecto final del icono nuevo (disenado midiendo pixeles del sprite, no a
+la vista).  Prueba en juego: trote flotante de Vanilla visto desde otro
+cliente, Chocola cuando Cream se desconecta, C de Amy Canon en el aire y
+con la super, V de Vanilla, y el ting del parry en red.

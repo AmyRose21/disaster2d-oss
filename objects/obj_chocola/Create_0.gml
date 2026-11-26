@@ -14,5 +14,6 @@ huntTimer = 0;      // failsafe de caza
 atkTimer = 0;       // frames de la pose de golpe
 supportTimer = 0;   // frames del giro de celebracion
 guardTimer = 0;     // re-check del ataque en la custodia
+targetLostTimer = 0; // v83: frames seguidos sin datos del objetivo (scr_chocola_target_lost)
 image_speed = 0.3;
 sprite_index = spr_vanilla_chocola_Idle;

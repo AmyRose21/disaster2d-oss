@@ -651,6 +651,63 @@ bool game_state_left(PeerData* v)
         return true;
 }
 
+
+/* v83 ANTI-CHEAT - SENALES DE STUN DIRIGIDAS.                                     */
+/* Algunas habilidades viajan como CLIENT_SOUND_EMIT DIRIGIDO (nid = victima,       */
+/* shouldPlay = true): la victima se aturde a si misma en SU cliente (modelo de     */
+/* confianza del juego). El server no ve el golpe, pero si puede comprobar lo que   */
+/* SI sabe antes de reenviar. Indices = posicion REAL en global.net_snds            */
+/* (scripts/net_sounds/net_sounds.gml). OJO: ese array empieza en snd_none = 0 y    */
+/* sus comentarios "// N" van desfasados en uno: los indices de aqui estan          */
+/* CONTADOS (scripts/net_snd_index.py), no copiados de los comentarios.             */
+/* SYNC con el cliente si se anaden sonidos de red.                                */
+static bool game_is_stun_signal(uint8_t sndidx)
+{
+        switch (sndidx)
+        {
+                case 0:   /* snd_none       : HAMMER THROW de Super Amy Canon (3.5 s, IGNORA i-frames) */
+                case 1:   /* snd_dash       : LIGHT SPEED ATTACK de Amy Canon (3 s, hasta 6 objetivos) */
+                case 12:  /* snd_exe_stun   : PARRY de Sonic / Amy Canon / Kris sobre el atacante      */
+                case 109: /* snd_nono       : Chocola (Vanilla), stun grande de paciencia (5 s)       */
+                case 110: /* snd_vasebreak  : Chocola (Vanilla), stun corto / sobre esbirro            */
+                case 118: /* snd_metal_stun : escudo electrico de la caja (victima -> atacante)        */
+                        return true;
+
+                default:
+                        return false;
+        }
+}
+
+/* Devuelve false para DESCARTAR el paquete en silencio (sin kick). Reglas:        */
+/*  1) el objetivo existe, esta en partida y es del bando EXE (el exe o un         */
+/*     demonizado): ningun receptor legitimo aturde a un superviviente;            */
+/*  2) el emisor es un superviviente (ni el exe ni un demonizado);                 */
+/*  3) las dos senalas de Amy Canon solo salen de una Amy Canon.                   */
+/* Un cliente sano cumple todo SIEMPRE (el receptor ya exige lo mismo:             */
+/* scr_lsa_stun_signal, scr_amy_super_hammer_signal, scr_parry_stun_signal,        */
+/* scr_chocola_stun_signal y la rama del escudo electrico de net_state_game).      */
+/* NO hay limite de ritmo: el server no ve la lanzada (el martillo vive hasta 4 s  */
+/* y la cadena del LSA da hasta 6 golpes en un vuelo), asi que cualquier tope      */
+/* fijo cortaria juego legitimo.                                                   */
+static bool game_stun_signal_ok(PeerData* v, uint16_t nid, uint8_t sndidx)
+{
+        PeerData* t = server_find_peer(v->server, nid);
+
+        if (t == NULL || !t->in_game)
+                return false;
+
+        if (t->id != v->server->game.exe && !(t->plr.flags & PLAYER_DEMONIZED))
+                return false;
+
+        if (v->id == v->server->game.exe || (v->plr.flags & PLAYER_DEMONIZED))
+                return false;
+
+        if ((sndidx == 0 || sndidx == 1) && v->surv_char != CH_AMY_CANON)
+                return false;
+
+        return true;
+}
+
 bool game_state_handletcp(PeerData* v, Packet* packet)
 {
         // Read header
@@ -700,6 +757,11 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 v->plr.portal_pending = 0;
                         }
 
+                        /* v83 ANTI-CHEAT: la senal de stun DIRIGIDA (nid != emisor) pasa una
+                         * validacion minima antes de reenviarse (game_stun_signal_ok, arriba).
+                         * Un paquete raro se DESCARTA en silencio: sin kick. */
+                        if (nid != v->id && game_is_stun_signal(sndidx) && !game_stun_signal_ok(v, nid, sndidx))
+                                break;
                         server_broadcast_ex(v->server, packet, true,  v->id);
                         break;
                 }
@@ -1153,6 +1215,17 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         PacketRead(x, packet, packet_read16, uint16_t);
                         PacketRead(y, packet, packet_read16, uint16_t);
                         PacketRead(red_ring, packet, packet_read8, uint8_t);
+
+                        /* v83 ANTI-CHEAT: el byte de tipo solo puede decir lo que el jugador ES. */
+                        /* 2 (anillos negros) = Vanilla NEGA (PLAYER_NEGATIZED); 1 (rojos) = esbirro  */
+                        /* demonizado (PLAYER_DEMONIZED). Un superviviente normal que pide negros o  */
+                        /* rojos es cliente editado u viejo: se ignora el paquete sin gastarle la    */
+                        /* recarga (mismo criterio silencioso del cooldown de arriba).              */
+                        if (red_ring == 2 && (v->surv_char != CH_VANILLA || !(v->plr.flags & PLAYER_NEGATIZED)))
+                                break;
+
+                        if (red_ring == 1 && !(v->plr.flags & PLAYER_DEMONIZED))
+                                break;
 
                         Vector2 pos = { (float)x, (float)y };
                         AssertOrDisconnect(v->server, vector2_dist(&pos, &v->plr.pos) <= 40);

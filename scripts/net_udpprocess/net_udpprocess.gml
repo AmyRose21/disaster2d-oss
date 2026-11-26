@@ -199,7 +199,10 @@ function net_udpprocess(rbuff)
                                                 
                                                 // SONIC: powerboost de Nervios de Acero
                                                 // (estela de fantasmas en este puppet)
-                                                if(character == CHARACTER_SONIC)
+                                                // v83: VANILLA V2 FLOAT RUN tambien viaja con este bit (el emisor ya lo
+                                                // mandaba en obj_netclient/Step_2): antes solo Sonic lo aplicaba aqui y la
+                                                // estela remota de Vanilla era codigo muerto. Mismo fantasma (5 / 0.07).
+                                                if(character == CHARACTER_SONIC || character == CHARACTER_VANILLA)
                                                         powerBoost = bitflags & PLAYER_POWERBOOST;
 
                                                 // SALLY CANON fase DUELISTA (v5.4): viaja

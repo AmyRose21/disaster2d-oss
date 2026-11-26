@@ -145,7 +145,7 @@ switch(mode)
         case CHOCOLA_GO_CREAM:
         {
                 // ida a velocidad NORMAL (no la acelerada de la caza)
-                if(targetInst == noone || !instance_exists(targetInst))
+                if(targetInst == noone || !instance_exists(targetInst) || scr_chocola_target_lost())
                 {
                         mode = CHOCOLA_RETURN;
                         break;
@@ -191,7 +191,7 @@ switch(mode)
         case CHOCOLA_GUARD:
         {
                 // custodia junto a Cream: posicion de mascota
-                if(targetInst == noone || !instance_exists(targetInst) || targetInst.hp <= 0 || targetInst.revivalTimes >= 2)
+                if(targetInst == noone || !instance_exists(targetInst) || targetInst.hp <= 0 || targetInst.revivalTimes >= 2 || scr_chocola_target_lost())
                 {
                         mode = CHOCOLA_RETURN;
                         break;

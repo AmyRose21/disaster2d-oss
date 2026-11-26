@@ -52,6 +52,7 @@
 #macro VANILLA_CHOCOLA_BLOCK_CHANCE 65          // % de bloquear el dano del exe
 #macro VANILLA_CHOCOLA_BLOCK_INVULN (60 * 2.5)  // i-frames tras bloquear (semi-transparente)
 #macro VANILLA_CHOCOLA_CD (60 * 2.5)            // enfriamiento compartido bloqueo/ataque
+#macro CHOCOLA_TARGET_LOST_FRAMES 60      // v83: frames SEGUIDOS sin datos del objetivo hasta darlo por perdido (custodia)
 #macro VANILLA_CHOCOLA_ATTACK_CHANCE 33         // % de atacar al exe cercano
 #macro VANILLA_CHOCOLA_ATTACK_RANGE 90          // px: "el exe se acerca mucho"
 #macro VANILLA_CHOCOLA_ATTACK_STUN (60 * 2.5)   // stun del ataque cercano AL EXE
@@ -775,4 +776,40 @@ function scr_chocola_guard_consume()
 
     // avisa al resto de clientes (incluido el de Vanilla)
     net_sound_emit(snd_achivement);
+}
+
+// =====================================================================
+//  v83 - OBJETIVO PERDIDO (robustez de la pasiva de Vanilla)
+//  Cream puede DESCONECTARSE o quedarse sin datos (puppet isInactive) mientras
+//  Chocola va hacia ella o la custodia. Los puppets NO se destruyen cuando su
+//  jugador se va, asi que el chequeo "existe el objetivo" seguia siendo cierto
+//  para siempre: Chocola se quedaba colgada de un fantasma y Vanilla perdia el
+//  bloqueo (65%) y el ataque (33%) de su pasiva, que exigen tener a Chocola en
+//  casa, hasta que algo la devolviera.
+//  scr_chocola_target_lost() cuenta los frames SEGUIDOS con el objetivo
+//  inactivo y devuelve true al llegar a CHOCOLA_TARGET_LOST_FRAMES: entonces el
+//  modo GO_CREAM / GUARD se aborta y Chocola vuelve a casa (RETURN).
+//  El isInactive se lee SOLO tras el guard (patron del repo): en el cliente de
+//  Cream el objetivo es su jugador local, que puede no tener esa variable, y
+//  leer con punto una variable que no existe es error fatal.
+//  Solo se llama desde GO_CREAM y GUARD; el contador vuelve a 0 en cuanto el
+//  objetivo recibe datos de nuevo.
+// =====================================================================
+function scr_chocola_target_lost()
+{
+    var _t = targetInst;
+
+    if(_t == noone || !instance_exists(_t) || !variable_instance_exists(_t.id, "isInactive") || !_t.isInactive)
+    {
+        targetLostTimer = 0;
+        return false;
+    }
+
+    targetLostTimer++;
+
+    if(targetLostTimer < CHOCOLA_TARGET_LOST_FRAMES)
+        return false;
+
+    targetLostTimer = 0;
+    return true;
 }

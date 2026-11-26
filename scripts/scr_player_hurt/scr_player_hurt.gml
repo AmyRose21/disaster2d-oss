@@ -996,6 +996,7 @@ function scr_weak_mark_hit(_cd = METALAMY_WEAKMARK_CD)
                                 dashTimer = (dashTimer <= 0) ? _t : dashTimer + _t;
                                 parryCooldown = (parryCooldown <= 0) ? _t : parryCooldown + _t;
                                 parryCooldownMax = max(parryCooldownMax, parryCooldown);
+                                hammerThrowTimer = (hammerThrowTimer <= 0) ? _t : hammerThrowTimer + _t; // v83: la lanzada de martillo de la super tambien entra en recarga
                                 break;
 
                         case CHARACTER_SONIC:
@@ -1009,6 +1010,9 @@ function scr_weak_mark_hit(_cd = METALAMY_WEAKMARK_CD)
                                 flyTimer = (flyTimer <= 0) ? _t : flyTimer + _t;
                                 dashTimer = (dashTimer <= 0) ? _t : dashTimer + _t;
                                 ringsTimer = (ringsTimer <= 0) ? _t : ringsTimer + _t;
+                                // v83: Chocola tambien entra en recarga (su bloqueo/ataque comparte chocolaCd)
+                                if(character == CHARACTER_VANILLA && variable_instance_exists(id, "chocolaCd"))
+                                        chocolaCd = (chocolaCd <= 0) ? _t : chocolaCd + _t;
                                 break;
 
                         case CHARACTER_METAL:

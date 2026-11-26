@@ -548,9 +548,25 @@ if(instance_exists(global.player) && !global.player.isDead)
 
                         // Icono 3: ACOMETIDA DE MARTILLO (tecla C). v4.3: la C ya no esta
                         // horneada: se dibuja la tecla real de special2.
+                        // v83: la C tiene DOS caras y el icono muestra la que toca. En el aire
+                        // (cualquier forma) es el LSA: comparte recarga con la acometida, asi que
+                        // blanco cuando esta listo TAMBIEN en el aire (antes se veia rojo). En
+                        // tierra con la SUPER fase 2 es la LANZADA DE MARTILLO (hammerThrowTimer),
+                        // la unica habilidad con recarga que no tenia icono. En tierra con la
+                        // super fase 1 la C no hace nada: rojo.
+                        var _acThrow = (global.player.superFormPhase >= 2 && global.player.isGrounded);
+                        var _acNoC = (global.player.superFormPhase == 1 && global.player.isGrounded);
+                        var _acCd = global.player.dashTimer;
                         val = scr_esbirro_hud(global.player) ? AMY_CANON_EDASH_RECHARGE : AMY_CANON_DASH_RECHARGE;
-                        prog = 1.0 - (max(global.player.dashTimer, 0) / val);
-                        var b = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
+
+                        if(_acThrow)
+                        {
+                                _acCd = global.player.hammerThrowTimer;
+                                val = AMY_SUPER_HTHROW_RECHARGE;
+                        }
+
+                        prog = 1.0 - (max(_acCd, 0) / val);
+                        var b = (prog == 1.0 && !_acNoC) ? c_white : c_red;
                         drawKeyIcon(spr_gui_amydash_canon, 0, 23, global.KeyC, prog * 10, 258 - _ico, b, prog, 0);
 
                         // Icono 4: PARRY (tecla V, v4.0). Mismas fijaciones que el de
@@ -716,7 +732,37 @@ if(instance_exists(global.player) && !global.player.isDead)
 
                         prog = 1.0 - (max(global.player.ringsTimer, 0) / (scr_esbirro_hud(global.player) ? ECREAM_RINGS_RECHARGE : CREAM_DASH_RECHARGE));
                         drawKeyIcon(spr_gui_creamrings, scr_esbirro_hud(global.player), 21, global.KeyC, prog * 10, 257 - _ico, (prog == 1.0 && !global.player.isColliding) ? c_white : c_red, prog, 0);
-                        break;
+                                                // v83: ICONO 4 (tecla V) - CHOCA. La V de Vanilla NO es un ataque: manda a
+                        // Chocola con Cream o la llama de vuelta, y no tenia icono. BLANCO = Chocola
+                        // en casa, AMARILLO = fuera (con Cream / custodiando), GRIS = en caza o de
+                        // regreso, ROJO = sin Chocola. Relleno = chocolaCd (la recarga compartida de
+                        // su bloqueo/ataque).
+                        var _vChoc = scr_chocola_get();
+                        var _vCol = make_color_rgb(220, 60, 60);
+                        var _vFill = 1.0;
+
+                        if(instance_exists(global.player) && variable_instance_exists(global.player.id, "chocolaCd"))
+                                _vFill = clamp(1.0 - (max(global.player.chocolaCd, 0) / VANILLA_CHOCOLA_CD), 0.35, 1.0);
+
+                        if(_vChoc != noone)
+                        {
+                                if(_vChoc.mode == CHOCOLA_FOLLOW)
+                                        _vCol = c_white;
+                                else if(_vChoc.mode == CHOCOLA_GO_CREAM || _vChoc.mode == CHOCOLA_GUARD)
+                                        _vCol = make_color_rgb(255, 220, 0);
+                                else
+                                        _vCol = make_color_rgb(170, 170, 170);
+                        }
+
+                        // Va en la fila de la C, a su derecha (mismo sitio que el parry de Amy
+                        // Canon): el contenido de spr_vanilla_chocola_Idle (13x21 px) a mitad de
+                        // escala + la tecla REAL de la V (respeta el remapeo de controles).
+                        var _vSlide = (1.0 - _vFill) * 10;
+                        var _vFrame = floor(current_time / 150) mod sprite_get_number(spr_vanilla_chocola_Idle);
+
+                        draw_sprite_part_ext(spr_vanilla_chocola_Idle, _vFrame, 3, 2, 13, 21, 370 + 44 + _vSlide, 258 - _ico + 1, 0.5, 0.5, _vCol, _vFill);
+                        scr_text_spr(370 + 44 + 9 + _vSlide, 258 - _ico + 3, scr_controls_keycode_to_key(global.KeyV), _vCol, _vFill);
+break;
                 }
 
                 // ============================================================

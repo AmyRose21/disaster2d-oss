@@ -2911,3 +2911,53 @@ y las pistas nuevas de 20-28s se cortaban).
   original shader; level 2 shifts more); (3) no cooldown on V; (4) the
   esbirro (2+ falls) never uses the forms; (5) the look was judged only
   through a WebGL harness + a vision model, never in game.
+
+
+## v83 - Vanilla robustness + Amy Canon skill/GUI fixes + server anti-cheat (2026-11-26, base commit 2db92702)
+
+Scope: 9 client GML files + 1 server C file. No `.yy` / `.yyp` touched, no new asset, no new
+script, no new packet, BUILD_VER unchanged (1103): a v83 client and a v82 client can play together.
+Tools of this version: `check_v83.py` (repo root, re-runnable: `python check_v83.py .`),
+and in the agent toolbox `patch_v83.py` (byte-exact patcher with anchor assertions),
+`net_snd_index.py` (REAL net-sound indices), `count_anims.py` (animation table lengths).
+
+### Scanner - every file touched in v83: what it does, what it connects to, what changed
+
+| File | What it does | Connects to | v83 change |
+|---|---|---|---|
+| `scripts/net_udpprocess/net_udpprocess.gml` | Reads every UDP packet and applies it to the puppet (`CLIENT_PLAYER_DATA`: position, bitflags, per-character extras) | sender `objects/obj_netclient/Step_2.gml` L98-118 (sets `PLAYER_POWERBOOST` for Sonic / Vanilla / Metal / Blaze); consumer `objects/obj_player_puppet/Step_0.gml` L124-146 (`if(powerBoost)` ghost trail) | the `powerBoost` bit is now applied for `CHARACTER_VANILLA` too (it was Sonic only, so a remote Vanilla's float-run trail never drew) |
+| `scripts/scr_chocola/scr_chocola.gml` | Vanilla's pet Chocola: macros, `scr_chocola_get()`, V2 (V key + automatic close attack), net events, stun signal | `objects/obj_chocola/*`, `scripts/scr_player_hurt/scr_player_hurt.gml` (block), `scripts/net_state_game/net_state_game.gml` L3138-3211 | new macro `CHOCOLA_TARGET_LOST_FRAMES 60`; new function `scr_chocola_target_lost()` appended at the end |
+| `objects/obj_chocola/Create_0.gml` | Chocola instance variables (`mode`, `homeInst`, `targetInst`, timers) | `objects/obj_chocola/Step_0.gml` | new variable `targetLostTimer` |
+| `objects/obj_chocola/Step_0.gml` | Chocola behaviour per mode: FOLLOW / HUNT / RETURN / GO_CREAM / GUARD / ATTACK_PAUSE | `scr_chocola.gml` | GO_CREAM and GUARD now also abort when `scr_chocola_target_lost()` (target puppet inactive for 60 frames) |
+| `scripts/scr_player_hurt/scr_player_hurt.gml` | Damage pipeline, instakill, weak mark (`scr_weak_mark_hit`: puts every recharge on cooldown) | all survivor objects | weak mark: Amy Canon also extends `hammerThrowTimer`; Vanilla also extends `chocolaCd` |
+| `scripts/scr_amy_canon_bubble/scr_amy_canon_bubble.gml` | Amy Canon kidnap bubble: capture progress and liberation by contact | `objects/obj_amy_canon/Step_0.gml`, `scr_player_instakill` | the liberator check skips `isInactive` puppets |
+| `objects/obj_amy_canon/Draw_76.gml` | Amy Canon sprite selection by `state` | `scripts/scr_survivors/scr_survivors.gml` tables (26 entries per table), `objects/obj_player_puppet/Draw_72.gml` | bounds guard before `arr[? CHARACTER_AMY_CANON][state]` |
+| `objects/obj_playerui/Draw_64.gml` | The HUD: one key icon per ability per character (rows 222 / 240 / 258, `_ico = 216`), `drawKeyIcon` L76-119 | `scr_esbirro_hud`, `scr_chocola_get`, `scr_text_spr`, `scr_controls_keycode_to_key` | Amy Canon icon 3 (C) shows the hammer-throw recharge and goes white in the air; Vanilla gets icon 4 (V / Chocola) |
+| `scripts/scr_parry/scr_parry.gml` | Parry of Sonic / Amy Canon / Kris: negate, late signal, ally cover | receiver branch `snd_parry` of `scripts/net_state_game/net_state_game.gml` | the two `net_sound_emit_at(Perfect_Parry, ...)` send `snd_parry` instead |
+| `betterserver-oss/disasterserver/states/Game.c` | Server game state: every `CLIENT_*` handler (real file; `disasterserver/*.c` at the root of `betterserver-oss/` are stale duplicates that do not compile) | `include/Player.h` flags, `include/Server.h` cooldowns, client `scripts/net_sounds/net_sounds.gml` | `CLIENT_SOUND_EMIT`: targeted stun signals validated (`game_is_stun_signal` + `game_stun_signal_ok`, defined right above the TCP handler); `CLIENT_CREAM_SPAWN_RINGS`: ring type byte validated against the player's real state |
+
+### Quick index (verified in v83) - where things are
+
+- HUD icon rows: `objects/obj_playerui/Draw_64.gml`; art column starts at x = 370, the key letter is
+  drawn by `scr_text_spr` right after the art. The C row (y = 258) is shared: second icon at +44.
+- Net sound signals: list in `scripts/net_sounds/net_sounds.gml` (126 entries), emitters
+  `net_sound_emit` (broadcast) / `net_sound_emit_at` (targeted), receiver
+  `scripts/net_state_game/net_state_game.gml` L3061-3234. REAL index of a signal = its position in
+  the array (`net_snd_index.py`); the inline `// N` comments there are off by one.
+- Puppets: never destroyed on disconnect; `isInactive` = no data for 1 s (`Alarm_1`). Any read of a
+  puppet-only variable through another instance needs `variable_instance_exists` first.
+- Server flags: `PLAYER_DEMONIZED` (esbirro), `PLAYER_NEGATIZED` (nega conversion of Jinna, always
+  together with demonized), `PLAYER_DEAD`, `PLAYER_ESCAPED`; cleared by Vanilla's rescue and by
+  `CLIENT_JINNA_MINION_DOWN`.
+- Ring type byte (`CLIENT_CREAM_SPAWN_RINGS`): Vanilla 0 normal / 1 esbirro / 2 nega; Cream 1 when
+  `revivalTimes >= 2`; Rouge and Amy Canon 0.
+
+### Known gaps reported in v83 but NOT fixed (out of scope - candidates for a next version)
+
+- Metal (`metalDashing`) and Blaze (`burning`) send `PLAYER_POWERBOOST` and have the same dead receiver
+  path Vanilla had (the receiver now applies the bit to Sonic and Vanilla only).
+- `net_state_game.gml` L3200-3211: the Chocola event branches do not check the `character` of the
+  puppet that emitted them.
+- Cosmetic: stale `// N` comments in `net_sounds.gml`; Amy Canon comment/macro mismatches (bubble HP
+  100 vs "40", dash recharge 10 s vs "15"); duplicate `deadTimer` in `obj_amy_canon/Create_0.gml`.
+- No server rate limit on Amy Canon's two stun signals (the server cannot see the throw).

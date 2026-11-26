@@ -129,7 +129,9 @@ function scr_amy_canon_bubble()
 	for(var i = 0; i < ds_list_size(list); i++)
 	{
 		var inst = list[| i];
-		if(inst.isDemonized || inst.hp <= 0)
+		// v83: un puppet INACTIVO (jugador desconectado o sin datos) NO la libera:
+		// los puppets no se destruyen al irse su jugador y la burbuja se cerraba sola
+		if(inst.isDemonized || inst.isInactive || inst.hp <= 0)
 			continue;
 
 		bubbleFree = true;

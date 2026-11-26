@@ -53,6 +53,11 @@ if(state == AMY_CANON_HUG)
 var arr = revivalTimes >= 2 ? global.player_eanims : global.player_anims;
 if(variable_instance_exists(id, "isNegatouch") && isNegatouch)
         arr = global.player_negaanims;
+// v83: mismo seguro de limites que el Draw_72 del puppet: un estado fuera de
+// la tabla (byte raro / cliente viejo) no tira el Draw por un array invalido
+if(!ds_map_exists(arr, CHARACTER_AMY_CANON) || state >= array_length(arr[? CHARACTER_AMY_CANON]))
+        return;
+
 sprite_index = arr[? CHARACTER_AMY_CANON][state];
 
 // v51 — SUPER AMY CANON (prueba, V + ARRIBA): FASE 1 = la tira
