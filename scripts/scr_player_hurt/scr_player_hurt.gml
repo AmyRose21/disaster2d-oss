@@ -343,6 +343,17 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
         if(global.player.isDead)
                 return;
 
+        // v82 (duena): FORMAS CYBER de Sally Canon. SEMI CYBER resiste el
+        // 35% del dano y CYBER COMPLETA el 60%. Se aplica al PRINCIPIO del
+        // pipeline de la victima: todo lo de abajo (anillos, stats,
+        // knockback, i-frames) sigue su curso con el dano ya reducido.
+        // Entero y minimo 1: el dano de las stats viaja como u8/s16. El
+        // esbirro no (revivalTimes >= 2) y la vanilla no tiene cyberForm
+        // (gate de personaje + variable_instance_exists).
+        if(global.character == CHARACTER_SALLY_CANON && damage > 0 && global.player.revivalTimes < 2
+        && variable_instance_exists(global.player.id, "cyberForm") && global.player.cyberForm > 0)
+                damage = max(1, round(damage * scr_sally_cyber_resist_mul(clamp(floor(global.player.cyberForm), 0, 2))));
+
         // v36 (duena: "la invisibilidad debe hacerla inmune al dano
         // como el exe real"): mientras Rouge esta INVISIBLE no puede
         // ser herida por nada — todo el dano del juego entra por aqui
@@ -743,6 +754,23 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                                                 obj_achivements.save();
                                         }
                                 }
+                                // v82 (duena): FORMA CYBER de Sally Canon - "efectividad
+                                // de escudo": en SEMI/COMPLETA el escudo puede AGUANTAR el
+                                // golpe en vez de romperse (45% / 70%). Aguantar = el golpe
+                                // no hace dano, el escudo sigue puesto (minimo 0.5 s) y da
+                                // i-frames cortos para que no le caiga otro en la misma
+                                // rafaga. La esbirro y la vanilla nunca entran aqui (la
+                                // tirada con forma 0 devuelve false sin gastar azar).
+                                if(global.character == CHARACTER_SALLY_CANON && global.player.revivalTimes < 2
+                                && scr_sally_cyber_shield_hold(scr_sally_cyber_form()))
+                                {
+                                        global.player.hurttime = max(global.player.hurttime, SALLY_CYBER_SHIELD_HOLD_INVULN);
+                                        global.player.shieldTimer = max(global.player.shieldTimer, SALLY_CYBER_SHIELD_HOLD_MIN_TIME);
+
+                                        audio_play_sound(snd_parry, 0, false);
+                                        return;
+                                }
+
                                 // v78 (duena): "aumenta la invulerabilidad del escudo de
                                 // sally (caja) en 3 seg" — la invulnerabilidad tras romper
                                 // el escudo de burbuja pasa de 60f (1 s) a 4 s (1 s base + 3 s

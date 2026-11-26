@@ -44,9 +44,26 @@ if(shieldPoseOn)
         _bodyIdx = floor(shieldPoseT);
 }
 
-	scr_palette_swap(global.palleteFrom, global.palleteTo);
-	draw_sprite_ext(_bodySpr, _bodyIdx, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, isSpinning ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
-	shader_reset();
+        // v82 (duena): FORMAS CYBER (tecla V). SEMI CYBER / CYBER COMPLETA
+        // dibujan el cuerpo con el shader holograma (nivel 1 / 2) y su glow
+        // exterior; NORMAL usa el palette swap de siempre. El esbirro
+        // siempre devuelve forma 0 (scr_sally_cyber_form). cyberFlash sube
+        // el glitch un instante al cambiar de forma.
+        var _cyLvl = scr_sally_cyber_form();
+        var _cyRot = isSpinning ? 0 : radtodeg(angle);
+        var _cyAlp = (hurttime > 0 || isHiding) ? 0.5 : image_alpha;
+        var _cyFls = cyberFlash / SALLY_CYBER_FLASH_TIME;
+
+        if(_cyLvl > 0)
+        {
+                scr_amy_cyber_halo(global.character, _bodySpr, _bodyIdx, _cyLvl, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, _cyRot, _cyAlp);
+                scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, _bodySpr, _bodyIdx, _cyLvl, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, _cyRot, _cyFls);
+        }
+        else
+                scr_palette_swap(global.palleteFrom, global.palleteTo);
+
+        draw_sprite_ext(_bodySpr, _bodyIdx, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, _cyRot, image_blend, _cyAlp);
+        shader_reset();
 
 // ESCUDO (v5.6, fix reportado): la burbuja animada se dibuja SIEMPRE
 // que el escudo este activo, igual que el escudo de la Sally vanilla

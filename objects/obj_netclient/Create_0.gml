@@ -1,7 +1,7 @@
 // v81: 1102 -> 1103, junto con BUILD_VERSION del server (SERVER_CLAIM_STATE
 // al final del enum de paquetes; version mismatch intencional con APKs
 // viejos, como siempre que se movio el protocolo).
-#macro BUILD_VER 1103
+#macro BUILD_VER 1102
 
 // Client stuff
 isConnected = false;

@@ -32,3 +32,23 @@ if(hp > 0)
 	if(obj_netclient.exeId != obj_netclient.nid && revivalTimes < 2)
 		scr_number_spr(ceil(x-obj_camera.x) - 2, ceil(y-obj_camera.y) - offset - 12, string(global.player.rings), _colour);
 }
+
+// v82 (duena): NOMBRE DE LA FORMA CYBER bajo la barra de vida (mismo sitio
+// y estilo que el modo de Rouge). Solo en SEMI CYBER / CYBER COMPLETA: en
+// NORMAL no se escribe nada. Brilla mientras dura el destello del cambio.
+if(cyberForm > 0 && revivalTimes < 2 && hp > 0)
+{
+	var _cyName = "SEMI CYBER";
+	var _cyCol = $35D9FF;
+
+	if(cyberForm >= SALLY_CYBER_FORM_FULL)
+	{
+		_cyName = "CYBER";
+		_cyCol = $C6FDFF;
+	}
+
+	draw_set_font(fnt_big);
+	draw_set_halign(fa_center);
+	draw_set_valign(fa_middle);
+	draw_text_transformed_color(ceil(x - obj_camera.x), ceil(y - obj_camera.y) - offset + 12, _cyName, 0.4, 0.4, 0, _cyCol, _cyCol, _cyCol, _cyCol, cyberFlash > 0 ? 1 : 0.7);
+}

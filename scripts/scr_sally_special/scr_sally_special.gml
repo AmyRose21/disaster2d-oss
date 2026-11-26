@@ -215,12 +215,48 @@ function scr_sally_special()
                 }
         }
 
+        // ---- v82 (duena): FORMAS CYBER DE SALLY CANON (tecla V) ----
+        // NORMAL -> SEMI CYBER -> CYBER COMPLETA -> NORMAL ... Cada forma
+        // es mas fuerte que la anterior (numeros: SALLY_CYBER_* de
+        // scr_amy_cyber.gml). CONDICION: tiene que haber una AMY CANON
+        // viva (y no esbirro) en la partida; si no, V no hace nada y la
+        // forma activa se apaga sola. La esbirro (2+ caidas) no las usa.
+        // Solo la Sally Canon: la vanilla no tiene cyberForm y este bloque
+        // esta detras del gate de personaje.
+        if(global.character == CHARACTER_SALLY_CANON && SALLY_CYBER_ENABLED)
+        {
+                var _cyOk = (!SALLY_CYBER_NEED_AMY_CANON || scr_sally_cyber_amy_present())
+                && revivalTimes < 2 && !isDead && hp > 0 && fase2State == SALLY_CANON_F2_OFF;
+
+                // se murio la Amy Canon (o yo): vuelta a NORMAL
+                if(cyberForm > 0 && !_cyOk && SALLY_CYBER_AUTO_DROP)
+                {
+                        cyberForm = SALLY_CYBER_FORM_NORMAL;
+                        cyberFlash = SALLY_CYBER_FLASH_TIME;
+                }
+
+                if(global.playerControls && keyboard_check_pressed(global.KeyV) && _cyOk
+                && shockedTimer <= 0 && !isHurt && !isAttacking && !isSliding && !isHiding
+                && !isSpinCharging && redRingTimer <= 0 && !isZipline)
+                {
+                        cyberForm = (cyberForm + 1) mod 3;
+                        cyberFlash = SALLY_CYBER_FLASH_TIME;
+
+                        audio_play_sound(SALLY_CYBER_SWITCH_SND, 0, false);
+                }
+
+                if(cyberFlash > 0)
+                        cyberFlash--;
+        }
+
         if(global.playerControls && keyboard_check_pressed(global.KeyC) && shieldRechrage <= 0)
         {
                 audio_play_sound(snd_sally_shield, 0, false);
                 net_sound_emit(snd_sally_shield);
 
-                shieldTimer = 5 * 60;
+                // v82 (duena): en forma CYBER el escudo puede durar mas (segun
+                // SALLY_CYBER_SHIELD_MODE; con el modo 0 por defecto dura igual).
+                shieldTimer = ceil(5 * 60 * scr_sally_cyber_shield_duration_mul(scr_sally_cyber_form()));
                 // Canon: recarga propia (28 s, 2 menos que la vanilla).
                 shieldRechrage = global.character == CHARACTER_SALLY_CANON ? SALLY_CANON_SHIELD_RECHARGE : (revivalTimes >= 2 ? SALLY_ESHIELD_RECHARGE : SALLY_SHIELD_RECHARGE);
 

@@ -217,6 +217,22 @@ function net_udpprocess(rbuff)
                                                 if(character == CHARACTER_SALLY_CANON && (bitflags & PLAYER_POWERBOOST))
                                                         duelista = true;
 
+                                                // v82 (duena): FORMA CYBER de Sally Canon (tecla V de la
+                                                // otra jugadora) - 3 bytes al final de su paquete:
+                                                // [TAG_A, TAG_B, forma]. Tiene que ser LA ULTIMA lectura
+                                                // de este case. Etiqueta doble: sin las dos coincidencias
+                                                // exactas la forma es 0 (cliente viejo = bytes viejos en
+                                                // el buffer fijo). Un cliente viejo que reciba el paquete
+                                                // nuevo simplemente no lee estos bytes.
+                                                if(character == CHARACTER_SALLY_CANON)
+                                                {
+                                                        var _cyA = buffer_read_s(rbuff, buffer_u8);
+                                                        var _cyB = buffer_read_s(rbuff, buffer_u8);
+                                                        var _cyF = buffer_read_s(rbuff, buffer_u8);
+
+                                                        cyberForm = (_cyA == SALLY_CYBER_NET_TAG_A && _cyB == SALLY_CYBER_NET_TAG_B && _cyF >= 0 && _cyF <= 2) ? _cyF : 0;
+                                                }
+
                                                 // v2.15 «La Torre»: FW Amy volando con el DJ (el
                                                 // cliente del EXE lo necesita para el stun de 3,2 s)
                                                 if(character == CHARACTER_FLEETWAY_AMY)

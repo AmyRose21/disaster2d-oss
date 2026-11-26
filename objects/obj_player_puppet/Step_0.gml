@@ -315,6 +315,13 @@ if(character == CHARACTER_SALLY_CANON && isAttacking)
                 _scKickPad = ceil((bbox_right - bbox_left) * SALLY_CANON_KICK_PCT_F2_GROUND);
         else if(state == SALLY_ATTACK)
                 _scKickPad = ceil((bbox_right - bbox_left) * (duelista ? SALLY_CANON_KICK_PCT_F2_AIR : SALLY_CANON_KICK_PCT_F1));
+
+        // v82 (duena): FORMAS CYBER de Sally Canon - la patada llega mas
+        // lejos: x1.45 en SEMI CYBER, x1.70 en CYBER COMPLETA (la forma
+        // viaja en su CLIENT_PLAYER_DATA, ver net_udpprocess). Mismo pad
+        // por distancia de siempre, solo mas ancho. El esbirro (2+ caidas)
+        // nunca: su patada se queda como estaba.
+        _scKickPad = ceil(_scKickPad * scr_sally_cyber_hitbox_mul(cyberForm, revivalTimes >= 2));
 }
 
 // v3 (D.I.B.) — VENTANA DE PODER DEL TELETRANSPORTE DE JINNA: durante
@@ -701,7 +708,7 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 
                                 if(_win1 || _win2)
                                 {
-                                        var _f2pad = ceil((bbox_right - bbox_left) * SALLY_CANON_KICK_PCT_F2_GROUND);
+                                        var _f2pad = ceil((bbox_right - bbox_left) * SALLY_CANON_KICK_PCT_F2_GROUND * scr_sally_cyber_hitbox_mul(cyberForm, revivalTimes >= 2)); // v82: media hitbox de la 2a patada, con la forma cyber
                                         var _edge = image_xscale > 0 ? bbox_right : bbox_left;
                                         
                                         if(_win1)

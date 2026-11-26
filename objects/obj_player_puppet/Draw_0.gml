@@ -172,10 +172,28 @@ if(shieldPoseOn)
         _poseBodyIdx = floor(shieldPoseT);
 }
 
+        // v82 (duena): FORMAS CYBER de Sally Canon remota (tecla V de la
+        // otra jugadora): el puppet la dibuja con el mismo holograma de
+        // Amy, nivel 1 (SEMI CYBER) o 2 (CYBER COMPLETA), mas su glow
+        // exterior. La forma llega en los 3 ultimos bytes de su
+        // CLIENT_PLAYER_DATA (net_udpprocess). La esbirro nunca la usa
+        // (revivalTimes >= 2): su puppet se dibuja NORMAL. Para el resto
+        // lvl = -1 = automatico (AMY_CYBER_CHARS: Amy Canon, nivel 1).
+        var _cyLvl = -1;
+
+        if(character == CHARACTER_SALLY_CANON)
+                _cyLvl = (revivalTimes < 2 && cyberForm > 0) ? clamp(floor(cyberForm), 0, 2) : 0;
+
+        var _cySpr = is_cheating ? spr_merfurmu : _poseBodySpr;
+
         if(variable_global_exists("scr_amy_cyber"))
-                scr_amy_cyber(character, fromPallete, toPallete, is_cheating ? spr_merfurmu : _poseBodySpr, _poseBodyIdx);
+        {
+                scr_amy_cyber_halo(character, _cySpr, _poseBodyIdx, _cyLvl, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, _hideAlpha);
+                scr_amy_cyber(character, fromPallete, toPallete, _cySpr, _poseBodyIdx, _cyLvl, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle);
+        }
         else
                 scr_palette_swap(fromPallete, toPallete);
+
         draw_sprite_ext(is_cheating ? spr_merfurmu : _poseBodySpr, _poseBodyIdx, floor(x), floor(y + _f2yoff), _f2xs, _f2ys, angle, image_blend, _hideAlpha);
         shader_reset();
 

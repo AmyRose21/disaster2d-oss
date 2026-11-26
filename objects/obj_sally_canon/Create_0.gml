@@ -143,6 +143,13 @@ yAccel = 0.21875; //gravity
 jumpForce = 6.5;
 isSlow = false;
 
+// v82 (duena): FORMAS CYBER (tecla V, scr_sally_special). 0 = NORMAL,
+// 1 = SEMI CYBER, 2 = CYBER COMPLETA. cyberFlash = destello del cambio.
+// Los numeros de cada forma viven en las macros SALLY_CYBER_* de
+// scr_amy_cyber.gml.
+cyberForm = 0;
+cyberFlash = 0;
+
 // Create sensors
 instance_create_depth(x, y, 0, obj_player_sensorTL);
 instance_create_depth(x, y, 0, obj_player_sensorTR);

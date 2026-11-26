@@ -23,7 +23,7 @@
    v81: 1102 -> 1103. El enum de paquetes gano SERVER_CLAIM_STATE al
    final (estados de los claims .sonic/.kris/.sally): misma regla,
    cliente y server se actualizan JUNTOS. */
-#define BUILD_VERSION 1103
+#define BUILD_VERSION 1102
 
 #define BRACKET "-----------------------"
 

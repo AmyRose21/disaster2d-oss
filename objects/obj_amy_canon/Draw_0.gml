@@ -75,10 +75,22 @@ if(parryState == 2)
         // de skin ni modo cyber (recolorearia arte que ya viene
         // coloreado de fabrica). Se dibuja tal cual; el shader_reset
         // de abajo queda inocuo sin ningun shader puesto.
+        // v82 (duena): el holograma mejora (contorno luminoso, glow exterior,
+        // lineas de datos, pies que se deshacen) y necesita saber DONDE se
+        // dibuja el cuerpo: mismo punto, escala, rotacion y alfa que el
+        // draw_sprite_ext de abajo. Por eso scr_wss_draw() sube aqui (es
+        // pura: da igual llamarla antes) y sale una sola vez.
+        var _wss = scr_wss_draw();
+        var _cyRot = (isSpinning && !isLightDashing) ? 0 : radtodeg(angle);
+        var _cyAlp = (hurttime > 0 || isHiding) ? 0.5 : image_alpha;
+
         if(!(variable_instance_exists(id, "superFormPhase") && superFormPhase > 0))
         {
                 if(variable_global_exists("scr_amy_cyber"))
-                        scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, sprite_index, image_index);
+                {
+                        scr_amy_cyber_halo(global.character, sprite_index, image_index, -1, floor(x), floor(y + _wss[2]), image_xscale * _wss[0], image_yscale * _wss[1], _cyRot, _cyAlp);
+                        scr_amy_cyber(global.character, global.palleteFrom, global.palleteTo, sprite_index, image_index, -1, floor(x), floor(y + _wss[2]), image_xscale * _wss[0], image_yscale * _wss[1], _cyRot);
+                }
                 else
                         scr_palette_swap(global.palleteFrom, global.palleteTo);
         }
@@ -90,8 +102,9 @@ if(parryState == 2)
         // v72 WSS: escala squash & stretch del cuerpo (scr_wss),
         // anclada al suelo — solo visual: la fisica y la mascara
         // de colision no cambian. [fx, fy, yoff].
-        var _wss = scr_wss_draw();
-        draw_sprite_ext(sprite_index, image_index, floor(x), floor(y + _wss[2]), image_xscale * _wss[0], image_yscale * _wss[1], (isSpinning && !isLightDashing) ? 0 : radtodeg(angle), image_blend, (hurttime > 0 || isHiding) ? 0.5 : image_alpha);
+        // (v82: la llamada a scr_wss_draw() subio al bloque de arriba; aqui
+        // solo se dibuja el cuerpo con los mismos valores que el shader.)
+        draw_sprite_ext(sprite_index, image_index, floor(x), floor(y + _wss[2]), image_xscale * _wss[0], image_yscale * _wss[1], _cyRot, image_blend, _cyAlp);
         shader_reset();
 
 // ESTADO BURBUJA: dibuja la burbuja de secuestro ENCIMA de Amy.

@@ -125,3 +125,9 @@ shieldPoseSpr = -1;
 shieldPoseCat = -1;     // 0 = tierra / 1 = agachada / 2 = aire
 shieldPoseT = 0;
 shieldPosePrev = false; // valor anterior de sallyShield (flanco)
+
+// v82 (duena): FORMA CYBER de Sally Canon remota: 0 = normal,
+// 1 = SEMI CYBER, 2 = CYBER COMPLETA. La escribe net_udpprocess con los
+// 3 ultimos bytes de su CLIENT_PLAYER_DATA. La leen el Step_0 (pad de la
+// patada) y el Draw_0 (holograma) de este puppet.
+cyberForm = 0;

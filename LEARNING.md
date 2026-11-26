@@ -927,3 +927,69 @@ Lessons recorded:
    BOTH sides; old APKs get "version mismatch" — intentional, same
    policy as v80c. The server's .ver command shows it automatically
    (STRINGIFY), no extra edit needed.
+
+## v82 (2026-11-25) - Sally Canon cyber forms + shd_amy_cyber v3 - lessons
+1. THE MEMORY LIVES IN THE REPO. After a sandbox rollback nothing under
+   /home/z/my-project/ remembers the old CACHE/LEARNING/worklog, but the
+   owner COMMITS them at the repo root. So: fetch first, read THOSE files
+   (CACHE.md was 2771 lines, LEARNING.md 929), then append your own section
+   to them and ship them as modified files. This session first wrote fresh
+   ones in download/ and had to throw them away: 2.7k lines of history
+   would have been replaced by one page.
+2. VERSION LABELS COLLIDE BETWEEN SESSIONS. Another session shipped "v81"
+   (claims for Sonic/Kris/Sally Canon) while this one was being built as
+   v81 on the same base. After the fetch, check `git ls-files | grep
+   LEEME_` and the tail of CACHE.md BEFORE choosing a label; relabel with a
+   script that proves the old label never existed in HEAD in the touched
+   files (`git grep -c <label> <base> -- <files>` must be empty).
+3. FAST-FORWARD WITH A DIRTY TREE IS SAFE WHEN THE SETS DO NOT OVERLAP:
+   `comm -12` of (files changed upstream) and (my modified files) came out
+   empty, so `git merge --ff-only origin/main` moved HEAD and kept the 15
+   edits untouched. Then re-read only what the upstream touched NEXT TO
+   your hooks: v81 changed the TCP enum, BUILD_VER 1102 -> 1103 and
+   scr_char_locked, but not CLIENT_PLAYER_DATA, net_udpprocess.gml or the
+   relay loop in Game.c, so the 3 tail bytes were still valid.
+4. A SHADER BUG THE STATIC CHECK MISSED: the fragment shader read uRectOK
+   while only the vertex shader declared it -> GameMaker would have
+   refused the shader. Lessons: check uniforms PER STAGE (a union of both
+   texts hides it), and COMPILE the real shader. A WebGL1 harness
+   (Playwright Chromium + --use-angle=swiftshader, GameMaker preamble:
+   `#define MATRIX_WORLD_VIEW_PROJECTION 0` + `uniform mat4
+   gm_Matrices[1];` in the vsh, `uniform sampler2D gm_BaseTexture;` in the
+   fsh) found it in seconds.
+5. HARNESS LESSONS (each one cost a run):
+   a) the harness draws with blending OFF, so colors come out STRAIGHT,
+      never premultiplied; a test that expected premultiplied output
+      failed on a correct shader;
+   b) the reference geometry must mirror what the draw call does: the glow
+      is a SCALED silhouette, so the test has to compare against the
+      scaled sprite (placed_sc), not the 1:1 one;
+   c) compositing a preview over an OPAQUE background: never divide by
+      the alpha (it produced black boxes, then white boxes, and the vision
+      model flagged both as broken);
+   d) ANGLE WebGL1 rejects `i < u_ColourCount` (non-constant loop bound;
+      the line is identical to the game's shd_colour and compiles in
+      GameMaker) -> harness-only substitution, and the uniform then gets
+      optimized out;
+   e) rotate the quad with the GameMaker convention: room = (c*ux + s*uy,
+      -s*ux + c*uy) for image_angle = a; a non-rotated quad made the
+      vertex-shader un-rotation disagree (445 false "dissolved" pixels).
+6. VISION-MODEL FEEDBACK IS A TEST, NOT A VERDICT: "the outline is not
+   clearly visible" was a real weakness (fixed with an additive rim boost
+   + a stronger level-2 tint); "black boxes" was a preview-only bug.
+   Separate "the shader is wrong" from "my preview is wrong" before
+   touching the shader, and ask the model again after the fix.
+7. THE GENERATOR IS THE SOURCE OF TRUTH OR IT GETS RESYNCED. A marker
+   (`uniform float uRectOK;`) matched inside the wrong literal (the VSH)
+   and silently skipped the FSH patch. Fix: resync the generator literals
+   FROM the repo files, then prove it by rebuilding from the HEAD blobs
+   and comparing byte-for-byte (34/34).
+8. APPEND-ONLY NETWORK FIELDS: 3 tagged bytes at the tail of an existing
+   UDP packet = zero server changes and no BUILD_VER bump (old and new
+   clients interoperate). The receive buffer is fixed and refilled by the
+   native extension, so a shorter packet leaves STALE bytes: tag the field
+   twice and accept it only when both tags match.
+9. SMALL THINGS THAT STILL BITE: a `#` comment dropped in the middle of a
+   Python expression (my own sed) swallowed the rest of the line ->
+   py_compile every tool before running it; a replacement marker must be
+   unique across ALL the literals of a file, not just present once.

@@ -176,6 +176,20 @@ with(global.player)
                                 buffer_write(buffer, buffer_u8, attackCharge);
                                 buffer_write(buffer, buffer_s16, -radtodeg(arctan2(obj_tails.yspd, obj_tails.isGrounded ? obj_tails.gspd : obj_tails.xspd)));
                         }
+
+                        // v82 (duena): FORMA CYBER de Sally Canon (tecla V) - 3 bytes
+                        // AL FINAL del paquete: [SALLY_CYBER_NET_TAG_A, TAG_B, forma].
+                        // El server retransmite todo lo que viene despues del bitflags
+                        // sin mirarlo (Game.c: while pos < len), asi que no hace falta
+                        // tocar ni el server ni los tipos de paquete. DOBLE etiqueta:
+                        // el buffer de recepcion es FIJO y un cliente viejo (que no
+                        // manda estos bytes) se leeria como basura vieja, no como -1.
+                        if(global.character == CHARACTER_SALLY_CANON && variable_instance_exists(id, "cyberForm"))
+                        {
+                                buffer_write(buffer, buffer_u8, SALLY_CYBER_NET_TAG_A);
+                                buffer_write(buffer, buffer_u8, SALLY_CYBER_NET_TAG_B);
+                                buffer_write(buffer, buffer_u8, clamp(floor(cyberForm), 0, 2));
+                        }
                 }
                 else
                 {

@@ -866,6 +866,38 @@ if(instance_exists(global.player) && !global.player.isDead)
                         val = SALLY_CANON_SHIELD_RECHARGE;
                         prog = 1.0 - (max(global.player.shieldRechrage, 0) / val);
                         drawKeyIcon(spr_gui_sallyshield, scr_esbirro_hud(global.player), 19, global.KeyC, prog * 10, 258 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
+
+                        // v82 (duena): FORMA CYBER (tecla V, scr_sally_special). Icono
+                        // en la fila de abajo, como el V de Rouge. Color = estado:
+                        // gris = no se puede (no hay Amy Canon viva, o esbirro),
+                        // blanco = NORMAL, cian = SEMI CYBER, cian claro = CYBER
+                        // COMPLETA; blanco a tope mientras dura el destello del cambio.
+                        var _cyForm = scr_sally_cyber_form();
+                        var _cyCol  = c_gray;
+                        var _cyAlp  = 0.5;
+
+                        if(!scr_esbirro_hud(global.player) && scr_sally_cyber_amy_present())
+                        {
+                                _cyCol = c_white;
+                                _cyAlp = 0.8;
+
+                                if(_cyForm >= SALLY_CYBER_FORM_SEMI)
+                                {
+                                        _cyCol = $35D9FF;
+                                        _cyAlp = 1;
+                                }
+
+                                if(_cyForm >= SALLY_CYBER_FORM_FULL)
+                                        _cyCol = $C6FDFF;
+                        }
+
+                        if(variable_instance_exists(global.player.id, "cyberFlash") && global.player.cyberFlash > 0)
+                        {
+                                _cyCol = c_white;
+                                _cyAlp = 1;
+                        }
+
+                        drawKeyIcon(spr_gui_sallyshield, scr_esbirro_hud(global.player), 19, global.KeyV, 10, 276 - _ico, _cyCol, _cyAlp, 0);
                         break;
                 }
         }

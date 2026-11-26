@@ -1559,7 +1559,25 @@ y las pistas nuevas de 20-28s se cortaban).
 - Fraymakers (historico): fra_extract.py, analyze_fra.py, analyze_fra2.py.
 - Misc (historico): check_arrow_colors.py (colores de sprites de flecha).
 
+- (2026-11-25, v82) check_v82.py / sim_v82.py / tools_v82/ viajan DENTRO del zip
+  (raiz: validador y simulador; tools_v82/: apply_v82_core.py +
+  apply_v82_hooks.py + apply_v82_fix2.py reconstruyen los 15 archivos
+  sobre un clon limpio de e0cb2b8d, en ese orden). check_v82.py [repo]
+  = sintaxis GML con lexer, anclas de orden de los ganchos, uniforms por
+  etapa, .yyp, git = 18 archivos. sim_v82.py [mods] [repo_con_sprites]
+  [png] = numeros desde las macros reales + el shader real compilado en
+  WebGL1 (Playwright + Chromium, requiere la venv con numpy/Pillow).
+  Delivered first as "v81" by this session and relabelled: the v81 label
+  belongs to the claims delivery.
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-25 (v82 - SALLY CANON CYBER FORMAS + SHADER CYBER V3): pedido de la duena: mejorar el
+  shader cyber (amy_cyber), llevarselo a Sally Canon y darle 3 formas
+  (normal / semi cyber / cyber completa) con la tecla V, solo si hay una
+  Amy Canon en la partida. 15 archivos de cliente, cero server, sin
+  .yyp/.yy, BUILD_VER sigue 1103. Semi = 35% resistencia, escudo 45%,
+  hitbox de patada x1.45; Completa = 60%, 70%, x1.70 (todo macros
+  SALLY_CYBER_* en scr_amy_cyber.gml). Detalle completo: seccion 9.z6.
+  Entregable: download/v82_sally_cyber_forms.zip.
 - 2026-11-23 (v79 — ANDROID CRASH AL ARRANCAR, TOOLCHAIN): la duena
   reporto "en el android cuando se instala se abre pero se vuelve a
   cerrar". Analizado el log Igor+logcat completo: BUILD SUCCESSFUL,
@@ -2769,3 +2787,127 @@ y las pistas nuevas de 20-28s se cortaban).
 - ENTREGABLE: download/v81_claims_sonic_kris_sally.zip (14 archivos +
   LEEME + CACHE + LEARNING). RECOMPILAR SERVER OBLIGATORIO (5 archivos
   C/H cambiaron) + recompilar el APK (BUILD_VER).
+
+### 9.z6 v82 - SALLY CANON CYBER FORMS (V key) + shd_amy_cyber v3 (2026-11-25, base commit e0cb2b8d = the v81 claims)
+- OWNER'S REQUEST: improve the cyber shader (amy_cyber), bring it to Sally,
+  and give her 3 forms (normal / semi cyber / full cyber), each stronger
+  than the last, switchable with the V skill ONLY when a Sally Canon and an
+  Amy Canon are both in the match. Semi = 35% damage resistance; full = 60%
+  damage reduction + 70% shield effectiveness + bigger attack hitbox.
+- INTERPRETATION (never confirmed by the owner -> every number is a macro):
+  "Sally C" = Sally Canon, "amy canon" = Amy Canon; V cycles
+  NORMAL -> SEMI -> FULL -> NORMAL with no cooldown; SEMI = damage x0.65,
+  shield hold 45%, kick reach x1.45; FULL = damage x0.40, shield hold 70%,
+  kick reach x1.70. "45% more effective" was read as SHIELD effectiveness;
+  the default SALLY_CYBER_SHIELD_MODE 0 = chance that the bubble shield
+  HOLDS the hit instead of breaking (MODE 1 = the shield lasts longer,
+  MODE 2 = both). "Hitbox" = the reach of her kicks, i.e. the stun pad the
+  VICTIM's client adds around the attacker (obj_player_puppet/Step_0.gml),
+  not her hurtbox.
+- DELIVERABLE: download/v82_sally_cyber_forms.zip = 15 code files + CACHE.md
+  + LEARNING.md + worklog.md + LEEME_V82_SALLY_CYBER_FORMS.txt +
+  PREVIEW_V82.png + check_v82.py + sim_v82.py + tools_v82/ (generators).
+  Client only: NO server file, NO BUILD_VER bump (still 1103 from v81), no
+  .yyp/.yy touched. It needs the v81 applied first (same base commit).
+- CORE (scripts/scr_amy_cyber/scr_amy_cyber.gml, fully rewritten as v3):
+  the cyber look has 3 LEVELS in tables [off, level 1, level 2]
+  (AMY_CYBER_SCAN / SPLIT / GLITCH / FLICKER / ALPHA / TINT / GLOW / HALO /
+  HALO_SC / DISSOLVE / GRID / STREAM) and AMY_CYBER_CHAR_LEVELS says which
+  level each character of AMY_CYBER_CHARS uses (Amy Canon = 1 = the OLD
+  look values, plus the new layers). API:
+    scr_amy_cyber_is(ch)                     character carries the effect
+    scr_amy_cyber_level(ch)                  0 = off, 1, 2
+    scr_amy_cyber(char, palIn, palOut, spr, sub, lvl = -1, dx = 0, dy = 0,
+                  xs = 1, ys = 1, rot = 0, flash = 0)    replaces scr_palette_swap
+    scr_amy_cyber_halo(char, spr, sub, lvl = -1, dx, dy, xs, ys, rot, alpha = 1)
+                                             outer glow (silhouette mode)
+    scr_sally_cyber_form()                   local player's form (0 if N/A)
+    scr_sally_cyber_resist_mul(form)         1 / 0.65 / 0.40
+    scr_sally_cyber_shield_eff(form)         0 / 0.45 / 0.70
+    scr_sally_cyber_hitbox_mul(form, demonized = false)    1 / 1.45 / 1.70
+    scr_sally_cyber_shield_duration_mul(form)   1 / (1 + eff) per SHIELD_MODE
+    scr_sally_cyber_shield_hold(form)        true = the shield holds the hit
+    scr_sally_cyber_amy_present()            living, non-esbirro Amy Canon
+  Every uniform handle comes from scr_amy_cyber_u() and is set only when
+  >= 0; anything missing falls back to scr_palette_swap (the v2
+  anti-crash armor is kept).
+- SHADER v3 (shaders/shd_amy_cyber/): the .fsh keeps the palette swap +
+  glitch bands + RGB split + scanlines + sweep + sparks + flicker and adds
+  a rim light on the body edge (mix + an additive boost so it reads as
+  neon), a feet dissolve in 2x2 px blocks (anchored to the lower 45% of
+  the sprite BBOX: these sprites carry a transparent margin under the
+  feet), a holographic grid, rising data lines, and a SILHOUETTE mode
+  (uSolid = 1) used by scr_amy_cyber_halo. The .vsh passes v_vLocal (0..1
+  inside the sprite box, un-rotated around uPivot with uRot), valid only
+  when uRectOK = 1. uRectOK is declared in BOTH stages on purpose (each
+  stage is compiled alone, and the .fsh reads it).
+- HOOKS. The logic hooks (special, hurt, HUD) are gated with
+  global.character == CHARACTER_SALLY_CANON because scr_sally_special is ALSO
+  the specialFunc of vanilla Sally (she has no cyberForm). The puppet and
+  draw hooks are gated by the value itself: cyberForm = 0 and level 0 mean
+  "multiply by 1 / plain palette swap".
+  objects/obj_sally_canon/Create_0.gml    cyberForm = 0; cyberFlash = 0;
+  scripts/scr_sally_special/scr_sally_special.gml
+        V block: allowed when (Amy present, or _NEED_AMY_CANON false) and
+        revivalTimes < 2, alive and fase2State == SALLY_CANON_F2_OFF;
+        blocked while shocked, hurt, attacking, sliding, hiding, charging
+        the spindash, red ring or zip-line; auto-drop to NORMAL when the
+        condition breaks; the shield activation uses the duration multiplier.
+  scripts/scr_player_hurt/scr_player_hurt.gml
+        (1) at the TOP of the victim pipeline: damage = max(1, round(damage
+        * resist_mul)) -> rings, stats, knockback and i-frames all see the
+        reduced damage; (2) inside the bubble-shield branch: when
+        shield_hold(form) the hit does nothing, hurttime >= 48 frames,
+        shieldTimer >= 30 frames, plays snd_parry and returns.
+  objects/obj_player_puppet/Create_0.gml + Step_0.gml
+        cyberForm = 0 for every puppet; _scKickPad and _f2pad (the phase-2
+        TP) are multiplied by hitbox_mul(cyberForm, revivalTimes >= 2).
+  objects/obj_netclient/Step_2.gml (sender) and
+  scripts/net_udpprocess/net_udpprocess.gml (reader): see NETWORK.
+  objects/obj_player_puppet/Draw_0.gml, objects/obj_sally_canon/Draw_0.gml,
+  objects/obj_amy_canon/Draw_0.gml: scr_amy_cyber_halo BEFORE the body,
+  then scr_amy_cyber in place of scr_palette_swap (still falls back to
+  scr_palette_swap when the script does not exist).
+  objects/obj_sally_canon/Draw_64.gml     form label (SEMI CYBER / CYBER).
+  objects/obj_playerui/Draw_64.gml        V icon in the HUD row under the
+        others: drawKeyIcon(spr_gui_sallyshield, ..., 19, global.KeyV, 10,
+        276 - _ico, ...); grey = not available, white = NORMAL, cyan = SEMI,
+        light cyan = FULL, full white during the switch flash.
+- NETWORK (zero server changes): the form travels as the LAST 3 bytes of
+  CLIENT_PLAYER_DATA (UDP) and only for Sally Canon: [201, 171, form 0..2]
+  (SALLY_CYBER_NET_TAG_A / _B). The server relays everything after the
+  bitflags without looking (states/Game.c: while packet->pos < packet->len,
+  not touched by v81). The reader does these 3 reads LAST in the packet
+  case and accepts the form only when both tags match: the receive buffer
+  is FIXED (256 bytes) and is filled by the disnet extension, so a shorter
+  (old client) packet leaves stale bytes there, not -1. Old clients never
+  read the tail. BUILD_VER stays 1103: an APK with and one without v82 can
+  share a server.
+- TUNING: every #macro of scr_amy_cyber.gml (SALLY_CYBER_* and the
+  AMY_CYBER_* level tables) is copied verbatim into the LEEME. The six
+  requested numbers are SALLY_CYBER_SEMI_RESIST / _SEMI_SHIELD_EFF /
+  _SEMI_HITBOX_MUL / _FULL_RESIST / _FULL_SHIELD_EFF / _FULL_HITBOX_MUL.
+  AMY_CYBER_ENABLED false turns the shader off for everyone.
+- ANTI-CHEAT (rule 7): the server interprets no new attack, state or packet
+  type -> NO new whitelist exception. Known hole: the form is client state,
+  so an edited client could claim form 2 with no Amy Canon around and get
+  the reduction. It rides on the SAME trust level the whole damage system
+  already has (the victim's client computes its own damage). Proper fix
+  (NOT done: the server cannot be compiled here): validate the form byte in
+  states/Game.c while relaying, or compute the resistance server side.
+- VERIFICATION: check_v82.py = RESULTADO: 124 OK / 0 BAD; sim_v82.py = RESULTADO: 55 OK / 0 BAD (the numbers come
+  from the REAL macros: damage 10 -> 6/4, 20 -> 13/8, 50 -> 32/20; kick pad
+  for a 42 px bbox 11 -> 16 -> 19; the REAL .vsh/.fsh compiled in WebGL1
+  with the GameMaker preamble on 2 real idle frames x 11 renders: dissolve
+  only in the lower 45% of the body at 0/37/90 degrees and mirrored, rim
+  brighter, glow = scaled silhouette that sticks out of the body, nothing
+  drawn outside the sprite + glitch margin); the generators rebuild all 15
+  files from the HEAD blobs byte-for-byte (RESULTADO E2E: TODO OK (34 comprobaciones)). NOT verified: the
+  GameMaker compile and a real match (no GameMaker, no server here).
+- KNOWN LIMITS: (1) an APK without v82 never sends a form (its Sally Canon
+  is NORMAL for everyone, which is the truth); (2) the glitch bands shift
+  the UV inside the whole texture page, so a band near a sprite edge can
+  show bits of the neighbouring sprite (pre-existing behaviour of the
+  original shader; level 2 shifts more); (3) no cooldown on V; (4) the
+  esbirro (2+ falls) never uses the forms; (5) the look was judged only
+  through a WebGL harness + a vision model, never in game.
