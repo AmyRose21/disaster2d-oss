@@ -1570,6 +1570,44 @@ y las pistas nuevas de 20-28s se cortaban).
   Delivered first as "v81" by this session and relabelled: the v81 label
   belongs to the claims delivery.
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-27 (v97 — KRIS: FIX desync del LOVE — el cliente subia a LV 20 y los demas veian LV 13):
+  reporte de la duena: «kris sube rapido en el cliente pero en el server
+  no lo reconoce, los demas lo ven a lv 13 mientras que en su cliente ya
+  es lv 20». CAUSA (demostrada por simulacion, coincide EXACTO con el
+  reporte): el repo tenia la perilla KRIS_LV_XP_LMS en 5 (la duena la
+  subio del 3 que entrego v96) y con umbrales espaciados 3 en 3
+  (scr_kris_love_lv: 2,5,8...56) un golpe a 5 CRUZA DOS umbrales: el
+  krisLv LOCAL salta 2 niveles de un golpe pero la senal silenciosa
+  (net_sound_emit(snd_none)) viajaba UNA por evento y el espejo
+  krisLvNet solo hace +1 por senal → drift permanente sin resync.
+  12 golpes de LMS a 5: local LV 20, espejo LV 13 (NUMEROS EXACTOS del
+  reporte). CONSECUENCIAS del drift (todas la misma causa): los demas
+  veian su barra de vida al tope del espejo (LV 13 = 340 contra 480
+  real), su stun escalado quedaba corto y el EXE jamas veia el LV 20 →
+  el duelo final (dano real al pool con la espada) NUNCA se activaba en
+  las pantallas ajenas. FIX = MULTI-SIGNAL FLUSH en scr_kris_love_event
+  (scr_kris_special.gml): _up = niveles cruzados ANTES de asignar,
+  cura KRIS_LV_HP_BONUS * _up (+20 POR nivel: antes un golpe doble solo
+  curaba +20) y repeat(_up) net_sound_emit(snd_none) — una senal POR
+  NIVEL cruzado. El espejo queda EXACTO con CUALQUIER perilla (5, 3,
+  1.5, 10, mezclas normal→LMS: todo verificado en ambos checks). La
+  perilla SE RESPETA (sigue en 5 — LV 20 en 12 golpes de LMS): la
+  advertencia «no pasar de 3 por golpe» del v96 queda OBSOLETA. CERO
+  cambios de red: receptor (+1/senal) intacto, server reenvia el
+  broadcast snd_none sin dedup (la validacion de stun y el tope de
+  Chocola solo aplican a senales DIRIGIDAS nid != emisor). Bonus doc:
+  net_sounds.gml corregia el comentario obsoleto del indice de
+  snd_kris_lvup (124 → real 126: los taunts de Jina lo empujaron;
+  inocuo porque AMBOS lados lo resuelven por VALOR con array_find_index;
+  diff 100% comentarios). Anti-cheat: superficie SIN cambios (misma
+  senal, mismo canal; un Kris hackeado ya podia spamear snd_none antes
+  — la autoridad real sigue siendo la victima/exe con su propio
+  espejo). Archivos: scr_kris_special.gml + net_sounds.gml (comentario)
+  + docs + checks (check_v97.py 49 OK / check_v97_pass2.py 38 OK, 0
+  FAIL en ambos). KNOWN LIMIT (pre-existente, sin cambio): un
+  espectador que ENTRE a mitad de ronda arranca su espejo en LV 1 y no
+  recibe las senales pasadas (no hay resync absoluto) — solo afecta al
+  que entra tarde, no a los presentes desde el inicio.
 - 2026-11-27 (v96 — KRIS: ritmo del LOVE retuneado — LMS +200% (3 impactos/golpe) y modo normal +50% (1.5)):
   pedido de la duena: «ok bn pero esta vez aumentaremos a 200% lo del
   aumento de nivel en lms y 50% en modo normal». UNA sola linea de logica
@@ -1582,7 +1620,10 @@ y las pistas nuevas de 20-28s se cortaban).
   son binarios exactos: 1.5*N nunca arrastra redondeo) y con umbrales
   espaciados 3 en 3 y NINGUN modo sumando mas de 3 por golpe es imposible
   cruzar dos umbrales de un golpe: el espejo krisLvNet (+1 por senal
-  snd_none, la del primer senal = 2) sigue exacto SIN cambios. El resto
+  snd_none, la del primer senal = 2) sigue exacto SIN cambios. — SUPERSEDIDO
+  por v97: la duena subio la perilla a 5 y el invariante se rompio (bug
+  20 vs 13); el MULTI-SIGNAL FLUSH lo vuelve innecesario (ver entrada v97
+  de arriba). El resto
   del sistema v95 (flecha de salida, +20 max/cura por LV, barra del
   asesino, 35/golpe solo a LV 20, anticheat 480) queda INTACTO — solo
   cambia la VELOCIDAD de subir LV. Archivos: scr_kris_special.gml (macros

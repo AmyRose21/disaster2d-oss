@@ -7682,3 +7682,92 @@ ENTREGA: zip SOLO con lo tocado por v96 (1 archivo de juego + LEARNING.md
 check_v96_pass2.py). LEEME en español con la tabla antes/después y la
 perilla con el AVISO de no pasar de 3 por golpe (romperia el invariante
 de 1 nivel por golpe).
+
+=====================================================================
+v97 (2026-11-27) — FIX DESYNC DEL LOVE DE KRIS: el cliente subia a LV 20
+y los demas (server/espejo krisLvNet) se quedaban en LV 13
+=====================================================================
+Reporte de la duena: «kris sube rapido ene l cliente pero en el server
+no lo reconose los demas lo ven a lv 13 mientras que en su cliente ya
+es lv 20».
+
+DIAGNOSTICO (fetch primero, regla 1 — clon limpio de origin/main):
+* El repo (HEAD ce0f7c5d) tenia la perilla KRIS_LV_XP_LMS en **5** —
+  la duena la subio desde el 3 que entrego v96 (v96 advirtio «no pasar
+  de 3 por golpe»; el aviso estaba en el LEEME y en el worklog).
+* Umbrales v46 espaciados 3 en 3 (2,5,8,...,56) + 5 por golpe = un
+  mismo golpe CRUZA DOS umbrales. El krisLv local salta 2 niveles de
+  un golpe (asignacion directa al nivel nuevo) pero la senal silenciosa
+  viajaba UNA por evento y el espejo krisLvNet del receptor solo hace
+  +1 por senal → drift PERMANENTE (no hay resync absoluto).
+* SIMULACION EXACTA (sim sobre las reglas reales): 12 golpes de LMS a
+  5 → local LV 20, espejo LV 13 — LOS NUMEROS EXACTOS DEL REPORTE.
+  Golpes dobles en los hits 1,3,4,6,7,9,10 = 6 niveles de drift.
+* Sintomas todos de la misma causa: barra de vida ajena al tope del
+  espejo (340 contra 480), stun escalado corto, y el EXE jamas veia
+  el LV 20 → el duelo final (dano real al pool) NUNCA se armaba en
+  las pantallas ajenas («el server no lo reconoce»).
+
+FIX (v97 — MULTI-SIGNAL FLUSH, 1 archivo de logica):
+* scr_kris_special.gml / scr_kris_love_event: _up = niveles cruzados
+  ANTES de asignar; cura KRIS_LV_HP_BONUS * _up (un golpe doble cura
+  2x20 y sube 2x20 de max — antes curaba +20 una sola vez, faltaba a
+  «se cura esa misma cantidad por cada que sube de nivel»); y
+  repeat(_up) net_sound_emit(snd_none) — UNA SENAL POR NIVEL CRUZADO.
+  La perilla SE RESPETA (sigue en 5: LV 20 en 12 golpes de LMS): el
+  flush la vuelve LIBRE para cualquier valor (verificado 1.5/3/5/7/10
+  y mezclas normal→LMS a mitad de ronda).
+* CERO cambios de red: receptor intacto (+1 por senal con cap), cero
+  paquetes nuevos, cero server (regla 7 intacta). El relay del server
+  del CLIENT_SOUND_EMIT se VERIFICO: los drops del case son solo para
+  senales DIRIGIDAS (nid != emisor) y el tope de Chocola (109/110);
+  el broadcast snd_none (nid == emisor, indice 0) cae directo en
+  server_broadcast_ex sin dedup — N senales entran, N salen.
+* Bonus doc (net_sounds.gml, diff 100% comentarios): el comentario del
+  indice de snd_kris_lvup decia «124 (real)» pero los taunts de Jina
+  lo habian empujado a 126. Inocuo (ambos lados resuelven por VALOR
+  con array_find_index; los indices hardcodeados del server
+  0/1/12/109/110/118 verificados estables) — corregido para que nadie
+  «arregle» el codigo para cuadrarlo con el comentario.
+
+ANTI-CHEAT (regla 7): superficie SIN cambios. Misma senal, mismo canal,
+mismo +1 por senal en el receptor: un Kris hackeado ya podia spamear
+snd_none antes del v97 (cap 20 del espejo) — la autoridad real del
+duelo sigue siendo el cliente del EXE con SU propio espejo. La cura
+por nivel no abre nada nuevo: hp sigue clampado a scr_player_maxhp y
+el cap del server CH_KRIS sigue 480 (verificado).
+
+VERIFICACION — 2 PASADAS, TODO LIMPIO (49 OK + 38 OK, 0 FAIL):
+* check_v97.py (pasada 1): solo 2 archivos modificados (gml del fix +
+  comentarios del array); edits exactos y unicos (_up antes de asignar,
+  guard _up > 0, cura *_up, repeat(_up)); perillas y macros v95/v46
+  intactas; receptor INTACTO; balance llaves/parens delta 0; el bug
+  reproducido con la regla vieja (20 vs 13) y el v96@3 sin drift
+  (prueba de que la causa es la perilla >3, no otra cosa); flush
+  exacto con perillas 1.5/5/7/10/mixta; senales == niveles (19);
+  cura/coherencia hp 100→480 con clamp; relay del server analizado
+  hunk por hunk (todos los breaks exigen nid != v->id o van tras el
+  broadcast). 4 bugs de CHECKER corregidos por el camino (porcelain
+  ' M' vs .strip(); code-part del diff vs lineas; sndidx==0 dentro de
+  game_stun_signal_ok solo para DIRIGIDAS; eventos vs niveles).
+* check_v97_pass2.py (pasada 2): reconstruccion BYTE A BYTE del
+  scr_kris_special.gml de trabajo (HEAD + 3 bloques == working);
+  re-simulacion con constantes PARSEADAS del archivo (no hardcode);
+  consumidores del espejo intactos (stun escalado, gate del duelo,
+  scr_player_maxhp con inst, clamp del CLIENT_PLAYER_DATA); el espejo
+  alcanza LV 20 en la MISMA subida que el local (el exe ve el duelo a
+  tiempo) y SIN flush se queda en 13; call site UNICO verificado
+  (CLIENT_PLAYER_HURT: cuchillazo y parry cuentan ahi desde v47 — el
+  «2 call sites» del worklog v96 eran 2 fuentes, 1 acumulador);
+  sanidad GML (repeat dentro del if, sin tabs, ASCII solo en
+  comentarios); indices de red sin cambios (snd_none 0, snd_kris_lvup
+  126 ultimo, indices del server estables, comparacion por VALOR).
+
+ENTREGA: zip SOLO con lo tocado por v97 (scr_kris_special.gml +
+net_sounds.gml + LEARNING.md + CACHE.md + worklog.md +
+LEEME_V97_KRIS_SYNC.txt + check_v97.py + check_v97_pass2.py). LEEME en
+español con la causa (la perilla 5 sobre umbrales espaciados 3), el fix,
+la tabla antes/despues y la nueva regla: LA PERILLA YA ES LIBRE (el
+aviso «no pasar de 3» del v96 quedo OBSOLETO). KNOWN LIMIT anotado (el
+que entra a mitad de ronda arranca su espejo en LV 1 — pre-existente,
+no toca a los presentes desde el inicio).

@@ -63,6 +63,10 @@
 // KRIS_LV_XP_LMS impactos por golpe (+200% = el TRIPLE de rapido) y
 // el modo normal KRIS_LV_XP_NORMAL (+50% = 1.5). LV 20 = 56 impactos:
 // 19 golpes en LMS / 38 en normal (antes 28 / 56). Tuneable aqui.
+// v97: la perilla quedo en 5 en el repo (LV 20 en 12 golpes de LMS) y
+// el MULTI-SIGNAL FLUSH de scr_kris_love_event la vuelve LIBRE: ya NO
+// importa el espaciado de umbrales — la advertencia "no pasar de 3 por
+// golpe" del v96 queda OBSOLETA. Tunear a gusto.
 #macro KRIS_LV_XP_NORMAL 1.5
 #macro KRIS_LV_XP_LMS 5
 
@@ -341,13 +345,16 @@ function scr_kris_love_lv(_hits)
 // v96 (ritmo, pedido): "aumentaremos a 200% lo del aumento de nivel
 // en lms y 50% en modo normal" — durante el Show Fuerte (global.
 // lmsActive: el server lo confirma con SERVER_GAME_LMS cuando queda
-// UN solo superviviente) cada impacto cuenta TRIPLE (KRIS_LV_XP_LMS =
-// 3 = +200%); en modo normal cuenta KRIS_LV_XP_NORMAL = 1.5 (+50%).
-// LV 20 = 56 impactos: 19 golpes en LMS / 38 en normal. Si Kris esta
+// UN solo superviviente) cada impacto cuenta KRIS_LV_XP_LMS (perilla,
+// hoy 5); en modo normal cuenta KRIS_LV_XP_NORMAL (1.5). Si Kris esta
 // vivo con el show activo, EL es el ultimo: nadie mas puede acumular.
-// Los umbrales siguen espaciados de 3 en 3 y NINGUN modo suma mas de 3
-// por golpe: imposible cruzar dos umbrales de un golpe (el espejo
-// krisLvNet sube +1 por senal y sigue exacto, sin drift).
+// v97 (SINCRONIZACION, bug reportado): con perillas > 3 un mismo
+// golpe CRUZA DOS umbrales (estan espaciados de 3) — el LV local
+// saltaba 2 niveles de un golpe mientras la senal silenciosa viajaba
+// UNA sola vez y el espejo krisLvNet solo hace +1 por senal: los
+// demas se quedaban atras (local LV 20 contra LV 13 espejado tras 12
+// golpes de LMS a 5). FIX = MULTI-SIGNAL FLUSH: una senal POR NIVEL
+// cruzado — el espejo queda EXACTO con CUALQUIER perilla.
 function scr_kris_love_event(_kind)
 {
         if(global.character != CHARACTER_KRIS)
@@ -359,19 +366,22 @@ function scr_kris_love_event(_kind)
         global.player.krisLvHits += global.lmsActive ? KRIS_LV_XP_LMS : KRIS_LV_XP_NORMAL;
 
         var _new = scr_kris_love_lv(global.player.krisLvHits);
+        var _up = _new - global.player.krisLv; // niveles cruzados (0 = no sube)
 
-        if(_new > global.player.krisLv)
+        if(_up > 0)
         {
                 global.player.krisLv = _new;
 
                 // v95 (duena): "y el se cura esa misma cantidad por cada
                 // que sube de nivel" — +20 de vida MAXIMA por LV (la nueva
                 // vida total la calcula scr_player_maxhp con el LV recien
-                // subido) y cura LOS MISMOS 20 en el acto. Con la vida ya
+                // subido) y cura LOS MISMOS 20 POR CADA subida (v97: un
+                // golpe que cruza 2 niveles cura 2x20 y sube 2x20 de vida
+                // maxima — antes contaba +20 una sola vez). Con la vida ya
                 // al tope no gana nada (el clamp del min). El hp viaja
                 // clampeado a la nueva vida total en el CLIENT_PLAYER_DATA
                 // (obj_netclient Step_2 ya consulta scr_player_maxhp).
-                global.player.hp = min(global.player.hp + KRIS_LV_HP_BONUS, scr_player_maxhp(CHARACTER_KRIS));
+                global.player.hp = min(global.player.hp + KRIS_LV_HP_BONUS * _up, scr_player_maxhp(CHARACTER_KRIS));
 
                 // v47 (duena): el sonido de la subida de LV es el SUYO -
                 // el mp3 "Undertale Sound Effect - LV Up" que subio,
@@ -380,10 +390,17 @@ function scr_kris_love_event(_kind)
                 // silenciosa.
                 audio_play_sound(snd_kris_lvup, 0, false);
 
-                // senal +1 LV: la reciben los demas clientes en el
-                // CLIENT_SOUND_EMIT (rama de snd_none con gate de
-                // personaje) y la espejan en el puppet de Kris.
-                net_sound_emit(snd_none);
+                // v97 MULTI-SIGNAL FLUSH: una senal silenciosa POR NIVEL
+                // cruzado (antes UNA por golpe: con perillas > 3 un golpe
+                // cruzaba 2 umbrales y el espejo krisLvNet — que sube +1
+                // por senal — se quedaba atras para siempre, sin resync).
+                // El receptor (net_state_game, rama del snd_none con gate
+                // de personaje) espeja +1 por senal: queda EXACTO con
+                // cualquier perilla. El server reenvia el broadcast sin
+                // dedup (solo valida las senales DIRIGIDAS de stun): las
+                // N senales llegan siempre.
+                repeat(_up)
+                        net_sound_emit(snd_none);
         }
 }
 

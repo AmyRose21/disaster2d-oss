@@ -2135,3 +2135,91 @@ Nothing for v96. Tuning knobs: KRIS_LV_XP_NORMAL (1.5) / KRIS_LV_XP_LMS (3)
 in scr_kris_special.gml — any > 3 multiplier per event would break the
 one-level-per-event invariant (mirror drift) and would need threshold
 respacing or a multi-signal flush first.
+
+## v97 — Kris LOVE desync: client LV 20, everyone else sees LV 13 (2026-11-27)
+
+Owner's report: "kris sube rapido en el cliente pero en el server no lo
+reconose los demas lo ven a lv 13 mientras que en su cliente ya es lv 20".
+
+1. **A mirror that advances +1 per SIGNAL is only exact while one event
+   can cross at most one threshold**. The owner raised the v96 knob
+   KRIS_LV_XP_LMS from 3 to 5 after applying the v96 zip (their repo,
+   their tune — keep it). Thresholds are spaced 3 apart
+   (2,5,8,...,56), so a 5-per-hit event crosses TWO thresholds: the
+   local krisLv jumps 2 levels while the single snd_none signal only
+   moves the remote krisLvNet +1. Twelve LMS hits later the numbers are
+   EXACTLY the reported pair: local 20, mirror 13 (6 double-jumps =
+   6 levels of drift, permanent — no absolute resync exists in the
+   design). Every symptom in the report is the same root: the others'
+   HP bar capped at the mirror's maxhp (340 vs 480), the scaled stun
+   ran short, and the exe NEVER saw LV 20 so the killer-duel real
+   damage never armed on their screen.
+2. **The fix that makes the knob FREE is the multi-signal flush
+   (predicted by the v96 pending note, now implemented)**: compute
+   `_up = _new - krisLv` BEFORE assigning, heal `KRIS_LV_HP_BONUS *
+   _up` (a double-level hit heals +40, +40 max hp — the old code
+   healed only +20 per EVENT which contradicted "heals that amount per
+   level up"), and `repeat(_up) net_sound_emit(snd_none)` — one signal
+   PER LEVEL crossed. The receiver (+1 per signal, cap KRIS_LV_MAX) is
+   untouched and now exact for ANY multiplier (verified 1.5/3/5/7/10
+   and normal→LMS mixes).
+3. **The relay path was verified, not assumed**: the C server's
+   CLIENT_SOUND_EMIT case only drops DIRECTED stun signals
+   (`nid != v->id`) and rate-limits Chocola indices 109/110; the Kris
+   broadcast travels with `nid == emitter` and lands straight in
+   `server_broadcast_ex` — N signals in, N signals out, no dedup. The
+   exe-invisible silence gate in net_sound_emit only applies to
+   `global.character == CHARACTER_EXE`, and Kris is never the exe.
+   Write the proof into the check, not just the comment.
+4. **"2 call sites" in the v96 notes were 2 SOURCES, 1 call site**:
+   since v47 the parry success does NOT call scr_kris_love_event —
+   both the sword hit and the parry land as stuns, and the VICTIM's
+   client emits CLIENT_PLAYER_HURT with pid == Kris's nid, which the
+   Kris client counts in ONE place (net_state_game.gml ~3060). Single
+   accumulation point = the flush covers every path. Grep for real
+   call sites before trusting old doc counts.
+5. **Stale index comments in net_snds are a live trap**: the comment
+   said snd_kris_lvup was "124 (real)" but Jina's taunts had pushed it
+   to 126. Harmless at runtime (both sides resolve by VALUE via
+   array_find_index, and the server's hardcoded stun indices
+   0/1/12/109/110/118 were still correct), but a future editor
+   "fixing" code to match the comment would break things. Fixed the
+   comment (126, with the why) — diff is 100% comment lines, verified
+   by comparing the code part of every +/- diff line.
+6. **Simulate the REPORTED numbers, not just the fix**: reproducing
+   the owner's exact 20-vs-13 with the old rule proves the diagnosis
+   (same cause, not a different bug), and keeping that reproduction
+   in the check (assert mirror == 13 without flush) turns the user's
+   bug report into a permanent regression test.
+
+### Verification lessons
+
+- Both passes green on the first run after fixing 4 CHECKER bugs (the
+  game code never changed mid-verification): (a) `git status
+  --porcelain` starts unstaged mods with a SPACE (' M path') — don't
+  .strip() the output before splitlines or you eat the marker;
+  (b) a naive "no code changed" grep must compare the code PART of
+  each diff line (before //), because pure-comment lines can be
+  re-split into more lines — compare the multiset of non-empty code
+  parts instead of raw line counts; (c) the server's `sndidx == 0`
+  references inside game_stun_signal_ok looked like a dedup on our
+  signal until you check the caller gates it behind `nid != v->id`;
+  (d) "events with a level-up" (12 at knob 5) != "levels gained"
+  (19) when double-jumps exist — assert the right one.
+- Event count sanity for the new pacing (knob 5): LV 20 in 12 LMS
+  hits / 12 events / 19 levels / 19 signals; normal 1.5 unchanged at
+  38 hits. The heal chain from full HP stays == maxhp at every level
+  (100 → 480), and a wounded double-level hit heals +40.
+
+### Pending
+
+Nothing for v97. Tuning knobs are now FREE: KRIS_LV_XP_NORMAL (1.5) /
+KRIS_LV_XP_LMS (5) in scr_kris_special.gml can be any value — the
+flush keeps the mirror exact regardless (cap: one TCP packet per
+level, 19 max per round per event class). KNOWN LIMIT (pre-existing,
+unchanged by v97): a client that JOINS mid-round starts its mirror at
+LV 1 and never receives past signals (no absolute resync exists) —
+only affects late joiners/spectators, not the players present from
+the start. If the owner ever wants it fixed it needs a new
+piggybacked absolute value (e.g., ride CLIENT_PLAYER_DATA) — ask
+first, don't invent packets (rule 7).

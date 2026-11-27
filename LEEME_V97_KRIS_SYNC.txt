@@ -1,0 +1,130 @@
+════════════════════════════════════════════════════════════════════
+ v97 — KRIS: FIX DEL DESYNC — el cliente subia a LV 20
+          pero los demas lo veian estancado en LV 13
+════════════════════════════════════════════════════════════════════
+
+REPORTE
+  "kris sube rapido en el cliente pero en el server no lo
+  reconoce, los demas lo ven a lv 13 mientras que en su
+  cliente ya es lv 20."
+
+  O sea: en la pantalla del que juega Kris todo subia
+  normal (rapido, como pediste), pero en las pantallas de
+  los demas el nivel de Kris se quedaba ATRAS. Y de paso el
+  asesino nunca "reconocia" el LV 20: su barra de duelo
+  final jamas se activaba en las pantallas ajenas.
+
+────────────────────────────────────────────────────────────────────
+ QUE ESTABA PASANDO (la causa exacta)
+────────────────────────────────────────────────────────────────────
+  El ritmo del LOVE funciona asi: cada golpe acumula X
+  "impactos" (KRIS_LV_XP_LMS) y los niveles se alcanzan con
+  la lista de umbrales 2, 5, 8, 11 ... 56 (salto de 3 en 3).
+
+  Con la perilla en 3 (lo que entregue en v96) un golpe
+  cruza como mucho UN umbral: nivel local y nivel espejado
+  subian juntos y nadie se desincronizaba. Por eso el
+  LEEME de la v96 traia el aviso de no pasar de 3.
+
+  Pero la perilla quedo en 5 (tu repo la tiene en 5, y LO
+  DEJO ASI — se respeta). Con 5 por golpe y umbrales cada
+  3, UN MISMO GOLPE CRUZA DOS UMBRALES. Ahi esta el bug:
+
+  · Tu cliente: Kris salta 2 niveles de un golpe (ej. del
+    4 al 6 directo). Correcto.
+  · Los demas: el nivel espejado (krisLvNet) sube +1 POR
+    SENAL, y el juego mandaba UNA SOLA senal por golpe
+    aunque el golpe hubiera valido 2 niveles.
+  · Resultado: cada golpe doble = 1 nivel de desync que ya
+    no se recupera NUNCA (no hay re-sincronizacion).
+
+  LA SIMULACION LO CLAVA: con 5 por golpe en el Show
+  Fuerte, 12 golpes despues tu Kris esta en LV 20 y el
+  espejo de los demas en... LV 13. EXACTAMENTE los numeros
+  de tu reporte (6 golpes dobles = 6 niveles perdidos).
+
+  Y todo lo raro que notabas era la misma causa:
+  · La barra de vida de Kris en pantallas ajenas se tapaba
+    al tope del nivel ESPEJADO (340 contra los 480 reales).
+  · El stun escalado por nivel quedaba corto en sus
+    pantallas.
+  · El asesino NUNCA veia el LV 20 → el duelo final (la
+    barra de vida del asesino y el dano real de 35 por
+    golpe) JAMAS se activaba afuera. "El server no lo
+    reconoce".
+
+────────────────────────────────────────────────────────────────────
+ EL FIX (v97 — "MULTI-SIGNAL FLUSH")
+────────────────────────────────────────────────────────────────────
+  Ahora la senal silenciosa se manda UNA POR NIVEL
+  CRUZADO: si un golpe vale 2 niveles, viajan 2 senales y
+  el espejo de los demas sube 2. Si valiera 7, viajan 7.
+  El nivel de Kris en las pantallas de TODOS queda pegado
+  al tuyo, golpe a golpe, SIEMPRE.
+
+  De paso se alineo la cura con lo pedido de siempre
+  ("se cura esa misma cantidad por cada que sube de
+  nivel"): un golpe que cruza 2 niveles ahora cura 40 y
+  sube 40 de vida maxima (antes curaba solo 20 una vez).
+
+  CERO cambios de red: no hay paquetes nuevos, no se
+  toco el server, no se toco el receptor. La senal es la
+  de siempre (la silenciosa snd_none), solo que ahora
+  viaja tantas veces como niveles se cruzaron.
+
+────────────────────────────────────────────────────────────────────
+ ANTES / DESPUES (Show Fuerte a 5 por golpe)
+────────────────────────────────────────────────────────────────────
+                 ANTES (v96+)      DESPUES (v97)
+  Tu cliente         LV 20            LV 20
+  Los demas          LV 13  ←BUG      LV 20  ←FIX
+  Barra de vida      340 max          480 max
+  Stun escalado      corto            exacto
+  Duelo del LV 20    nunca salia      sale a tiempo
+
+────────────────────────────────────────────────────────────────────
+ LA PERILLA YA ES LIBRE (aviso de la v96 OBSOLETO)
+────────────────────────────────────────────────────────────────────
+  El LEEME de la v96 decia "no subir la perilla de 3 por
+  golpe". ESE AVISO YA NO APLICA: con el fix de esta
+  version podes poner KRIS_LV_XP_LMS (y
+  KRIS_LV_XP_NORMAL) en el valor que quieras — 5, 7, 10 —
+  y el nivel espejado de los demas queda EXACTO igual.
+  La deje en 5 como esta en tu repo (LV 20 en 12 golpes
+  de Show Fuerte, 38 en modo normal).
+
+  Donde se toca: scripts/scr_kris_special/scr_kris_special.gml
+  → #macro KRIS_LV_XP_NORMAL 1.5 / #macro KRIS_LV_XP_LMS 5
+
+────────────────────────────────────────────────────────────────────
+ ARCHIVOS DEL ZIP (solo lo tocado)
+────────────────────────────────────────────────────────────────────
+  scripts/scr_kris_special/scr_kris_special.gml
+      El fix (senal por nivel + cura por nivel + comentarios).
+  scripts/net_sounds/net_sounds.gml
+      SOLO comentarios: el indice real de snd_kris_lvup es
+      126 (el comentario decia 124, los taunts de Jina lo
+      movieron; no afecta nada, ambos lados lo resuelven
+      por nombre). Corregido para que nadie tropiece.
+  LEARNING.md / CACHE.md / worklog.md
+      Memoria actualizada (regla de aprendizaje).
+  check_v97.py / check_v97_pass2.py
+      Los verificadores: 49 OK + 38 OK, 0 FAIL. Incluyen
+      la reproduccion EXACTA de tu bug (20 vs 13) con la
+      regla vieja y la prueba de que el fix lo mata.
+
+────────────────────────────────────────────────────────────────────
+ COMO INSTALAR
+────────────────────────────────────────────────────────────────────
+  Copia las carpetas scripts/ del zip sobre tu proyecto
+  (2 archivos .gml). Nada mas. No hay assets nuevos, no
+  hay que tocar el .yyp del proyecto ni recompilar el
+  server.
+
+  NOTA de limite conocido (ya existia, no lo empeoro): si
+  un jugador ENTRA a mirar la partida a mitad de ronda, su
+  espejo de Kris arranca en LV 1 (no recibio las senales
+  anteriores). A los que estan desde el inicio les queda
+  perfecto. Si algun dia queres que el que entra tarde vea
+  el nivel real de una, avisame y lo monto encima del
+  paquete de datos del jugador (sin inventar paquetes).

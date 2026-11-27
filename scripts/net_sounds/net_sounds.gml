@@ -189,14 +189,17 @@ global.net_snds =
         // scr_audio_play_3d, asi que no regala la posicion del exe invisible
         // ni ensucia los oidos de terceros. AL FINAL a proposito (mismo
         // patron que snd_parry/Chocola/MetalAmy/Jinna): un cliente viejo (el
-        // array de la v94 tenia 124 entradas, 0..123) que reciba el indice
-        // 124 simplemente lo ignora; nadie mas lo emite por red (el chime
+        // array de la v94 tenia 124 entradas, 0..123) que reciba un indice
+        // nuevo (hoy el 126) simplemente lo ignora; nadie mas lo emite por red (el chime
         // local de subir LV usa audio_play_sound, nunca net_sound_emit),
         // asi que la rama es exclusiva de esta senal. NOTA: los numeros de
         // comentario del array vienen desfazados desde la v4.7 (lo que manda
         // es el ORDEN — el indice real se calcula con array_find_index en
         // runtime a ambos lados). ---
-        snd_kris_lvup      // 124 (real): espejo del dano al asesino (Kris LV 20)
+        snd_kris_lvup      // 126 (real — v97: los taunts de Jina lo empujaron
+                           // desde el 124 del v95; el INDICE no importa, ambos
+                           // lados lo resuelven por VALOR con array_find_index):
+                           // espejo del dano al asesino (Kris LV 20)
 ];
 global.tmp_sndid = 0;
 
