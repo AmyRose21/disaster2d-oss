@@ -3247,8 +3247,36 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                 else
                                                         krisLvNet = 2;
                                         }
-                                        
-                                        scr_audio_play_3d(emitter, global.net_snds[sid], false, 0);
+                                        // v95 (KRIS LV 20): DANO REAL AL ASESINO. La emite el
+                                        // CLIENTE DEL EXE (scr_kris_exe_hp_signal) cada vez que
+                                        // la espada de un Kris con LV maximo le baja
+                                        // KRIS_EXE_DAMAGE de vida al pool. Este puppet es el del
+                                        // EXE (emisor = pid): espejo el -35 en MI
+                                        // global.exeHpPool local. SOLO KRIS lo dibuja (la barra
+                                        // del asesino en obj_playerui/Draw_64); mantenerlo en
+                                        // todos los clientes es gratis y lo deja listo para
+                                        // cualquiera que lo quiera leer. El REFILL no viaja: se
+                                        // DERIVA del mismo evento en los dos lados (TCP
+                                        // ordenado: los dos espejos aplican la misma secuencia
+                                        // de -35 desde KRIS_EXE_MAXHP y llegan a 0 juntos) —
+                                        // al tocar 0 el pool vuelve a su tope y la pelea puede
+                                        // repetirse (el knockdown del exe lo aplica SU cliente,
+                                        // la autoridad).
+                                        else if(global.net_snds[sid] == snd_kris_lvup && character == CHARACTER_EXE)
+                                        {
+                                                global.exeHpPool = max(global.exeHpPool - KRIS_EXE_DAMAGE, 0);
+
+                                                if(global.exeHpPool <= 0)
+                                                        global.exeHpPool = KRIS_EXE_MAXHP;
+                                        }
+
+                                        // v95: la senal del dano al asesino NUNCA suena — es un
+                                        // DATO, no un sonido (y sonarla regalaria la posicion
+                                        // del exe invisible: el emisor crudo pasa el gate de
+                                        // invisibilidad a proposito, el audio no debe
+                                        // deshacerlo).
+                                        if(global.net_snds[sid] != snd_kris_lvup)
+                                                scr_audio_play_3d(emitter, global.net_snds[sid], false, 0);
                                         break;
                                 }
                         }

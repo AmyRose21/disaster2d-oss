@@ -63,6 +63,55 @@ if(!global.showHud)
 
 var _mob = (os_type == os_android ? 200 : 0);
 
+// ============================================================================
+// v95 (KRIS LV 20 — "consecuencias"): LA BARRA DE VIDA DEL ASESINO.
+// Pedido de la duena: "al llegar al nv 20 (si es que llega) el asesino
+// le aparecera una barra de vida". SOLO la ve KRIS (es SU duelo: el
+// dano de 35 por golpe y el pool de 350 son cosa de SU espada con LV
+// maximo). Dibujo patron jefecito de casa: barra roja centrada bajo el
+// reloj y bajo el "Escape!!!" (spr_status se dibuja en y=32 con origen
+// superior: ocupa hasta y=47 — la barra arranca en y=49 y no lo tapa).
+// El valor es global.exeHpPool: en el cliente
+// de Kris es el ESPEJO que alimenta la senal silenciosa del exe
+// (rama de snd_kris_lvup en net_state_game); en el del exe es su propia
+// vida real. Los dos nacen llenos (KRIS_EXE_MAXHP), aplican la misma
+// secuencia de -35 (TCP ordenado) y se rellenan solos al tocar 0.
+// ============================================================================
+if(global.character == CHARACTER_KRIS
+&& instance_exists(global.player)
+&& variable_instance_exists(global.player.id, "krisLv")
+&& global.player.krisLv >= KRIS_LV_MAX
+&& !global.player.isDead)
+{
+        var _kbX = 480 / 2 - 100;   // barra de 200 px centrada
+        var _kbY = 51;               // bajo el "Escape!!!" (spr_status: 32..47)
+        var _kbHp = clamp(global.exeHpPool, 0, KRIS_EXE_MAXHP);
+
+        // funda negra con borde + casco granate (patron hudAllyBar de
+        // obj_level: 1 px de borde a cada lado del relleno)
+        draw_set_alpha(0.92);
+        draw_set_color(c_black);
+        draw_rectangle(_kbX - 2, _kbY - 2, _kbX + 202, _kbY + 10, false);
+        draw_set_color(make_color_rgb(84, 12, 12));
+        draw_rectangle(_kbX, _kbY, _kbX + 200, _kbY + 8, false);
+
+        // relleno ROJO vivo — 350 de pool = 198 px (como el relleno de
+        // hudAllyBar: proporcional con ceil para que el primer punto de
+        // vida SIEMPRE pinte 1 px)
+        if(_kbHp > 0)
+        {
+                draw_set_color(make_color_rgb(232, 20, 20));
+                draw_rectangle(_kbX + 1, _kbY + 1, _kbX + 1 + ceil(_kbHp / KRIS_EXE_MAXHP * 198), _kbY + 7, false);
+        }
+
+        draw_set_alpha(1);
+        draw_set_color(c_white);
+
+        // rotulo con la cuenta real de golpes que faltan (micro-fuente
+        // del HUD, patron del "+NN" de hudAllyBar)
+        scr_text_spr(_kbX + 6, _kbY + 1, "EL ASESINO  " + string(ceil(_kbHp / KRIS_EXE_DAMAGE)) + " golpes", c_white, 1);
+}
+
 // v12 (HUD): los ICONOS DE HABILIDAD siguen en el rincon superior
 // derecho (x 370..446, anclados con el +370 de drawKeyIcon y _ico=216).
 // El BORDE IZQUIERDO entero es la COLUMNA DEL EQUIPO (retratos + barras,

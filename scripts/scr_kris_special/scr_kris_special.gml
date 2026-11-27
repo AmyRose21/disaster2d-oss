@@ -36,14 +36,14 @@
 #macro KRIS_ACC 0.046875
 
 // ---- espada ----
-#macro KRIS_ATTACK_RECHARGE (60 * 14.75) // misma cadencia del puno de Knux
+#macro KRIS_ATTACK_RECHARGE (60 * 10.75) // misma cadencia del puno de Knux
 #macro KRIS_ATK_GROUND_SPD 0.4           // tajo tierra: 4 frames
 #macro KRIS_ATK_AIR1_SPD 0.4             // air1: 4 frames
 #macro KRIS_ATK_AIR2_SPD 0.5             // air2: 8 frames
-#macro KRIS_AIR2_HITBOX 0.5              // +50% del ancho del bbox (pad del puppet)
+#macro KRIS_AIR2_HITBOX 0.7              // +50% del ancho del bbox (pad del puppet)
 
 // ---- escudo (patron parry) ----
-#macro KRIS_BLOCK_EXITO_PER 3.5  // frames de juego por frame del sprite de exito
+#macro KRIS_BLOCK_EXITO_PER 4.5  // frames de juego por frame del sprite de exito
 #macro KRIS_BLOCK_VISION -8      // margen frontal: dx*face >= esto cuenta como "de frente"
 
 // ---- doble salto (v2, pasiva: patron jetpack de Eggman) ----
@@ -51,15 +51,52 @@
 #macro KRIS_DJUMP_YSPEED -8         // impulso identico al del jetpack
 
 // ---- ralentizacion post-stun de la espada (v2) ----
-#macro KRIS_SLOW_TIME 3             // segundos de slow que arrancan al EXPIRAR el stun de 3 s
+#macro KRIS_SLOW_TIME 4             // segundos de slow que arrancan al EXPIRAR el stun de 3 s
 
 // ---- LOVE (v46): nivel de violencia de Kris ----
 #macro KRIS_LV_MAX 20           // tope del LV: +100% de stun (2x)
 #macro KRIS_LV_STUN_PCT 0.05     // +5% del stun base por LV (LV 10 = +50%, LV 20 = +100%)
 
+// ---- v96 (ritmo del LOVE): cuantos impactos cuenta cada golpe ----
+// Pedido de la duena: "esta vez aumentaremos a 200% lo del aumento de
+// nivel en lms y 50% en modo normal" — el Show Fuerte (LMS) acumula
+// KRIS_LV_XP_LMS impactos por golpe (+200% = el TRIPLE de rapido) y
+// el modo normal KRIS_LV_XP_NORMAL (+50% = 1.5). LV 20 = 56 impactos:
+// 19 golpes en LMS / 38 en normal (antes 28 / 56). Tuneable aqui.
+#macro KRIS_LV_XP_NORMAL 1.5
+#macro KRIS_LV_XP_LMS 5
+
+// ---- v95 (LOVE = CRECIMIENTO): la vida de Kris escala con su LV ----
+// Pedido de la duena: "cada que suba de nivel su vida max aumente 20 de
+// vida max y el se cura esa misma cantidad por cada que sube de nivel".
+// LV 1 = 100 (canonico de siempre); LV 20 = 100 + 19*20 = 480. La fuente
+// unica de verdad del HUD y el netcode sigue siendo scr_player_maxhp
+// (el clamp del CLIENT_PLAYER_DATA y TODOS los gates de cura ya la
+// consultan — con esto quedan alineados solos). El anti-cheat del server
+// (Game.c, cap por personaje) se sube a 480 en esta misma version.
+#macro KRIS_LV_BASE_HP 100
+#macro KRIS_LV_HP_BONUS 20
+
+// ---- v95 (CONSECUENCIAS del LV 20): el asesino se vuelve vulnerable ----
+// "al llegar al nv 20 (si es que llega) el asesino le aparecera una barra
+// de vida el dano de kris seria de 35 por golpe a nv 20 (el solo puede
+// danarlo al nv 20)". La vida del EXE vive en global.exeHpPool (un
+// global, no en el player del exe: asi vale igual para CUALQUIER
+// variante de asesino — Original/Exeller/Exetior/Chaos/Jinna/Metal Amy —
+// sin tocar los 6 Create). Lo resetea el Create de obj_level (una por
+// ronda). LA AUTORIDAD es el cliente del EXE (patron victima-autoridad
+// de TODO el juego): su espada la cuenta el krisLvNet espejado del
+// puppet de Kris en SU pantalla (senal silenciosa v46 — no falsificable
+// desde el cliente de Kris). Debajo de LV 20 el golpe sigue siendo el
+// stun de siempre, SIN dano al pool. A 0: knockdown largo y el pool se
+// rellena (la pelea puede repetirse).
+#macro KRIS_EXE_DAMAGE 35        // dano por cuchillazo a LV 20 (pedido)
+#macro KRIS_EXE_MAXHP 350        // vida total del asesino: 10 golpes (tuneable)
+#macro KRIS_EXE_DOWN_SEC 10      // knockdown al llegar a 0 (segundos)
+
 // ---- moribunda (patron Rouge v4.5, mismos numeros) ----
 #macro KRIS_MORIBUNDA_TIME (60 * 6)  // tirado en el suelo
-#macro KRIS_MORIBUNDA_HEAL 40        // se levanta con poca vida
+#macro KRIS_MORIBUNDA_HEAL 100        // se levanta con poca vida
 #macro KRIS_MORIBUNDA_INVULN (60 * 3)
 #macro KRIS_MORIBUNDA_LEVITATE -0.35 // flota solo si cayo a un hoyo
 
@@ -301,6 +338,16 @@ function scr_kris_love_lv(_hits)
 // chime local del LV Up (snd_kris_lvup, v47) + senal silenciosa para que el puppet de Kris
 // suba krisLvNet en las demas pantallas (ellas escalan su stun con su
 // propia autoridad). Solo corre en el cliente del propio Kris.
+// v96 (ritmo, pedido): "aumentaremos a 200% lo del aumento de nivel
+// en lms y 50% en modo normal" — durante el Show Fuerte (global.
+// lmsActive: el server lo confirma con SERVER_GAME_LMS cuando queda
+// UN solo superviviente) cada impacto cuenta TRIPLE (KRIS_LV_XP_LMS =
+// 3 = +200%); en modo normal cuenta KRIS_LV_XP_NORMAL = 1.5 (+50%).
+// LV 20 = 56 impactos: 19 golpes en LMS / 38 en normal. Si Kris esta
+// vivo con el show activo, EL es el ultimo: nadie mas puede acumular.
+// Los umbrales siguen espaciados de 3 en 3 y NINGUN modo suma mas de 3
+// por golpe: imposible cruzar dos umbrales de un golpe (el espejo
+// krisLvNet sube +1 por senal y sigue exacto, sin drift).
 function scr_kris_love_event(_kind)
 {
         if(global.character != CHARACTER_KRIS)
@@ -309,13 +356,22 @@ function scr_kris_love_event(_kind)
         if(!instance_exists(global.player) || !variable_instance_exists(global.player.id, "krisLvHits"))
                 return;
 
-        global.player.krisLvHits++;
+        global.player.krisLvHits += global.lmsActive ? KRIS_LV_XP_LMS : KRIS_LV_XP_NORMAL;
 
         var _new = scr_kris_love_lv(global.player.krisLvHits);
 
         if(_new > global.player.krisLv)
         {
                 global.player.krisLv = _new;
+
+                // v95 (duena): "y el se cura esa misma cantidad por cada
+                // que sube de nivel" — +20 de vida MAXIMA por LV (la nueva
+                // vida total la calcula scr_player_maxhp con el LV recien
+                // subido) y cura LOS MISMOS 20 en el acto. Con la vida ya
+                // al tope no gana nada (el clamp del min). El hp viaja
+                // clampeado a la nueva vida total en el CLIENT_PLAYER_DATA
+                // (obj_netclient Step_2 ya consulta scr_player_maxhp).
+                global.player.hp = min(global.player.hp + KRIS_LV_HP_BONUS, scr_player_maxhp(CHARACTER_KRIS));
 
                 // v47 (duena): el sonido de la subida de LV es el SUYO -
                 // el mp3 "Undertale Sound Effect - LV Up" que subio,
@@ -329,4 +385,47 @@ function scr_kris_love_event(_kind)
                 // personaje) y la espejan en el puppet de Kris.
                 net_sound_emit(snd_none);
         }
+}
+
+// =====================================================================
+//  v95 — SENAL DE DANO REAL AL ASESINO (Kris LV 20)
+//
+//  La emite el CLIENTE DEL EXE (la victima = la autoridad de siempre)
+//  cada vez que la espada de un Kris con krisLvNet >= KRIS_LV_MAX le
+//  baja KRIS_EXE_DAMAGE de vida real al pool (global.exeHpPool). La
+//  reciben TODOS los clientes en el CLIENT_SOUND_EMIT: la rama del
+//  puppet del EXE espeja el -35 en SU global.exeHpPool local — solo
+//  KRIS la dibuja (la barra del asesino del Draw_64 del playerui).
+//  El refill a 0 lo DERIVAN los dos lados del mismo evento (TCP
+//  ordenado: los dos espejos aplican la misma secuencia y llegan a 0
+//  juntos), asi que no hace falta una senal de refill.
+//
+//  PORQUE UN PAQUETE CRUDO y no net_sound_emit: la funcion de la casa
+//  silencia TODOS los sonidos del exe mientras esta INVISIBLE
+//  (net_sounds.gml: solo snd_spring pasa) — la espada SI golpea al exe
+//  invisible (el stun de contacto de siempre no mira invisTimer) y sin
+//  esto la senal se perderia y la barra de Kris quedaria desincronizada
+//  para siempre (drift acumulado, sin resincronizacion). Esta senal es
+//  un DATO, no un sonido: el cliente del exe NO puede esconder sus
+//  heridas volviendose invisible. En el receptor el sonido NUNCA suena
+//  (la rama del espejo esta excluida del scr_audio_play_3d de abajo),
+//  asi que tampoco regala la posicion del exe invisible.
+//
+//  INDICE: snd_kris_lvup al FINAL de global.net_snds (indice nuevo de
+//  la casa — patron Chocola/MetalAmy/Jinna: un cliente viejo que lo
+//  recibe simplemente lo ignora). El server reenvia CLIENT_SOUND_EMIT
+//  sin validar indices (solo valida las senales DIRIGIDAS de stun), y
+//  esta viaja con shouldPlay=false y nid propio: pasa libre.
+function scr_kris_exe_hp_signal()
+{
+        var buffer = cpacket_tcp(PacketType.CLIENT_SOUND_EMIT, true);
+
+        global.tmp_sndid = snd_kris_lvup;
+        buffer_write(buffer, buffer_u16, obj_netclient.nid);
+        buffer_write(buffer, buffer_u8, array_find_index(global.net_snds, function(_element, _index)
+        {
+            return _element == global.tmp_sndid;
+        }));
+        buffer_write(buffer, buffer_bool, false);
+        send_server_tcp(buffer);
 }

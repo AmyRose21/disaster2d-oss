@@ -31,6 +31,13 @@ global.fwArrowStunDecay = 0;
 // (lo resetea el Create de obj_level). Mientras valga: pasivas del show.
 global.lmsActive = false;
 
+// v95 (KRIS LV 20): la vida del ASESINO (global.exeHpPool). Este es el
+// valor de arranque (antes de cualquier partida); el Create de obj_level
+// la RESETEA a tope en cada ronda en TODOS los clientes — ver alli los
+// detalles del espejo y de la autoridad (el cliente del exe es quien la
+// baja de verdad).
+global.exeHpPool = KRIS_EXE_MAXHP;
+
 // v4.3 (fix exe): true mientras el jugador LOCAL esta aturdido por la
 // trampa de una Amelia DEMONIZADA. Todos los Step de personaje
 // rellenan hurttime = 60*2 durante el stun ("para que no lo rematen

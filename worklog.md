@@ -7481,3 +7481,204 @@ conservan su kit intacto (solo cambia el DIBUJO del HUD).
    check_v94.py/check_v94_pass2.py/v94_pairs.py/gen_v94_pairs.py,
    mock_v94.py, PREVIEW_V94_KRIS.png, PREVIEW_V94_AMYCANON.png,
    CONTACT_V94_KRIS_SWORD.png. Todo viaja en el zip de v94 (v93 + v94).
+
+## v95 - 2026-11-27 - KRIS: salida SIEMPRE visible + LOVE = crecimiento (+20 max/cura por LV) + DUELO FINAL del LV 20 (barra del asesino, 35/golpe) + LMS al doble
+
+Base: origin/main 04a7b2d5 «ewe» (ya con v93+v94 aplicados por la duena —
+el clone llega LIMPIO a v94, git status vacio tras el overlay de control).
+Pedido de la duena: «necesito que le coloques que el pueda ver donde se
+ubica la salida; que cada que suba de nivel su vida max aumente 20 de vida
+max y el se cura esa misma cantidad por cada que sube de nivel.
+(consecuencias.) al llegar al nv 20 (si es que llega) el asesino le
+aparecera una barra de vida, el dano de kris seria de 35 por golpe a nv 20
+(el solo puede danarlo al nv 20). Si por otra parte esta en LMS su nivel
+subira con mucha mas rapidez (100% mas rapido)». TODO cuelga del sistema
+LOVE v46 (krisLv 1-20 + krisLvHits + krisLvNet espejo via senal silenciosa
+snd_none + stun escalado por la victima) — regla EXTEND, DON'T INVENT:
+cero sistemas inventados, todo enganchado a lo que ya viaja.
+
+1) INVESTIGACION (sandbox reciclado → re-clone + overlay de control):
+   repo re-clonado (04a7b2d5 «ewe» = v94 ya empujada por la duena: los 4
+   archivos del diff v93/v94 ya estaban en HEAD — verificado con git
+   status vacio tras reponer los mios identicos byte a byte). Sistemas
+   mapeados: (a) LOVE v46 completo releido (scr_kris_love_lv/love_event,
+   rama del snd_none en el CLIENT_SOUND_EMIT con krisLvNet, escalado del
+   stun en obj_player_puppet/Step_0 ~L998); (b) scr_player_maxhp v13
+   (Rouge 125 / Metal 150 / resto 100) con TODOS sus call sites (clamp del
+   CLIENT_PLAYER_DATA en obj_netclient/Step_2 L66, gates de cura en
+   net_state_game x7, spawn, minion, revival, LMS heal, y las 4 llamadas
+   puppet de obj_level/Draw_64 L224/249/261/270); (c) el anticheat del
+   server: hp_cap por personaje en states/Game.c L3120 (y la copia muerta
+   de la raiz L1297) — DESCONNECTA con «garic forn» si hp > cap; (d) la
+   salida = obj_bigring (CLIENT_PLAYER_ESCAPED al tocarlo) y el patron de
+   brujula = obj_amycanon_indicators v83 (flecha verde spr_sindicator2
+   pegada al cuerpo rotando al bigring mas cercano, sin condiciones; el
+   original obj_surv_ringindicator es exclusivo del mapa ravinemist);
+   (e) LMS = global.lmsActive (SERVER_GAME_LMS, el Show Fuerte del ultimo
+   superviviente); (f) la rama del stun al exe: bloque «!isDemonized &&
+   globalExe» → gate shockedTimer/hurttime → stunTime 3 escalado por LOVE;
+   (g) los sonidos: global.net_snds con 124 entradas REALES (0..123, los
+   comentarios desfazados +1 desde v4.7 — snd_exe_laugh duplicada
+   preexistente), array_find_index en runtime, el server reenvia
+   CLIENT_SOUND_EMIT sin validar indices nuevos; (h) spr_status 168x15
+   origen (84,0) → «Escape!!!» ocupa y=32..47.
+
+2) IMPLEMENTACION (12 archivos, todo con pares viejo→nuevo verificados):
+   * scr_kris_special.gml: macros nuevas (KRIS_LV_BASE_HP 100,
+     KRIS_LV_HP_BONUS 20, KRIS_EXE_DAMAGE 35, KRIS_EXE_MAXHP 350,
+     KRIS_EXE_DOWN_SEC 10) + scr_kris_love_event (krisLvHits +=
+     lmsActive ? 2 : 1; en la subida: hp = min(hp + 20,
+     scr_player_maxhp(CHARACTER_KRIS)) = la cura pedida) + funcion nueva
+     scr_kris_exe_hp_signal (paquete CRUDO CLIENT_SOUND_EMIT con el
+     indice de snd_kris_lvup — mismo layout que net_sound_emit, SIN el
+     gate de invisibilidad del exe: la espada SI pega al exe invisible y
+     la senal es un DATO, no un sonido).
+   * scr_player_maxhp.gml: firma (char, inst = noone) + caso
+     CHARACTER_KRIS = 100 + 20*(LV-1) (LV 1=100 / 10=280 / 20=480); LV del
+     inst.krisLvNet (puppet) o global.player.krisLv (local) — TODOS los
+     call sites existentes quedan alineados solos.
+   * obj_level/Draw_64.gml: las 4 llamadas puppet pasan inst (la barrita
+     del Kris ajeno escala con SU LV espejado, no con el local).
+   * net_sounds.gml: snd_kris_lvup añadido al FINAL del array (entrada
+     125, indice REAL 124; cliente v94 lo ignora por length) — el chime
+     de la duena como portador de la senal del dano al asesino.
+   * net_state_game.gml: en el CLIENT_SOUND_EMIT, rama espejo (snd_kris_lvup
+     + puppet del EXE emisor): global.exeHpPool -= 35 y refill al tocar 0
+     (DERIVADO, no viaja); scr_audio_play_3d EXCLUIDO para ese indice
+     (senal muda: ni ruido ni regalar la posicion del exe invisible).
+   * obj_player_puppet/Step_0.gml: dentro de la rama
+     victima-exe, justo tras el escalado LOVE del stun: si el atacante es
+     un Kris con krisLvNet >= 20 y la victima es el EXE REAL vivo →
+     global.exeHpPool -= 35 + senal + chime local; a 0: pool = tope y
+     stunTime = max(stunTime, 10 s) = KNOCKDOWN (se aplica en el
+     shockedTimer de siempre). Debajo de LV 20: cero dano.
+   * obj_playerui/Draw_64.gml: LA BARRA DEL ASESINO (solo la ve Kris con
+     LV 20): top-center 200 px, funda negra + casco granate + relleno
+     rojo (patron hudAllyBar), rotulo «EL ASESINO N golpes». y=51 — la
+     primera version en y=38 PISABA el «Escape!!!» (spr_status ocupa
+     32..47): corregido tras el catch visual del preview.
+   * obj_kris/Draw_64.gml: flecha de salida spr_sindicator2 pegada al
+     cuerpo (patron Amy Canon v83) rotando al obj_bigring mas cercano,
+     sin condiciones; apagada para demonizados y muertos (vive dentro del
+     if(hp>0)); act9 la apaga a gris como al «lv N».
+   * obj_level/Create_0.gml: global.exeHpPool = KRIS_EXE_MAXHP (reset por
+     ronda en TODOS los clientes) + scr_globals.gml (arranque con la
+     macro — sin literales sueltas).
+   * server states/Game.c + raiz/Game.c: case CH_KRIS: hp_cap = 480 en
+     el switch del anticheat (100 + 20*19 = el tope alcanzable; sin esto
+     el server botaba a Kris al curarse por encima de 100). La copia de
+     la raiz es MUERTA (v14.3) pero se alinea igual.
+
+3) VERIFICACION — 2 PASADAS (pedido estandar de la duena), TODO LIMPIO:
+   * check_v95.py (pasada 1): 12/12 archivos con cambios exactos vs HEAD,
+     llaves/parens/corchetes balanceados en los 12, array de sonidos =
+     125 entradas con snd_kris_lvup UNICA al final (indice 124 real,
+     verificado por PARSE no por comentarios), macros definidos 1 vez,
+     TODAS las referencias cruzadas (senal cruda = layout de
+     net_sound_emit, espejo -35/refill, gate del golpe, knockdown antes
+     de aplicar shockedTimer, barra solo-Kris-LV20, flecha con sus gates,
+     cap 480 en las DOS copias del server) + gcc -fsyntax-only de
+     states/Game.c ENTERO contra los headers reales (stub minimo de enet
+     en /tmp: la lib no esta en el sandbox) = PASA; la copia muerta de la
+     raiz: 23 errores PRE-EXISTENTES de HEAD (misma cuenta antes y
+     despues: mis hunks no anaden ninguno).
+   * check_v95_pass2.py (pasada 2): roundtrip BYTE A BYTE — HEAD + 29
+     pares generados DEL PROPIO GIT (aplicados POR POSICION del diff:
+     los hunks de insercion pura @@ -l,0 @@ insertan DESPUES de la linea
+     l; el -1 naive los corria una linea arriba) reconstruyen los 12
+     archivos EXACTOS; simulacion de las 4 reglas (umbrales v46 intactos
+     56 impactos = LV 20; LMS 28 eventos vs 56 = 100% mas rapido; cura
+     +20 clampada al nuevo tope; pool 350/35: 10 golpes = knockdown+refill,
+     9 = 35 restantes, 25 = 2 derribos + 175, espejo == autoridad SIEMPRE,
+     debajo de LV 20 cero dano); layout de la barra (49..61 dentro de
+     480x270, DEBAJO del Escape 32..47, lejos del reloj) + anti-regresion
+     (cada bloque v95 vive en la rama/with/gate correcto).
+   * Bug de CHECKER (no del juego) encontrado y corregido en pasada 2: mi
+     primera reconstruccion saltaba los hunks de insercion pura y una
+     asercion propia decia 350 donde 25 golpes = 175 (2 derribos + 5
+     golpes) — el codigo del juego NUNCA estuvo mal (regla v94: «fixing
+     CHECKER bugs only»).
+   * PREVIEW pixel-exacto (mock_v95.py, coordenadas reales del codigo):
+     barra llena/tercio/vacia + flecha verde→anillo; verificado por
+     muestreo de pixeles (relleno 232,20,20 exacto, bordes en su sitio)
+     + revision visual VLM que DETECTO el pisado del «Escape!!!» en la
+     version y=38 → corregido a y=51 y re-verificado (barra claramente
+     debajo sin tocar, tercios correctos, flecha al anillo, nada cortado).
+     El mock tenia un bug propio de formula ceil (la barra B salia llena):
+     corregido a math.ceil — de nuevo, solo el MOCK.
+
+4) ENTREGA: zip SOLO con lo tocado (12 archivos del juego + LEARNING.md +
+   CACHE.md + worklog.md + LEEME_V95_KRIS_DUELO_FINAL.txt +
+   check_v95.py/check_v95_pass2.py/mock_v95.py +
+   PREVIEW_V95_KRIS_DUENO.png). LEEME en español con el resumen para la
+   duena (que hace cada cosa + como tunear KRIS_EXE_MAXHP/DAMAGE/DOWN_SEC
+   y KRIS_LV_HP_BONUS).
+## v96 - 2026-11-27 - KRIS: ritmo del LOVE retuneado — LMS +200% (3 impactos/golpe) y modo normal +50% (1.5)
+
+PEDIDO (literal): «ok bn pero esta vez aumentaremos a 200% lo del aumento
+de nivel en lms y 50% en modo normal.» — re-ajuste de la PERILLA de
+velocidad del LOVE v46. NADA del v95 cambia (flecha de salida, +20 max/
+cura por LV, barra del asesino, 35/golpe solo a LV 20, anticheat 480).
+
+INVESTIGACION (regla 3: solo lo recien editado):
+* scr_kris_love_event (scr_kris_special.gml) es el UNICO punto de
+  acumulacion del juego: krisLvHits += lmsActive ? 2 : 1 (los 2 call
+  sites — cuchillazo del CLIENT_PLAYER_HURT y bloqueo exitoso del
+  scr_parry — pasan por la funcion). El espejo krisLvNet NO acumula
+  hits: sube +1 por SENAL de subida (la primera lo pone en 2) — asi
+  que el ritmo solo toca el cliente del propio Kris.
+* Umbrales v46 (_th = [2,5,...,56], espaciados de 3): LV 20 = 56
+  impactos. Con +200% en LMS (3/golpe): LV 20 en 19 golpes (antes 28);
+  con +50% en normal (1.5/golpe): en 38 (antes 56).
+* MATEMATICA DE SEGURIDAD del contador fraccional: 1.5 y 3 son binarios
+  exactos → 1.5*N nunca arrastra redondeo (verificado: 1.5*N*2 == 3N
+  entero hasta N=100). Invariante 1-nivel-por-golpe: cruzar DOS
+  umbrales nuevos exige avanzar > 3 y ningun modo suma mas de 3 →
+  enumerados TODOS los estados alcanzables (a*1.5 + b*3, a<=60, b<=3,
+  ambos deltas): maximo salto por golpe = 1 nivel → la senal +1 del
+  espejo SIEMPRE alcanza, cero drift, cero cambios de red. Tambien con
+  el show activandose a mitad de ronda sobre un total fraccional.
+
+IMPLEMENTACION (3 ediciones, 1 archivo de juego):
+* scr_kris_special.gml: macros NUEVAS junto a las LOVE v46 —
+  KRIS_LV_XP_NORMAL 1.5 / KRIS_LV_XP_LMS 3 (bloque v96 con el pedido
+  citado); formula → krisLvHits += global.lmsActive ? KRIS_LV_XP_LMS :
+  KRIS_LV_XP_NORMAL; comentario de la funcion reescrito (v95→v96 con la
+  demostracion del invariante). CERO cambios en cualquier otro archivo
+  del juego: el set modificado vs HEAD sigue siendo EXACTO el del v95
+  (15 archivos) — v96 no agrego nada nuevo al diff.
+
+VERIFICACION — 2 PASADAS (pedido estandar), TODO LIMPIO EN LAS DOS:
+* check_v96.py (pasada 1): las 3 ediciones exactas y unicas (bloque de
+  macros / comentario / formula) + revert en memoria que reconstruye el
+  estado v95 limpio; la formula vieja «lmsActive ? 2 : 1» CERO veces en
+  TODO el codigo del juego; KRIS_LV_XP_* solo en scr_kris_special.gml;
+  anclas v46 byte-exactas vs HEAD y anclas v95 presentes 1 vez (las
+  added-by-v95 no existen en HEAD — bug del checker corregido: habia
+  que comparar contra el working, no contra HEAD); espejo + Create y
+  cura/heal/senal intocados; balance {} [] a 0 y parens con el MISMO
+  desbalance +1 de HEAD (139/138 pre-existente en comentarios — otro
+  bug de checker corregido: lo que v96 garantiza es delta 0, no
+  balance absoluto del archivo crudo); set de 15 archivos == v95 exacto.
+* check_v96_pass2.py (pasada 2): roundtrip BYTE A BYTE de los 12
+  archivos del juego (HEAD + 29 pares del propio git, por posicion con
+  insercion pura DESPUES de la linea l) == working EXACTO; simulacion
+  con las reglas REALES: normal 1.5/golpe → LV 20 en 38 golpes EXACTOS
+  (37 golpes = 55.5 = LV 19), LMS 3/golpe → LV 20 en 19 golpes EXACTOS
+  (18 = 54 = LV 19), velocidad efectiva x1.47/x2.95; floats exactos;
+  invariante 1-nivel-por-golpe en TODOS los estados alcanzables;
+  progresiones pura/LMS/mixta: LV local == espejo == tabla en cada
+  golpe; cadena de curas (19 subidas en LMS → tope 480, cada cura
+  clampada); duelo del exe intacto (350/35 = 10 golpes, derribo+refill;
+  primer golpe que hiere = el 19 a ritmo LMS); gates v95 byte-exactos
+  en su sitio + la formula v96 vive DENTRO de scr_kris_love_event.
+  Bug de CHECKER corregido en pasada 2 (regla v94): la expectativa de
+  senales estaba escrita como «eventos-1» en vez de «subidas-1» — el
+  codigo del juego NUNCA estuvo mal (local/espejo/tabla ya cuadraban
+  20/20/20).
+
+ENTREGA: zip SOLO con lo tocado por v96 (1 archivo de juego + LEARNING.md
++ CACHE.md + worklog.md + LEEME_V96_KRIS_RITMO.txt + check_v96.py +
+check_v96_pass2.py). LEEME en español con la tabla antes/después y la
+perilla con el AVISO de no pasar de 3 por golpe (romperia el invariante
+de 1 nivel por golpe).

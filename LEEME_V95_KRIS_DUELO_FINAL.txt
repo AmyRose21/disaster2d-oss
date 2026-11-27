@@ -1,0 +1,143 @@
+════════════════════════════════════════════════════════════════════
+ v95 — KRIS: BRUJULA DE SALIDA + LOVE = CRECIMIENTO
+          + EL DUELO FINAL DEL NIVEL 20 + LMS AL DOBLE
+════════════════════════════════════════════════════════════════════
+
+PEDIDO
+  "que el pueda ver donde se ubica la salida; que cada que suba de
+  nivel su vida max aumente 20 de vida max y el se cura esa misma
+  cantidad por cada que sube de nivel. (consecuencias.) al llegar
+  al nv 20 (si es que llega) el asesino le aparecera una barra de
+  vida, el daño de kris seria de 35 por golpe a nv 20 (el solo
+  puede dañarlo al nv 20). Si por otra parte esta en LMS su nivel
+  subira con mucha mas rapidez (100% mas rapido)."
+
+  Todo cuelga del sistema LOVE que ya tenia Kris (el "lv N" de la
+  v46: sube con cuchillazos acertados y bloqueos). No hay sistemas
+  inventados: la espada, el nivel, las señales y el HUD ya viajaban;
+  solo se les enganchó lo nuevo.
+
+────────────────────────────────────────────────────────────────────
+ 1) LA SALIDA SIEMPRE A LA VISTA
+────────────────────────────────────────────────────────────────────
+  Kris tiene ahora una FLECHA VERDE pegada a su cuerpo que apunta
+  SIEMPRE al anillo de escape (la salida) mas cercano, desde que
+  el anillo aparece en el mapa y sin condiciones. Es el mismo
+  sensor que tiene Amy Canon (su flecha verde). Si Kris cae y se
+  vuelve demonio, la flecha se apaga (juega para el asesino y ya
+  tiene su propia flecha roja del juego).
+
+────────────────────────────────────────────────────────────────────
+ 2) CADA NIVEL = +20 DE VIDA MAXIMA (y se cura otros 20)
+────────────────────────────────────────────────────────────────────
+  Cada vez que el LOVE sube de nivel:
+
+  · Su VIDA MAXIMA sube +20 (nivel 1 = 100 como siempre,
+      nivel 10 = 280, nivel 20 = 480).
+  · Y EN EL ACTO se cura esos mismos 20 (si ya esta lleno hasta
+      el tope nuevo, no gana nada extra).
+
+  La barrita "+NN" del HUD ahora refleja el tope real (los aliados
+  tambien la ven escalada en sus pantallas), y TODAS las curas del
+  juego ya respetan el nuevo tope solas (anillos, cajas, revival,
+  el Show Fuerte del LMS).
+
+  OJO SERVER: el anticheat del servidor ahora acepta hasta 480 de
+  vida para Kris (Game.c). Sin ese cambio el server lo botaba con
+  "garic forn" apenas se curaba por encima de 100.
+
+────────────────────────────────────────────────────────────────────
+ 3) EL DUELO FINAL: NIVEL 20 = EL ASESINO SE VUELVE VULNERABLE
+────────────────────────────────────────────────────────────────────
+  Al llegar Kris al nivel 20 (si es que llega — son 56 impactos
+  acumulados, 28 en LMS):
+
+  · EL ASESINO GANA UNA BARRA DE VIDA arriba de la pantalla
+      (solo la ve Kris): 350 de vida, "EL ASESINO  N golpes".
+  · Cada cuchillazo de la espada le hace 35 DE DAÑO REAL
+      (10 golpes para derribarlo).
+  · DEBAJO del nivel 20 la espada sigue siendo el stun de siempre:
+      CERO daño. Solo con el nivel 20 lo puede dañar.
+
+  Cuando la barra llega a 0: el asesino cae derribado 10 SEGUNDOS
+  (un stun largo) y su barra se REllena — la pelea puede repetirse
+  mientras dure la ronda. En la pantalla del asesino suena el
+  chime de subir nivel cada vez que un golpe le duele de verdad
+  (y el knockdown se lo siente completo).
+
+  Nada de trampas: la vida real del asesino la lleva SU propio
+  cliente (el patron de autoridad de todo el juego), y aunque el
+  asesino se vuelva INVISIBLE la espada le sigue doliendo igual
+  (como ya pasaba con el stun) y la barra no se desincroniza: la
+  señal del daño viaja siempre — es un dato, no un sonido, y
+  nunca suena en las pantallas de los demas (nadie mas sabe donde
+  esta el asesino invisible por ella).
+
+────────────────────────────────────────────────────────────────────
+ 4) LMS: EL NIVEL SUBE EL DOBLE DE RAPIDO
+────────────────────────────────────────────────────────────────────
+  Durante "El Show Fuerte" (cuando Kris queda como ULTIMO
+  SUPERVIVIENTE), cada cuchillazo acertado o bloqueo cuenta por
+  DOS impactos de LOVE: el nivel 20 llega en 28 eventos en vez de
+  56, exactamente el 100% mas rapido que pediste (mismos
+  umbrales, nada raro).
+
+────────────────────────────────────────────────────────────────────
+ ARCHIVOS TOCADOS (12)
+────────────────────────────────────────────────────────────────────
+  Game:
+  · scripts/scr_kris_special/scr_kris_special.gml (macros + cura
+      por nivel + LMS doble + scr_kris_exe_hp_signal)
+  · scripts/scr_player_maxhp/scr_player_maxhp.gml (vida max de
+      Kris por nivel, parametro puppet opcional)
+  · objects/obj_level/Draw_64.gml (4 llamadas puppet con el
+      espejo del nivel)
+  · scripts/net_sounds/net_sounds.gml (snd_kris_lvup al final del
+      array de red: indice nuevo, los clientes viejos lo ignoran)
+  · scripts/net_state_game/net_state_game.gml (rama espejo de la
+      vida del asesino + señal muda)
+  · objects/obj_player_puppet/Step_0.gml (el -35 real al asesino
+      con Kris nivel 20 + knockdown a 0)
+  · objects/obj_playerui/Draw_64.gml (la barra del asesino)
+  · objects/obj_kris/Draw_64.gml (la flecha de salida)
+  · objects/obj_level/Create_0.gml (reset por ronda del pool)
+  · scripts/scr_globals.gml (arranque del pool)
+  Server (ANTICHEAT, hay que recompilar el server):
+  · betterserver-oss/disasterserver/states/Game.c  ← EL que se
+      compila (cap de Kris 480)
+  · betterserver-oss/disasterserver/Game.c (copia muerta, alineada
+      igual por si acaso)
+
+────────────────────────────────────────────────────────────────────
+ PERILLAS DE CALIBRACION (si quieres tunear, todo en
+ scripts/scr_kris_special/scr_kris_special.gml)
+────────────────────────────────────────────────────────────────────
+  · KRIS_LV_HP_BONUS 20      → vida max por nivel (20 = lo pedido)
+  · KRIS_LV_BASE_HP 100      → la vida del nivel 1
+  · KRIS_EXE_DAMAGE 35       → daño por golpe a nivel 20 (pedido)
+  · KRIS_EXE_MAXHP 350       → vida del asesino (10 golpes; subelo
+                                si quieres la pelea mas larga)
+  · KRIS_EXE_DOWN_SEC 10     → segundos de derribo al llegar a 0
+  · La barra (solo la ve Kris): objetos/obj_playerui/Draw_64.gml
+      (_kbX/_kbY) — si prefieres que el asesino TAMBIEN la vea,
+      es quitar un gate (dime y lo hago).
+
+────────────────────────────────────────────────────────────────────
+ VERIFICACION (2 pasadas, TODO LIMPIO)
+────────────────────────────────────────────────────────────────────
+  Pasada 1 (check_v95.py): los 12 archivos con cambios exactos,
+  balance de llaves, array de sonidos bien contado (125 entradas,
+  la señal nueva al final y unica), todas las referencias
+  cruzadas, el server COMPIBA LIMPIO contra sus headers reales
+  (gcc completo con stub de enet), y la copia muerta sin errores
+  nuevos.
+  Pasada 2 (check_v95_pass2.py): reconstruccion BYTE A BYTE de los
+  12 archivos desde HEAD + los 29 pares generados del propio git,
+  simulacion de TODAS las reglas (umbrales, LMS 28 eventos, curas
+  clampadas, el pool 350/35 con derribo y refill IGUAL en las dos
+  pantallas, y cero daño debajo del nivel 20), layout de la barra
+  sin pisar nada, y cada bloque viviendo en la rama correcta.
+  Preview pixel-exacto (PREVIEW_V95_KRIS_DUENO.png) revisado por
+  vision: la primera version de la barra pisaba el "Escape!!!"
+  arriba — corregido (y=51) y re-verificado antes de cerrar.
+════════════════════════════════════════════════════════════════════

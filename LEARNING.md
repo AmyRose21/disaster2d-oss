@@ -2003,3 +2003,135 @@ Nothing for v94. Tuning knobs if the owner asks: icon scales/anchors (the 9
 drawMiniIcon calls in obj_playerui/Draw_64.gml cases CHARACTER_KRIS /
 CHARACTER_AMY_CANON), and per-face art swaps (e.g. sword air2 for air1, or
 block_success_air for the shield icon) — all single-argument changes.
+
+## v95 — Kris: exit compass + LOVE growth + the LV-20 killer duel (2026-11-27)
+
+Owner's ask: Kris sees the exit always; each LOVE level up = +20 max HP and
+heals 20; at LV 20 the killer gets a health bar and Kris deals 35 per sword
+hit (ONLY at LV 20); in LMS his level rises 100% faster (pace retuned in
+v96 below: LMS 3 hits/event, normal 1.5). Everything hangs off
+the v46 LOVE system — extend, don't invent.
+
+1. **The v46 LOVE system was the whole skeleton**: krisLv 1-20
+   (KRIS_LV_MAX), krisLvHits thresholds, krisLvNet mirrored on puppets via
+   the silent snd_none signal, and the victim-authority stun scaling — all
+   reused. The LV-20 "consequences" needed ZERO new player state: the exe
+   side reads the SAME krisLvNet mirror to decide if the sword wounds.
+2. **A character max HP that grows needs FOUR alignment points, or the
+   feature silently breaks**: (a) scr_player_maxhp must be level-aware —
+   every heal gate, the LMS heal, revival, spawn and the
+   CLIENT_PLAYER_DATA clamp call it, so ONE change aligned them all;
+   (b) the SERVER anti-cheat cap must be raised to the reachable max
+   (CH_KRIS 100 -> 480 in Game.c) or the server disconnects the player
+   ("garic forn") on the first heal past 100; (c) puppet displays must pass
+   the instance so the bar scales with the MIRROR (krisLvNet), not the local
+   player's level; (d) overhead HP rings keep their hardcoded 100-steps —
+   Rouge (125) and Metal (150) already shipped like that, so Kris at 480+
+   is house-consistent (the "+NN" HUD bar is the source of truth).
+3. **A per-character optional parameter is the house-safe signature change**:
+   scr_player_maxhp(char, inst = noone) — every existing call site keeps
+   working (local reads global.player.krisLv inside), and only the 4 puppet
+   call sites needed the extra argument.
+4. **The exe's "boss pool" is a GLOBAL, not an instance variable**: the exe
+   has 6 playable variants (Original/Exeller/Exetior/Chaos/Jinna/Metal Amy),
+   each with its own Create — global.exeHpPool (reset per round in
+   obj_level/Create, boot value in scr_globals.gml) works for all of them
+   with zero Create edits and doubles as the mirror target on every client.
+5. **Net signals: verify the REAL array index, not the comments**. The
+   net_snds comments have drifted +1 since v4.7 ("lo que manda es el ORDEN").
+   The array was 124 entries (0..123) before v95 — snd_kris_lvup appended =
+   REAL index 124, and the receiver ignores anything >= its own length, so
+   a v94 client simply drops the new signal. Count entries by parsing, and
+   remember a duplicate asset (snd_exe_laugh exists twice, pre-existing)
+   can never be a new index (array_find_index resolves to the first).
+6. **The invisible-exe sound gate forces a raw packet for exe-emitted
+   signals**: net_sound_emit silences everything but snd_spring while the
+   exe is invisible — but the sword DOES stun (and now wounds) the
+   invisible exe. A signal sent through the gate would be lost exactly
+   when the exe tries to hide, and the mirrored bar would drift forever
+   (no absolute resync exists). scr_kris_exe_hp_signal writes the SAME
+   packet layout by hand, and the receiver branch is excluded from
+   scr_audio_play_3d so nothing audible leaks the invisible exe's
+   position. Data is not a sound.
+7. **Refills can be DERIVED instead of signaled when both sides apply the
+   same ordered sequence**: exe pool and Kris mirror both start at 350 and
+   apply the same TCP-ordered -35 signals, so "pool hits 0" is the same
+   event on both — each side refills itself. No second signal type, no
+   drift (a missed refill needs a lost TCP packet, which the transport
+   forbids).
+8. **Sprite geometry beats sprite name for layout**: spr_status
+   ("Escape!!!") is drawn at y=32 but is 168x15 with origin (84,0) — it
+   OCCUPIES y=32..47. The first bar draft at y=38 "was below the Escape
+   text" by its draw coordinate and still overlapped 12 rows. The VLM pass
+   on the pixel-exact mock caught it; the fix (y=51) was then verified by
+   mock + pixel sampling + VLM again. Check origin + height, not just the
+   draw call's y.
+
+### Verification lessons (both passes clean; all early failures were
+### checker bugs)
+
+- **Positional diff application must special-case pure insertions**:
+  unified-diff hunk "@@ -l,0 +m,n @@" inserts AFTER old line l — a naive
+  idx = l-1 shifts the block up one line and the byte-exact reconstruction
+  fails for every pure-insert file. (Also: a checker assertion can be wrong
+  — 25 hits = 2 knockdowns + 5 wounding hits = 175 left, not 350.)
+- **gcc -fsyntax-only of the server needs an enet stub**: enet isn't in the
+  sandbox; a ~40-line stub header with the types/prototypes the server uses
+  lets states/Game.c (the COMPILED copy, per the v14.3 lesson) pass a FULL
+  syntax check against the real headers. The root Game.c is dead code that
+  already had 23 errors at HEAD — verify only that your hunks add none
+  (23 == 23).
+
+### Pending
+
+Nothing for v95. Tuning knobs if the owner asks: KRIS_LV_HP_BONUS (20),
+KRIS_LV_BASE_HP (100), KRIS_EXE_DAMAGE (35), KRIS_EXE_MAXHP (350),
+KRIS_EXE_DOWN_SEC (10) — all macros in scr_kris_special.gml; bar geometry
+in obj_playerui/Draw_64.gml (_kbX/_kbY); the bar is Kris-only by design
+(making it visible to the exe too = remove the global.character check).
+
+## v96 — Kris: LOVE pace retune — LMS +200%, normal +50% (2026-11-27)
+
+Owner's ask: "ok bn pero esta vez aumentaremos a 200% lo del aumento de
+nivel en lms y 50% en modo normal" — the level-gain boost goes to +200% in
+LMS (3x) and the normal mode now also gets +50% (1.5x).
+
+1. **One tuning knob away from the math = extract the macro when the
+   owner asks for a different number**: v95 hardcoded
+   `krisLvHits += global.lmsActive ? 2 : 1;` — v96 becomes
+   `lmsActive ? KRIS_LV_XP_LMS : KRIS_LV_XP_NORMAL` with
+   KRIS_LV_XP_LMS 3 / KRIS_LV_XP_NORMAL 1.5 next to the LOVE v46 macros.
+   Single accumulation point in the whole game (both call sites — sword
+   hit and parry success — go through scr_kris_love_event), so ONE line
+   of logic changed.
+2. **Fractional hit counters are safe HERE because the numbers are exact
+   in binary**: 1.5 and 3.0 are exactly representable doubles, so
+   krisLvHits stays exact forever (no rounding drift); the thresholds are
+   integers compared with >=, which is float-safe. LV 20 (56 hits)
+   arrives at 19 events in LMS (was 28) and 38 in normal (was 56).
+3. **The +1-per-signal mirror survives ANY per-event multiplier as long
+   as no single event can cross two thresholds**: thresholds are spaced
+   3 apart and both multipliers are <= 3, so one event can cross at most
+   one new threshold (crossing two needs an advance > 3). The silent
+   snd_none signal fires once per actual level-up and krisLvNet does +1
+   (first signal = 2) — zero mirror changes needed. Also true when LMS
+   activates mid-round on top of a fractional normal-phase total.
+4. **Docs must annotate superseded behavior, not just append**: v95's
+   CACHE/LEARNING entries said "2 : 1"; a future session greps the rate,
+   finds the stale line first, and reimplements v95. Keep the historical
+   entry but mark it SUPERSEDIDO with a pointer to the new one.
+
+### Verification lessons
+
+- **Re-run the OLD check's assertions after retuning numbers**: check_v95.py
+  asserts the literal `? 2 : 1` formula — by design it now FAILS on the v96
+  tree (it verified v95, it is not a regression test). A rate change needs
+  a fresh check pair that pins the NEW literals and re-simulates the events
+  to LV 20 (19 LMS / 38 normal / 56 untouched thresholds).
+
+### Pending
+
+Nothing for v96. Tuning knobs: KRIS_LV_XP_NORMAL (1.5) / KRIS_LV_XP_LMS (3)
+in scr_kris_special.gml — any > 3 multiplier per event would break the
+one-level-per-event invariant (mirror drift) and would need threshold
+respacing or a multi-signal flush first.

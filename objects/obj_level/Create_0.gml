@@ -3,6 +3,18 @@ global.timeMinutes = 0;
 global.ringFrame = 0;
 global.lmsActive = false;
 
+// v95 (KRIS LV 20 — "consecuencias"): la VIDA DEL ASESINO. Nace LLENA
+// en cada ronda, en TODOS los clientes: en el del exe es su vida REAL
+// (la autoridad — la baja su cliente cada cuchillazo de un Kris con LV
+// maximo) y en el de Kris (y el resto) el espejo que alimenta la barra
+// del asesino via la senal silenciosa del exe (snd_kris_lvup). Los dos
+// aplican la misma secuencia desde este valor y derivan el refill a 0,
+// asi que nunca se desincronizan (TCP ordenado). Un GLOBAL y no una
+// variable del player del exe: vale igual para CUALQUIER variante de
+// asesino (Original/Exeller/Exetior/Chaos/Jinna/Metal Amy) sin tocar
+// sus 6 Create.
+global.exeHpPool = KRIS_EXE_MAXHP;
+
 // v3/v4 (D.I.B.) — estado de ronda de JINNA (se resetea en cada arranque):
 //  * jinnaTelePower: frames restantes de la ventana de poder del tele-
 //    transporte (3 s: hitbox del golpe basico +25% en los clientes de

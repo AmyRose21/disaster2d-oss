@@ -1000,6 +1000,49 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                         var _klv = variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1;
                                         stunTime = stunTime * (1 + KRIS_LV_STUN_PCT * _klv);
                                 }
+
+                                // v95 (KRIS LV 20 — "consecuencias"): el asesino se
+                                // vuelve vulnerable. Pedido de la duena: "al llegar al
+                                // nv 20 el asesino le aparecera una barra de vida, el
+                                // dano de kris seria de 35 por golpe a nv 20 (el solo
+                                // puede danarlo al nv 20)". Corre AQUI porque la
+                                // AUTORIDAD de la vida del exe es SU propio cliente
+                                // (patron victima-autoridad de todo el juego): yo soy
+                                // el exe local, el puppet atacante es un Kris y su LV
+                                // espejado (krisLvNet — la senal silenciosa v46 que
+                                // este mismo cliente recibio) dice si su espada ya
+                                // duele de verdad. Debajo de LV 20: solo el stun de
+                                // siempre, CERO dano al pool. Este bloque es del EXE
+                                // REAL (global.character == CHARACTER_EXE): los
+                                // esbirros demonizados NO tienen pool — "el asesino"
+                                // es uno solo.
+                                if(global.character == CHARACTER_EXE && !global.player.isDead
+                                && (variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1) >= KRIS_LV_MAX)
+                                {
+                                        global.exeHpPool = max(global.exeHpPool - KRIS_EXE_DAMAGE, 0);
+
+                                        // el espejo de TODAS las pantallas (la barra del
+                                        // asesino que ve Kris): senal silenciosa con el
+                                        // chime como portador. Paquete CRUDO a proposito
+                                        // (scr_kris_exe_hp_signal) — net_sound_emit
+                                        // callaria todo con el exe invisible y la barra
+                                        // de Kris quedaria desincronizada para siempre.
+                                        scr_kris_exe_hp_signal();
+
+                                        // el exe OYE su herida (local, como el stun): el
+                                        // chime de Kris = "tocado de verdad". A 0: el
+                                        // pool se RELENA (la pelea puede repetirse) y el
+                                        // stun se alarga al KNOCKDOWN completo — el
+                                        // stunTime de abajo todavia no se aplico, basta
+                                        // con subirlo aqui.
+                                        audio_play_sound(snd_kris_lvup, 0, false);
+
+                                        if(global.exeHpPool <= 0)
+                                        {
+                                                global.exeHpPool = KRIS_EXE_MAXHP;
+                                                stunTime = max(stunTime, KRIS_EXE_DOWN_SEC);
+                                        }
+                                }
                                 var buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
                                 buffer_write(buffer, buffer_u16, master_id);
                                 buffer_write(buffer, buffer_u16, x);

@@ -221,7 +221,7 @@ if(global.showHud && titleCard > 4)
                         var _pch = inst.character;
                         if(!inst.isDemonized || inst.character == CHARACTER_EXE)
                         {
-                                var sprIndex = round((1.0 - (inst.hp / scr_player_maxhp(_pch))) * 5); // v13: max por personaje (Rouge 125 / Metal 150)
+                                var sprIndex = round((1.0 - (inst.hp / scr_player_maxhp(_pch, inst))) * 5); // v13: max por personaje (Rouge 125 / Metal 150 / Kris por LV v95)
                                 
                                 if(inst.hp <= 0)
                                 {
@@ -246,7 +246,7 @@ if(global.showHud && titleCard > 4)
                                 
                                 // v10 (BARRA DE VIDA DE ALIADOS): AL LADO del retrato (como la
                                 // imagen), con el hp real del puppet via UDP y su "+NN" dentro
-                                hudAllyBar(_colX, _rowBot - 26, inst.hp, scr_player_maxhp(_pch)); // v13: max por personaje
+                                hudAllyBar(_colX, _rowBot - 26, inst.hp, scr_player_maxhp(_pch, inst)); // v13: max por personaje (v95: Kris escala con su LV espejado)
                         }
                         else
                         {
@@ -258,7 +258,7 @@ if(global.showHud && titleCard > 4)
                                 // tira demon roja fija.
                                 if(variable_instance_exists(inst, "isNegatouch") && inst.isNegatouch)
                                 {
-                                        var _ngFrame2 = round((1.0 - (inst.hp / scr_player_maxhp(_pch))) * 5); // v13: max por personaje
+                                        var _ngFrame2 = round((1.0 - (inst.hp / scr_player_maxhp(_pch, inst))) * 5); // v13: max por personaje (v95: Kris por LV)
                                         
                                         if(inst.hp <= 0)
                                                 _ngFrame2 = 5;
@@ -267,7 +267,7 @@ if(global.showHud && titleCard > 4)
                                         draw_sprite(_ngPair2[0], _ngPair2[1] + _ngFrame2, _colX, _rowBot);
                                         
                                         // v10: el nega del aliado tambien muestra su vida real en la barra
-                                        hudAllyBar(_colX, _rowBot - 26, inst.hp, scr_player_maxhp(_pch)); // v13: max por personaje
+                                        hudAllyBar(_colX, _rowBot - 26, inst.hp, scr_player_maxhp(_pch, inst)); // v13: max por personaje (v95: Kris por LV)
                                 }
                                 else
                                 {

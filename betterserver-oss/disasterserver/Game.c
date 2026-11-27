@@ -1299,8 +1299,16 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
 							{
 								case CH_ROUGE: hp_cap = 125; break;
 								case CH_METAL: hp_cap = 150; break;
+								/* v95 (KRIS LOVE): su vida TOTAL crece +20 por
+								 * nivel de LOVE (100 en LV 1, 480 en LV 20:
+								 * KRIS_LV_BASE_HP + KRIS_LV_HP_BONUS *
+								 * (KRIS_LV_MAX - 1) del cliente,
+								 * scr_player_maxhp). El cap del anticheat es
+								 * el TOPE alcanzable del personaje, no el de
+								 * arranque: mismo modelo que Rouge 125 /
+								 * Metal 150. */
+								case CH_KRIS: hp_cap = 480; break;
 							}
-
 							if (hp < 0 || hp > hp_cap)
 							{
 								server_disconnect(v->server, v->peer, DR_OTHER, "garic forn — Сьогодні о 04:31");
