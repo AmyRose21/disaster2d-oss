@@ -3,6 +3,13 @@ global.timeMinutes = 0;
 global.ringFrame = 0;
 global.lmsActive = false;
 
+// v98b (duelo final): true desde que el server retira el anillo de
+// escape (SERVER_GAME_RING_OFF: Kris a LV 20 como unico superviviente
+// vivo). Mientras valga, el reloj del HUD se dibuja INFINITO (el
+// server ya no manda TIME_SYNC: duelo sin limite de tiempo). Lo
+// resetea este Create de ronda.
+global.ringOff = false;
+
 // v95 (KRIS LV 20 — "consecuencias"): la VIDA DEL ASESINO. Nace LLENA
 // en cada ronda, en TODOS los clientes: en el del exe es su vida REAL
 // (la autoridad — la baja su cliente cada cuchillazo de un Kris con LV

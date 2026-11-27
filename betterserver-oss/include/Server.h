@@ -316,13 +316,16 @@ typedef struct
            EXACTAS: LV del server = kris_lv + 1, tope 19 senales = LV 20
            (KRIS_LV20_SIGNALS). Se consume en el tick de la partida:
            LV 20 ANTES del LMS -> el show de Kris arranca SOLO aunque
-           queden mas vivos (lms latched, lms_natural = false); LV 20
-           DURANTE el show NATURAL de Kris (el arranco por quedarse
-           como ultimo) -> ring_off: el anillo verde NO aparece (o se
-           apaga) y la ronda solo acaba con Kris o el exe en el suelo. */
+           queden mas vivos (lms latched); LV 20 con Kris como UNICO
+           superviviente vivo (chequeo VIVO game_kris_alone, cada tick,
+           venga el show del camino que venga — v98b FIX: antes era
+           lms_natural y ese latch no se re-evaluaba) -> ring_off: el
+           anillo verde NO aparece (o vuelve a su estado "recien
+           aparecido", no usable) y la ronda solo acaba con Kris o el
+           exe en el suelo. */
         uint8_t kris_lv; /* senales snd_none de Kris recibidas (0..KRIS_LV20_SIGNALS) */
-        bool lms_natural; /* v98: el show activo arranco por la regla del ultimo superviviente (no por el LV 20) */
-        bool ring_off; /* v98: anillo de escape retirado (duelo final Kris vs exe): game_bigring ignora todo */
+        bool lms_natural; /* v98: el show activo arranco por la regla del ultimo superviviente (no por el LV 20). v98b: ya NO gatilla nada (queda documental) */
+        bool ring_off; /* v98: anillo de escape retirado (duelo final Kris vs exe): game_bigring ignora todo. v98b: ademas congela el reloj (sin TIME_SYNC/ED_TIMEOVER) y descarta CLIENT_PLAYER_ESCAPED */
 
         double start_timeout;
         double time;

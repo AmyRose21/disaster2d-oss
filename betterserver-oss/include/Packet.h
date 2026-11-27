@@ -418,10 +418,14 @@ typedef enum
            partida con ED_SURVWIN. Sin payload. Ya NO hay refill del
            pool: la pelea a muerte termina la ronda.
            SERVER_GAME_RING_OFF: lo difunde el server cuando el Kris de
-           la ronda llega a LV 20 DURANTE su show natural del LMS (quedo
-           como ultimo superviviente y su show arranco por eso): el
-           anillo verde de escape NO aparece (o se retira si ya estaba) —
-           pelea a muerte 1 vs 1 hasta que Kris o el exe caigan. Sin
+           la ronda llega a LV 20 y queda como UNICO superviviente vivo
+           con su show activo (venga del disparo automatico del LV 20 o
+           de la regla del ultimo superviviente — chequeo vivo en cada
+           tick): el anillo verde de escape NO aparece o, si ya estaba
+           en pantalla, vuelve a su estado "recien aparecido" (los
+           10 s de espera: visible en su sitio pero nadie puede salir
+           por el) y el reloj se detiene — pelea a muerte 1 vs 1 SIN
+           LIMITE DE TIEMPO hasta que Kris o el exe caigan. Sin
            payload. Anadido AL FINAL en los DOS lados. */
         CLIENT_EXE_DEFEATED,
         SERVER_GAME_RING_OFF

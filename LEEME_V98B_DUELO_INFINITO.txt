@@ -1,0 +1,98 @@
+════════════════════════════════════════════════════════════════════
+ v98b — FIX DEL DUELO FINAL: el anillo ya no queda activo tras el
+ LV 20, y el tiempo del 1 vs 1 pasa a INFINITO
+════════════════════════════════════════════════════════════════════
+
+QUÉ PASABA (tu reporte)
+──────────────────────
+1. EL ANILLO. Cuando Kris llega al LV 20 CON MÁS GENTE VIVA, su show
+   arranca solo (el ítem 7). El problema: el retiro del anillo del
+   v98 solo valía si el show había arrancado por la regla del "último
+   superviviente" (show NATURAL). Pero esa marca se decide UNA sola
+   vez al arrancar el show y ya no se vuelve a mirar nunca. En el
+   camino normal (LV 20 con gente viva → show automático → después
+   caen los demás) la marca quedaba en "no natural" PARA SIEMPRE…
+   así que el anillo verde que apareció durante el show seguía LISTO
+   y Kris podía ESCAPAR en pleno 1 vs 1. Exactamente lo que viste.
+
+2. EL ESTADO DEL ANILLO. Tu regla original decía «si estaba activo
+   volverá a estado INACTIVO» — el v98 lo DESTRUÍA (lo hacía
+   desaparecer). Lo que pediste es que vuelva al estado "recién
+   aparecido": el de los 10 segundos de espera donde está en pantalla
+   pero TODAVÍA NO se puede usar.
+
+3. EL TIEMPO. En el 1 vs 1 el reloj seguía corriendo (el del show,
+   232 s máx) y al agotarse el round terminaba por TIEMPO y ganaba
+   el exe. Un duelo "hasta que Kris o el exe caigan" con reloj encima
+   no era un duelo de verdad.
+
+QUÉ CAMBIA AHORA
+────────────────
+1. EL ANILLO SE RETIRA DE VERDAD (en cualquier camino). La condición
+   ya no depende de cómo arrancó el show: el server revisa CADA TICK
+   si Kris está a LV 20, con su show activo, y como ÚNICO
+   superviviente vivo. El momento en que cae el último compañero
+   (venga el show de donde venga), el anillo se retira. Si queda
+   alguien más vivo, NO se retira (los demás siguen escapando).
+
+2. EL ANILLO VUELVE AL ESTADO "RECÉN APARECIDO". Ya no se destruye:
+   vuelve al sprite de los 10 segundos de espera (se ve en su
+   sitio, pero Kris NO puede salir por él). Y por si algún cliente
+   desincronizado viera el anillo "listo", el server ahora DESCARTA
+   cualquier intento de escape con el anillo retirado — manda el
+   server. (Bonus: antes el server no validaba NADA del escape; ahora
+   sí.)
+
+3. TIEMPO INFINITO EN EL 1 vs 1. Cuando el anillo se retira, el
+   reloj se DETIENE: en el HUD los números desaparecen y en su lugar
+   se ve el símbolo ∞ (el "8" del contador girado de lado — sin
+   sprites nuevos, mismo estilo del HUD) y la aguja del reloj se
+   congela. Sin tiempo agotado, sin muerte súbita, y tampoco
+   renacen anillos por el reloj (el duelo no se estanca: cada
+   anillo menos = más a muerte). La ronda SOLO termina cuando Kris o
+   el exe caen.
+
+CÓMO PROBARLO (tu escenario del reporte)
+────────────────────────────────────────
+· Ronda normal con 2+ supervivientes. Kris sube LOVE hasta LV 20 con
+  otro(s) jugador(es) vivos → su show arranca automático.
+· El anillo aparece a los 60 s de reloj (y se activa a los 50):
+  si el reloj del show pasa por ahí, el anillo sale en pantalla.
+· Cuando caiga el último compañero (solo Kris + el exe): el anillo
+  pasa a "no usable" (sprite de los 10 s), el banner "Escape!!!"
+  desaparece y el reloj pasa a ∞.
+· Kris ya NO puede escapar (tócalo: no pasa nada). El duelo sigue
+  hasta que uno de los dos caiga. Reloj: nunca se agota.
+· Reconexión: quien entre al duelo a mitad recibe lo mismo (anillo
+  no usable + reloj ∞).
+
+NOTAS
+─────
+· Si el duelo empieza con menos de 1:00 en el reloj, Kris conserva
+  los i-frames cortos del último minuto (1 s en vez de 3) — igual
+  que pasaba en v98 con el reloj corriendo; el duelo simplemente
+  congela ese momento. Si lo quieres con i-frames normales siempre,
+  es un cambio de una línea, pídelo.
+· v98b NO añade paquetes nuevos (reusa el RING_OFF del v98): cliente
+  y server pueden actualizarse por separado sin romper nada (el lado
+  que quede viejo sigue con el comportamiento v98 de su parte).
+· El anti-camp sigue retirado durante el show (ya venía del v98).
+
+ARCHIVOS DEL ZIP (solo lo tocado)
+─────────────────────────────────
+  betterserver-oss/disasterserver/states/Game.c   (gate vivo, guard del
+      escape, reloj congelado, helper game_kris_alone)
+  betterserver-oss/include/Server.h               (comentarios)
+  betterserver-oss/include/Packet.h               (comentarios)
+  scripts/net_state_game/net_state_game.gml       (RING_OFF: anillo a
+      estado no usable + global.ringOff)
+  scripts/net_packets/net_packets.gml             (comentarios)
+  objects/obj_level/Draw_64.gml                   (∞ en el reloj)
+  objects/obj_level/Create_0.gml                  (reset por ronda)
+  scripts/scr_globals/scr_globals.gml             (init del global)
+  check_v98b.py           (verificación: 55 OK / 0 FAIL)
+  LEARNING.md / CACHE.md / worklog.md               (docs de la casa)
+
+INSTALACIÓN: igual que siempre — reemplazar los archivos del
+proyecto GMS2 por los del zip y recompilar. EL SERVER TAMBIÉN
+(betterserver-oss): el fix del gate y el reloj viven en él.

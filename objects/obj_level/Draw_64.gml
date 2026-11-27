@@ -78,10 +78,30 @@ if(global.showHud && titleCard > 4)
         draw_sprite(spr_clock, 0, 211, 0);
         clockAngle = lerp(clockAngle, (-45 * timeFrame), 0.2);
         draw_sprite_ext(spr_clockhand, 0, 212, 11.5, 1, 1, clockAngle, c_white, 1);
-        
-        draw_sprite(spr_counter, 10, 233, 4);
-        scr_counter_draw(global.timeMinutes, 224, 4);
-        scr_counter_draw_m(global.timeSeconds, 244, 4, 2);
+
+        // v98b (duelo final — tiempo INFINITO): con el anillo retirado
+        // (global.ringOff) el server ya no manda TIME_SYNC, la aguja se
+        // congela sola y los contadores se reemplazan por el INFINITO:
+        // el "8" del contador girado 90 grados (sus dos bucles quedan
+        // lado a lado — misma placa negra y mismo glifo brillante del
+        // HUD, cero sprites nuevos). OJO con la rotacion: el +90 de GM
+        // gira ANTIHORARIO en pantalla, asi que el contenido queda
+        // ARRIBA-DERECHA del punto de dibujo (x' en [px, px+14], y' en
+        // [py-10, py]). El draw (238, 15) centra el glifo en (244.5,
+        // 10.5) — el centro del bloque de numeros "M:SS" que reemplaza
+        // (verificado con render PIL contra el bloque "4:37" real:
+        // delta +0.5 / 0 px; el (252, 6) del primer intento quedaba a
+        // +14/-6 y cortado por arriba).
+        if(global.ringOff)
+        {
+                draw_sprite_ext(spr_counter, 8, 238, 15, 1, 1, 90, c_white, 1);
+        }
+        else
+        {
+                draw_sprite(spr_counter, 10, 233, 4);
+                scr_counter_draw(global.timeMinutes, 224, 4);
+                scr_counter_draw_m(global.timeSeconds, 244, 4, 2);
+        }
         
         if(!showSurvivors)
         {

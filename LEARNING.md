@@ -2319,3 +2319,61 @@ first, don't invent packets (rule 7).
   from v97: a client joining mid-round starts its krisLvNet mirror at
   LV 1 (no absolute resync), so late joiners won't see the boss bar;
   players present from the start see everything exactly.
+
+## v98b — The LMS latch ate the ring retirement + infinite-time duel (2026-11-27)
+
+- **Never gate a LATER, live condition on a latched "origin story".**
+  v98 retired the escape ring only when `lms_natural` was true, but
+  that flag is written ONCE when the show starts (natural last-man-
+  standing vs automatic LV-20 trigger) and the LMS itself is a latch.
+  The very common path — Kris hits LV 20 while others are alive
+  (automatic show, `lms_natural = false`), THEN the others die — could
+  never re-evaluate, so the ring stayed usable inside the 1v1 and Kris
+  could escape mid-duel. Fix: check the state you actually care about,
+  live, every tick (`game_kris_alone()`, same survivor criteria as the
+  LMS trigger). `lms_natural` stays as documentation only.
+- **"Volverá a estado inactivo" meant the 10-second state, not
+  destruction.** The owner's original spec had the ring become
+  unusable; v98 destroyed it. obj_bigring's Step only accepts a touch
+  when `sprite_index == spr_bigring_ready`, so flipping the sprite
+  back to `spr_bigring` yields a visible-but-unusable ring with zero
+  new assets — and the server now discards `CLIENT_PLAYER_ESCAPED`
+  under `ring_off` (that packet had NO server validation at all: any
+  hacked client could always "escape"; the duel is server-
+  authoritative now).
+- **Infinite time with existing assets.** Freeze the countdown server
+  side (skip TIME_SYNC; the clock hand freezes by itself because
+  `timeFrame` only advances on that packet) and draw ∞ as the counter
+  font's "8" rotated 90° — a pixel 8 IS two loops, rotated they sit
+  side by side. Frame order in a GM sprite .yy = the `frames` array
+  order; digit N = frame N, frame 10 = ":". Pixel-dump counter PNGs by
+  LUMINANCE, not alpha: they are opaque black plates with bright
+  glyphs, so an alpha threshold shows a solid block and the digit
+  shape is in the RGB.
+- **A frozen clock silently freezes everything keyed on it** — which
+  is exactly what a duel wants here: the sudden-death trigger (2:00),
+  the periodic small-ring spawns (anti-stall: no ring regrowth in the
+  duel) and the last-10s tick sound all stop. Known carry-over: if the
+  duel starts under 1:00, `scr_player_hurt` keeps the 1-second i-frame
+  window for the rest of the duel (same as v98 running the clock down).
+  The freeze trick itself: add back inside what the tick tail
+  subtracts (`time += server->delta` vs the trailing `-=`), leaving a
+  stable block that re-enters as a no-op.
+- **GM rotation is COUNTERCLOCKWISE for positive angles — and the
+  owner caught the mistake before any tool did.** The house's own
+  clock hand proves it: it draws with `-45 * timeFrame` precisely so
+  it sweeps clockwise as time passes. With `draw_sprite_ext(..., 90,
+  ...)` the sprite content lands UP-RIGHT of the draw point (x' ∈
+  [px, px+w-1], y' ∈ [py-h+1, py]) — I first assumed up-LEFT and the ∞
+  landed +14/-6 px off-center, clipped by the top of the screen
+  ("el infinito esta mal posicionado"). Two lessons: (1) when placing
+  rotated or offset HUD elements, don't trust mental math — render
+  the actual sprite stack (PIL `rotate(90)` matches GM's convention)
+  against a reference composition and compare bounding boxes; (2) the
+  clock icon is bright AND wide (its face reaches x ≈ 224-226, under
+  the first digit's cell), so a bbox window over "the digit area"
+  must start at the digits, not at the icon's edge — measure
+  digits-only strips or the icon pollutes every center. The fix is
+  now regression-checked: check_v98b.py renders the ∞ at the literal
+  draw coords from the GML and asserts its bbox center is within
+  3 px of the real "4:37" block's center.

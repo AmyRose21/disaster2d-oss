@@ -7946,3 +7946,107 @@ checks + LEEME_V98_DUELO_FINAL.txt + LEARNING.md + CACHE.md +
 worklog.md). REQUIERE recompilar cliente Y server JUNTOS (2 paquetes
 nuevos en los DOS enums; un server viejo no cierra la partida al
 llegar el pool a 0 y no dispara el show del LV 20 ni el apagon).
+
+=====================================================================
+v98b (2026-11-27) — FIX DUELO FINAL: anillo activo tras el LV 20 + anillo
+"no usable" (no destruido) + TIEMPO INFINITO del 1v1 (reporte de la duena)
+=====================================================================
+Reporte de la duena (textual): «dije si el tiempo puede volverse
+infinito durante el vs» y «el ring verde si ya aparecio (osea esta
+disponible para salir... en LMS) sigue aun activo despues del lv 20
+es decir aun sigue disponible para que kris escape se supone que
+deberia colocarse en el estado que se pone cuando recien aparece
+(osea los 10 seg de espera que hac que el ring no pueda ser usado
+aun hasta que pasen los primeros 10 seg»).
+
+INVESTIGACION (regla 1: repo re-clonado y sincronizado — el sandbox
+se reciclo y vacio repo/; el remoto ya tenia el v98 aplicado por la
+duena, commit «aja»): el gate v98 del retiro era
+kris_lv >= 19 && lms && lms_natural && lms_char == CH_KRIS && !ring_off.
+CAUSA RAIZ: lms_natural se escribe UNA VEZ en el disparo del show
+(lms_natural = !kris_show: false si arranco por el LV 20 automatico
+del item 7 con mas gente viva) y el LMS es LATCH — cuando despues
+caian los demas (el verdadero 1v1) ya no se re-evaluaba NUNCA ->
+ring_off jamas disparaba en el camino normal (el mas comun: el LOVE
+de Kris llega a 20 antes de quedarse solo). Y el anillo estaba en
+pantalla LISTO porque map_tick lo spawnea a los 60 s de reloj y lo
+activa a los 50 s — con el reloj extendido a 232 s por el show del
+LMS vuelve a cruzar la marca DENTRO del show. SEGUNDA desviacion:
+la spec original de v98 decia «volvera a estado inactivo» y v98
+DESTRUIA el obj_bigring en el handler. TERCER dato: el escape no
+tenia NINGUNA validacion server (CLIENT_PLAYER_ESCAPED se creia al
+100% al cliente).
+
+FIX SERVER (states/Game.c):
+1) helper estatico game_kris_alone() — conteo con los MISMOS criterios
+   del gatillo del LMS (in_game, id != exe, sin DEAD/DEMONIZED/
+   ESCAPED; CAUGHT cuenta vivo) y pide alive == 1 && CH_KRIS. 2) el
+   gate pasa a VIVO: kris_lv >= KRIS_LV20_SIGNALS && lms &&
+   lms_char == CH_KRIS && game_kris_alone(server) && !ring_off — sin
+   lms_natural (queda documental). Dispara tanto en el show natural
+   como en el automatico, EN EL MOMENTO en que Kris queda solo (cada
+   tick). 3) CLIENT_PLAYER_ESCAPED: guard ring_off que descarta en
+   silencio ANTES del SET_FLAG (autoridad del server; cubre a un
+   cliente desincronizado o hackeado). 4) bloque del reloj: con
+   ring_off congela el acumulador (time += server->delta contra el -=
+   del final del tick) — sin TIME_SYNC, sin anillos por reloj
+   (anti-stall del duelo) y sin ED_TIMEOVER; la ronda del 1v1 SOLO
+   acaba con Kris o el exe en el suelo (game_state_check /
+   CLIENT_EXE_DEFEATED). game_player_tick/entity/map tick siguen
+   corriendo igual (el gate es SOLO del reloj).
+
+FIX CLIENTE:
+1) handler SERVER_GAME_RING_OFF: el obj_bigring YA NO SE DESTRUYE —
+   vuelve al estado «recien aparecido» (sprite_index = spr_bigring,
+   el sprite de los 10 s de espera; el Step del obj_bigring solo
+   acepta spr_bigring_ready -> imposible escapar por el). Sigue
+   apagando el banner Escape (state 0) y el npring de Not Perfect. Es
+   idempotente (re-enviable a reconexiones: el join lo reenvia). 2)
+   nuevo global.ringOff (init en scr_globals + Create del obj_level
+   por ronda) que enciende el 3): Draw_64 del obj_level dibuja el
+   INFINITO en vez de los contadores — el «8» del spr_counter (frame
+   8) girado 90 grados (dos bucles lado a lado = ∞, misma placa
+   negra + glifo brillante del HUD, CERO sprites nuevos), en (238, 15)
+   — OJO: el +90 de GM gira ANTIHORARIO en pantalla (lo confirma la
+   aguja del reloj, que usa -45*timeFrame para girar horario), asi
+   que el contenido girado cae ARRIBA-DERECHA del punto de dibujo
+   (x' en [px, px+14], y' en [py-10, py]). CORRECCION (reporte de la
+   duena: «el infinito esta mal posicionado»): el primer intento
+   ponia (252, 6) creyendo que el contenido caia arriba-izquierda —
+   el glifo quedaba en x 253-264, y -2..5: desplazado +14/-6 del
+   centro del bloque de numeros y CORTADO por arriba. El (238, 15)
+   centra el glifo en (244.5, 10.5), el centro del bloque «M:SS» que
+   reemplaza (verificado con render PIL contra el bloque real «4:37»:
+   delta +0.5/0 px; check_v98b.py ahora mide la posicion por render
+   con tolerancia 3 px para que no regrese). La aguja del reloj se
+   congela SOLA (timeFrame solo avanza con TIME_SYNC).
+
+VERIFICACIONES DETALLADAS: el frame 8 del contador es un «8» de DOS
+bucles confirmado por PIXEL-CHECK (llaves/huecos encerrados = 2) —
+OJO metodologico: los PNG del contador son PLACAS opacas negras con
+el glifo BRILLANTE dentro (alfa ~255 en casi todo): el dump por alfa
+muestra un bloque solido; el umbral correcto es LUMINANCIA. Frame 10
+= «:» (confirma el mapeo digito N = frame N). Orden del enum
+BigRingState: NONE < DEACTIVATED < ACTIVATED (el no-op de ring_off
+con bring_state ya avanzada no re-dispara nada). La congelacion del
+reloj no rompe los otros lectores de time_sec (muerte subita >2:00,
+checks de revive/mod_tool) ni al LMS (su reloj extendido ya habia
+sido aplicado al arrancar). Nota gameplay: si el duelo arranca con
+<1:00 en reloj, hurttime queda en 1 s de i-frames (scr_player_hurt
+lee timeMinutes/timeSeconds congelados — IDENTICO a v98 con el reloj
+corriendo el ultimo minuto); no renacen anillos en el duelo.
+SIN paquetes nuevos (RING_OFF ya existia del v98): cliente y server
+pueden actualizarse por separado sin romper nada (un lado viejo
+simplemente sigue con el comportamiento v98 del que toque).
+
+Verificado: check_v98b.py 55 OK / 0 FAIL (archivos tocados = 8 de
+juego + 3 docs, gate vivo sin lms_natural, reloj congelado con el
+TIME_SYNC/ED_TIMEOVER dentro del else, guard del escape antes del
+SET_FLAG, handler sin instance_destroy, ∞ pixel-check 2 huecos,
+paridad de enums, llaves balanceadas de los 5 GML, gcc -fsyntax-only
+de Game.c + CharSelect/Lobby/Mapvote/Results/ItemBoxMap/Ring con el
+stub de enet).
+
+ENTREGA: zip SOLO con lo tocado por v98b (8 archivos de juego +
+check_v98b.py + LEEME_V98B_DUELO_INFINITO.txt + LEARNING.md +
+CACHE.md + worklog.md).

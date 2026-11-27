@@ -619,10 +619,11 @@ bool game_state_join(PeerData* v)
                 RAssert(packet_send(v->peer, &packet, true));
         }
 
-        /* v98 (item 8): el apagon del anillo (Kris a LV 20 durante su show
-           natural: duelo final) tambien fue un broadcast UNICO — al que
-           entre o se reconecte se le reenvia para que SU pantalla tampoco
-           tenga anillo de escape (mismo patron del SERVER_GAME_LMS de
+        /* v98 (item 8): el apagon del anillo (duelo final: Kris a LV 20
+           como unico superviviente vivo) tambien fue un broadcast UNICO —
+           al que entre o se reconecte se le reenvia para que SU pantalla
+           tambien tenga el anillo en modo "recien aparecido" (no usable)
+           y el reloj en infinito (mismo patron del SERVER_GAME_LMS de
            arriba). */
         if (v->server->game.ring_off)
         {
@@ -2857,6 +2858,14 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         if (v->plr.flags & PLAYER_DEAD || v->plr.flags & PLAYER_DEMONIZED)
                                 break;
 
+                        /* v98b (duelo final): con el anillo retirado NO se
+                         * escapa — el paquete se descarta en silencio (mismo
+                         * estilo de los descartes de arriba). Cubre tambien
+                         * a un cliente desincronizado que todavia vea su
+                         * anillo "listo": en el 1 vs 1 manda el server. */
+                        if (v->server->game.ring_off)
+                                break;
+
                         if (v->plr.flags & PLAYER_ESCAPED)
                                 break;
 
@@ -3841,6 +3850,41 @@ bool game_player_tick(Server* server)
         return true;
 }
 
+/* v98b (item 8 — FIX DEL DUELO FINAL): ¿Kris esta SOLO contra el exe?
+ * Cuenta los supervivientes con los MISMOS criterios del gatillo del
+ * LMS (in_game, no exe, sin DEAD/DEMONIZED/ESCAPED) y pide que el unico
+ * que quede sea un Kris. La comprobacion es VIVA (cada tick): el show
+ * de Kris puede haber arrancado por el disparo AUTOMATICO de su LV 20
+ * con mas gente viva (item 7, lms_natural = false) y el gate v98
+ * (lms && lms_natural) NO se re-evaluaba nunca — el LMS es latch, asi
+ * que en el caso normal (LV 20 con gente viva, show automatico, y
+ * DESPUES caen los demas) el anillo jamas se retiraba y Kris podia
+ * escapar en pleno duelo. Este chequeo arregla ese camino: el duelo
+ * empieza cuando Kris queda solo, venga el show de donde venga. */
+static bool game_kris_alone(Server* server)
+{
+        int alive = 0;
+        PeerData* last = NULL;
+
+        for (size_t i = 0; i < server->peers.capacity; i++)
+        {
+                PeerData* v = (PeerData*)server->peers.ptr[i];
+                if (!v || !v->in_game)
+                        continue;
+
+                if (v->id == server->game.exe)
+                        continue;
+
+                if (v->plr.flags & PLAYER_DEAD || v->plr.flags & PLAYER_DEMONIZED || v->plr.flags & PLAYER_ESCAPED)
+                        continue;
+
+                alive++;
+                last = v;
+        }
+
+        return alive == 1 && last && last->surv_char == CH_KRIS;
+}
+
 bool game_state_tick(Server* server)
 {
         // We wait 15 seconds, before kicking out everyone
@@ -4075,17 +4119,19 @@ bool game_state_tick(Server* server)
          * el Lms (unicamente si solo queda el con vida y el LMS se activo
          * por esa condicion) el ring verde no aparecera o si estaba activo
          * volvera a estado inactivo Por pelea a muerte. osea 1 vs 1 hasta
-         * que kris o el exe caigan»): Kris a LV 20 DURANTE su show
-         * NATURAL (lms activo + lms_natural + el show es de Kris = el
-         * unico superviviente vivo es Kris) retira el anillo verde de
-         * escape para SIEMPRE (latch ring_off): game_bigring ignora
-         * todos los cambios (no aparece ni se reactiva en el ultimo
-         * minuto) y SERVER_GAME_RING_OFF destruye el que ya este
-         * puesto en las pantallas. El show AUTOMATICO del item 7 (con
-         * mas gente viva) NO retira nada: los demas siguen escapando
-         * por el anillo — de ahi el gate de lms_natural. */
+         * que kris o el exe caigan»): Kris a LV 20 con su show activo y
+         * como UNICO superviviente vivo retira el anillo verde de escape
+         * para SIEMPRE (latch ring_off): game_bigring ignora todos los
+         * cambios (no aparece ni se reactiva) y SERVER_GAME_RING_OFF
+         * devuelve al que ya este puesto a su estado "recien aparecido"
+         * (los 10 s de espera: visible en su sitio pero NADIE puede salir
+         * por el). v98b FIX: la condicion es VIVA (game_kris_alone, cada
+         * tick) y ya NO depende de lms_natural — el gate v98 dejaba el
+         * anillo activo para siempre en el camino normal (show automatico
+         * del LV 20 con mas gente viva; al caer los demas el latch del
+         * LMS impedia re-evaluar) y Kris escapaba en pleno duelo. */
         if (server->game.kris_lv >= KRIS_LV20_SIGNALS && server->game.lms
-        && server->game.lms_natural && server->game.lms_char == CH_KRIS
+        && server->game.lms_char == CH_KRIS && game_kris_alone(server)
         && !server->game.ring_off)
         {
                 server->game.ring_off = true;
@@ -4094,28 +4140,44 @@ bool game_state_tick(Server* server)
                 PacketCreate(&packet, SERVER_GAME_RING_OFF);
                 RAssert(server_broadcast(server, &packet, true));
 
-                Info(LOG_YLW "KRIS LV 20 during natural LMS: escape ring is OFF - final duel!" LOG_RST);
+                Info(LOG_YLW "KRIS LV 20 alone in his show: escape ring is OFF - final duel, no time limit!" LOG_RST);
         }
 
         server->game.elapsed += server->delta;
         if (server->game.time <= TICKSPERSEC)
         {
-                server->game.time_sec--;
-                server->game.time += TICKSPERSEC;
-
-                if (server->game.time_sec % server->game.ring_coff == 0)
+                /* v98b (pedido de la duena: tiempo INFINITO en el 1 vs 1):
+                 * con el anillo retirado (duelo final Kris vs exe) el reloj
+                 * SE DETIENE: sin TIME_SYNC (la aguja del reloj del cliente
+                 * se congela sola y el HUD dibuja el infinito), sin spawns
+                 * de anillos por reloj (anti-stall: en el duelo no renacen)
+                 * y SIN ED_TIMEOVER — la ronda solo acaba con Kris o el exe
+                 * en el suelo (game_state_check / CLIENT_EXE_DEFEATED). El
+                 * acumulador se congela sumando lo que el final del tick le
+                 * resta: queda estable y el bloque vuelve a entrar en vano. */
+                if (server->game.ring_off)
                 {
-                        if (!game_spawn(server, (Entity*)&(MakeRing()), sizeof(Ring), NULL))
-                                Debug("Not enough space for rings");
+                        server->game.time += server->delta;
                 }
+                else
+                {
+                        server->game.time_sec--;
+                        server->game.time += TICKSPERSEC;
 
-                Packet packet;
-                PacketCreate(&packet, SERVER_GAME_TIME_SYNC);
-                PacketWrite(&packet, packet_write16, (uint16_t)server->game.time_sec * TICKSPERSEC);
-                server_broadcast(server, &packet, true);
+                        if (server->game.time_sec % server->game.ring_coff == 0)
+                        {
+                                if (!game_spawn(server, (Entity*)&(MakeRing()), sizeof(Ring), NULL))
+                                        Debug("Not enough space for rings");
+                        }
 
-                if (server->game.time_sec <= 0)
-                        RAssert(game_end(server, ED_TIMEOVER, true));
+                        Packet packet;
+                        PacketCreate(&packet, SERVER_GAME_TIME_SYNC);
+                        PacketWrite(&packet, packet_write16, (uint16_t)server->game.time_sec * TICKSPERSEC);
+                        server_broadcast(server, &packet, true);
+
+                        if (server->game.time_sec <= 0)
+                                RAssert(game_end(server, ED_TIMEOVER, true));
+                }
         }
 
         RAssert(game_player_tick(server));

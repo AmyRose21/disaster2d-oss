@@ -4337,11 +4337,27 @@ function net_state_game(rbuff, nps, isPasstrough)
                         if(gameEnds)
                                 break;
 
+                        // v98b (fix del duelo final, pedido de la duena: el
+                        // anillo "no aparece; si estaba activo vuelve a
+                        // estado inactivo"): el anillo NO se destruye —
+                        // vuelve al estado "recien aparecido": el sprite de
+                        // los 10 s de espera (spr_bigring, NO el _ready),
+                        // visible en su sitio pero NADIE puede salir por el
+                        // (obj_bigring solo acepta el _ready en su Step). El
+                        // server ademas descarta cualquier
+                        // CLIENT_PLAYER_ESCAPED con ring_off: manda el.
                         if(instance_exists(obj_bigring))
                         {
                                 with(obj_bigring)
-                                        instance_destroy();
+                                        sprite_index = spr_bigring;
                         }
+
+                        // v98b: el reloj del HUD pasa a INFINITO (lo dibuja
+                        // el Draw del obj_level). El server ya no manda
+                        // TIME_SYNC en el duelo, asi que la aguja del reloj
+                        // se congela sola y los contadores quedan tapados
+                        // por el infinito.
+                        global.ringOff = true;
 
                         if(instance_exists(obj_level))
                         {

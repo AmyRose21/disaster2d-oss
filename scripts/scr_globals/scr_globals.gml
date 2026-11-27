@@ -31,6 +31,13 @@ global.fwArrowStunDecay = 0;
 // (lo resetea el Create de obj_level). Mientras valga: pasivas del show.
 global.lmsActive = false;
 
+// v98b (duelo final): true desde que el server retira el anillo de escape
+// (SERVER_GAME_RING_OFF — Kris a LV 20 como unico superviviente vivo con
+// su show activo). Mientras valga: el reloj del HUD se dibuja INFINITO y
+// el anillo, si estaba en pantalla, queda en su estado "recien aparecido"
+// (no usable). Lo resetea el Create de obj_level en cada ronda.
+global.ringOff = false;
+
 // v4.3 (fix exe): true mientras el jugador LOCAL esta aturdido por la
 // trampa de una Amelia DEMONIZADA. Todos los Step de personaje
 // rellenan hurttime = 60*2 durante el stun ("para que no lo rematen

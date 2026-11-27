@@ -1570,6 +1570,63 @@ y las pistas nuevas de 20-28s se cortaban).
   Delivered first as "v81" by this session and relabelled: the v81 label
   belongs to the claims delivery.
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-27 (v98b — FIX DEL DUELO FINAL: anillo activo tras el LV 20
+  en el 1v1 + TIEMPO INFINITO del duelo — reporte de la duena):
+  CAUSA RAIZ del anillo: el gate v98 exigia lms_natural, que se setea
+  UNA VEZ al arrancar el show (lms_natural = !kris_show en el disparo,
+  Game.c) y el LMS es LATCH — en el camino NORMAL (Kris llega a LV 20
+  con mas gente viva -> show AUTOMATICO del item 7 con lms_natural
+  = false -> luego caen los demas) lms_natural quedaba false PARA
+  SIEMPRE y ring_off JAMAS disparaba: el anillo que aparecio durante
+  el show (map_tick lo spawnea a los 60 s y lo activa a los 50 s de
+  reloj; con el reloj extendido a 232 s del show vuelve a cruzar la
+  marca) seguia LISTO y Kris escapaba en pleno 1v1. FIX: nuevo helper
+  estatico game_kris_alone() (MISMOS criterios del gatillo del LMS:
+  in_game && id != exe && !(DEAD|DEMONIZED|ESCAPED), alive == 1 &&
+  CH_KRIS — CAUGHT cuenta vivo, igual que el conteo del disparo) y el
+  gate pasa a VIVO: kris_lv >= 19 && lms && lms_char == CH_KRIS &&
+  game_kris_alone() && !ring_off, cada tick; lms_natural queda
+  DOCUMENTAL (ya no gatilla nada). SEGUNDA desviacion (spec original
+  de v98: «volvera a estado inactivo»): v98 DESTRUIA el obj_bigring —
+  ahora RING_OFF lo devuelve al estado «recien aparecido»
+  (sprite_index = spr_bigring, el sprite de los 10 s de espera; el
+  Step del obj_bigring SOLO acepta spr_bigring_ready -> imposible
+  escapar) y el server DESCARTA CLIENT_PLAYER_ESCAPED con ring_off
+  (antes: CERO validacion server del escape — cualquiera con el
+  paquete "escapaba"; ahora manda el server). TIEMPO INFINITO
+  (pedido): con ring_off el bloque del reloj congela el acumulador
+  (time += server->delta contra el -= del final del tick: bloque
+  estable que re-entra en vano) -> SIN TIME_SYNC (la aguja se congela
+  sola: timeFrame solo avanza con ese paquete; el HUD dibuja el
+  INFINITO en su lugar), sin anillos por reloj (anti-stall: no
+  renacen) y SIN ED_TIMEOVER — la ronda solo acaba con Kris o el exe
+  en el suelo. El ∞ del HUD: el «8» de spr_counter (frame 8, orden de
+  frames = orden del array del .yy; frame 10 = «:») girado 90 grados
+  (dos bucles lado a lado, misma placa negra + glifo brillante, CERO
+  sprites nuevos), en (238, 15) — OJO: el +90 de GM gira ANTIHORARIO
+  en pantalla (la aguja del reloj del propio HUD usa -45*timeFrame
+  para girar horario), asi que el contenido girado cae ARRIBA-DERECHA
+  del punto de dibujo (x' en [px, px+14], y' en [py-10, py]). El
+  primer intento (252, 6) suponia arriba-izquierda y el glifo quedaba
+  +14/-6 del centro y cortado por arriba (reporte de la duena:
+  «mal posicionado»); el (238, 15) centra el glifo en (244.5, 10.5) —
+  el centro del bloque «M:SS» que reemplaza, verificado por render
+  PIL contra el «4:37» real (delta +0.5/0 px) y ahora medido por
+  check_v98b.py con tolerancia 3 px.
+  NOTA de gameplay (heredada del reloj congelado, ya pasaba igual en
+  v98 corriendo el reloj): si el duelo arranca con menos de 1:00 en
+  reloj, hurttime queda en 1 s de i-frames (scr_player_hurt lee
+  timeMinutes/timeSeconds); la muerte subita (>2:00 congelado) nunca
+  dispara en el duelo. SIN paquetes nuevos (RING_OFF ya existia): no
+  exige recompilar cliente y server juntos. Verificado: check_v98b.py
+  55 OK / 0 FAIL (gate vivo sin lms_natural, congelado con else
+  alrededor de TIME_SYNC/ED_TIMEOVER, guard del escape antes del
+  SET_FLAG, handler sin instance_destroy, ∞ pixel-check: el frame 8
+  tiene DOS huecos encerrados — y OJO: los PNG del contador son
+  PLACAS opacas negras con el glifo BRILLANTE dentro, el umbral
+  correcto es LUMINANCIA, el alfa muestra un bloque solido; gcc
+  -fsyntax-only Game.c + 6 .c sanos, llaves balanceadas, archivos
+  tocados = 8 de juego + 3 docs).
 - 2026-11-27 (v98 — KRIS LV 20: EL DUELO FINAL — 8 pedidos: barra con
   nombre, barra para todos, parry = daño, espada -2s LMS/-4s LV20,
   anti-camp off en LMS, pool 0 = victoria escapada, show auto a LV20,
