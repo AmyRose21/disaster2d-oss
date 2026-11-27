@@ -1731,3 +1731,94 @@ v90 applied uncommitted + v91 on top" scenario). Code scope: exactly 2 files
    traces proved EVERY behavioral difference lives in frames 0-9 (the
    coyote window) and nowhere else — a stronger statement than any single
    scenario pair.
+
+## v92 — Jinna V grab: more range + explicit circular hitbox; electric shield stun "tipo ataque" (2026-11-27)
+
+Request: «Mejora de la habilidad V de Jina. (mas alcance y ahora la hitbox es
+circular. arreglo de la escudo electrico. que ahora podra stunear. tipo ataque
+jina.. Es decir si se parte el stun le stuneara. sin importar la distancia si
+detecta quien la rompio.»
+Outcome: 4 code files — `scr_jinna_special.gml` (range 50→110 + JINNA_GRAB_POSE
+macro), `obj_jinna/Draw_0.gml` (visible exact-hitbox ring), `scr_player_hurt.gml`
+(shield-breaker detection, no distance cap), `net_state_game.gml`
+(ITEMBOX_ELECTRIC_STUN 3s receptor). Pass 1: 66 OK / 0 FAIL; pass 2: 27 OK /
+0 FAIL (after fixing 4 checker-self bugs — see verification lessons).
+
+### Root cause of the "shield never stuns" (the lesson, keep forever)
+
+1. **The v62 electric-shield zap had THREE stacked gates, each alone enough to
+   eat the stun.** (a) Emitter `_zd = 64` cap: any hitbox that reaches further
+   than 64px center-to-center (Jinna's post-teleport pad +35%/+75%, hammer,
+   jump arcs, spindash) broke the shield with ZERO stun, forever. (b) Emitter
+   filter `!_pp.isAttacking` only: jump/spindash breakers were invisible to
+   the detector even at 0px. (c) Receptor gate `isAttacking || isJumping ||
+   isSpinning` re-tested ATTACK-STILL-ACTIVE on ARRIVAL: with network lag the
+   attack had already ended on the attacker's own client → stun lost. The
+   owner's spec («si detecta quien la rompio») pins the AUTHORITY at break
+   time on the VICTIM's client — the only place where exact contact exists —
+   and the receptor must honor it, not re-derive it. Same pattern as Sonic's
+   parry stun (v3.4/v3.5): victim detects, targeted signal, attacker self-
+   applies. When a signal can be eaten by THREE gates, remove all three and
+   move the proof obligation to the emitter.
+2. **"Stun tipo ataque jinna" has a literal reference value:** the exe X
+   attack's BASE stun is `var stunTime = 3;` (obj_player_puppet/Step_0.gml
+   L927, before per-character deltas). ITEMBOX_ELECTRIC_STUN = (60 * 3) matches
+   it, with the same knockback shape (xspd = -image_xscale * 3, yspd = -2,
+   isGrounded = false) and the same shock particle + sound.
+3. **The grab was ALREADY center-to-center circular** (`point_distance < range`
+   with NO direction filter, puppet search + dummy search alike) — at 50px it
+   just FELT point-blank. "Circular" was made the CONTRACT: documented at the
+   macro, the SAME circle rules the practice dummy, and Draw_0 draws the exact
+   circle (outer ring = literal reach border, inner ring closes during the
+   pose) so what you see is what grabs. Pre-existing 1px asymmetry kept
+   deliberately: puppet search strict `<`, dummy search `<=` — changing the
+   dummy line would break repo-tracked `check_jinna_dummy.py`'s static pattern
+   for zero gameplay value at exactly 110.0px.
+
+### Facts learned (verified in docs/code)
+
+- **What GameMaker compiles in this repo:** the .yyp lists ONLY GMFolder
+  entries (213, zero leaf resources) — resources are discovered by their .yy.
+  Compiled .gml = object events (sibling .yy), scripts/xxx/xxx.gml (folder
+  .yy) and loose .gml directly under scripts/ (scr_globals.gml + 4 legacy —
+  GM compiles those too). NOT compiled: `_backups_animeditor/**` (the
+  SUITE_TD2D.html tool's backup dir, 200 TRACKED files, 0 references in the
+  .yyp, no .yy anywhere) — whole-repo code sweeps MUST exclude it; its old
+  `#macro JINNA_GRAB_RANGE 50` snapshots are correct-as-backups.
+- **Repo-tracked python checkers can go stale:** `check_jinna_dummy.py` (user
+  committed it in "ewe") still models range 50 and a broken sandbox path —
+  do not trust its Python model after range changes; the .gml it counts is
+  still accurate.
+- **Breaker-detection design used (copy for any future "who did it" signal):**
+  step 1 = exact bbox overlap with the carrier ("whoever touches, broke it",
+  absolute priority, break on first); step 2 = nearest puppet with ANY active
+  attack form (isAttacking || isJumping || isSpinning) at ANY distance;
+  filters: isDead, isHiding, isInactive (frozen state). Signal = targeted
+  `net_sound_emit_at(snd_metal_stun, nid)`; receptor gates kept: EXE side
+  (character == EXE || revivalTimes >= 2), !isDead, shockedTimer <= 0 (no
+  stacking). Anti-cheat surface unchanged (same channel as v62/Sonic parry;
+  the removed "still attacking" gate was UX, not a cheat barrier — a cheater
+  could hold attack through it anyway).
+- **draw_circle(x, y, r, true) is the outline form**; a pose-countdown ring is
+  drawn from `var _gT = timer / POSE` (1→0) with alpha `0.15 + 0.5 * _gT` and
+  MUST restore draw_set_color(c_white) + draw_set_alpha(1) after (Draw event
+  state leaks into everything drawn later).
+
+### Verification lessons (paid for)
+
+1. **Function-extraction regexes MUST strip trailing comments first.** Pass 2
+   dropped only full-comment lines; trailing Spanish comments like «el agarre
+   (tecla V)» matched `\b([a-z_]\w*)\s*\(` ("agarre(", "pose(") and reported
+   phantom undefined functions. Strip string literals FIRST (a // inside a
+   string is not a comment), then the // tail, then extract.
+2. **Never count macro names in raw file text.** The v92 comments NAME their
+   macros ("radio JINNA_GRAB_RANGE...", "TIPO ATAQUE (ITEMBOX_ELECTRIC_STUN)")
+   — counts must be CODE-only (comment-stripped) or they go 8/4/4 instead of
+   5/3/2. Stronger form shipped: code-only count over ALL compiled .gml +
+   exactly-one `#macro` definition + zero uses outside the 4 changed files.
+3. **A whole-repo sweep needs a "compiled code" definition** (see fact above)
+   — without the `_backups*` exclusion, 6 backup snapshots read as 12 extra
+   macro uses + 6 fake definitions.
+4. **When the GML is right and the checker is wrong, fix the CHECKER and
+   re-run — but only after proving the game code by hand** (grep: the 8 hits
+   were 5 code + 3 comments; code counts were exactly 5/3/2 as designed).

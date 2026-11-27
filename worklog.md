@@ -7191,3 +7191,80 @@ paquetes nuevos. ALCANCE DEL CODIGO: 2 archivos.
 7. LEEME_V91_ROUGE_MODO_GLIDE.txt con guion de prueba de 2 minutos (4 puntos:
    legibilidad al ciclar, salto tardio desde borde limpio, cadena salto->glide
    intacta, hold-Z del borde respeta la gracia).
+
+## v92 - 2026-11-27 - JINA: agarre V con mas alcance + hitbox circular visible; escudo electrico aturde "tipo ataque" a quien lo rompe
+
+Base: origin/main 113783a9 (= "ewe", v89/v90/v91 ya con la duena). La v92 toca
+4 archivos que NINGUNA version anterior modifica (obj_jinna/Draw_0,
+scr_jinna_special, scr_player_hurt, net_state_game): convive con v90 (parry
+Sonic) y v91 (Rouge) sin conflicto. Protocolo / BUILD_VERSION intactos. Sin
+.yyp/.yy, sin assets, sin server, sin paquetes nuevos. ALCANCE DEL CODIGO:
+4 archivos (+105/-13 lineas).
+
+1. Pedido de la duena (verbatim): «Mejora de la habilidad V de Jina. (mas
+   alcance y ahora la hitbox es circular. arreglo de la escudo electrico. que
+   ahora podra stunear. tipo ataque jina.. Es decir si se parte el stun le
+   stuneara. sin importar la distancia si detecta quien la rompio.». Dos
+   frentes: (a) la V de Jinna con MAS ALCANCE y hitbox CIRCULAR; (b) el
+   escudo electrico de la caja que aturda TIPO ATAQUE a quien lo rompa, SIN
+   TOPE DE DISTANCIA.
+2. INVESTIGACION AGARRE: la busqueda del agarre YA era circular
+   (point_distance centro-a-centro, sin filtro de direccion, tanto puppets
+   como dummy) — a 50 px de radio simplemente se sentia "cuerpo a cuerpo"
+   y nada mostraba el alcance. Cambios: JINNA_GRAB_RANGE 50 -> 110 (radio;
+   ~4,8x el area de captura), la pose a macro propio JINNA_GRAB_POSE 24
+   (antes literal enterrado), y un bloque NUEVO en Draw_0 que dibuja el
+   circulo EXACTO de la hitbox durante la pose (anillo exterior = borde
+   literal del alcance, anillo interior cerrandose hacia ella, c_fuchsia,
+   alpha desvaneciendose 0.65 -> 0.15, restaura color y alpha SIEMPRE, solo
+   su cliente y solo viva). Lo que se ve caer es lo que el agarre agarra.
+   Recarga/bloqueo/dano/portal/anticheat/paquetes: SIN TOCAR.
+3. INVESTIGACION ESCUDO (raiz del "nunca stunea", 3 gates apilados de la
+   v62): (a) emisor con tope _zd = 64 px: cualquier hitbox que llegue mas
+   lejos (pad de Jinna post-teletransporte, martillo, saltos, spindash)
+   rompia el escudo SIN stun, siempre; (b) filtro solo-isAttacking: un
+   rompedor con SALTO o SPINDASH era invisible al detector aunque estuviera
+   pegado; (c) receptor re-exigia el ataque TODAVIA activo al LLEGAR la senal:
+   con lag el golpe ya habia terminado en el cliente del atacante y el stun
+   se esfumaba; y de salir, duraba 1 s (imperceptible). FIX: el emisor (la
+   victima, el unico sitio con el contacto exacto) detecta al rompedor en 2
+   pasos — contacto bbox con el portador (prioridad absoluta: quien toca,
+   rompio) y si nadie toca, el puppet con ataque ACTIVO (X/salto/spin) mas
+   cercano A CUALQUIER distancia; senal DIRIGIDA al nid del rompedor; el
+   receptor aturde 3 s TIPO ATAQUE (ITEMBOX_ELECTRIC_STUN = 60*3 = stunTime
+   base 3 del golpe X del exe, obj_player_puppet/Step_0 L927) con su empujon,
+   chispa y sonido, sin re-exigir el ataque activo. Gates conservados: bando
+   EXE, vivo, dedup. Canal y superficie anti-cheat SIN CAMBIOS (mismo
+   net_sound_emit_at de la v62, patron parry de Sonic).
+4. PASADA 1 — check_v92.py: 66 OK / 0 FALLO. Estructura de los 4 archivos,
+   los 3 macros (y el 50 viejo fuera), bloques nuevos completos, variables
+   inicializadas antes de leerse, y 22 simulaciones de logica: el circulo
+   agarra a 109 px en diagonal pero no a 111, detras y arriba TAMBIEN
+   (sin frente), rompedor a 300/520 px stuneado, rompedor con salto o
+   spindash detectado, contacto gana a distancia, muerto/desconectado
+   filtrados, receptor a 3 s aunque su ataque ya termino (el fix del lag),
+   dedup y reglas de bando intactas, anillo con radios/alpha en rango en los
+   24 frames, regresiones v88-v91 presentes, git scope exacto de 4 archivos.
+5. PASADA 2 — check_v92_pass2.py: 28 OK / 0 FALLO (tras corregir el PROPIO
+   verificador). Auditoria byte a byte del diff (las 13 lineas viejas
+   exactas fuera, cero colateral), 105 lineas nuevas de codigo 100% ASCII,
+   macros contados SOLO en codigo en TODOS los .gml compilados del repo
+   (JINNA_GRAB_RANGE 5 / JINNA_GRAB_POSE 3 / ITEMBOX_ELECTRIC_STUN 2, 1
+   definicion cada uno, sin fugas a otros archivos), funciones del codigo
+   nuevo existen, re-simulacion del anillo frame a frame con restauracion
+   de estado, fixes v87-v91 presentes.
+6. RE-VERIFICACION HONESTA: la primera corrida de la pasada 2 dio 4 FALLOS
+   que eran del VERIFICADOR, no del juego: contaba macros dentro de
+   comentarios («radio JINNA_GRAB_RANGE...»), tragaba palabras espanolas de
+   comentarios finales de linea como llamadas («el agarre (tecla V)» ->
+   "agarre("), y barrido del repo incluia _backups_animeditor/** (respaldos
+   de la SUITE_TD2D.html: 200 archivos trackeados, 0 referencias en el .yyp,
+   NO se compilan — sus snapshots con JINNA_GRAB_RANGE 50 son correctos como
+   respaldo). Se verifico a mano (grep: 5 codigo + 3 comentarios; conteos de
+   codigo 5/3/2 exactos), se corrigio el verificador y re-corrio: 66 + 28
+   OK, 0 FAIL real. check_jinna_dummy.py (trackeado) quedo con modelo Python
+   viejo (rango 50): anotado en CACHE/LEARNING para no confiar en el.
+7. LEEME_V92_JINNA_V_ESCUDO.txt con guion de prueba de 3 minutos (6 puntos:
+   alcance del circulo visible, agarre por detras y por arriba, borde
+   exacto 111+ px sin agarre, stun 3 s con golpe X pegado, rompimiento
+   desde lejos, rompimiento + huida con salto).

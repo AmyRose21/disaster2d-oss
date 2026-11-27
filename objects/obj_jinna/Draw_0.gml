@@ -31,6 +31,30 @@ if(jinnaTeleWindup > 0 && instance_exists(jinnaTeleTarget))
         draw_sprite(spr_jinna_clonearrow, floor(current_time / 100) % 2, jinnaTeleTarget.x, jinnaTeleTarget.y - 46 - jinnaTeleTarget.sprite_yoffset + 8);
 }
 
+// v92 — ANILLO DEL AGARRE (tecla V): la hitbox del agarre es CIRCULAR
+// (radio JINNA_GRAB_RANGE centrado en Jinna, ver scr_jinna_special) y
+// ahora SE VE: durante la pose del agarre (jinnaGrabVisual) se dibuja
+// el circulo EXACTO de la hitbox sobre el suelo de su mundo. Dos
+// anillos: el EXTERIOR marca el borde real del alcance (constante,
+// mientras la hitbox) y el INTERIOR SE CIERRA hacia ella (la garra
+// que atrapa). Solo en el cliente de Jinna (este Draw no corre en los
+// demas) y solo viva y despierta (ni muerta ni en fin de ronda).
+if(jinnaGrabVisual > 0 && !isDead)
+{
+        var _gT = jinnaGrabVisual / JINNA_GRAB_POSE;   // 1 -> 0 durante la pose
+        var _gA = 0.15 + 0.5 * _gT;                    // se desvanece con la pose
+
+        draw_set_color(c_fuchsia);
+        draw_set_alpha(_gA);
+        // anillo EXTERIOR: el borde EXACTO del alcance del agarre
+        draw_circle(floor(x), floor(y), JINNA_GRAB_RANGE, true);
+        // anillo INTERIOR: se cierra — la garra atrapando el circulo
+        draw_set_alpha(_gA * 0.6);
+        draw_circle(floor(x), floor(y), JINNA_GRAB_RANGE * _gT, true);
+        draw_set_alpha(1);
+        draw_set_color(c_white);
+}
+
 // v3/v4/v18 — ATRAPADAS EN LA OTRA DIMENSION: senales flotando sobre la
 // cabeza de Jinna, SOLO en su cliente (este Draw no corre en los demas).
 // v18: si Jinna atrapa a MAS DE UNA, cada nueva especial se ACOMODA AL

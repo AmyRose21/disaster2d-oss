@@ -716,22 +716,60 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                                 // chispa del choque sobre el portador (difundida a todos)
                                 net_quick_effect(global.player.x, global.player.y, spr_shockparticle, false, 1, 0, 0, 0.75);
                                 
-                                // stun al atacante: el puppet atacante mas cercano en rango
-                                // de golpe aporta su nid; la senal targeted (shouldPlay=true)
-                                // aturde al atacante en SU propio cliente.
+                                // stun al atacante que rompio el escudo — v92 (duena:
+                                // "si se parte el stun le stuneara, SIN IMPORTAR LA
+                                // DISTANCIA si detecta quien la rompio"). Antes solo
+                                // contaba un puppet ATACANDO (isAttacking) a MENOS DE
+                                // 64 px: un golpe con hitbox agrandada desde fuera de
+                                // ese circulo (el pad +35%/+75% de Jinna tras su
+                                // teleport, saltos, spindash, ataques a distancia)
+                                // rompia el escudo y el stun NO salia nunca — "el
+                                // escudo no stunea". Deteccion nueva, SIN tope de
+                                // distancia y en 2 pasos:
+                                //   1) CONTACTO EXACTO: el puppet con ataque activo
+                                //      que esta TOCANDO al portador ahora mismo
+                                //      (solapamiento de bbox — aritmetica pura, sin
+                                //      place_meeting: el self de este script es el
+                                //      portador, no el puppet; quien toca, rompio).
+                                //   2) Si nadie toca (lag de red o proyectil que ya
+                                //      viaja solo): el puppet con ataque ACTIVO MAS
+                                //      CERCANO A CUALQUIER DISTANCIA (antes solo
+                                //      isAttacking: un salto o un spindash que rompia
+                                //      el escudo era INVISIBLE para el zap).
+                                // La senal targeted (shouldPlay=true) aturde al
+                                // atacante en SU propio cliente, que ya NO exige que
+                                // el ataque siga activo a la llegada (con lag el
+                                // golpe ya termino alla y el stun se perdia).
                                 var _zapNid = -1;
                                 if(instance_exists(obj_player_puppet))
                                 {
                                         var _zapper = noone;
-                                        var _zd = 64;
+                                        var _zd = 0;
                                         var _pcount = instance_number(obj_player_puppet);
                                         for(var _pi = 0; _pi < _pcount; _pi++)
                                         {
                                                 var _pp = instance_find(obj_player_puppet, _pi);
-                                                if(_pp.isDead || _pp.isHiding || !_pp.isAttacking)
+                                                // isInactive (desconectado): su state se congelo —
+                                                // mismo filtro de las busquedas de scr_jinna_special
+                                                if(_pp.isDead || _pp.isHiding || _pp.isInactive)
                                                         continue;
+                                                // ataque activo en CUALQUIER forma (golpe, salto o spin)
+                                                if(!(_pp.isAttacking || _pp.isJumping || _pp.isSpinning))
+                                                        continue;
+
+                                                // paso 1: contacto exacto con el portador (bbox overlap)
+                                                if(_pp.bbox_right >= global.player.bbox_left
+                                                && _pp.bbox_left <= global.player.bbox_right
+                                                && _pp.bbox_bottom >= global.player.bbox_top
+                                                && _pp.bbox_top <= global.player.bbox_bottom)
+                                                {
+                                                        _zapper = _pp;
+                                                        break; // quien toca, rompio: prioridad absoluta
+                                                }
+
+                                                // paso 2: el mas cercano a CUALQUIER distancia (sin tope de 64 px)
                                                 var _d = point_distance(_pp.x, _pp.y, global.player.x, global.player.y);
-                                                if(_d < _zd)
+                                                if(_zapper == noone || _d < _zd)
                                                 {
                                                         _zd = _d;
                                                         _zapper = _pp;

@@ -19,6 +19,13 @@
 // gracia). Se aplica con max() para JAMAS acortar una inmunidad ya vigente
 // (caja invulnerable, i-frames de golpe, etc).
 #macro ITEMBOX_ELECTRIC_BREAK_INVULN (60 * 2.5)
+// v92 (duena: "que ahora podra stunear, tipo ataque jina — si se parte el
+// stun le stuneara"): el STUN que el escudo electrico le mete a quien lo
+// rompio pasa de 60f (1 s) a 3 s TIPO ATAQUE (ITEMBOX_ELECTRIC_STUN): el
+// mismo tiempo que el golpe X del exe (el "ataque de Jinna"), con su
+// empujon — antes el stun ni salia (deteccion a 64 px: ver
+// scr_player_hurt) y cuando salia era tan corto que ni se notaba.
+#macro ITEMBOX_ELECTRIC_STUN (60 * 3)
 // v78 (duena): "aumenta la invulerabilidad del escudo de sally (caja) en 3
 // seg" — el escudo de burbuja (el de Sally, el que da la caja tipo 1) al
 // romperse absorbiendo un golpe dejaba 60f (1 s) de invulnerabilidad; ahora
@@ -3087,19 +3094,29 @@ function net_state_game(rbuff, nps, isPasstrough)
                                         // escudo electrico (scr_player_hurt). El contacto
                                         // exacto golpe-a-escudo solo existe en el cliente
                                         // de la victima; aqui me aplico el choque yo mismo
-                                        // (la autoridad de siempre): stun de 1 s con el
-                                        // visual de chispa encima. Mismo patron que el
+                                        // (la autoridad de siempre). Mismo patron que el
                                         // snd_exe_stun del parry de Sonic.
+                                        // v92 (duena: "que ahora podra stunear, tipo
+                                        // ataque jina — si se parte el stun le stuneara,
+                                        // sin importar la distancia si detecta quien la
+                                        // rompio"): se RETIRA el gate de "seguir atacando
+                                        // al LLEGAR la senal" — con el lag de red mi
+                                        // ataque ya habia terminado hace rato en MI
+                                        // cliente y el stun se perdia (el "castigo gratis"
+                                        // ya no aplica: la victima SI vio mi ataque
+                                        // activo cuando rompio su escudo, su emisor lo
+                                        // garantiza). Y el stun pasa de 60f (1 s) a 3 s
+                                        // TIPO ATAQUE (ITEMBOX_ELECTRIC_STUN: mismo tiempo
+                                        // que el golpe X del exe — "tipo ataque jina").
                                         if(instance_exists(global.player)
                                         && (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2)
                                         && !global.player.isDead
-                                        && (global.player.isAttacking || global.player.isJumping || global.player.isSpinning)
                                         && global.player.shockedTimer <= 0)
                                         {
                                                 global.player.isAttacking = false;
                                                 global.player.isSpinCharging = false;
                                                 global.player.spinCharge = 0;
-                                                global.player.shockedTimer = 60;
+                                                global.player.shockedTimer = ITEMBOX_ELECTRIC_STUN;
                                                 global.player.xspd = -global.player.image_xscale * 3;
                                                 global.player.yspd = -2;
                                                 global.player.isGrounded = false;

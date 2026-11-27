@@ -3615,3 +3615,85 @@ the coyote window itself (PLAYER_COYOTE_FRAMES 10 in scr_move_basic). Sally
 Canon's cyber-form label (obj_sally_canon/Draw_64, same style as the old v32
 text) was NOT touched — if the owner wants the same readability treatment
 there, it is a copy-paste of the v91 block.
+
+## v92 — JINA: agarre V con mas alcance e hitbox circular visible + escudo electrico que aturde "tipo ataque" a quien lo rompe (2026-11-27)
+
+Pedido de la duena: «Mejora de la habilidad V de Jina. (mas alcance y ahora
+la hitbox es circular. arreglo de la escudo electrico. que ahora podra
+stunear. tipo ataque jina.. Es decir si se parte el stun le stuneara. sin
+importar la distancia si detecta quien la rompio.»
+
+### Files (code scope: exactly 4 — base: origin/main 113783a9 = "ewe" con v89; v90/v91 no tocan ninguno de los 4, coexisten)
+
+| File | What it does | Connects to | v92 change |
+|---|---|---|---|
+| `scripts/scr_jinna_special/scr_jinna_special.gml` | Todas sus habilidades: teletransporte+clon (C), agarre (V), portal trampa (V+Abajo), dummy | `obj_player_puppet` (busqueda), `obj_fart_dummy`, SERVER_JINNA_* (via scr_net), obj_jinna (jinnaGrabVisual/jinnaGrabCd/jinnaTele*) | `#macro JINNA_GRAB_RANGE` 50 → 110 (radio del circulo: ~4,8x el area de captura) + nuevo `#macro JINNA_GRAB_POSE 24` (la pose del agarre, antes literal 24 enterrado; ahora es tambien la vida del anillo visual). La busqueda YA era point_distance centro-a-centro sin filtro de direccion (igual al frente/atras/arriba/abajo); v92 la documenta como CONTRATO en el macro y el mismo circulo rige el dummy (modo practica). Unico cambio de flujo: `jinnaGrabVisual = JINNA_GRAB_POSE` (antes `= 24`). Recarga 8,5 s, bloqueo 1,6 s, dano 25, portal, paquetes: SIN TOCAR |
+| `objects/obj_jinna/Draw_0.gml` | Su dibujo local: clon, flechas, senales de atrapadas en la otra dimension | `jinnaGrabVisual` (Create_0), JINNA_GRAB_RANGE/POSE | NUEVO bloque (24 lineas): durante la pose del agarre se dibuja el circulo EXACTO de la hitbox — anillo EXTERIOR (draw_circle radio JINNA_GRAB_RANGE, borde literal del alcance) + anillo INTERIOR cerrandose (radio * _gT, la garra atrapando), c_fuchsia, alpha 0.15+0.5*_gT desvaneciendo con la pose. Solo su cliente, solo viva (!isDead). Restaura alpha(1) + color(c_white) SIEMPRE |
+| `scripts/scr_player_hurt/scr_player_hurt.gml` | El dano a TODO jugador: knockback, sangre, i-frames, escudos de caja (electrico/burbuja/botas), muerte | `obj_player_puppet` (deteccion del rompedor), `net_sound_emit_at`, global.player | Rama del escudo ELECTRICO roto (v62): deteccion del rompedor reescrita. Paso 1 (prioridad absoluta): puppet con bbox EN CONTACTO con el portador (quien toca, rompio; break al primero). Paso 2 (si nadie toca — lag/proyectil retirado): el puppet con ataque ACTIVO (isAttacking \|\| isJumping \|\| isSpinning) MAS CERCANO A CUALQUIER DISTANCIA (fuera el `_zd = 64` y el filtro solo-isAttacking). Filtros: isDead, isHiding, isInactive (congelado). Senal dirigida al nid del rompedor: `net_sound_emit_at(snd_metal_stun, _zapNid)` (sin cambios de canal) |
+| `scripts/net_state_game/net_state_game.gml` | El decodificador de todo el estado de red de partida (posiciones, sonidos posicionados, efectos) | `global.net_snds[sid] == snd_metal_stun` (rama shouldPlay a MI nid), snd_exe_stun del parry (patron) | Nuevo `#macro ITEMBOX_ELECTRIC_STUN (60 * 3)` junto a los ITEMBOX_* (nivel de archivo). La rama del receptor: stun 60f → 3 s TIPO ATAQUE (= stunTime base 3 del golpe X del exe en obj_player_puppet/Step_0 L927), mismo empujon (xspd = -image_xscale*3, yspd = -2, isGrounded = false), chispa + snd_exe_stun. RETIRADO el gate `isAttacking \|\| isJumping \|\| isSpinning` al LLEGAR la senal (con lag el golpe ya termino en el cliente del atacante y el stun se perdia; la autoridad es la victima al momento del rompimiento). Gates que QUEDAN: bando EXE (character == CHARACTER_EXE \|\| revivalTimes >= 2), !isDead, dedup shockedTimer <= 0 |
+
+### Por que el escudo casi nunca aturdia (raiz, 3 gates apilados)
+
+(a) tope de 64 px en el emisor: cualquier hitbox que llegue mas lejos (pad de
+Jinna post-teletransporte +35%/+75%, martillo, saltos, spindash) rompia el
+escudo SIN stun, siempre; (b) filtro solo-isAttacking: un rompedor con salto
+o spindash era invisible para el detector aunque estuviera pegado; (c) el
+receptor re-exigia el ataque TODAVIA activo al llegar la senal: con lag el
+ataque ya habia terminado en el propio cliente del atacante y el stun se
+perdia. El pedido de la duena fija la autoridad en la VICTIMA al momento del
+rompimiento (el unico sitio donde el contacto exacto existe) — el receptor
+ya no re-deriva la prueba. Mismo patron que el stun del parry de Sonic
+(v3.4/v3.5): la victima detecta, senal dirigida, el atacante se lo aplica a
+si mismo.
+
+### Invariantes clave (verificados por ambas pasadas)
+
+- JINNA_GRAB_RANGE en CODIGO en todo el repo compilado: exactamente 5 (1
+  #macro + busqueda puppets + dummy + anillo ext + anillo int); JINNA_GRAB_POSE:
+  3; ITEMBOX_ELECTRIC_STUN: 2. Cero usos fuera de los 4 archivos.
+- El circulo no tiene frente: agarra al frente, detras, arriba y abajo; la
+  unica condicion es estar dentro del radio. Borde exacto 110.0 px: fuera
+  (puppets, `<` estricto preexistente; dummy `<=` preexistente — asimetria de
+  1 px pre-v92 conservada a proposito: cambiarla romperia el patron estatico
+  del check_jinna_dummy.py trackeado sin valor de juego).
+- Superficie anti-cheat SIN CAMBIOS (regla 7): mismo canal net_sound_emit_at
+  de la v62, mismas senales, receptor solo bando EXE/vivo/dedup. El gate
+  retirado era UX, no barrera (un tramposo solo tenia que mantener el ataque).
+- `_backups_animeditor/**` (respaldos de la SUITE_TD2D.html, 200 archivos
+  trackeados, 0 referencias en el .yyp, sin .yy): NO se compilan — siguen
+  con JINNA_GRAB_RANGE 50 y es CORRECTO que sigan asi (son snapshots).
+- check_jinna_dummy.py (trackeado, commiteado en "ewe"): su modelo Python
+  quedo viejo (rango 50, path de sandbox roto) — el .gml que cuenta sigue
+  valido; NO confiar en su modelo tras cambiar rangos.
+
+### Tools (shipped in the zip)
+
+`check_v92.py` (PASS 1 — 66 checks: brace balance de los 4, los 3 macros,
+bloques nuevos completos, variables inicializadas antes de leerse, 22
+simulaciones: circulo dentro/fuera en diagonal/detras/arriba, rompedor a
+300/520 px, salto/spindash detectados, contacto gana a distancia, muerto/
+desconectado filtrados, receptor 3 s sin importar fin del ataque, dedup,
+regresiones v88-v91, git scope, cero placeholders) y `check_v92_pass2.py`
+(PASS 2 — 27 checks: auditoria byte a byte del diff, las 13 lineas viejas
+exactas fuera, codigo nuevo 100% ASCII, macros contados SOLO en codigo en
+todo el repo compilado con exclusion de _backups*, funciones llamadas
+existen, re-simulacion del anillo frame a frame, fixes v87-v91 presentes).
+RE-VERIFICACION REAL: la pasada 2 dio primero 4 FALLOS que eran del propio
+verificador (comentarios de final de linea tragados como codigo — «el agarre
+(tecla V)» parseado como llamada de funcion; macros contados dentro de
+comentarios; respaldos no compilados incluidos en el barrido). Se corrigio
+el VERIFICADOR (no el juego), re-verificando antes a mano con grep que el
+codigo era 5/3/2 exactos. Resultado final: 66 + 28 OK, 0 FAIL (tambien
+verificado en el escenario duena: zip extraido sobre un clon limpio de HEAD,
+ambas pasadas 66 + 28 OK / 0 FAIL).
+
+### Pending
+
+Nada para v92. Perillas de calibracion si la duena pide: radio del agarre
+(JINNA_GRAB_RANGE 110 en scr_jinna_special), duracion de la pose/anillo
+(JINNA_GRAB_POSE 24), stun del escudo (ITEMBOX_ELECTRIC_STUN 60*3 en
+net_state_game — para igualarlo a otro ataque, cambiar el 3 por los segundos
+del stunTime de ese personaje en obj_player_puppet/Step_0). El anillo visual
+solo lo ve la Jinna; si la duena quiere verlo tambien como victima (el circulo
+enemigo avisando el alcance), es un bloque Draw_64 en obj_player_puppet con
+el mismo patron — pedirselo.

@@ -18,7 +18,8 @@
 //     a todos (SERVER_JINNA_PORTAL_STATE) y abre el grace del
 //     anticheat (ex_teleport, mismo que el teletransporte de Exeller a
 //     su clon). Enfriamiento JINNA_TELEPORT_RECHARGE.
-//   * AGARRE (tecla V): al superviviente en rango (JINNA_GRAB_RANGE) lo
+//   * AGARRE (tecla V): al superviviente dentro del CIRCULO (radio
+//     JINNA_GRAB_RANGE px centrado en Jinna, v92: hitbox circular) lo
 //     BLOQUEA JINNA_GRAB_LOCK segundos (obj_jinna_grab_effect en la
 //     victima: la congela su propio cliente via SERVER_JINNA_GRAB_STATE)
 //     y le hace JINNA_GRAB_DAMAGE de dano ("1 HP" en su placa oficial).
@@ -48,7 +49,17 @@
 // AGARRE (tecla V) — v4: la V tiene DOS modos con recargas INDEPENDIENTES
 // (antes compartian la de 12 s): sola = agarre, con ABAJO = portal trampa.
 #macro JINNA_GRAB_RECHARGE (60 * 8.5)      // 12 s de enfriamiento del AGARRE (la trampa tiene el suyo: JINNA_TRAP_RECHARGE)
-#macro JINNA_GRAB_RANGE 50                // px de alcance cuerpo a cuerpo
+// v92 (duena: "mas alcance y ahora la hitbox es circular"): el alcance del
+// agarre SUBE de 50 a 110 px y su HITBOX es EXPLICITAMENTE CIRCULAR — un
+// circulo perfecto centrado en Jinna (point_distance del centro al centro,
+// SIN ningun filtro de direccion: agarra igual al frente, atras, arriba y
+// abajo; la unica condicion es estar DENTRO del circulo). El anillo del
+// Draw_0 dibuja ESTE radio exacto durante la pose: lo que ves caer es lo
+// que el agarre agarra. El mismo circulo rige el modo practica (dummy).
+#macro JINNA_GRAB_RANGE 110               // px de RADIO del circulo del agarre (v92: antes 50 px — mas alcance)
+// v92: frames de la pose del agarre — es tambien la vida del ANILLO visual
+// del circulo (Draw_0: nace con el radio completo y se cierra hacia ella).
+#macro JINNA_GRAB_POSE 24                 // ~0,4 s de pose (duracion del anillo del circulo)
 #macro JINNA_GRAB_LOCK (60 * 1.6)         // 1,6 s de victima bloqueada
 #macro JINNA_GRAB_DAMAGE 25               // "1 HP" (la placa oficial; 15 con Vanilla atrapada)
 
@@ -409,7 +420,9 @@ function scr_jinna_special()
                 if(_g != noone)
                 {
                         jinnaGrabCd = JINNA_GRAB_RECHARGE; // v4: recarga del AGARRE (independiente de la trampa)
-                        jinnaGrabVisual = 24; // pose de agarre ~0,4 s
+                        // v92: la pose usa el macro JINNA_GRAB_POSE — es tambien la
+                        // vida del ANILLO del circulo que dibuja Draw_0 (hitbox visible)
+                        jinnaGrabVisual = JINNA_GRAB_POSE; // pose de agarre ~0,4 s
 
                         if(keyboard_check(global.KeyLeft))
                                 image_xscale = -1;
