@@ -500,38 +500,40 @@ if(instance_exists(global.player) && !global.player.isDead)
                 // v5/v2 (KRIS): DOBLE SALTO (Z aire) + ESPADA (X) + ESCUDO
                 // (C, patron parry: el relleno muestra el CD que falta y
                 // blanco = listo Y en tierra). Sin version exe (jamas se
-                // demoniza). Iconos: los propios si existen; si no,
-                // placeholders SIEMPRE VISIBLES (v2, pedido: "el escudo le
-                // hace falta su icono de habilidad que no sale"):
-                //   doble salto -> jetpack de Eggman (spr_gui_krisdjump)
-                //   espada      -> ataque de Amy (spr_gui_krisattack)
-                //   escudo      -> escudo de Eggman (spr_gui_krisshield)
+                // demoniza).
+                // v94 (ICONOS ANIMADOS, pedido de la duena: "el mismo
+                // tratamiento" que Metal Amy v93 — patron «Chocola» de
+                // Vanilla): fuera los placeholders prestados que esperaban
+                // sprites GUI propios que nunca llegaron (el jetpack de
+                // Eggman, el ataque de Amy, el escudo de Eggman). Cada
+                // habilidad se dibuja con SU PROPIA animacion de juego
+                // ciclando frames (drawMiniIcon):
+                //   doble salto -> spr_kris_jump (6 frames)
+                //   espada      -> spr_kris_attack1_air1 (4 frames)
+                //   escudo      -> spr_kris_block_success_ground (9 frames)
                 case CHARACTER_KRIS:
                 {
-                        var _krisDjIcon = asset_get_index("spr_gui_krisdjump");
-                        if(is_undefined(_krisDjIcon) || _krisDjIcon < 0)
-                                _krisDjIcon = spr_gui_eggdjump;
-
+                        // Z — DOBLE SALTO: spr_kris_jump (6 f, contenido
+                        // (5,1,35,42) medido sobre los PNG, regla v4.3b de
+                        // zonas que existen de verdad en la textura) al 38%.
+                        // Blanco = listo; rojo = recargando.
                         var _kprog0 = 1.0 - (max(global.player.djumpRecharge, 0) / KRIS_DJUMP_RECHARGE);
-                        drawKeyIcon(_krisDjIcon, 0, 20, global.KeyA, _kprog0 * 10, 222 - _ico, _kprog0 == 1.0 ? c_white : c_red, _kprog0, 0);
+                        drawMiniIcon(spr_kris_jump, 5, 1, 35, 42, 0.38, global.KeyA, 372, 222 - _ico, _kprog0 == 1.0 ? c_white : c_red, _kprog0, 0);
 
-                        var _krisAtkIcon = asset_get_index("spr_gui_krisattack");
-                        if(is_undefined(_krisAtkIcon) || _krisAtkIcon < 0)
-                                _krisAtkIcon = spr_gui_amyattack;
-
+                        // X — ESPADA: spr_kris_attack1_air1 (4 f, contenido
+                        // (8,0,53,70)) al 24% — el tajo base: la tierra y la
+                        // fase 1 aerea usan este mismo sprite.
                         var _kprog1 = 1.0 - (min(max(global.player.attackTimer, 0), KRIS_ATTACK_RECHARGE) / KRIS_ATTACK_RECHARGE);
-                        drawKeyIcon(_krisAtkIcon, 0, 23, global.KeyB, _kprog1 * 10, 240 - _ico, _kprog1 == 1.0 ? c_white : c_red, _kprog1, 0);
+                        drawMiniIcon(spr_kris_attack1_air1, 8, 0, 53, 70, 0.24, global.KeyB, 372, 240 - _ico, _kprog1 == 1.0 ? c_white : c_red, _kprog1, 0);
 
-                        // v2: el escudo SIEMPRE se dibuja — placeholder el
-                        // escudo de Eggman hasta que exista spr_gui_krisshield
-                        var _krisShIcon = asset_get_index("spr_gui_krisshield");
-                        if(is_undefined(_krisShIcon) || _krisShIcon < 0)
-                                _krisShIcon = spr_gui_eggshield;
-
+                        // C — ESCUDO: spr_kris_block_success_ground (9 f,
+                        // contenido (10,7,35,40)) al 40% — el bloqueo que
+                        // sale al frente. Patron parry: blanco = listo Y en
+                        // tierra; rojo = lo demas. SIEMPRE visible (v2).
                         var _kmax = max(global.player.parryCooldownMax, 1);
                         var _kprog2 = 1.0 - (max(global.player.parryCooldown, 0) / _kmax);
                         var _kready = (_kprog2 >= 1.0 && global.player.isGrounded) ? c_white : c_red;
-                        drawKeyIcon(_krisShIcon, 0, 20, global.KeyC, _kprog2 * 10, 258 - _ico, _kready, _kprog2, 0);
+                        drawMiniIcon(spr_kris_block_success_ground, 10, 7, 35, 40, 0.4, global.KeyC, 372, 258 - _ico, _kready, _kprog2, 0);
                         break;
                 }
 
@@ -561,19 +563,30 @@ if(instance_exists(global.player) && !global.player.isDead)
 
                 case CHARACTER_AMY_CANON:
                 {
-                                // Icono 1: SALTO DE MARTILLO (tecla Z, en el suelo). El relleno
-                                // muestra el CD; blanco = listo Y en el suelo (espejo del icono 3).
+                                // v94 (ICONOS ANIMADOS, pedido de la duena: "el mismo
+                                // tratamiento" que Metal Amy v93 — patron «Chocola» de
+                                // Vanilla): cada habilidad se dibuja con SU PROPIA
+                                // animacion de juego ciclando frames (drawMiniIcon),
+                                // en vez de los iconos GUI estaticos. La logica de
+                                // color/recarga de cada icono queda INTACTA (v4.x/v83).
+
+                                // Icono 1: SALTO DE MARTILLO (tecla Z, en el suelo): la
+                                // animacion propia del salto — spr_amy_attack2_canon
+                                // (4 frames, contenido (1,0,47,59)) al 28%. El relleno
+                                // muestra el CD; blanco = listo Y en el suelo.
                                 var prog = 1.0 - (max(global.player.hjumpTimer, 0) / AMY_CANON_BIGJUMP_RECHARGE);
                                 var b1 = (prog == 1.0 && global.player.isGrounded) ? c_white : c_red;
-                                drawKeyIcon(spr_gui_amyhjump_canon, 0, 32, global.KeyA, prog * 10, 222 - _ico, b1, prog, 0);
+                                drawMiniIcon(spr_amy_attack2_canon, 1, 0, 47, 59, 0.28, global.KeyA, 372, 222 - _ico, b1, prog, 0);
 
-                                // Icono 2: IMPULSO AEREO DE TAROT (tecla X, SOLO en el aire).
+                                // Icono 2: IMPULSO AEREO DE TAROT (tecla X, SOLO en el
+                                // aire): el impulso de tarot — spr_amy_attack1_canon
+                                // (2 frames en loop, contenido (1,2,45,42)) al 38%.
                                 // El relleno muestra el CD; blanco = lista Y en el aire
                                 // (espejo del icono 3, que exige estar en el suelo).
                                 var val = scr_esbirro_hud(global.player) ? AMY_CANON_ETAROTDASH_RECHARGE : AMY_CANON_TAROTDASH_RECHARGE;
                                 prog = 1.0 - (max(global.player.attackTimer, 0) / val);
                                 var b2 = (prog == 1.0 && !global.player.isGrounded) ? c_white : c_red;
-                                drawKeyIcon(spr_gui_amyattack_canon, 0, 23, global.KeyB, prog * 10, 240 - _ico, b2, prog, 0);
+                                drawMiniIcon(spr_amy_attack1_canon, 1, 2, 45, 42, 0.38, global.KeyB, 372, 240 - _ico, b2, prog, 0);
 
                         // Icono 3: ACOMETIDA DE MARTILLO (tecla C). v4.3: la C ya no esta
                         // horneada: se dibuja la tecla real de special2.
@@ -583,6 +596,10 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // tierra con la SUPER fase 2 es la LANZADA DE MARTILLO (hammerThrowTimer),
                         // la unica habilidad con recarga que no tenia icono. En tierra con la
                         // super fase 1 la C no hace nada: rojo.
+                        // v94: la CARA tambien anima con su sprite real: LSA en el aire
+                        // (spr_amy_light_speed_canon, 1 f + vaiven de vuelo), LANZADA
+                        // en la super fase 2 (spr_super_amy_hrow_hammer, 10 f) y la
+                        // acometida en tierra (spr_amy_attack3_canon_, 8 f).
                         var _acThrow = (global.player.superFormPhase >= 2 && global.player.isGrounded);
                         var _acNoC = (global.player.superFormPhase == 1 && global.player.isGrounded);
                         var _acCd = global.player.dashTimer;
@@ -596,7 +613,13 @@ if(instance_exists(global.player) && !global.player.isDead)
 
                         prog = 1.0 - (max(_acCd, 0) / val);
                         var b = (prog == 1.0 && !_acNoC) ? c_white : c_red;
-                        drawKeyIcon(spr_gui_amydash_canon, 0, 23, global.KeyC, prog * 10, 258 - _ico, b, prog, 0);
+
+                        if(_acThrow)
+                                drawMiniIcon(spr_super_amy_hrow_hammer, 0, 3, 56, 52, 0.3, global.KeyC, 372, 258 - _ico, b, prog, 0);
+                        else if(!global.player.isGrounded)
+                                drawMiniIcon(spr_amy_light_speed_canon, 0, 0, 35, 33, 0.42, global.KeyC, 372, 258 - _ico, b, prog, 200);
+                        else
+                                drawMiniIcon(spr_amy_attack3_canon_, 25, 18, 57, 52, 0.3, global.KeyC, 372, 258 - _ico, b, prog, 0);
 
                         // Icono 4: PARRY (tecla V, v4.0). Mismas fijaciones que el de
                         // Sonic (estados 60/61/64). El relleno muestra el CD que falta:
@@ -604,22 +627,18 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // (fallo/exito), se guarda la duracion total en
                         // parryCooldownMax al aplicarlo y asi el icono siempre arranca
                         // lleno. Blanco = listo Y en el suelo (el parry es solo en
-                        // tierra); rojo = lo demas. Si spr_gui_amyparry_canon no
-                        // existiera en el proyecto, no se dibuja pero tampoco crashea
-                        // (mismo patron que el parry de Sonic y el spindash).
+                        // tierra); rojo = lo demas.
+                        // v94: anima con el parry exitoso REAL de Amy (spr_amy_
+                        // parry_exitoso, 10 frames, contenido (6,4,38,42)) al 38%.
                                                 // v4.1: se dibuja AL LADO del icono de la acometida (misma fila
                         // que la C, a su derecha) y no DEBAJO: la vista mide 480x270 y una
                         // cuarta fila apilada (y=276) caia FUERA de pantalla (por eso no
                         // salia). C y V comparten fila, como Z X C V en el teclado; en
                         // Android (y-200) tampoco choca con el boton G (23,81).
-                        var _sprParry = asset_get_index("spr_gui_amyparry_canon");
-                        if(_sprParry >= 0)
-                        {
-                                var _pmax = max(global.player.parryCooldownMax, 1);
-                                var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
-                                var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
-                                drawKeyIcon(_sprParry, 0, 19, global.KeyV, 44 + _pprog * 10, 258 - _ico, _pready, _pprog, 0);
-                        }
+                        var _pmax = max(global.player.parryCooldownMax, 1);
+                        var _pprog = 1.0 - (max(global.player.parryCooldown, 0) / _pmax);
+                        var _pready = (_pprog >= 1.0 && global.player.isGrounded) ? c_white : c_red;
+                        drawMiniIcon(spr_amy_parry_exitoso, 6, 4, 38, 42, 0.38, global.KeyV, 416, 258 - _ico, _pready, _pprog, 0);
                         break;
                 }
                 case CHARACTER_FLEETWAY_AMY:

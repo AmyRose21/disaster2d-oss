@@ -1570,6 +1570,32 @@ y las pistas nuevas de 20-28s se cortaban).
   Delivered first as "v81" by this session and relabelled: the v81 label
   belongs to the claims delivery.
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-27 (v94 — KRIS + AMY CANON: iconos de habilidad ANIMADOS, "el mismo tratamiento" de Metal Amy v93):
+  pedido de la duena: «ok has el mismo tratamiento con kriss y amy canon.» — REUSO puro
+  de la maquina v93 (drawMiniIcon, patron «Chocola» de Vanilla), CERO gameplay nuevo
+  (regla v81 «EXTEND, DON'T INVENT»): Kris y Amy Canon conservan su kit 100% intacto,
+  solo cambia el DIBUJO del HUD. KRIS (sus 3 iconos eran placeholders prestados —
+  jetpack de Eggman, ataque de Amy, escudo de Eggman — esperando sprites GUI que nunca
+  llegaron): Z = spr_kris_jump (6f, 38%, zona (5,1,35,42)), X = spr_kris_attack1_air1
+  (4f, 24%, (8,0,53,70) — air1 gano a air2 por legibilidad del tajo, verificada con
+  contact-sheet + vision), C = spr_kris_block_success_ground (9f, 40%, (10,7,35,40)),
+  blancos solo cuando toca (escudo exige suelo). AMY CANON: Z = spr_amy_attack2_canon
+  (4f, 28%, (1,0,47,59)), X = spr_amy_attack1_canon (2f loop, 38%, (1,2,45,42)), C con
+  TRES caras animadas segun lo que hara la tecla (patron de color v83, ahora tambien de
+  arte): super fase 2 en tierra = spr_super_amy_hrow_hammer (10f, 30%), en aire = LSA
+  con spr_amy_light_speed_canon (1f, 42%, + vaiven _fly), en tierra =
+  spr_amy_attack3_canon_ (8f, 30%); V = spr_amy_parry_exitoso (10f, 38%) al lado de la
+  C (v4.1). Los 4 sprites GUI estaticos canonicos dejan de referenciarse (quedan sin
+  usar en el proyecto, cero .yy tocados). Unico archivo editado en v94:
+  objects/obj_playerui/Draw_64.gml (los otros 3 del diff son los de v93, que viaja en
+  el mismo zip). Logica de recarga/color/esbirro intacta (mismas condiciones y 2
+  lecturas scr_esbirro_hud). Zonas medidas pixel a pixel (regla v4.3b, union sobre
+  todos los frames). Verificacion 2 pasadas: check_v94.py 94 OK / 0 FAIL + 
+  check_v94_pass2.py 50 OK / 0 FAIL (reconstruccion byte a byte HEAD+17 pares v93+2
+  pares v94, zonas re-medidas alpha>16, escenario duena en clon limpio: 94/0) +
+  check_v93.py re-ejecutado 72/0 + pixel-mock 4x (mock_v94.py) revisado por vision
+  (KRIS: listo/recargando; AMY: suelo/aire-LSA/super2-lanzada/recargando). Detalle:
+  seccion v94 del worklog + LEEME_V94_ICONOS_KRIS_AMYCANON.txt.
 - 2026-11-27 (v93 — METAL AMY REWORK: caza confirmada + datos tacticos + bala 4 s + HUD con iconos ANIMADOS):
   pedido de la duena: rework de Metal Amy (habilidades + GUI) con el patron «Chocola»
   de Vanilla para los iconos — cada habilidad con SU PROPIA animacion de juego (aclarado

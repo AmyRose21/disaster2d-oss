@@ -1935,3 +1935,71 @@ obj_playerui/Draw_64.gml case EXE_METALAMY). If the owner wants the v4.10
 documented scan values back (12s reveal / 20s cooldown / 14s hunt cycle), it is a
 3-macro change in scr_metalamy_special — the shipped 15.5/14.5/11.25 values were
 kept deliberately (see "Facts learned").
+
+## v94 — Kris + Amy Canon: animated own-sprite HUD icons ("el mismo tratamiento", 2026-11-27)
+
+Owner asked to give Kris and Amy Canon «the same treatment» as Metal Amy v93
+(animated icons). Key readings of the request, in priority order:
+
+1. **"El mismo tratamiento" = extend the v93 machinery, do NOT invent gameplay.**
+   The v81 lesson ("EXTEND, DON'T INVENT") is the exact precedent: when the
+   owner says "add the same thing as X to characters A/B", reuse the existing
+   system (here: drawMiniIcon) and change presentation only. Kris and Amy
+   Canon kept their kits 100% intact — only the HUD drawing changed. This also
+   matches the immediate conversational context (the clarification exchange was
+   about the ICONS, and the answer "ok" preceded the request).
+2. **An ability's "own animation" is defined by the state->sprite table**, not
+   by guessing: scr_survivors' player_anims maps AMY_CANON_HJUMP(15)->
+   spr_amy_attack2_canon, DASH(18)->attack3, TAROTDASH(23)->attack1,
+   LIGHTDASH(25)->light_speed; Kris's air-attack phases are
+   spr_kris_attack1_air1 (ground + phase 1; ground art was never made) and
+   _air2 (phase 2). The HUD icon should use the sprite the STATE actually
+   shows, so the icon previews the real move.
+3. **A multi-face icon can animate its face too.** Amy Canon's C already chose
+   its COLOR by context (v83: air = LSA shares dashTimer, super phase 2 ground
+   = hammer throw); v94 additionally chooses the ART: hrow_hammer (10f) /
+   light_speed (1f + _fly wobble) / attack3 (8f). Keep the branch order aligned
+   with the color logic (throw -> air -> ground) so icon art and readiness never
+   disagree.
+4. **Choosing between two candidate sprites is a legibility decision.** Kris's
+   sword had two animations (air1 4f vs air2 8f): the contact sheet + VLM read
+   showed air1's big contiguous slash + visible pink blade survive 24% scale,
+   while air2's fragmented trail turns to noise. More frames != better icon.
+5. **Removing placeholder fallbacks is a cleanup, not a risk**: Kris's three
+   icons were borrowed placeholders (Eggman jetpack / Amy attack / Eggman
+   shield) behind asset_get_index guards for GUI sprites that never materialized.
+   Real game sprites (already in the .yyp, already drawn by Draw_76) need no
+   guard — direct references are safer than asset_get_index strings.
+6. **Sprites that lose their last reference do not break the project**: the four
+   static GUI sprites (spr_gui_amy{hjump,attack,dash,parry}_canon) are now
+   unreferenced; GameMaker keeps them as resources. No .yy/.yyp edits are
+   needed to stop using a sprite.
+
+### Verification lessons (both passes clean after fixing CHECKER bugs only)
+
+- **The .yyp lists sprites as "sprites/<name>/<name>.yy"** (plural folder,
+  .yy extension) — check membership with that exact string, not
+  "sprite/name/name.yy".
+- **Counting calls by identifier over-reports**: comments mention drawMiniIcon
+  too ("...ciclando frames (drawMiniIcon):"); count "drawMiniIcon(" minus the
+  definition instead of \b drawMiniIcon \b.
+- **Mutually exclusive draw branches draw the same key**: Amy Canon's C has 3
+  calls in if/else-if/else at the same anchor. Overlap checks must either
+  dedupe by key+position or explicitly exempt same-key alternatives;
+  otherwise the checker "finds" a C-vs-C collision that can never render.
+- **Extract the old/new pairs for pass 2 from git itself** (gen_v94_pairs.py
+  anchors on unique strings, slices HEAD and the delivered file, and proves
+  HEAD+v93pairs+v94pairs == delivered byte a byte). Hand-copied pairs from the
+  chat are the error source; generated pairs cannot drift.
+- **Mock-rendering the HUD needs the panel math from the renderer, not from
+  the game**: the first PREVIEW_V94 pasted the second panel at x=HUD_W*ZOOM
+  on a canvas of exactly HUD_W*ZOOM width (invisible). The panel-canvas
+  mismatch was in the mock only — the game code was already verified by the
+  bounds check; VLM caught it, layout math re-confirmed.
+
+### Pending
+
+Nothing for v94. Tuning knobs if the owner asks: icon scales/anchors (the 9
+drawMiniIcon calls in obj_playerui/Draw_64.gml cases CHARACTER_KRIS /
+CHARACTER_AMY_CANON), and per-face art swaps (e.g. sword air2 for air1, or
+block_success_air for the shield icon) — all single-argument changes.

@@ -7371,3 +7371,113 @@ cada habilidad (Chocola NO aparece: fue solo la referencia de estilo).
    LEEME_V93_METALAMY_GUI.txt, check_v93.py, check_v93_pass2.py.
    (check_v93_pass2 importa v93_pairs.py — los 17 pares van DENTRO del
    zip junto al checker.)
+
+## v94 - 2026-11-27 - KRIS + AMY CANON: iconos de habilidad ANIMADOS (el mismo tratamiento de Metal Amy v93 / patron Chocola)
+
+Base: origin/main 34c9c9c4 + v93 (Metal Amy, aun sin entregar: viaja en
+este mismo zip). Pedido de la duena: «ok has el mismo tratamiento con
+kriss y amy canon.» — el MISMO tratamiento = los iconos animados con la
+PROPIA animacion de cada habilidad (aclarado en la conversacion: Chocola
+es solo el patron de estilo, nada de Chocola pegado). Regla v81
+(LEARNING): «EXTEND, DON'T INVENT» — se REUSA la maquina de v93
+(drawMiniIcon) y NO se inventan cambios de gameplay: Kris y Amy Canon
+conservan su kit intacto (solo cambia el DIBUJO del HUD).
+
+1) INVESTIGACION: caso CHARACTER_KRIS y CHARACTER_AMY_CANON del
+   obj_playerui/Draw_64 releidos; kits releidos (scr_kris_special:
+   doble salto Z + espada X de 2 fases aereas + escudo C direccional +
+   LOVE v46; scr_amy_canon_special/Step_2/Create_0/Draw_76: salto de
+   martillo Z + impulso de tarot X + acometida/LSA C de dos caras v83 +
+   parry V + super fase 2). Mapa estado->sprite de scr_survivos
+   (AMY_CANON_HJUMP=15->attack2, DASH=18->attack3, TAROTDASH=23->attack1,
+   LIGHTDASH=25->light_speed). Hallazgo: los 3 iconos de Kris eran
+   PLACEHOLDERS prestados (jetpack de Eggman, ataque de Amy, escudo de
+   Eggman) esperando sprites GUI propios (spr_gui_kris*) que NUNCA
+   llegaron — con el patron animado ya no hacen falta: cada habilidad
+   tiene su sprite de juego. Sprites medidos pixel a pixel (regla v4.3b
+   de zonas que existen de verdad en la textura, union sobre TODOS los
+   frames): kris_jump 6f (5,1,35,42) 45x45; kris_attack1_air1 4f
+   (8,0,53,70) 70x70; kris_block_success_ground 9f (10,7,35,40) 55x55;
+   amy_attack2_canon 4f (1,0,47,59) 48x59; amy_attack1_canon 2f
+   (1,2,45,42) 46x46; amy_attack3_canon_ 8f (25,18,57,52) 100x100;
+   amy_light_speed_canon 1f (0,0,35,33) 35x33; super_amy_hrow_hammer
+   10f (0,3,56,52) 70x65; amy_parry_exitoso 10f (6,4,38,42) 50x50.
+   Eleccion de la espada verificada con contact-sheet + vision: air1
+   (tajos grandes y contiguos + hoja rosa legible en f3-4) gana a air2
+   (estela fragmentada en ruido al reducir).
+
+2) GUI (obj_playerui/Draw_64.gml, unico archivo de codigo de v94):
+   - KRIS: Z=doble salto con spr_kris_jump (6f, 38%), X=espada con
+     spr_kris_attack1_air1 (4f, 24% — el tajo base: tierra y fase 1
+     aerea usan ese mismo sprite), C=escudo con
+     spr_kris_block_success_ground (9f, 40% — el bloqueo al frente).
+     Fueran los 3 placeholders prestados y sus asset_get_index de
+     respaldo. Filas Z/X/C = 222/240/258 - _ico (las de siempre).
+   - AMY CANON: Z=salto de martillo con spr_amy_attack2_canon (4f,
+     28%), X=impulso de tarot con spr_amy_attack1_canon (2f en loop,
+     38%), C=TRES caras animadas segun lo que hara la tecla (patron
+     v83 de color, ahora tambien de arte): super fase 2 en tierra =
+     lanzada con spr_super_amy_hrow_hammer (10f, 30%), en aire = LSA
+     con spr_amy_light_speed_canon (1f, 42%, + vaiven de vuelo _fly
+     200), en tierra = acometida con spr_amy_attack3_canon_ (8f, 30%);
+     V=parry con spr_amy_parry_exitoso (10f, 38%) AL LADO de la C
+     (v4.1: comparten fila, x=416). Los 4 iconos GUI estaticos
+     (spr_gui_amyhjump/amyattack/amydash/amyparry_canon) dejan de
+     referenciarse (quedan en el proyecto sin usar: cero .yy que
+     tocar). Toda la logica de color/recarga/esbirro queda INTACTA
+     (mismas condiciones v4.x/v83, mismas 2 lecturas scr_esbirro_hud).
+   - Layout re-verificado: filas y=6/24/42 (absolutas, _ico=216),
+     iconos de ~13-17 px de alto, sin solapes ni choques con la tecla
+     dinamica, todo dentro de la banda HUD 0..70 y la vista 480x270.
+
+3) VERIFICACION (regla 6, 2 pasadas, ambas limpias a la primera tras
+   corregir el VERIFICADOR, no el juego):
+   - PASADA 1 — check_v94.py: 94 OK / 0 FALLO. Lexer propio del
+     Draw_64 (balance con strings/comentarios), helper drawKeyIcon
+     identico a HEAD, caso KRIS (3 drawMiniIcon en orden, 0 drawKeyIcon,
+     placeholders viejos fuera, formulas de recarga y colores intactas),
+     caso AMY_CANON (6 drawMiniIcon, 0 drawKeyIcon, variantes esbirro,
+     _acThrow/_acNoC, 3 ramas de la C en orden lanzada/LSA/acometida,
+     parry), 9 sprites con sus frames exactos y listados en el .yyp,
+     zonas dentro del lienzo Y del recorte real (union alpha>0),
+     13 llamadas drawMiniIcon en total, layout re-deriado del codigo,
+     integridad (solo 4 .gml vs HEAD — los 3 de v93 + Draw_64 —, cero
+     .yy/.yyp, obj_kris/obj_amy_canon/scr_kris_special/
+     scr_amy_canon_special/scr_parry/red INTACTOS, cero superficie de
+     red nueva) y regresiones (check_v93.py re-ejecutado: 72/0; Chocola,
+     Metal Amy v93, Amy original y Sonic intactos).
+   - PASADA 2 — check_v94_pass2.py: 50 OK / 0 FALLO, metodos
+     INDEPENDIENTES: reconstruccion BYTE A BYTE de Draw_64 (HEAD + 17
+     pares v93 + 2 pares v94 == entregado, via gen_v94_pairs.py que
+     extrae los pares del git real; los otros 3 archivos re-verificados
+     con sus pares v93), lexer por regex (distinto), zonas re-medidas
+     con umbral alpha>16 y frames contados textualmente, layout
+     re-deriado con split manual por comas (ramas alternativas de la C
+     excluidas entre si), flujos de color re-leidos, ESCENARIO DUEÑA
+     (clon limpio de HEAD + overlay de los 4 .gml + checkers ->
+     check_v94.py alli: 94/0, exit 0) y previews presentes.
+   - Los 10 FAIL de la corrida 1 de la pasada 1 y los 4 de la pasada 2
+     eran del VERIFICADOR (nombre del .yyp mal supuesto, formato del
+     .yyp "sprites/...", tecla de la C extraida con "global.KeyC", y
+     menciones de drawMiniIcon en comentarios contadas como codigo):
+     corregido el verificador, re-corrido.
+   - VISION (pixel-mock 4x con los sprites reales, mock_v94.py):
+     PREVIEW_V94_KRIS.png (listo vs recargando) y
+     PREVIEW_V94_AMYCANON.png (suelo / aire con LSA / super fase 2 con
+     lanzada / recargando) revisados: iconos completos, sin cortes ni
+     solapes, letras Z/X/C/V legibles, el arte corresponde (salto, tajo
+     con hoja, escudo al frente, martillo, rayo horizontal, lanzada,
+     parry). El bug del primer mock (2o panel pegado fuera del lienzo)
+     era del mock, no del juego.
+   - NO VERIFICADO: compilacion en GameMaker ni partida real (sin
+     GameMaker aqui); el look final se juzgo por pixel-mock + vision.
+
+4) ARCHIVOS: objects/obj_playerui/Draw_64.gml (unico editado en v94),
+   + los 3 de v93 aun sin entregar (scripts/scr_metalamy_special/
+   scr_metalamy_special.gml, objects/obj_metalamy/Create_0.gml,
+   objects/obj_metalamy/Step_0.gml), worklog.md, CACHE.md, LEARNING.md,
+   LEEME_V93_METALAMY_GUI.txt + LEEME_V94_ICONOS_KRIS_AMYCANON.txt,
+   check_v93.py/check_v93_pass2.py/v93_pairs.py (v93) y
+   check_v94.py/check_v94_pass2.py/v94_pairs.py/gen_v94_pairs.py,
+   mock_v94.py, PREVIEW_V94_KRIS.png, PREVIEW_V94_AMYCANON.png,
+   CONTACT_V94_KRIS_SWORD.png. Todo viaja en el zip de v94 (v93 + v94).
