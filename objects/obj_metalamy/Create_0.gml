@@ -31,12 +31,13 @@ bulletTimer = 0;
 shootPose = 0;
 
 // METAL AMY v4.7/v4.8/v4.10: scan (tecla V)
-scanTimer = 0;    // revelado activo (V manual: METALAMY_SCAN_TIME, 12 s · cazadora: METALAMY_HUNT_WINDOW, 8 s)
-scanRecharge = 0; // enfriamiento restante (20 s)
+scanTimer = 0;    // revelado activo (V manual: METALAMY_SCAN_TIME, 15,5 s · cazadora: METALAMY_HUNT_WINDOW, 8 s)
+scanRecharge = 0; // enfriamiento restante (14,5 s)
 scanPose = 0;     // frames de pose de escaneo restantes
 
 // METAL AMY v4.8 — MARCA DE LA CAZADORA (pasiva 3): con 1 solo
-// superviviente vivo la V se apaga y el rastreo sale solo (8 s cada 14 s)
+// superviviente vivo la V se apaga y el rastreo sale solo (ventana de 8 s
+// cada ciclo de 11,25 s — METALAMY_HUNT_TIME)
 huntMode = false; // activo mientras quede exactamente 1 vivo
 huntCd = 0;       // enfriamiento del ciclo pasivo (arranca al cerrar la ventana)
 
@@ -50,8 +51,9 @@ wasShocked = false; // venia stuneada el frame anterior (deteccion de arranque)
 dashDirX = 0;      // -1 / 0 / 1 de la ultima embestida
 dashDirY = 0;      // -1 / 0 / 1 de la ultima embestida
 dashCharges = METALAMY_DASH_MAX; // nace con las 3 cargas
-dashRecharge = 0;  // progreso de la carga en curso (5 s por carga)
+dashRecharge = 0;  // progreso de la carga en curso (3,75 s por carga)
 dashBoost = 0;     // frames de impulso restantes del dash actual
+dashHitConfirm = false; // v93: caza confirmada — la embestida que TOCA ya cobro su reembolso
 
 //General
 hp = 10000;

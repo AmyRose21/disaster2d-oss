@@ -118,6 +118,31 @@ drawKeyIcon = function(_spr, _frame, _artW, _key, _xx, _yy, _col, _alpha, _hintX
         }
 }
 
+// v93 (HUD) — ICONO ANIMADO DE HABILIDAD (patron «Chocola» de Vanilla): el
+// sprite REAL de la habilidad (sus frames de juego, animando de verdad) en
+// vez de un icono GUI estatico. Cicla frames con current_time (uno cada
+// 150 ms, patron de la V de Vanilla), con color de estado (blanco = listo,
+// rojo = recargando), alpha de recarga (el relleno se llena), desliz hacia
+// la derecha mientras NO esta lista y la tecla REAL de la configuracion al
+// lado (v4.3, respeta el remapeo).
+//   _cx/_cy/_cw/_ch = zona de contenido del sprite medida sobre los PNG
+//   (v4.3b: draw_sprite_part_ext solo pide zonas que existen de verdad en
+//   la textura, como el recorte (3,2,13,21) de la Chocola).
+//   _fly > 0 (periodo del vaiven) anima los sprites de UN frame (la bala
+//   de Metal Amy): vaiven horizontal suave de ±3 px, "en vuelo".
+drawMiniIcon = function(_spr, _cx, _cy, _cw, _ch, _scale, _key, _xx, _yy, _col, _alpha, _fly)
+{
+        var _frame = floor(current_time / 150) mod max(1, sprite_get_number(_spr));
+        var _slide = (1.0 - _alpha) * 10;
+        var _flyX = 0;
+
+        if(_fly > 0)
+                _flyX = round(sin(current_time / _fly) * 3);
+
+        draw_sprite_part_ext(_spr, _frame, _cx, _cy, _cw, _ch, _xx + _slide + _flyX, _yy, _scale, _scale, _col, _alpha);
+        scr_text_spr(_xx + _cw * _scale + 4 + _slide + _flyX, _yy + floor(_ch * _scale * 0.5) - 3, scr_controls_keycode_to_key(_key), _col, _alpha);
+}
+
 if(instance_exists(global.player) && !global.player.isDead)
 {
         switch(global.character)
@@ -204,41 +229,45 @@ if(instance_exists(global.player) && !global.player.isDead)
 
                                 case EXE_METALAMY:
                                 {
-                                        // v2.2 (TTB): golpe (X) y bala del canon (C).
-                                        // v4.3: el frame 0 de spr_gui_metalamyattack ERA una X grande
-                                        // horneada (no habia arte separable), asi que se dibuja solo la
-                                        // tecla real (artW = 0) en su lugar.
-                                        // v4.6 (dash): el anillo del icono X refleja el sistema de
-                                        // cargas: con cargas -> barre el gap de 0,5 s entre usos; sin
-                                        // cargas -> el anillo ES la recarga (5 s por carga), rojo
-                                        // hasta llenarse.
+                                        // v93 — ICONOS ANIMADOS (patron «Chocola» de Vanilla,
+                                        // pedido de la dueña): cada habilidad se dibuja con SU
+                                        // PROPIA animacion de juego (los frames reales, ciclando
+                                        // con current_time) en vez de los iconos GUI estaticos.
+                                        // BLANCO = listo, ROJO = recargando (DORADO = la
+                                        // cazadora), relleno = progreso y desliz mientras
+                                        // recarga; tecla REAL dinamica al lado (v4.3).
+
+                                        // Z — salto: la bola de giro (spr_metalamy_jump, 5
+                                        // frames, contenido completo 30x30) al 40%: blanca en
+                                        // el aire, roja y deslizada en tierra.
+                                        var _jact = global.playerControls && global.player.isJumping;
+                                        drawMiniIcon(spr_metalamy_jump, 0, 0, 30, 30, 0.4, global.KeyA, 372, 219 - _ico, _jact ? c_white : c_red, _jact ? 1 : 0.5, 0);
+
+                                        // X — embestida (spr_metalamy_attack2, 4 frames): el
+                                        // relleno es el gap de 0,5 s entre usos con cargas, o
+                                        // la recarga de la siguiente carga sin ellas (v4.6) —
+                                        // caza confirmada (v93: tocar devuelve 1,5 s) y datos
+                                        // tacticos (v93: con el scan activo recarga al doble)
+                                        // la aceleran por dentro.
                                         var _maprog;
                                         if(global.player.dashCharges > 0)
                                                 _maprog = 1.0 - (min(global.player.attackTimer, METALAMY_DASH_GAP) / METALAMY_DASH_GAP);
                                         else
                                                 _maprog = global.player.dashRecharge / METALAMY_DASH_RECHARGE;
-                                        drawKeyIcon(spr_gui_metalamyattack, 0, 0, global.KeyB, _maprog * 10, 240 - _ico, _maprog == 1.0 ? c_white : c_red, _maprog, 0);
+                                        drawMiniIcon(spr_metalamy_attack2, 0, 0, 31, 31, 0.4, global.KeyB, 372, 238 - _ico, _maprog >= 1.0 ? c_white : c_red, _maprog, 0);
 
-                                        prog = global.playerControls && global.player.isJumping;
-                                        drawKeyIcon(spr_gui_exefreejump, 0, 26, global.KeyA, 3, 218 - _ico, prog ? c_white : c_red, prog ? 1 : 0.5, 0);
-
+                                        // C — bala del canon (spr_metalamy_bullet, contenido
+                                        // x[1..40] y[3..12]): UN frame — la anima el vaiven de
+                                        // vuelo (±3 px). Recarga 4 s (v93).
                                         prog = 1.0 - (global.player.bulletTimer / METALAMY_BULLET_RECHARGE);
-                                        drawKeyIcon(spr_gui_metal_amy_lazer, 0, 24, global.KeyC, prog * 4, 250 - _ico, prog == 1.0 ? c_white : c_red, prog, 0);
+                                        drawMiniIcon(spr_metalamy_bullet, 1, 3, 40, 10, 0.7, global.KeyC, 372, 252 - _ico, prog >= 1.0 ? c_white : c_red, prog, 200);
 
-                                        // v4.7/v4.8 (SCAN, tecla V): a la derecha de la C, misma fila
-                                        // (patron Amy canon v4.1: C y V comparten fila, como en el
-                                        // teclado; la vista es 480x270 y una cuarta fila apilada
-                                        // caeria fuera de pantalla). spr_gui_metalamy_indy trae el
-                                        // ojo verde + una V horneada en un keycap (x24..31 del PNG):
-                                        // NO hace falta editar la imagen — el mecanismo de v4.3
-                                        // recorta el arte hasta el ojo (artW = 14) y dibuja la tecla
-                                        // REAL dinamica (drawKeyIcon), igual que en todos los iconos
-                                        // de habilidad desde v4.3.
-                                        // v4.8 — MARCA DE LA CAZADORA: con 1 solo superviviente la
-                                        // V ya no se pulsa: el anillo pasa a reflejar el CICLO
-                                        // pasivo (ventana de 8 s en blanco; luego el relleno barre
-                                        // los 14 s del enfriamiento) — el icono se vuelve dorado
-                                        // para avisar de que el rastreo ahora sale solo.
+                                        // V — escáner (spr_metalamy_scan, 8 frames: la pose con
+                                        // el barrido verde, contenido x[0..52] y[18..61]) al
+                                        // 30%. Patron v4.8: con 1 solo superviviente vivo la V
+                                        // se vuelve pasiva (cazadora) — icono DORADO y el
+                                        // relleno es el ciclo de la ventana; si no, el
+                                        // enfriamiento del manual (14,5 s).
                                         var _sact = global.player.scanTimer > 0;
                                         var _sready;
                                         var _sprog;
@@ -247,13 +276,13 @@ if(instance_exists(global.player) && !global.player.isDead)
                                         {
                                                 _sprog = 1.0 - (global.player.huntCd / METALAMY_HUNT_TIME);
                                                 _sready = _sact || _sprog >= 1.0;
-                                                drawKeyIcon(spr_gui_metalamy_indy, 0, 14, global.KeyV, 44 + _sprog * 10, 250 - _ico, _sready ? c_yellow : c_red, _sready ? 1 : _sprog, 0);
+                                                drawMiniIcon(spr_metalamy_scan, 0, 18, 53, 44, 0.3, global.KeyV, 416, 252 - _ico, _sready ? c_yellow : c_red, _sready ? 1 : _sprog, 0);
                                         }
                                         else
                                         {
                                                 _sprog = 1.0 - (global.player.scanRecharge / METALAMY_SCAN_RECHARGE);
                                                 _sready = _sprog >= 1.0 || _sact;
-                                                drawKeyIcon(spr_gui_metalamy_indy, 0, 14, global.KeyV, 44 + _sprog * 10, 250 - _ico, _sready ? c_white : c_red, _sready ? 1 : _sprog, 0);
+                                                drawMiniIcon(spr_metalamy_scan, 0, 18, 53, 44, 0.3, global.KeyV, 416, 252 - _ico, _sready ? c_white : c_red, _sready ? 1 : _sprog, 0);
                                         }
                                         break;
                                 }

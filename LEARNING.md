@@ -1822,3 +1822,116 @@ macro), `obj_jinna/Draw_0.gml` (visible exact-hitbox ring), `scr_player_hurt.gml
 4. **When the GML is right and the checker is wrong, fix the CHECKER and
    re-run — but only after proving the game code by hand** (grep: the 8 hits
    were 5 code + 3 comments; code counts were exactly 5/3/2 as designed).
+
+## v93 — Metal Amy rework: hunt-confirm dash refund + tactical-data scan synergy + 4s bullet; animated own-sprite HUD icons (2026-11-27)
+
+Request: «Rework De metal amy Mejora a sus habilidades y gui (recuerdas el cosito
+que hisiste que aparecia el chao. de vanilla como habilidad osea ese icono animado?
+me gusto me gustaria que metal amy tubiera la misma cosa para sus habilidades» —
+followed by an owner clarification: the icons must use the abilities' OWN
+animations (like Chocola used Chocola's own idle), NOT Chocola pasted everywhere.
+Outcome: 4 code files — `scr_metalamy_special.gml` (refund + double recharge +
+bullet 4s + doc fixes), `obj_metalamy/Create_0.gml` (`dashHitConfirm` + doc fixes),
+`obj_metalamy/Step_0.gml` (doc fixes only), `obj_playerui/Draw_64.gml` (new
+`drawMiniIcon` helper + the EXE_METALAMY case fully animated). Pass 1: 72 OK /
+0 FAIL; pass 2: 31 OK / 0 FAIL (byte-exact reconstruction of all 4 files +
+owner-scenario clone re-running pass 1: 72 OK / 0 FAIL).
+
+### The Chocola pattern, generalized (copy for any future animated HUD icon)
+
+1. **`drawMiniIcon(_spr, _cx, _cy, _cw, _ch, _scale, _key, _xx, _yy, _col, _alpha, _fly)`**
+   (obj_playerui/Draw_64.gml, next to drawKeyIcon) = the v83 Chocola icon as a
+   reusable helper: `frame = floor(current_time / 150) mod max(1,
+   sprite_get_number(_spr))`, `slide = (1.0 - _alpha) * 10`,
+   `draw_sprite_part_ext(spr, frame, _cx.._ch, _xx + _slide + _flyX, _yy, _scale,
+   _scale, _col, _alpha)` + the REAL bound key via `scr_text_spr`. `_fly > 0`
+   gives a ±3px sine sway (period = `_fly` ms) for SINGLE-frame sprites — the
+   only way to "animate" a 1-frame projectile sprite honestly.
+2. **Crop = the measured content box (v4.3b rule), never the sprite box.**
+   Measured with PIL over the source PNGs: jump (0,0,30,30), attack2 (0,0,31,31),
+   bullet (1,3,40,10) [41x17 with margins], scan (0,18,53,44) [top 18 rows
+   transparent in ALL frames]. Requesting transparent-margin rows is the Amelia-
+   trap failure mode; the Chocola icon itself crops (3,2,13,21) = its content box.
+3. **Per-icon scale is chosen from the measured content height to fit the ~10-13px
+   HUD band**, not from a uniform "half scale like Chocola": 0.4 (30-31px anims),
+   0.7 (10px bullet), 0.3 (44px scan pose). Layout locked in a 4x pixel mock built
+   with the real sprites (PREVIEW_V93_HUD_*) BEFORE writing GML; VLM confirmed no
+   overlap/no clipping in 3 states (ready / recharging / huntress-gold).
+4. **Row band y-anchors changed**: Z 219-ico (y=3), X 238-ico (y=22), C/V 252-ico
+   (y=36) — the icons are 12-13px tall (vs 9-11 of the old GUI sprites); keeping
+   the old 218/240/250 anchors made the 12.4px X art overlap the C row by 1.4px.
+   The V letter column stays < 480 even at max slide (451.9).
+
+### Facts learned (verified in code)
+
+- **The server bullet cooldown is ZERO.** Game.c CLIENT_METALAMY_BULLET sets
+  `plr_cooldowns[METALAMY_BULLET] = 0 * TICKSPERSEC` and only enforces ONE live
+  bullet via `game_find(..., "mabul", 1)`; the whole 5s (now 4s) cooldown lived in
+  the client (`bulletTimer`). Buffing client cooldowns of server-tick'd entities
+  is safe WITHOUT touching the server or BUILD_VER. Bullet lifetime is 4s server-
+  side (MakeMetalAmyBullet timer), speed 14px/tick, straight line only.
+- **The shipped scan macro values postdate the v4.10 spec and are the owner's
+  later tuning**: SUITE backups of 2026-11-10 have SCAN_TIME (60*12),
+  HUNT_TIME (60*14), DASH_RECHARGE (60*5), BULLET (60*3); shipped HEAD has 15.5 /
+  11.25 / 3.75 / 5. The COMMENTS still described the v4.10 spec (12/20/14/5/8).
+  v93 fixed the comments to the shipped values and changed NO scan/hunt/dash
+  values — comment drift ≠ license to revert gameplay. CONSEQUENCE worth knowing:
+  manual reveal 15.5s > cooldown 14.5s ⇒ the V is re-pressable while still
+  revealed (near-permanent uptime is possible). Left as-is, documented.
+- **Where dash damage actually happens**: NOT on Metal Amy's client. The
+  victim's client detects it in obj_player_puppet/Step_0 (`place_meeting(x, y,
+  global.player)` + the attacker puppet's isAttacking bitflag) and calls
+  scr_player_hurt there. So her own client cannot know "my dash hit" without
+  packets — the v93 refund is a LOCAL approximation: her own Step_0's
+  `instance_place_list(x, y, obj_player_puppet, ...)` with the same filters the
+  victim's path uses (isDemonized/isInactive/isHurt/hp<=0 skipped). If the victim
+  parries/i-frames the hit, she still gets the refund — acceptable QoL: dash
+  charges were ALWAYS client-authoritative (the server never validates the X
+  dash), so the anti-cheat surface did not move.
+- **A dash contact can be missed between frames** at 12px/frame on HER client the
+  same way it can on the victims' clients (same mask check, synced positions);
+  the refund only triggers on frames where the masks actually overlap.
+- **`instance_place_list` is the established same-object pattern** (obj_metalamy/
+  Step_0 line ~33 for the jump-bounce); `dashHitConfirm` re-arms on every X press
+  (`dashCharges--; dashBoost = ...; dashHitConfirm = false;`).
+- **METALAMY_DASH_HIT_REFUND (60 * 1.5)** — refund 90 frames, capped at
+  `min(dashRecharge + 90, 225)`; with DATOS TACTICOS the same +2/+1 recharge step
+  applies after, so a refund at frame 50 of a charge completes it at frame 224
+  (instead of 225 from scratch — verified by simulation both passes).
+- **Multi-frame crop must cover the UNION of all frames' content** (scan frames
+  vary x[0..26..52] per frame); the static crop window (0,18,53,44) covers every
+  frame, verified per-frame by PIL at two alpha thresholds (>8 and >16).
+- **The pre-existing nested ternary in Draw_64.gml line ~187 (Chaos slime jump
+  icon)** is HISTORIC and untouched; the v83 no-chained-ternary rule applies to
+  NEW code — scope the check to the new helper + new case, not the whole file.
+- **spr_metalamy_bullet is wired to obj_metal_amy_bullet via its .yy spriteId**
+  (no .gml references it anywhere) — asset-existence checks for sprites must look
+  at .yy spriteId, not grep .gml.
+
+### Verification lessons (pass 1 had 5 checker-side FAILs; pass 2 had 3)
+
+1. **`str.find()` with a whitespace-free needle over comment-stripped code
+   matches nothing** — strip_gml removes comments/strings but NOT spaces; keep
+   the literal spaces in the needle or use a `\s*` regex.
+2. **Model branches that draw the SAME icon twice** (huntress gold / manual white
+   for the V scanner): the expected call set must count the pair, or the checker
+   invents a phantom 5th icon.
+3. **Regex group order bugs surface as int("0.4") ValueError** — when unpacking a
+   match, write the tuple in GROUP ORDER with the types read off the regex, and
+   remember `(\d+)` does not match floats (use `([0-9.]+)` for scale args).
+4. **A checker's "clean clone" scenario must commit the baseline BEFORE the
+   overlay** — overlay-then-commit makes `git diff` empty and the scope check
+   fail on exactly the 4 expected files.
+5. **Letter-band math**: scr_letter glyphs are 6px tall, 6px advance
+   (scr_text_spr); letter y = icon_y + floor(ch*scale/2) - 3 keeps them inside a
+   7-13px band; assert per icon in pass 2 (D section).
+
+### Pending
+
+Nothing for v93. Tuning knobs if the owner asks: refund size (METALAMY_DASH_
+HIT_REFUND), scan-dash double step (+2/+1 in the recharge block), bullet 4s
+(METALAMY_BULLET_RECHARGE), icon scales/anchors (the 4 drawMiniIcon calls in
+obj_playerui/Draw_64.gml case EXE_METALAMY). If the owner wants the v4.10
+documented scan values back (12s reveal / 20s cooldown / 14s hunt cycle), it is a
+3-macro change in scr_metalamy_special — the shipped 15.5/14.5/11.25 values were
+kept deliberately (see "Facts learned").

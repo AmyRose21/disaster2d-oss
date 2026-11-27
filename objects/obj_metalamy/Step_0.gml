@@ -92,8 +92,8 @@ if(scanPose > 0)
 // ---- MARCA DE LA CAZADORA: el ultimo superviviente ----
 // Al quedar exactamente 1 vivo (esbirros y agonizantes fuera del conteo),
 // la V se apaga (huntMode) y el rastreo sale solo: ventana de 8 s
-// (METALAMY_HUNT_WINDOW; la V manual dura 12 s — v4.10: "de 8 a 12 s"),
-// luego 14 s de enfriamiento — que arranca cuando la ventana TERMINA — y
+// (METALAMY_HUNT_WINDOW; la V manual dura 15,5 s), luego un ciclo de
+// 11,25 s de enfriamiento — que arranca cuando la ventana TERMINA — y
 // vuelta a empezar. Reviven a alguien (2+ vivos) -> vuelve al scan manual.
 var _alive = 0;
 
@@ -128,7 +128,7 @@ else
 
 if(huntMode)
 {
-        // ciclo: ventana -> CD de 14 s al terminar -> nueva ventana
+        // ciclo: ventana -> enfriamiento de 11,25 s al terminar -> nueva ventana
         if(scanTimer > 0)
         {
                 if(scanTimer == 1)

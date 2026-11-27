@@ -5,45 +5,55 @@
 //   * DASH (tecla X, v4.6): embestida dirigible en 8 direcciones (patron
 //     chaos: en el aire manda la direccion que sujetes con las flechas;
 //     en tierra es horizontal, y arriba/diagonal despega). Sustituye al
-//     golpe normal. Tres cargas (METALAMY_DASH_MAX), cada una tarda 5 s
-//     en recargar (secuencial) y entre uso y uso hay 0,5 s
-//     (METALAMY_DASH_GAP = attackTimer). Animacion: SIEMPRE
-//     spr_metalamy_attack2 (v4.7: la vieja attack11 salio del kit — al
-//     impactar/aterrizar el sprite se mantiene, no cambia).
+//     golpe normal. Tres cargas (METALAMY_DASH_MAX), cada una tarda 3,75 s
+//     en recargar (secuencial; v93: al DOBLE mientras dura el revelado del
+//     escaner) y entre uso y uso hay 0,5 s (METALAMY_DASH_GAP = attackTimer).
+//     Animacion: SIEMPRE spr_metalamy_attack2 (v4.7: la vieja attack11 salio
+//     del kit — al impactar/aterrizar el sprite se mantiene, no cambia).
 //     Sonido: snd_metalamy_dash.
+//     v93 — CAZA CONFIRMADA: la embestida que TOCA a un superviviente
+//     hiteable devuelve 1,5 s de la recarga de cargas (una vez POR
+//     embestida). El dano lo aplica el cliente de la victima como siempre;
+//     esto es solo el feedback local de cargas (patron Adaptabilidad).
 //   * BALA (tecla C): disparo del canon del pecho: proyectil recto
 //     que hace 20 de dano al sobreviviente que toque (mismo modelo
 //     que el laser exe de Tails: lo tick-ea el server, el dano lo
 //     aplica el cliente de la victima y el parry de Sonic puede
-//     desviarlo). Recarga 8 s.
+//     desviarlo). Recarga 4 s (v93: era 5; el server solo exige UNA bala
+//     viva a la vez — su cooldown es 0, ver Game.c).
 //   * SCAN (tecla V, v4.7/v4.8/v4.10): «visión de supervivientes». Mientras
 //     dura el revelado se VE a cada superviviente vivo: su silueta se
 //     dibuja BRILLANTE A TRAVES DE PAREDES, TERRENO Y ESCONDITES (la
 //     dibuja obj_exe_indicator en la capa GUI, encima de todo el mapa),
 //     y si esta FUERA de la vista de 480x270 su silueta aparece fijada
-//     al borde de la pantalla apuntando hacia donde esta. Dura de 8 a
-//     12 s (v4.10, pedido del usuario): 12 s la V manual y 8 s la
-//     ventana pasiva de la cazadora (v4.8: antes 3 s y eran agujas tipo
-//     tracker). Pose propia (spr_metalamy_scan, slot 21) y
-//     enfriamiento de 20 s. Cero paquetes: los puppets ya viajan
-//     sincronizados.
+//     al borde de la pantalla apuntando hacia donde esta. Dura 15,5 s la
+//     V manual y 8 s la ventana pasiva de la cazadora (v4.8). Pose propia
+//     (spr_metalamy_scan, slot 21) y enfriamiento de 14,5 s. Cero
+//     paquetes: los puppets ya viajan sincronizados.
+//     v93 — DATOS TACTICOS: mientras dura el revelado (V manual o ventana
+//     de la cazadora) la recarga del dash corre AL DOBLE: la maquina de
+//     caza ya sabe donde estan.
+//   * v93 — GUI ANIMADA: los 4 iconos del HUD dibujan cada habilidad con
+//     SU PROPIA animacion de juego (patron «Chocola» de Vanilla) — ver
+//     drawMiniIcon en obj_playerui/Draw_64.gml.
 //  Stats: identicos a Exeller (12 / 0.056875).
 // =====================================================================
-#macro METALAMY_BULLET_RECHARGE (60 * 5)
+#macro METALAMY_BULLET_RECHARGE (60 * 4)
 #macro METALAMY_MAXSPEED 13
 #macro METALAMY_ACC 0.056875
 
 // v4.6 — DASH (tecla X)
 #macro METALAMY_DASH_MAX 3            // cargas maximas
-#macro METALAMY_DASH_RECHARGE (60 * 3.75) // 5 s de recarga POR carga
+#macro METALAMY_DASH_RECHARGE (60 * 3.75) // 3,75 s de recarga POR carga (la mitad con el scan activo: v93)
 #macro METALAMY_DASH_GAP (60 * 0.5)   // 0,5 s entre usos (gatea attackTimer)
 #macro METALAMY_DASH_BOOST 18         // frames de impulso a velocidad alta
 #macro METALAMY_DASH_HSPD 12          // velocidad horizontal (patron chaos)
 #macro METALAMY_DASH_VSPD 8           // velocidad vertical (patron chaos)
+#macro METALAMY_DASH_HIT_REFUND (60 * 1.5) // v93: caza confirmada — 1,5 s de recarga por embestida que TOCA
 
 // v4.7/v4.8/v4.10 — SCAN (tecla V): «visión» de supervivientes
-#macro METALAMY_SCAN_RECHARGE (60 * 14.5) // 20 s de enfriamiento (uso manual)
-#macro METALAMY_SCAN_TIME (60 * 15.5)      // 12 s de revelado con la V (v4.10: antes 8)
+#macro METALAMY_SCAN_RECHARGE (60 * 14.5) // 14,5 s de enfriamiento (uso manual)
+#macro METALAMY_SCAN_TIME (60 * 15.5)      // 15,5 s de revelado con la V
 #macro METALAMY_HUNT_WINDOW (60 * 8)     // 8 s de ventana pasiva de la cazadora (v4.10)
 #macro METALAMY_SCAN_POSE 48             // 0,8 s de pose de escaneo (spr_metalamy_scan, slot 21)
 
@@ -51,7 +61,7 @@
 #macro METALAMY_EXEC_HP 30              // Ejecución: láser + vida < 30% = derribo directo
 #macro METALAMY_WEAKMARK_TIME (60 * 8)  // Marca de debilidad: +6 s a los enfriamientos
 #macro METALAMY_WEAKMARK_CD (60 * 16)   // ...con CD propio de 16 s POR superviviente
-#macro METALAMY_HUNT_TIME (60 * 11.25)     // Marca de la cazadora: ciclo de 14 s (rastreo pasivo)
+#macro METALAMY_HUNT_TIME (60 * 11.25)     // Marca de la cazadora: ciclo de 11,25 s (rastreo pasivo)
 #macro METALAMY_ADAPT_WINDOW (60 * 5.5)   // Adaptabilidad: 3 s tras perder la inmunidad por golpe
 
 function scr_metalamy_special()
@@ -120,6 +130,7 @@ function scr_metalamy_special()
                 // v4.6: gasta una carga y arranca el impulso
                 dashCharges--;
                 dashBoost = METALAMY_DASH_BOOST;
+                dashHitConfirm = false; // v93: cada embestida puede cobrar UNA caza
 
                 // embestida ascendente desde tierra: despega YA (patron
                 // del salto de scr_move_basic: isGrounded = false + yspd)
@@ -165,6 +176,37 @@ function scr_metalamy_special()
                         }
                         else if(yspd > 0)
                                 yspd = 0;
+                }
+
+                // v93 — CAZA CONFIRMADA: la embestida toco a un superviviente
+                // hiteable -> devuelve 1,5 s de la recarga de cargas (una sola
+                // vez POR embestida: dashHitConfirm, que se re-arma al pulsar
+                // la X). El DANO lo aplica el cliente de la VICTIMA como
+                // siempre (obj_player_puppet); esto es solo el feedback local
+                // de cargas, mismo patron que la Adaptabilidad (pasiva 4) —
+                // cero paquetes, cero superficie nueva de trampa (las cargas
+                // siempre fueron estado local del cliente).
+                if(dashBoost > 0 && !dashHitConfirm)
+                {
+                        var _hlist = ds_list_create();
+                        instance_place_list(x, y, obj_player_puppet, _hlist, false);
+
+                        for(var _hi = 0; _hi < ds_list_size(_hlist); _hi++)
+                        {
+                                var _victim = _hlist[| _hi];
+
+                                if(_victim.isDemonized || _victim.isInactive || _victim.isHurt || _victim.hp <= 0)
+                                        continue;
+
+                                dashHitConfirm = true;
+                                dashRecharge = min(dashRecharge + METALAMY_DASH_HIT_REFUND, METALAMY_DASH_RECHARGE);
+
+                                audio_play_sound(snd_metal_hiit, 0, false);
+                                scr_camera_shake(8, 0.4, 0.1);
+                                break;
+                        }
+
+                        ds_list_destroy(_hlist);
                 }
 
                 if(isGrounded && abs(xspd) > 0 && floor(x) mod 4 == 0)
@@ -236,12 +278,18 @@ function scr_metalamy_special()
         if(dashBoost > 0)
                 dashBoost--;
 
-        // v4.6 — recarga de cargas: UNA cada 5 s (secuencial, patron del
+        // v4.6 — recarga de cargas: UNA cada 3,75 s (secuencial, patron del
         // contador de rebote de Vanilla), hasta 3. Con las 3 llenas el
         // contador queda a cero para no arrastrar recarga a medias.
+        // v93 — DATOS TACTICOS: mientras dura el revelado del escaner (la V
+        // manual o la ventana pasiva de la cazadora) la recarga corre AL
+        // DOBLE (+2 por frame): la maquina de caza ya sabe donde estan.
         if(dashCharges < METALAMY_DASH_MAX)
         {
-                dashRecharge++;
+                if(scanTimer > 0)
+                        dashRecharge += 2;
+                else
+                        dashRecharge++;
 
                 if(dashRecharge >= METALAMY_DASH_RECHARGE)
                 {

@@ -1,0 +1,138 @@
+════════════════════════════════════════════════════════════════════
+ v93 — METAL AMY: REWORK DE HABILIDADES + HUD CON ICONOS ANIMADOS
+════════════════════════════════════════════════════════════════════
+
+PEDIDO
+  "Rework De metal amy Mejora a sus habilidades y gui (recuerdas el
+  cosito que hisiste que aparecia el chao. de vanilla como habilidad
+  osea ese icono animado? me gusto me gustaria que metal amy tubiera
+  la misma cosa para sus habilidades."
+
+  Aclaracion tuya despues: los iconos usan las PROPIAS animaciones de
+  cada habilidad de Metal Amy (como Chocola usaba la animacion de
+  Chocola). Chocola NO aparece en ningun lado: fue solo la referencia
+  de estilo.
+
+────────────────────────────────────────────────────────────────────
+ 1) GUI: LOS 4 ICONOS DEL HUD, AHORA ANIMADOS (patron "Chocola")
+────────────────────────────────────────────────────────────────────
+  Cada habilidad se dibuja con SU PROPIA animacion de juego, ciclando
+  frames de verdad (1 frame cada 150 ms), escalada a la banda del HUD:
+
+  · Z (salto)   → spr_metalamy_jump: la BOLA DE GIRO girando (5 frames,
+                  al 40%). BLANCA en el aire, roja en tierra.
+  · X (embestida) → spr_metalamy_attack2: la animacion del DASH (4
+                  frames, al 40%). El anillo sigue reflejando las
+                  cargas como siempre (con cargas: barre el gap de
+                  0,5 s · sin cargas: es la recarga de la siguiente).
+  · C (bala)    → spr_metalamy_bullet: TU BALA, con vaiven de vuelo
+                  (±3 px: es su unico frame, asi que "vuela" en su
+                  icono). Roja mientras recarga los 4 s nuevos.
+  · V (escaner) → spr_metalamy_scan: la POSE DE ESCANEO con el barrido
+                  verde saliendo (8 frames, al 30%). DORADA cuando
+                  queda 1 solo vivo (la cazadora), como siempre.
+
+  Todo lo demas del lenguaje del HUD queda igual: color de estado
+  (blanco = listo / rojo = recargando), relleno = progreso, desliz a
+  la derecha mientras recarga, y la tecla REAL al lado (respeta tu
+  remapeo de controles). Los iconos de los DEMAS personajes no se
+  tocaron.
+
+  (Como se hace: drawMiniIcon, un helper nuevo junto a drawKeyIcon en
+  obj_playerui/Draw_64.gml — el mismo mecanismo del icono de Chocola,
+  generalizado para cualquier habilidad. Ahi quedo disponible para
+  llevarselo a otro personaje si te da la gana.)
+
+────────────────────────────────────────────────────────────────────
+ 2) HABILIDADES (el rework)
+────────────────────────────────────────────────────────────────────
+  · CAZA CONFIRMADA (X, nuevo): la embestida que TOCA a un superviviente
+    te devuelve 1,5 s de la recarga de cargas (una vez por embestida;
+    con choque metalico + shake, igual que suena la Adaptabilidad).
+    Encadenar embestidas que pegan = casi no esperas cargas.
+  · DATOS TACTICOS (V+X, nuevo): mientras dura el revelado del escaner
+    (la V manual O la ventana de la cazadora), la recarga del dash va
+    AL DOBLE: de 3,75 s a 1,88 s por carga. La maquina de caza ya sabe
+    donde estan.
+  · BALA (C): recarga de 5 s → 4 s.
+  · Todo lo demas queda igual: 3 cargas, gap de 0,5 s, ejecucion de
+    debiles (<30%), marca de debilidad, cazadora pasiva, adaptabilidad.
+
+  NOTA de honestidad (valores del escaner): investigando encontre que
+  los comentarios de los macros decian una cosa (12 s manual / 20 s de
+  enfriamiento / ciclo de 14 s) y los valores REALES del juego eran
+  otros (15,5 s / 14,5 s / 11,25 s) desde un ajuste tuyo posterior. NO
+  toque esos valores: solo corrije los comentarios para que digan la
+  verdad. Dato curioso del estado actual: el revelado (15,5 s) dura MAS
+  que el enfriamiento (14,5 s), asi que la V se puede re-apretar
+  mientras sigue revelada. Si algundia quieres los numeros de la
+  especificacion vieja (12/20/14), son 3 macros en
+  scr_metalamy_special.gml (METALAMY_SCAN_TIME / SCAN_RECHARGE /
+  HUNT_TIME) — me lo pides y los muevo.
+
+────────────────────────────────────────────────────────────────────
+ 3) ANTI-CHEAT / RED
+────────────────────────────────────────────────────────────────────
+  · Cero paquetes nuevos: caza confirmada y datos tacticos son estado
+    100% local (las cargas del dash siempre fueron de cliente; el dano
+    sigue aplicandolo el cliente de la victima como todo el juego).
+  · El server ni se entera: el cooldown de la bala en el server es 0
+    (solo exige UNA bala viva a la vez), asi que el 4 s es todo
+    cliente. BETTERSERVER SIN CAMBIOS, BUILD_VER intacta.
+  · Sin recursos nuevos (no hace falta re-importar nada en GameMaker:
+    los 4 sprites son animaciones que ya estaban cableadas).
+
+────────────────────────────────────────────────────────────────────
+ 4) ARCHIVOS (solo los modificados — pegar sobre el proyecto)
+────────────────────────────────────────────────────────────────────
+  scripts/scr_metalamy_special/scr_metalamy_special.gml
+  objects/obj_metalamy/Create_0.gml
+  objects/obj_metalamy/Step_0.gml        (solo comentarios corregidos)
+  objects/obj_playerui/Draw_64.gml       (drawMiniIcon + los 4 iconos)
+  + LEARNING.md / CACHE.md / worklog.md / check_v93.py /
+    check_v93_pass2.py / v93_pairs.py (verificacion y memoria)
+
+────────────────────────────────────────────────────────────────────
+ 5) GUIA DE PRUEBA (2 minutos)
+────────────────────────────────────────────────────────────────────
+  1. Elige a Metal Amy y mira el HUD arriba a la derecha: la bola de
+     salto girando en la fila Z, el dash animado en la X, tu bala con
+     su vaiven en la C y la pose de escaneo en la V. Fijate que las 4
+     ANIMAN (no estan congeladas).
+  2. Salta: la bola se pone BLANCA en el aire; aterriza: roja y un
+     toque a la derecha.
+  3. Gasta las 3 cargas de la X sin tocar a nadie: el icono hace la
+     recarga completa (rojo llenandose, 3,75 s).
+  4. Embiste a un bot que este hiteable: suena el choque metalico y
+     la recarga salta 1,5 s de golpe. Golpealo 3 veces seguidas en la
+     MISMA embestida: solo salta UNA vez (es una vez por embestida).
+  5. Pulsa V y en mitad del revelado gasta cargas: el anillo de la X
+     recarga al doble mientras dura el verde.
+  6. Dispara la C: roja 4 s exactos y vuelve al blanco.
+  7. Deja 1 solo vivo: la V se vuelve DORADA (cazadora) y sigue
+     animando igual.
+  8. Remapea una tecla en Opciones → Controles: la letra del icono
+     cambia al instante (todo el HUD, como siempre).
+
+────────────────────────────────────────────────────────────────────
+ VERIFICADO: 2 PASADAS, 0 ERRORES
+────────────────────────────────────────────────────────────────────
+  · Pasada 1 (check_v93.py): 72 OK / 0 FAIL — sintaxis de los 4
+    editados + barrido de los 107 .gml compilados, macros, bloques,
+    simulaciones, layout, activos, regresiones v87-v92, .yyp intacto,
+    server intacto, cero paquetes nuevos.
+  · Pasada 2 (check_v93_pass2.py): 31 OK / 0 FAIL — reconstruccion
+    BYTE A BYTE de los 4 archivos (17 pares documentados aplicados a
+    la base = exactamente lo entregado, nada mas se movio), lexer
+    independiente, cajas de los sprites re-medidas con otro umbral,
+    layout re-deducido del codigo, flujos re-simulados, y el escenario
+    tuyo: clon limpio de la base + estos 4 archivos encima → la
+    pasada 1 re-corrida ahi da 72 OK / 0 FAIL otra vez.
+  · Visual: pixel-mock 4x construido con los sprites reales y revisado
+    por vision (3 estados: todo listo / recargando / cazadora) — sin
+    solapes ni cortes en 480x270.
+  · NO verificado: partida real compilada en GameMaker (aqui no hay
+    GameMaker). Si algo se ve raro en los iconos, es cuestion de
+    escala/posicion: son los 4 numeros de drawMiniIcon del caso
+    EXE_METALAMY (0.4/0.4/0.7/0.3 y las y 219/238/252 - _ico).
+════════════════════════════════════════════════════════════════════

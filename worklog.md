@@ -7268,3 +7268,106 @@ Sonic) y v91 (Rouge) sin conflicto. Protocolo / BUILD_VERSION intactos. Sin
    alcance del circulo visible, agarre por detras y por arriba, borde
    exacto 111+ px sin agarre, stun 3 s con golpe X pegado, rompimiento
    desde lejos, rompimiento + huida con salto).
+
+## v93 - 2026-11-27 - METAL AMY: rework de habilidades (caza confirmada + datos tacticos + bala 4 s) y HUD con iconos ANIMADOS (patron Chocola)
+
+Base: origin/main 34c9c9c4 (la v92 ya con la duena). Pedido: «Rework De
+metal amy Mejora a sus habilidades y gui (recuerdas el cosito que hisiste
+que aparecia el chao. de vanilla como habilidad osea ese icono animado?
+me gusto me gustaria que metal amy tubiera la misma cosa para sus
+habilidades.» + aclaracion: los iconos usan las PROPIAS animaciones de
+cada habilidad (Chocola NO aparece: fue solo la referencia de estilo).
+
+1) INVESTIGACION: kit completo releido (scr_metalamy_special, obj_metalamy
+   Create/Step_0/Step_2/Draw_76, obj_metal_amy_bullet, server Game.c
+   CLIENT_METALAMY_BULLET, obj_player_puppet/Step_0 ruta de dano,
+   obj_playerui/Draw_64 caso EXE_METALAMY, scr_hud_keycap, scr_text_spr,
+   scr_exe tabla de anims). HALLAZGO CLAVE: el cooldown de la bala en el
+   SERVER es 0 * TICKSPERSEC (solo exige UNA bala viva) => el 5 s era
+   puro cliente y se puede bajar sin tocar el server. HALLAZGO 2: los
+   comentarios de los macros estaban DESACTUALIZADOS contra los valores
+   reales (SCAN_TIME decia "12 s" y es 15,5; SCAN_RECHARGE "20 s" y es
+   14,5; HUNT_TIME "14 s" y es 11,25; DASH_RECHARGE "5 s" y es 3,75;
+   los respaldos de la SUITE del 2026-11-10 muestran que 15,5/11,25/3,75
+   son ajustes POSTERIORES deliberados de la duena) => v93 NO cambia esos
+   valores: solo arregla los comentarios para que digan la verdad.
+   OJO documentado: con revelado 15,5 s y enfriamiento 14,5 s la V se
+   puede mantener activa casi en permamente (el enfriamiento termina
+   DENTRO del revelado); es el estado actual del juego, no se toca.
+
+2) HABILIDADES (scr_metalamy_special + Create_0):
+   - CAZA CONFIRMADA (nuevo): la embestida que TOCA a un superviviente
+     hiteable (instance_place_list, mismo patron del Step_0 del propio
+     objeto; filtros isDemonized/isInactive/isHurt/hp<=0) devuelve 1,5 s
+     de la recarga de cargas (METALAMY_DASH_HIT_REFUND, macro nuevo), UNA
+     vez por embestida (dashHitConfirm se rearma al pulsar la X), con
+     tope min(dashRecharge + 90, 225). Feedback: snd_metal_hiit (el del
+     kit) + shake 8/0.4/0.1 (patron Adaptabilidad). El DANO sigue
+     aplicandolo el cliente de la victima (obj_player_puppet): esto es
+     SOLO el feedback local de cargas => cero paquetes, cero superficie
+     nueva de trampa (las cargas siempre fueron estado local).
+   - DATOS TACTICOS (nuevo): mientras dura el revelado del escaner
+     (scanTimer > 0, la V manual o la ventana de la cazadora) la recarga
+     del dash corre AL DOBLE (+2/frame): 3,75 s -> 1,88 s por carga.
+     Sinergia V+X tematica de maquina de caza, 100% local.
+   - BALA: METALAMY_BULLET_RECHARGE 5 s -> 4 s (buff pedido por el
+     rework; el server solo exige 1 bala viva, su cooldown es 0).
+   - Comentarios corregidos a los valores reales en special, Create_0 y
+     Step_0 (12/20/14/5/8 -> 15,5/14,5/11,25/3,75/4). Cero cambios de
+     comportamiento en scan/hunt/dash por ese lado.
+
+3) GUI ANIMADA (obj_playerui/Draw_64): drawMiniIcon (helper nuevo junto
+   a drawKeyIcon) = el patron «Chocola» de Vanilla generalizado: el
+   sprite REAL de la habilidad ciclando frames con current_time (1 frame
+   cada 150 ms), escalado a la banda del HUD, color de estado (blanco =
+   listo, rojo = recargando, dorado = cazadora), alpha de recarga,
+   desliz a la derecha mientras NO esta lista, tecla REAL dinamica al
+   lado (v4.3) y _fly (vaiven ±3 px) para animar los sprites de UN frame.
+   Los 4 iconos del caso EXE_METALAMY pasan de GUI estatico a SU PROPIA
+   animacion: Z = spr_metalamy_jump (bola de giro, 5 f, 40%), X =
+   spr_metalamy_attack2 (embestida, 4 f, 40%, la logica de anillo de
+   cargas v4.6 intacta), C = spr_metalamy_bullet (1 f + vaiven de
+   vuelo, 70%), V = spr_metalamy_scan (pose con el barrido verde, 8 f,
+   30%, la logica dorada de la cazadora v4.8 intacta). Recortes medidos
+   sobre los PNG (regla v4.3b de zonas que existen de verdad en la
+   textura): (0,0,30,30) / (0,0,31,31) / (1,3,40,10) / (0,18,53,44).
+   Layout verificado en pixel-mock 4x con los sprites reales (VLM):
+   sin solapes, sin corte a 480, filas Z y=3, X y=22, C/V y=36.
+
+4) VERIFICACION (regla 6, 2 pasadas):
+   - PASADA 1 — check_v93.py: 72 OK / 0 FALLO. Sintaxis de los 4
+     editados + barrido completo de los 107 .gml compilados (los
+     respaldos _backups_animeditor excluidos, regla v92), macros usados
+     definidos, bloques nuevos completos y en orden, sin ternarios
+     encadenados en el codigo NUEVO (el del caso Chaos linea ~187 es
+     historico y no se toca), activos existen (sprites/snd/funciones),
+     simulaciones (225 f/carga base, 113 f con scan, 1 reembolso por
+     embestida, nunca completa una carga solo), layout desde el codigo,
+     regresiones v87-v92 presentes, .yyp intacto, server intacto, par
+     suelto net_packets identico, diff exacto de 4 archivos, cero
+     paquetes nuevos.
+   - PASADA 2 — check_v93_pass2.py: 31 OK / 0 FALLO. Reconstruccion
+     BYTE A BYTE de los 4 archivos (los 17 pares viejo->nuevo
+     documentados aplicados sobre git show HEAD == archivo entregado),
+     lexer independiente (maquina de estados por linea), cajas de
+     contenido re-medidas con umbral alpha distinto (>16), layout
+     re-deducido con regex distinta + letras dentro de banda, flujos
+     re-simulados, ESCENARIO DUENA (clon limpio de HEAD + overlay de los
+     4 archivos -> pasada 1 re-ejecutada alli: 72 OK / 0 FAIL), macro
+     nuevo definido 1 sola vez, .yy de los 3 objetos intactos.
+   - Los primeros 5 FAIL de la pasada 1 y 3 de la pasada 2 eran del
+     VERIFICADOR (find() sin espacios, set esperado sin la rama doble de
+     la V, ternario historico del Chaos, sprite de la bala cableado por
+     .yy no por .gml, patron #macro con = en vez de definition):
+     verificados a mano, corregido el verificador, re-corrido.
+   - NO VERIFICADO: compilacion en GameMaker ni partida real (sin
+     GameMaker en este entorno); el look final se juzgo por pixel-mock
+     4x con los sprites reales + VLM (3 escenarios: todo listo,
+     recargando, cazadora).
+
+5) ARCHIVOS: scripts/scr_metalamy_special/scr_metalamy_special.gml,
+   objects/obj_metalamy/Create_0.gml, objects/obj_metalamy/Step_0.gml,
+   objects/obj_playerui/Draw_64.gml, worklog.md, CACHE.md, LEARNING.md,
+   LEEME_V93_METALAMY_GUI.txt, check_v93.py, check_v93_pass2.py.
+   (check_v93_pass2 importa v93_pairs.py — los 17 pares van DENTRO del
+   zip junto al checker.)

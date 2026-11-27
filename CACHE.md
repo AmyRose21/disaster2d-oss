@@ -1570,6 +1570,31 @@ y las pistas nuevas de 20-28s se cortaban).
   Delivered first as "v81" by this session and relabelled: the v81 label
   belongs to the claims delivery.
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-27 (v93 — METAL AMY REWORK: caza confirmada + datos tacticos + bala 4 s + HUD con iconos ANIMADOS):
+  pedido de la duena: rework de Metal Amy (habilidades + GUI) con el patron «Chocola»
+  de Vanilla para los iconos — cada habilidad con SU PROPIA animacion de juego (aclarado
+  por ella: sin pegar a Chocola en ningun lado). HABILIDADES: (1) CAZA CONFIRMADA — la
+  embestida X que TOCA a un superviviente hiteable devuelve 1,5 s de recarga de cargas
+  (METALAMY_DASH_HIT_REFUND, 1 vez por embestida via dashHitConfirm, tope min(+90,225),
+  feedback snd_metal_hiit + shake, patron Adaptabilidad: dano sigue en el cliente de la
+  victima); (2) DATOS TACTICOS — durante el revelado del escaner la recarga del dash va
+  AL DOBLE (3,75 -> 1,88 s por carga); (3) BALA 5 -> 4 s (el cooldown de la bala en el
+  server es 0: solo exige 1 bala viva, es todo cliente). GUI: drawMiniIcon (helper nuevo
+  en obj_playerui/Draw_64 junto a drawKeyIcon, patron Chocola generalizado: frames con
+  current_time/150, color de estado, alpha de recarga, desliz, tecla real, _fly vaiven
+  ±3 px para sprites de 1 frame) y los 4 iconos del caso EXE_METALAMY pasan a las
+  animaciones propias: Z = spr_metalamy_jump (5f, 40%), X = spr_metalamy_attack2 (4f,
+  40%, logica de cargas v4.6 intacta), C = spr_metalamy_bullet (1f + vaiven, 70%), V =
+  spr_metalamy_scan (8f, 30%, logica dorada de la cazadora v4.8 intacta). Recortes =
+  cajas de contenido medidas sobre los PNG (regla v4.3b). Comentarios desactualizados de
+  los macros corregidos a los valores reales (15,5/14,5/11,25/3,75 s; los respaldos de
+  la SUITE 2026-11-10 prueban que el drift fue tuning posterior de la duena: NO se
+  tocaron los valores). 4 archivos de codigo, cero .yy/.yyp, cero server, cero paquetes
+  nuevos. Verificacion 2 pasadas: check_v93.py 72 OK / 0 FAIL + check_v93_pass2.py
+  31 OK / 0 FAIL (reconstruccion byte a byte de los 4 con 17 pares documentados +
+  escenario duena: clon limpio de HEAD + overlay re-ejecuta la pasada 1: 72 OK / 0
+  FAIL) + pixel-mock 4x con sprites reales revisado por vision (3 estados, sin
+  solapes/cortes). Detalle: seccion final de LEARNING.md + worklog v93.
 - 2026-11-27 (v89 — FIX JINNA + LIANAS DE AIZ / HideAndSeek): reporte de la duena:
   al agarrarse de las lianas (tirolinas de Angel Island, obj_aiz_zipline) Jinna
   quedaba en la pose de agarre para siempre y no podia volver a usarlas. RAIZ:
