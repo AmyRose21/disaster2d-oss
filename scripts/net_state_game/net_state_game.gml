@@ -3248,26 +3248,22 @@ function net_state_game(rbuff, nps, isPasstrough)
                                                         krisLvNet = 2;
                                         }
                                         // v95 (KRIS LV 20): DANO REAL AL ASESINO. La emite el
-                                        // CLIENTE DEL EXE (scr_kris_exe_hp_signal) cada vez que
-                                        // la espada de un Kris con LV maximo le baja
-                                        // KRIS_EXE_DAMAGE de vida al pool. Este puppet es el del
-                                        // EXE (emisor = pid): espejo el -35 en MI
-                                        // global.exeHpPool local. SOLO KRIS lo dibuja (la barra
-                                        // del asesino en obj_playerui/Draw_64); mantenerlo en
-                                        // todos los clientes es gratis y lo deja listo para
-                                        // cualquiera que lo quiera leer. El REFILL no viaja: se
-                                        // DERIVA del mismo evento en los dos lados (TCP
-                                        // ordenado: los dos espejos aplican la misma secuencia
-                                        // de -35 desde KRIS_EXE_MAXHP y llegan a 0 juntos) —
-                                        // al tocar 0 el pool vuelve a su tope y la pelea puede
-                                        // repetirse (el knockdown del exe lo aplica SU cliente,
-                                        // la autoridad).
+                                        // CLIENTE DEL EXE (scr_kris_exe_pool_hit — la espada y
+                                        // desde v98 tambien el PARRY del Kris a LV 20) cada vez
+                                        // que le baja KRIS_EXE_DAMAGE de vida al pool. Este
+                                        // puppet es el del EXE (emisor = pid): espejo el -35 en
+                                        // MI global.exeHpPool local. Desde v98 la barra del
+                                        // asesino la dibujan TODOS (obj_playerui/Draw_64) en
+                                        // cuanto el Kris espejado (krisLvNet) llega a LV 20.
+                                        // v98: A 0 ya NO se deriva el refill — la partida
+                                        // TERMINA: el exe autoridad mando CLIENT_EXE_DEFEATED,
+                                        // el server marca a los supervivientes vivos no
+                                        // corrompidos como escapados por el anillo y cierra
+                                        // con la victoria de los supervivientes. El espejo se
+                                        // queda en 0 (la ronda se esta cerrando igual).
                                         else if(global.net_snds[sid] == snd_kris_lvup && character == CHARACTER_EXE)
                                         {
                                                 global.exeHpPool = max(global.exeHpPool - KRIS_EXE_DAMAGE, 0);
-
-                                                if(global.exeHpPool <= 0)
-                                                        global.exeHpPool = KRIS_EXE_MAXHP;
                                         }
 
                                         // v95: la senal del dano al asesino NUNCA suena — es un
@@ -4319,7 +4315,49 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 
                         break;
                 }
-                
+
+                // v98 (KRIS LV 20 — item 8, pedido de la duena: «Si el llega
+                // a nv 20 durante el Lms (unicamente si solo queda el con vida
+                // y el LMS se activo por esa condicion) el ring verde no
+                // aparecera o si estaba activo volvera a estado inactivo Por
+                // pelea a muerte. osea 1 vs 1 hasta que kris o el exe caigan»):
+                // el server retira el anillo de escape — sin mas spawns (el
+                // gate vive en el propio server: game_bigring ya no responde)
+                // y el que YA esta puesto se destruye AQUI, en todas las
+                // pantallas. Tambien se apaga el banner "Escape!!!" del level
+                // (state 0, el mismo que antes del anillo) y se esconde el
+                // npring de Not Perfect (el espejo del "visible = true" del
+                // spawn). La ronda sigue abierta: solo acaba con Kris o el
+                // exe en el suelo (o el reloj).
+                case PacketType.SERVER_GAME_RING_OFF:
+                {
+                        if(isPasstrough)
+                                break;
+
+                        if(gameEnds)
+                                break;
+
+                        if(instance_exists(obj_bigring))
+                        {
+                                with(obj_bigring)
+                                        instance_destroy();
+                        }
+
+                        if(instance_exists(obj_level))
+                        {
+                                with(obj_level)
+                                        state = 0;
+                        }
+
+                        if(room == room_notperfect)
+                        {
+                                with(obj_npring)
+                                        visible = false;
+                        }
+
+                        break;
+                }
+
                 case PacketType.SERVER_GAME_EXE_WINS:
                 {                               
                         if(isPasstrough)

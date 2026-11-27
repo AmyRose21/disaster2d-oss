@@ -404,7 +404,31 @@ enum PacketType
            tras conectar, tras un claim exitoso, tras .op y tras el
            token de Amy. Mismo orden que include/Packet.h; anadido AL
            FINAL en los DOS lados. */
-        SERVER_CLAIM_STATE
+        SERVER_CLAIM_STATE,
+
+        /* v98 (KRIS LV 20 — EL DUELO FINAL). CLIENT_EXE_DEFEATED: lo
+           manda el CLIENTE DEL EXE (la autoridad de su propia vida,
+           patron victima-autoridad de todo el juego) cuando el pool del
+           asesino (global.exeHpPool) llega a 0 con el golpe real de la
+           espada o del parry de un Kris a LV 20. El server valida que
+           el emisor sea EL exe de la ronda, marca a cada superviviente
+           vivo y NO corrompido (los negas de Jinna pelean para el exe:
+           no ganan) como PLAYER_ESCAPED — el juego los cuenta como si
+           hubieran pasado por el anillo (reenvia los DOS paquetes del
+           escape) — y cierra la partida con la victoria de los
+           supervivientes (SERVER_GAME_SURVIVOR_WIN de siempre). Ya NO
+           hay refill del pool: la pelea a muerte termina la ronda.
+           SERVER_GAME_RING_OFF: lo difunde el server cuando el Kris
+           de la ronda llega a LV 20 DURANTE su show natural del LMS
+           (quedo como ultimo superviviente y EL show arranco por
+           eso): el anillo verde de escape NO aparece (o se retira si
+           ya estaba) — pelea a muerte 1 vs 1 hasta que Kris o el exe
+           caigan. Los clientes destruyen su obj_bigring, quitan el
+           banner "Escape!!!" (obj_level state 0) y esconden el
+           npring de Not Perfect. Anadido AL FINAL en los DOS lados
+           (mismo orden que include/Packet.h). */
+        CLIENT_EXE_DEFEATED,
+        SERVER_GAME_RING_OFF
 }
 
 #macro STATE_PENDING -1

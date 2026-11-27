@@ -14,6 +14,12 @@ if(!instance_exists(global.player))
 	moved = true;
 else if(global.player.isDead || global.player.revivalTimes >= 2)
 	moved = true;
+// v98 (item 5): con el Show Fuerte (LMS) activo el anti-camp SE RETIRA
+// tambien en los avisos que ya estaban en pantalla cuando arranco el
+// show (mismo camino de fade-out que "muerto": la cosa que ralentiza
+// no tiene sentido si queda un unico superviviente).
+else if(global.lmsActive)
+	moved = true;
 
 if(!moved)
 {

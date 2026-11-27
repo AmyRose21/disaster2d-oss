@@ -1,0 +1,158 @@
+═════════════════════════════════════════════════════════════════════
+ TD2DR — v98 — KRIS LV 20: EL DUELO FINAL (los 8 pedidos)
+═════════════════════════════════════════════════════════════════════
+
+⚠ AVISO IMPORTANTE DE INSTALACIÓN ⚠
+Esta versión añade 2 paquetes de red NUEVOS (CLIENT_EXE_DEFEATED y
+SERVER_GAME_RING_OFF) al FINAL de los enums del cliente Y del server.
+HAY QUE RECOMPILAR EL CLIENTE Y EL SERVER JUNTOS (como siempre que se
+tocan los enums). Con un server viejo: el derribo del exe no cerraría
+la partida, el show del LV 20 no saltaría solo y el anillo no se
+apagaría. Con el par cliente+server de esta versión: todo funciona.
+
+─────────────────────────────────────────────────────────────────────
+1) LA BARRA DEL EXE YA NO SALE EN "?????" — SALE SU NOMBRE
+─────────────────────────────────────────────────────────────────────
+La causa no era un texto raro: la micro-fuente del HUD (la de las
+letritas del juego) SÓLO TIENE MINÚSCULAS. Las mayúsculas caen a un
+glifo "?" — el rótulo viejo decía "EL ASESINO  N golpes" y en pantalla
+se leía "?? ???????  N golpes".
+
+Ahora el rótulo es EL NOMBRE DEL ASESINO (su nick, en minúsculas para
+la fuente) más los golpes que faltan. Ejemplo real: si el exe se llama
+"AmyRose21" la barra dice:
+
+    amyrose21  5 golpes
+
+En la pantalla del propio exe usa su propio nick; en las demás, el
+del puppet del exe. Acentos y ñ del nick se ven bien (la fuente los
+tiene en minúscula).
+
+─────────────────────────────────────────────────────────────────────
+2) LA BARRA LA VE TODO EL MUNDO AL LLEGAR KRIS A LV 20
+─────────────────────────────────────────────────────────────────────
+Antes solo la veía Kris. Ahora TODAS las pantallas dibujan la barra
+del asesino en cuanto SU espejo de Kris llega a LV 20 — con el fix
+del sync de la v97 todos llegan a 20 en la misma subida, así que la
+barra aparece para todos a la vez. Si Kris muere, la barra se retira.
+
+─────────────────────────────────────────────────────────────────────
+3) EL PARRY TAMBIÉN CUENTA COMO DAÑO
+─────────────────────────────────────────────────────────────────────
+A LV 20, un BLOQUEO EXITOSO del escudo de Kris le baja al asesino LO
+MISMO que un cuchillazo: 35 del pool. Golpe de espada y parry valen
+exactamente lo mismo (los dos caminos usan el mismo helper: −35, la
+señal para los espejos, y a 0 el cierre de partida del punto 6).
+
+─────────────────────────────────────────────────────────────────────
+4) ENFRIAMIENTO DE LA ESPADA MÁS RÁPIDO AL FINAL
+─────────────────────────────────────────────────────────────────────
+El cooldown general del golpe de espada se recorta así:
+
+    Estado                Cooldown
+    ─────────────────────────────────
+    Normal (siempre fue)   10,75 s
+    Con el LMS activo      8,75 s   (−2 s)
+    A LV 20 (con LMS)      4,75 s   (−2 s −4 s)
+
+⚠ INTERPRETACIÓN: "se reducirá 2 seg en lms 4 seg" lo leí como DOS
+recortes ACUMULABLES (−2 s en el LMS y −4 s adicionales a LV 20). Si
+querías otra cosa (por ejemplo 4 s PLANOS a LV 20, o que no se
+acumulen), dímelo: es cambiar UNA línea de una macro
+(KRIS_SWORD_CUT_LMS / KRIS_SWORD_CUT_LV20 / KRIS_SWORD_RECHARGE_MIN
+en scripts/scr_kris_special/scr_kris_special.gml — el suelo de 2 s
+también es perilla). Un cooldown que ya está corriendo NO se recorta
+a mitad: la mejora entra con el siguiente golpe. El icono del HUD
+siempre muestra el relleno correcto.
+
+─────────────────────────────────────────────────────────────────────
+5) CON EL LMS ACTIVO, EL ANTI-CAMP NO SE ACTIVA
+─────────────────────────────────────────────────────────────────────
+La cosa esa que aparece y te ralentiza (el aviso de miedo) ya no se
+activa para los supervivientes mientras el Show Fuerte esté activo —
+no tiene sentido frenar al único que queda. Si el aviso ya estaba en
+pantalla cuando arranca el show, se apaga solo.
+
+─────────────────────────────────────────────────────────────────────
+6) SI LA VIDA DEL EXE LLEGA A 0, LA PARTIDA SE ACABA
+─────────────────────────────────────────────────────────────────────
+Lo típico: barra a 0 → la partida finaliza con la VICTORIA de los
+supervivientes restantes vivos y NO corrompidos por Jinna (los negas
+pelean para el exe: NO ganan). El juego los cuenta COMO SI HUBIERAN
+PASADO POR EL ANILLO: en la pantalla de resultados salen igual que
+los que escaparon, y las estadísticas los suman como escapados.
+Kris también gana (mató al exe).
+
+OJO: esto RETIRA el "refill" de antes — ya NO se rellena el pool ni la
+pelea se puede repetir: a 0 el asesino cae (el knockdown de 10 s) y la
+ronda se cierra. El aviso lo manda el CLIENTE del exe (que es quien
+tiene la verdad de su propia vida) y el SERVER lo valida: solo el exe
+de la ronda puede reportar su caída, un superviviente no puede
+falsificar la victoria.
+
+─────────────────────────────────────────────────────────────────────
+7) SI KRIS LLEGA A LV 20 ANTES DEL LMS, SU SHOW SALTA SOLO
+─────────────────────────────────────────────────────────────────────
+El server ahora cuenta las señales silenciosas del LOVE de Kris (con
+el fix v97 son exactas: 19 señales = LV 20). Si Kris llega a LV 20
+antes del LMS, su Show Fuerte se activa AUTOMÁTICAMENTE, ignorando el
+requisito de que solo quede 1 — canción, banner, cura, reloj extendido
+y todo, aunque queden más supervivientes vivos. (También se apaga el
+anti-camp del punto 5 y entra el −2 s de la espada del punto 4, porque
+el show está activo.)
+
+─────────────────────────────────────────────────────────────────────
+8) LV 20 DURANTE EL LMS NATURAL: ANILLO FUERA, 1 VS 1 A MUERTE
+─────────────────────────────────────────────────────────────────────
+ÚNICAMENTE si Kris llegó a LV 20 durante un LMS que se activó porque
+QUEDÓ ÉL SOLO VIVO (el show natural): el anillo verde NO aparece — y
+si ya estaba puesto, se retira en todas las pantallas. Sin escape:
+pelea a muerte 1 vs 1 hasta que Kris o el exe caigan (o se acabe el
+reloj, como siempre). Con el anillo retirado ya no vuelve a aparecer
+en esa ronda.
+
+OJO: el show AUTOMÁTICO del punto 7 (LV 20 con más gente viva) NO
+quita el anillo — los demás siguen pudiendo escapar. El anillo solo
+se retira en el caso "Kris solo + show natural + LV 20".
+
+─────────────────────────────────────────────────────────────────────
+ARCHIVOS TOCADOS (solo estos van en el zip)
+─────────────────────────────────────────────────────────────────────
+CLIENTE (GameMaker):
+  scripts/scr_kris_special/scr_kris_special.gml   (P3/P4/P6 + helper)
+  objects/obj_player_puppet/Step_0.gml            (espada usa el helper)
+  scripts/scr_parry/scr_parry.gml                 (P3: parry = daño)
+  objects/obj_playerui/Draw_64.gml                (P1/P2 barra + icono)
+  scripts/net_state_game/net_state_game.gml       (espejo sin refill +
+                                                   SERVER_GAME_RING_OFF)
+  scripts/net_packets/net_packets.gml             (2 paquetes nuevos)
+  scripts/scr_move_basic/scr_move_basic.gml       (P5 anti-camp)
+  objects/obj_player_warning/Draw_75.gml          (P5 aviso se apaga)
+SERVER (C):
+  betterserver-oss/include/Packet.h               (2 paquetes nuevos)
+  betterserver-oss/include/Server.h               (kris_lv/lms_natural/
+                                                   ring_off + constante)
+  betterserver-oss/disasterserver/states/Game.c   (P6/P7/P8)
+DOCS/CHECKS:
+  LEARNING.md, CACHE.md, worklog.md, este LEEME,
+  check_v98.py (93 OK), check_v98_pass2.py (40 OK)
+
+PERILLAS RÁPIDAS (todo en scr_kris_special.gml salvo indicación):
+  KRIS_SWORD_CUT_LMS / KRIS_SWORD_CUT_LV20 / KRIS_SWORD_RECHARGE_MIN
+    → recortes de la espada (−2 s LMS, −4 s LV 20, suelo 2 s)
+  KRIS_EXE_DAMAGE (35) / KRIS_EXE_MAXHP (350) / KRIS_EXE_DOWN_SEC (10)
+    → el duelo (10 golpes de espada o parry, mezclados como quieras)
+  KRIS_LV_XP_NORMAL (1.5) / KRIS_LV_XP_LMS (5)
+    → ritmo del LOVE (libres desde v97)
+  KRIS_LV20_SIGNALS (19, en Server.h)
+    → señales que equivalen a LV 20 para el server (espejo del LOVE)
+
+VERIFICACIÓN: 2 pasadas, todo limpio (93 OK + 40 OK, 0 FAIL):
+edits exactos y únicos, paridad de enums por NOMBRE y por ÍNDICE,
+compilación del server verificada con gcc (todo el build limpio),
+roundtrip BYTE A BYTE de los 11 archivos (HEAD + parche == trabajo),
+integridad del .yyp/.yy (cero recursos tocados) y simulaciones de
+todos los escenarios (LOVE→19 señales→LV 20, show natural vs
+automático, anillo, duelo mezclado espada+parry 10 golpes exactos,
+ganadores escapados con negas excluidos, y el anti-cheat del reporte).
+═════════════════════════════════════════════════════════════════════

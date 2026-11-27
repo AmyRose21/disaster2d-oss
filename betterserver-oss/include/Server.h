@@ -264,6 +264,13 @@ typedef enum
    sincronizada con esta tabla. Editar con el Suite (modulo Show LMS). */
 #define LMS_MAX_SONGS 16
 
+/* v98 (KRIS LV 20 — EL DUELO FINAL): cuantas senales silenciosas
+   (snd_none, indice 0 de global.net_snds) equivalen al LV 20 de Kris.
+   LV 1 = 0 senales, +1 senal por nivel cruzado (el MULTI-SIGNAL FLUSH
+   de v97: 1 por nivel, sea cual sea la perilla KRIS_LV_XP_*): LV 20
+   = 19. Espejo del KRIS_LV_MAX (20) del cliente (scr_kris_special). */
+#define KRIS_LV20_SIGNALS 19
+
 typedef struct
 {
         uint8_t ch;    /* CH_* del personaje con show */
@@ -300,6 +307,22 @@ typedef struct
         bool lms; /* v5.0: LMS «El Show Fuerte» activo (ultimo superviviente con show) */
         uint8_t lms_char; /* v5.3: personaje del show (se reenvia al reconectar) */
         uint8_t lms_song; /* v5.3: indice de la cancion elegida DENTRO de la lista del personaje */
+
+        /* v98 (KRIS LV 20 — EL DUELO FINAL): espejo minimo del LOVE de
+           Kris en el server. kris_lv cuenta las SENALES SILENCIOSAS de
+           subida de LV del jugador de Kris (snd_none = indice 0 de
+           global.net_snds, broadcast: nid == emisor; las cuenta el
+           CLIENT_SOUND_EMIT) — con el flush 1-senal-por-nivel de v97 son
+           EXACTAS: LV del server = kris_lv + 1, tope 19 senales = LV 20
+           (KRIS_LV20_SIGNALS). Se consume en el tick de la partida:
+           LV 20 ANTES del LMS -> el show de Kris arranca SOLO aunque
+           queden mas vivos (lms latched, lms_natural = false); LV 20
+           DURANTE el show NATURAL de Kris (el arranco por quedarse
+           como ultimo) -> ring_off: el anillo verde NO aparece (o se
+           apaga) y la ronda solo acaba con Kris o el exe en el suelo. */
+        uint8_t kris_lv; /* senales snd_none de Kris recibidas (0..KRIS_LV20_SIGNALS) */
+        bool lms_natural; /* v98: el show activo arranco por la regla del ultimo superviviente (no por el LV 20) */
+        bool ring_off; /* v98: anillo de escape retirado (duelo final Kris vs exe): game_bigring ignora todo */
 
         double start_timeout;
         double time;

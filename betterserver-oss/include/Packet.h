@@ -403,7 +403,28 @@ typedef enum
            siempre explicito: tras el identity, tras cada claim exitoso,
            tras .op y tras CLIENT_AMY_AUTH. Anadido AL FINAL en los DOS
            lados (espejo con net_packets.gml). */
-        SERVER_CLAIM_STATE
+        SERVER_CLAIM_STATE,
+
+        /* v98 (KRIS LV 20 — EL DUELO FINAL, espejo con net_packets.gml).
+           CLIENT_EXE_DEFEATED: lo manda el CLIENTE DEL EXE (la autoridad
+           de su propia vida, patron victima-autoridad de todo el juego)
+           cuando el pool del asesino llega a 0 con el golpe real de la
+           espada o del parry de un Kris a LV 20 (scr_kris_exe_pool_hit).
+           El server valida que el emisor sea EL exe de la ronda, marca a
+           cada superviviente vivo y NO corrompido (los negas de Jinna
+           pelean para el exe: no ganan) como PLAYER_ESCAPED — el juego
+           los cuenta como si hubieran pasado por el anillo (reenvia los
+           DOS paquetes del escape por cada ganador) — y cierra la
+           partida con ED_SURVWIN. Sin payload. Ya NO hay refill del
+           pool: la pelea a muerte termina la ronda.
+           SERVER_GAME_RING_OFF: lo difunde el server cuando el Kris de
+           la ronda llega a LV 20 DURANTE su show natural del LMS (quedo
+           como ultimo superviviente y su show arranco por eso): el
+           anillo verde de escape NO aparece (o se retira si ya estaba) —
+           pelea a muerte 1 vs 1 hasta que Kris o el exe caigan. Sin
+           payload. Anadido AL FINAL en los DOS lados. */
+        CLIENT_EXE_DEFEATED,
+        SERVER_GAME_RING_OFF
 } PacketType;
 
 typedef struct

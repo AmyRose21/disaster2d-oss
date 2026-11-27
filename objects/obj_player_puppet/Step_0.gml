@@ -1019,29 +1019,16 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 if(global.character == CHARACTER_EXE && !global.player.isDead
                                 && (variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1) >= KRIS_LV_MAX)
                                 {
-                                        global.exeHpPool = max(global.exeHpPool - KRIS_EXE_DAMAGE, 0);
-
-                                        // el espejo de TODAS las pantallas (la barra del
-                                        // asesino que ve Kris): senal silenciosa con el
-                                        // chime como portador. Paquete CRUDO a proposito
-                                        // (scr_kris_exe_hp_signal) — net_sound_emit
-                                        // callaria todo con el exe invisible y la barra
-                                        // de Kris quedaria desincronizada para siempre.
-                                        scr_kris_exe_hp_signal();
-
-                                        // el exe OYE su herida (local, como el stun): el
-                                        // chime de Kris = "tocado de verdad". A 0: el
-                                        // pool se RELENA (la pelea puede repetirse) y el
-                                        // stun se alarga al KNOCKDOWN completo — el
-                                        // stunTime de abajo todavia no se aplico, basta
-                                        // con subirlo aqui.
-                                        audio_play_sound(snd_kris_lvup, 0, false);
-
-                                        if(global.exeHpPool <= 0)
-                                        {
-                                                global.exeHpPool = KRIS_EXE_MAXHP;
-                                                stunTime = max(stunTime, KRIS_EXE_DOWN_SEC);
-                                        }
+                                        // v98: el golpe real vive AHORA en el helper
+                                        // compartido scr_kris_exe_pool_hit (lo usan la
+                                        // espada y el parry): -35 al pool + senal
+                                        // silenciosa para los espejos + chime local; a
+                                        // 0 ya NO se rellena — CLIENT_EXE_DEFEATED
+                                        // termina la partida con la victoria de los
+                                        // supervivientes y devuelve el KNOCKDOWN
+                                        // completo (el stunTime de abajo todavia no
+                                        // se aplico, basta con tomar el que devuelve).
+                                        stunTime = scr_kris_exe_pool_hit(stunTime);
                                 }
                                 var buffer = cpacket_tcp(PacketType.CLIENT_PLAYER_HURT, true);
                                 buffer_write(buffer, buffer_u16, master_id);

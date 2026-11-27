@@ -412,6 +412,13 @@ bool game_bigring(Server* server, BigRingState state)
         if (server->game.bring_state == state)
                 return true;
 
+        /* v98 (item 8): con el anillo RETIRADO (Kris a LV 20 durante su
+         * show natural: duelo final 1 vs 1) ya no aparece ni se reactiva —
+         * game_bigring se vuelve un no-op hasta la proxima ronda. El
+         * BS_NONE (reset de ronda nueva) pasa siempre. */
+        if (server->game.ring_off && state != BS_NONE)
+                return true;
+
         Packet packet;
         switch (state)
         {
@@ -612,6 +619,18 @@ bool game_state_join(PeerData* v)
                 RAssert(packet_send(v->peer, &packet, true));
         }
 
+        /* v98 (item 8): el apagon del anillo (Kris a LV 20 durante su show
+           natural: duelo final) tambien fue un broadcast UNICO — al que
+           entre o se reconecte se le reenvia para que SU pantalla tampoco
+           tenga anillo de escape (mismo patron del SERVER_GAME_LMS de
+           arriba). */
+        if (v->server->game.ring_off)
+        {
+                Packet packet;
+                PacketCreate(&packet, SERVER_GAME_RING_OFF);
+                RAssert(packet_send(v->peer, &packet, true));
+        }
+
         return true;
 }
 
@@ -766,6 +785,24 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                                 time_start(&v->plr.last_self_hurt);
                                 v->plr.portal_pending = 0;
                         }
+
+                        /* v98 (KRIS LV 20 — EL DUELO FINAL): espejo del
+                         * LOVE de Kris en el server. Cada senal silenciosa
+                         * de subida de LV es un snd_none BROADCAST (nid ==
+                         * emisor, indice 0) que SOLO emite el flush
+                         * 1-senal-por-nivel de scr_kris_love_event (v97).
+                         * Con el tope del contador el espejo queda en
+                         * KRIS_LV20_SIGNALS (= LV 20) y lo consume el tick
+                         * de la partida: show automatico de Kris si el LMS
+                         * no ha arrancado (item 7) o retiro del anillo
+                         * verde si su show ya venia del "ultimo
+                         * superviviente" (item 8). El clone de Exeller
+                         * tambien emite snd_none pero ese jugador es el
+                         * exe de la ronda: nunca cuenta aqui. */
+                        if (nid == v->id && sndidx == 0 /* snd_none */
+                        && v->surv_char == CH_KRIS && v->id != v->server->game.exe
+                        && v->server->game.kris_lv < KRIS_LV20_SIGNALS)
+                                v->server->game.kris_lv++;
 
                         /* v83 ANTI-CHEAT: la senal de stun DIRIGIDA (nid != emisor) pasa una
                          * validacion minima antes de reenviarse (game_stun_signal_ok, arriba).
@@ -2745,6 +2782,67 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         break; 
                 }
 
+                /* v98 (item 6, pedido de la duena: «si la barra del vida
+                 * del exe llega a 0 la partida finaliza dando la victoria a
+                 * los supervivientes restantes vivos y no corrompidos por
+                 * jina. (osea los nega pues) y si contara como si hubieran
+                 * escapado. el juego los contara como si hubieran pasado por
+                 * el ring»): el pool del asesino llego a 0. Lo reporta el
+                 * CLIENTE DEL EXE (la autoridad de su propia vida — el golpe
+                 * real de la espada y el del parry de un Kris a LV 20 viven
+                 * en su cliente). Validacion: SOLO el exe de la ronda puede
+                 * reportar su propia caida (un superviviente no puede
+                 * falsificar la victoria; un exe hackeado solo puede
+                 * rendirse a si mismo). A cada GANADOR — vivo y NO
+                 * corrompido: ni muertos, ni esbirros demonizados, ni
+                 * NEGA de Jinna (pelean para el exe: no ganan), ni
+                 * atrapados en el portal, ni los que ya escaparon — se le
+                 * marca PLAYER_ESCAPED y se le reenvian los DOS paquetes
+                 * del escape por el anillo (SERVER_PLAYER_ESCAPED +
+                 * SERVER_GAME_PLAYER_ESCAPED): el juego los cuenta COMO SI
+                 * hubieran pasado por el anillo. La ronda cierra con
+                 * ED_SURVWIN (la pantalla de resultados los muestra como
+                 * escapados, igual que los que saltaron por el anillo). */
+                case CLIENT_EXE_DEFEATED:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id == v->server->game.exe);
+
+                        if (v->server->game.end > 0)
+                                break;
+
+                        Info("%s " LOG_RED "(id %d)" LOG_RST " was DEFEATED at LV 20! Victory to the survivors!",
+                             v->nickname.value, v->id);
+
+                        for (size_t i = 0; i < v->server->peers.capacity; i++)
+                        {
+                                PeerData* w = (PeerData*)v->server->peers.ptr[i];
+                                if (!w || !w->in_game)
+                                        continue;
+
+                                if (w->id == v->server->game.exe)
+                                        continue;
+
+                                /* vivos y no corrompidos (negas incluidos en
+                                 * la exclusion: su bando es el del exe) */
+                                if (w->plr.flags & (PLAYER_DEAD | PLAYER_DEMONIZED | PLAYER_NEGATIZED | PLAYER_CAUGHT | PLAYER_ESCAPED))
+                                        continue;
+
+                                SET_FLAG(w->plr.flags, PLAYER_ESCAPED);
+
+                                Packet pack;
+                                PacketCreate(&pack, SERVER_PLAYER_ESCAPED);
+                                RAssert(packet_send(w->peer, &pack, true));
+
+                                PacketCreate(&pack, SERVER_GAME_PLAYER_ESCAPED);
+                                PacketWrite(&pack, packet_write16, w->id);
+                                server_broadcast(v->server, &pack, true);
+                        }
+
+                        RAssert(game_end(v->server, ED_SURVWIN, true));
+                        break;
+                }
+
                 case CLIENT_PLAYER_ESCAPED:
                 {
                         AssertOrDisconnect(v->server, v->in_game);
@@ -3813,6 +3911,44 @@ bool game_state_tick(Server* server)
                         last = v;
                 }
 
+                /* v98 (item 7, pedido de la duena: «Si por alguna razon
+                 * Kris llega al nv 20 Antes del LMS El Lms de kris sera
+                 * activado automaticamente. Ignorando el requisito que
+                 * solo quede 1»): Kris a LV 20 (el espejo kris_lv del
+                 * server, las senales silenciosas de su LOVE) fuerza SU
+                 * show aunque queden mas supervivientes vivos — se toma
+                 * a Kris como "el ultimo" y el show arranca con su
+                 * lista de canciones de siempre. Solo si Kris sigue en
+                 * juego y "vivo" (sin DEAD/ESCAPED/DEMONIZED/CAUGHT):
+                 * el show es suyo y le cura a el. kris_show marca el
+                 * disparo AUTOMATICO (lms_natural = false): el anillo
+                 * NO se retira en este camino (los demas siguen
+                 * pudiendo escapar) — el retiro del item 8 es SOLO para
+                 * el show NATURAL (el que arranco por quedarse como
+                 * unico superviviente). */
+                bool kris_show = false;
+
+                if (server->game.kris_lv >= KRIS_LV20_SIGNALS)
+                {
+                        for (size_t i = 0; i < server->peers.capacity; i++)
+                        {
+                                PeerData* k = (PeerData*)server->peers.ptr[i];
+                                if (!k || !k->in_game)
+                                        continue;
+
+                                if (k->id == server->game.exe || k->surv_char != CH_KRIS)
+                                        continue;
+
+                                if (k->plr.flags & (PLAYER_DEAD | PLAYER_DEMONIZED | PLAYER_ESCAPED | PLAYER_CAUGHT))
+                                        continue;
+
+                                last = k;
+                                alive = 1;
+                                kris_show = true;
+                                break;
+                        }
+                }
+
                 if (alive == 1 && last)
                 {
                         /* v5.3: el show es del ULTIMO SUPERVIVIENTE que
@@ -3901,6 +4037,11 @@ bool game_state_tick(Server* server)
                                 server->game.lms_char = show->ch;
                                 server->game.lms_song = bag[pick];
                                 server->lms_last[show->ch] = bag[pick];
+                                /* v98: natural = el show arranco por la regla del
+                                 * ultimo superviviente (NO por el LV 20 de Kris).
+                                 * Solo el show NATURAL de Kris retira el anillo al
+                                 * llegar al LV 20 (item 8). */
+                                server->game.lms_natural = !kris_show;
 
                                 /* la sacada se reemplaza por la ultima
                                    pendiente (quedan bag_left-1 sin ella) */
@@ -3928,6 +4069,32 @@ bool game_state_tick(Server* server)
                                      (unsigned)server->game.lms_char, (unsigned)server->game.lms_song + 1u, (unsigned)show->songs, (int)server->game.time_sec);
                         }
                 }
+        }
+
+        /* v98 (item 8, pedido de la duena: «Si el llega a nv 20 durante
+         * el Lms (unicamente si solo queda el con vida y el LMS se activo
+         * por esa condicion) el ring verde no aparecera o si estaba activo
+         * volvera a estado inactivo Por pelea a muerte. osea 1 vs 1 hasta
+         * que kris o el exe caigan»): Kris a LV 20 DURANTE su show
+         * NATURAL (lms activo + lms_natural + el show es de Kris = el
+         * unico superviviente vivo es Kris) retira el anillo verde de
+         * escape para SIEMPRE (latch ring_off): game_bigring ignora
+         * todos los cambios (no aparece ni se reactiva en el ultimo
+         * minuto) y SERVER_GAME_RING_OFF destruye el que ya este
+         * puesto en las pantallas. El show AUTOMATICO del item 7 (con
+         * mas gente viva) NO retira nada: los demas siguen escapando
+         * por el anillo — de ahi el gate de lms_natural. */
+        if (server->game.kris_lv >= KRIS_LV20_SIGNALS && server->game.lms
+        && server->game.lms_natural && server->game.lms_char == CH_KRIS
+        && !server->game.ring_off)
+        {
+                server->game.ring_off = true;
+
+                Packet packet;
+                PacketCreate(&packet, SERVER_GAME_RING_OFF);
+                RAssert(server_broadcast(server, &packet, true));
+
+                Info(LOG_YLW "KRIS LV 20 during natural LMS: escape ring is OFF - final duel!" LOG_RST);
         }
 
         server->game.elapsed += server->delta;

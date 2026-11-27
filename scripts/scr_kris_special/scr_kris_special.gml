@@ -92,11 +92,45 @@
 // de TODO el juego): su espada la cuenta el krisLvNet espejado del
 // puppet de Kris en SU pantalla (senal silenciosa v46 — no falsificable
 // desde el cliente de Kris). Debajo de LV 20 el golpe sigue siendo el
-// stun de siempre, SIN dano al pool. A 0: knockdown largo y el pool se
-// rellena (la pelea puede repetirse).
+// stun de siempre, SIN dano al pool. A 0 (v98): la partida TERMINA con
+// la victoria de los supervivientes vivos no corrompidos (ver
+// scr_kris_exe_pool_hit) — ya NO hay refill ni pelea a repeticion.
 #macro KRIS_EXE_DAMAGE 35        // dano por cuchillazo a LV 20 (pedido)
 #macro KRIS_EXE_MAXHP 350        // vida total del asesino: 10 golpes (tuneable)
 #macro KRIS_EXE_DOWN_SEC 10      // knockdown al llegar a 0 (segundos)
+
+// ---- v98 (P4, pedido de la duena: «el enfriamiento general del golpe
+// de espada se reducira 2 seg en lms 4 seg»): la espada recarga MAS
+// RAPIDO cuando aprieta el final — -2 s mientras el Show Fuerte (LMS)
+// este activo y -4 s ADICIONALES a LV 20 (el duelo final). Tabla:
+//   normal      10,75 s (645 f, el de siempre)
+//   LMS         8,75 s (525 f, -2 s)
+//   LV 20+LMS   4,75 s (285 f, -2 s -4 s)
+// A LV 20 el LMS siempre esta activo (v98: el server lo dispara solo),
+// asi que el escalon completo se pisa una vez ahi. Perillas tuneables
+// aqui (KRIS_SWORD_RECHARGE_MIN es el suelo: nunca por debajo de 2 s).
+#macro KRIS_SWORD_CUT_LMS (60 * 2)   // recorte del enfriamiento con el LMS activo
+#macro KRIS_SWORD_CUT_LV20 (60 * 4)  // recorte ADICIONAL estando ya a LV 20
+#macro KRIS_SWORD_RECHARGE_MIN (60 * 2) // suelo del enfriamiento (2 s)
+
+// Recarga REAL de la espada segun el estado de la ronda (v98 P4). La
+// usan el input del golpe (scr_kris_special) y el icono del HUD
+// (obj_playerui/Draw_64): el relleno siempre cuadra con el maximo
+// vigente. Un cooldown ya en marcha NO se recorta (la mejora entra con
+// el siguiente golpe).
+function scr_kris_sword_recharge()
+{
+        var _cd = KRIS_ATTACK_RECHARGE;
+
+        if(global.lmsActive)
+                _cd -= KRIS_SWORD_CUT_LMS;
+
+        if(instance_exists(global.player) && variable_instance_exists(global.player.id, "krisLv")
+        && global.player.krisLv >= KRIS_LV_MAX)
+                _cd -= KRIS_SWORD_CUT_LV20;
+
+        return max(_cd, KRIS_SWORD_RECHARGE_MIN);
+}
 
 // ---- moribunda (patron Rouge v4.5, mismos numeros) ----
 #macro KRIS_MORIBUNDA_TIME (60 * 6)  // tirado en el suelo
@@ -219,7 +253,7 @@ function scr_kris_special()
                         image_xscale = 1;
 
                 image_index = 0;
-                attackTimer = KRIS_ATTACK_RECHARGE;
+                attackTimer = scr_kris_sword_recharge(); // v98 (P4): 10,75 s base, -2 s en LMS, -4 s mas a LV 20
                 isAttacking = true;
 
                 // fase fija al iniciar (patron Sonic): 1 = tierra, 2 = air1.
@@ -411,11 +445,15 @@ function scr_kris_love_event(_kind)
 //  cada vez que la espada de un Kris con krisLvNet >= KRIS_LV_MAX le
 //  baja KRIS_EXE_DAMAGE de vida real al pool (global.exeHpPool). La
 //  reciben TODOS los clientes en el CLIENT_SOUND_EMIT: la rama del
-//  puppet del EXE espeja el -35 en SU global.exeHpPool local — solo
-//  KRIS la dibuja (la barra del asesino del Draw_64 del playerui).
-//  El refill a 0 lo DERIVAN los dos lados del mismo evento (TCP
-//  ordenado: los dos espejos aplican la misma secuencia y llegan a 0
-//  juntos), asi que no hace falta una senal de refill.
+//  puppet del EXE espeja el -35 en SU global.exeHpPool local — desde
+//  v98 la barra del asesino la dibujan TODOS (Draw_64 del playerui)
+//  en cuanto el Kris espejado llega a LV 20.
+//  v98: EL REFILL DERIVADO SE RETIRO. Antes los dos lados (el exe
+//  autoridad y los espejos) rellenaban el pool al tocar 0 y la pelea
+//  podia repetirse. Ahora a 0 la partida TERMINA (victoria de los
+//  supervivientes vivos no corrompidos): el aviso al server lo manda
+//  scr_kris_exe_pool_hit con CLIENT_EXE_DEFEATED, y los espejos del
+//  receptor se quedan en 0 — ya no derivan nada.
 //
 //  PORQUE UN PAQUETE CRUDO y no net_sound_emit: la funcion de la casa
 //  silencia TODOS los sonidos del exe mientras esta INVISIBLE
@@ -445,4 +483,55 @@ function scr_kris_exe_hp_signal()
         }));
         buffer_write(buffer, buffer_bool, false);
         send_server_tcp(buffer);
+}
+
+// =====================================================================
+//  v98 — EL GOLPE REAL AL POOL, COMPARTIDO (espada Y parry, items 3+6).
+//
+//  Corre SOLO en el cliente del EXE (la autoridad de su propia vida,
+//  patron victima-autoridad). Lo llaman:
+//    * la ESPADA: obj_player_puppet/Step_0 (el stun de contacto del
+//      cuchillazo de un Kris con krisLvNet >= KRIS_LV_MAX), y
+//    * el PARRY: scr_parry_apply_stun (item 3: "el parry tambien
+//      contara como dano" — mismo golpe real de 35 cuando el Kris a
+//      LV 20 bloquea con exito el ataque que le entra).
+//  Ambos ya consultan el krisLvNet espejado ANTES de llamar (el gate
+//  vive en cada llamador). Hace TODO lo de siempre del golpe real:
+//  -35 al pool, la senal silenciosa para los espejos de todas las
+//  pantallas y el chime local. A 0 (v98): ya NO se rellena — avisa al
+//  server con CLIENT_EXE_DEFEATED (lo valida: solo el exe de la ronda
+//  puede reportar su caida; los supervivientes vivos no corrompidos
+//  ganan contados como ESCAPADOS por el anillo y la ronda cierra con
+//  ED_SURVWIN) y devuelve el KNOCKDOWN completo para el stun que lo
+//  remato. Antes: refill + pelea a repeticion (retirado).
+// =====================================================================
+function scr_kris_exe_pool_hit(_stunTime)
+{
+        global.exeHpPool = max(global.exeHpPool - KRIS_EXE_DAMAGE, 0);
+
+        // el espejo de TODAS las pantallas (la barra del asesino que
+        // desde v98 dibuja todo el mundo): senal silenciosa con el
+        // chime como portador (paquete CRUDO a proposito, ver arriba)
+        scr_kris_exe_hp_signal();
+
+        // el exe OYE su herida (local, como el stun): el chime de
+        // Kris = "tocado de verdad"
+        audio_play_sound(snd_kris_lvup, 0, false);
+
+        if(global.exeHpPool <= 0)
+        {
+                // v98 (item 6): la partida finaliza — sin refill. El
+                // server marca a los ganadores como escapados por el
+                // anillo y cierra con la victoria de los supervivientes;
+                // este cliente solo reporta su propia caida.
+                var _pak = cpacket_tcp(PacketType.CLIENT_EXE_DEFEATED, true);
+                send_server_tcp(_pak);
+
+                // el knockdown completo: la caida se VE aunque la ronda
+                // se este cerrando (el stun de remate sigue su camino
+                // normal por el llamador)
+                return KRIS_EXE_DOWN_SEC;
+        }
+
+        return _stunTime;
 }

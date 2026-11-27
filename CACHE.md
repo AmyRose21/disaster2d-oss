@@ -1570,6 +1570,45 @@ y las pistas nuevas de 20-28s se cortaban).
   Delivered first as "v81" by this session and relabelled: the v81 label
   belongs to the claims delivery.
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-27 (v98 — KRIS LV 20: EL DUELO FINAL — 8 pedidos: barra con
+  nombre, barra para todos, parry = daño, espada -2s LMS/-4s LV20,
+  anti-camp off en LMS, pool 0 = victoria escapada, show auto a LV20,
+  anillo off en el 1v1): P1: el «?????» de la barra del exe eran las
+  MAYUSCULAS — scr_text_spr/spr_letter1 es fuente MINUSCULA (base
+  ord('a'), default glifo 44) y el rotulo v95 «EL ASESINO» se leia
+  «?? ??????»; ahora el rotulo es string_lower(nick del exe: puppet
+  master_id==exeId, o global.nickname en la pantalla del propio exe) +
+  «N golpes». P2: la barra la dibujan TODOS (obj_playerui/Draw_64)
+  desde que SU Kris espejado llega a LV 20 (krisLvNet del puppet; el
+  propio Kris usa su krisLv; se retira si ese Kris cae). P3: helper
+  NUEVO scr_kris_exe_pool_hit(_stun) en scr_kris_special (‑35 + senal
+  cruda + chime; a 0: CLIENT_EXE_DEFEATED y devuelve el knockdown 10 s;
+  SIN refill) compartido por la espada (obj_player_puppet/Step_0) y el
+  PARRY (scr_parry_apply_stun, mismo gate krisLvNet>=20, solo EXE
+  REAL). P4: scr_kris_sword_recharge() = 645 f −120 (LMS) −240 (LV20),
+  suelo 120 (macros KRIS_SWORD_CUT_LMS/_LV20/_RECHARGE_MIN); la usa el
+  input y el icono del HUD. P5: anti-camp (obj_player_warning) fuera
+  con global.lmsActive (scr_move_basic gate + fade del aviso activo en
+  Draw_75). P6: paquete NUEVO CLIENT_EXE_DEFEATED (cliente del exe →
+  server): el server valida emisor==exe, marca PLAYER_ESCAPED a los
+  vivos NO corrompidos (excluye DEAD/DEMONIZED/NEGATIZED=nega de
+  Jinna/CAUGHT/ESCAPED) reenviando los DOS paquetes del escape («como
+  si pasaran por el ring») y cierra ED_SURVWIN; refill retirado de los
+  3 lados (helper/espada/espejo). P7: el server ESPEJA el LOVE
+  (game.kris_lv: cuenta snd_none broadcast idx 0 del CH_KRIS que no
+  sea el exe, cap KRIS_LV20_SIGNALS=19) y en el tick del LMS, si
+  kris_lv>=19 y Kris vivo, fuerza SU show IGNORANDO el solo-1
+  (lms_natural=false). P8: si Kris llega a LV20 DURANTE su show
+  NATURAL (lms && lms_natural && lms_char==CH_KRIS): ring_off=true +
+  paquete NUEVO SERVER_GAME_RING_OFF (clientes: destruir obj_bigring,
+  obj_level state=0 sin «Escape!!!», npring invisible de NotPerfect) +
+  game_bigring NO-OP + reenvio en game_state_join; el show AUTO del P7
+  NO retira el anillo. 2 paquetes AL FINAL de AMBOS enums (191/192,
+  tras SERVER_CLAIM_STATE). Verificado: check_v98.py 93 OK (incluye
+  gcc -fsyntax-only del server con stub de enet: TODO el build limpio)
+  + check_v98_pass2.py 40 OK (roundtrip BYTE A BYTE de los 11,
+  indices numericos identicos, escenario end-to-end con constantes
+  parseadas). REQUIERE recompilar cliente Y server JUNTOS.
 - 2026-11-27 (v97 — KRIS: FIX desync del LOVE — el cliente subia a LV 20 y los demas veian LV 13):
   reporte de la duena: «kris sube rapido en el cliente pero en el server
   no lo reconoce, los demas lo ven a lv 13 mientras que en su cliente ya

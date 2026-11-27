@@ -1159,6 +1159,20 @@ function scr_parry_apply_stun(_victimNid, _kx, _emitSound, _parryChar)
                 }
 
                 _parryStun = _parryStun * (1 + KRIS_LV_STUN_PCT * _klvP);
+
+                // v98 (duena: «el parry tambien contara como daño»): el
+                // bloqueo exitoso del Kris a LV 20 le mete al ASESINO el
+                // MISMO golpe real de la espada (35 al pool, la senal
+                // silenciosa para los espejos y — a 0 — el final de
+                // partida por CLIENT_EXE_DEFEATED). Corre en el cliente
+                // del ATACANTE parreado, que es la autoridad de su propia
+                // vida (patron victima-autoridad): SOLO el EXE REAL tiene
+                // pool — un esbirro o nega parreado no cambia nada. El
+                // gate es el mismo del bloqueo escalado de arriba: el
+                // krisLvNet ESPEJADO de SU pantalla (no falsificable
+                // desde el cliente de Kris).
+                if(global.character == CHARACTER_EXE && !global.player.isDead && _klvP >= KRIS_LV_MAX)
+                        _parryStun = scr_kris_exe_pool_hit(_parryStun);
         }
 
         global.player.shockedTimer = _parryStun;

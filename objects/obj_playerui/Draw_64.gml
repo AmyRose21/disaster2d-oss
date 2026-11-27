@@ -65,23 +65,58 @@ var _mob = (os_type == os_android ? 200 : 0);
 
 // ============================================================================
 // v95 (KRIS LV 20 — "consecuencias"): LA BARRA DE VIDA DEL ASESINO.
-// Pedido de la duena: "al llegar al nv 20 (si es que llega) el asesino
-// le aparecera una barra de vida". SOLO la ve KRIS (es SU duelo: el
-// dano de 35 por golpe y el pool de 350 son cosa de SU espada con LV
-// maximo). Dibujo patron jefecito de casa: barra roja centrada bajo el
-// reloj y bajo el "Escape!!!" (spr_status se dibuja en y=32 con origen
+// v98 (items 1+2, pedido de la duena: «arreglar xq la barra de vida
+// aparece en ????? la de el exe en vez de salir el nombre del mismo» y
+// «la barra de vida de este deberia salir para todo el mundo una vez
+// salga a lv 20 para kris»).
+//   * VISIBLE PARA TODOS (item 2): antes SOLO la dibujaba el propio
+//     Kris (su krisLv local). Ahora cada cliente la dibuja en cuanto SU
+//     Kris espejado llega a LV 20 — en el cliente de Kris es su krisLv
+//     local (el unico sin puppet propio); en el resto es el krisLvNet
+//     del puppet de Kris (la senal silenciosa v46/v97: con el flush
+//     1-senal-por-nivel TODOS llegan a 20 en la misma subida). Si el
+//     Kris de la ronda cae, la barra se retira (su duelo se acabo).
+//   * EL NOMBRE DEL EXE (item 1): el "?????" de antes NO era un texto
+//     raro — la micro-fuente del HUD (scr_text_spr / spr_letter1) es
+//     MINUSCULA (base ord('a')) y las MAYUSCULAS caen al default
+//     (glifo 44, el "?"): el rotulo "EL ASESINO" se leia "?? ??????".
+//     Ahora el rotulo lleva el NOMBRE del asesino (el nickname del exe:
+//     su puppet en las pantallas ajenas, global.nickname en la suya)
+//     pasado por string_lower para la fuente, con la cuenta de golpes
+//     que faltan igual que siempre.
+// Dibujo patron jefecito de casa: barra roja centrada bajo el reloj y
+// bajo el "Escape!!!" (spr_status se dibuja en y=32 con origen
 // superior: ocupa hasta y=47 — la barra arranca en y=49 y no lo tapa).
-// El valor es global.exeHpPool: en el cliente
-// de Kris es el ESPEJO que alimenta la senal silenciosa del exe
-// (rama de snd_kris_lvup en net_state_game); en el del exe es su propia
-// vida real. Los dos nacen llenos (KRIS_EXE_MAXHP), aplican la misma
-// secuencia de -35 (TCP ordenado) y se rellenan solos al tocar 0.
+// El valor es global.exeHpPool: en el cliente del exe es su propia vida
+// real; en los demas, el espejo de la senal silenciosa. Todos nacen
+// llenos (KRIS_EXE_MAXHP) y aplican la misma secuencia de -35 (TCP
+// ordenado). A 0 la partida se cierra con la victoria de los
+// supervivientes (v98: ya no hay refill).
 // ============================================================================
+var _kris20 = false;
+
 if(global.character == CHARACTER_KRIS
 && instance_exists(global.player)
 && variable_instance_exists(global.player.id, "krisLv")
 && global.player.krisLv >= KRIS_LV_MAX
 && !global.player.isDead)
+        _kris20 = true;
+
+if(!_kris20 && instance_exists(obj_player_puppet))
+{
+        with(obj_player_puppet)
+        {
+                if(character != CHARACTER_KRIS || isDemonized || isInactive || isDead)
+                        continue;
+
+                if((variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1) >= KRIS_LV_MAX)
+                        _kris20 = true;
+
+                break;
+        }
+}
+
+if(_kris20)
 {
         var _kbX = 480 / 2 - 100;   // barra de 200 px centrada
         var _kbY = 51;               // bajo el "Escape!!!" (spr_status: 32..47)
@@ -107,9 +142,33 @@ if(global.character == CHARACTER_KRIS
         draw_set_alpha(1);
         draw_set_color(c_white);
 
-        // rotulo con la cuenta real de golpes que faltan (micro-fuente
-        // del HUD, patron del "+NN" de hudAllyBar)
-        scr_text_spr(_kbX + 6, _kbY + 1, "EL ASESINO  " + string(ceil(_kbHp / KRIS_EXE_DAMAGE)) + " golpes", c_white, 1);
+        // v98 (item 1): el rotulo es el NOMBRE del asesino (nickname del
+        // exe) en MINUSCULAS — la micro-fuente spr_letter1 no tiene
+        // mayusculas y las dibuja como "?" (el "?????" del reporte). En la
+        // pantalla del propio exe el nombre es el global.nickname (su
+        // puppet propio no existe); en las demas, el del puppet del exe.
+        // Con la cuenta de golpes que faltan (micro-fuente, patron del
+        // "+NN" de hudAllyBar).
+        var _exeName = "";
+
+        if(global.character == CHARACTER_EXE)
+                _exeName = global.nickname;
+        else if(instance_exists(obj_player_puppet))
+        {
+                with(obj_player_puppet)
+                {
+                        if(master_id != obj_netclient.exeId)
+                                continue;
+
+                        _exeName = nickname;
+                        break;
+                }
+        }
+
+        if(_exeName == "")
+                _exeName = "el asesino"; // sin puppet del exe a mano (se fue): generico
+
+        scr_text_spr(_kbX + 6, _kbY + 1, string_lower(_exeName) + "  " + string(ceil(_kbHp / KRIS_EXE_DAMAGE)) + " golpes", c_white, 1);
 }
 
 // v12 (HUD): los ICONOS DE HABILIDAD siguen en el rincon superior
@@ -572,7 +631,14 @@ if(instance_exists(global.player) && !global.player.isDead)
                         // X — ESPADA: spr_kris_attack1_air1 (4 f, contenido
                         // (8,0,53,70)) al 24% — el tajo base: la tierra y la
                         // fase 1 aerea usan este mismo sprite.
-                        var _kprog1 = 1.0 - (min(max(global.player.attackTimer, 0), KRIS_ATTACK_RECHARGE) / KRIS_ATTACK_RECHARGE);
+                        // v98 (P4): el maximo del relleno es la recarga REAL
+                        // vigente (scr_kris_sword_recharge: -2 s en LMS, -4 s
+                        // mas a LV 20) — si el golpe salio antes del recorte y
+                        // el timer queda por encima del nuevo maximo, el
+                        // min() lo mantiene en rojo hasta que drene (nunca
+                        // muestra "listo" con el timer aun corriendo).
+                        var _kcd = scr_kris_sword_recharge();
+                        var _kprog1 = 1.0 - (min(max(global.player.attackTimer, 0), _kcd) / _kcd);
                         drawMiniIcon(spr_kris_attack1_air1, 8, 0, 53, 70, 0.24, global.KeyB, 372, 240 - _ico, _kprog1 == 1.0 ? c_white : c_red, _kprog1, 0);
 
                         // C — ESCUDO: spr_kris_block_success_ground (9 f,

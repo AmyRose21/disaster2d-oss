@@ -2223,3 +2223,99 @@ only affects late joiners/spectators, not the players present from
 the start. If the owner ever wants it fixed it needs a new
 piggybacked absolute value (e.g., ride CLIENT_PLAYER_DATA) — ask
 first, don't invent packets (rule 7).
+
+## v98 — Kris LV 20 "final duel": 8 owner requests — lessons
+
+- **The HUD micro-font (scr_text_spr / spr_letter1) is LOWERCASE-ONLY.**
+  Base index is `ord(c) - 97`; every unsupported char falls to
+  `default: ind = 44`, which renders as a "?" glyph. That was the whole
+  mystery of the owner's "the exe bar shows ?????": the v95 label was
+  `"EL ASESINO  N golpes"` — every UPPERCASE letter rendered as "?".
+  Fix: build HUD labels from `string_lower(name)` (á é í ó ú ñ ü survive
+  because string_lower maps Á→á and frames 78-84 exist). Never put
+  uppercase in anything drawn with scr_text_spr. Digits and a-z are
+  safe; everything else falls to glyph 44.
+- **The exe's own client has no puppet of itself** — for "show the exe's
+  nickname to everyone" use the puppet lookup (`master_id ==
+  obj_netclient.exeId`) on other clients but `global.nickname` on the
+  exe's own screen. Same class of asymmetry as Kris's own krisLv vs the
+  krisLvNet mirror on his puppet.
+- **A "visible to everyone" boss bar only needs the DRAW gate changed.**
+  v95 already mirrored global.exeHpPool on every client (the raw
+  CLIENT_SOUND_EMIT signal is a broadcast); the bar was simply gated to
+  the Kris client. The everyone-gate is: local Kris → own krisLv; other
+  clients → the Kris puppet's krisLvNet (exact since v97's 1-signal-
+  per-level flush). Hide it when that Kris is dead (puppet.isDead is a
+  local approximation; the real isDead never travels by net).
+- **The server can mirror client-side progress with ZERO new packets.**
+  Kris's LOVE levels already travel as silent snd_none broadcasts (nid
+  == sender, sound index 0) with exactly one signal per level since
+  v97 — so the server just counts them in CLIENT_SOUND_EMIT
+  (gate: sender is CH_KRIS, sender is not the round's exe — Exeller's
+  clone also emits snd_none but that player IS the exe; directed
+  signals like Super Amy's hammer throw have nid != sender and never
+  count). Server LV = count + 1; 19 signals = LV 20. Cap the counter
+  at 19 so a hacked spam client can't keep inflating it.
+- **New server→client "state" packets need the join-resend.** LMS did it
+  (SERVER_GAME_LMS re-sent in game_state_join because it was a one-shot
+  broadcast); SERVER_GAME_RING_OFF needed the same or reconnecting
+  clients would keep a ghost escape ring during the final duel.
+- **Owner-phrase interpretation (documented, tunable):** "el
+  enfriamiento general del golpe de espada se reducira 2 seg en lms
+  4 seg" was ambiguous; implemented as two stackable cuts (-2 s while
+  LMS is active, -4 s more at LV 20 → 10.75/8.75/4.75 s) with every
+  number in its own macro + a floor macro, and the interpretation
+  flagged in the LEEME. One-line retune if the owner meant "to 4 s".
+- **Reuse the ring-escape bookkeeping for "counts as escaped".** Do NOT
+  invent a new result path: the server marks each living,
+  non-corrupted survivor PLAYER_ESCAPED and re-sends the SAME two
+  packets the bigring flow sends (SERVER_PLAYER_ESCAPED +
+  SERVER_GAME_PLAYER_ESCAPED), then calls game_end(ED_SURVWIN). The
+  results screen then shows them exactly like ring-escapers. Negas
+  (PLAYER_NEGATIZED) fight for the exe and are excluded; also exclude
+  DEAD/DEMONIZED/CAUGHT/already-ESCAPED.
+- **CLIENT_EXE_DEFEATED anti-cheat: the sender must be the round's
+  exe** (AssertOrDisconnect), and a duplicated report is absorbed by
+  the existing `game.end > 0` gate. A survivor forging it gets
+  disconnected; a hacked exe can only forfeit its own round.
+- **gcc -fsyntax-only + a ~40-line enet stub verifies the whole
+  server.** No enet/SDL in the sandbox: write the stub to a temp dir
+  (NOT the repo), include it with -I, and syntax-check states/*.c and
+  the entities. The root-level Lobby.c/Server.c/Game.c and
+  entities/AmeliaBomb.c already fail to compile on HEAD (stale
+  diverged copies outside the build + a missing enum entry) — compare
+  against HEAD before blaming your own diff.
+- **CHECKER BUG CLASS (recurring): a check that passes when its
+  verification step silently no-ops.** Pass-2's roundtrip originally
+  applied the git patch in REVERSE on the HEAD copy (wrong direction)
+  and, when `git apply` failed, fell through to comparing the
+  untouched copy with itself → always OK. Correct roundtrip: write
+  HEAD to a temp file, apply the patch FORWARD (a/<file> → a/copy),
+  then byte-compare against the working tree; make any apply failure
+  an explicit FAIL. Rule of thumb from v94 stands: every checker bug
+  you find, fix it IN the checker and re-run — the game code was never
+  wrong here, the check was.
+- **Parsing the two packet enums:** GameMaker's enum can end WITHOUT a
+  trailing comma on the last entry, and the C side has `typedef enum {`
+  noise — parse entries by identifier pattern, not by "line ends with
+  comma". Then assert BOTH name parity and numeric index parity (the
+  new packets must land at 191/192, right after SERVER_CLAIM_STATE at
+  190, in both files).
+- **The .yyp is JSON5-ish** (trailing commas everywhere): strip
+  `,(\s*[}\]])` before json.loads or the integrity check crashes on
+  line 5. Resource entries are `{"id": {"name", "path"}}` — compare
+  sets of `id.path` against HEAD.
+- **Cooldown-reduction HUD**: when the max recharge can shrink
+  mid-round (sword: -2 s at LMS start, -4 s at LV 20), the icon's fill
+  must divide by the CURRENT max (scr_kris_sword_recharge()), and the
+  min() clamp keeps it honestly red while an old, longer timer drains
+  past the new max. An in-progress cooldown is never cut short — the
+  cut applies to the next swing.
+- **Deployment note for the owner:** v98 adds 2 packets at the tail of
+  BOTH enums — client and server must be rebuilt together. An old
+  server with a new client: the pool-empty report is ignored (no round
+  end at 0), no auto-LMS at LV 20 and no ring-off; an old client with
+  a new server just misses the new visuals. KNOWN LIMIT carried over
+  from v97: a client joining mid-round starts its krisLvNet mirror at
+  LV 1 (no absolute resync), so late joiners won't see the boss bar;
+  players present from the start see everything exactly.

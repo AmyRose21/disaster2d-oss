@@ -7771,3 +7771,178 @@ la tabla antes/despues y la nueva regla: LA PERILLA YA ES LIBRE (el
 aviso «no pasar de 3» del v96 quedo OBSOLETO). KNOWN LIMIT anotado (el
 que entra a mitad de ronda arranca su espejo en LV 1 — pre-existente,
 no toca a los presentes desde el inicio).
+
+=====================================================================
+v98 (2026-11-27) — KRIS LV 20: EL DUELO FINAL (8 pedidos de la duena)
+=====================================================================
+Pedidos (textual): «1 arreglar xq la barra de vida aparece en ????? la
+de el exe en vez de salir el nombre del mismo 2 la barra de vida de
+este deberia salir para todo el mundo una vez salga a lv 20 para kris.
+3 el parry tambien contara como daño 4 el enfriamiento general del
+golpe de espada se reducira 2 seg en lms 4 seg 5 el LMS si esta activa
+ya no se activara el anti Camp para los supervivientes 6 si la barra
+del vida del exe llega a 0 la partida finaliza dando la victoria a los
+supervivientes restantes vivos y no corrompidos por jina (osea los nega
+pues) y contara como si hubieran escapado por el ring 7 si Kris llega
+al nv 20 antes del LMS su LMS se activa automaticamente ignorando que
+solo quede 1 8 si llega al nv 20 durante el LMS (solo si quedo EL solo
+vivo y el LMS se activo por eso) el ring verde no aparecera o se
+desactiva: pelea a muerte 1 vs 1 hasta que kris o el exe caigan».
+
+P1 — EL "?????" DE LA BARRA (causa RAIZ, no era texto raro):
+* La micro-fuente del HUD (scr_text_spr / spr_letter1) es MINUSCULA:
+  base ord('a'); las MAYUSCULAS caen al default -> glifo 44 (un "?").
+  El rotulo v95 era «EL ASESINO  N golpes» -> en pantalla se leia
+  «?? ???????  N golpes»: TODO lo mayuscula salia ?????.
+* FIX: el rotulo lleva ahora el NOMBRE del asesino — string_lower(nick)
+  — con la cuenta de golpes: «krislv 7  5 golpes» se ve perfecto
+  (minusculas y digitos tienen glifo; los acentos á é í ó ú ñ ü de
+  string_lower tambien: frames 78-84). En la pantalla del propio exe
+  el nombre es global.nickname (no tiene puppet propio); en las demas,
+  el nickname del puppet del exe (master_id == exeId). Fallback
+  «el asesino» si el puppet no existe.
+
+P2 — LA BARRA LA VE TODO EL MUNDESDE el LV 20 espejado:
+* Gate v95: SOLO el propio Kris (su krisLv local). Gate v98: TODOS
+  dibujan en cuanto SU Kris espejado llega a LV 20 — el propio Kris
+  usa su krisLv (unico sin puppet propio); el resto usa el krisLvNet
+  del puppet de Kris (la senal v46/v97: con el flush 1-senal-por-nivel
+  todos llegan a 20 en la MISMA subida). Si el Kris de la ronda cae
+  (isDead local o del puppet), la barra se retira.
+* El espejo del pool ya vivia en TODOS los clientes desde v95 (la
+  senal cruda del exe es broadcast): solo faltaba dibujarlo.
+
+P3 — EL PARRY TAMBIEN CUENTA COMO DANO:
+* Helper NUEVO compartido scr_kris_exe_pool_hit(_stun) en
+  scr_kris_special.gml: -35 al pool + scr_kris_exe_hp_signal (espejo
+  de todas las pantallas) + chime local; a 0: CLIENT_EXE_DEFEATED y
+  devuelve el KNOCKDOWN completo (10 s). SIN refill (ver P6).
+* Lo llaman la ESPADA (obj_player_puppet/Step_0, sustituye el bloque
+  inline v95) y el PARRY (scr_parry_apply_stun, dentro del bloque de
+  escalado del Kris: mismo gate — solo el EXE REAL, esbirro/nega
+  parreado no tiene pool — y mismo krisLvNet espejado >= 20). Un
+  parry a LV 20 vale EXACTamente lo mismo que un cuchillazo.
+
+P4 — ENFRIAMIENTO DE LA ESPADA (interpretacion documentada):
+* «se reducira 2 seg en lms 4 seg» leido como DOS recortes ACUMULABLES:
+  -2 s con el Show Fuerte (LMS) activo y -4 s ADICIONALES a LV 20.
+  Tabla: normal 10,75 s (645 f, el de siempre) / LMS 8,75 s (525 f) /
+  LV 20+LMS 4,75 s (285 f, -2-4). Macros KRIS_SWORD_CUT_LMS /
+  _LV20 / RECHARGE_MIN (suelo 2 s) + scr_kris_sword_recharge() — el
+  input del golpe y el icono del HUD usan el MISMO maximo vigente
+  (un cooldown en marcha NO se recorta: entra con el siguiente golpe).
+  AVISO en el LEEME: si la duena queria 4 s PLANOS a LV 20 o recortes
+  NO acumulables, es cambiar UNA macro.
+
+P5 — ANTI-CAMP FUERA DURANTE EL LMS:
+* scr_move_basic: el bloque del aviso (obj_player_warning) gatea
+  !global.lmsActive — durante el show ya no cuenta el tiempo parado
+  ni spawnea la cosa que ralentiza («no tiene logica si solo queda 1»).
+* obj_player_warning/Draw_75: un aviso YA en pantalla cuando arranca
+  el show se apaga solo (moved=true, el mismo fade-out de «muerto»).
+
+P6 — POOL A 0 = FIN DE PARTIDA (victoria escapada):
+* Nuevo paquete CLIENT_EXE_DEFEATED (cliente del exe -> server, sin
+  payload). Lo manda scr_kris_exe_pool_hit al tocar 0 (la autoridad
+  del pool es SU cliente, patron victima-autoridad).
+* SERVER (states/Game.c, case nuevo junto a CLIENT_PLAYER_ESCAPED):
+  valida con AssertOrDisconnect que el emisor sea EL exe de la ronda
+  (un superviviente NO puede falsificar la victoria; un exe hackeado
+  solo puede rendirse a si mismo); gate end > 0 contra duplicados.
+  GANADORES = vivos y NO corrompidos: excluye PLAYER_DEAD /
+  PLAYER_DEMONIZED (esbirros) / PLAYER_NEGATIZED (NEGA de Jinna —
+  pelean para el exe: NO ganan) / PLAYER_CAUGHT (portal) /
+  PLAYER_ESCAPED (ya escaparon antes). A cada ganador: SET
+  PLAYER_ESCAPED + los DOS paquetes del escape (SERVER_PLAYER_
+  ESCAPED + SERVER_GAME_PLAYER_ESCAPED) — «el juego los contara como
+  si hubieran pasado por el ring»: resultados como escapados.
+  Luego game_end(ED_SURVWIN).
+* El REFILL derivado se RETIRO en los 3 sitios (helper, espada vieja,
+  espejo del receptor): la pelea ya NO se repite. obj_level/Create
+  sigue reseteando el pool a 350 por ronda (unica asignacion viva).
+
+P7 — LV 20 ANTES DEL LMS: SHOW AUTOMATICO:
+* El server ahora ESPEJA el LOVE de Kris: cuenta las senales
+  silenciosas snd_none BROADCAST (nid == emisor, indice 0) del
+  jugador CH_KRIS en CLIENT_SOUND_EMIT — con el flush v97 son
+  EXACTAS: LV del server = kris_lv + 1, 19 senales = LV 20
+  (KRIS_LV20_SIGNALS, Server.h). NO cuentan: el exe (clon de
+  Exeller), otros personajes, senales DIRIGIDAS (nid != emisor: el
+  martillo de Super Amy) ni la senal cruda del exe-hp (indice 126).
+* En el tick del LMS: si kris_lv >= 19 y Kris sigue vivo en juego, se
+  TOMA a Kris como «el ultimo» y su show arranca IGNORANDO el
+  requisito de que quede 1 (mus_lms_25 de su lista, bolsa anti-eco,
+  reloj a 232 s si queda menos, broadcast SERVER_GAME_LMS como
+  siempre). lms_natural = false en ESTA via.
+
+P8 — LV 20 DURANTE SU SHOW NATURAL: ANILLO RETIRADO:
+* Flag lms_natural (true solo cuando el show arranco por la regla del
+  ultimo superviviente). Si Kris llega a LV 20 (kris_lv 19) CON su
+  show natural activo (lms && lms_natural && lms_char == CH_KRIS):
+  ring_off = true (latch) + broadcast SERVER_GAME_RING_OFF (paquete
+  nuevo, sin payload) — los clientes destruyen su obj_bigring, quitan
+  el banner «Escape!!!» (obj_level state 0) y esconden el npring de
+  Not Perfect. game_bigring se vuelve NO-OP (ni spawn ni ready en el
+  ultimo minuto; BS_NONE de ronda nueva pasa siempre) — el anillo ya
+  no aparece. Reenvio del RING_OFF en game_state_join (patron del
+  SERVER_GAME_LMS: broadcast unico + reenvio al reconectar).
+* El show AUTOMATICO del P7 (con mas gente viva) NO retira el anillo:
+  los demas siguen escapando — el pedido dice «unicamente si solo
+  queda el con vida y el LMS se activo por esa condicion».
+* La ronda sigue abierta: cierra con Kris o el exe en el suelo (o el
+  reloj, como siempre).
+
+ANTI-CHEAT (regla 7): superficie NUEVA acotada y validada:
+* CLIENT_EXE_DEFEATED exige emisor == exe de la ronda (disconnect si
+  no) y end>0 absorbe duplicados. Ningun superviviente puede forzar
+  la victoria.
+* El conteo snd_none del server usa el MISMO canal de confianza que
+  los espejos krisLvNet desde v46: un Kris hackeado que lo spamea ya
+  podia subir los espejos (cap 20); ahora ademas dispara SU propio
+  show antes de tiempo o (solo en SU show natural) se queda sin
+  anillo — perjuicio propio, cero impacto cruzado. La autoridad del
+  pool (derribo) sigue siendo el cliente del EXE, intocable.
+* Cero cambios en la validacion de CLIENT_PLAYER_ESCAPED: el marcado
+  de ganadores lo hace el SERVER (no reusa el paquete del cliente).
+
+VERIFICACION — 2 PASADAS, TODO LIMPIO (93 OK + 40 OK, 0 FAIL):
+* check_v98.py (pasada 1): solo los 11 archivos previstos, cero
+  .yy/.yyp; edites exactos y unicos por pedido; paridad de enums de
+  NOMBRES (190 == 190) con los 2 paquetes nuevos AL FINAL de ambos
+  (patron casa v96); balance llaves/parens delta 0 en los 8 .gml;
+  sin tabs anadidos (Draw_75 usa tabs como siempre: solo sentencias);
+  SINTAXIS C REAL: gcc -fsyntax-only con stub de enet — states/
+  Game.c + todos los states + entidades + nucleo compilan LIMPIO
+  (los unicos fails del arbol — Lobby.c/Server.c/Game.c RAIZ y
+  AmeliaBomb.c — fallan IGUAL en HEAD: copias divergidas fuera del
+  build); simulaciones: tabla P4 exacta 645/525/285 con suelo 120;
+  LOVE normal/LMS -> 19 senales == LV 20 con espejo del server
+  acompanando en cada paso; matriz P7/P8 (natural->anillo OFF,
+  automatico->anillo intacto, show de otro personaje->sin apagon,
+  latch de un solo broadcast); matriz P6 (nega vivo NO gana,
+  muerto/esbirro/portal/ya-escapado no, duplicado ignorado,
+  falsificador desconectado); matriz del conteo snd_none (clon de
+  Exeller y senales dirigidas NO cuentan, tope 19); .yyp JSON5
+  tolerante sin recursos nuevos.
+* check_v98_pass2.py (pasada 2): ROUNDTRIP BYTE A BYTE — HEAD + el
+  parche de git aplicado HACIA ADELANTE == archivo de trabajo para
+  los 11 (la primera version del checker aplicaba en direccion
+  equivocada y daba OK vacio si el apply fallaba — BUG DE CHECKER
+  corregido y re-verificado); INDICES NUMERICOS de los 2 paquetes
+  IDENTICOS en ambos enums (CLIENT_EXE_DEFEATED 191, SERVER_GAME_
+  RING_OFF 192, detras de SERVER_CLAIM_STATE 190); net_snds
+  verificado (snd_none == 0, snd_kris_lvup == 126 ultimo: el conteo
+  del server y la senal cruda dependen de eso); escenario completo
+  end-to-end con constantes PARSEADAS (LOVE->senales->show->anillo->
+  duelo espada+parry mezclados 10 golpes exactos de 350/35 sin
+  refill->knockdown 10 s->ganadores escapados->ED_SURVWIN);
+  referencias de cada simbolo NUEVO contadas sitio por sitio (5
+  sitios CLIENT_EXE_DEFEATED, 4 RING_OFF, kris_lv struct+conteo+3
+  lecturas, helpers 2 llamadores exactos, refill EXTINGUIDO del flujo
+  del duelo); .yyp 2543 recursos == HEAD, cero .yy tocados.
+
+ENTREGA: zip SOLO con lo tocado por v98 (11 archivos de juego + 2
+checks + LEEME_V98_DUELO_FINAL.txt + LEARNING.md + CACHE.md +
+worklog.md). REQUIERE recompilar cliente Y server JUNTOS (2 paquetes
+nuevos en los DOS enums; un server viejo no cierra la partida al
+llegar el pool a 0 y no dispara el show del LV 20 ni el apagon).

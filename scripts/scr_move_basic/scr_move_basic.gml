@@ -358,7 +358,16 @@ function scr_move_basic()
         
         if(global.character > CHARACTER_EXE)
         {
-                if(obj_netclient.lvlId != 8 && !isDead && revivalTimes < 2 && global.timeMinutes >= 1)
+                // v98 (item 5, pedido de la duena: «el LMS si esta activa ya
+                // no se activara el anti Camp para los supervivientes (la que
+                // aparece esa cosa hay que los ralentiza ya que no tiene
+                // logica si solo queda 1)»): con el Show Fuerte (LMS) activo
+                // el anti-camp NO corre — ni cuenta el tiempo parado (con
+                // uno solo el "camping" es simplemente jugar la final: la
+                // cosa que lo ralentiza no tiene sentido ahi). El aviso que
+                // ya este en pantalla se apaga solo (obj_player_warning/
+                // Draw_75 mira global.lmsActive).
+                if(obj_netclient.lvlId != 8 && !isDead && revivalTimes < 2 && global.timeMinutes >= 1 && !global.lmsActive)
                 {
                         if(++chunkTimer % 60 == 0)
                         {
