@@ -378,8 +378,12 @@ enum PacketType
            adivina con instance_find). SERVER_BOX_STATE (state u8):
            3=spawn (nid,type,pid_dummy,sx,sy) / 2=rota+reward a pid /
            4=despawn al expirar / 1=ready. CLIENT_BOX_ACTIVATE (nid,
-           proj): romper la caja nid — recompensa difundida por el
-           server al pid validado, nunca pedida por el cliente.
+           proj, owner u16): romper la caja nid — recompensa difundida
+           por el server al pid validado, nunca pedida por el cliente.
+           v98d: owner = nid del DUENO del laser cuando proj=true (0 si
+           melee): el server le COBRA el reward a el (antes proj=true
+           => pid 0 = nadie). Botas rotas por proyectil y dueno=Exe:
+           nadie (regla de la duena + v74).
            CLIENT_BOX_RELOCATE (nid): v63 — esta caja cayo sobre un
            trampolin o al abismo; el server la re-spawnea en otro punto.
            Mismo orden que include/Packet.h; anadido AL FINAL en los

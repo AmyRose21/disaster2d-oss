@@ -1,4 +1,13 @@
 isOwner = false;
+// v98d: nid del jugador que LANZO este laser. Viaja en el paquete de
+// spawn del server desde siempre (net_state_game solo lo usaba para
+// calcular isOwner y lo tiraba). Lo necesita: (1) el zap del escudo
+// electrico (scr_player_hurt recibe attackerNid: stun EXACTO al dueno
+// del laser que rompio el escudo, sin tope de distancia ni estado
+// "atacando"); (2) el credito de las cajas item rotas por proyectil
+// (obj_itembox manda este nid al server: el DUENO cobra el reward).
+// -1 = no conocido (no deberia pasar: el spawn siempre lo trae).
+ownerNid = -1;
 isBreaking = false;
 isExe = false;
 dmg = 0;

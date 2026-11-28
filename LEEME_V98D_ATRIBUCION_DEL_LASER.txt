@@ -1,0 +1,74 @@
+════════════════════════════════════════════════════════════════════
+ v98d — STUN AL QUE LANZÓ EL LÁSER + LAS CAJAS CUENTAN PARA EL
+ LANZADOR
+════════════════════════════════════════════════════════════════════
+
+TUS DOS PEDIDOS
+───────────────
+1. EL STUN. Cuando el escudo eléctrico se rompe, el juego busca al
+   atacante para stunearlo… pero solo contaba un jugador "atacando"
+   CERCA del portador. Si quien rompió el escudo fue un PROYECTIL
+   lanzado desde lejos por alguien caminando tranquilamente, el zap
+   no encontraba a nadie: tu "el escudo no stunea a nadie".
+
+2. LAS CAJAS. Si tu misil de Tails rompía una caja de ítem, el reward
+   no era para vos ni para nadie: "no cuenta para el que lo destruyó,
+   simplemente no se lo da a nadie".
+
+TU PREGUNTA: ¿los proyectiles no reconocen quién los lanzó?
+───────────────────────────────────────────────────────────────────
+Tenías razón — y era a medias peor: el nid del lanzador VIAJABA en el
+paquete de spawn del láser DESDE SIEMPRE. El juego solo lo usaba para
+saber si el láser era tuyo (isOwner) y después LO TIRABA. Ahora el
+láser lo guarda (ownerNid) y se usa para las dos cosas.
+
+QUÉ CAMBIA AHORA
+────────────────
+1. ZAP EXACTO. Si un proyectil rompe tu escudo eléctrico, el stun va
+   AL DUEÑO DEL LÁSER: exacto, sin importar la distancia ni qué esté
+   haciendo cuando el láser impacte. La vieja detección (contacto /
+   el que esté atacando más cerca) queda como plan B para golpes
+   cuerpo a cuerpo y peligros del mapa.
+
+2. LAS CAJAS COBRAN AL LANZADOR. Tu misil rompe una caja de ítem → el
+   reward es para VOS (te llega donde estés, en tu cliente). Si la
+   rompís cuerpo a cuerpo, todo exactamente igual que siempre.
+
+   OJO — LAS EXCEPCIONES QUE PEDISTE:
+   - CAJA DE BOTAS (la de speed): si la rompe un proyectil NO la
+     cobra nadie — solo la cobra quien la rompe a propósito ("tener
+     la speed activa sin querer sería una pendejada").
+   - MONITORES KAF (las botas de Kaf): INTACTOS, ni tocados.
+   - Si el dueño del láser fuera el Exe: nadie (el Exe jamás cobra,
+     regla vieja de la v74).
+
+   DE MÁS: con 2+ Tails en la partida hay hasta 3 láseres vivos — la
+   caja manda el nid del láser QUE LA TOCA (no el primero que
+   aparezca), así el reward va al lanzador correcto.
+
+CÓMO INSTALAR (IMPORTANTE)
+─────────────────────────
+Descomprimí el zip sobre el proyecto como siempre y corré
+check_v98d.py. ESTA VEZ cambió el formato de un paquete: hay que
+actualizar el CLIENTE y el SERVER JUNTOS (los dos van en el zip). Si
+mezclás cliente nuevo con server viejo, las cajas se van a comportar
+raro.
+
+VERIFICADO
+──────────
+check_v98d.py 44 OK / 0 FAIL (dueño del láser, zap exacto con la
+heurística de respaldo, formato del paquete en los dos lados, reglas
+de excepción del server, monitores Kaf intactos, gcc de los 4 .c,
+llaves de los 7 GML, v98b/v98c intactos) + check_v98b 56 OK +
+check_v98c 18 OK, los tres probados sobre un clon limpio + zip.
+
+ARCHIVOS DEL ZIP (20 = todo lo pendiente, también el v98c)
+──────────────────────────────────────────────────────────
+JUEGO v98d (11): ItemBox.c, ItemBoxMap.c, Packet.h, ItemBox.h (server)
+                 obj_itembox/Step_2, obj_tails_projectile (Create +
+                 Step), scr_player_hurt, scr_collision_objects,
+                 net_state_game, net_packets (cliente)
+FIX v98c (1):    obj_player_puppet/Create (el crash del escudo)
+CHECKS (3):      check_v98b, check_v98c (parcheados), check_v98d
+LEEMEs (2):      este + el del v98c
+DOCS (3):        worklog, CACHE, LEARNING

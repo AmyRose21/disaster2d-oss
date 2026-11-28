@@ -374,9 +374,13 @@ typedef enum
            adivina con instance_find). SERVER_BOX_STATE (state u8):
            3=spawn (nid,type,pid_dummy,sx,sy) / 2=rota+reward a pid /
            4=despawn al expirar (nid,type,pid_dummy,sx,sy) / 1=ready.
-           CLIENT_BOX_ACTIVATE (nid, proj): romper la caja nid —
-           recompensa difundida por el server al pid validado, nunca
-           pedida por el cliente. CLIENT_BOX_RELOCATE (nid): v63 — el
+           CLIENT_BOX_ACTIVATE (nid, proj, owner u16): romper la caja
+           nid — recompensa difundida por el server al pid validado,
+           nunca pedida por el cliente. v98d: owner = nid del DUENO
+           del laser cuando proj=true (0 si melee) — el server le cobra
+           el reward a EL (antes proj=true => pid 0 = nadie). Botas
+           rotas por proyectil y dueno=Exe: nadie (regla de la duena +
+           v74). CLIENT_BOX_RELOCATE (nid): v63 — el
            cliente que la ve reporto que cayo sobre un trampolin o al
            abismo (el server no tiene colision de mapa); el server marca
            la entidad y la re-spawnea en otro punto libre. Mismo orden

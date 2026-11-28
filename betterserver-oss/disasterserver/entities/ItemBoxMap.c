@@ -375,6 +375,11 @@ bool itemboxmap_tcpmsg(PeerData* v, Packet* packet)
                         AssertOrDisconnect(v->server, v->in_game);
                         PacketRead(nid, packet, packet_read8, uint8_t);
                         PacketRead(proj, packet, packet_read8, uint8_t);
+                        /* v98d (duena): nid del DUENO del laser que la rompio (u16
+                           SIEMPRE presente: melee escribe 0). El laser de Tails
+                           lleva el nid de su tirador desde el spawn — el cliente ya
+                           no lo tira. */
+                        PacketRead(powner, packet, packet_read16, uint16_t);
 
                         ItemBox* box[ITEMBOX_FIND_MAX];
                         int found = game_find(v->server, (Entity**)box, "itembox", ITEMBOX_FIND_MAX);
@@ -410,7 +415,28 @@ bool itemboxmap_tcpmsg(PeerData* v, Packet* packet)
                                    30 s por caja. */
                                 bool was_alive = !target->activated;
                                 uint16_t reward = (v->server->game.exe == v->id) ? 0 : v->id;
-                                RAssert(itembox_activate(v->server, target, reward, proj));
+                                /* v98d (duena): "si un proyectil lo destruye no
+                                   cuenta para el que lo destruyo... no se lo da a
+                                   nadie" — ahora SI cobra: el DUENO del laser
+                                   (viaja en el paquete), no el cliente que
+                                   reporta (el Step de la caja corre en TODOS los
+                                   clientes: el primero en llegar aqui es puro
+                                   azar). EXCEPCIONES (regla de la duena): BOTAS
+                                   (ITEMTYPE_BOOTS) -> NADIE — "tener la speed
+                                   activa sin querer seria una pendejada" (solo la
+                                   cobra quien la rompe a proposito); dueno 0 o
+                                   dueno=Exe -> nadie (misma superficie v74: el
+                                   Exe jamas cobra, aunque un cliente trucado
+                                   invente el campo). */
+                                if (proj)
+                                {
+                                        reward = 0;
+                                        if (powner != 0
+                                            && powner != v->server->game.exe
+                                            && target->type != ITEMTYPE_BOOTS)
+                                                reward = powner;
+                                }
+                                RAssert(itembox_activate(v->server, target, reward));
                                 if (was_alive)
                                         itembox_respawn_push(ITEMBOX_RESPAWN_COOLDOWN * TICKSPERSEC);
                         }

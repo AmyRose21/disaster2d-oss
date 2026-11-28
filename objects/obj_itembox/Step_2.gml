@@ -104,9 +104,14 @@ if(!reported)
                 report_relocate();
 }
 
-// Rotura por proyectil de Tails (copia del Step_2 del Kaf: el cliente del
-// dueno del proyectil reporta, el server difunde; proj=true => pid 0, no
-// cobra nadie). v63: solo rompible apoyada (en plena caida no).
+// Rotura por proyectil de Tails (copia del Step_2 del Kaf: TODOS los
+// clientes reportan — el server difunde y deduplica). v63: solo rompible
+// apoyada (en plena caida no). v98d (duena): "si un proyectil lo
+// destruye no cuenta para el que lo destruyo" — el paquete AHORA viaja
+// con el nid del DUENO del laser (tercer campo, u16; melee manda 0) y el
+// server le cobra el reward a EL (antes: proj=true => pid 0, no cobraba
+// nadie). OJO: con 2+ Tails hay hasta 3 lasers vivos — se manda el nid
+// del laser que TOCA la caja (instance_place), no el primero que haya.
 if(!instance_exists(obj_tails_projectile))
         return;
 
@@ -114,8 +119,12 @@ if(grounded && place_meeting(x, y, obj_tails_projectile))
 {
         isBroken = true;
 
+        // la instancia EXACTA del laser que toca ESTA caja
+        var _plaser = instance_place(x, y, obj_tails_projectile);
+
         var pack = cpacket_tcp(PacketType.CLIENT_BOX_ACTIVATE);
         buffer_write(pack, buffer_u8, nid);
         buffer_write(pack, buffer_bool, true);
+        buffer_write(pack, buffer_u16, _plaser == noone ? 0 : _plaser.ownerNid); // v98d: el dueno cobra
         send_server_tcp(pack);
 }

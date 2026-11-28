@@ -332,7 +332,14 @@ function scr_player_instakill()
 // EXE/esbirros, escudo electrico de Eggman, laser de Tails esbirro,
 // bolas de Exetior, cadenas, etc). Los peligros ambientales (pinchos,
 // lava, hoyos, agua) NO lo ponen: el parry no salva del escenario.
-function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1, ignore=false, exeSource=false)
+// v98d: param opcional attackerNid — nid del CAUSANTE exacto del golpe
+// (hoy: el dueno del laser de Tails, que viaja en su paquete de spawn).
+// Lo usa el zap del escudo electrico para stunnear a quien REALMENTE
+// rompio el escudo (antes solo contaba un puppet "atacando" cerca del
+// portador: un tirador caminando a 2000 px era invisible para el zap y
+// "el escudo no stuneaba a nadie"). -1 (default) = causa desconocida:
+// vale la deteccion por contacto/cercania de siempre (melee, hazards).
+function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1, ignore=false, exeSource=false, attackerNid=-1)
 {       
         if(!instance_exists(global.player))
                 return;
@@ -741,7 +748,16 @@ function scr_player_hurt(damage, xpw=4, ypw=-6, sndid=snd_hurt, blood=spr_blood1
                                 // el ataque siga activo a la llegada (con lag el
                                 // golpe ya termino alla y el stun se perdia).
                                 var _zapNid = -1;
-                                if(instance_exists(obj_player_puppet))
+                                // v98d (duena): "buscar al que causo el ataque y aplicarle
+                                // el stun TAMBIEN". Si el golpe lo causo un PROYECTIL, su
+                                // dueno es un dato EXACTO (el laser viaja con el nid de su
+                                // tirador desde el spawn): stun directo al DUENO, sin tope
+                                // de distancia y sin exigirle "ataque activo". La deteccion
+                                // por contacto/cercania de abajo queda como FALLBACK para
+                                // las causas sin nid (attackerNid = -1: melee, hazards).
+                                if(attackerNid >= 0)
+                                        _zapNid = attackerNid;
+                                else if(instance_exists(obj_player_puppet))
                                 {
                                         var _zapper = noone;
                                         var _zd = 0;

@@ -89,7 +89,7 @@ bool itembox_uninit(Server* server, Entity* entity)
 	return true;
 }
 
-bool itembox_activate(Server* server, ItemBox* box, uint16_t pid, uint8_t is_proj)
+bool itembox_activate(Server* server, ItemBox* box, uint16_t pid)
 {
 	if (box->activated)
 		return true; /* idempotente: re-romper una rota = no-op (anti-cheat igual que Kaf) */
@@ -97,8 +97,10 @@ bool itembox_activate(Server* server, ItemBox* box, uint16_t pid, uint8_t is_pro
 	box->activated = true;
 	box->timer = (double)(25 + rand() % 5) * TICKSPERSEC;
 
-	/* state 2: rota + reward. is_proj: la revento un proyectil de Tails
-	   (nadie cobra — mismo convenio Kaf pid=0). */
-	itembox_broadcast(server, 2, box, is_proj ? 0 : pid);
+	/* state 2: rota + reward. El pid llega RESUELTO (v98d): melee = el
+	   que la rompio; proyectil = el DUENO del laser; pid 0 = nadie (Exe
+	   v74, botas por proyectil). Antes is_proj forzaba pid 0 y un
+	   proyectil no cobraba nadie. */
+	itembox_broadcast(server, 2, box, pid);
 	return true;
 }

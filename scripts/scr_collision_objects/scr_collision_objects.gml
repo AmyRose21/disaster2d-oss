@@ -427,6 +427,7 @@ function scr_collision_objects_after()
                         var pack = cpacket_tcp(PacketType.CLIENT_BOX_ACTIVATE);
                         buffer_write(pack, buffer_u8, _boxInst.nid);
                         buffer_write(pack, buffer_bool, false);
+                        buffer_write(pack, buffer_u16, 0); // v98d: campo dueno del proyectil (melee no lleva)
                         send_server_tcp(pack);
                 }
         }

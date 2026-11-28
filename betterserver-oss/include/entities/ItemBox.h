@@ -52,6 +52,11 @@ typedef struct
 } ItemBox;
 #define MakeItemBox(nid, type) ((ItemBox) { MakeEntity("itembox", 0, 0) itembox_init, itembox_tick, itembox_uninit, nid, type, -1, 0, 0, })
 
-bool itembox_activate(Server* server, ItemBox* box, uint16_t pid, uint8_t is_proj);
+/* v98d: el pid llega YA RESUELTO por el caller (ItemBoxMap.c): melee =
+   el que la rompio, proyectil = el DUENO del laser (antes is_proj
+   forzaba pid 0 y no cobraba nadie). pid 0 = nadie (Exe v74, botas
+   rotas por proyectil v98d — "tener la speed activa sin querer seria
+   una pendejada"). */
+bool itembox_activate(Server* server, ItemBox* box, uint16_t pid);
 
 #endif

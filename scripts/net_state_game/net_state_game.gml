@@ -3308,6 +3308,11 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 inst.dmg = _dmg;
                                 inst.isExe = _exe;
                                 inst.isOwner = _owner == obj_netclient.nid;
+                                // v98d: guardar el nid del tirador (antes solo servia para
+                                // isOwner y se tiraba): lo leen el zap del escudo electrico
+                                // (scr_player_hurt con attackerNid exacto) y el credito de
+                                // las cajas item rotas por proyectil (obj_itembox/Step_2).
+                                inst.ownerNid = _owner;
                         }
                         else if(_state == 2) //Destroy
                         {

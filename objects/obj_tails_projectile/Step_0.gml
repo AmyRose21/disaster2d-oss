@@ -38,7 +38,10 @@ if(place_meeting(x, y, global.player))
                         return;
                         
                 // exeSource=true: laser del lado EXE (el parry puede negarlo)
-                scr_player_hurt(dmg, -sign(x - global.player.x) * 4, 2, snd_hurt, spr_blood1, false, true);
+                // v98d: attackerNid=ownerNid — el zap del escudo electrico stunea
+                // al DUENO del laser que lo rompio (atribucion exacta, no la
+                // busqueda por "puppet atacando cerca").
+                scr_player_hurt(dmg, -sign(x - global.player.x) * 4, 2, snd_hurt, spr_blood1, false, true, ownerNid);
                 
                 var _dmg = dmg;
                 if(instance_exists(obj_player_puppet))
