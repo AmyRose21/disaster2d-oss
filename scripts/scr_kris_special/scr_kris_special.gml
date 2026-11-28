@@ -507,6 +507,18 @@ function scr_kris_exe_hp_signal()
 // =====================================================================
 function scr_kris_exe_pool_hit(_stunTime)
 {
+        // v100: DEDUP de la MISMA intercepcion por sus DOS caminos (el
+        // auto-stun local del atacante y la senal de la victima llegan
+        // casi juntos; con las ramas nuevas del pool-sin-stun tambien
+        // pueden solaparse dos veces por el mismo bloqueo): UNA sola
+        // resta de 35 por bloqueo/golpe. El stun del parry dura 4 s y
+        // la espada pega mas lento que esto: dos bloqueos REALES
+        // distintos nunca caen dentro de la misma ventana.
+        static _lastHit = -9999;
+        if(current_time - _lastHit < 250)
+                return _stunTime;
+        _lastHit = current_time;
+
         global.exeHpPool = max(global.exeHpPool - KRIS_EXE_DAMAGE, 0);
 
         // el espejo de TODAS las pantallas (la barra del asesino que
@@ -534,4 +546,39 @@ function scr_kris_exe_pool_hit(_stunTime)
         }
 
         return _stunTime;
+}
+
+// =====================================================================
+//  v100 — ¿el golpe al pool PROCEDE en ESTE cliente? Lo usan las
+//  ramas del parry que cuentan el bloqueo SIN aplicar stun (el exe ya
+//  stuneado / el ataque ya cerrado: scr_parry_try_stun_attacker y
+//  scr_parry_stun_signal — duena: «el enemigo lo recibe (el stun)
+//  pero no da Love»). El gate del v98 era SOLO el espejo krisLvNet
+//  del puppet del Kris (la senal silenciosa v46): si esa senal tardaba
+//  unos frames en llegar tras la subida a LV 20, el bloqueo entraba
+//  sin golpe al pool. Ahora el ringOff del server (SERVER_GAME_RING_
+//  OFF, TCP: el duelo final declarado) vale de RESPALDO — es la
+//  palabra del server, no un espejo que puede ir atrasado.
+// =====================================================================
+function scr_kris_exe_pool_ready()
+{
+        if(global.ringOff)
+                return true;
+
+        if(!instance_exists(obj_player_puppet))
+                return false;
+
+        var _ok = false;
+        with(obj_player_puppet)
+        {
+                if(character != CHARACTER_KRIS || isDemonized || isInactive)
+                        continue;
+
+                if((variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1) >= KRIS_LV_MAX)
+                {
+                        _ok = true;
+                        break;
+                }
+        }
+        return _ok;
 }

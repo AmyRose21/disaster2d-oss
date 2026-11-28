@@ -17,6 +17,29 @@ if(place_meeting(x, y, global.player))
         if(global.player.isDead)
                 return;
 
+        // v99: la bala DEVUELTA por el parry (deflect) — misma regla que
+        // el laser devuelto de Tails: al bando del EXE (killer/esbirros)
+        // lo ATURDE 3 s y se rompe; a los sobrevivientes los ATRAVIESA
+        // (ya es anti-exe, como la flecha dmg 0 de Fleetway).
+        if(deflected)
+        {
+                if(global.character != CHARACTER_EXE && global.player.revivalTimes < 2)
+                        return; // aliado: la atraviesa
+
+                if(global.character == CHARACTER_EXE && global.player.invisTimer > 0)
+                        return; // exe invisible no puede ser tocado (regla del laser)
+
+                if(global.player.hurttime > 0)
+                        return;
+
+                global.player.shockedTimer = 60 * 3;
+                audio_play_sound(snd_exe_stun, 0, false);
+                net_sound_emit(snd_exe_stun);
+
+                _destroy();
+                return;
+        }
+
         // dana al lado de los sobrevivientes (y a los esbirros no: la
         // bala es del killer, a los demonizados no les hace nada, igual
         // que el laser exe de Tails)
@@ -116,7 +139,9 @@ if(place_meeting(x, y, global.player))
                 }
 
                 // dano: 20 (exeSource: el parry ya fue chequeado arriba)
-                scr_player_hurt(20, -sign(x - global.player.x) * 4, 2, snd_hurt, spr_blood1, false, true);
+                // v99: attackerNid=ownerNid — el zap del escudo electrico cae
+                // sobre el dueno de la bala (la Metal Amy: el EXE mismo).
+                scr_player_hurt(20, -sign(x - global.player.x) * 4, 2, snd_hurt, spr_blood1, false, true, ownerNid);
 
                 // v4.8: MARCA DE DEBILIDAD (pasiva 2) — el golpe del laser callo
                 // (scr_player_hurt ya paso parry/i-frames/escudo, y la vida bajo o

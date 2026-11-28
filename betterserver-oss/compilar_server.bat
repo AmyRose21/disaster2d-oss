@@ -322,20 +322,15 @@ for /f "usebackq delims=" %%R in (`powershell -NoProfile -Command "try{$j=Get-Co
 goto :eof
 
 rem ---- El server esta corriendo? Windows bloquea el exe si es asi ----
+rem ---- v99 (duena): «cuando compile si detecta que esta el exe abierto
+rem ---- el better automaticamente lo cerrara» — ya NO pregunta: cierra
+rem ---- solo y sigue compilando. (Si el taskkill falla, ahi si para.)
 :ensure_exe_closed
 set "EXE_BUSY=0"
 tasklist /fi "imagename eq DisasterServer.exe" 2>nul | find /i "DisasterServer.exe" >nul
 if errorlevel 1 goto :eof
 echo.
-echo [!] El DisasterServer.exe esta corriendo y Windows bloquea el
-echo     archivo: no se puede recompilar hasta cerrarlo.
-echo     (NO hace falta borrar el exe, solo cerrarlo)
-set "OP2="
-set /p OP2=     Cerrar el server ahora? [S/N]:
-if /i not "%OP2%"=="S" (
-    set "EXE_BUSY=1"
-    goto :eof
-)
+echo [i] El DisasterServer.exe estaba abierto: cerrandolo automaticamente (v99)...
 taskkill /im "DisasterServer.exe" /f >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] No pude cerrar el proceso. Cierralo a mano y reintenta.

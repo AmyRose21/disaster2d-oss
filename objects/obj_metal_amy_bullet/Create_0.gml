@@ -8,6 +8,14 @@
 //  Mismo modelo que el laser de Tails del lado exe.
 // =====================================================================
 isBreaking = false;
+// v99: nid del JUGADOR que disparo esta bala (la killer Metal Amy: el
+// server ya tenia el owner guardado y ahora lo difunde en el spawn).
+// Lo usa el zap del escudo electrico (scr_player_hurt con attackerNid:
+// si la bala rompe un escudo electrico, el stun cae sobre su DUEÑO —
+// el EXE mismo — igual que el laser de Tails con su tirador).
+// deflected: la devolvio un parry (vuela hacia el bando del exe).
+ownerNid = -1;
+deflected = false;
 dir = 1;
 image_speed = 1;
 

@@ -1207,6 +1207,131 @@ bool game_state_handletcp(PeerData* v, Packet* packet)
                         break;
                 }
 
+                /* v99 (duena): «el parry... 1 que no devuelve algunos
+                 * proyectiles (si devuelve el tails pero no con amy
+                 * fleet ni con los misiles de metal amy etc)» — los TRES
+                 * proyectiles restantes del lado EXE se devuelven igual
+                 * que el laser de Tails: el cliente que ve el contacto
+                 * con el parry activo pide el deflect, el server valida
+                 * (jugador en juego, no el Exe) y difunde el
+                 * vuelta-caras. */
+                case CLIENT_METALAMY_BULLET_DEFLECT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+
+                        Entity* ents;
+                        if (game_find(v->server, &ents, "mabul", 1))
+                        {
+                                MetalAmyBullet* mb = (MetalAmyBullet*)ents;
+
+                                if (mb->dir > 0)
+                                        mb->dir = -1;
+                                else if (mb->dir < 0)
+                                        mb->dir = 1;
+
+                                /* state 3 = deflect: la bala vuelve hacia el bando
+                                 * del exe (el cliente la marca deflected: aturde
+                                 * al killer 3 s y atraviesa a los aliados). */
+                                Packet pack;
+                                PacketCreate(&pack, SERVER_METALAMY_BULLET_STATE);
+                                PacketWrite(&pack, packet_write8, 3);
+                                PacketWrite(&pack, packet_write8, (uint8_t)mb->dir);
+                                server_broadcast(v->server, &pack, true);
+                        }
+
+                        break;
+                }
+
+                case CLIENT_FWBOLT_DEFLECT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+
+                        PacketRead(fid, packet, packet_read16, uint16_t);
+
+                        /* mismo buscador por id del CLIENT_FWBOLT_HIT de abajo */
+                        Entity* ent = NULL;
+                        for (size_t i = 0; i < v->server->game.entities.capacity; i++)
+                        {
+                                Entity* e = (Entity*)v->server->game.entities.ptr[i];
+                                if (!e)
+                                        continue;
+
+                                if (e->id == fid && strcmp(e->tag, "fwbolt") == 0)
+                                {
+                                        ent = e;
+                                        break;
+                                }
+                        }
+
+                        if (!ent)
+                                break;
+
+                        FwBolt* bolt = (FwBolt*)ent;
+
+                        /* SOLO la flecha demonizada (damage 20): la de la
+                         * Fleetway superviviente (damage 0) ya es anti-exe.
+                         * La devuelta se CONVIERTE en la variante stun
+                         * (damage 0): puede aturdir al killer como una
+                         * flecha de una Fleetway superviviente. */
+                        if (bolt->damage > 0)
+                        {
+                                if (bolt->dir > 0)
+                                        bolt->dir = -1;
+                                else if (bolt->dir < 0)
+                                        bolt->dir = 1;
+                                bolt->damage = 0;
+
+                                /* state 4 = deflect (id + nueva dir) */
+                                Packet pack;
+                                PacketCreate(&pack, SERVER_FWBOLT_STATE);
+                                PacketWrite(&pack, packet_write8, 4);
+                                PacketWrite(&pack, packet_write16, (uint16_t)bolt->id);
+                                PacketWrite(&pack, packet_write8, (uint8_t)bolt->dir);
+                                server_broadcast(v->server, &pack, true);
+                        }
+
+                        break;
+                }
+
+                case CLIENT_BLAZE_FIREBALL_DEFLECT:
+                {
+                        AssertOrDisconnect(v->server, v->in_game);
+                        AssertOrDisconnect(v->server, v->id != v->server->game.exe);
+
+                        PacketRead(fnid, packet, packet_read16, uint16_t);
+
+                        /* mismo buscador por nid del CLIENT_BLAZE_FIREBALL_BOUNCE */
+                        for (size_t it = 0; it < v->server->game.entities.capacity; it++)
+                        {
+                                Entity* ent = (Entity*)v->server->game.entities.ptr[it];
+
+                                if (ent && strcmp(ent->tag, "bfire") == 0 && ent->id == fnid)
+                                {
+                                        BlazeFireball* fb = (BlazeFireball*)ent;
+
+                                        if (fb->dir > 0)
+                                                fb->dir = -1;
+                                        else if (fb->dir < 0)
+                                                fb->dir = 1;
+
+                                        /* state 5 = deflect (nid + nueva dir): la bola
+                                         * demonizada vuelve anti-exe (aturde al bando
+                                         * del killer como la de una Blaze viva). */
+                                        Packet pack;
+                                        PacketCreate(&pack, SERVER_BLAZE_FIREBALL_STATE);
+                                        PacketWrite(&pack, packet_write8, 5);
+                                        PacketWrite(&pack, packet_write16, (uint16_t)fb->id);
+                                        PacketWrite(&pack, packet_write8, (uint8_t)fb->dir);
+                                        server_broadcast(v->server, &pack, true);
+                                        break;
+                                }
+                        }
+
+                        break;
+                }
+
                 case CLIENT_RING_COLLECTED:
                 {
                         AssertOrDisconnect(v->server, v->in_game);

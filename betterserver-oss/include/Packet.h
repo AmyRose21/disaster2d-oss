@@ -432,7 +432,30 @@ typedef enum
            LIMITE DE TIEMPO hasta que Kris o el exe caigan. Sin
            payload. Anadido AL FINAL en los DOS lados. */
         CLIENT_EXE_DEFEATED,
-        SERVER_GAME_RING_OFF
+        SERVER_GAME_RING_OFF,
+
+        /* v99 (PARRY QUE DEVUELVE TODOS LOS PROYECTILES — duena: «el
+           parry... 1 que no devuelve algunos proyectiles (si devuelve
+           el tails pero no con amy fleet ni con los misiles de metal
+           amy etc)»). Mismo patron que CLIENT_TPROJECTILE_DEFLECT: los
+           pide el cliente que ve el contacto con la ventana activa, el
+           server valida y difunde el vuelta-caras. Los TRES proyectiles
+           restantes del lado EXE:
+           - CLIENT_METALAMY_BULLET_DEFLECT (sin cuerpo: una sola bala
+             viva por partida).
+           - CLIENT_FWBOLT_DEFLECT (u16 fwid): SOLO la flecha DEMONIZADA
+             (damage 20) — la de la Fleetway superviviente (damage 0) es
+             anti-exe, atraviesa a los aliados y no se devuelve.
+           - CLIENT_BLAZE_FIREBALL_DEFLECT (u16 nid): la bola de una
+             Blaze demonizada.
+           v99 (atribucion): SERVER_METALAMY_BULLET_STATE 0 y
+           SERVER_BLAZE_FIREBALL_STATE 0 ganan el u16 del DUENO (owner)
+           al final — el cliente lo guarda (ownerNid) para el zap del
+           escudo electrico (scr_player_hurt attackerNid), igual que el
+           laser de Tails. Anadido AL FINAL en los DOS lados. */
+        CLIENT_METALAMY_BULLET_DEFLECT,
+        CLIENT_FWBOLT_DEFLECT,
+        CLIENT_BLAZE_FIREBALL_DEFLECT
 } PacketType;
 
 typedef struct

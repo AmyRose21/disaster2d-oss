@@ -1,0 +1,90 @@
+════════════════════════════════════════════════════════════════════
+ v99 — EL PARRY DEVUELVE TODOS LOS PROYECTILES + BALANCE GENERAL
+════════════════════════════════════════════════════════════════════
+
+TUS SEIS PEDIDOS
+────────────────
+1. ATRIBUCIÓN PARA TODOS LOS PROYECTILES. Ya no es solo el láser de
+   Tails: la BALA DE METAL AMY, la FLECHA de Amy Fleetway demonizada
+   y la BOLA DE FUEGO de Blaze demonizada también saben quién las
+   lanzó. Si te rompen el escudo eléctrico con una de esas, el ZAP
+   cae sobre el dueño — y como el dueño de la bala de Metal Amy es
+   EL EXE MISMO, ahora el escudo también lo stunéa a ÉL ("esos son
+   ejecutados"): antes el zap del escudo le pasaba de largo al
+   asesino.
+
+2. EL PARRY DEVUELVE TODO (Sonic tecla C, Amy Canon tecla V — y el
+   ESCUDO de Kris tecla C BLOQUEA). Antes devolvía el láser de Tails
+   y listo. Ahora también devuelve:
+   - LOS MISILES DE METAL AMY: vuelven y la ATURDEN 3 segundos.
+   - LAS FLECHAS DE AMY FLEETWAY DEMONIZADA: la flecha del enemigo
+     vuelve convertida en la anti-exe (aturde al asesino, igual que
+     la de una Fleetway superviviente). La flecha de una Fleetway
+     aliada (la que aturde al exe) no se toca: ya vuela hacia el
+     enemigo.
+   - LAS BOLAS DE FUEGO DE BLAZE DEMONIZADA: vuelven anti-exe y
+     aturden al bando del asesino.
+   Todas vuelven CIÁN, como el láser devuelto, para que se reconozcan.
+   OJO: las bolas de stomp de Exetior no se tocan — son solo efecto
+   visual, no dañan a nadie (el daño del stomp es su golpe melee,
+   que ya se parreaba).
+
+3. NERF A METAL AMY Y JINNA: su pasiva de añadir CD a las habilidades
+   ya NO funciona sobre KRIS, bajo ningún prospecto. La espada y el
+   escudo de Kris JAMÁS entran en recarga forzada por la marca de
+   debilidad. El resto de supervivientes la sigue comiendo (y Sonic
+   en LMS seguía inmune como siempre).
+
+4. LA BARRA DEL LV 20: cuando Kris llega a nivel 20, la barra de vida
+   del asesino ahora muestra EL ÍCONO DEL EXE DEL LOBBY (el mismo de
+   la pantalla de selección: uno por asesino) en el LADO IZQUIERDO
+   de la barra — Exetior, Chaos, Exeller, Metal Amy, Jinna y el exe
+   original, cada uno con su carita.
+
+5. COMPILAR_SERVER.BAT: si el DisasterServer.exe está abierto cuando
+   compilás, lo CIERRA SOLO y sigue compilando. Ya no pregunta
+   [S/N]. (Solo se frena si el cierre falla de verdad.)
+
+6. CAMBIO DE DAÑOS (el golpe de cada asesino):
+   - Exetior: 50
+   - Exe normal: 45
+   - Exeller: 40
+   - Chaos: 35
+   - Metal Amy: 30 (la más ágil del plantel)
+   - Jinna: 45 — PLANO: el bono de las atrapadas ya NO engorda su
+     golpe básico (sigue sumando en el AGARRE y la TRAMPA como
+     siempre). Si querés que el bono vuelva al golpe también, es un
+     cambio de una línea.
+   El esbirro común sigue a 20 y el negativo a 15.
+
+CÓMO INSTALAR (IMPORTANTE)
+─────────────────────────
+Descomprimí el zip sobre el proyecto como siempre y corré
+check_v99.py. Esta versión agrega 3 paquetes nuevos y cambia el
+formato del spawn de la bala y la bola de fuego: CLIENTE y SERVER
+HAY que actualizarlos JUNTOS (los dos van en el zip). El zip trae
+TODO lo pendiente: el v99 + el v98d (la atribución del láser) + el
+v98c (el fix del crash del escudo) que upstream todavía no tiene.
+
+VERIFICADO
+──────────
+check_v99.py 64 OK / 0 FAIL (daños, guard de Kris, .bat, ícono,
+ownerNid en los 3 proyectiles, deflects con paridad de enum en los
+dos lados, gcc de los 7 .c, llaves de los 12 GML, v98b/c/d intactos)
++ check_v98b 56 OK + check_v98c 18 OK + check_v98d 43 OK, los cuatro
+probados sobre un clon limpio + zip.
+
+ARCHIVOS DEL ZIP (35 = todo lo pendiente: v99 17 + v98d 11 + v98c 5)
+──────────────────────────────────────────────────────────────────
+JUEGO v99 (17): Game.c, MetalAmyBullet.c, BlazeFireball.c (server)
+                 Packet.h, compilar_server.bat
+                 bala/flecha/bola (Create+Step), puppet Step_0,
+                 playerui Draw_64, scr_parry, scr_player_hurt,
+                 net_state_game, net_packets (cliente)
+v98d (11):      ItemBox.c/ItemBoxMap.c/ItemBox.h, obj_itembox,
+                 láser de Tails (Create+Step), scr_collision_objects,
+                 (Packet.h y net_state_game ya contados arriba)
+v98c (1):       obj_player_puppet/Create (el crash del escudo)
+CHECKS (5):     v98b, v98c, v98d (parcheados) + check_v99 (nuevo)
+LEEMEs (4):     este + v98c + v98d
+DOCS (3):       worklog, CACHE, LEARNING

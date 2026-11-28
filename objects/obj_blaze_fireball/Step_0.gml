@@ -42,6 +42,15 @@ else if(instance_exists(obj_player_puppet))
         }
 }
 
+// v99: exeFire marca la bola como arma del bando EXE AHORA (lo leen el
+// parry y el escudo de Kris para saber si se devuelve). La bola DEVUELTA
+// por un parry (deflected) viaja al bando contrario: se trata como la
+// de una Blaze SUPERVIVIENTE (anti-exe: aturde al killer y atraviesa a
+// los aliados, como la flecha dmg 0 de Fleetway).
+exeFire = _blazeDemon;
+if(deflected)
+        _blazeDemon = false;
+
 var _blazeOppSide = !global.player.isDead && (
         (_blazeDemon && global.character != CHARACTER_EXE && global.player.revivalTimes < 2)
         || (!_blazeDemon && (global.character == CHARACTER_EXE || global.player.revivalTimes >= 2)));
@@ -88,7 +97,9 @@ if(_blazeOppSide && place_meeting(x, y, global.player))
         // de siempre.
         if(_blazeDemon)
         {
-                scr_player_hurt(20, -sign(global.player.x - x) * 3, -4, snd_hurt, spr_blood2, false, true);
+                // v99: attackerNid=ownerNid — el zap del escudo electrico cae
+                // sobre la Blaze demonizada que disparo la bola.
+                scr_player_hurt(20, -sign(global.player.x - x) * 3, -4, snd_hurt, spr_blood2, false, true, ownerNid);
 
                 if(instance_exists(obj_player_puppet))
                 {

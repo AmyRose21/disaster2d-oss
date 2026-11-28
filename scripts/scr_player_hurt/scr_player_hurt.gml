@@ -1010,6 +1010,16 @@ function scr_weak_mark_hit(_cd = METALAMY_WEAKMARK_CD)
         if(global.character == CHARACTER_SONIC && global.lmsActive)
                 return;
 
+        // v99 (duena): «nerf para metal amy y para jina: ya no podran usar
+        // su pasiva de añadirse cd a sus habilidades a KRIS bajo NINGUN
+        // prospecto» — Kris es INMUNE a la marca de debilidad (mismo patron
+        // del Sonic-LMS de la v5.0 de arriba, pero SIN condiciones): la
+        // espada y el escudo de Kris JAMAS entran en la recarga forzada,
+        // ni con Metal Amy ni con Jinna. Vale para las DOS marcas (las
+        // dos llaman aqui: scr_weak_mark_hit() y la mejorada de Jinna).
+        if(global.character == CHARACTER_KRIS)
+                return;
+
         // CD propio de 16 s por superviviente (la variable la creamos aqui
         // mismo la primera vez: no hacia falta tocar los Create de los 13
         // supervivientes, y scr_move_basic la hace bajar con un guard)

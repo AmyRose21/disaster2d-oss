@@ -103,6 +103,72 @@ V98D_UNTRACKED = sorted([
     "check_v98c.py", "LEEME_V98C_FIX_ESCUDO_ELECTRICO.txt",
     "check_v98d.py", "LEEME_V98D_ATRIBUCION_DEL_LASER.txt",
 ])
+V99_MOD = sorted([
+    "betterserver-oss/compilar_server.bat",
+    "betterserver-oss/disasterserver/entities/BlazeFireball.c",
+    "betterserver-oss/disasterserver/entities/ItemBox.c",
+    "betterserver-oss/disasterserver/entities/ItemBoxMap.c",
+    "betterserver-oss/disasterserver/entities/MetalAmyBullet.c",
+    "betterserver-oss/disasterserver/states/Game.c",
+    "betterserver-oss/include/Packet.h",
+    "betterserver-oss/include/entities/ItemBox.h",
+    "check_v98b.py",
+    "objects/obj_blaze_fireball/Create_0.gml",
+    "objects/obj_blaze_fireball/Step_0.gml",
+    "objects/obj_fw_bolt/Create_0.gml",
+    "objects/obj_fw_bolt/Step_0.gml",
+    "objects/obj_itembox/Step_2.gml",
+    "objects/obj_metal_amy_bullet/Create_0.gml",
+    "objects/obj_metal_amy_bullet/Step_0.gml",
+    "objects/obj_player_puppet/Create_0.gml",
+    "objects/obj_player_puppet/Step_0.gml",
+    "objects/obj_playerui/Draw_64.gml",
+    "objects/obj_tails_projectile/Create_0.gml",
+    "objects/obj_tails_projectile/Step_0.gml",
+    "scripts/net_packets/net_packets.gml",
+    "scripts/net_state_game/net_state_game.gml",
+    "scripts/scr_collision_objects/scr_collision_objects.gml",
+    "scripts/scr_parry/scr_parry.gml",
+    "scripts/scr_player_hurt/scr_player_hurt.gml",
+    "worklog.md", "CACHE.md", "LEARNING.md",
+])
+V99_UNTRACKED = sorted([
+    "LEEME_V98C_FIX_ESCUDO_ELECTRICO.txt", "LEEME_V98D_ATRIBUCION_DEL_LASER.txt",
+    "check_v98c.py", "check_v98d.py",
+    "check_v99.py", "LEEME_V99_PARRY_Y_BALANCE.txt",
+])
+# v100: upstream commiteo v98c ("asuewe") + v98d ("ewe") — el vuelo se
+# reduce a lo que DIFIERE del HEAD nuevo (v99 pendiente + v100).
+V100B_MOD = sorted([
+    "betterserver-oss/compilar_server.bat",
+    "betterserver-oss/disasterserver/entities/BlazeFireball.c",
+    "betterserver-oss/disasterserver/entities/MetalAmyBullet.c",
+    "betterserver-oss/disasterserver/states/Game.c",
+    "betterserver-oss/include/Packet.h",
+    "check_v98b.py", "check_v98c.py", "check_v98d.py",
+    "objects/obj_blaze_fireball/Create_0.gml",
+    "objects/obj_blaze_fireball/Step_0.gml",
+    "objects/obj_fw_bolt/Create_0.gml",
+    "objects/obj_fw_bolt/Step_0.gml",
+    "objects/obj_metal_amy_bullet/Create_0.gml",
+    "objects/obj_metal_amy_bullet/Step_0.gml",
+    "objects/obj_player_puppet/Step_0.gml",
+    "objects/obj_playerui/Draw_64.gml",
+    "scripts/net_packets/net_packets.gml",
+    "scripts/net_state_game/net_state_game.gml",
+    "scripts/scr_kris_special/scr_kris_special.gml",
+    "scripts/scr_parry/scr_parry.gml",
+    "scripts/scr_player_hurt/scr_player_hurt.gml",
+    "worklog.md", "CACHE.md", "LEARNING.md",
+])
+V100B_UNTRACKED = sorted([
+    "check_v99.py", "LEEME_V99_PARRY_Y_BALANCE.txt",
+    "check_v100.py", "LEEME_V100_EL_BLOQUEO_CUENTA.txt",
+])
+# v101: mismos mods + los 2 del v101 (gate v3.0 retirado por la duena)
+V101_UNTRACKED = sorted(V100B_UNTRACKED + [
+    "check_v101.py", "LEEME_V101_CASTIGO_AUN_CON_LAG.txt",
+])
 untracked = [l[2:].strip() for l in lines if l[:2] == "??"]
 if mod_files == []:
     _estado = "arbol limpio: v98b ya commiteado upstream ('ewe')"
@@ -116,6 +182,12 @@ elif mod_files == V98C_MOD:
 elif mod_files == V98D_MOD:
     _estado = "vuelo del v98d (zap al dueno del laser + cajas que cobran al lanzador)"
     _untracked_ok = sorted(untracked) == V98D_UNTRACKED
+elif mod_files == V99_MOD:
+    _estado = "vuelo del v99 (parry devuelve todo + balance)"
+    _untracked_ok = sorted(untracked) == V99_UNTRACKED
+elif mod_files == V100B_MOD:
+    _estado = "vuelo del v100 (el bloqueo siempre cuenta) sobre el HEAD nuevo"
+    _untracked_ok = sorted(untracked) in (V100B_UNTRACKED, V101_UNTRACKED)
 else:
     _estado = "NO RECONOCIDO"
     _untracked_ok = False
@@ -325,10 +397,15 @@ chk("Server.h: lms_natural queda documental (ya NO gatilla nada)",
     "ya NO gatilla nada" in srv_h)
 chk("Server.h: ring_off documenta reloj congelado + escape descartado",
     "congela el reloj" in srv_h and "CLIENT_PLAYER_ESCAPED" in srv_h.split("bool ring_off;")[1][:300])
-# paridad: RING_OFF al FINAL en los DOS lados
+# paridad: RING_OFF al FINAL en los DOS lados (hasta v98d). v99: el trio
+# del parry se anade DESPUES (tambien AL FINAL) — paridad = el MISMO
+# sufijo en los dos enums, sea la era que sea.
 ph = re.search(r"CLIENT_EXE_DEFEATED,\n\s+SERVER_GAME_RING_OFF\n\}", pkt_h)
 pg = re.search(r"CLIENT_EXE_DEFEATED,\n\s+SERVER_GAME_RING_OFF\n\}", nps)
-chk("RING_OFF sigue ULTIMO en Packet.h y net_packets.gml (paridad)", bool(ph and pg))
+pv_h = re.search(r"CLIENT_METALAMY_BULLET_DEFLECT,\n\s+CLIENT_FWBOLT_DEFLECT,\n\s+CLIENT_BLAZE_FIREBALL_DEFLECT\n\}", pkt_h)
+pv_g = re.search(r"CLIENT_METALAMY_BULLET_DEFLECT,\n\s+CLIENT_FWBOLT_DEFLECT,\n\s+CLIENT_BLAZE_FIREBALL_DEFLECT\n\}", nps)
+chk("enums en paridad (RING_OFF ultimo hasta v98d / el trio v99 cierra el enum en los DOS lados)",
+    bool(ph and pg) or bool(pv_h and pv_g))
 
 # ---------------------------------------------------------------------------
 print("=== 10. LLAVES BALANCEADAS (archivos GML tocados) ===")

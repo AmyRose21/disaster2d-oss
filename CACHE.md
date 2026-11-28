@@ -1570,6 +1570,59 @@ y las pistas nuevas de 20-28s se cortaban).
   Delivered first as "v81" by this session and relabelled: the v81 label
   belongs to the claims delivery.
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-28 (v101 — CASTIGO AUN CON LAG): pedido de la duena «el
+  bloqueo debe castigar ataques terminados — si el jugador tiene
+  demasiado lag termina el ataque antes de que el server se entere y,
+  como termino en su cliente, el juego no lo contaba». El gate v3.0 de
+  scr_parry_stun_signal (solo castigar ataques ACTIVOS en la pantalla
+  del ATACANTE) regalaba inmunidad por lag. RETIRADO por completo: la
+  negacion ocurrio de verdad en el cliente de la VICTIMA (la autoridad
+  del golpe) y su senal viaja por TCP — un ataque terminado antes de
+  que la senal llegue es el caso a castigar. El dedup shockedTimer
+  queda (no re-stun por las senales repetidas del mismo bloqueo); el
+  pool ya contaba igual desde el v100. Checks viejos parcheados al
+  vuelo v101. CERO server (solo scr_parry.gml).
+- 2026-11-28 (v100 — EL BLOQUEO SIEMPRE CUENTA): fix del parry/escudo
+  (Kris/Sonic/Amy Canon) tras el reporte «bloquea pero daña; niega sin
+  stun; stunea sin Love». TRES causas: (1) la SENAL de stun de la
+  negacion vivia DENTRO del throttle de 200ms de los FX — un 2.o ataque
+  negado en esa ventana quedaba SIN senal y el camino del atacante falla
+  a alta velocidad: ahora las senales salen SIEMPRE (TCP, receptor
+  deduplica; el throttle queda solo para ting/FX/shake). (2) el -35 al
+  pool SOLO ocurria si el stun se aplicaba: exe ya stuneado (deflect
+  devuelto) o espejo krisLvNet atrasado en el cliente del ATACANTE ->
+  bloqueo sin Love. Ahora el pool cae IGUAL en el bloqueo (ramas nuevas
+  en los dedups de try_stun/stun_signal, gates con ringOff TCP de
+  respaldo via helper scr_kris_exe_pool_ready, throttle 250ms en
+  pool_hit contra el doble-fuego de los dos caminos). (3) el tap de C/V
+  se perdia durante isAttacking/isSpinCharging/rebote (solo el aire
+  tenia buffer v90) -> escudo que nunca abria: BUFFER GENERAL (_hardOk
+  duros + transitorios despejados al arranque). CERO server. Reglas
+  intactas: direccional -8, gate v3.0 del stun, tierra/CD, tweak
+  KRIS_LV_XP_NORMAL 3 de la duena.
+- 2026-11-28 (v99 — PARRY DEVUELVE TODO + BALANCE): 6 pedidos. (1)
+  ATRIBUCION en TODOS los proyectiles (patron v98d): bala de Metal
+  Amy + flecha demonizada de Fleetway + bola demonizada de Blaze
+  guardan ownerNid y lo pasan a scr_player_hurt (attackerNid): si
+  rompen un escudo electrico, el ZAP cae sobre su dueno — y el de la
+  bala ES EL EXE ("excepto si son exes esos son ejecutados"). El
+  server difunde owner en los spawns de mabul/bfire (fwbolt ya lo
+  traia). (2) PARRY DEVUELVE los 3 proyectiles exe-side (patron del
+  deflect del laser): CLIENT_METALAMY_BULLET_DEFLECT (state 3: aturde
+  3 s al killer), CLIENT_FWBOLT_DEFLECT (u16 fwid, state 4: SOLO la
+  demonizada damage>0 — vuelve convertida en la variante stun dmg 0),
+  CLIENT_BLAZE_FIREBALL_DEFLECT (u16 nid, state 5: vuelve anti-exe).
+  El ESCUDO de Kris los BLOQUEA sin devolver (como el laser). Las
+  stompballs de Exetior son SOLO efecto (no dañan: fuera). (3) NERF:
+  guard CHARACTER_KRIS en scr_weak_mark_hit — Kris inmune a la marca
+  de CD de Metal Amy y Jinna ("bajo ningun prospecto"). (4) La barra
+  del LV 20 usa el ICONO DEL EXE del lobby (spr_lobby_exeicon*, switch
+  del charselect) a la IZQUIERDA de la barra. (5) compilar_server.bat:
+  cierra el exe ABIERTO automaticamente (sin el [S/N]). (6) DAÑOS:
+  Exetior 50 / exe normal 45 / Exeller 40 / Chaos 35 / Metal Amy 30 /
+  Jinna 45 (plano: el bono de atrapadas ya NO engorda el golpe — sigue
+  en agarre/trampa). RECOMPILAR CLIENTE+SERVER JUNTOS (3 paquetes
+  nuevos + owner en 2 spawns).
 - 2026-11-28 (v98d — STUN AL CAUSANTE + CAJAS COBRAN AL LANZADOR): 2
   pedidos de la duena. (1) "buscar al que causo el ataque y aplicarle
   el stun tambien": el nid del tirador VIAJA en el paquete de spawn

@@ -164,7 +164,9 @@ if(place_meeting(x, y, global.player))
                 else
                 {
                         // daño real (canal estandar): exeSource=true
-                        scr_player_hurt(dmg, -sign(global.player.x - x) * 3, -4, snd_hurt, spr_blood2, false, true);
+                        // v99: attackerNid=ownerNid — el zap del escudo electrico
+                        // cae sobre la Fleetway demonizada que disparo.
+                        scr_player_hurt(dmg, -sign(global.player.x - x) * 3, -4, snd_hurt, spr_blood2, false, true, ownerNid);
 
                         var buffer = cpacket_tcp(PacketType.CLIENT_STATS_REPORT);
                         buffer_write(buffer, buffer_u8, 2);

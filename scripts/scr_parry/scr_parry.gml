@@ -526,85 +526,76 @@ function scr_parry_negate_hit()
         if(_sonic != global.player)
                 _nid = _sonic.master_id;
 
-        // FX + "ting" posicionado en el Sonic que parrea: directo en su
-        // pantalla (shouldPlay del emit_at) y 3D desde su puppet en las
-        // demas (mismo sistema de sonido de red de siempre). Sin play
-        // local extra: en un self-parry el emit_at ya lo suena una vez.
-        // v3.3: en rafaga (throttle 200ms). Con el EXITO protegiendo, el
-        // MISMO ataque interceptado vuelve a pedir la negacion varios
-        // frames seguidos (hasta que el stun del atacante le llega y le
-        // cancela el ataque); sin esto el "ting", el shake y el paquete
-        // de sonido salian una vez por frame.
+        // v100 FIX (duena: «aun bloqueado el ataque... el enemigo a veces
+        // no recibe el stun... con Sonic en su momento NI STUNEABA al
+        // enemigo, solo negaba»): LA SENAL DE STUN SALE SIEMPRE. Antes
+        // vivia DENTRO del throttle de 200 ms de los FX: un SEGUNDO
+        // ataque negado dentro de esa ventana (rafaga de golpes, o dos
+        // atacantes a la vez) quedaba NEGADO SIN STUN — y el camino 1
+        // (el contacto en la pantalla del propio atacante) falla justo
+        // cuando pega rapido ("casi nunca caza el contacto"). La senal
+        // viaja por TCP (send_server_tcp) y el receptor la deduplica con
+        // shockedTimer: mandarla en cada frame de la negacion es seguro
+        // (son pocos: el stun del atacante cancela su ataque y la
+        // negacion deja de dispararse).
+        //
+        // MELEE (garras/golpe): aqui `self` es el PUPPET ATACANTE
+        // (scr_player_hurt la llama desde el Step del puppet con el
+        // melee del lado EXE), asi que master_id es SU nid.
+        //
+        // SPIN (v3.6, bola al saltar / rodar): ese dano NO lo aplica
+        // el puppet del atacante sino el objeto del PROPIO
+        // superviviente, asi que self no es un puppet y no hay master_id
+        // a mano. En ESTE cliente el contacto si es exacto: se busca al
+        // puppet del lado EXE en bola (estado JUMP/SPIN) tocando al
+        // jugador local y se le manda la senal a SU nid. Mismos filtros
+        // que los bloques de dano spin de los supervivientes para no
+        // stunear a inocentes que rueden cerca. Si hay VARIOS tocando a
+        // la vez, se les manda a todos (el receptor deduplica).
+        //
+        // En los objetos que no son ni puppet ni superviviente (laser
+        // de Tails, bolas de Exetior, cadenas, pinchos de mapa) no se
+        // emite: los proyectiles no stunean al que los tiro y los
+        // peligros del mapa no tienen dueno.
+        if(object_index == obj_player_puppet)
+                net_sound_emit_at(snd_exe_stun, master_id);
+        else if(instance_exists(obj_player_puppet))
+        {
+                with(obj_player_puppet)
+                {
+                        // mismo predicado del bloque de dano spin de
+                        // los supervivientes: del lado EXE, visible,
+                        // activo y EN BOLA...
+                        if(!isDemonized || !visible || isInactive)
+                                continue;
+
+                        if(state != JUMP && state != SPIN)
+                                continue;
+
+                        // ...con las mismas exclusiones de ahi
+                        if(character == CHARACTER_EGGMAN || character == CHARACTER_AMY || character == CHARACTER_AMY_CANON || character == CHARACTER_SALLY || character == CHARACTER_SALLY_CANON)
+                                continue;
+
+                        if(character == CHARACTER_EXE && exeCharacter == 1 && slimeMode)
+                                continue;
+
+                        // el contacto exacto de ESTA maquina: es lo
+                        // que disparo el dano que se acaba de negar
+                        if(!place_meeting(x, y, global.player))
+                                continue;
+
+                        net_sound_emit_at(snd_exe_stun, master_id);
+                }
+        }
+
+        // FX + "ting" posicionado (cosmeticos: el receptor deduplica la
+        // animacion de exito del Sonic remoto): en rafaga (throttle
+        // 200 ms). El "ting" viaja como snd_parry (v83: indice 107 de
+        // global.net_snds — Perfect_Parry no esta en ese array).
         static _fxLast = -9999;
         if(current_time - _fxLast >= 200)
         {
-                // v83: la senal viaja como snd_parry (indice 107 de global.net_snds):
-                // Perfect_Parry NO esta en ese array, el indice -1 llegaba como 255 y el
-                // receptor lo descartaba (el ting del aliado cubierto nunca entraba)
                 net_sound_emit_at(snd_parry, _nid);
-
-                // v3.5 / v3.6: SENAL DE STUN AL ATACANTE, con el mismo
-                // paquete de sonido de siempre (shouldPlay=true): el cliente
-                // del atacante lo recibe posicionado en su nid, lo reconoce
-                // en el CLIENT_SOUND_EMIT y se aturde solo
-                // (scr_parry_stun_signal).
-                //
-                // MELEE (garras/golpe): aqui `self` es el PUPPET ATACANTE
-                // (scr_player_hurt la llama desde el Step del puppet con el
-                // melee del lado EXE), asi que master_id es SU nid.
-                //
-                // SPIN (v3.6, bola al saltar / rodar): ese dano NO lo aplica
-                // el puppet del atacante sino el objeto del PROPIO
-                // superviviente (obj_sonic, obj_tails, obj_knux, obj_egg,
-                // obj_sally, obj_sally_canon, obj_amy, obj_amy_canon), asi
-                // que self no es un puppet y no hay master_id a mano. En
-                // ESTE cliente el contacto si es exacto (por eso el dano
-                // nego): se busca al puppet del lado EXE en bola (estado
-                // JUMP/SPIN) tocando al jugador local y se le manda la
-                // senal a SU nid. Mismos filtros que los bloques de dano
-                // spin de los supervivientes (Eggman/Amy/Amy Canon/Sally/
-                // Sally Canon demonizados en bola no hacen dano, Exeller en
-                // slime tampoco) para no stunear a inocentes que rueden
-                // cerca. Si hay VARIOS tocando a la vez, se les manda a
-                // todos (el receptor deduplica con shockedTimer).
-                //
-                // En los objetos que no son ni puppet ni superviviente
-                // (laser de Tails, bolas de Exetior, cadenas, pinchos de
-                // mapa) no se emite: los proyectiles no stunean al que
-                // los tiro y los peligros del mapa no tienen dueno. Y si la
-                // negacion viene de uno de esos pero ningun puppet en bola
-                // esta tocando, la busqueda no encuentra a nadie -> nada.
-                if(object_index == obj_player_puppet)
-                        net_sound_emit_at(snd_exe_stun, master_id);
-                else if(instance_exists(obj_player_puppet))
-                {
-                        with(obj_player_puppet)
-                        {
-                                // mismo predicado del bloque de dano spin de
-                                // los supervivientes: del lado EXE, visible,
-                                // activo y EN BOLA...
-                                if(!isDemonized || !visible || isInactive)
-                                        continue;
-                                
-                                if(state != JUMP && state != SPIN)
-                                        continue;
-                                
-                                // ...con las mismas exclusiones de ahi
-                                if(character == CHARACTER_EGGMAN || character == CHARACTER_AMY || character == CHARACTER_AMY_CANON || character == CHARACTER_SALLY || character == CHARACTER_SALLY_CANON)
-                                        continue;
-                                
-                                if(character == CHARACTER_EXE && exeCharacter == 1 && slimeMode)
-                                        continue;
-                                
-                                // el contacto exacto de ESTA maquina: es lo
-                                // que disparo el dano que se acaba de negar
-                                if(!place_meeting(x, y, global.player))
-                                        continue;
-                                
-                                net_sound_emit_at(snd_exe_stun, master_id);
-                        }
-                }
-
                 net_quick_effect(_sonic.x, _sonic.y - 8, spr_shockparticle, false, 1, 0, 0, 1);
                 scr_camera_shake(20, 2, 0.2);
                 _fxLast = current_time;
@@ -702,36 +693,45 @@ function scr_parry_step()
                 return;
         }
 
-        // ===== INPUT: tap de C (Sonic) / V (Amy Canon). v3: SOLO EN TIERRA =====
-        // v90: BUFFER DE ATERRIZAJE — un tap en el AIRE con todo lo demas en
-        // orden ya no se pierde: se guarda SONIC_PARRY_LAND_BUFFER frames y
-        // el parry arranca al pisar suelo (con el MISMO gate re-evaluado en
-        // el aterrizaje). v90: REVIVALTIMES < 2 — los demonizados (esbirros
-        // y subditos negativos, que SI conservan el control) no pueden
-        // abrir el parry: su estado 61 dibujaria el circulo del aura en las
+        // ===== INPUT: tap de C (Sonic/Kris) / V (Amy Canon). v3: SOLO EN TIERRA =====
+        // v100 FIX (duena: «hay ocasiones que el golpe hace daño a Kris a
+        // pesar de que este bloquee... o simplemente recibe daño y no
+        // bloquea ni stunea al enemigo»): BUFFER GENERAL DEL TAP. Antes
+        // SOLO el tap dado en el AIRE se guardaba (buffer de aterrizaje
+        // v90): un tap dado ATACANDO, cargando el spin o en el rebote de
+        // la bola se perdia ENTERO — el golpe entraba "aunque
+        // bloqueara" porque el escudo nunca llego a abrirse (y sin
+        // escudo tampoco hay stun del atacante). Ahora el tap vive
+        // SONIC_PARRY_LAND_BUFFER frames SIEMPRE que los gates duros
+        // pasen, y el parry arranca en cuanto el estado transitorio se
+        // despeje — con TODO el gate re-evaluado en el arranque (los
+        // gates duros siguen siendo duros: muerto/herido/stuneado/
+        // demonizado/CD/controles/nervios/zipline/escondite).
+        // v90: REVIVALTIMES < 2 — los demonizados no pueden abrir el
+        // parry: su estado 61 dibujaria el circulo del aura en las
         // demas maquinas sin proteger a nadie.
-        if(global.playerControls && parryCooldown <= 0 && revivalTimes < 2
+        var _hardOk = (global.playerControls && parryCooldown <= 0 && revivalTimes < 2
         && !isHurt && !isDead && shockedTimer <= 0 && !isZipline && !isHiding
-        && !isAttacking && !isSpinCharging && nerviosState == 0
-        && bounceTimer <= 0
+        && nerviosState == 0
         // v51 — SUPER AMY: V + ARRIBA ya no dispara el parry de Amy
-        // Canon (esa combinacion es el toggle de la super forma en
-        // scr_amy_canon_special); V sola sigue pariando igual.
-        && !((global.character == CHARACTER_AMY_CANON) && keyboard_check(global.KeyUp)))
-        {
-                // tap en el AIRE: se guarda para el aterrizaje
-                if(!isGrounded && keyboard_check_pressed(scr_parry_key()))
-                        parryLandBuffer = SONIC_PARRY_LAND_BUFFER;
+        // Canon (esa combinacion es el toggle de la super forma); V
+        // sola sigue pariando igual.
+        && !((global.character == CHARACTER_AMY_CANON) && keyboard_check(global.KeyUp)));
 
-                // en TIERRA: tap fresco O el buffer del aterrizaje vivo
-                if(isGrounded && (keyboard_check_pressed(scr_parry_key()) || parryLandBuffer > 0))
-                {
-                        parryState = 1;
-                        parryTimer = SONIC_PARRY_WINDUP;
-                        parrySuccess = false;
-                        parryActive = false;
-                        parryLandBuffer = 0;
-                }
+        // tap fresco con los gates duros en orden: se guarda (en el
+        // aire o en tierra, atacando o cargando: vale igual)
+        if(_hardOk && keyboard_check_pressed(scr_parry_key()))
+                parryLandBuffer = SONIC_PARRY_LAND_BUFFER;
+
+        // arranque: el buffer vivo + los transitorios despejados
+        if(_hardOk && parryLandBuffer > 0
+        && isGrounded && !isAttacking && !isSpinCharging && bounceTimer <= 0)
+        {
+                parryState = 1;
+                parryTimer = SONIC_PARRY_WINDUP;
+                parrySuccess = false;
+                parryActive = false;
+                parryLandBuffer = 0;
         }
 }
 
@@ -887,6 +887,70 @@ function scr_parry_detect()
                         }
                 }
 
+                // v99 (duena): «el parry... 1 que no devuelve algunos
+                // proyectiles» — el ESCUDO tambien dispara el EXITO con los
+                // DEMAS proyectiles del lado EXE (bala de Metal Amy, flecha
+                // demonizada de Amy Fleetway, bola de fuego de una Blaze
+                // demonizada). Como el laser de arriba: el escudo BLOQUEA
+                // (el dano lo niega scr_parry_negate_hit por exeSource) y NO
+                // devuelve — devolver es cosa del parry de Sonic/Amy.
+                if(!_hit && instance_exists(obj_metal_amy_bullet))
+                {
+                        with(obj_metal_amy_bullet)
+                        {
+                                if(isBreaking)
+                                        continue;
+
+                                if(!scr_parry_bbox_overlap(self, _me))
+                                        continue;
+
+                                if(!scr_kris_block_front(_me, self))
+                                        continue;
+
+                                _me.krisBlockAir = scr_kris_block_attacker_air(self, _me);
+                                _hit = true;
+                                break;
+                        }
+                }
+
+                if(!_hit && instance_exists(obj_fw_bolt))
+                {
+                        with(obj_fw_bolt)
+                        {
+                                if(isBreaking || isStuck || dmg <= 0)
+                                        continue;
+
+                                if(!scr_parry_bbox_overlap(self, _me))
+                                        continue;
+
+                                if(!scr_kris_block_front(_me, self))
+                                        continue;
+
+                                _me.krisBlockAir = scr_kris_block_attacker_air(self, _me);
+                                _hit = true;
+                                break;
+                        }
+                }
+
+                if(!_hit && instance_exists(obj_blaze_fireball))
+                {
+                        with(obj_blaze_fireball)
+                        {
+                                if(isBreaking || !exeFire)
+                                        continue;
+
+                                if(!scr_parry_bbox_overlap(self, _me))
+                                        continue;
+
+                                if(!scr_kris_block_front(_me, self))
+                                        continue;
+
+                                _me.krisBlockAir = scr_kris_block_attacker_air(self, _me);
+                                _hit = true;
+                                break;
+                        }
+                }
+
                 if(_hit)
                         scr_parry_success_now();
 
@@ -987,6 +1051,162 @@ function scr_parry_detect()
                 }
         }
 
+        // v99 (duena): «hay que arreglar el sistema parry (generar tanto
+        // para kris sonic y amy) 1 que no devuelve algunos proyectiles
+        // (si devuelve el tails pero no con amy fleet ni con los misiles
+        // de metal amy etc)» — los TRES proyectiles restantes del lado
+        // EXE se DEVUELVEN igual que el laser de Tails: el cliente que ve
+        // el contacto pide el deflect y el server voltea la direccion para
+        // TODOS (vuelven cian, patron del laser devuelto). La bala de
+        // Metal Amy aturde al killer 3 s al volver; la flecha demonizada
+        // vuelve convertida en la variante stun (dmg 0, la misma de una
+        // Fleetway superviviente); la bola de fuego demonizada vuelve
+        // anti-exe (aturde al bando del killer como la de una Blaze viva).
+        // (La NEGACION del dano de los tres ya vivia en scr_player_hurt
+        // por exeSource: esto añade el DEVOLVER. El escudo de Kris BLOQUEA
+        // estos proyectiles sin devolverlos — ver su deteccion arriba.)
+        if(!_hit && instance_exists(obj_metal_amy_bullet))
+        {
+                with(obj_metal_amy_bullet)
+                {
+                        if(isBreaking || deflected)
+                                continue;
+
+                        // ¿toca al propio Sonic/Amy?
+                        if(scr_parry_bbox_overlap(self, _me))
+                        {
+                                _hit = true;
+                                break;
+                        }
+
+                        // ¿o a un aliado dentro del aura? (patron del laser de arriba)
+                        if(instance_exists(obj_player_puppet))
+                        {
+                                with(obj_player_puppet)
+                                {
+                                        if(isDemonized || isInactive)
+                                                continue;
+
+                                        if(distance_to_object(_me) > SONIC_PARRY_AURA)
+                                                continue;
+
+                                        if(scr_parry_bbox_overlap(self, other))
+                                        {
+                                                _hit = true;
+                                                break;
+                                        }
+                                }
+                        }
+
+                        if(_hit)
+                                break;
+                }
+
+                if(_hit)
+                {
+                        var _pk = cpacket_tcp(PacketType.CLIENT_METALAMY_BULLET_DEFLECT);
+                        send_server_tcp(_pk);
+                }
+        }
+
+        // flecha de Amy Fleetway DEMONIZADA (dmg 20): la de la
+        // superviviente (dmg 0) atraviesa a los aliados — no se devuelve.
+        var _dfwId = -1;
+        if(!_hit && instance_exists(obj_fw_bolt))
+        {
+                with(obj_fw_bolt)
+                {
+                        if(isBreaking || isStuck || dmg <= 0)
+                                continue;
+
+                        if(scr_parry_bbox_overlap(self, _me))
+                        {
+                                _dfwId = fwId;
+                                _hit = true;
+                                break;
+                        }
+
+                        // ¿o a un aliado del aura?
+                        if(instance_exists(obj_player_puppet))
+                        {
+                                with(obj_player_puppet)
+                                {
+                                        if(isDemonized || isInactive)
+                                                continue;
+
+                                        if(distance_to_object(_me) > SONIC_PARRY_AURA)
+                                                continue;
+
+                                        if(scr_parry_bbox_overlap(self, other))
+                                        {
+                                                _dfwId = other.fwId;
+                                                _hit = true;
+                                                break;
+                                        }
+                                }
+                        }
+
+                        if(_hit)
+                                break;
+                }
+
+                if(_hit)
+                {
+                        var _pk = cpacket_tcp(PacketType.CLIENT_FWBOLT_DEFLECT);
+                        buffer_write(_pk, buffer_u16, _dfwId);
+                        send_server_tcp(_pk);
+                }
+        }
+
+        // bola de fuego de una Blaze DEMONIZADA (exeFire): la de una
+        // Blaze superviviente es anti-exe y atraviesa a los aliados.
+        var _dffNid = -1;
+        if(!_hit && instance_exists(obj_blaze_fireball))
+        {
+                with(obj_blaze_fireball)
+                {
+                        if(isBreaking || deflected || !exeFire)
+                                continue;
+
+                        if(scr_parry_bbox_overlap(self, _me))
+                        {
+                                _dffNid = nid;
+                                _hit = true;
+                                break;
+                        }
+
+                        // ¿o a un aliado del aura?
+                        if(instance_exists(obj_player_puppet))
+                        {
+                                with(obj_player_puppet)
+                                {
+                                        if(isDemonized || isInactive)
+                                                continue;
+
+                                        if(distance_to_object(_me) > SONIC_PARRY_AURA)
+                                                continue;
+
+                                        if(scr_parry_bbox_overlap(self, other))
+                                        {
+                                                _dffNid = other.nid;
+                                                _hit = true;
+                                                break;
+                                        }
+                                }
+                        }
+
+                        if(_hit)
+                                break;
+                }
+
+                if(_hit)
+                {
+                        var _pk = cpacket_tcp(PacketType.CLIENT_BLAZE_FIREBALL_DEFLECT);
+                        buffer_write(_pk, buffer_u16, _dffNid);
+                        send_server_tcp(_pk);
+                }
+        }
+
         // anillo negro de Exetior dentro del aura -> anillo dorado
         if(instance_exists(obj_blackring))
         {
@@ -1029,14 +1249,6 @@ function scr_parry_try_stun_attacker()
         if(global.player.isDead)
                 return false;
 
-        // v3.5: deduplicacion. La negacion de la victima ya mando la SENAL
-        // de stun por red (y puede llegar ANTES de que este contacto local
-        // se resuelva); si ya estoy stuneado por ahi o por un stun normal
-        // del juego, no se re aplica (no reinicia el timer, no duplica
-        // sonidos ni paquetes).
-        if(global.player.shockedTimer > 0)
-                return false;
-
         var _parrySonic = noone;
         if(instance_exists(obj_player_puppet))
         {
@@ -1059,6 +1271,26 @@ function scr_parry_try_stun_attacker()
 
         if(_parrySonic == noone)
                 return false;
+
+        // v100 FIX (duena: «el enemigo lo recibe (el stun) pero no da
+        // Love»): el dedup de v3.5 baJO aqui — ANTES devolvia false sin
+        // mas. Un atacante YA STUNEADO (un deflect devuelto, el stun de
+        // otro bloqueo todavia corriendo) cuyo ataque rozaba a un Kris
+        // cubierto quedaba sin stun (correcto: ya esta stuneado) PERO
+        // TAMBIEN SIN GOLPE AL POOL: el bloqueo era real y no contaba.
+        // Ahora el dedup solo se salta EL STUN: el bloqueo de un Kris a
+        // LV 20 sigue metiendo su -35 (scr_kris_exe_pool_ready mira el
+        // espejo krisLvNet y, de respaldo, el ringOff del server —
+        // TCP). Sin stun no hay knockback ni sonido: solo el Love.
+        if(global.player.shockedTimer > 0)
+        {
+                if(_parrySonic.character == CHARACTER_KRIS
+                && global.character == CHARACTER_EXE && !global.player.isDead
+                && scr_kris_exe_pool_ready())
+                        scr_kris_exe_pool_hit(0);
+
+                return false;
+        }
 
         // v3.5: el cuerpo del stun vive en scr_parry_apply_stun (lo
         // comparten este auto-stun local y la senal de red de la victima).
@@ -1171,7 +1403,8 @@ function scr_parry_apply_stun(_victimNid, _kx, _emitSound, _parryChar)
                 // gate es el mismo del bloqueo escalado de arriba: el
                 // krisLvNet ESPEJADO de SU pantalla (no falsificable
                 // desde el cliente de Kris).
-                if(global.character == CHARACTER_EXE && !global.player.isDead && _klvP >= KRIS_LV_MAX)
+                if(global.character == CHARACTER_EXE && !global.player.isDead
+                && (_klvP >= KRIS_LV_MAX || global.ringOff))
                         _parryStun = scr_kris_exe_pool_hit(_parryStun);
         }
 
@@ -1226,6 +1459,8 @@ function scr_parry_apply_stun(_victimNid, _kx, _emitSound, _parryChar)
 //  (scr_parry_negate_hit: mi golpe melee acaba de ser parreado por un
 //  Sonic). Corre en el cliente del ATACANTE: me aturdo a mi mismo con las
 //  mismas reglas del auto-stun local (escudos esbirros incluidos).
+//  v101 (duena): castiga TAMBIEN ataques que ya terminaron en ESTA
+//  pantalla — el lag del atacante no borra el bloqueo de la victima.
 // =====================================================================
 function scr_parry_stun_signal()
 {
@@ -1239,26 +1474,12 @@ function scr_parry_stun_signal()
         if(global.player.isDead)
                 return;
 
-        // v3.0 (arreglos a Sonic, pedido del usuario): la senal de red
-        // puede llegar UNOS FRAMES TARDE (lag) y aturdia al exe DESPUES
-        // de que su ataque (spin / golpe normal / bola) ya habia
-        // terminado — "castigo gratis" por un ataque que ya no existe.
-        // Mismo predicado que el auto-stun local (obj_player_puppet):
-        // el parry SOLO castiga ataques ACTIVOS. La negacion del dano
-        // en la victima no cambia (eso lo resuelve su propio cliente).
-        if(!(global.player.isAttacking || global.player.isJumping || global.player.isSpinning))
-                return;
-
-        // deduplicacion: el auto-stun local ya me stuneo (caso del aliado,
-        // donde el contacto en MI cliente si existia) o ya estoy stuneado
-        // por otra cosa -> esta senal no hace nada
-        if(global.player.shockedTimer > 0)
-                return;
-
         // victima para los paquetes de camara/estadisticas: el superviviente
         // que mi ataque esta tocando ahora mismo en MI pantalla (la negacion
         // ocurrio en SU cliente con el contacto exacto; aqui aproximamos con
         // el contacto local, que tras el lag suele ser el mismo puppet).
+        // v100: la busqueda SUBIO de sitio — el golpe al pool de abajo ya
+        // no depende de que ESTE stun llegue a aplicarse.
         var _victimNid = -1;
         var _victimChar = -1; // v47: el personaje del parreador (escala del parry de Kris)
         if(instance_exists(obj_player_puppet))
@@ -1276,6 +1497,42 @@ function scr_parry_stun_signal()
                         }
                 }
         }
+
+        // v100 FIX (duena: «el enemigo lo recibe (el stun) pero no da
+        // Love»): la senal de una negacion ES un bloqueo REAL (solo la
+        // emite scr_parry_negate_hit, por TCP) — el golpe al pool ya NO
+        // depende de que ESTE stun se aplique. Si ya estoy stuneado (un
+        // deflect devuelto, el stun de otro bloqueo todavia corriendo),
+        // el stun se deduplica como siempre PERO EL POOL CAE IGUAL: el
+        // bloqueo ocurrio y cuenta (v98 item 3). scr_kris_exe_pool_ready
+        // mira el espejo krisLvNet del Kris y, de respaldo, el ringOff
+        // del server (TCP); scr_kris_exe_pool_hit deduplica por su
+        // cuenta los dos caminos del MISMO bloqueo (throttle interno
+        // de 250 ms).
+        if(_victimChar == CHARACTER_KRIS
+        && global.character == CHARACTER_EXE
+        && scr_kris_exe_pool_ready())
+                scr_kris_exe_pool_hit(0);
+
+        // v101 (duena: «el bloqueo debe castigar ataques terminados —
+        // si el jugador tiene demasiado lag, termina el ataque antes de
+        // que el server se entere y, como termino en SU cliente, el
+        // juego no lo contaba»): el gate v3.0 (solo castigar ataques
+        // ACTIVOS en ESTA pantalla) SE RETIRA. Ese gate regalaba
+        // inmunidad por lag al atacante: la negacion ocurrio de verdad
+        // en el cliente de la VICTIMA — que es la AUTORIDAD del golpe
+        // (patron de todo el juego) — y su senal viaja por TCP, asi que
+        // si mi ataque termino aqui antes de que la senal llegue, es
+        // exactamente el caso que hay que castigar, no el que hay que
+        // perdonar. El pool de arriba ya contaba el bloqueo igual desde
+        // el v100; ahora el stun aplica siempre. La negacion del dano
+        // en la victima no cambia (eso lo resuelve su propio cliente).
+
+        // deduplicacion: el auto-stun local ya me stuneo (caso del aliado,
+        // donde el contacto en MI cliente si existia) o ya estoy stuneado
+        // por otra cosa -> esta senal no aplica OTRO stun
+        if(global.player.shockedTimer > 0)
+                return;
 
         // knockback hacia atras de donde miro (estoy pegandole a alguien que
         // tengo delante); el sonido NO se reenvia: ya viajo en el paquete de

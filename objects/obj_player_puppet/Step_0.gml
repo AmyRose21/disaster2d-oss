@@ -519,25 +519,37 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 var damage = 20;
                                 if(character == CHARACTER_EXE)
                                 {
+                                        // v99 (duena): «habra un cambio variado de daños» —
+                                        // el golpe basico de cada ASESINO: Exetior 50, el
+                                        // exe normal 45, Exeller 40, Chaos 35, Metal Amy
+                                        // 30 («ya que en si es la mas agil del plantel»)
+                                        // y Jinna 45. El esbirro comun sigue a 20 y el
+                                        // golpe del negativo a 15 (mas abajo). El bono
+                                        // acumulativo de Jinna YA NO engorda el golpe
+                                        // basico: «Jina quitara 45 de daño» plano — las
+                                        // especiales atrapadas SIGUEN sumando en el
+                                        // AGARRE y la TRAMPA (JINNA_BONUS_GRAB/TRAP).
                                         switch(exeCharacter)
                                         {
-                                                case 0:
-                                                case 2:
-                                                case 3:
+                                                case EXE_EXETIOR:
+                                                        damage = 50;
+                                                        break;
+                                                case EXE_ORIGINAL:
+                                                        damage = 45;
+                                                        break;
+                                                case EXE_EXELLER:
                                                         damage = 40;
                                                         break;
+                                                case EXE_CHAOS:
+                                                        damage = 35;
+                                                        break;
+                                                case EXE_METALAMY:
+                                                        damage = 30;
+                                                        break;
+                                                case EXE_JINNA:
+                                                        damage = 45;
+                                                        break;
                                         }
-
-                                        // v3/v4 (D.I.B.) — ATRAPADAS EN EL PORTAL
-                                        // TRAMPA: mientras haya especiales en la otra
-                                        // dimension, el golpe basico de Jinna pega MAS.
-                                        // v18: MEJORA DIRECTA ACUMULATIVA — ya no hay
-                                        // cifras fijas (el viejo 25/30 del tier): cada
-                                        // especial atrapada SUMA +5 (Amy Canon +10)
-                                        // sobre el base 20. Ej.: 1 regular = 25 / Amy
-                                        // = 30 / las 4 juntas = 45 (scr_jinna_power).
-                                        if(exeCharacter == EXE_JINNA)
-                                                damage += scr_jinna_power() * JINNA_BONUS_ATTACK;
                                 }
 
                                 // v7 (toque negativo) — el GOLPE DEL SÚBDITO NEGATIVO pega
@@ -1015,9 +1027,13 @@ if(place_meeting(x, y, global.player) || _acTarotPad || _acHJPad || (_sonicPad >
                                 // siempre, CERO dano al pool. Este bloque es del EXE
                                 // REAL (global.character == CHARACTER_EXE): los
                                 // esbirros demonizados NO tienen pool — "el asesino"
-                                // es uno solo.
+                                // es uno solo. v100: ringOff (TCP, el duelo final
+                                // declarado por el server) de RESPALDO al espejo
+                                // krisLvNet — si la senal del nivel tarda unos
+                                // frames en llegar, la espada no puede perder su
+                                // golpe al pool (duena: «lo recibe pero no da Love»).
                                 if(global.character == CHARACTER_EXE && !global.player.isDead
-                                && (variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1) >= KRIS_LV_MAX)
+                                && (global.ringOff || (variable_instance_exists(id, "krisLvNet") ? krisLvNet : 1) >= KRIS_LV_MAX))
                                 {
                                         // v98: el golpe real vive AHORA en el helper
                                         // compartido scr_kris_exe_pool_hit (lo usan la

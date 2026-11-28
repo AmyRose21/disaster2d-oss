@@ -169,6 +169,47 @@ if(_kris20)
                 _exeName = "el asesino"; // sin puppet del exe a mano (se fue): generico
 
         scr_text_spr(_kbX + 6, _kbY + 1, string_lower(_exeName) + "  " + string(ceil(_kbHp / KRIS_EXE_DAMAGE)) + " golpes", c_white, 1);
+
+        // v99 (duena): «la barra de vida de cuando kris es lv 20 usara el
+        // icono del exe que usa en el lobby de seleccion como imagen
+        // presentado para mostrar al exe, aparecera en el lado izquierdo
+        // de la barra» — el MISMO icono del lobby (spr_lobby_exeicon*, uno
+        // por asesino: el switch del charselect) pegado a la IZQUIERDA de
+        // la barra. Se resuelve igual que el nombre de arriba:
+        // global.exeCharacter en la pantalla del propio exe, el del puppet
+        // del exe en las demas.
+        var _exeIconSpr = spr_lobby_exeicon;
+        var _exeChar = -1;
+
+        if(global.character == CHARACTER_EXE)
+                _exeChar = global.exeCharacter;
+        else if(instance_exists(obj_player_puppet))
+        {
+                with(obj_player_puppet)
+                {
+                        if(master_id != obj_netclient.exeId)
+                                continue;
+
+                        _exeChar = exeCharacter;
+                        break;
+                }
+        }
+
+        switch(_exeChar)
+        {
+                case EXE_CHAOS: _exeIconSpr = spr_lobby_exeicon2; break;
+                case EXE_EXETIOR: _exeIconSpr = spr_lobby_exeicon3; break;
+                case EXE_EXELLER: _exeIconSpr = spr_lobby_exeicon4; break;
+                case EXE_METALAMY: _exeIconSpr = spr_lobby_exeicon6; break;
+                case EXE_JINNA: _exeIconSpr = spr_lobby_exeicon7; break;
+        }
+
+        // a la IZQUIERDA de la barra (pedido): pegado al borde izquierdo,
+        // centrado en vertical con la barra (la barra vive en y 49..61
+        // con su funda: centro y = _kbY + 4)
+        var _exeIw = sprite_get_width(_exeIconSpr);
+        var _exeIh = sprite_get_height(_exeIconSpr);
+        draw_sprite_ext(_exeIconSpr, 0, _kbX - _exeIw - 3, _kbY + 4 - _exeIh / 2, 1, 1, 0, c_white, 1);
 }
 
 // v12 (HUD): los ICONOS DE HABILIDAD siguen en el rincon superior

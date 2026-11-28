@@ -1,0 +1,63 @@
+════════════════════════════════════════════════════════════════════
+ v101 — CASTIGO AUN CON LAG (el bloqueo castiga ataques terminados)
+════════════════════════════════════════════════════════════════════
+
+TU PEDIDO
+─────────
+«El bloqueo debe castigar ataques terminados. Porque estoy seguro que
+si el jugador tiene demasiado lag, entonces, ejemplo, él termina el
+ataque antes de que el server se entere; entonces, como terminó en su
+cliente, el juego no lo cuenta.»
+
+TENÍAS TODA LA RAZÓN. Había una regla vieja (la v3.0, de un pedido
+anterior) que decía: "el parry solo castiga ataques ACTIVOS en la
+pantalla del atacante". La intención era evitar un "castigo gratis"
+por una señal que llega tarde... pero el efecto real era exactamente
+el hueco que describís: el asesino con lag terminaba su ataque EN SU
+PANTALLA, la señal del bloqueo de la víctima llegaba unos frames
+después, el gate veía "ataque ya terminado" y LO DESCARTABA. O sea:
+el atacante ganaba inmunidad POR SU PROPIO LAG.
+
+EL CAMBIO
+─────────
+El gate está RETIRADO: cuando la señal del bloqueo llega al cliente
+del atacante, el stun se aplica SIEMPRE — ataque terminado o no.
+La lógica que lo justifica (y quedó documentada en el código):
+
+- La negación ocurrió DE VERDAD en el cliente de la VICTIMA, que es
+  la AUTORIDAD del golpe (el patrón de todo el juego: la víctima
+  manda en lo que le pasa).
+- La señal viaja por TCP (ordenada y confiable): no hay señales
+  "viejas" falsas — si llegó, un bloqueo real la disparó.
+- Si el ataque terminó en la pantalla del atacante antes de que la
+  señal llegue, eso es exactamente el caso que hay que castigar, no
+  el que hay que perdonar.
+
+LO QUE SE MANTIENE
+──────────────────
+- El DEDUP sigue: si el atacante ya está stuneado (por el mismo
+  bloqueo vía el otro camino, o por un misil devuelto), no se le
+  aplica OTRO stun — pero el golpe al pool del LV 20 cae igual
+  (eso era el v100).
+- El golpe al pool ya NO depende del stun desde el v100; con esta
+  versión stun y pool van siempre juntos: bloqueo = castigo + Love.
+- Los gates duros siguen: muerto no se stunea, solo el lado EXE
+  puede ser parreado.
+- TODO el v100 (señal fuera del throttle, buffer del tap de C/V,
+  ringOff de respaldo), el v99 y tus reglas (escudo direccional,
+  parry en tierra, CDs, tu tweak del XP) intactos.
+
+CERO CAMBIOS DE SERVER — solo GML del cliente (scr_parry.gml).
+
+VERIFICADO
+──────────
+check_v101.py 27 OK / 0 FAIL + los 5 checks anteriores parcheados
+para reconocer el vuelo nuevo (todos en verde) sobre un clon limpio
+de tu último commit + zip.
+
+EL ZIP (30 archivos)
+────────────────────
+Lleva TODO lo pendiente: el cambio del v101 + todo el v100 y v99
+que aún no commiteás ("ewe" es tu último commit upstream). Si ya
+aplicaste el zip del v100, este zip SOBREESCRIBE lo mismo — aplicalo
+encima igual, es acumulativo y seguro.

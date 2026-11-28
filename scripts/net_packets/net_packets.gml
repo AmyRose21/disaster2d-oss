@@ -437,7 +437,23 @@ enum PacketType
            npring de Not Perfect. Anadido AL FINAL en los DOS lados
            (mismo orden que include/Packet.h). */
         CLIENT_EXE_DEFEATED,
-        SERVER_GAME_RING_OFF
+        SERVER_GAME_RING_OFF,
+
+        /* v99 (PARRY QUE DEVUELVE TODOS LOS PROYECTILES — duena: «el
+           parry... 1 que no devuelve algunos proyectiles (si devuelve
+           el tails pero no con amy fleet ni con los misiles de metal
+           amy etc)»). Mismo patron que CLIENT_TPROJECTILE_DEFLECT:
+           CLIENT_METALAMY_BULLET_DEFLECT (sin cuerpo) /
+           CLIENT_FWBOLT_DEFLECT (u16 fwid — SOLO la flecha demonizada:
+           la dmg 0 es anti-exe y no se devuelve) /
+           CLIENT_BLAZE_FIREBALL_DEFLECT (u16 nid). v99: los spawns de
+           la bala de Metal Amy y de la bola de Blaze ganan el u16 del
+           DUENO al final (ownerNid, patron laser de Tails: zap del
+           escudo electrico). Mismo orden que include/Packet.h; anadido
+           AL FINAL en los DOS lados. */
+        CLIENT_METALAMY_BULLET_DEFLECT,
+        CLIENT_FWBOLT_DEFLECT,
+        CLIENT_BLAZE_FIREBALL_DEFLECT
 }
 
 #macro STATE_PENDING -1

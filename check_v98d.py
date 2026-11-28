@@ -75,10 +75,91 @@ V98D_UNTRACKED = sorted([
     "check_v98c.py", "LEEME_V98C_FIX_ESCUDO_ELECTRICO.txt",
     "check_v98d.py", "LEEME_V98D_ATRIBUCION_DEL_LASER.txt",
 ])
-chk("modificados = 11 del v98d + 5 del v98c (16), ni uno mas",
-    mod_files == V98D_MOD, f"real: {mod_files}")
-chk("nuevos sin trackear: checks + LEEMEs de v98c y v98d (4)",
-    untracked == V98D_UNTRACKED, f"real: {untracked}")
+V99_MOD = sorted([
+    "betterserver-oss/compilar_server.bat",
+    "betterserver-oss/disasterserver/entities/BlazeFireball.c",
+    "betterserver-oss/disasterserver/entities/ItemBox.c",
+    "betterserver-oss/disasterserver/entities/ItemBoxMap.c",
+    "betterserver-oss/disasterserver/entities/MetalAmyBullet.c",
+    "betterserver-oss/disasterserver/states/Game.c",
+    "betterserver-oss/include/Packet.h",
+    "betterserver-oss/include/entities/ItemBox.h",
+    "check_v98b.py",
+    "objects/obj_blaze_fireball/Create_0.gml",
+    "objects/obj_blaze_fireball/Step_0.gml",
+    "objects/obj_fw_bolt/Create_0.gml",
+    "objects/obj_fw_bolt/Step_0.gml",
+    "objects/obj_itembox/Step_2.gml",
+    "objects/obj_metal_amy_bullet/Create_0.gml",
+    "objects/obj_metal_amy_bullet/Step_0.gml",
+    "objects/obj_player_puppet/Create_0.gml",
+    "objects/obj_player_puppet/Step_0.gml",
+    "objects/obj_playerui/Draw_64.gml",
+    "objects/obj_tails_projectile/Create_0.gml",
+    "objects/obj_tails_projectile/Step_0.gml",
+    "scripts/net_packets/net_packets.gml",
+    "scripts/net_state_game/net_state_game.gml",
+    "scripts/scr_collision_objects/scr_collision_objects.gml",
+    "scripts/scr_parry/scr_parry.gml",
+    "scripts/scr_player_hurt/scr_player_hurt.gml",
+    "worklog.md", "CACHE.md", "LEARNING.md",
+])
+V99_UNTRACKED = sorted([
+    "LEEME_V98C_FIX_ESCUDO_ELECTRICO.txt", "LEEME_V98D_ATRIBUCION_DEL_LASER.txt",
+    "check_v98c.py", "check_v98d.py",
+    "check_v99.py", "LEEME_V99_PARRY_Y_BALANCE.txt",
+])
+# v100: upstream commiteo v98c ("asuewe") + v98d ("ewe") — el vuelo se
+# reduce a lo que DIFIERE del HEAD nuevo (v99 pendiente + v100).
+V100B_MOD = sorted([
+    "betterserver-oss/compilar_server.bat",
+    "betterserver-oss/disasterserver/entities/BlazeFireball.c",
+    "betterserver-oss/disasterserver/entities/MetalAmyBullet.c",
+    "betterserver-oss/disasterserver/states/Game.c",
+    "betterserver-oss/include/Packet.h",
+    "check_v98b.py", "check_v98c.py", "check_v98d.py",
+    "objects/obj_blaze_fireball/Create_0.gml",
+    "objects/obj_blaze_fireball/Step_0.gml",
+    "objects/obj_fw_bolt/Create_0.gml",
+    "objects/obj_fw_bolt/Step_0.gml",
+    "objects/obj_metal_amy_bullet/Create_0.gml",
+    "objects/obj_metal_amy_bullet/Step_0.gml",
+    "objects/obj_player_puppet/Step_0.gml",
+    "objects/obj_playerui/Draw_64.gml",
+    "scripts/net_packets/net_packets.gml",
+    "scripts/net_state_game/net_state_game.gml",
+    "scripts/scr_kris_special/scr_kris_special.gml",
+    "scripts/scr_parry/scr_parry.gml",
+    "scripts/scr_player_hurt/scr_player_hurt.gml",
+    "worklog.md", "CACHE.md", "LEARNING.md",
+])
+V100B_UNTRACKED = sorted([
+    "check_v99.py", "LEEME_V99_PARRY_Y_BALANCE.txt",
+    "check_v100.py", "LEEME_V100_EL_BLOQUEO_CUENTA.txt",
+])
+# v101: mismos mods + los 2 del v101 (gate v3.0 retirado por la duena)
+V101_UNTRACKED = sorted(V100B_UNTRACKED + [
+    "check_v101.py", "LEEME_V101_CASTIGO_AUN_CON_LAG.txt",
+])
+# estado del arbol: limpio (commiteado) / vuelo propio / vuelo del v99
+if mod_files == []:
+    _estado = "arbol limpio: v98d ya commiteado upstream"
+    _mods_ok = untracked == []
+elif mod_files == V98D_MOD:
+    _estado = "vuelo del v98d"
+    _mods_ok = untracked == V98D_UNTRACKED
+elif mod_files == V99_MOD:
+    _estado = "vuelo del v99 (parry devuelve todo + balance)"
+    _mods_ok = untracked == V99_UNTRACKED
+elif mod_files == V100B_MOD:
+    _estado = "vuelo del v100 (el bloqueo siempre cuenta) sobre el HEAD nuevo"
+    _mods_ok = untracked in (V100B_UNTRACKED, V101_UNTRACKED)
+else:
+    _estado = "NO RECONOCIDO"
+    _mods_ok = False
+chk(f"estado del arbol: {_estado} — ni un archivo de mas, cero .yy/.yyp",
+    _mods_ok and not any(f.endswith((".yy", ".yyp")) for f in mod_files),
+    f"real mods: {mod_files} untracked: {untracked}")
 chk("cero .yy/.yyp tocados", not any(f.endswith((".yy", ".yyp")) for f in mod_files))
 chk("KAF INTACTO (regla de la duena): ni el monitor ni KindAndFair.c en la lista",
     "kaf" not in st.lower() and "KindAndFair" not in st)

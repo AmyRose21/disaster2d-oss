@@ -238,6 +238,30 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 inst.nid = _nid;
                                 inst.image_xscale = _dir;
                                 inst.dir = _dir;
+                                // v99: nid de la BLAZE que la disparo (para el zap del
+                                // escudo electrico, attackerNid — patron laser de Tails).
+                                var _fowner = buffer_read_s(rbuff, buffer_u16);
+                                inst.ownerNid = _fowner;
+                        }
+                        else if(_state == 5) // v99: DEFLECT (parry) — la bola demonizada vuelve al bando del exe
+                        {
+                                if(!instance_exists(obj_blaze_fireball))
+                                        break;
+
+                                var _fnid = buffer_read_s(rbuff, buffer_u16);
+                                var _fddir = buffer_read_s(rbuff, buffer_s8);
+
+                                with(obj_blaze_fireball)
+                                {
+                                        if(nid != _fnid || isBreaking)
+                                                continue;
+
+                                        dir = _fddir;
+                                        image_xscale = _fddir;
+                                        deflected = true; // viaja anti-exe: aturde al bando del killer
+                                        exeFire = false;
+                                        image_blend = SONIC_PB_COLOR; // cian: devuelta, patron del laser de Tails
+                                }
                         }
                         else if(_state == 1) // Tick
                         {
@@ -308,9 +332,28 @@ function net_state_game(rbuff, nps, isPasstrough)
 
                                 var inst = instance_create_depth(_xx, _yy, 0, obj_fw_bolt);
                                 inst.isOwner = (_owner == obj_netclient.nid);
+                                inst.ownerNid = _owner; // v99: no mas tirar el nid del tirador (patron laser de Tails)
                                 inst.fwId = _fwid;
                                 inst.dmg = _dmg;
                                 inst.image_xscale = _dir;
+                        }
+                        else if(_state == 4) // v99: DEFLECT (parry) — la flecha demonizada vuelve convertida en la variante stun
+                        {
+                                if(!instance_exists(obj_fw_bolt))
+                                        break;
+
+                                var _fwddir = buffer_read_s(rbuff, buffer_s8);
+
+                                with(obj_fw_bolt)
+                                {
+                                        if(fwId != _fwid || isBreaking || isStuck || dmg <= 0)
+                                                continue;
+
+                                        dir = _fwddir;
+                                        image_xscale = _fwddir;
+                                        dmg = 0; // la variante anti-exe: aturde al killer (la misma de una Fleetway superviviente)
+                                        image_blend = SONIC_PB_COLOR; // cian: devuelta, patron del laser de Tails
+                                }
                         }
                         else if(_state == 1) // Tick (canal UDP: posicion integrada por el server)
                         {
@@ -972,6 +1015,29 @@ function net_state_game(rbuff, nps, isPasstrough)
                                 var inst = instance_create_depth(_xx, _yy, 0, obj_metal_amy_bullet);
                                 inst.image_xscale = _dir;
                                 inst.dir = _dir;
+                                // v99: nid del DUENO (la Metal Amy: el exe de la ronda) —
+                                // igual que el laser de Tails: el proyectil guarda su
+                                // ownerNid para el zap del escudo electrico (attackerNid).
+                                var _mowner = buffer_read_s(rbuff, buffer_u16);
+                                inst.ownerNid = _mowner;
+                        }
+                        else if(_state == 3) // v99: DEFLECT (parry) — la bala vuelve al bando del exe
+                        {
+                                if(!instance_exists(obj_metal_amy_bullet))
+                                        break;
+
+                                var _mddir = buffer_read_s(rbuff, buffer_s8);
+
+                                with(obj_metal_amy_bullet)
+                                {
+                                        if(isBreaking)
+                                                continue;
+
+                                        dir = _mddir;
+                                        image_xscale = _mddir;
+                                        image_blend = SONIC_PB_COLOR; // cian: devuelta, patron del laser de Tails
+                                        deflected = true; // al volver aturde al killer y atraviesa a los aliados
+                                }
                         }
                         else if(_state == 1) // Tick
                         {

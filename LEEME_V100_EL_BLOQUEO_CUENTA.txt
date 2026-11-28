@@ -1,0 +1,80 @@
+════════════════════════════════════════════════════════════════════
+ v100 — EL BLOQUEO SIEMPRE CUENTA (fix del parry/escudo de Kris,
+ Sonic y Amy Canon)
+════════════════════════════════════════════════════════════════════
+
+TU REPORTE
+──────────
+«Hay ocasiones que el golpe hace daño a Kris a pesar de que bloquee.
+Aun bloqueado el ataque, el enemigo a veces no recibe el stun, o lo
+recibe pero no da Love (la barra del LV 20), o simplemente recibe
+daño y no bloquea ni stunea. Pasa con Amy y con Sonic; con Sonic en
+su momento ni stuneaba, solo negaba.»
+
+ENCONTRÉ TRES CAUSAS RAÍZ (todas reales, todas arregladas):
+
+1. «NIEGA PERO NO STUNEA» — LA SEÑAL DE STUN VIVÍA DENTRO DEL
+   THROTTLE DE LOS EFECTOS. Cada parry/negación manda la señal de stun
+   al atacante por TCP, pero estaba dentro de un freno de 200 ms
+   pensado para no spamear el "ting" y las partículas. Resultado: si
+   un SEGUNDO ataque llegaba negado dentro de esos 200 ms (una ráfaga
+   de golpes, o dos atacando a la vez), la señal NO salía — y el otro
+   camino (el contacto en la pantalla del propio atacante) falla justo
+   cuando pega rápido. Quedaba negado SIN STUN. Ahora la señal sale
+   SIEMPRE que se niega un golpe (el receptor la deduplica solo, no
+   hay spam); el freno quedó solo para lo cosmético.
+
+2. «STUNEA PERO NO DA LOVE» — EL GOLPE AL POOL DEPENDÍA DE QUE EL STUN
+   SE APLICARA DE VERDAD. El -35 a la barra del asesino solo ocurría
+   si el stun entraba. Dos huecos:
+   a) El exe YA stuneado (por un misil devuelto, o el stun de otro
+      bloqueo todavía corriendo): la deduplicación cancelaba el stun
+      nuevo — y con él, el golpe al pool. El bloqueo era real y no
+      contaba. Ahora el pool cae IGUAL aunque no haya stun nuevo.
+   b) El gate miraba el espejo del nivel de Kris EN LA PANTALLA DEL
+      ATACANTE: si esa señal llegaba unos frames tarde tras subir a
+      LV 20, el bloqueo entraba sin Love. Ahora el gate acepta también
+      el RING_OFF del server (el aviso del duelo final, por TCP —
+      palabra del server, no espejo).
+   De yapa: el pool ahora se deduplica solo (250 ms): un mismo
+   bloqueo nunca resta dos veces aunque sus dos caminos (el del
+   atacante y el de la víctima) lleguen casi juntos.
+
+3. «BLOQUEA PERO RECIBE DAÑO» / «NO BLOQUEA NI STUNEA» — EL TAP DE LA
+   TECLA SE PERDÍA. Si apretabas C (escudo/parry) o V (Amy) mientras
+   estabas ATACANDO, cargando el spin o en el rebote de la bola, el tap
+   se perdía ENTERO: el escudo nunca se abría y el golpe entraba
+   limpio (y sin escudo tampoco hay stun del atacante). Solo el tap
+   en el aire tenía buffer. Ahora el tap se guarda y el escudo arranca
+   en cuanto terminás el ataque (con todas las condiciones duras
+   re-evaluadas: herido/stuneado/CD/demonizado siguen bloqueando).
+
+LO QUE NO CAMBIÓ
+────────────────
+- El escudo sigue siendo DIRECCIONAL: lo que viene de espaldas NO se
+  bloquea (regla tuya del v5).
+- El stun sigue sin aplicarse a un ataque que ya terminó (regla v3.0
+  de "castigo gratis") — pero ahora ese bloqueo SÍ da el Love.
+- El parry sigue siendo solo en tierra, con su CD de fallo/exito, y
+  los demonizados siguen sin poder abrirlo.
+- Tu tweak del XP de Kris (5 → 3) quedó INTACTO.
+- Todo el v99 (deflects, daños, atribución, ícono, .bat) intacto.
+
+CERO CAMBIOS DE SERVER: todo es GML del cliente — no hay que
+recompilar el server, solo re-exportar el juego.
+
+VERIFICADO
+──────────
+check_v100.py 34 OK / 0 FAIL (las 3 causas raíz con sus asserts, los
+intactos del v99/v98, tu tweak, llaves balanceadas) + check_v99 63 OK
+(esperado: reconoce el vuelo del v100) sobre un clon limpio + zip.
+
+ARCHIVOS DEL ZIP (30 = v100 + todo lo pendiente del v99)
+────────────────────────────────────────────────────────
+v100 (3):     scr_parry.gml, scr_kris_special.gml,
+               obj_player_puppet/Step_0.gml
+v99 (20):     los 15 de juego (server 4 + cliente 11) + docs 3 +
+               checks parcheados 3... (la lista completa está en el
+               LEEME_V99 y el worklog)
+NUEVOS (4):   check_v100.py + este LEEME + check_v99.py +
+               LEEME_V99_PARRY_Y_BALANCE.txt

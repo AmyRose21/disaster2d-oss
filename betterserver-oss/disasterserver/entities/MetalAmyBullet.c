@@ -13,6 +13,10 @@ bool mabul_init(Server* server, Entity* entity)
 	PacketWrite(&pack, packet_write16, (uint16_t)mb->pos.x);
 	PacketWrite(&pack, packet_write16, (uint16_t)mb->pos.y);
 	PacketWrite(&pack, packet_write8, mb->dir);
+	/* v99: nid del dueno al final — el cliente lo guarda (ownerNid) para
+	   el zap del escudo electrico (scr_player_hurt attackerNid), igual
+	   que el laser de Tails. */
+	PacketWrite(&pack, packet_write16, mb->owner);
 	server_broadcast(server, &pack, true);
 
 	return true;

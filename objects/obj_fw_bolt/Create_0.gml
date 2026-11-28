@@ -32,6 +32,11 @@ isBreaking = false;
 isStuck = false;
 fwId = -1;
 dmg = 0;
+// v99: nid del jugador que disparo esta flecha (el dueno viaja en el
+// spawn desde siempre pero solo se usaba para isOwner — igual que el
+// laser de Tails antes del v98d). Lo usa el zap del escudo electrico
+// (scr_player_hurt con attackerNid).
+ownerNid = -1;
 image_speed = 1;
 
 _destroy = function()

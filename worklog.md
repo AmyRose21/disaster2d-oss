@@ -8191,3 +8191,185 @@ ENTREGA: zip con TODO lo pendiente vs upstream (16 modificados + 4
 nuevos: los 11 del v98d + los 5 del v98c que upstream aun no tiene +
 check_v98b/check_v98c parcheados + check_v98d.py +
 LEEME_V98D_ATRIBUCION_DEL_LASER.txt + LEEME_V98C + docs).
+
+=====================================================================
+v99 (2026-11-28) — PARRY QUE DEVUELVE TODO + BALANCE GENERAL
+(6 pedidos de la duena)
+=====================================================================
+PEDIDOS (textual de la duena): (1) "en si debe ser incluido para
+todos los proyectiles (execto si son exes esos son exectuados" —
+(2) "hay que arreglar el sistema parry (generar tanto para kris sonic
+y amy) 1 que no devuelve algunos proyectiles (si devuelve el tails
+pero no con amy fleet ni con los misiles de metal amy etc)" — (3)
+"nerf para metal amy y para jina ya no podran usar su pasiva de
+añadirce cd a sus habilidades a kris bajo ningun prospecto" — (4)
+"la barra de vida de cuando kris es lv 20 usara el icono del exe que
+usa en el lobby de seleccion... en el lado izquierdo de la barra" —
+(5) "Mejora al compilar_server.bat... si detecta que esta el exe
+abierto el better automaticamente lo cerrara" — (6) "cambio variado
+de daños: exetior 50 / exe normal 45 / exeller 40 / chaos 35 /
+metal amy 30 (la mas agil del plantel) / jina 45".
+
+D1 — ATRIBUCION PARA TODOS LOS PROYECTILES (patron v98d del laser):
+  * BALA DE METAL AMY (mabul): el server ya tenia el owner guardado —
+    ahora lo difunde en el spawn; el cliente guarda ownerNid. Su
+    dueno es EL EXE: si la bala rompe un escudo electrico, el ZAP cae
+    sobre el ASESINO ("excepto si son exes esos son ejecutados": el
+    exe TAMBIEN come el stun del escudo ahora — antes el zap del
+    escudo le pasaba de largo).
+  * FLECHA DE AMY FLEETWAY DEMONIZADA (fwbolt): el owner ya viajaba
+    (solo se usaba para isOwner) — ahora se guarda y se pasa al
+    scr_player_hurt (la demonizada que rompe tu escudo come el zap).
+  * BOLA DE FUEGO DE BLAZE DEMONIZADA (bfire): server difunde owner;
+    exeFire marca el bando EXE de la bola (lo leen parry y escudo).
+  Los 3 scr_player_hurt llevan attackerNid=ownerNid (8.o param v98d).
+  Las CAJAS no cambian: solo el laser de Tails las rompe (v98d).
+
+D2 — PARRY QUE DEVUELVE TODOS LOS PROYECTILES:
+  La NEGACION ya vivia en scr_player_hurt (exeSource); lo que faltaba
+  era DEVOLVER. Patron del deflect del laser (cliente ve contacto ->
+  paquete -> server valida (jugador en juego, no el exe) -> voltea
+  dir -> difunde -> todos ven el proyectil volver cian):
+  * CLIENT_METALAMY_BULLET_DEFLECT (state 3): la bala vuelve y
+    ATURDE 3 s al killer; atraviesa aliados (rama deflected del Step).
+  * CLIENT_FWBOLT_DEFLECT (u16 fwid, state 4): SOLO la demonizada
+    (damage > 0; la dmg 0 es anti-exe y no se devuelve) — vuelve
+    CONVERTIDA en la variante stun (damage = 0: la misma de una
+    Fleetway superviviente; el codigo ya existia).
+  * CLIENT_BLAZE_FIREBALL_DEFLECT (u16 nid, state 5): la bola
+    demonizada vuelve anti-exe (deflected: aturde al bando del
+    killer como la de una Blaze viva).
+  ESCUDO DE KRIS: bloquea los 3 (deteccion frontal, SIN deflect —
+  mismo trato que el laser: el escudo bloquea, no devuelve).
+  Las stompballs de Exetior NO entran: son SOLO efecto visual (no
+  dañan; el daño del stomp es el ataque melee ya cubierto).
+  Paridad: 3 paquetes AL FINAL del enum en Packet.h Y net_packets.
+
+D3 — NERF PASIVA CD: guard CHARACTER_KRIS en scr_weak_mark_hit
+(antes de aplicar el CD, patron del Sonic-LMS v5.0 pero SIN
+condiciones): Kris JAMAS entra en la recarga forzada de la marca de
+Metal Amy ni de la mejorada de Jinna. El resto la sigue comiendo.
+
+D4 — BARRA LV 20 CON ICONO DEL LOBBY: el switch del charselect
+(spr_lobby_exeicon* por asesino) resuelto igual que el nombre
+(global.exeCharacter en la pantalla del exe, el del puppet del exe
+en las demas), dibujado a la IZQUIERDA de la barra (pegado al borde,
+centrado en vertical), dentro del gate _kris20 (solo el duelo).
+
+D5 — COMPILAR_SERVER.BAT: :ensure_exe_closed ya NO pregunta [S/N]:
+cierra el DisasterServer.exe automaticamente y sigue compilando
+(solo cancela si el taskkill falla).
+
+D6 — DAÑOS POR ASESINO (obj_player_puppet/Step_0, el switch que
+estaba en 0/2/3 -> 40): Exetior 50 / exe normal 45 / Exeller 40 /
+Chaos 35 / Metal Amy 30 / Jinna 45. El bono de las atrapadas de
+Jinna YA NO engorda el golpe basico ("Jina quitara 45 de daño"
+plano): SIGUE sumando en el AGARRE y la TRAMPA. Esbirro comun 20 y
+negativo 15 como siempre.
+
+COMPATIBILIDAD: 3 paquetes nuevos + los spawns de mabul/bfire
+cambiaron (owner al final) — RECOMPILAR CLIENTE Y SERVER JUNTOS.
+
+VERIFICACIONES: check_v99.py 64 OK / 0 FAIL + check_v98b 56 OK /
+check_v98c 18 OK / check_v98d 43 OK, los tres parcheados
+state-aware ("vuelo del v99" + la paridad de enums acepta el trío
+nuevo). gcc -fsyntax-only: Game.c, MetalAmyBullet.c, BlazeFireball.c,
+FwBolt.c, ItemBoxMap.c, ItemBox.c, KindAndFair.c (stub de enet).
+Llaves balanceadas en los 12 GML tocados.
+
+ENTREGA: zip con TODO lo pendiente vs upstream (29 modificados + 6
+nuevos: los 17 del v99 + los 11 del v98d + los 5 del v98c + los
+4 checks parcheados + check_v99.py + LEEMEs V98C/V98D/V99 + docs).
+
+=====================================================================
+v100 (2026-11-28) — EL BLOQUEO SIEMPRE CUENTA (fix del parry/escudo)
+=====================================================================
+REPORTE (duena): «hay ocasiones que el golpe hace daño a Kris a
+pesar de que bloquee; aun bloqueado, el enemigo a veces no recibe el
+stun o lo recibe pero no da Love; o simplemente recibe daño y no
+bloquea ni stunea. Pasa con Amy y Sonic; con Sonic en su momento ni
+stuneaba, solo negaba».
+
+TRES CAUSAS RAIZ (todas en el cliente, CERO cambios de server):
+
+F1 — «NIEGA PERO NO STUNEA»: la SENAL de stun (net_sound_emit_at
+snd_exe_stun, melee + busqueda spin) vivia DENTRO del throttle de
+200 ms de los FX de scr_parry_negate_hit: un 2.o ataque negado en
+esa ventana (rafaga, dos atacantes) no enviaba NADA y el camino del
+propio atacante (scr_parry_try_stun_attacker) "casi nunca caza el
+contacto" — quedaba NEGADO SIN STUN. FIX: las senales salen SIEMPRE
+(TCP + dedup del receptor con shockedTimer); el throttle queda solo
+para cosmeticos (ting snd_parry + net_quick_effect + shake).
+
+F2 — «STUNEA PERO NO DA LOVE»: el -35 al pool SOLO ocurria si el stun
+se aplicaba de verdad. (a) DEDUP: exe ya stuneado (un deflect
+devuelto del v99, u otro bloqueo corriendo) -> stun_signal y
+try_stun_attacker devolvian sin pool: el bloqueo real NO contaba.
+(b) GATE del espejo: krisLvNet en la pantalla del ATACANTE podia ir
+atrasado unos frames tras la subida a LV 20 -> stun si, pool no.
+FIX: el pool cae IGUAL en el bloqueo (ramas nuevas en el dedup de
+try_stun_attacker y ANTES de los gates blandos de stun_signal, con
+la busqueda de victima subida de sitio); gates con ringOff
+(SERVER_GAME_RING_OFF, TCP) de respaldo en apply_stun + la espada;
+helper NUEVO scr_kris_exe_pool_ready; throttle interno de 250 ms en
+scr_kris_exe_pool_hit (un mismo bloqueo nunca resta dos veces por
+sus dos caminos).
+
+F3 — «BLOQUEA PERO DANA» / «NO BLOQUEA NI STUNEA»: el tap de C/V
+durante isAttacking/isSpinCharging/bounceTimer se PERDIA entero
+(solo el aire tenia buffer v90): el escudo nunca abria y el golpe
+entraba limpio (y sin escudo tampoco hay stun). FIX: BUFFER GENERAL
+(_hardOk = gates duros; el tap se guarda siempre que los duros pasen
+y arranca en cuanto los transitorios se despejan, con el gate
+completo re-evaluado).
+
+NO CAMBIA: escudo direccional (KRIS_BLOCK_VISION -8), gate v3.0 del
+stun (solo ataques activos — pero el pool ya conto el bloqueo),
+parry solo en tierra + CDs, demonizados sin parry, tweak de la duena
+KRIS_LV_XP_NORMAL 3 INTACTO, todo el v99 intacto.
+
+VERIFICACIONES: check_v100.py 34 OK / 0 FAIL + check_v99 (reconoce
+el vuelo del v100) + check_v98b/c/d parcheados con el set nuevo.
+Llaves balanceadas (scr_parry, scr_kris_special, puppet Step_0).
+
+ENTREGA: zip v100 con TODO lo pendiente (24 modificados vs el HEAD
+nuevo — upstream commiteo v98c "asuewe" + v98d "ewe" — + 4 nuevos:
+check_v100 + LEEME_V100 + check_v99 + LEEME_V99). CERO server: solo
+GML del cliente.
+
+=====================================================================
+v101 (2026-11-28) — CASTIGO AUN CON LAG (el gate v3.0 se retira)
+=====================================================================
+PEDIDO (duena): «el bloqueo debe castigar ataques terminados. Porque
+estoy seguro que si el jugador tiene demasiado lag, entonces, ejemplo,
+el termina el ataque antes de que el server se entere; entonces, como
+termino en su cliente, el juego no lo cuenta.»
+
+TENIA RAZON: el gate v3.0 de scr_parry_stun_signal (solo castigar
+ataques ACTIVOS en la pantalla del ATACANTE — pedido viejo anti
+"castigo gratis") regalaba inmunidad POR LAG: el exe terminaba su
+ataque en SU cliente, la senal del bloqueo de la victima llegaba unos
+frames despues y el gate la descartaba porque el ataque "ya no
+existe" ahi.
+
+FIX: el gate SE RETIRA por completo. La negacion ocurrio de verdad en
+el cliente de la VICTIMA (la autoridad del golpe, patron de todo el
+juego) y su senal viaja por TCP (ordenada, confiable — no hay
+senales falsas ni viejas): si el ataque termino en la pantalla del
+atacante antes de que la senal llegue, es el caso a castigar, no el
+a perdonar. El pool ya contaba el bloqueo igual desde el v100; ahora
+stun + Love van siempre juntos.
+
+QUEDA: el dedup (shockedTimer) — no se re-aplica un stun nuevo por
+cada senal repetida del MISMO bloqueo (la negacion manda una senal
+por frame de contacto; el receptor deduplica). Gates duros: muerto
+no se stunea, solo el lado EXE puede ser parreado.
+
+VERIFICACIONES: check_v101.py 28 OK / 0 FAIL + los 5 checks viejos
+parcheados para el vuelo v101 (v100: 34, v99: 64, v98d: 43, v98c: 18,
+v98b: 56 — todos 0 FAIL). Llaves balanceadas. CERO server: solo
+scr_parry.gml.
+
+ENTREGA: zip v101 acumulativo (24 modificados + 6 nuevos: check_v101
++ LEEME_V101 + los 4 del v100). Si ya aplico el v100, este zip se
+pone encima igual — es acumulativo.

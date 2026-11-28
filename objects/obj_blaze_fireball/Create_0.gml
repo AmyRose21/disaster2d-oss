@@ -21,6 +21,16 @@ bounceCd = 0;    // throttle local de informes de rebote
 image_speed = 1;
 isBreaking = false;
 isLocal = false;
+// v99: nid de la BLAZE que disparo esta bola (el server ya tenia el
+// owner guardado y ahora lo difunde en el spawn) — lo usa el zap del
+// escudo electrico (scr_player_hurt con attackerNid), igual que el
+// laser de Tails. deflected: la devolvio un parry (vuela al bando del
+// exe). exeFire: la bola es del bando EXE AHORA (su duena esta
+// demonizada) — lo leen el parry y el escudo de Kris para saber si
+// se puede devolver.
+ownerNid = -1;
+deflected = false;
+exeFire = false;
 
 _destroy = function(sendHit = true)
 {

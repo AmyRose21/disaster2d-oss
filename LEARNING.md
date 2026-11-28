@@ -2429,3 +2429,55 @@ first, don't invent packets (rule 7).
   instead of trusting a client-claimed field. Also: changing a packet
   format means shipping client and server together — say so loudly in
   the LEEME, both binaries travel in the same zip anyway.
+- **"Return the projectile" and "negate the damage" are different
+  features, and one of them usually already exists.** In this engine
+  every exeSource hit was already negated by the parry inside
+  scr_player_hurt — the owner's complaint "the parry doesn't return
+  some projectiles" was purely about the RETURN (the deflect that
+  flips direction and sends it back cian). Before building anything,
+  grep for the existing negation and count what's missing: it's
+  usually the deflect packet + server flip + a client state, once per
+  projectile, all copies of the laser's deflect pattern. Two more
+  patterns worth naming: a "side-override flag" beats editing branch
+  conditions when a returning projectile must swap teams (the fireball
+  reads its team from its owner's puppet EVERY STEP — a deflected flag
+  consulted at that one point makes it anti-exe without touching the
+  per-branch logic); and "convert to the existing variant" beats
+  inventing new behavior (the demonized Fleetway arrow returns as the
+  dmg-0 stun variant that already existed — zero new client hit code).
+  Also: effect-only objects (Exetior's stompballs: no damage calls at
+  all) must be excluded from "all projectiles" asks — read their Step
+  before promising coverage.
+- **A network signal carrying game logic must never live inside a
+  cosmetic throttle.** The parry's stun signal (snd_exe_stun
+  positioned) was emitted inside the 200ms FX throttle of the
+  negation: a second attack negated inside that window shipped no
+  signal at all, and since the attacker's own local detection "almost
+  never catches the contact at full speed", the parry negated damage
+  without ever punishing — the exact user report ("ni stuneaba, solo
+  negaba"). Rule: signals whose RECEIVER deduplicates (shockedTimer,
+  anim-state) can be sent every frame; only pure cosmetics (sound
+  flourishes, particles, shake) get throttled. Same lesson on the
+  reward side: any damage-credit that fires only when its carrier
+  effect actually applies (the exe pool hit lived inside the stun
+  application — dedup/attack-gate branches returned before it) will
+  silently vanish in exactly those branches; credit the reward at the
+  event, not inside the punishment, and give the credit function its
+  own short dedup so two racing paths for the same event don't
+  double-count. And an input "tap" that is silently dropped during
+  transient states (attacking/spin-charging/bounce) reads to the
+  player as "my block didn't work" — buffer taps past hard gates and
+  consume them when the transient clears.
+- **A lag-tolerance gate on the receiver is a lag shield for the
+  offender.** The v3.0 rule "only punish attacks still active on the
+  attacker's screen" was meant to avoid "free punishment" from late
+  signals — but the owner spotted the real effect: a laggy attacker
+  finishes the attack on his own client before the victim's block
+  signal (TCP, RTT later) arrives, and the gate drops the punishment.
+  The attacker gained immunity FROM his own lag. When the
+  authoritative event happened on the VICTIM's client (victim-authority
+  pattern), the attacker's local state must never veto the consequence;
+  at most deduplicate re-deliveries (shockedTimer), never dismiss the
+  event. The owner's exact override is documented in scr_parry_stun_signal
+  (v101) — design rules from older requests are hers to revoke, quote the
+  revocation in the code comment.

@@ -18,6 +18,10 @@ bool bfire_init(Server* server, Entity* entity)
         PacketWrite(&pack, packet_write16, (uint16_t)fb->pos.x);
         PacketWrite(&pack, packet_write16, (uint16_t)fb->pos.y);
         PacketWrite(&pack, packet_write8, (uint8_t)fb->dir);
+        /* v99: nid del dueno al final — el cliente lo guarda (ownerNid) para
+           el zap del escudo electrico (scr_player_hurt attackerNid), igual
+           que el laser de Tails. */
+        PacketWrite(&pack, packet_write16, fb->owner);
         server_broadcast(server, &pack, true);
 
         return true;
