@@ -36,7 +36,7 @@
 #macro KRIS_ACC 0.046875
 
 // ---- espada ----
-#macro KRIS_ATTACK_RECHARGE (60 * 10.75) // misma cadencia del puno de Knux
+#macro KRIS_ATTACK_RECHARGE (60 * 4.0) // misma cadencia del puno de Knux
 #macro KRIS_ATK_GROUND_SPD 0.4           // tajo tierra: 4 frames
 #macro KRIS_ATK_AIR1_SPD 0.4             // air1: 4 frames
 #macro KRIS_ATK_AIR2_SPD 0.5             // air2: 8 frames
@@ -67,7 +67,7 @@
 // el MULTI-SIGNAL FLUSH de scr_kris_love_event la vuelve LIBRE: ya NO
 // importa el espaciado de umbrales — la advertencia "no pasar de 3 por
 // golpe" del v96 queda OBSOLETA. Tunear a gusto.
-#macro KRIS_LV_XP_NORMAL 1.5
+#macro KRIS_LV_XP_NORMAL 5
 #macro KRIS_LV_XP_LMS 5
 
 // ---- v95 (LOVE = CRECIMIENTO): la vida de Kris escala con su LV ----
