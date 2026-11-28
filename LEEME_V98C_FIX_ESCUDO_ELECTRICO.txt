@@ -1,0 +1,83 @@
+════════════════════════════════════════════════════════════════════
+ v98c — FIX DEL CRASH DEL ESCUDO ELÉCTRICO: "Variable
+ obj_player_puppet.isJumping not set before reading it"
+════════════════════════════════════════════════════════════════════
+
+TU REPORTE
+──────────
+El juego reventó en plena partida:
+
+  ERROR in action number 1
+  of  Step Event0 for object obj_tails_projectile:
+  Variable obj_player_puppet.isJumping(100191, -2147483648) not set
+  before reading it.
+  at gml_Script_scr_player_hurt
+
+Traducción: un proyectil de Tails te golpeó, tu escudo eléctrico de
+la caja se rompió al absorber el golpe… y al buscar al atacante para
+stunearlo, el juego leyó una variable que el "otro jugador" (los
+puppets) nunca tuvo. Crash instantáneo.
+
+LA CAUSA (bug viejo del juego, NO del duelo del v98b)
+────────────────────────────────────────────────────
+Cuando el escudo eléctrico se rompe, scr_player_hurt busca quién lo
+rompió revisando TODOS los jugadores del room: "¿está atacando en
+cualquier forma? — isAttacking || isJumping || isSpinning". Esa
+detección la agregó el v92 para que un salto o un spindash también
+cuenten como ataque…
+
+…pero isJumping e isSpinning son variables que SOLO existen en tu
+propio jugador: nunca viajan por red y el Create del puppet (el
+"otro jugador") nunca las inicializó. El juego llevaba desde el v92
+con una bomba latente: en cuanto alguien con escudo eléctrico activo
+recibiera un golpe con otro jugador NO-atacando en el room — si está
+atacando, el "||" corta antes de leer la variable que falta, y por
+eso nunca reventó en las pruebas — crash. Tu partida fue la primera
+que cumplió las tres condiciones.
+
+EL FIX (1 archivo, 2 líneas, patrón de la casa)
+──────────────────────────────────────────────
+objects/obj_player_puppet/Create_0.gml: defaults defensivos junto al
+isGrounded, el MISMO patrón que el juego ya usa para isDead (v76) e
+isGrounded (v2.1.1) — el propio Create lo avisaba: "y cualquier
+sistema futuro que lo consulte":
+
+        isJumping = false;
+        isSpinning = false;
+
+Cero cambio de gameplay: solo afirman "este jugador no está saltando
+ni girando" hasta que algo real los ponga. El escudo, el zap y el
+stun siguen idénticos.
+
+QUÉ MÁS LLEVA EL ZIP
+────────────────────
+- check_v98b.py parcheado: commiteaste v98b upstream ("ewe") y su
+  check de "archivos modificados" daba un FALSO fail (tras tu commit
+  el árbol queda limpio). Ahora reconoce los 3 estados (limpio /
+  overlay / versión siguiente en vuelo).
+- check_v98c.py (nuevo): verifica el fix y algo más fuerte — extrae
+  TODAS las variables que scr_player_hurt lee en puppets y exige que
+  cada una tenga default en el Create. Ese check habría atrapado
+  este bug el día que se escribió el v92.
+
+CÓMO INSTALAR
+─────────────
+Igual que siempre: descomprime el zip sobre el proyecto (los 7
+archivos caen en su sitio) y corre check_v98c.py. El fix es GML puro
+del cliente: no hay que recompilar el server.
+
+VERIFICADO
+──────────
+check_v98c.py 20 OK / 0 FAIL (defaults presentes con el comentario
+del patrón; TODAS las variables que el zap lee en puppets con
+default; isDead v76 / isGrounded v2.1.1 intactos; v98b sigue intacto
+en "ewe") + check_v98b.py state-aware, ambos probados sobre un clon
+limpio de tu "ewe" + zip.
+
+ARCHIVOS DEL ZIP
+────────────────
+objects/obj_player_puppet/Create_0.gml   <- el fix (2 líneas + comment)
+check_v98b.py                             <- parche state-aware
+check_v98c.py                             <- check del v98c (nuevo)
+LEEME_V98C_FIX_ESCUDO_ELECTRICO.txt      <- este archivo
+LEARNING.md / CACHE.md / worklog.md       <- docs de siempre

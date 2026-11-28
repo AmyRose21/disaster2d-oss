@@ -1570,6 +1570,46 @@ y las pistas nuevas de 20-28s se cortaban).
   Delivered first as "v81" by this session and relabelled: the v81 label
   belongs to the claims delivery.
 ## 11. CHANGELOG DEL CACHE
+- 2026-11-28 (v98d — STUN AL CAUSANTE + CAJAS COBRAN AL LANZADOR): 2
+  pedidos de la duena. (1) "buscar al que causo el ataque y aplicarle
+  el stun tambien": el nid del tirador VIAJA en el paquete de spawn
+  del laser desde siempre (net_state_game solo lo usaba para isOwner
+  y lo tiraba) — ahora el laser lo guarda (ownerNid) y lo pasa como
+  8.o param de scr_player_hurt (attackerNid=-1 default): el zap del
+  escudo electrico stunea al DUENO exacto, sin distancia ni
+  "atacando"; la heuristica v92 queda de FALLBACK (melee/hazards).
+  (2) "si un proyectil destruye una caja no cuenta para el que la
+  destruyo": CLIENT_BOX_ACTIVATE gano un 3.er campo (owner u16; melee
+  escribe 0) y ItemBoxMap cobra al DUENO. EXCEPCIONES: BOTAS (type 4)
+  = nadie ("tener la speed sin querer seria una pendejada"), dueno
+  0/Exe = nadie (v74). Monitores Kaf (KindAndFair.c + Step_2 del
+  kaf_speedboobster) INTACTOS. OJO: itembox_activate perdio el param
+  is_proj (pid ya resuelto por el caller, unico caller). RECOMPILAR
+  CLIENTE+SERVER JUNTOS (el formato de CLIENT_BOX_ACTIVATE cambio).
+  Con 2+ Tails: instance_place en la caja manda el nid del laser QUE
+  TOCA, no el primero (hasta 3 vivos). fw_bolt (Amy Fleetway) NO
+  lleva nid de dueno — mismo patron pendiente si se pide.
+- 2026-11-28 (v98c — FIX CRASH DEL ESCUDO ELÉCTRICO): «Variable
+  obj_player_puppet.isJumping(100191, -2147483648) not set before
+  reading it» (crash real de la dueña: obj_tails_projectile ->
+  scr_player_hurt -> romper escudo eléctrico). Bug v92 PREEXISTENTE
+  (v98b no lo causó): el zap del escudo roto lee _pp.isAttacking ||
+  _pp.isJumping || _pp.isSpinning sobre TODOS los puppets, pero
+  isJumping/isSpinning NO viajan por red ni tenían default en el
+  Create del puppet — y si isAttacking=true el || corta antes, así
+  que el crash SOLO sale con un puppet NO-atacando en el room (por
+  eso sobrevivió los playtests con el atacante en pleno golpe).
+  Fix: defaults defensivos en el Create (isJumping = false;
+  isSpinning = false;), mismo patrón del isDead v76 / isGrounded
+  v2.1.1. REGLA para todo lo que lea estado en puppets: cada _pp.VAR
+  que lea cualquier sistema exige default en el Create (check_v98c.py
+  extrae los _pp.VAR reales de scr_player_hurt y exige default para
+  cada uno: el check que habría atrapado el v92). NOTA de repo: la
+  dueña commitea los zips upstream tal cual (v98b = «ewe» fd4c159b);
+  tras un commit suyo el árbol queda LIMPIO y los checks de
+  «modificados = N» dan FALSOS FAIL (real: []) — hacer los checks de
+  estado git state-aware (limpio / overlay clásico / vuelo de la
+  versión siguiente; ya nos pasó con el «ewe» del v89).
 - 2026-11-27 (v98b — FIX DEL DUELO FINAL: anillo activo tras el LV 20
   en el 1v1 + TIEMPO INFINITO del duelo — reporte de la duena):
   CAUSA RAIZ del anillo: el gate v98 exigia lms_natural, que se setea

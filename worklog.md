@@ -8050,3 +8050,144 @@ stub de enet).
 ENTREGA: zip SOLO con lo tocado por v98b (8 archivos de juego +
 check_v98b.py + LEEME_V98B_DUELO_INFINITO.txt + LEARNING.md +
 CACHE.md + worklog.md).
+
+=====================================================================
+v98c (2026-11-28) — FIX CRASH DEL ESCUDO ELÉCTRICO: "Variable
+obj_player_puppet.isJumping not set" del zap v92 sobre puppets
+=====================================================================
+REPORTE DE LA DUENA (texto literal del runner):
+
+  ERROR in action number 1
+  of  Step Event0 for object obj_tails_projectile:
+  Variable obj_player_puppet.isJumping(100191, -2147483648) not set
+  before reading it. at gml_Script_scr_player_hurt
+  gml_Script_scr_player_hurt (line -1)
+  gml_Object_obj_tails_projectile_Step_0
+
+CAUSA RAIZ (bug v92 PREEXISTENTE — v98b NO lo causó: sus 13 archivos
+no tocan ni scr_player_hurt ni obj_player_puppet): al romperse el
+escudo eléctrico de la caja, scr_player_hurt busca al atacante por
+"ataque activo en CUALQUIER forma" — _pp.isAttacking || _pp.isJumping
+|| _pp.isSpinning — sobre TODOS los puppets del room (detección v92
+en 2 pasos: contacto exacto por bbox + el más cercano a cualquier
+distancia). isAttacking, isDead, isHiding e isInactive tienen default
+defensivo en el Create del puppet (el patrón DOCUMENTADO desde el
+v76 isDead / v2.1.1 isGrounded: "y cualquier sistema futuro que lo
+consulte"), pero isJumping e isSpinning NUNCA se inicializaron allí
+— ni viajan por red (solo el jugador LOCAL los setea: obj_exe los
+inicializa y los manejan scr_move_basic + los specials). El primer
+puppet NO-atacando revienta la lectura: si isAttacking fuera true el
+|| corta ANTES de leer isJumping, por eso el crash nombra isJumping
+y no isAttacking (bomba latente desde v92 en cualquier sesión con
+escudo eléctrico activo + otro jugador no-atacando en el room).
+Gatillante del reporte: proyectil de Tails (obj_tails_projectile ->
+scr_player_hurt) rompiendo el escudo.
+
+FIX (mismo patrón documentado del Create, junto al isGrounded):
+isJumping = false; isSpinning = false; en
+objects/obj_player_puppet/Create_0.gml. Cero cambio de gameplay: el
+zap sigue detrás del guard electricShieldTimer > 0 y los defaults
+solo afirman "este puppet no está saltando ni girando" (nada los
+setea en puppets: estado negativo correcto para la detección).
+
+DE MÁS (descubierto al correr el check): la dueña COMMITTEÓ v98b
+upstream (commit "ewe" fd4c159b, los 13 archivos del zip tal cual,
++846/-48) — el overlay del zip se volvió NO-OP y el check
+"modificados = 11" de check_v98b.py daba un FALSO FAIL (árbol
+LIMPIO real: []). Parcheado: el check de estado reconoce 3 árboles
+válidos (limpio post-'ewe' / overlay v98b clásico / vuelo del v98c).
+
+VERIFICACIONES: check_v98c.py 20 OK / 0 FAIL (los 2 defaults
+presentes con el comentario del patrón, pegados al bloque del
+isGrounded; fix COMPLETO: extrae TODOS los _pp.VAR que lee
+scr_player_hurt sobre puppets [isDead, isHiding, isInactive,
+isAttacking, isJumping, isSpinning, master_id...] y exige default en
+el Create para cada uno que no sea built-in — el check que habría
+atrapado el v92 ANTES de que llegara al juego; isDead v76 e
+isGrounded v2.1.1 siguen; el lector y el guard del escudo siguen
+intactos; v98b sigue intacto en 'ewe': ∞ en (238, 15), RING_OFF con
+global.ringOff, game_kris_alone; check_v98b parcheado) +
+check_v98b.py 56 OK / 0 FAIL en vuelo v98c (state-aware). gcc N/A:
+el fix es GML puro del cliente (0 archivos C tocados).
+
+ENTREGA: zip SOLO con lo tocado por v98c (Create del puppet +
+check_v98b.py parcheado + check_v98c.py +
+LEEME_V98C_FIX_ESCUDO_ELECTRICO.txt + LEARNING.md + CACHE.md +
+worklog.md).
+
+=====================================================================
+v98d (2026-11-28) — STUN AL CAUSANTE DEL GOLPE + CAJAS QUE COBRAN AL
+DUENO DEL LASER (2 pedidos de la duena)
+=====================================================================
+PEDIDOS (textual de la duena):
+  1. "hay que arreglar una cosa buscar al que causo el ataque y
+     aplicarle el stun tambien"
+  2. "si tails lanza el misil y destruye una caja con el proyectil yo
+     he visto que si un proyectil lo destruye no cuenta para el que
+     lo destruyo si no que simplemente no se lo da a nadie" + "ojo
+     solo para las cajas item no para las botas de kaf xq si no
+     seria una pendejada tener la speed activa sin querer"
+  Y su pregunta: "¿los proyectiles tampoco no reconocen quien los
+  lanzo? xq si es asi entonses no funciona del todo".
+
+RESPUESTA A LA PREGUNTA: tenia razon. El nid del tirador VIAJA en el
+paquete de spawn del laser (SERVER_TPROJECTILE_STATE lo difunde desde
+siempre; tproj_init escribe tproj->owner) pero el cliente SOLO lo
+usaba para calcular isOwner (net_state_game:3310) y lo TIRABA. El
+server si lo sabe (TProjectile.owner) pero las cajas no lo usaban:
+CLIENT_BOX_ACTIVATE(nid, proj=true) => "pid 0, no cobra nadie" — y el
+mercoin del laser igual busca "el primer puppet Tails" (con 2+ Tails
+cree el equivocado; fuera de alcance de esta version).
+
+D1 — ZAP EXACTO (stun al que causo el rompimiento):
+  - obj_tails_projectile/Create: ownerNid = -1 (el spawn lo setea).
+  - net_state_game (spawn del laser): inst.ownerNid = _owner.
+  - scr_player_hurt: 8.o param opcional attackerNid = -1. En el zap
+    del escudo electrico: rama EXACTA primero (attackerNid >= 0 =>
+    _zapNid = attackerNid: stun directo al dueno del laser, SIN tope
+    de distancia y SIN exigirle "ataque activo" — antes un tirador
+    caminando a 2000 px era INVISIBLE para el zap). La deteccion v92
+    por contacto/cercania queda de FALLBACK para las causas sin nid
+    (attackerNid = -1: melee via SERVER_FORCE_DAMAGE, que no viaja
+    con atacante, y hazards).
+  - obj_tails_projectile/Step_0: la llamada pasa ownerNid.
+  Alcance: SOLO el laser de Tails (los fw_bolt de Amy Fleetway no
+  llevan nid de dueno — mismo patron para una version futura si la
+  duena lo pide).
+
+D2 — CREDITO DE CAJA AL LANZADOR:
+  - obj_itembox/Step_2: el paquete gana un 3.er campo (owner u16) =
+    el nid del DUENO del laser QUE TOCA LA CAJA (instance_place: con
+    2+ Tails hay hasta 3 lasers vivos — no el primero que haya).
+  - scr_collision_objects (melee): escribe 0 en el nuevo campo.
+  - Server (ItemBoxMap.c): lee powner y cobra al DUENO cuando
+    proj=true — ANTES el is_proj forzaba pid 0 ("no cobra nadie") y el
+    que reportaba era un cliente al azar (el Step de la caja corre en
+    TODOS los clientes). EXCEPCIONES (reglas de la duena): BOTAS
+    (ITEMTYPE_BOOTS) => NADIE ("tener la speed activa sin querer
+    seria una pendejada"; solo la cobra quien la rompe a proposito);
+    dueno 0 o dueno=Exe => NADIE (superficie v74: un cliente trucado
+    no puede facturar rewards). Los monitores Kaf (KindAndFair.c +
+    Step_2 del kaf_speedboobster) INTOCADOS: sin campo owner, cobran
+    igual que siempre (nadie por proyectil).
+  - itembox_activate: perdio el param is_proj (pid llega YA resuelto
+    por el caller; unico caller: ItemBoxMap.c).
+
+COMPATIBILIDAD: el formato de CLIENT_BOX_ACTIVATE cambio (u16 nuevo)
+— cliente y server HAY que actualizarlos JUNTOS (los dos van en el
+zip; mismo caveat de versiones anteriores a v98b).
+
+VERIFICACIONES: check_v98d.py 44 OK / 0 FAIL (ownerNid en Create +
+spawn; firma de 8 params; rama exacta ANTES de la heuristica + loop
+v92 intacto; la llamada pasa ownerNid; caja: instance_place + u16;
+melee: u16 0; docs de paquete en los DOS lados; server lee powner +
+las 3 condiciones de excepcion; Kaf intacto en los 2 archivos; gcc
+-fsyntax-only ItemBoxMap.c/ItemBox.c/Game.c/KindAndFair.c con stub de
+enet; llaves balanceadas de los 7 GML tocados; v98b/v98c intactos) +
+check_v98b.py 56 OK / 0 FAIL + check_v98c.py 18 OK / 0 FAIL, ambos en
+estado "vuelo del v98d" (state-aware, parchados por v98d).
+
+ENTREGA: zip con TODO lo pendiente vs upstream (16 modificados + 4
+nuevos: los 11 del v98d + los 5 del v98c que upstream aun no tiene +
+check_v98b/check_v98c parcheados + check_v98d.py +
+LEEME_V98D_ATRIBUCION_DEL_LASER.txt + LEEME_V98C + docs).

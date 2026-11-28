@@ -46,6 +46,19 @@ yspd = 0;
 // isGrounded NO viaja por red: default defensivo para que leerlo en un
 // puppet no reviente (lo hace obj_chocola para su sprite de movimiento)
 isGrounded = true;
+// isJumping/isSpinning NO viajan por red (solo los setea el jugador
+// LOCAL: obj_exe los inicializa y los maneja scr_move_basic + los
+// specials): default defensivo para que leerlos en un puppet no
+// reviente. Lo hace el zap v92 del escudo electrico de la caja
+// (scr_player_hurt: al romperse el escudo busca al atacante por
+// "ataque activo en CUALQUIER forma" — isAttacking || isJumping ||
+// isSpinning — sobre TODOS los puppets del room). Crash real (duena,
+// v98c): laser de Tails rompiendo el escudo con un puppet no-atacando
+// en el room -> "Variable obj_player_puppet.isJumping(100191,
+// -2147483648) not set before reading it". Mismo patron del isDead de
+// arriba (fix v76) y del isGrounded de arriba (fix v2.1.1).
+isJumping = false;
+isSpinning = false;
 pX = x;
 pY = y;
 image_speed = 0;

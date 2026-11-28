@@ -2377,3 +2377,55 @@ first, don't invent packets (rule 7).
   now regression-checked: check_v98b.py renders the ∞ at the literal
   draw coords from the GML and asserts its bbox center is within
   3 px of the real "4:37" block's center.
+- **A remote-player proxy must defensively initialize every variable
+  any system might read on it — even when the codebase already
+  documents the rule.** The puppet's own Create spells the pattern
+  out since v76 ("any future system that consults it"), with fixes
+  for isDead (v76) and isGrounded (v2.1.1); v92 then added
+  `_pp.isAttacking || _pp.isJumping || _pp.isSpinning` to the
+  electric-shield zap and nobody added those defaults — the owner
+  hit "Variable obj_player_puppet.isJumping … not set before reading
+  it" a full v98b later (Tails projectile → scr_player_hurt →
+  shield break → zap loop over every puppet in the room). Two
+  subtleties: (1) the crash only fires when earlier operands are
+  false — `isAttacking || isJumping` short-circuits, so an ATTACKING
+  puppet never reaches the unset read; the bomb needs a NON-attacking
+  puppet in the room, which is exactly what a playtest watching the
+  attacker mid-swing never hits. (2) The regression check writes
+  itself from the reader, not from the fix: extract every
+  `_pp.<var>` the game reads on puppets and demand a Create default
+  for each (x/y/bbox_* built-ins aside) — that check would have
+  caught v92's bug the day it shipped and now guards every future
+  read. Shipped as v98c: two `= false` lines + comment next to
+  isGrounded.
+- **When the owner commits your delivery upstream, "expected
+  modified files" checks false-fail.** She pushed the v98b zip
+  verbatim ("ewe", fd4c159b — 13 files, +846/-48), so clone + zip
+  overlay leaves a CLEAN tree: the check asserting "exactly 11
+  modified files" failed with `real: []`. Git-state checks must
+  recognize the three real states of this workflow: clean tree
+  (version committed upstream), classic overlay (old base + zip),
+  and next-version flight (the new fix's files modified). Her "ewe"
+  commits have swallowed whole deliveries before (v89, v80e) — when
+  a delivery's own checks suddenly fail on a fresh clone, look at
+  `git log` before touching anything.
+- **When a feature needs "who caused this", check what the network
+  already sends before inventing attribution.** The Tails laser's
+  spawn packet has carried the shooter's nid since the beginning —
+  the client only used it to compute isOwner and threw it away, and
+  the electric-shield zap fell back to guessing ("nearest attacking
+  puppet"), which fails exactly when the attacker is a shooter
+  standing 2000 px away not attacking. Same fix twice over (v98d):
+  (1) exact attackerNid plumbed into scr_player_hurt as an 8th
+  optional param (default -1 = fall back to the heuristic, so every
+  existing caller keeps working); (2) the box packet grew an owner
+  u16 so the server credits the SHOOTER instead of pid 0 — with the
+  owner's rules expressed as explicit exceptions (boots: nobody —
+  forced speed is a grief; exe owner: nobody, v74 surface). Two
+  design notes worth keeping: attribute by the INSTANCE that touched
+  (instance_place — with 2+ Tails there are up to 3 live lasers, "the
+  first one found" is the wrong one), and re-verify server-side
+  facts on the server (owner != game.exe from the server's own state)
+  instead of trusting a client-claimed field. Also: changing a packet
+  format means shipping client and server together — say so loudly in
+  the LEEME, both binaries travel in the same zip anyway.

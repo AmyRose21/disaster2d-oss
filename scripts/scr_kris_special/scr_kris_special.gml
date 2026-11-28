@@ -67,7 +67,7 @@
 // el MULTI-SIGNAL FLUSH de scr_kris_love_event la vuelve LIBRE: ya NO
 // importa el espaciado de umbrales — la advertencia "no pasar de 3 por
 // golpe" del v96 queda OBSOLETA. Tunear a gusto.
-#macro KRIS_LV_XP_NORMAL 5
+#macro KRIS_LV_XP_NORMAL 3
 #macro KRIS_LV_XP_LMS 5
 
 // ---- v95 (LOVE = CRECIMIENTO): la vida de Kris escala con su LV ----

@@ -64,13 +64,64 @@ expected = sorted([
     "LEARNING.md",
     "worklog.md",
 ])
-chk("modificados = 8 de juego + 3 docs, ni uno mas",
-    mod_files == expected, f"real: {mod_files}")
-chk("cero .yy/.yyp tocados", not any(f.endswith((".yy", ".yyp")) for f in mod_files))
+# ESTADO DEL ARBOL: v98b ya esta commiteado upstream (commit "ewe",
+# fd4c159b: la duena subio el zip tal cual, 13 archivos +846/-48). El
+# overlay del zip se volvio NO-OP, asi que el estado ya no es solo
+# "11 modificados". Estados validos:
+#   1) arbol LIMPIO (v98b ya integrado en 'ewe', nada en vuelo);
+#   2) overlay v98b clasico: base pre-v98b + zip = los 11 modificados
+#      (check_v98b.py / LEEME_V98B sin trackear);
+#   3) vuelo del v98c (fix del zap del escudo electrico): los 5 del
+#      v98c modificados + check_v98c.py / LEEME_V98C sin trackear.
+V98C_MOD = sorted([
+    "objects/obj_player_puppet/Create_0.gml",
+    "check_v98b.py",
+    "worklog.md",
+    "CACHE.md",
+    "LEARNING.md",
+])
+V98C_UNTRACKED = sorted(["check_v98c.py", "LEEME_V98C_FIX_ESCUDO_ELECTRICO.txt"])
+V98D_MOD = sorted([
+    "betterserver-oss/disasterserver/entities/ItemBox.c",
+    "betterserver-oss/disasterserver/entities/ItemBoxMap.c",
+    "betterserver-oss/include/Packet.h",
+    "betterserver-oss/include/entities/ItemBox.h",
+    "objects/obj_itembox/Step_2.gml",
+    "objects/obj_player_puppet/Create_0.gml",
+    "objects/obj_tails_projectile/Create_0.gml",
+    "objects/obj_tails_projectile/Step_0.gml",
+    "scripts/net_packets/net_packets.gml",
+    "scripts/net_state_game/net_state_game.gml",
+    "scripts/scr_collision_objects/scr_collision_objects.gml",
+    "scripts/scr_player_hurt/scr_player_hurt.gml",
+    "check_v98b.py",
+    "worklog.md",
+    "CACHE.md",
+    "LEARNING.md",
+])
+V98D_UNTRACKED = sorted([
+    "check_v98c.py", "LEEME_V98C_FIX_ESCUDO_ELECTRICO.txt",
+    "check_v98d.py", "LEEME_V98D_ATRIBUCION_DEL_LASER.txt",
+])
 untracked = [l[2:].strip() for l in lines if l[:2] == "??"]
-chk("nuevos sin trackear: solo check_v98b.py + LEEME_V98B",
-    all("check_v98b.py" in u or "LEEME_V98B" in u for u in untracked),
-    f"real: {untracked}")
+if mod_files == []:
+    _estado = "arbol limpio: v98b ya commiteado upstream ('ewe')"
+    _untracked_ok = untracked == []
+elif mod_files == expected:
+    _estado = "overlay v98b clasico (base pre-v98b + zip)"
+    _untracked_ok = all("check_v98b.py" in u or "LEEME_V98B" in u for u in untracked)
+elif mod_files == V98C_MOD:
+    _estado = "vuelo del v98c (fix del zap del escudo electrico)"
+    _untracked_ok = sorted(untracked) == V98C_UNTRACKED
+elif mod_files == V98D_MOD:
+    _estado = "vuelo del v98d (zap al dueno del laser + cajas que cobran al lanzador)"
+    _untracked_ok = sorted(untracked) == V98D_UNTRACKED
+else:
+    _estado = "NO RECONOCIDO"
+    _untracked_ok = False
+chk(f"estado del arbol: {_estado} — ni un archivo de mas, cero .yy/.yyp",
+    _untracked_ok and not any(f.endswith((".yy", ".yyp")) for f in mod_files),
+    f"real mods: {mod_files} untracked: {untracked}")
 
 game_c = rd("betterserver-oss/disasterserver/states/Game.c")
 srv_h  = rd("betterserver-oss/include/Server.h")
